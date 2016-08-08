@@ -1,0 +1,669 @@
+228,231d227
+< cal_dir = '/hao/mlsodata1/Data/KCor/calib_files'
+< ;calfile = '20140310_cal_191609.ncdf'
+< calfile = '20150101_190612_kcor_cal_1.0ms.ncdf'
+< 
+
+233,234c229
+< ; unit = ncdf_open('/hao/mlsodata1/Data/KCor/calib_files/20140310_cal_191609.ncdf')
+< 
+---
+> ; calfile = '20140310_cal_191609.ncdf'
+
+236,237d230
+< ; unit = ncdf_open('/hao/mlsodata1/Data/KCor/calib_files/20140508_175541_kcor_cal_1.0ms.ncdf')
+< 
+
+239,240d231
+< ; unit = ncdf_open('/hao/mlsodata1/Data/KCor/raw/20140620/20140620_201604_cal.ncdf')
+< 
+
+242,243d232
+< ; unit = ncdf_open('/hao/mlsodata1/Data/KCor/raw/20131031/20131031_cal_214306_kcor.ncdf')
+< 
+
+245c234
+< ; unit = ncdf_open ('/hao/mlsodata1/Data/KCor/calib_files/20141028_183928_kcor_cal_1.1ms.ncdf')
+---
+> ; calfile = '20140829_182714_kcor_cal_2.5ms.ncdf' ; 2.5 msec 29 Aug 2014.
+
+247,249c236,237
+< ;--- 2.5 msec data on Aug 29:
+< ; calfile = '20140829_182714_kcor_cal_2.5ms.ncdf'
+< ; unit = ncdf_open('/hao/mlsodata1/Data/KCor/raw/20140829/20140829_182714_kcor_cal_2.5ms.ncdf')
+---
+> cal_dir = '/hao/mlsodata1/Data/KCor/calib_files'
+> calfile = '20150101_190612_kcor_cal_1.0ms.ncdf'
+
+268c256
+< ; I am only printing matrix for one pixel.
+---
+> ; Only printing matrix for one pixel.
+
+281,282c269,270
+< ; GdT: changed gain correction and moved it up (not inside the loop)
+< ; this will change when we read the daily gain instead of a fixed one.
+---
+> ; GdT: changed gain correction and moved it up (not inside the loop).
+> ; This will change when we read the daily gain, instead of a fixed one.
+
+285c273
+< ;  set image dimensions
+---
+> ;--- Set image dimensions.
+
+290c278
+< ; set zero and negative values in gain to value stored in gain_negative
+---
+> ;--- Set zero and negative values in gain to value stored in gain_negative.
+
+295c283
+< ; replace zero and negative values with mean of 5x5 neighbour pixels
+---
+> ;--- Replace zero and negative values with mean of 5x5 neighbour pixels.
+
+312,313c300
+< ; set gues for radius - needed to find center
+< 
+---
+> ; Set guess for radius.  (Needed to find center.)
+
+321c308
+< ; define coordinate arrays for gains
+---
+> ;--- Define coordinate arrays for gains.
+
+323,324c310,311
+< gxx0 = findgen (xsize,ysize) mod (xsize) - center0_info_gain (0)
+< gyy0 = transpose(findgen(ysize,xsize)mod(ysize) ) - center0_info_gain(1)
+---
+> gxx0 = findgen (xsize, ysize) mod (xsize) - center0_info_gain (0)
+> gyy0 = transpose (findgen (ysize, xsize) mod (ysize) ) - center0_info_gain (1)
+
+328,329c315,316
+< gxx1 = findgen(xsize,ysize)mod(xsize) - center1_info_gain(0)
+< gyy1 = transpose(findgen(ysize,xsize)mod(ysize) ) - center1_info_gain(1)
+---
+> gxx1 = findgen (xsize, ysize) mod (xsize) - center1_info_gain (0)
+> gyy1 = transpose (findgen (ysize, xsize) mod (ysize) ) - center1_info_gain (1)
+
+331c318
+< grr1 = sqrt(gxx1^2. + gyy1^2.)  
+---
+> grr1 = sqrt (gxx1^2. + gyy1^2.)  
+
+333,334c320,321
+<    PRINTF, ULOG, 'Gain 0 center and radius : ' , center0_info_gain
+<    PRINTF, ULOG, 'Gain 1 center and radius : ' , center1_info_gain
+---
+> PRINTF, ULOG, 'Gain 0 center and radius : ' , center0_info_gain
+> PRINTF, ULOG, 'Gain 1 center and radius : ' , center1_info_gain
+
+342,343c329,331
+< set_plot, 'Z'
+< ;set_plot, 'X'
+---
+> set_plot, 'Z'		; Use Z-buffer.
+> 
+> ;set_plot, 'X'		; Use X-windows.
+
+365c353
+< ; GdT: the date is needed to compute the radius of the Sun 
+---
+> ; GdT: the date is needed to compute the radius of the Sun.
+
+367c355
+< ;--- Read date of observation.
+---
+> ;--- Read date of observation..
+
+369c357
+<       dateobs = SXPAR (header, 'DATE-OBS') 
+---
+>    dateobs = SXPAR (header, 'DATE-OBS') 
+
+405d392
+<    
+
+421d407
+< 
+
+443c429
+< ;  FIND CENTER AND RADIUS FOR CAMERA 0
+---
+> ; FIND CENTER AND RADIUS FOR CAMERA 0.
+
+458c444
+< ; GdT: set pixels inside occulter to zero 
+---
+> ; GdT: set pixels inside occulter to zero.
+
+465c451
+< ;  FIND CENTER AND RADIUS FOR CAMERA 1
+---
+> ; FIND CENTER AND RADIUS FOR CAMERA 1.
+
+467c453,454
+<    center_info_img  = kcor_find_image (img (*, *, 0, 1),  radius_guess, /center_guess)
+---
+>    center_info_img  = kcor_find_image (img (*, *, 0, 1), $
+>                                        radius_guess, /center_guess)
+
+479c466
+< ;  GdT: set pixels inside occulter to zero 
+---
+> ;  GdT: set pixels inside occulter to zero.
+
+491d477
+< 
+
+499,500c485,486
+< ; GdT: replace missing data in gain images with shifted gain
+< ; it should use special gain data taken with no occulter
+---
+> ; GdT: replace missing data in gain images with shifted gain.
+> ; It should use special gain data taken with no occulter.
+
+503,511c489,499
+<    replace = WHERE (rr0 GT radius_0 -4. AND grr0 LE center0_info_gain(2) +4., nrep)
+<     if nrep gt 0 then  begin 
+<     gain_temp = gain_alfred (*, *, 0)
+<     gain_replace = shift (gain_alfred (*, *, 0), $
+<                          xctr0 - center0_info_gain(0), $
+<                          yctr0 - center0_info_gain(1) )
+<      gain_temp(replace) = gain_replace(replace)      ;gain_no_occulter0(replace)
+<      gain_alfred (*, *, 0) = gain_temp
+<      PRINTF, ULOG, 'gain for CAMERA 0 shifetd to image position'     
+---
+>    replace = WHERE (rr0 GT radius_0 -4. AND grr0 LE center0_info_gain (2) +4., $
+>                     nrep)
+>    if (nrep gt 0) then $
+>    begin 
+>       gain_temp = gain_alfred (*, *, 0)
+>       gain_replace = shift (gain_alfred (*, *, 0), $
+>                              xctr0 - center0_info_gain (0), $
+>                              yctr0 - center0_info_gain (1) )
+>       gain_temp (replace) = gain_replace (replace)  ;gain_no_occulter0(replace)
+>       gain_alfred (*, *, 0) = gain_temp
+>       PRINTF, ULOG, 'gain for CAMERA 0 shifetd to image position'     
+
+514,522c502,512
+<   replace = WHERE (rr1 GT radius_1 -4. AND grr1 LE center1_info_gain(2) +4. , nrep)
+<    if nrep gt 0 then  begin 
+<        gain_temp =  gain_alfred (*, *, 1)
+<        gain_replace = shift (gain_alfred (*, *, 1), $
+<                          xctr1 - center1_info_gain(0), $
+< 			 yctr1 - center1_info_gain(1) )
+<        gain_temp(replace) = gain_replace(replace) ; gain_no_occulter1(replace)
+<        gain_alfred (*, *, 1) = gain_temp
+<        PRINTF, ULOG, 'gain for CAMERA 1 shifetd to image position'
+---
+>    replace = WHERE (rr1 GT radius_1 -4. AND grr1 LE center1_info_gain (2) +4., $
+>                    nrep)
+>    if nrep gt 0 then $
+>    begin 
+>       gain_temp = gain_alfred (*, *, 1)
+>       gain_replace = shift (gain_alfred (*, *, 1), $
+>                             xctr1 - center1_info_gain (0), $
+> 			    yctr1 - center1_info_gain (1) )
+>       gain_temp (replace) = gain_replace (replace) ; gain_no_occulter1 (replace)
+>       gain_alfred (*, *, 1) = gain_temp
+>       PRINTF, ULOG, 'gain for CAMERA 1 shifetd to image position'
+
+528d517
+< 
+
+539,542c528,531
+< ;      shiftx_gain = center_info_img (0) - center_info_gain (0)
+< ;      shifty_gain = center_info_img (1) - center_info_gain (1)
+< ;      gainshift (*,*,b) = fshift (gain_alfred (*,*,b), shiftx_gain, shifty_gain)
+< ;    FOR b = 0, 1 DO BEGIN ;{;      FOR s = 0, 3 DO $
+---
+> ;   shiftx_gain = center_info_img (0) - center_info_gain (0)
+> ;   shifty_gain = center_info_img (1) - center_info_gain (1)
+> ;   gainshift (*,*,b) = fshift (gain_alfred (*,*,b), shiftx_gain, shifty_gain)
+> ;   FOR b = 0, 1 DO BEGIN ;{;      FOR s = 0, 3 DO $
+
+546c535
+< ;     ENDFOR ;}
+---
+> ;   ENDFOR ;}
+
+550c539
+<     FOR b = 0, 1 DO BEGIN 
+---
+>    FOR b = 0, 1 DO BEGIN 
+
+552c541,542
+<          img(*,*,s,b) = (img(*,*,s,b) - dark_alfred (*,*,b) ) / gain_alfred(*,*,b)
+---
+>          img (*, *, s, b) = (img (*, *, s, b) - dark_alfred (*, *, b) ) $
+> 	                  / gain_alfred (*, *, b)
+
+554c544
+<     ENDFOR 
+---
+>    ENDFOR 
+
+571c561
+< ; GdT: find image center that will be used later when distorsion is applied
+---
+> ; GdT: find image center that will be used later when distorsion is applied.
+
+574,588c564
+< image0 = reverse(image0, 2)
+< 
+< restore, '/home/iguana/idl/kcor/dist_coeff.sav'
+<       dat1 = image0 
+<       dat2 = image1 
+<       apply_dist, dat1, dat2, dx1_c, dy1_c, dx2_c, dy2_c
+<       image0 = dat1
+<       image1 = dat2
+< 
+< center0_info_new = kcor_find_image (image0, radius_guess, /center_guess)
+< center1_info_new = kcor_find_image (image1, radius_guess, /center_guess)
+< 
+<  PRINTF, ULOG, 'CAMERA CENTER INFO FOR IMAGES AFTER DISTORSION'
+<  PRINTF, ULOG, 'Camera 0 center and radius: ', center0_info_new 
+<  PRINTF, ULOG, 'Camera 1 center and radius: ', center1_info_new
+---
+>    image0 = reverse (image0, 2)
+
+589a566,578
+>    restore, '/home/iguana/idl/kcor/dist_coeff.sav'
+>    dat1 = image0 
+>    dat2 = image1 
+>    apply_dist, dat1, dat2, dx1_c, dy1_c, dx2_c, dy2_c
+>    image0 = dat1
+>    image1 = dat2
+> 
+>    center0_info_new = kcor_find_image (image0, radius_guess, /center_guess)
+>    center1_info_new = kcor_find_image (image1, radius_guess, /center_guess)
+> 
+>    PRINTF, ULOG, 'CAMERA CENTER INFO FOR IMAGES AFTER DISTORSION'
+>    PRINTF, ULOG, 'Camera 0 center and radius: ', center0_info_new 
+>    PRINTF, ULOG, 'Camera 1 center and radius: ', center1_info_new
+
+606c595
+< ; GdT : do not need to recompute center after demodulation
+---
+> ; GdT : do not need to recompute center after demodulation.
+
+668,669c657
+< ;   GdT: phases need to be checked. Left them unchanged for now 
+< 
+---
+> ;   GdT: phases need to be checked. Left them unchanged for now.
+
+675,679c663,664
+< ;phase0 = 0
+< ;phase1 = 0
+< 
+< PRINTF, ULOG, 'PHASE SHIFT FOR CAMERA 0: ',  phase0*!radeg
+< PRINTF, ULOG, 'PHASE SHIFT FOR CAMERA 1: ',  phase1*!radeg
+---
+> ;   phase0 = 0
+> ;   phase1 = 0
+
+680a666,667
+>    PRINTF, ULOG, 'PHASE SHIFT FOR CAMERA 0: ',  phase0*!radeg
+>    PRINTF, ULOG, 'PHASE SHIFT FOR CAMERA 1: ',  phase1*!radeg
+
+783c770
+< ;  GdT: NEW CODE FOR COORDINATE TRANSFORMATION
+---
+> ;  GdT: NEW CODE FOR COORDINATE TRANSFORMATION.
+
+809c796
+<  PRINTF, ULOG, 'applied Mk4 coordinate transformation'
+---
+>    PRINTF, ULOG, 'applied Mk4 coordinate transformation'
+
+822c809
+< ; GdT: this code is replaced to avoid loop
+---
+> ; GdT: this code is replaced to avoid loop.
+
+1040d1026
+< 
+
+1042c1028
+< ;  GdT: NEW CODE FOR SIN2THETA .
+---
+> ;  GdT: NEW CODE FOR SIN2THETA.
+
+1054c1040,1041
+<    PRINTF, ULOG, 'annulus used to compute sin2theta [solar radii] : ', r_in, r_out
+---
+>    PRINTF, ULOG, 'annulus used to compute sin2theta [solar radii] : ', $
+>                  r_in, r_out
+
+1062c1049
+< ; Make new theta arrays in degrees.
+---
+>    ; Make new theta arrays in degrees.
+
+1067c1054,1055
+<    FOR i = 0, 359 DO BEGIN ;{
+---
+>    FOR i = 0, 359 DO $
+>    BEGIN ;{
+
+1069,1072c1057,1062
+<       pick0 = WHERE (rr0 GE r_in AND rr0 LT r_out AND theta0_deg GE angle AND theta0_deg LT angle+1., nnl0)
+<       IF nnl0 GT 0 THEN angle_ave_u0 (i) = mean (umk4_0 (pick0))
+<       pick1 = WHERE (rr1 GE r_in AND rr1 LT r_out AND theta1_deg GE angle AND theta1_deg LT angle+1., nnl1) 
+<       IF nnl1 GT 0 THEN angle_ave_u1 (i) = mean ( umk4_1(pick1))
+---
+>       pick0 = WHERE (rr0 GE r_in AND rr0 LT r_out AND $
+>                      theta0_deg GE angle AND theta0_deg LT angle + 1., nnl0)
+>       IF (nnl0 GT 0) THEN angle_ave_u0 (i) = mean (umk4_0 (pick0))
+>       pick1 = WHERE (rr1 GE r_in AND rr1 LT r_out AND $
+>                      theta1_deg GE angle AND theta1_deg LT angle + 1., nnl1) 
+>       IF (nnl1 GT 0) THEN angle_ave_u1 (i) = mean (umk4_1 (pick1))
+
+1076,1077c1066
+<    degrees = double(degrees)/!radeg
+< 
+---
+>    degrees = double (degrees) / !radeg
+
+1085,1086c1074,1075
+< ;  GdT: LEFT bias to avoid image to be too dark in the outer fov
+< ;  for proper calibration the bias should be set to 0
+---
+> ;  GdT: LEFT bias to avoid image to be too dark in the outer fov.
+> ;  For proper calibration the bias should be set to 0.
+
+1091d1079
+< 
+
+1093,1094c1081,1083
+< ; a is now a 2D array
+< ; initial guesses have been changed (values for camera 0 and 1 have opposite sign)
+---
+> ; a is now a 2D array.
+> ; Initial guesses have been changed (values for camera 0 and 1 
+> ; have opposite sign).
+
+1096c1085
+<    a = dblarr(2)               ;  coefficients for sine(2*theta) fit
+---
+>    a = dblarr (2)               ;  coefficients for sine (2*theta) fit
+
+1098c1087
+<    weights     = fltarr(360)
+---
+>    weights     = fltarr (360)
+
+1100d1088
+<    
+
+1103c1091
+<    ; and REMOVE from mk4u and mk4q images;
+---
+>    ; and REMOVE from mk4u and mk4q images.
+
+1107,1108c1095,1096
+<    a(0) = -0.015 
+<    a(1) = 0.0
+---
+>    a (0) = -0.015 
+>    a (1) =  0.0
+
+1111d1098
+<   
+1117,1118c1104,1105
+< set_plot, 'x'
+< !p.multi=[0,1,2]
+---
+>    set_plot, 'x'
+>    !p.multi=[0,1,2]
+
+1120c1107,1108
+<    plot,   degrees*!radeg, angle_ave_u0, thick=2, title=' CAMERA 0          U', yrange=[-0.08, 0.08]
+---
+>    plot,   degrees*!radeg, angle_ave_u0, thick=2, title=' CAMERA 0          U',$
+>            yrange=[-0.08, 0.08]
+
+1123,1124d1110
+<    PRINTF, ULOG, 'sin2theta fit coefficients for CAMERA 0 : ', a
+<  
+
+1125a1112
+>    PRINTF, ULOG, 'sin2theta fit coefficients for CAMERA 0 : ', a
+
+1128,1130c1115,1117
+< ; GdT :  Saved sky polarization correction as arrays
+< ;        the correction for Q has been shifted by 45deg according to
+< ;        D. Elmore notes 
+---
+> ; GdT :  Saved sky polarization correction as arrays.
+> ;        The correction for Q has been shifted by 45deg according to
+> ;        D. Elmore notes.
+
+1132,1133c1119,1120
+<    sky_polar0_u0 = a(0) * double (sin (2.0 * theta0 + a(1)) )
+<    sky_polar0_q0 = a(0) * double (sin (2.0 * theta0 + 90. / !radeg + a(1)) )
+---
+>    sky_polar0_u0 = a (0) * double (sin (2.0 * theta0 + a (1)) )
+>    sky_polar0_q0 = a (0) * double (sin (2.0 * theta0 + 90. / !radeg + a (1)) )
+
+1136,1137c1123,1124
+< ; GdT: left 0.5 scaling to avoid going negative
+< ;      this should be 1.0
+---
+> ; GdT: Left 0.5 scaling to avoid going negative.
+> ;      This should be 1.0
+
+1139,1140c1126,1127
+<    qmk4_0 = qmk4_0  + bias  - sky_factor * sky_polar0_q0
+<    umk4_0 = umk4_0  + bias  - sky_factor * sky_polar0_u0
+---
+>    qmk4_0 = qmk4_0 + bias - sky_factor * sky_polar0_q0
+>    umk4_0 = umk4_0 + bias - sky_factor * sky_polar0_u0
+
+1143c1130
+<    ; and REMOVE from mk4u and mk4q images;
+---
+>    ; and REMOVE from mk4u and mk4q images.
+
+1147,1148c1134,1138
+<    a(0) = 0.015
+<    a(1) = 0.0
+---
+>    a (0) = 0.015
+>    a (1) = 0.0
+> 
+>    PRINT, ' camera 1 guess ', a , a*!radeg , format='(a20, 4f10.5)'
+>    PRINTF, ULOG, 'sin2theta guuess coefficients for CAMERA 1 : ', a
+
+1153c1143,1144
+<    plot,  degrees*!radeg,  angle_ave_u1, thick=2, title='CAMERA 1         U', yrange=[-0.08, 0.08]
+---
+>    plot,  degrees*!radeg, angle_ave_u1, thick=2, title='CAMERA 1         U', $
+>           yrange=[-0.08, 0.08]
+
+1156,1158c1147,1148
+< 
+< set_plot, 'Z'
+< !p.multi=[0,1,1]
+---
+>    set_plot, 'Z'
+>    !p.multi=[0,1,1]
+
+1161d1150
+< 
+
+1164,1165c1153,1154
+<    sky_polar1_u1  = a(0) * double (sin (2.0 * theta1 + a(1)))
+<    sky_polar1_q1  = a(0) * double (sin (2.0 * theta1 - 90. / !radeg + a(1))) 
+---
+>    sky_polar1_u1  = a (0) * double (sin (2.0 * theta1 + a (1)))
+>    sky_polar1_q1  = a (0) * double (sin (2.0 * theta1 - 90. / !radeg + a (1))) 
+
+1170c1159
+<  PRINTF, ULOG, 'sin2theta correction bias and factor: ', bias, sky_factor
+---
+>    PRINTF, ULOG, 'sin2theta correction bias and factor: ', bias, sky_factor
+
+1177c1166
+<  PRINTF, ULOG, 'applied sky polarization correction'
+---
+>    PRINTF, ULOG, 'Applied sky polarization correction.'
+
+1184c1173
+<    ;  per Steve's instructions, first flip camera 0 from top to bottom
+---
+>    ;  per Steve's instructions, first flip camera 0 from top to bottom,
+
+1189c1178
+<           cal_data(*, *, 0, s) = reverse(cal_data(*, *, 0, s), 2)
+---
+>       cal_data (*, *, 0, s) = reverse (cal_data (*, *, 0, s), 2)
+
+1192c1181
+<    ; Restore distortion coefficients from Steve's IDL file which currently uses
+---
+>    ; Restore distortion coefficients from Steve's IDL file, which currently uses
+
+1209,1211c1198
+< 
+<  PRINTF, ULOG, 'applied image distorsion'
+< 
+---
+>    PRINTF, ULOG, 'applied image distorsion'
+
+1230d1216
+< 
+
+1237,1238d1222
+<    
+< 
+
+1255,1258c1239,1242
+< ;      FOR a = 0, 2 DO BEGIN
+< ;         cal_data (*, *, 0, a) = $
+< ;	    fshift (cal_data (*, *, 0, a), 511.5 - xctr0, 511.5 - yctr0)
+< ;      ENDFOR
+---
+> ;   FOR a = 0, 2 DO BEGIN
+> ;      cal_data (*, *, 0, a) = $
+> ;      fshift (cal_data (*, *, 0, a), 511.5 - xctr0, 511.5 - yctr0)
+> ;   ENDFOR
+
+1262,1265c1246,1249
+< ;      FOR a = 0, 2 DO BEGIN
+< ;         cal_data (*, *, 1, a) = $
+< ;	    fshift (cal_data (*, *, 1, a), 511.5 - xctr1, 511.5 - yctr1)
+< ;      ENDFOR
+---
+> ;   FOR a = 0, 2 DO BEGIN
+> ;      cal_data (*, *, 1, a) = $
+> ;      fshift (cal_data (*, *, 1, a), 511.5 - xctr1, 511.5 - yctr1)
+> ;   ENDFOR
+
+1268,1273c1252,1257
+< ;      FOR s = 0, 2 do begin
+< ;         cal_data (*, *, 0, s) = fshift (cal_data (*, *, 0, s), $
+< ;                                         511.5 - xctr0, 511.5 - yctr0)
+< ;         cal_data (*, *, 1, s) = fshift (cal_data (*, *, 1, s), $
+< ;                                         511.5 - xctr1, 511.5 - yctr1)
+< ;      ENDFOR
+---
+> ;   FOR s = 0, 2 do begin
+> ;      cal_data (*, *, 0, s) = fshift (cal_data (*, *, 0, s), $
+> ;                                      511.5 - xctr0, 511.5 - yctr0)
+> ;      cal_data (*, *, 1, s) = fshift (cal_data (*, *, 1, s), $
+> ;                                      511.5 - xctr1, 511.5 - yctr1)
+> ;   ENDFOR
+
+1276,1281c1260,1265
+<       FOR s = 0, 2 DO BEGIN
+<          cal_data (*, *, 0, s) = rot (reverse(cal_data (*, *, 0, s), 1) , $
+<                                       pangle, 1, xsize-1-xctr0, yctr0, cubic=-0.5)
+<          cal_data (*, *, 1, s) = rot (reverse(cal_data (*, *, 1, s), 1) , $
+<                                      pangle, 1, xsize-1-xctr1, yctr1, cubic=-0.5)
+<       ENDFOR
+---
+>    FOR s = 0, 2 DO BEGIN
+>       cal_data (*, *, 0, s) = rot (reverse(cal_data (*, *, 0, s), 1) , $
+>                                    pangle, 1, xsize-1-xctr0, yctr0, cubic=-0.5)
+>       cal_data (*, *, 1, s) = rot (reverse(cal_data (*, *, 1, s), 1) , $
+>                                    pangle, 1, xsize-1-xctr1, yctr1, cubic=-0.5)
+>    ENDFOR
+
+1283d1266
+<  
+
+1284a1268
+>    ;----------------------------------------------------------------------------
+
+1288d1271
+< 
+
+1304c1287
+<    ; GdT: This sum should be changed 
+---
+>    ; GdT: This sum should be changed.
+
+1315,1316c1298
+< ; GdT: Changed to avoid loop
+< ;
+---
+> ; GdT: Changed to avoid loop.
+
+1327c1309
+< ; GdT: use mask to build final image 
+---
+> ; GdT: use mask to build final image.
+1329,1330c1311,1312
+<     r_in  = fix (occulter / platescale) + 5.
+<     r_out = 504.0
+---
+>    r_in  = fix (occulter / platescale) + 5.
+>    r_out = 504.0
+
+1332,1337c1314,1319
+<     xx = findgen (xsize, ysize) mod (xsize) - 511.5 
+<     yy = transpose (findgen (ysize, xsize) mod (ysize) ) - 511.5
+<     xx = double (xx) &  yy = double (yy)  
+<     rads = sqrt ( xx^2. + yy^2. )  
+<     bad = WHERE (rads LT r_in OR rads GE r_out) 
+<     corona (bad) = 0.
+---
+>    xx = findgen (xsize, ysize) mod (xsize) - 511.5 
+>    yy = transpose (findgen (ysize, xsize) mod (ysize) ) - 511.5
+>    xx = double (xx) &  yy = double (yy)  
+>    rads = sqrt ( xx^2. + yy^2. )  
+>    bad = WHERE (rads LT r_in OR rads GE r_out) 
+>    corona (bad) = 0.
+
+1342d1323
+< 
+
+1344c1325
+<    ; CREATE STRING DATA FOR ANNOTATING IMAGE
+---
+>    ; CREATE STRING DATA FOR ANNOTATING IMAGE.
+
+1410c1391
+< ;   ; ---------------------------------------------------------------------------
+---
+> ;   ; --------------------------------------------------------------------------
+
+1412c1393
+< ;   ; ---------------------------------------------------------------------------
+---
+> ;   ; --------------------------------------------------------------------------
+
+1525c1506
+< ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+---
+> ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+1527,1528c1508
+< ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+< 
+---
+> ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
