@@ -1,0 +1,238 @@
+#!/opt/local/bin/perl
+#-------------------------------------------------------------------------------
+# dokcor_rg2m
+#-------------------------------------------------------------------------------
+# Apply normalized radially-graded filter to kcor L1 images. 
+#-------------------------------------------------------------------------------
+# usage: dokcor_rg2m  yyyymmdd  fits_list
+# yyyy = year, mm = month, dd=day of month.
+# fits_list = name of file containing a list of OK L1 fits images.
+#-------------------------------------------------------------------------------
+# Andrew L. Stanger   HAO/NCAR  23 Apr 2015
+#-------------------------------------------------------------------------------
+# 26 May 2015 Move rg files to "/hao/acos/nrgf/yyyy/mm/dd".
+# 28 May 2015 Move rg files to "/hao/acos/nrgf/yyyymmdd".
+#             Copy rg files to 
+#             "mlsoserver:/export/data1/instruments/gallery/nrgf/yyyymmdd".
+# 28 Jan 2016 Adapt from dokcor_nrgf2m.
+# 02 Mar 2016 no change to program but I did rewrite the file so it has a march 2 2016 date
+#-------------------------------------------------------------------------------
+
+use File::Copy ;
+use Cwd ;
+
+print ("dokcor_rg2m  @ARGV\n") ;
+
+$numargs = @ARGV ;
+
+if ($numargs != 2)
+   {
+   print ("Usage: dokcor_rg2m  yyyymmdd l1_list\n") ;
+   print ("yyyy: year   mm: month   dd: day of month\n") ;
+   print ("l1_list: name of file containing a list of L1 kcor fits images.\n") ;
+   exit (1) ;
+   }
+
+#------------------------------------------------
+# Get date parameter (yyyymmdd) & fits list file.
+#------------------------------------------------
+
+$date    = $ARGV[0] ;
+$l1_list = $ARGV[1] ;
+
+#--- Extract year, month & day from date parameter.
+
+$year = substr $date, 0, 4;                     # year
+$mon  = substr $date, 4, 2;                     # month
+$day  = substr $date, 6, 2;                     # day of month
+
+# Get current date & time.
+#-------------------------------------------------------------------------------
+
+my ($csec,$cmin,$chour,$cmday,$cmon,$cyear,$cwday,$cyday,$isdst)
+= localtime (time) ;
+my @month_name = qw (Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec) ;
+$cyear += 1900 ;
+$cmonth = $cmon + 1 ;
+
+my $datenow = sprintf ("%04d-%02d-%02d", $cyear, $cmonth, $cmday) ;
+my $timenow = sprintf ("%02d:%02d:%02d", $chour, $cmin, $csec) ;
+
+#-------------------------------------------------------------------------------
+# Define directory path names.
+#-------------------------------------------------------------------------------
+
+$date_dir = "/hao/mlsodata1/Data/KCor/raw/$date" ;	# kcor yyyymmdd dir
+$l1_dir   = "$date_dir/levels";				# kcor level0   dir
+
+$log_file = "$date" . "_dokcor_rg2m.log" ;
+$log_path = $l1_dir . '/' . $log_file ;
+
+$t1_file  = $date . ".kcor.t1.log" ;
+$t1_path  = $date_dir . "/" . $t1_file ;
+
+my $orig_dir = getcwd ;		# save original directory.
+$rg_base = "/hao/acos/fullres/" ;
+#$rg_date = $rg_base . "$date" ;
+
+print ("rg_date: $rg_date\n") ;
+
+$rg_year = $rg_base . "$year/" ;
+$rg_mon  = $rg_year . "$mon/" ;
+$rg_day  = $rg_mon  . "$day/" ;
+print ("rg_day: $rg_day\n") ;
+
+#--- Check existence of date directory.
+
+if (! -d $date_dir)
+   {
+   die "Directory $date_dir does not exist. $!\n" ;
+   }
+
+#--- Check existence of level1 directory.
+
+if (! -d $l1_dir)
+   {
+   die "Directory $l1_dir does not exist. $!\n" ;
+   }
+
+#--- Check existence of T1 log file.
+
+if (! -e $t1_path)
+   {
+   die "$t1_path does not exist. $!\n" ;
+   }
+
+#-------------------------------------------------------------------------------
+# Open log file.
+#-------------------------------------------------------------------------------
+
+open  (LOG, ">$log_path") ;
+print (    "dokcor_rg2m $date $l1_list --- $datenow $timenow\n") ;
+print (LOG "dokcor_rg2m $date $l1_list --- $datenow $timenow\n") ;
+
+#-------------------------------------------------------------------------------
+# Move to "level1" directory.
+#-------------------------------------------------------------------------------
+
+chdir ($l1_dir) ;
+
+#--- Exit if $interval_list file already exists.
+
+if (-e $interval_list)
+   {
+   print (    "$interval_list file exists.\n") ;
+   print (LOG "$interval_list file exists.\n") ;
+   goto DONE ;
+   }
+
+#--- Check for existence of L1 fits files.
+#    If such files do NOT exist, then quit.
+
+opendir DATA, $l1_dir ;
+@allfiles = readdir DATA ;
+closedir DATA ;
+
+@fits_files = grep {/kcor_l1.fts/} @allfiles ;
+@l1_fits_files = sort @fits_files ;
+chomp ($l1_fits_files) ;
+
+my $fsize = @l1_fits_files ;
+if ($fsize == 0)
+   {
+   print (    "No L1 fits files exist in $l1_dir.\n");
+   print (LOG "No L1 fits files exist in $l1_dir.\n");
+   goto DONE ;
+   }
+
+#----------------------------------------------------
+# Execute the IDL procedure to create NRGF gif files.
+#----------------------------------------------------
+
+if ($fsize != 0)
+   {
+   $idlfile = 'idl_rg2m' ;
+   open (IDLCMD, ">$idlfile") or die "Unable to open $idlfile $!" ;
+   print (       "kcor_rg2m, '$l1_list'\n") ;
+   print (LOG    "kcor_rg2m, '$l1_list'\n") ;
+   print (IDLCMD "kcor_rg2m, '$l1_list'\n") ;
+   close (IDLCMD) ;
+
+   system ("/opt/share/exelis/idl82/bin/idl -IDL_STARTUP '' < $idlfile\n") == 0
+      or die "system (idl -IDL_STARTUP '' < $idlfile) failed: $?" ;
+
+   unlink ($idlfile) ;	# Remove IDL command file.
+   }
+else
+   {
+   unlink $interval_list ;	# Remove zero-length interval list file.
+   goto DONE ;
+   }
+
+# Create directories as needed.
+
+unless (-e $rg_base)
+   {
+   die "Directory $rg_base does not exist.  $!\n" ;
+   }
+
+#unless (-e $rg_date or mkdir ($rg_date, 0775))
+#   {
+#   die "Unable to create directory $rg_date. $!\n" ;
+#   }
+
+unless (-e $rg_year or mkdir ($rg_year, 0775))
+   {
+   die "Unable to create directory $rg_year. $!\n" ;
+   }
+
+unless (-e $rg_mon or mkdir ($rg_mon, 0775))
+   {
+   die "Unable to create directory $rg_mon. $!\n" ;
+   }
+
+unless (-e $rg_day or mkdir ($rg_day, 0775))
+   {
+   die "Unable to create directory $rg_day. $!\n" ;
+   }
+
+#-----------------------------------
+# Move rg files to web repository.
+#-----------------------------------
+
+#system ("mv *rg.gif $rg_date\n") ;
+
+system ("mv *rg.gif $rg_day\n") ;
+
+#-----------------------------
+# Create a list of rg files.
+#-----------------------------
+
+#chdir ($rg_date) ;
+
+#system ("ls *rg.gif > rg.ls\n") ;
+
+#----------------------------------------
+# Copy files to mlsoserver.mlso.ucar.edu.
+#----------------------------------------
+
+chdir ($rg_base) ;
+
+$computer         = 'mlsoserver.mlso.ucar.edu' ;
+$rg_date_remote = '/export/data1/instruments/gallery/nrgf' ;
+$scp_command      = "scp -r $date $computer:$rg_date_remote" ;
+print ("scp_command: \n$scp_command\n") ;
+
+#system ("scp -r $date mlsoserver.mlso.ucar.edu:/export/data1/instruments/gallery/nrgf\n") ;
+system ("$scp_command\n") ;
+
+#--------------------------
+# Close log file & finish.
+#--------------------------
+
+DONE:
+print (    "*** dokcor_rg2m done ***\n") ;
+print (LOG "*** dokcor_rg2m done ***\n") ;
+close (LOG) ;
+
+chdir ($orig_dir) ;		# Return to original directory.

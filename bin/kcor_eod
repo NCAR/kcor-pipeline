@@ -1,0 +1,492 @@
+#!/opt/local/bin/perl
+#-------------------------------------------------------------------------------
+# kcor_eod - kcor end-of-day processing
+#-------------------------------------------------------------------------------
+# validator: 
+#    Check for existence of kcor t1 log file (yyyymmdd.kcor.t1.log).
+#    If found, copy it to the "level0" sub-directory.
+#    Verify that all kcor L0 files in t1.log file exist in "level0" directory.
+#
+# engineering plots :
+#   Create two engineering GIF files in "p" sub-directory (of date directory).
+#
+# catalog files :
+#   Create text files in /hao/kaula1/Data/KCor/process directory.
+#    
+# archiver:
+#   Compress kcor L0 fits files, using gzip.
+#   Create tar file.
+#   Create tar file list.
+#   Create link to tar file in /hao/mlsodata3/Data/HPSS-Queue/KCor directory.
+#   Leonard Sitongia's java software then copies the tar file to HPSS.
+#-------------------------------------------------------------------------------
+# Andrew L. Stanger   HAO/NCAR   6 Feb 2015
+#-------------------------------------------------------------------------------
+# 20 Feb 2015 Add logic to verify existence of files in t1.log file.
+# 28 Feb 2015 Quit if tar file    exists in level0 directory.
+#             Quit if t1.log file exists in level0 directory.
+#  1 Mar 2015 Execute 'kcorar' to create tar file, tar list, link in HPSS-Queue.
+# 23 Mar 2015 Add logic to exit if L0 files exist in date directory.
+# 31 Mar 2015 Check size of L0 fits files.
+# 03 Apr 2015 Uncompress any L0 fits files (if any) in level0 directory before
+#             doing validation.
+# 04 Apr 2015 Add #files to mail message.
+# 08 Apr 2015 Remove zero-length files in 'q' sub-directory.
+# 15 Apr 2015 Replace "drk.ls" with "dim.ls".
+# 16 Apr 2015 Delete 'list_okf' file.
+# 21 Apr 2015 Renamed "kcor_validator" to "kcor_eod".
+# 01 May 2015 Use dokcor_nrgf to create nrgf images.
+#             nrgf=normalized, radially-graded filter.
+# 29 Nov 2015 Delete t1.log file in level0 directory IF the validation fails.
+# 02 Dec 2015 Create error log file if needed.
+# 03 Dec 2015 Write message to error log file if t1.log file not yet received.
+#             Add kcor_plotcen.pro execution to IDL command file.
+# 09 Dec 2015 Add Joan to E-mail list.
+# 04 Feb 2016 Add system command to set umask to 002 
+# 03 Apr 2016 Remove stanger from E-mail list.
+#-------------------------------------------------------------------------------
+# usage: kcor_eod yyyymmdd
+# yyyy = year, mm = month, dd=day of month.
+#-------------------------------------------------------------------------------
+
+use File::Copy ;
+use Cwd ;
+
+#-------------------------------------------------------------------------------
+# subroutine to send E-mail.
+#-------------------------------------------------------------------------------
+sub send_mail
+   {
+   my $date_obs  = shift (@_) ;		# get date  argument.
+   my $status    = shift (@_) ;		# get status argument.
+   my $num_files = shift (@_) ;		# number of files found.
+
+#   $to      = 'stanger@ucar.edu iguana@ucar.edu' ;
+
+   $to      = 'iguana@ucar.edu' ;
+   $from    = 'cordyn@ucar.edu' ;
+   $subject = "kcor_eod $date_obs : $status" ;
+   $message = "kcor L0 eod $date_obs : $status  #files: $num_files\n" ;
+  
+   open (MAIL, "|/usr/sbin/sendmail -t");
+   
+   # Email Header
+
+   print MAIL "To: $to\n" ;
+   print MAIL "From: $from\n" ;
+   print MAIL "Subject: $subject\n\n" ;
+
+   # Email Body
+
+   print MAIL "$message\n" ;
+
+   close (MAIL);
+   print "Email Sent Successfully\n";
+   }
+#-------------------------------------------------------------------------------
+
+print ("kcor_eod  $ARGV[0]\n") ;
+$numargs = @ARGV ;
+
+if ($numargs != 1)
+   {
+   print ("Usage: kcor_eod  <yyyymmdd>\n") ;
+   print ("yyyy: year   mm: month   dd: day of month\n") ;
+   exit (1) ;
+   }
+
+#--- Get date parameter (yyyymmdd).
+
+$date = $ARGV[0] ;
+
+my $orig_dir = getcwd ;
+
+#-------------------------------------------------------------------------------
+# Get current date & time.
+#-------------------------------------------------------------------------------
+
+my ($csec,$cmin,$chour,$cmday,$cmon,$cyear,$cwday,$cyday,$isdst)
+= localtime (time) ;
+my @month_name = qw (Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec) ;
+$cyear += 1900 ;
+$cmonth = $cmon + 1 ;
+
+my $datenow = sprintf ("%04d-%02d-%02d", $cyear, $cmonth, $cmday) ; #yyyy-mm-dd
+my $timenow = sprintf ("%02d:%02d:%02d", $chour, $cmin, $csec) ;    #hh:mm:ss
+
+my $sdate = sprintf ("%04d%02d%02d", $cyear, $cmonth, $cmday) ;  # yymmdd
+my $stime = sprintf ("%02d%02d%02d", $chour, $cmin, $csec) ;     # hhmmss
+
+#-------------------------------------------------------------------------------
+# Set read-write permissions explicitly
+#-------------------------------------------------------------------------------
+
+umask 0002 ;             # set permissions to owner/group read-write
+
+#-------------------------------------------------------------------------------
+# Define directory path names.
+#-------------------------------------------------------------------------------
+
+$date_dir = "/hao/mlsodata1/Data/KCor/raw/$date" ;	# kcor yyyymmdd dir
+$l0_dir   = "$date_dir/level0";				# kcor level0   dir
+$q_dir    = "$date_dir/q";				# kcor q        dir
+$brt_list = 'brt.ls' ;
+$cal_list = 'cal.ls' ;
+$cld_list = 'cld.ls' ;
+$dev_list = 'dev.ls' ;
+$dim_list = 'dim.ls' ;
+$nsy_list = 'nsy.ls' ;
+$oka_list = 'oka.ls' ;
+$sat_list = 'sat.ls' ;
+$okf_list = 'list_okf' ;
+
+$tar_file = $date . "_kcor_l0.tgz" ;
+
+$t1_file   = $date . ".kcor.t1.log" ;
+$t1_path1  = $date_dir . '/' . $t1_file ;
+$t1_path2  = $l0_dir   . '/' . $t1_file ;
+
+$t2_file  = $date . ".kcor.t2.log" ;
+$t2_path1 = $date_dir . '/' . $t2_file ;
+$t2_path2 = $l0_dir   . '/' . $t2_file ;
+
+#print "t1_path: $t1_path\n" ;
+#print "t2_path: $t2_path\n" ;
+
+$log_file  = "$date" . "_kcor_eod.log" ;
+$elog_file = $sdate . "_" . $stime . "_kcor_eod_err.log" ;
+$log_path  = $l0_dir . '/' . $log_file ;
+$elog_path = $l0_dir . '/' . $elog_file ;
+
+print "log_path:  $log_path\n"  ;
+print "elog_path: $elog_path\n" ;
+
+#-----------------------------------
+# Check existence of date directory.
+#-----------------------------------
+
+if (! -d $date_dir)
+   {
+   open  (ELOG, ">>$elog_path") ;
+   print (     "Directory $date_dir does not exist.\n") ;
+   print (ELOG "Directory $date_dir does not exist.\n") ;
+   print (ELOG "*** kcor_eod done ***\n") ;
+   print (ELOG "*** kcorar should be running ***\n") ;
+   close (ELOG) ;
+   exit 1 ;
+   }
+
+#-------------------------------------
+# Check existence of level0 directory.
+#-------------------------------------
+
+if (! -d $l0_dir)
+   {
+   open  (ELOG, ">>$elog_path") ;
+   print (      "Directory $l0_dir does not exist.\n") ;
+   print (ELOG  "Directory $l0_dir does not exist.\n") ;
+   print (ELOG  "*** kcor_eod done ***\n") ;
+   close (ELOG) ;
+   exit 1 ;
+   }
+
+#-------------------------------------------------------------------------------
+# Move to "date" directory.
+#-------------------------------------------------------------------------------
+
+chdir ($date_dir) ;
+
+#-----------------------------------------------------------
+# Check for existence of L0 fits files in $date_dir.
+# If such files exist, then the L1 processing is incomplete.
+#-----------------------------------------------------------
+
+opendir DATA, $date_dir ;
+@allfiles = readdir DATA ;
+closedir DATA ;
+
+@fits_files = grep {/kcor.fts/} @allfiles ;
+@l0_fits_files = sort @fits_files ;
+
+my $fsize = @l0_fits_files ;
+if ($fsize != 0)
+   {
+   open  (ELOG, ">>$elog_path") ;
+   print (     "--- kcor_eod $date --- $datenow $timenow\n") ;
+   print (ELOG "--- kcor_eod $date --- $datenow $timenow\n") ;
+   print (     "... L0 fits files exist in $date_dir.\n") ; 
+   print (ELOG "... L0 fits files exist in $date_dir.\n") ; 
+   print (     "... L1 processing incomplete.\n");
+   print (ELOG "... L1 processing incomplete.\n");
+   print (     "*** kcor_eod done ***\n") ;
+   print (ELOG "*** kcor_eod done ***\n") ;
+   close (ELOG) ;
+
+   chdir ($orig_dir) ;
+   exit (1) ;
+   }
+
+#---------------------------------------------------
+# Check for existence of t1 log file in "level0".
+# If it exists, validation has previously been done.
+#---------------------------------------------------
+
+if (-e $t1_path2)
+   {
+   open  (ELOG, ">>$elog_path") ;
+   print (     "--- kcor_eod $date --- $datenow $timenow\n") ;
+   print (ELOG "--- kcor_eod $date --- $datenow $timenow\n") ;
+   print (     "... T1 log file resides in $l0_dir.\n") ;
+   print (ELOG "... T1 log file resides in $l0_dir.\n") ;
+   print (     "*** kcor_eod done ***\n") ;
+   print (ELOG "*** kcor_eod done ***\n") ;
+   close (ELOG) ;
+
+   chdir ($orig_dir) ;
+   exit (1) ;
+   }
+
+#-------------------------------------------------------------------------------
+# Check for existence of t1 log file in "date" directory.
+# If found, copy t1 log file to "level0" sub-directory.
+# Otherwise, write message to error log and exit.
+#-------------------------------------------------------------------------------
+
+if (-e "$t1_path1")
+   {
+   open  (LOG, ">>$log_path") ;
+   print (     "--- kcor_eod $date --- $datenow $timenow\n") ;
+   print (LOG  "--- kcor_eod $date --- $datenow $timenow\n") ;
+   print (     "$t1_path1 found.  \nCopy $t1_file to \n$l0_dir.\n") ;
+   print (LOG  "$t1_path1 found.  \nCopy $t1_file to \n$l0_dir.\n") ;
+   copy ($t1_path1, $l0_dir) ;	# copy t1.log file to level0 directory.
+   }
+else
+   {
+   open  (ELOG, ">>$elog_path") ;
+   print (      "$t1_path1 does not exist.\n") ;
+   print (ELOG  "$t1_path1 does not exist.\n") ;
+   print (      "*** kcor_eod $date DONE *** $datenow $timenow\n") ;
+   print (ELOG  "*** kcor_eod $date DONE *** $datenow $timenow\n") ;
+   close (ELOG) ;
+
+   chdir ($orig_dir) ;
+   exit (0) ;
+   }
+
+#--- Check for existence of t2 log file in "date" directory..
+#    If found, copy t2 log file to "level0" sub-directory.
+
+if (-e "$t2_path1")
+   {
+   print (    "$t2_path1 found.  \nCopy $t2_file to \n$l0_dir.\n") ;
+   print (LOG "$t2_path1 found.  \nCopy $t2_file to \n$l0_dir.\n") ;
+   copy ($t2_path1, $l0_dir) ;	# copy t2.log file to level0 directory.
+   }
+else
+   {
+   print (    "$t2_path1 does not exist.\n") ;
+   print (LOG "$t2_path1 does not exist.\n") ;
+#   exit (1) ;
+   }
+
+#-------------------------------------------------------------------------------
+# Move to "level0" directory.
+#-------------------------------------------------------------------------------
+
+chdir ($l0_dir) ;
+
+#--- Uncompress any L0 fits files which may exist in the level0 directory.
+
+print (    "/bin/gunzip *fts.gz\n");
+print (LOG "/bin/gunzip *fts.gz\n");
+system (   "/bin/gunzip *fts.gz\n") ;
+
+$num_missing   = 0 ;
+$num_wrongsize = 0;
+$num_l0_files  = 0 ;
+
+#-------------------------------------------------------------------------------
+# Verify that files listed in t1.log file exist in "$l0_dir" directory.
+#-------------------------------------------------------------------------------
+# Note: 'kcorar' compresses L0 fits files before creating the tar file.
+
+open (my $fh, "<:encoding(UTF-8)", $t1_file)
+   or die "Unable to open $t1_file1 $!" ;
+
+while (my $row = <$fh>)
+   {
+   $num_l0_files += 1 ;
+   chomp $row ;
+   my @fields = split / /, $row ;
+   my $t1_file = $fields[0] ;
+   my $t1_size = $fields[1] ;
+
+   #--- Verify that L0 fits file exists in "level0" directory.
+
+   if (-e $t1_file)
+      {
+      #--- Check file size (if L0 fits file exists).
+
+      $fts_size = -s $t1_file ;
+      print (    "$t1_file   size: $fts_size\n") ;
+      print (LOG "$t1_file   size: $fts_size\n") ;
+      if ($t1_size != $fts_size)
+         {
+	 $num_wrongsize += 1 ;
+	 print (    "$t1_file size: $fts_size != $t1_size \n") ;
+	 print (LOG "$t1_file size: $fts_size != $t1_size \n") ;
+	 }
+      }
+
+   #--- L0 fits file does NOT exist in "level0" directory.
+
+   else
+      {
+      $num_missing += 1 ;
+      print (    "$t1_file not found in level0 directory.\n") ;
+      print (LOG "$t1_file not found in level0 directory.\n") ;
+      }
+   }
+
+#--- Number of L0 fits files found.
+
+print (    "t1.log # L0 files: $num_l0_files\n") ;
+print (LOG "t1.log # L0 files: $num_l0_files\n") ;
+
+#--- Missing L0 files.
+
+if ($num_missing != 0) 
+   {
+   print (    "# files missing:   $num_missing\n") ;
+   print (LOG "# files missing:   $num_missing\n") ;
+   }
+
+#--- Wrong size detected.
+
+if ($num_wrongsize != 0)
+   {
+   print (    "#files wrong size:  $num_wrongsize\n") ;
+   print (LOG "#files wrong size:  $num_wrongsize\n") ;
+   }
+
+#-------------------------------------------------------------------------------
+# Proceed if all T1 files exist and the sizes are correct.
+# Otherwise, send E-mail error message.
+#-------------------------------------------------------------------------------
+
+if ($num_missing == 0 && $num_wrongsize == 0)
+   {
+   #------------------------------------------
+   # Generate engineering plots.
+   # Generate occulting center & radius plots.
+   # Generate catalog files.
+   #------------------------------------------
+
+   $list_file = "list" ;
+   system ("ls -1 *.fts* > list \n") ;             # Create list file.
+
+   $idlfile = 'idl_eod' ;
+   open  (IDLCMD, ">$idlfile") or die "Unable to open $idlfile $1 \n";
+   print (       "kcorp, '$date', list='$list_file' \n") ;
+   print (LOG    "kcorp, '$date', list='$list_file' \n") ;
+   print (IDLCMD "kcorp, '$date', list='$list_file' \n") ;
+
+   print (       "kcor_plotcen, '$date', list='$list_file' \n") ;
+   print (LOG    "kcor_plotcen, '$date', list='$list_file' \n") ;
+   print (IDLCMD "kcor_plotcen, '$date', list='$list_file' \n") ;
+
+   print (       "dokcor_catalog, '$date' \n") ;
+   print (LOG    "dokcor_catalog, '$date' \n") ;
+   print (IDLCMD "dokcor_catalog, '$date' \n") ;
+   close (IDLCMD) ;
+
+   #--- Execute IDL procedure calls in "idlfile" text file.
+
+   system ("/opt/share/exelis/idl/bin/idl < $idlfile\n") == 0
+           or die "system (idl < $idlfile) failed: $?" ;
+
+   #--- Remove temporary file.
+
+   unlink ("$idlfile") ;		# Remove idl command file.
+
+   #----------------------------------------------------------------------------
+   # Run L0 archive task (if no files are missing & sizes are all OK).
+   #----------------------------------------------------------------------------
+   # Creates tar file & tar list, puts tar file link in HPSS-Queue/KCor dir.
+   # Send message with validation status.
+   #----------------------------------------------------------------------------
+
+   print (    "Execute kcorar $date\n") ;
+   print (LOG "Execute kcorar $date\n") ;
+
+   &send_mail ("$date", 'ok', "$num_l0_files") ;
+   system ("/hao/acos/sw/bin/kcorar $date\n") ;		# Execute kcorar.
+   }
+else
+   {
+   unlink $t1_path2 ;		# delete t1.log file in level0 directory.
+   unlink $t2_path2 ;		# delete t2.log file in level0 directory
+   &send_mail ("$date", 'error', "$num_l0_files") ;
+   }
+
+#-------------------------------------------------------------------------------
+# Delete any zero-length files in "q" sub-directory.
+#-------------------------------------------------------------------------------
+
+chdir ($q_dir) ;
+
+$brt_size = -s $brt_list ;
+$cal_size = -s $cal_list ;
+$cld_size = -s $cld_list ;
+$dev_size = -s $dev_list ;
+$dim_size = -s $dim_list ;
+$nsy_size = -s $nsy_list ;
+$oka_size = -s $oka_list ;
+$okf_size = -s $okf_list ;
+$sat_size = -s $sat_list ;
+
+if ($brt_size == 0) {unlink $brt_list} ;
+if ($cal_size == 0) {unlink $cal_list} ;
+if ($cld_size == 0) {unlink $cld_list} ;
+if ($dev_size == 0) {unlink $dev_list} ;
+if ($dim_size == 0) {unlink $dim_list} ;
+if ($nsy_size == 0) {unlink $nsy_list} ;
+if ($oka_size == 0) {unlink $oka_list} ;
+if ($okf_size == 0) {unlink $okf_list} ;
+if ($sat_size == 0) {unlink $sat_list} ;
+
+#--- Remove temporary file.
+
+chdir  ($date_dir) ;
+unlink ($okf_list) ;	# Remove ok list file.
+
+#--- Create nrgf images (normalized, radially-graded filter).
+
+#if ($oka_size != 0) 
+#   { system ("/hao/acos/sw/bin/dokcor_nrgf $date okl1gz.ls\n") ; }
+
+#--------------------------
+# Close log file & finish.
+#--------------------------
+
+DONE:
+#-------------------------------------------------------------------------------
+# Get current date & time.
+#-------------------------------------------------------------------------------
+
+my ($csec,$cmin,$chour,$cmday,$cmon,$cyear,$cwday,$cyday,$isdst)
+= localtime (time) ;
+my @month_name = qw (Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec) ;
+$cyear += 1900 ;
+$cmonth = $cmon + 1 ;
+
+my $datenow = sprintf ("%04d-%02d-%02d", $cyear, $cmonth, $cmday) ;
+my $timenow = sprintf ("%02d:%02d:%02d", $chour, $cmin, $csec) ;
+
+print (     "*** kcor_eod $date DONE *** $datenow $timenow\n") ;
+print (ELOG "*** kcor_eod $date DONE *** $datenow $timenow\n") ;
+close (LOG) ;
+
+chdir ($orig_dir) ;
+exit (0) ;

@@ -1,0 +1,195 @@
+#!/opt/local/bin/perl
+#-------------------------------------------------------------------------------
+# kcor_validator
+#-------------------------------------------------------------------------------
+# Check for existence of kcor t1 log file (yyyymmdd.kcor.t1.log).
+# If found, copy it to the "level0" sub-directory.
+# Verify that all kcor L0 files in t1.log file exist in "level0" directory.
+#-------------------------------------------------------------------------------
+# Andrew L. Stanger   HAO/NCAR   6 Feb 2015
+#-------------------------------------------------------------------------------
+# 20 Feb 2015 Add logic to verify existence of files in t1.log file.
+# 28 Feb 2015 Quit if tar file    exists in level0 directory.
+#             Quit if t1.log file exists in level0 directory.
+#  1 Mar 2015 Execute 'kcorar' to create tar file, tar list, link in HPSS-Queue.
+# 23 Mar 2015 Add logic to exit if L0 files exist in date directory.
+#-------------------------------------------------------------------------------
+# usage: kcor_validator yyyymmdd
+# yyyy = year, mm = month, dd=day of month.
+#-------------------------------------------------------------------------------
+
+use File::Copy ;
+use Cwd ;
+
+print ("kcor_validator  $ARGV[0]\n") ;
+$numargs = @ARGV ;
+
+if ($numargs != 1)
+   {
+   print ("Usage: kcor_validator <yyyymmdd>\n") ;
+   print ("yyyy: year   mm: month   dd: day of month\n") ;
+   exit (1) ;
+   }
+
+#--- Get date parameter (yyyymmdd).
+
+$date = $ARGV[0] ;
+
+my $orig_dir = getcwd ;
+
+#--- Define directory path names.
+
+$date_dir = "/hao/mlsodata1/Data/KCor/raw/$date" ;	#kcor yyyymmdd dir
+$l0_dir   = "$date_dir/level0";				#kcor level0   dir
+
+#--- Check existence of date directory.
+
+if (! -d $date_dir)
+   {
+   die "Directory $date_dir does not exist.\n" ;
+   }
+
+#--- Check existence of level0 directory.
+
+if (! -d $l0_dir)
+   {
+   die "Directory $l0_dir does not exist.\n" ;
+   }
+
+$tar_file = $date . "_kcor_l0.tgz" ;
+
+$t1_file   = $date . ".kcor.t1.log" ;
+$t1_path1  = $date_dir . '/' . $t1_file ;
+$t1_path2  = $l0_dir   . '/' . $t1_file ;
+
+$t2_file  = $date . ".kcor.t2.log" ;
+$t2_path  = $date_dir . '/' . $t2_file ;
+
+#print "t1_path: $t1_path\n" ;
+#print "t2_path: $t2_path\n" ;
+
+#--- Open log file.
+
+$validator_log_file = "$date" . "_kcor_validator.log" ;
+$validator_log_path = $l0_dir . $validator_log_file ;
+open  (LOG, ">$validator_log_path") ;
+print (LOG "kcor_validator $date\n") ;
+
+#--- Move to "$date_dir" directory.
+
+chdir ($date_dir) ;
+
+#--- Check for existence of L0 fits files.
+#    If such files exist, then the L1 processing is incomplete.
+
+opendir DATA, $date_dir ;
+@allfiles = readdir DATA ;
+closedir DATA ;
+
+@fits_files = grep {/kcor.fts/} @allfiles ;
+@l0_fits_files = sort @fits_files ;
+
+my $fsize = @l0_fits_files ;
+if ($fsize != 0)
+   {
+   print (    "L0 fits files exist in $date_dir. L1 processing incomplete.\n");
+#   print (LOG "L0 fits files exist in $date_dir. L1 processing incomplete.\n");
+   goto DONE ;
+   }
+
+#--- Check for existence of t1 log files in "$l0_dir".
+#    If it exists, validation has previously been done.
+
+if (-e $t1_path2)
+   {
+   print (    "T1 log file exists in $l0_dir.\n") ;
+#   print (LOG "T1 log file exists in $l0_dir.\n") ;
+   goto DONE ;
+   }
+
+#--- Move to "yyyymmdd" directory.
+
+chdir ($date_dir) ;
+
+#--- Check for existence of t1 log file in "$date_dir" directory.
+
+if (-e "$t1_path1")
+   {
+   print "$t1_path1 exists.  \nCopy $t1_file to \n$l0_dir.\n" ;
+   copy ($t1_path1, $l0_dir) ;	# copy t1.log file to level0 directory.
+   }
+else
+   {
+   print "$t1_path1 does not exist.\n" ;
+   exit (1) ;
+   }
+
+#--- Check for existence of t2 log file.
+
+if (-e "$t2_path")
+   {
+   print "$t2_path exists.  \nCopy $t2_file to \n$l0_dir.\n" ;
+   copy ($t2_path, $l0_dir) ;	# copy t2.log file to level0 directory.
+   }
+else
+   {
+   print "$t2_path does not exist.\n" ;
+#   exit (1) ;
+   }
+
+#-------------------------------------------------------------------------------
+# Move to "$l0_dir" directory.
+#-------------------------------------------------------------------------------
+
+chdir ($l0_dir) ;
+
+#--- Verify that files listed in t1.log file exist in "$l0_dir" directory.
+#
+#    As of 23 Mar 2015, L0 fits images are no longer gzipped upon
+#    delivery from MLSO.
+#    Note: Need to add check on file size.
+
+open (my $fh, "<:encoding(UTF-8)", $t1_file)
+or die "Unable to open $t1_file1 $!" ;
+
+$num_missing  = 0 ;
+$num_l0_files = 0 ;
+while (my $row = <$fh>)
+   {
+   $num_l0_files += 1 ;
+   chomp $row ;
+   my @fields = split / /, $row ;
+   my $t1_file = $fields[0] ;
+#   my $gz_file   = $t1_file . '.gz' ;
+#   print (    "$row -> $gz_file\n") ;
+#   print (LOG "$row -> $gz_file\n") ;
+   if (! -e $t1_file)
+      {
+      $num_missing += 1 ;
+      print (    "$t1_file does not exist in level0 directory.\n") ;
+      print (LOG "$t1_file does not exist in level0 directory.\n") ;
+      }
+   }
+
+print (    "t1.log # L0 files: $num_l0_files\n") ;
+print (LOG "t1.log # L0 files: $num_l0_files\n") ;
+if ($num_missing != 0) 
+   {
+   print (    "# files missing:   $num_missing\n") ;
+   print (LOG "# files missing:   $num_missing\n") ;
+   goto DONE ;
+   }
+
+#--- Run L0 archive task.
+#    Creates tar file & tar list, puts tar file link in HPSS-Queue/KCor dir.
+
+if ($num_missing == 0)
+   {
+#   system ("/hao/acos/sw/bin/kcorar $date\n") ;	# Execute kcorar.
+   }
+
+DONE:
+close (LOG) ;
+chdir ($orig_dir) ;
+
+print "*** kcor_validator done ***\n" ;

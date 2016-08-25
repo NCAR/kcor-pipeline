@@ -1,0 +1,204 @@
+#!/opt/local/bin/perl
+#-------------------------------------------------------------------------------
+# dokcor_rg5m
+#-------------------------------------------------------------------------------
+# Apply normalized radially-graded filter to kcor L1 images. 
+# Select one image every 5 minutes.
+#-------------------------------------------------------------------------------
+# Andrew L. Stanger   HAO/NCAR  23 Apr 2015
+# 28 Jan 2016 Adapted from dokcor_nrgfs
+#-------------------------------------------------------------------------------
+# usage: dokcor_nrgfs  yyyymmdd  fits_list
+# yyyy = year, mm = month, dd=day of month.
+# fits_list = name of file containing a list of OK L1 fits images.
+#-------------------------------------------------------------------------------
+
+use File::Copy ;
+use Cwd ;
+
+print ("kcor_rg5m  @ARGV\n") ;
+
+#system ("echo 'IDL_DEVICE: '; printenv IDL_DEVICE\n") ;
+
+$numargs = @ARGV ;
+
+if ($numargs != 2)
+   {
+   print ("Usage: dokcor_rg5m  yyyymmdd  l1_list\n") ;
+   print ("yyyy: year   mm: month   dd: day of month\n") ;
+   print ("l1_list: name of file containing a list of L1 kcor fits images.\n") ;
+   exit (1) ;
+   }
+
+#------------------------------------------------
+# Get date parameter (yyyymmdd) & fits list file.
+#------------------------------------------------
+
+$date    = $ARGV[0] ;
+$l1_list = $ARGV[1] ;
+
+#-------------------------------------------------------------------------------
+# Get current date & time.
+#-------------------------------------------------------------------------------
+
+my ($csec,$cmin,$chour,$cmday,$cmon,$cyear,$cwday,$cyday,$isdst)
+= localtime (time) ;
+my @month_name = qw (Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec) ;
+$cyear += 1900 ;
+$cmonth = $cmon + 1 ;
+
+my $datenow = sprintf ("%04d-%02d-%02d", $cyear, $cmonth, $cmday) ;
+my $timenow = sprintf ("%02d:%02d:%02d", $chour, $cmin, $csec) ;
+
+#-------------------------------------------------------------------------------
+# Define directory path names.
+#-------------------------------------------------------------------------------
+
+$date_dir = "/hao/mlsodata1/Data/KCor/raw/$date" ;	# kcor yyyymmdd dir
+$l1_dir   = "$date_dir/level1";				# kcor level0   dir
+
+$log_file = "$date" . "_dokcor_rg5m.log" ;
+$log_path = $l1_dir . '/' . $log_file ;
+
+$t1_file  = $date . ".kcor.t1.log" ;
+$t1_path  = $date_dir . "/" . $t1_file ;
+
+$interval_list = 'f5.ls' ;	# 5-minute interval list of kcor L1 fits files.
+
+my $orig_dir = getcwd ;		# save original directory.
+
+#--- Check existence of date directory.
+
+if (! -d $date_dir)
+   {
+   die "Directory $date_dir does not exist. $!\n" ;
+   }
+
+#--- Check existence of level1 directory.
+
+if (! -d $l1_dir)
+   {
+   die "Directory $l1_dir does not exist. $!\n" ;
+   }
+
+#--- Check existence of T1 log file.
+
+if (! -e $t1_path)
+   {
+   die "$t1_path does not exist. $!\n" ;
+   }
+
+#-------------------------------------------------------------------------------
+# Open log file.
+#-------------------------------------------------------------------------------
+
+open  (LOG, ">$log_path") ;
+print (    "dokcor_rg5m $date $l1_list --- $datenow $timenow\n") ;
+print (LOG "dokcor_rg5m $date $l1_list --- $datenow $timenow\n") ;
+
+#-------------------------------------------------------------------------------
+# Move to "level1" directory.
+#-------------------------------------------------------------------------------
+
+chdir ($l1_dir) ;
+
+#--- Exit if $interval_list file already exists.
+
+if (-e $interval_list)
+   {
+   print (    "$interval_list file exists.\n") ;
+   print (LOG "$interval_list file exists.\n") ;
+   goto DONE ;
+   }
+
+#--- Check for existence of L1 fits files.
+#    If such files do NOT exist, then quit.
+
+opendir DATA, $l1_dir ;
+@allfiles = readdir DATA ;
+closedir DATA ;
+
+@fits_files = grep {/kcor_l1.fts/} @allfiles ;
+@l1_fits_files = sort @fits_files ;
+chomp ($l1_fits_files) ;
+
+my $fsize = @l1_fits_files ;
+if ($fsize == 0)
+   {
+   print (    "No L1 fits files exist in $l1_dir.\n");
+   print (LOG "No L1 fits files exist in $l1_dir.\n");
+   goto DONE ;
+   }
+
+#-------------------------------------------------------------------------------
+# Read the L1 fits list & create a new list file of images
+# which occur at a 5-minute interval.
+#-------------------------------------------------------------------------------
+
+$num_l1_files  = 0 ;
+
+open (my $fh, "<:encoding(UTF-8)", $l1_list) 
+   or die "Unable to open $l1_list $!" ;
+
+open (LIST, ">$interval_list") or die "Unable to open $interval_list $!" ;
+
+while (my $f = <$fh>)
+   {
+   chomp ($f) ;
+   if ($f)
+      {
+      $num_l1_files += 1 ;
+      $mm = substr ($f, 11, 2) ;	# minutes
+      $m2 = substr ($f, 12, 1) ;	# least significant minutes digit.
+      $ss = substr ($f, 13, 2) ;	# seconds
+#      if ($mm == "00" || $mm == "15" || $mm == "30" || $mm == "45")
+#      if ($m2 == "0" || $m2 == "2" || $m2 == "4" || $sm2 == "6" ||
+#          $m2 == "8")
+      if ($m2 == "0" || $m2 == "5")
+         {
+	 if ($ss < 15)
+	    {
+	    print ("select $f\n") ;
+	    print (LIST "$f\n") ;
+	    }
+	 }
+      }
+   }
+
+close (LIST) ;
+
+$list_size = -s $interval_list ;
+
+#----------------------------------------------------
+# Execute the IDL procedure to create NRGF gif files.
+#----------------------------------------------------
+
+if ($list_size != 0)
+   {
+   $idlfile = 'idl_rg5m' ;
+   open (IDLCMD, ">$idlfile") or die "Unable to open $idlfile $!" ;
+   print (       "kcor_nrgfs, '$interval_list'\n") ;
+   print (LOG    "kcor_nrgfs, '$interval_list'\n") ;
+   print (IDLCMD "kcor_nrgfs, '$interval_list'\n") ;
+   close (IDLCMD) ;
+
+   system ("/opt/share/exelis/idl/bin/idl -IDL_STARTUP '' < $idlfile\n") == 0
+      or die "system (idl -IDL_STARTUP '' < $idlfile) failed: $?" ;
+
+   unlink ($idlfile) ;	# Remove IDL command file.
+   }
+else
+   {
+   unlink $interval_list ;	# Remove zero-length interval list file.
+   }
+
+#--------------------------
+# Close log file & finish.
+#--------------------------
+
+DONE:
+print (    "*** dokcor_rg5m done ***\n") ;
+print (LOG "*** dokcor_rg5m done ***\n") ;
+close (LOG) ;
+
+chdir ($orig_dir) ;		# Return to original directory.

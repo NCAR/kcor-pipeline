@@ -1,0 +1,228 @@
+#!/opt/local/bin/perl
+
+#-------------------------------------------------------------------------------
+# kcorar: archive kcor L0 fits files to HPSS.
+#-------------------------------------------------------------------------------
+# Andrew L. Stanger   HAO/NCAR
+#
+# 22 Jan 2015 Archive L0 FITS files in raw/yyyymmdd directory.
+# 20 Feb 2015 Archive L0 FITS files in level0       directory.
+# 24 Feb 2015 Add chgrp and chmod commands.
+# 25 Feb 2015 Add valid date check, and save hpss info in a file ($hpss_info).
+# 26 Feb 2015 Create symbolic link to tar file in HPSS-Queue directory.
+# 24 Mar 2015 Kcor L0 files are no longer compressed when delivered from MLSO.
+#             So, the L0 fits files now need to be compressed before the
+#             tar file is created.
+# 04 Apr 2015 Change tar file name syntax: "yyyymmdd_kcor_l0.tar".
+# 09 Apr 2015 Change tar file name syntax: "7777mmdd_kcor_l0.tgz".
+# 03 Feb 2016 Add chmod 0664 for $tarfile and $tarlist files.
+#-------------------------------------------------------------------------------
+
+use File::Copy ;
+use Cwd ;
+
+@months = ("01","02","03","04","05","06","07","08","09","10","11","12") ;
+
+#print (    "kcorar  $ARGV[0]\n") ;
+$numargs = @ARGV ;
+
+#print ("numargs: $numargs\n") ;
+#print ("argv[0]: $ARGV[0]\n") ;
+
+#--- Command syntax reminder.
+
+if ($numargs != 1)
+    {
+    print ("\n") ;
+    print ("Usage: kcorar yyyymmdd\n") ;
+    print ("yyyy: year   mm: month  dd: day of month\n") ;
+    exit (1) ;
+    }
+
+#--- Get date parameter.
+
+$date = $ARGV[0] ;
+
+print (    "kcorar  $date\n") ;
+
+#--- Extract year, month & day from date parameter.
+
+$year = substr $date, 0, 4 ;			# year
+$mon  = substr $date, 4, 2 ;			# month
+$day  = substr $date, 6, 2 ;			# day of month
+
+#--- Get current date & time.
+
+my ($csec,$cmin,$chour,$cmday,$cmon,$cyear,$cwday,$cyday,$isdst) 
+= localtime (time) ;
+my @month_name = qw (Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec) ;
+$cyear += 1900 ;
+$cmonth = $cmon + 1 ;
+
+my $datenow = sprintf ("%04d%02d%02d", $cyear, $cmonth, $cmday) ;
+my $timenow = sprintf ("%02d%02d%02d", $chour, $cmin, $csec) ;
+
+#---Verify that year (extracted from date parameter) is valid.
+
+if ($year < 2013 || $year > $cyear)
+   {
+   die "Invalid date.\n" ;
+   }
+
+#--- Define directory path names & file names.
+
+$date_dir   = "/hao/mlsodata1/Data/KCor/raw/$date" ;	# L0 fits files.
+$l0_dir     = "$date_dir/level0" ;			# L1 fits & gif files.
+$logfile    = $l0_dir . '/' . $date . "_kcorar.log" ;
+$tarfile    = "$date\_kcor_l0.tgz" ;
+$tarlist    = "$date\_kcor_l0.tarlist" ;
+$hpss_info  = "$date\_kcor_l0_tar.ls" ;
+$hpss_queue = "/hao/mlsodata3/Data/HPSS-Queue/KCor" ;
+
+print "logfile:  $logfile\n" ;
+print "tarfile:  $tarfile\n" ;
+print "tarlist:  $tarlist\n" ;
+
+#--- Check existence of level0 directory.
+
+unless (-e $l0_dir or mkdir ($l0_dir, 0755))
+   {
+   die "Unable to create directory $l0_dir.\n";
+   }
+#--- Get current directory.
+
+my $pwd = cwd () ;
+
+#--- Move to "$l0_dir" directory.
+
+chdir ($l0_dir) ;
+
+#--- Open log file.
+
+open  (LOG, ">$logfile") ;
+
+print (LOG "kcorar  $date\n") ;
+
+print (    "date_dir: $date_dir\n") ;
+print (    "l0_dir :  $l0_dir\n") ;
+
+print (LOG "date_dir: $date_dir\n") ;
+print (LOG "l0_dir :  $l0_dir\n") ;
+
+#--- If tarfile exists, data has already been archived, so quit.
+
+if (-e $tarfile)
+   {
+   print (    "$tarfile already exists.\n") ;
+   print (LOG "$tarfile already exists.\n") ;
+   goto DONE ;
+   }
+
+#--- If "$hpss_info" file exists, data has already been archived, so quit.
+
+#if (-e $hpsso_info)
+#   {
+#   print (    "$hpss_info file exists.  Data previously archived.\n");
+#   print (LOG "$hpss_info file exists.  Data previously archived.\n");
+#   goto DONE ;
+#   }
+
+#--- Read all files in "$l0_dir" directory.
+
+opendir DATA, $l0_dir ;
+@allfiles = readdir DATA ;
+closedir DATA ;
+
+@fits_files = grep {/kcor.fts/} @allfiles ;	# all kcor fits files.
+@l0_fits_files = sort @fits_files ;		# sort files chronologically.
+
+#--- Determine the number of FITS files to archive.
+#    If no FITS files exist, exit program.
+
+my $fsize = @l0_fits_files ;
+if ($fsize == 0)
+   {
+   print (    "No L0 FITS files to archive to HPSS.\n") ;
+   print (LOG "No L0 FITS files to archive to HPSS.\n") ;
+   goto DONE ;
+   }
+
+#--- Compress L0 fits files.
+
+print (    "gzip *kcor.fts\n") ;
+print (LOG "gzip *kcor.fts\n") ;
+
+system ('gzip *kcor.fts') ;
+
+#--- Verify that some compressed L0 fits files exist in $l0_dir directory.
+
+opendir DATA, $l0_dir ;
+@allfiles = readdir DATA ;
+closedir DATA ;
+@gz_files = grep {/kcor.fts.gz/} @allfiles ;
+@gz_files_sorted = sort @gz_files ;
+my $num_gz = @gz_files_sorted ;
+
+if ($num_gz == 0)
+   {
+   print (    "No L0 compressed files exist in $l0_dir\n") ;
+   print (LOG "No L0 compressed files exist in $l0_dir\n") ;
+   goto DONE ;
+   }
+
+#--- Create a tar file containing the L0 fits files.
+
+print  (    "tar cf $tarfile  *kcor.fts.gz  *t1.log  *t2.log\n") ;
+print  (LOG "tar cf $tarfile  *kcor.fts.gz  *t1.log  *t2.log\n") ;
+system (    "tar cf $tarfile  *kcor.fts.gz  *t1.log  *t2.log\n") ;
+chmod 0664, "$tarfile";
+
+#--- Create tar list file.
+
+print  (    "tar tfv $tarfile > $tarlist\n") ;
+print  (LOG "tar tfv $tarfile > $tarlist\n") ;
+system (    "tar tfv $tarfile > $tarlist\n") ;
+chmod 0664, "$tarlist";
+
+#--- Create symbolic link to tarfile in "HPSS-Queue" directory.
+
+print  (    "ln -s $l0_dir\/$tarfile $hpss_queue\n") ;
+print  (LOG "ln -s $l0_dir\/$tarfile $hpss_queue\n") ;
+system (    "ln -s $l0_dir\/$tarfile $hpss_queue\n") ;
+
+#*******************************************************************************
+# The statements below are not needed, since the HPSS copy is done
+# by Leonard Sitongia's java software, which copies the tar file
+# whose link is placed into the /hao/mlsodata3/Data/HPSS-Queue/Kcor directory.
+#*******************************************************************************
+#--- Copy the tar file to the HPSS.
+#
+#system (     "hsi cput $tarfile : /CORDYN/KCOR/$year/$tarfile\n") ;
+#
+#print  (LOG  "hsi cput $tarfile : /CORDYN/KCOR/$year/$tarfile\n") ;
+#print  (     "hsi cput $tarfile : /CORDYN/KCOR/$year/$tarfile\n") ;
+#system ("hsi -g cordyn cput $tarfile : /CORDYN/KCOR/$year/$tarfile\n");
+#system ("hsi chmod 664 /CORDYN/KCOR/$year/$tarfile\n") ;
+#
+#--- Store tarfile info from HPSS into a file in "level0" directory.
+#
+#system ("hsi ls -l /CORDYN/KCOR/$year/$tarfile >& $hpss_info\n") ;
+#
+#--- Copy the tar file to the HPSS backup directory.
+#
+#system (    "hsi cput $tarfile : /FS/UC/CORDYN/KCOR/$year/$tarfile\n") ;
+#
+#print  (LOG "hsi cput $tarfile : /FS/UC/CORDYN/KCOR/$year/$tarfile\n") ;
+#print  (    "hsi cput $tarfile : /FS/UC/CORDYN/KCOR/$year/$tarfile\n") ;
+#system ("hsi -g cordyn cput $tarfile : /FS/UC/CORDYN/KCOR/$year/$tarfile\n");
+#system ("hsi chmod 664 /FS/UC/CORDYN/KCOR/$year/$tarfile\n") ;
+#*******************************************************************************
+
+#--- Return to original directory.
+
+DONE:
+chdir ($pwd) ;
+
+print (    "*** end of kcorar ***\n") ;
+print (LOG "*** end of kcorar ***\n") ;
+close (LOG) ;
