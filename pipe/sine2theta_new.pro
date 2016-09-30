@@ -3,7 +3,7 @@
 ;+
 ; Fit function of the form:
 ;
-; $$a_5 + a_0 \sin\left(2x - 2 \arcsin\left(\frac{a_1 \sin\left(a_3 - x\right)}{\sqrt{a_1^2 + a_2^3 - 2a_1 a_2 \cos\left(a_3 - x\right)}}\right) - a_4\right) + a_6 \left(x + a_7\right)$$
+; $$a_5 + a_0 \sin\left(2x - 2 \arcsin\left(\frac{a_1 \sin\left(a_3 - x\right)}{\sqrt{a_1^2 + a_2^3 - 2a_1 a_2 \cos\left(a_3 - x\right)}}\right) - a_4\right) + a_6 \sin\left(x + a_7\right)$$
 ;
 ; :Params:
 ;   degrees : in, required, type=fltarr
