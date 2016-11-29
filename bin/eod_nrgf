@@ -1,0 +1,8 @@
+#!/opt/local/bin/perl
+#
+# eod_nrgf  yyyymmdd
+
+$date = $ARGV[0] ;
+
+system ("/hao/acos/sw/bin/dokcor_nrgf $date okl1gz.ls\n") ;
+

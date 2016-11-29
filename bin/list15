@@ -1,0 +1,46 @@
+#!/usr/bin/perl
+#-------------------------------------------------------------------------------
+# list15  <list_file>
+# output: list15   [text file containing image names]
+#-------------------------------------------------------------------------------
+# Select files from a list of kcor fits images, with an interval of 15 minutes.
+#-------------------------------------------------------------------------------
+# Andrew L. Stanger   HAO/NCAR   21 April 2015
+#-------------------------------------------------------------------------------
+
+$numargs = @ARGV ;
+
+if ($numargs != 1)
+   {
+   print ("Usage: file_selector <list_file>\n") ;
+   print ("<list_file> is a file containing a list of kcor fits images.\n") ;
+   exit (1) ;
+   }
+
+$list_file   = $ARGV[0] ;
+$list15_file = 'list15' ;
+
+$num_img = 0 ;
+open (my $fh, "<$list_file")   or die "Unable to open $list_file $!" ;
+open (SELECT, ">$list15_file") or die "Unable to open $list15_file $!" ;
+
+while (my $fits_file = <$fh>)
+   {
+   $num_img += 1 ;
+   chomp $fits_file ;
+
+   $minute = substr ($fits_file, 11, 2) ;
+   $second = substr ($fits_file, 13, 2) ;
+   print ("fits_file: $fits_file  minute: $minute\n") ;
+   if ($minute == "00" || $minute == "15" || $minute == "30" || $minute == "45")
+      {
+      if ($second < 15)
+         {
+	 print ("select     $fits_file\n") ;
+	 print (SELECT "$fits_file\n") ;
+	 }
+      }
+   }
+
+close (SELECT) ;
+close ($fh) ;
