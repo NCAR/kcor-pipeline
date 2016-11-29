@@ -1,0 +1,457 @@
+[Workspace Header]
+Version = 1001
+Pathname Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/sock"
+Pathname Line0002 = "etcam.cws"
+CVI Dir = "/c/program files (x86)/national instruments/cvi2010"
+CVI Shared Dir = "/C/Program Files (x86)/National Instruments/Shared/CVI"
+CVI Pub Local Dir = "/C/ProgramData/National Instruments/CVI2010"
+CVI Pub Global Dir = "/C/ProgramData/National Instruments/CVI"
+IVI Standard Root Dir = "/C/Program Files (x86)/IVI Foundation/IVI"
+IVI Standard Root 64-bit Dir = "/C/Program Files/IVI Foundation/IVI"
+VXIplug&play Framework Dir = "/C/Program Files (x86)/IVI Foundation/VISA/winnt"
+VXIplug&play Framework 64-bit Dir = "/C/Program Files/IVI Foundation/VISA/win64"
+Number of Projects = 1
+Active Project = 1
+Project 0001 = "socketcam.prj"
+Drag Bar Left = 322
+Window Top = 182
+Window Left = 178
+Window Bottom = 839
+Window Right = 1382
+Maximized = False
+Maximized Children = True
+Max32 Number Of Errors = 20
+Track Include File Dependencies = True
+Prompt For Missing Includes = True
+Stop On First Error File = False
+Bring Up Err Win For Warnings = True
+Show Build Dialog = False
+Save Changes Before Running = "Always"
+Save Changes Before Compiling = "Always"
+Hide Windows = False
+Break At First Statement = False
+Sort Type = "File Name"
+Number of Opened Files = 1
+Window Confinement Region Enabled = True
+MainColumnWidth = 305
+FileDateColumnWidth = 70
+FileSizeColumnWidth = 70
+StatusColumnWidth = 70
+
+[Project Header 0001]
+Version = 1001
+Don't Update DistKit = False
+Platform Code = 4
+Build Configuration = "Release64"
+Warn User If Debugging Release = 0
+Batch Build Release = False
+Batch Build Debug = False
+Force Rebuild = False
+
+[File 0001]
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/thre"
+Path Line0002 = "adsforstream.h"
+File Type = "Include"
+Disk Date = 3472734882
+In Projects = "1,"
+Window Top = 48
+Window Left = 18
+Window Z-Order = 1
+Source Window State = "1,57,57,57,36,44,44,0,0,89,0,0,0,0,0,24,15,0,15,8,400,600,0,0,"
+
+[File 0002]
+Path = "/c/kcor/lib/bitflow/BFD.lib"
+File Type = "Library"
+Disk Date = 3401993960
+In Projects = "1,"
+
+[File 0003]
+Path = "/c/kcor/lib/bitflow/BFDiskIO.lib"
+File Type = "Library"
+Disk Date = 3401993960
+In Projects = "1,"
+
+[File 0004]
+Path = "/c/kcor/lib/bitflow/BFEr.lib"
+File Type = "Library"
+Disk Date = 3401993960
+In Projects = "1,"
+
+[File 0005]
+Path = "/c/kcor/lib/bitflow/Bid.lib"
+File Type = "Library"
+Disk Date = 3401993960
+In Projects = "1,"
+
+[File 0006]
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/brdc"
+Path Line0002 = "lse.h"
+File Type = "Include"
+Disk Date = 3458259444
+In Projects = "1,"
+Window Top = 23
+Source Window State = "1,0,0,0,7,14,14,0,0,0,0,0,0,0,0,0,21,0,42,4,400,600,1,0,"
+
+[File 0007]
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/brdo"
+Path Line0002 = "pen0.h"
+File Type = "Include"
+Disk Date = 3458259444
+In Projects = "1,"
+Window Top = 23
+Source Window State = "1,23,23,23,53,68,68,0,3,0,0,0,0,0,0,0,0,0,23,53,400,600,1,0,"
+
+[File 0008]
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/brdo"
+Path Line0002 = "pen1.h"
+File Type = "Include"
+Disk Date = 3458259444
+In Projects = "1,"
+Window Top = 48
+Window Left = 18
+Source Window State = "1,6,6,6,12,21,21,0,0,0,0,0,0,0,0,0,0,0,6,34,427,768,1,0,"
+
+[File 0009]
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/brds"
+Path Line0002 = "top.h"
+File Type = "Include"
+Disk Date = 3458259444
+In Projects = "1,"
+Window Top = 71
+Window Left = 30
+Source Window State = "1,2,2,2,19,27,27,0,0,0,0,0,0,0,0,0,0,0,0,7,427,768,1,0,"
+
+[File 0010]
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/brds"
+Path Line0002 = "trt.h"
+File Type = "Include"
+Disk Date = 3458259444
+In Projects = "1,"
+Window Top = 94
+Window Left = 42
+Source Window State = "1,27,27,27,12,24,24,0,3,0,0,0,0,0,0,0,15,0,27,12,427,768,0,0,"
+
+[File 0011]
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/byte"
+Path Line0002 = "swap.h"
+File Type = "Include"
+Disk Date = 3458259444
+In Projects = "1,"
+Window Top = 25
+Window Left = 6
+Source Window State = "1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,427,768,1,0,"
+
+[File 0012]
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/came"
+Path Line0002 = "raSetup.h"
+File Type = "Include"
+Disk Date = 3458259444
+In Projects = "1,"
+Window Top = 23
+Source Window State = "1,8,8,8,7,23,23,0,3,0,0,0,0,0,0,0,0,0,8,7,400,600,1,0,"
+
+[File 0013]
+Path = "/c/kcor/lib/bitflow/Cid.lib"
+File Type = "Library"
+Disk Date = 3401993960
+In Projects = "1,"
+
+[File 0014]
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/clea"
+Path Line0002 = "nup.h"
+File Type = "Include"
+Disk Date = 3458259444
+In Projects = "1,"
+Window Top = 117
+Window Left = 54
+Source Window State = "1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,10,14,427,768,1,0,"
+
+[File 0015]
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/crea"
+Path Line0002 = "tethread0.h"
+File Type = "Include"
+Disk Date = 3458259444
+In Projects = "1,"
+Window Top = 117
+Window Left = 54
+Source Window State = "1,33,34,34,28,0,50,0,0,0,0,0,0,0,0,0,19,0,34,41,297,523,1,0,"
+
+[File 0016]
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/crea"
+Path Line0002 = "tethread1.h"
+File Type = "Include"
+Disk Date = 3458259444
+In Projects = "1,"
+Window Top = 140
+Window Left = 66
+Source Window State = "1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,21,69,427,768,1,0,"
+
+[File 0017]
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/GetI"
+Path Line0002 = "mgAndApplyLut0.h"
+File Type = "Include"
+Disk Date = 3458259444
+In Projects = "1,"
+Window Top = 25
+Window Left = 6
+Source Window State = "1,0,0,0,3,21,21,0,3,0,0,0,0,0,0,0,0,0,0,3,379,687,1,0,"
+
+[File 0018]
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/GetI"
+Path Line0002 = "mgAndApplyLut1.h"
+File Type = "Include"
+Disk Date = 3458259444
+In Projects = "1,"
+Window Top = 48
+Window Left = 18
+Source Window State = "1,35,35,35,32,39,39,0,3,0,0,0,0,0,0,0,25,0,35,32,363,687,1,0,"
+
+[File 0019]
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/pars"
+Path Line0002 = "elogic.h"
+File Type = "Include"
+<<<<<<< .mine
+<<<<<<< .mine
+Disk Date = 3472825328
+=======
+Disk Date = 3472652542
+=======
+Disk Date = 3472823163
+>>>>>>> .r6457
+>>>>>>> .r6448
+In Projects = "1,"
+Window Top = 23
+Source Window State = "1,156,156,156,46,60,60,0,0,0,0,0,0,0,0,0,160,0,175,34,400,600,1,0,"
+
+[File 0020]
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/read"
+Path Line0002 = "Config.h"
+File Type = "Include"
+Disk Date = 3458259444
+In Projects = "1,"
+Window Top = 163
+Window Left = 78
+Source Window State = "1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,14,0,26,0,427,768,1,0,"
+
+[File 0021]
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/sock"
+Path Line0002 = "etcam.c"
+File Type = "CSource"
+Disk Date = 3472652595
+In Projects = "1,"
+Window Top = 30
+Source Window State = "1,158,158,158,28,35,35,0,0,0,0,0,0,0,0,0,330,0,375,18,400,600,1,0,"
+
+[File 0022]
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/sock"
+Path Line0002 = "etSetup.h"
+File Type = "Include"
+Disk Date = 3458259444
+In Projects = "1,"
+Window Top = 25
+Window Left = 6
+Source Window State = "1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,119,0,150,18,379,768,1,0,"
+
+[File 0023]
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/thre"
+Path Line0002 = "adsforavging.h"
+File Type = "Include"
+Disk Date = 3472736662
+In Projects = "1,"
+Window Top = 23
+Source Window State = "1,81,81,81,16,22,22,0,0,0,0,0,0,0,0,0,70,24,81,67,400,600,1,0,"
+
+[File 0024]
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/thre"
+Path Line0002 = "adsforerrors.h"
+File Type = "Include"
+Disk Date = 3463582931
+In Projects = "1,"
+Window Top = 186
+Window Left = 90
+Source Window State = "1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,20,28,427,768,1,0,"
+
+[File 0025]
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/thre"
+Path Line0002 = "adsforwriting.h"
+File Type = "Include"
+Disk Date = 3467205499
+In Projects = "1,"
+Window Top = 23
+Source Window State = "1,4,5,5,23,37,37,0,3,0,0,0,0,0,0,0,0,0,4,23,400,600,1,0,"
+
+[File 0026]
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/writ"
+Path Line0002 = "eAvg.h"
+File Type = "Include"
+Disk Date = 3458259444
+In Projects = "1,"
+Window Top = 209
+Window Left = 102
+Source Window State = "1,31,31,31,27,29,27,0,0,0,0,0,0,0,0,0,21,0,33,42,427,768,1,0,"
+
+[File 0027]
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/writ"
+Path Line0002 = "eAvg16.h"
+File Type = "Include"
+Disk Date = 3467205499
+In Projects = "1,"
+Window Top = 71
+Window Left = 30
+Source Window State = "1,13,13,13,13,21,13,0,0,0,0,0,0,0,0,0,0,0,12,47,363,804,1,0,"
+
+[File 0028]
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/writ"
+Path Line0002 = "eoutavgs.h"
+File Type = "Include"
+Disk Date = 3458259444
+In Projects = "1,"
+Window Top = 232
+Window Left = 114
+Source Window State = "1,63,63,63,29,43,43,0,0,0,0,0,0,0,0,0,0,0,30,36,427,768,1,0,"
+
+[File 0029]
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/writ"
+Path Line0002 = "eoutstrm.h"
+File Type = "Include"
+Disk Date = 3458259444
+In Projects = "1,"
+Window Top = 255
+Window Left = 126
+Source Window State = "1,31,31,31,36,49,49,0,0,0,0,0,0,0,0,0,23,0,41,27,427,768,1,0,"
+
+[File 0030]
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/writ"
+Path Line0002 = "estrm0.h"
+File Type = "Include"
+Disk Date = 3458259444
+In Projects = "1,"
+Window Top = 23
+Source Window State = "1,11,11,11,11,60,60,0,0,0,0,0,0,0,0,0,0,0,16,26,400,600,1,0,"
+
+[File 0031]
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/writ"
+Path Line0002 = "estrm1.h"
+File Type = "Include"
+Disk Date = 3458259444
+In Projects = "1,"
+Window Top = 23
+Source Window State = "1,11,11,11,36,42,42,0,3,0,0,0,0,0,0,0,0,0,11,36,400,600,1,0,"
+
+[File 0032]
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/writ"
+Path Line0002 = "estrmtif0.h"
+File Type = "Include"
+Disk Date = 3458259444
+In Projects = "1,"
+Window Top = 278
+Window Left = 138
+Source Window State = "1,5,6,5,24,24,24,0,0,0,0,0,0,0,0,0,0,0,6,41,427,768,1,0,"
+
+[File 0033]
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/writ"
+Path Line0002 = "estrmtif1.h"
+File Type = "Include"
+Disk Date = 3458259444
+In Projects = "1,"
+Window Top = 301
+Window Left = 150
+Source Window State = "1,11,12,12,35,34,34,0,0,0,0,0,0,0,0,0,0,0,11,32,427,768,1,0,"
+
+[File 0034]
+Path = "/c/Program Files (x86)/National Instruments/CVI2010/sdk/lib/msvc64/WSock32.Lib"
+File Type = "Library"
+Disk Date = 3391603200
+In Projects = "1,"
+
+[Default Build Config 0001 Debug]
+Generate Browse Info = True
+Enable Uninitialized Locals Runtime Warning = True
+Batch Build = False
+Profile = "Disabled"
+Debugging Level = "Standard"
+Execution Trace = "Disabled"
+Command Line Args = ""
+Working Directory = ""
+External Process Path = ""
+
+[Default Build Config 0001 Release]
+Generate Browse Info = True
+Enable Uninitialized Locals Runtime Warning = True
+Batch Build = False
+Profile = "Disabled"
+Debugging Level = "Standard"
+Execution Trace = "Disabled"
+Command Line Args = ""
+Working Directory = ""
+External Process Path = ""
+
+[Default Build Config 0001 Debug64]
+Generate Browse Info = True
+Enable Uninitialized Locals Runtime Warning = True
+Batch Build = False
+Profile = "Disabled"
+Debugging Level = "Standard"
+Execution Trace = "Disabled"
+Command Line Args = ""
+Working Directory = ""
+External Process Path = ""
+
+[Default Build Config 0001 Release64]
+Generate Browse Info = True
+Enable Uninitialized Locals Runtime Warning = True
+Batch Build = False
+Profile = "Disabled"
+Debugging Level = "Standard"
+Execution Trace = "Disabled"
+Command Line Args = ""
+Working Directory = ""
+External Process Path = ""
+
+[Build Options 0001]
+Generate Browse Info = True
+Enable Uninitialized Locals Runtime Warning = True
+Execution Trace = "Disabled"
+Profile = "Disabled"
+Debugging Level = "Standard"
+Break On Library Errors = True
+Break On First Chance Exceptions = False
+
+[Execution Target 0001]
+Execution Target Address = "Local desktop computer"
+Execution Target Port = 0
+Execution Target Type = 0
+
+[SCC Options 0001]
+Use global settings = True
+SCC Provider = ""
+SCC Project = ""
+Local Path = ""
+Auxiliary Path = ""
+Perform Same Action For .h File As For .uir File = "Ask"
+Perform Same Action For .cds File As For .prj File = "Ask"
+Username = ""
+Comment = ""
+Use Default Username = False
+Use Default Comment = False
+Suppress CVI Error Messages = False
+Always show confirmation dialog = True
+
+[DLL Debugging Support 0001]
+External Process Path = ""
+
+[DLLs Used By Executable x64 0001]
+DLL 0001 = "/C/BitFlow SDK 5.30/Bin/BFDiskIO.dll"
+DLL 0002 = "/C/BitFlow SDK 5.30/Bin/Bid.dll"
+
+[Command Line Args 0001]
+Command Line Args = ""
+Working Directory = ""
+
+[Watch Point 1]
+Watch Expression = "AvgingProgramCam0"
+Update Display Continuously = True
+Break When Value Changes = False
+Scope = "Global To Project"
+DllName = "c:\\alice\\src\\socketcam\\socketcam.exe"
+

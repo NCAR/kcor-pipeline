@@ -1,0 +1,770 @@
+[Project Header]
+Version = 1001
+Pathname Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/sock"
+Pathname Line0002 = "etcam.prj"
+CVI Dir = "/c/program files (x86)/national instruments/cvi2010"
+CVI Shared Dir = "/C/Program Files (x86)/National Instruments/Shared/CVI"
+CVI Pub Local Dir = "/C/ProgramData/National Instruments/CVI2010"
+CVI Pub Global Dir = "/C/ProgramData/National Instruments/CVI"
+IVI Standard Root Dir = "/C/Program Files (x86)/IVI Foundation/IVI"
+VXIplug&play Framework Dir = "/C/Program Files (x86)/IVI Foundation/VISA/winnt"
+IVI Standard Root 64-bit Dir = "/C/Program Files/IVI Foundation/IVI"
+VXIplug&play Framework 64-bit Dir = "/C/Program Files/IVI Foundation/VISA/win64"
+Number of Files = 34
+Target Type = "Executable"
+Flags = 16
+Copied From Locked InstrDrv Directory = False
+Copied from VXIPNP Directory = False
+Locked InstrDrv Name = ""
+Don't Display Deploy InstrDrv Dialog = False
+
+[File 0001]
+File Type = "Library"
+Res Id = 1
+Force Path Absolute = True
+Path Is Rel = False
+Path = "/c/kcor/lib/bitflow/BFD.lib"
+Exclude = False
+Project Flags = 0
+Folder = "Not In A Folder"
+
+[File 0002]
+File Type = "Library"
+Res Id = 2
+Force Path Absolute = True
+Path Is Rel = False
+Path = "/c/kcor/lib/bitflow/BFDiskIO.lib"
+Exclude = False
+Project Flags = 0
+Folder = "Not In A Folder"
+
+[File 0003]
+File Type = "Library"
+Res Id = 3
+Force Path Absolute = True
+Path Is Rel = False
+Path = "/c/kcor/lib/bitflow/BFEr.lib"
+Exclude = False
+Project Flags = 0
+Folder = "Not In A Folder"
+
+[File 0004]
+File Type = "Library"
+Res Id = 4
+Force Path Absolute = True
+Path Is Rel = False
+Path = "/c/kcor/lib/bitflow/Bid.lib"
+Exclude = False
+Project Flags = 0
+Folder = "Not In A Folder"
+
+[File 0005]
+File Type = "Include"
+Res Id = 5
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "brdclse.h"
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/brdc"
+Path Line0002 = "lse.h"
+Exclude = False
+Project Flags = 0
+Folder = "Include Files"
+
+[File 0006]
+File Type = "Include"
+Res Id = 6
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "brdopen0.h"
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/brdo"
+Path Line0002 = "pen0.h"
+Exclude = False
+Project Flags = 0
+Folder = "Include Files"
+
+[File 0007]
+File Type = "Include"
+Res Id = 7
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "brdopen1.h"
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/brdo"
+Path Line0002 = "pen1.h"
+Exclude = False
+Project Flags = 0
+Folder = "Include Files"
+
+[File 0008]
+File Type = "Include"
+Res Id = 8
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "brdstop.h"
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/brds"
+Path Line0002 = "top.h"
+Exclude = False
+Project Flags = 0
+Folder = "Include Files"
+
+[File 0009]
+File Type = "Include"
+Res Id = 9
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "brdstrt.h"
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/brds"
+Path Line0002 = "trt.h"
+Exclude = False
+Project Flags = 0
+Folder = "Include Files"
+
+[File 0010]
+File Type = "Include"
+Res Id = 10
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "byteswap.h"
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/byte"
+Path Line0002 = "swap.h"
+Exclude = False
+Project Flags = 0
+Folder = "Include Files"
+
+[File 0011]
+File Type = "Include"
+Res Id = 11
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "cameraSetup.h"
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/came"
+Path Line0002 = "raSetup.h"
+Exclude = False
+Project Flags = 0
+Folder = "Include Files"
+
+[File 0012]
+File Type = "Library"
+Res Id = 12
+Force Path Absolute = True
+Path Is Rel = False
+Path = "/c/kcor/lib/bitflow/Cid.lib"
+Exclude = False
+Project Flags = 0
+Folder = "Not In A Folder"
+
+[File 0013]
+File Type = "Include"
+Res Id = 13
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "cleanup.h"
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/clea"
+Path Line0002 = "nup.h"
+Exclude = False
+Project Flags = 0
+Folder = "Include Files"
+
+[File 0014]
+File Type = "Include"
+Res Id = 14
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "createthread0.h"
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/crea"
+Path Line0002 = "tethread0.h"
+Exclude = False
+Project Flags = 0
+Folder = "Include Files"
+
+[File 0015]
+File Type = "Include"
+Res Id = 15
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "createthread1.h"
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/crea"
+Path Line0002 = "tethread1.h"
+Exclude = False
+Project Flags = 0
+Folder = "Include Files"
+
+[File 0016]
+File Type = "Include"
+Res Id = 16
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "GetImgAndApplyLut0.h"
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/GetI"
+Path Line0002 = "mgAndApplyLut0.h"
+Exclude = False
+Project Flags = 0
+Folder = "Include Files"
+
+[File 0017]
+File Type = "Include"
+Res Id = 17
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "GetImgAndApplyLut1.h"
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/GetI"
+Path Line0002 = "mgAndApplyLut1.h"
+Exclude = False
+Project Flags = 0
+Folder = "Include Files"
+
+[File 0018]
+File Type = "Include"
+Res Id = 18
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "parselogic.h"
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/pars"
+Path Line0002 = "elogic.h"
+Exclude = False
+Project Flags = 0
+Folder = "Include Files"
+
+[File 0019]
+File Type = "Include"
+Res Id = 19
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "readConfig.h"
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/read"
+Path Line0002 = "Config.h"
+Exclude = False
+Project Flags = 0
+Folder = "Include Files"
+
+[File 0020]
+File Type = "CSource"
+Res Id = 20
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "socketcam.c"
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/sock"
+Path Line0002 = "etcam.c"
+Exclude = False
+Compile Into Object File = False
+Project Flags = 0
+Folder = "Source Files"
+
+[File 0021]
+File Type = "Include"
+Res Id = 21
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "socketSetup.h"
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/sock"
+Path Line0002 = "etSetup.h"
+Exclude = False
+Project Flags = 0
+Folder = "Include Files"
+
+[File 0022]
+File Type = "Include"
+Res Id = 22
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "threadsforavging.h"
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/thre"
+Path Line0002 = "adsforavging.h"
+Exclude = False
+Project Flags = 0
+Folder = "Include Files"
+
+[File 0023]
+File Type = "Include"
+Res Id = 23
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "threadsforerrors.h"
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/thre"
+Path Line0002 = "adsforerrors.h"
+Exclude = False
+Project Flags = 0
+Folder = "Include Files"
+
+[File 0024]
+File Type = "Include"
+Res Id = 24
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "threadsforstream.h"
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/thre"
+Path Line0002 = "adsforstream.h"
+Exclude = False
+Project Flags = 0
+Folder = "Include Files"
+
+[File 0025]
+File Type = "Include"
+Res Id = 25
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "threadsforwriting.h"
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/thre"
+Path Line0002 = "adsforwriting.h"
+Exclude = False
+Project Flags = 0
+Folder = "Include Files"
+
+[File 0026]
+File Type = "Include"
+Res Id = 26
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "writeAvg.h"
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/writ"
+Path Line0002 = "eAvg.h"
+Exclude = False
+Project Flags = 0
+Folder = "Include Files"
+
+[File 0027]
+File Type = "Include"
+Res Id = 27
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "writeAvg16.h"
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/writ"
+Path Line0002 = "eAvg16.h"
+Exclude = False
+Project Flags = 0
+Folder = "Include Files"
+
+[File 0028]
+File Type = "Include"
+Res Id = 28
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "writeoutavgs.h"
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/writ"
+Path Line0002 = "eoutavgs.h"
+Exclude = False
+Project Flags = 0
+Folder = "Include Files"
+
+[File 0029]
+File Type = "Include"
+Res Id = 29
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "writeoutstrm.h"
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/writ"
+Path Line0002 = "eoutstrm.h"
+Exclude = False
+Project Flags = 0
+Folder = "Include Files"
+
+[File 0030]
+File Type = "Include"
+Res Id = 30
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "writestrm0.h"
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/writ"
+Path Line0002 = "estrm0.h"
+Exclude = False
+Project Flags = 0
+Folder = "Include Files"
+
+[File 0031]
+File Type = "Include"
+Res Id = 31
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "writestrm1.h"
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/writ"
+Path Line0002 = "estrm1.h"
+Exclude = False
+Project Flags = 0
+Folder = "Include Files"
+
+[File 0032]
+File Type = "Include"
+Res Id = 32
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "writestrmtif0.h"
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/writ"
+Path Line0002 = "estrmtif0.h"
+Exclude = False
+Project Flags = 0
+Folder = "Include Files"
+
+[File 0033]
+File Type = "Include"
+Res Id = 33
+Path Is Rel = True
+Path Rel To = "Project"
+Path Rel Path = "writestrmtif1.h"
+Path Line0001 = "/c/2525-KCORONA/trunk/Software Engineering/Source-C/ObservingCode/socketcam/writ"
+Path Line0002 = "estrmtif1.h"
+Exclude = False
+Project Flags = 0
+Folder = "Include Files"
+
+[File 0034]
+File Type = "Library"
+Res Id = 34
+Path Is Rel = True
+Path Rel To = "CVI"
+Path Rel To Override = "CVI"
+Path Rel Path = "sdk/lib/msvc64/WSock32.Lib"
+Path = "/c/Program Files (x86)/National Instruments/CVI2010/sdk/lib/msvc64/WSock32.Lib"
+Exclude = False
+Project Flags = 0
+Folder = "Not In A Folder"
+
+[Folders]
+User Interface Files Folder Not Added Yet = True
+Instrument Files Folder Not Added Yet = True
+Folder 0 = "Source Files"
+Folder 1 = "Include Files"
+
+[Custom Build Configs]
+Num Custom Build Configs = 0
+
+[Default Build Config Debug]
+Config Name = "Debug"
+Is 64-Bit = False
+Is Release = False
+Default Calling Convention = "cdecl"
+Uninitialized Locals Compile Warning = "Conservative"
+Require Prototypes = True
+Require Return Values = True
+Enable Pointer Mismatch Warning = False
+Enable Unreachable Code Warning = False
+Enable Unreferenced Identifiers Warning = False
+Enable Assignment In Conditional Warning = False
+Enable C99 Extensions = True
+Stack Size = 250000
+Image Base Address = 4194304
+Image Base Address x64 = 4194304
+Compiler Defines = "/DWIN32_LEAN_AND_MEAN"
+Sign = False
+Sign Store = ""
+Sign Certificate = ""
+Sign Timestamp URL = ""
+Sign URL = ""
+Manifest Embed = False
+Icon File Is Rel = False
+Icon File = ""
+Application Title = ""
+DLL Import Library Choice = "Gen Lib For Current Mode"
+Use IVI Subdirectories for Import Libraries = False
+Use VXIPNP Subdirectories for Import Libraries = False
+Use Dflt Import Lib Base Name = True
+Where to Copy DLL = "Do not copy"
+Custom Directory to Copy DLL Is Rel = False
+Custom Directory to Copy DLL = ""
+Generate Source Documentation = "None"
+Runtime Support = "Full Runtime Support"
+Embed Project .UIRs = False
+Generate Map File = False
+Create Console Application = False
+Using LoadExternalModule = False
+DLL Exports = "Include File Symbols"
+Register ActiveX Server = False
+Add Type Lib To DLL = False
+Include Type Lib Help Links = False
+TLB Help Style = "HLP"
+Type Lib FP File Is Rel = False
+Type Lib FP File = ""
+
+[Default Build Config Release]
+Config Name = "Release"
+Is 64-Bit = False
+Is Release = True
+Default Calling Convention = "cdecl"
+Uninitialized Locals Compile Warning = "Conservative"
+Require Prototypes = True
+Require Return Values = True
+Enable Pointer Mismatch Warning = False
+Enable Unreachable Code Warning = False
+Enable Unreferenced Identifiers Warning = False
+Enable Assignment In Conditional Warning = False
+Enable C99 Extensions = True
+Stack Size = 250000
+Image Base Address = 4194304
+Image Base Address x64 = 4194304
+Compiler Defines = "/DWIN32_LEAN_AND_MEAN"
+Sign = False
+Sign Store = ""
+Sign Certificate = ""
+Sign Timestamp URL = ""
+Sign URL = ""
+Manifest Embed = False
+Icon File Is Rel = False
+Icon File = ""
+Application Title = ""
+DLL Import Library Choice = "Gen Lib For Current Mode"
+Use IVI Subdirectories for Import Libraries = False
+Use VXIPNP Subdirectories for Import Libraries = False
+Use Dflt Import Lib Base Name = True
+Where to Copy DLL = "Do not copy"
+Custom Directory to Copy DLL Is Rel = False
+Custom Directory to Copy DLL = ""
+Generate Source Documentation = "None"
+Runtime Support = "Full Runtime Support"
+Embed Project .UIRs = False
+Generate Map File = False
+Create Console Application = False
+Using LoadExternalModule = False
+DLL Exports = "Include File Symbols"
+Register ActiveX Server = False
+Add Type Lib To DLL = False
+Include Type Lib Help Links = False
+TLB Help Style = "HLP"
+Type Lib FP File Is Rel = False
+Type Lib FP File = ""
+
+[Default Build Config Debug64]
+Config Name = "Debug64"
+Is 64-Bit = True
+Is Release = False
+Default Calling Convention = "cdecl"
+Uninitialized Locals Compile Warning = "Conservative"
+Require Prototypes = True
+Require Return Values = True
+Enable Pointer Mismatch Warning = False
+Enable Unreachable Code Warning = False
+Enable Unreferenced Identifiers Warning = False
+Enable Assignment In Conditional Warning = False
+Enable C99 Extensions = True
+Stack Size = 250000
+Image Base Address = 4194304
+Image Base Address x64 = 4194304
+Compiler Defines = "/DWIN32_LEAN_AND_MEAN"
+Sign = False
+Sign Store = ""
+Sign Certificate = ""
+Sign Timestamp URL = ""
+Sign URL = ""
+Manifest Embed = False
+Icon File Is Rel = False
+Icon File = ""
+Application Title = ""
+DLL Import Library Choice = "Gen Lib For Current Mode"
+Use IVI Subdirectories for Import Libraries = False
+Use VXIPNP Subdirectories for Import Libraries = False
+Use Dflt Import Lib Base Name = True
+Where to Copy DLL = "Do not copy"
+Custom Directory to Copy DLL Is Rel = False
+Custom Directory to Copy DLL = ""
+Generate Source Documentation = "None"
+Runtime Support = "Full Runtime Support"
+Embed Project .UIRs = False
+Generate Map File = False
+Create Console Application = False
+Using LoadExternalModule = False
+DLL Exports = "Include File Symbols"
+Register ActiveX Server = False
+Numeric File Version = "1,0,0,0"
+Numeric Prod Version = "1,0,0,0"
+Comments = ""
+Comments Ex = ""
+Company Name = "NCAR/HAO"
+Company Name Ex = "%company"
+File Description = "socketcam (Debug x64)"
+File Description Ex = "%application (%rel_dbg %arch)"
+File Version = "1.0"
+File Version Ex = "%f1.%f2"
+Internal Name = "socketcam"
+Internal Name Ex = "%basename"
+Legal Copyright = "Copyright © NCAR/HAO 2013"
+Legal Copyright Ex = "Copyright © %company %Y"
+Legal Trademarks = ""
+Legal Trademarks Ex = ""
+Original Filename = "socketcam.exe"
+Original Filename Ex = "%filename"
+Private Build = ""
+Private Build Ex = ""
+Product Name = "NCAR/HAO socketcam"
+Product Name Ex = "%company %application"
+Product Version = "1.0"
+Product Version Ex = "%p1.%p2"
+Special Build = ""
+Special Build Ex = ""
+Add Type Lib To DLL = False
+Include Type Lib Help Links = False
+TLB Help Style = "HLP"
+Type Lib FP File Is Rel = False
+Type Lib FP File = ""
+
+[Default Build Config Release64]
+Config Name = "Release64"
+Is 64-Bit = True
+Is Release = True
+Default Calling Convention = "cdecl"
+Uninitialized Locals Compile Warning = "Conservative"
+Require Prototypes = True
+Require Return Values = True
+Enable Pointer Mismatch Warning = True
+Enable Unreachable Code Warning = True
+Enable Unreferenced Identifiers Warning = True
+Enable Assignment In Conditional Warning = True
+Enable C99 Extensions = True
+Stack Size = 250000
+Image Base Address = 4194304
+Image Base Address x64 = 4194304
+Compiler Defines = "/DWIN32_LEAN_AND_MEAN"
+Sign = False
+Sign Store = ""
+Sign Certificate = ""
+Sign Timestamp URL = ""
+Sign URL = ""
+Manifest Embed = False
+Icon File Is Rel = False
+Icon File = ""
+Application Title = ""
+DLL Import Library Choice = "Gen Lib For Current Mode"
+Use IVI Subdirectories for Import Libraries = False
+Use VXIPNP Subdirectories for Import Libraries = False
+Use Dflt Import Lib Base Name = True
+Where to Copy DLL = "Do not copy"
+Custom Directory to Copy DLL Is Rel = False
+Custom Directory to Copy DLL = ""
+Generate Source Documentation = "None"
+Runtime Support = "Full Runtime Support"
+Embed Project .UIRs = False
+Generate Map File = False
+Create Console Application = False
+Using LoadExternalModule = False
+DLL Exports = "Include File Symbols"
+Register ActiveX Server = False
+Numeric File Version = "1,0,0,0"
+Numeric Prod Version = "1,0,0,0"
+Comments = ""
+Comments Ex = ""
+Company Name = "NCAR/HAO"
+Company Name Ex = "%company"
+File Description = "socketcam (Release x64)"
+File Description Ex = "%application (%rel_dbg %arch)"
+File Version = "1.0"
+File Version Ex = "%f1.%f2"
+Internal Name = "socketcam"
+Internal Name Ex = "%basename"
+Legal Copyright = "Copyright © NCAR/HAO 2013"
+Legal Copyright Ex = "Copyright © %company %Y"
+Legal Trademarks = ""
+Legal Trademarks Ex = ""
+Original Filename = "socketcam.exe"
+Original Filename Ex = "%filename"
+Private Build = ""
+Private Build Ex = ""
+Product Name = "NCAR/HAO socketcam"
+Product Name Ex = "%company %application"
+Product Version = "1.0"
+Product Version Ex = "%p1.%p2"
+Special Build = ""
+Special Build Ex = ""
+Add Type Lib To DLL = False
+Include Type Lib Help Links = False
+TLB Help Style = "HLP"
+Type Lib FP File Is Rel = False
+Type Lib FP File = ""
+
+[Compiler Options]
+Default Calling Convention = "cdecl"
+Require Prototypes = True
+Require Return Values = True
+Enable Pointer Mismatch Warning = False
+Enable Unreachable Code Warning = False
+Enable Unreferenced Identifiers Warning = False
+Enable Assignment In Conditional Warning = False
+O Option Compatible With 5.0 = False
+Enable C99 Extensions = True
+Uninitialized Locals Compile Warning = "Conservative"
+Precompile Prefix Header = False
+Prefix Header File = ""
+
+[Run Options]
+Stack Size = 250000
+Image Base Address = 4194304
+Image Base Address x64 = 4194304
+
+[Compiler Defines]
+Compiler Defines = "/DWIN32_LEAN_AND_MEAN"
+
+[Include Paths]
+Include Path 1 Is Rel = False
+Include Path 1 = "/c/kcor/include/kcor"
+Include Path 2 Is Rel = False
+Include Path 2 = "/c/kcor/include/bitflow"
+
+[Create Executable]
+Executable File_Debug Is Rel = False
+Executable File_Debug = "socketcam.exe"
+Executable File_Release Is Rel = False
+Executable File_Release = "socketcam.exe"
+Executable File_Debug64 Is Rel = False
+Executable File_Debug64 = "socketcam.exe"
+Executable File_Release64 Is Rel = False
+Executable File_Release64 = "socketcam.exe"
+Icon File Is Rel = False
+Icon File = ""
+Application Title = ""
+DLL Exports = "Include File Symbols"
+DLL Import Library Choice = "Gen Lib For Current Mode"
+Use IVI Subdirectories for Import Libraries = False
+Use VXIPNP Subdirectories for Import Libraries = False
+Use Dflt Import Lib Base Name = True
+Where to Copy DLL = "Do not copy"
+Custom Directory to Copy DLL Is Rel = False
+Custom Directory to Copy DLL = ""
+Generate Source Documentation = "None"
+Add Type Lib To DLL = False
+Include Type Lib Help Links = False
+TLB Help Style = "HLP"
+Type Lib FP File Is Rel = False
+Type Lib FP File = ""
+Type Lib Guid = ""
+Runtime Support = "Full Runtime Support"
+Instrument Driver Support Only = False
+Embed Project .UIRs = False
+Generate Map File = False
+
+[External Compiler Support]
+UIR Callbacks File Option = 0
+Using LoadExternalModule = False
+Create Project Symbols File = True
+UIR Callbacks Obj File Is Rel = False
+UIR Callbacks Obj File = ""
+Project Symbols H File Is Rel = False
+Project Symbols H File = ""
+Project Symbols Obj File Is Rel = False
+Project Symbols Obj File = ""
+
+[ActiveX Server Options]
+Specification File Is Rel = False
+Specification File = ""
+Source File Is Rel = False
+Source File = ""
+Include File Is Rel = False
+Include File = ""
+IDL File Is Rel = False
+IDL File = ""
+Register ActiveX Server = False
+
+[Release64 Post-build Actions]
+Build Action1 = "copy socketcam.exe c:\\kcor\\bin\\socketcam.exe"
+
+[Signing Info]
+Sign = False
+Sign Debug Build = False
+Store = ""
+Certificate = ""
+Timestamp URL = ""
+URL = ""
+
+[Manifest Info]
+Embed = False
+
+[tpcSection]
+tpcEnabled = 0
+tpcOverrideEnvironment = 0
+tpcEnabled x64 = 0
+tpcOverrideEnvironment x64 = 0
+
