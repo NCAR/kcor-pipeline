@@ -1,7 +1,7 @@
 .PHONY: doc sswdeps help
 
 FLAGS=
-QUIET=0
+VERBOSE=0
 
 GIT=/usr/bin/git
 
@@ -12,10 +12,10 @@ EMAIL=$(USER)@ucar.edu
 IDL=idl
 SSWDEPS_IDL=idl85
 
-ifeq ($(QUIET), 1)
-  ECHO_PREFIX=@
-else
+ifeq ($(VERBOSE), 1)
   ECHO_PREFIX=
+else
+  ECHO_PREFIX=@
 endif
 
 SSW_DIR=$(PWD)/ssw
@@ -35,8 +35,11 @@ doc:
 	$(IDL) -e kcor_make_docs
 
 sswdeps:
-	find src -name '*.pro' -exec basename {} .pro \; > ROUTINES
-	$(ECHO_PREFIX)$(SSWDEPS_IDL) -IDL_STARTUP "" -IDL_PATH $(SSW_DEP_PATH) -e "kcor_find_ssw_dependencies, '$(FULL_SSW_DIR)'"
+	@echo "Find ROUTINES..."
+	$(ECHO_PREFIX)find src -name '*.pro' -exec basename {} .pro \; > ROUTINES
+	$(ECHO_PREFIX)find gen -name '*.pro' -exec basename {} .pro \; >> ROUTINES
+	@echo "Starting IDL..."
+	$(ECHO_PREFIX)$(SSWDEPS_IDL) -IDL_STARTUP "" -IDL_PATH $(SSW_DEP_PATH) -e "kcor_find_ssw_dependencies, '$(FULL_SSW_DIR)'" 2> /dev/null
 
 
 help:

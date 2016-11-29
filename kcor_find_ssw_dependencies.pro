@@ -15,12 +15,12 @@ pro kcor_find_ssw_dependencies, ssw_loc
   readf, lun, routines
   free_lun, lun
 
-  skip_files = ['kcorqsc_16apr2015']
+  skip_files = ['seekcolut24']
 
   print, 'Resolving routines...'
   for r = 0L, n_routines - 1L do begin
     ind = where(routines[r] eq skip_files, n_matched)
-    if (strpos(routines[r], '.') eq -1 && n_matched eq 0) then begin
+    if (n_matched eq 0) then begin
       resolve_routine, routines[r], /either, /compile_full_file, /no_recompile
     endif
   endfor
@@ -30,15 +30,16 @@ pro kcor_find_ssw_dependencies, ssw_loc
 
   exceptions = ['utcommon']
 
-;  skip_routines = ['CSPICE_BODVAR', 'CSPICE_CKCOV', 'CSPICE_CKGP', $
-;                   'CSPICE_CKOBJ', 'CSPICE_CONICS', 'CSPICE_ET2UTC', $
-;                   'CSPICE_FURNSH', 'CSPICE_KDATA', 'CSPICE_KTOTAL', $
-;                   'CSPICE_M2EUL', 'CSPICE_OSCELT', 'CSPICE_PXFORM', $
-;                   'CSPICE_RECGEO', 'CSPICE_RECLAT', 'CSPICE_SCE2C', $
-;                   'CSPICE_SPKCOV', 'CSPICE_SPKEZR', 'CSPICE_SPKOBJ', $
-;                   'CSPICE_STR2ET', 'CSPICE_SXFORM', 'CSPICE_UNLOAD', $
-;                   'CSPICE_UTC2ET']
+  skip_routines = ['CSPICE_BODVAR', 'CSPICE_CKCOV', 'CSPICE_CKGP', $
+                   'CSPICE_CKOBJ', 'CSPICE_CONICS', 'CSPICE_ET2UTC', $
+                   'CSPICE_FURNSH', 'CSPICE_KDATA', 'CSPICE_KTOTAL', $
+                   'CSPICE_M2EUL', 'CSPICE_OSCELT', 'CSPICE_PXFORM', $
+                   'CSPICE_RECGEO', 'CSPICE_RECLAT', 'CSPICE_SCE2C', $
+                   'CSPICE_SPKCOV', 'CSPICE_SPKEZR', 'CSPICE_SPKOBJ', $
+                   'CSPICE_STR2ET', 'CSPICE_SXFORM', 'CSPICE_UNLOAD', $
+                   'CSPICE_UTC2ET']
 
+  print, 'Resolving SSW routines...'
   ssw_files = file_search(filepath('*.pro', root='.'), count=n_files)
   for f = 0L, n_files - 1L do begin
     routine = file_basename(ssw_files[f], '.pro')
@@ -49,7 +50,8 @@ pro kcor_find_ssw_dependencies, ssw_loc
     endif
   endfor
 
-  resolve_all, /continue_on_error;, skip_routines=skip_routines
+  print, 'Finding unresolved routines...'
+  resolve_all, /continue_on_error, skip_routines=skip_routines
   help, /source, output=output
 
   continued_line = 0B
