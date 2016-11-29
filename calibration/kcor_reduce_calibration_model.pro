@@ -5,14 +5,8 @@ function kcor_reduce_calibration_model, p, data=data, angles=angles, synth=synth
 	; p[1-12]: modulation matrix
 	mmat = dblarr(4,4)
 	mmat[0,*] = p[1:4]
-	mmat[1,*] = p[1:4]*p[5:8]*sin(p[9:12])
-	mmat[2,*] = p[1:4]*p[5:8]*cos(p[9:12])
-
-	; p[13]: dark current
-	dark = p[13]
-
-	; p[14]: gain
-	gain = p[14]
+	mmat[1,*] = p[1:4]*p[5:8]*cos(p[9:12])
+	mmat[2,*] = p[1:4]*p[5:8]*sin(p[9:12])
 
 	; set up some storage
 	nangles = n_elements(angles)
@@ -40,12 +34,12 @@ function kcor_reduce_calibration_model, p, data=data, angles=angles, synth=synth
 
 	; loop over all angles
 	for i=0, nangles-1 do begin
-		; calculate the rotation matrix
-		sa = sin(2d*!dtor*(angles[i]*p[16]-p[17]))
-		ca = cos(2d*!dtor*(angles[i]*p[16]-p[17]))
-		rmat[1:2,1:2] = [[sa,ca],[-1*ca,sa]]
+		; calculate the inverse rotation matrix
+		sa = sin(2d*!dtor*angles[i]*p[16])
+		ca = cos(2d*!dtor*angles[i]*p[16])
+		rmat[1:2,1:2] = [[ca,sa],[-1*sa,ca]]
 		; calculate the intensity
-		synth[*,i] = gain*(mmat##rmat##pmatss) + dark
+		synth[*,i] = p[14]*(mmat##rmat##pmatss) + p[13]
 	endfor
 
 	diff = data - synth

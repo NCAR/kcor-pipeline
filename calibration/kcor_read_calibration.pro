@@ -1,4 +1,4 @@
-function kcor_reduce_calibration_read_data, file
+function kcor_read_calibration, file
 	cid = ncdf_open(file)
 
 	; define variables
@@ -7,9 +7,12 @@ function kcor_reduce_calibration_read_data, file
 	darkvar = ncdf_varid(cid, 'Dark')
 	gainvar = ncdf_varid(cid, 'Gain')
 	dimrefvar = ncdf_varid(cid, 'DIM Reference Voltage')
-	pixelsvar = ncdf_varid(cid, 'Pixels Fit with Model')
-	fitsvar = ncdf_varid(cid, 'Model Fit Parameters')
-	fiterrorsvar = ncdf_varid(cid, 'Model Fit Parameters Formal Errors')
+	pixels0var = ncdf_varid(cid, 'Pixels Fit with Model for Beam 0')
+	fits0var = ncdf_varid(cid, 'Model Fit Parameters for Beam 0')
+	fiterrors0var = ncdf_varid(cid, 'Model Fit Parameters Formal Errors for Beam 0')
+	pixels1var = ncdf_varid(cid, 'Pixels Fit with Model for Beam 1')
+	fits1var = ncdf_varid(cid, 'Model Fit Parameters for Beam 1')
+	fiterrors1var = ncdf_varid(cid, 'Model Fit Parameters Formal Errors for Beam 1')
 	mmatvar = ncdf_varid(cid, 'Modulation Matrix')
 	dmatvar = ncdf_varid(cid, 'Demodulation Matrix')
 
@@ -19,9 +22,12 @@ function kcor_reduce_calibration_read_data, file
 	ncdf_varget, cid, darkvar, dark
 	ncdf_varget, cid, gainvar, gain
 	ncdf_varget, cid, dimrefvar, vdimref
-	ncdf_varget, cid, pixelsvar, pixels
-	ncdf_varget, cid, fitsvar, fits
-	ncdf_varget, cid, fiterrorsvar, fiterrors
+	ncdf_varget, cid, pixels0var, pixels0
+	ncdf_varget, cid, fits0var, fits0
+	ncdf_varget, cid, fiterrors0var, fiterrors0
+	ncdf_varget, cid, pixels1var, pixels1
+	ncdf_varget, cid, fits1var, fits1
+	ncdf_varget, cid, fiterrors1var, fiterrors1
 	ncdf_varget, cid, mmatvar, mmat
 	ncdf_varget, cid, dmatvar, dmat
 
@@ -31,6 +37,7 @@ function kcor_reduce_calibration_read_data, file
 	return, {file_list:file_list, file_types:file_types, $
 		dark:dark, gain:gain, $
 		vdimref:vdimref, $
-		pixels:pixels, fits:fits, fiterrors:fiterrors, $
+		pixels0:pixels0, fits0:fits0, fiterrors0:fiterrors0, $
+		pixels1:pixels1, fits1:fits1, fiterrors1:fiterrors1, $
 		mmat:mmat, dmat:dmat}
 end
