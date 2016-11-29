@@ -1,4 +1,4 @@
-.PHONY: doc sswdeps help
+.PHONY: clean doc sswdeps help
 
 FLAGS=
 VERBOSE=0
@@ -30,6 +30,9 @@ DOC_PATH=$(MGLIB_DIR):$(IDLDOC_DIR):$(COMP_PATH)
 UNIT_PATH=$(PWD)/unit:$(MGUNIT_DIR):$(COMP_PATH)
 
 SSW_DEP_PATH="<IDL_DEFAULT>":$(KCOR_PATH):+$(FULL_SSW_DIR)
+
+clean:
+	rm -rf api-docs
 
 doc:
 	$(IDL) -e kcor_make_docs
