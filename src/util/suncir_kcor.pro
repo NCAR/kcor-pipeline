@@ -20,6 +20,7 @@
 ;-
 
 PRO suncir_kcor, xdim, ydim, xcen, ycen, xb, yb, pixrs, roll
+  compile_opt strictarr
 
    white  = 255
    red    = 254
