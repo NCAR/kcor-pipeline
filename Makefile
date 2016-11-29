@@ -1,4 +1,4 @@
-.PHONY: doc sswdeps
+.PHONY: doc sswdeps help
 
 FLAGS=
 QUIET=0
@@ -37,3 +37,9 @@ doc:
 sswdeps:
 	find src -name '*.pro' -exec basename {} .pro \; > ROUTINES
 	$(ECHO_PREFIX)$(SSWDEPS_IDL) -IDL_STARTUP "" -IDL_PATH $(SSW_DEP_PATH) -e "kcor_find_ssw_dependencies, '$(FULL_SSW_DIR)'"
+
+
+help:
+	@echo "Makefile targets:"
+	@echo "  doc         generate KCor pipeline IDL API documentation"
+	@echo "  sswdeps     find SSW IDL not in ssw/ directory"
