@@ -1,225 +1,194 @@
 ; docformat = 'rst'
 
 ;+
-;-------------------------------------------------------------------------------
-; kcor_eng_insert.pro
-;
 ; Insert values into the MLSO database table: kcor_eng.
-;-------------------------------------------------------------------------------
-; Reads a list of L1 files for a specified date & inserts a row of data into
-; 'kcor_eng'.
-;-------------------------------------------------------------------------------
-; :Params:
-;   date ; in, type=string  'yyyymmdd'
 ;
-; :Examples: 
-;   kcor_eng_insert, '20150324'
-;-------------------------------------------------------------------------------
+; Reads a list of L1 files for a specified date and inserts a row of data into
+; 'kcor_eng'.
+;
+; :Params:
+;   date : in, required, type=string
+;     date in the form 'YYYYMMDD'
+;
+; :Examples:
+;   For example::
+;
+;     kcor_eng_insert, '20150324'
+;
 ; :Author: 
 ;   Andrew Stanger
 ;   HAO/NCAR  K-coronagraph
 ;
 ; :History:
-;  8 Sep 2015 IDL procedure created.
-;             Use /hao/mlsodata1/Data/KCor/raw/yyyymmdd directory.
-; 15 Sep 2015 Use /hao/acos/year/month/day directory for L1 fits files.
-;-------------------------------------------------------------------------------
+;   8 Sep 2015 IDL procedure created.
+;              Use /hao/mlsodata1/Data/KCor/raw/yyyymmdd directory.
+;   15 Sep 2015 Use /hao/acos/year/month/day directory for L1 fits files.
+;
 ;-
-
 pro kcor_eng_insert, date, list
+  compile_opt strictarr
+  on_error, 2
 
-compile_opt strictarr
-on_error, 2
+  np = n_params() 
+  if (np ne 1) then begin
+    mg_log, 'missing date parameter', name='kcor', /error
+    return
+  endif
 
-np = n_params () 
-if (np NE 1) then $
-begin ;{
-  print, "kcor_eng_insert, 'yyyymmdd'"
-  return
-end   ;}
+  ;--------------------------
+  ; Connect to MLSO database.
+  ;--------------------------
 
-;--------------------------
-; Connect to MLSO database.
-;--------------------------
+  ; Note: The connect procedure accesses DB connection information in the file
+  ;       /home/stanger/.mysqldb. The "config_section" parameter specifies
+  ;       which group of data to use.
 
-; Note: The connect procedure accesses DB connection information
-;       in the file: "/home/stanger/.mysqldb".
-;       The "config_section" parameter specifies which group of data to use.
+  db = mgdbmysql()
+  db->connect, config_filename='/home/stanger/.mysqldb', $
+               config_section='stanger@databases'
 
-db = mgdbmysql ()
-db->connect, config_filename='/home/stanger/.mysqldb', $
-             config_section='stanger@databases
+  db->getProperty, host_name=host
+  mg_log, 'connected to %s...', host, name='kcor', /info
 
-db->getProperty, host_name=host
-print, host, format='(%"connected to %s...\n")'
+  db->setProperty, database='MLSO'
 
-db->setProperty, database='MLSO'
+  ;----------------------------------
+  ; Print DB tables in MLSO database.
+  ;----------------------------------
 
-;----------------------------------
-; Print DB tables in MLSO database.
-;----------------------------------
+  ;print, db, format='(A, /, 4(A-20))'
 
-print
-print, db, format='(A, /, 4(A-20))'
-print
+  ;-------------------------------------------------------------------------------
+  ; Delete all pre-existing rows with date = designated date to be processed.
+  ;-------------------------------------------------------------------------------
 
-;-------------------------------------------------------------------------------
-; Delete all pre-existing rows with date = designated date to be processed.
-;-------------------------------------------------------------------------------
+  year    = strmid (date, 0, 4)             ; yyyy
+  month   = strmid (date, 4, 2)             ; mm
+  day     = strmid (date, 6, 2)             ; dd
+  pdate_dash = year + '-' + month + '-' + day	; 'yyyy-mm-dd%'
+  pdate_wild = pdate_dash + "%"
 
-year    = strmid (date, 0, 4)	; yyyy
-month   = strmid (date, 4, 2)	; mm
-day     = strmid (date, 6, 2)	; dd
-pdate_dash = year + '-' + month + '-' + day	; 'yyyy-mm-dd%'
-pdate_wild = pdate_dash + "%"
+  db->execute, 'DELETE FROM kcor_eng WHERE date like ''%s''', pdate_wild, $
+               status=status, error_message=error_message, sql_statement=sql_cmd
+  mg_log, 'sql_cmd: %s', sql_cmd, name='kcor', /info
+  mg_log, 'status: %d, error message: %s', status, error_message, $
+          name='kcor', /info
 
-db->execute, 'DELETE FROM kcor_eng WHERE date like ''%s''', pdate_wild, status=status, error_message=error_message, sql_statement=sql_cmd
+  ; Delete table & reset auto-increment value to 1.
+  ;db->execute, 'TRUNCATE TABLE kcor_eng', $
+  ;             status=status, error_message=error_message, sql_statement=sql_cmd
 
-print
-print, 'sql_cmd: ', sql_cmd
-print, 'status, error: ', status, '   ', error_message
-print
+  ; Set auto-increment value to 1.
+  ;db->execute, 'ALTER TABLE kcor_eng AUTO_INCREMENT = 1'
 
-;--- Delete table & reset auto-increment value to 1.
+  ;mg_log, 'sql_cmd: %s', sql_cmd, name='kcor', /info
+  ;mg_log, 'status: %d, error message: %s', status, error_message, $
+  ;        name='kcor', /info
 
-;db->execute, 'TRUNCATE TABLE kcor_eng', status=status, error_message=error_message, sql_statement=sql_cmd
+  ;-----------------------
+  ; Directory definitions.
+  ;-----------------------
 
-;--- Set auto-increment value to 1.
+  fts_dir  = '/hao/acos/' + year + '/' + month + '/' + day
+  log_dir  = '/hao/acos/kcor/db/'
 
-;db->execute, 'ALTER TABLE kcor_eng AUTO_INCREMENT = 1'
+  log_file = 'kcor_eng_insert.log'
+  log_path = log_dir + log_file
 
-print
-print, 'sql_cmd: ', sql_cmd
-print, 'status, error: ', status, '   ', error_message
-print
+  ;----------------
+  ; Move to fts_dir.
+  ;----------------
 
-;-----------------------
-; Directory definitions.
-;-----------------------
+  cd, current=start_dir
+  cd, fts_dir
 
-fts_dir  = '/hao/acos/' + year + '/' + month + '/' + day
-log_dir  = '/hao/acos/kcor/db/'
+  ;------------------------------------------------
+  ; Create list of fits files in current directory.
+  ;------------------------------------------------
 
-log_file = 'kcor_eng_insert.log'
-log_path = log_dir + log_file
+  fits_list = file_search('*kcor_l1.fts*', count=nfiles)
 
-;---------------
-; Open log file.
-;---------------
+  if (nfiles eq 0) then begin
+    mg_log, 'No images in list file', name='kcor', /info
+    goto, done
+  endif
 
-get_lun, LOG
-close,   LOG
-openw,   LOG, log_path
+  i       = -1
+  fts_file = 'img.fts'
 
-;----------------
-; Move to fts_dir.
-;----------------
+  while (++i lt nfiles) do begin
+    fts_file = fits_list [i]
+    finfo = file_info(fts_file)	  ; Get file information.
 
-cd, current=start_dir
-cd, fts_dir
+    ; Read FITS header.
 
-;------------------------------------------------
-; Create list of fits files in current directory.
-;------------------------------------------------
+    hdu = headfits(fts_file, /silent)
 
-fits_list = FILE_SEARCH ('*kcor_l1.fts*', count=nfiles)
+    ; Extract desired items from header.
 
-if (nfiles EQ 0) then $
-begin ;{
-  print, 'No images in list file. '
-  goto, DONE
-end   ;}
+    date_obs   = sxpar(hdu, 'DATE-OBS', count=qdate_obs)
+    rcamfocs   = sxpar(hdu, 'RCAMFOCS', count=qrcamfocs)
+    tcamfocs   = sxpar(hdu, 'TCAMFOCS', count=qtcamfocs)
+    modltrt    = sxpar(hdu, 'MODLTRT',  count=qmodltrt)
+    o1focs     = sxpar(hdu, 'O1FOCS',   count=q01focs)
+    sgsdimv    = sxpar(hdu, 'SGSDIMV',  count=qsgsdimv)
+    sgsdims    = sxpar(hdu, 'SGSDIMS',  count=qsgsdims)
+    sgssumv    = sxpar(hdu, 'SGSSUMV',  count=qsgssumv)
+    sgsrav     = sxpar(hdu, 'SGSRAV',   count=qsgsrav)
+    sgsras     = sxpar(hdu, 'SGSRAS',   count=qsgsras)
+    sgsrazr    = sxpar(hdu, 'SGSRAZR',  count=qsgsrazr)
+    sgsdecv    = sxpar(hdu, 'SGSDECV',  count=qsgsdecv)
+    sgsdecs    = sxpar(hdu, 'SGSDECS',  count=qsgsdecs)
+    sgsdeczr   = sxpar(hdu, 'SGSDECZR', count=qsgsdeczr)
+    sgsscint   = sxpar(hdu, 'SGSSCINT', count=qsgsscint)
+    sgssums    = sxpar(hdu, 'SGSSUMS',  count=qsgssums)
 
-;-------------------------------------------------------------------------------
-; File loop:
-;-------------------------------------------------------------------------------
+    rcamfocs_str = strtrim(rcamfocs, 2)
+    tcamfocs_str = strtrim(tcamfocs, 2)
+    mg_log, 'rcamfocs: %f, tcamfocs: %f', rcamfocs, tcamfocs, name='kcor', /debug
+    ;  if (rcamfocs_str EQ 'NaN') then print, 'rcamfocs: Not a Number'
+    ;  if (tcamfocs_str EQ 'NaN') then print, 'tcamfocs: Not a Number' 
+    if (rcamfocs_str eq 'NaN') then rcamfocs = -99.99
+    if (tcamfocs_str eq 'NaN') then tcamfocs = -99.99
 
-i       = -1
-fts_file = 'img.fts'
+    ; Construct variables for database table fields.
 
-while (++i LT nfiles) do $
-begin ;{
-  fts_file = fits_list [i]
-  finfo = FILE_INFO (fts_file)		; Get file information.
+    year  = strmid (date_obs, 0, 4)   ; yyyy
+    month = strmid (date_obs, 5, 2)   ; mm
+    day   = strmid (date_obs, 8, 2)   ; dd
 
-  ;--- Read FITS header.
+    ; Determine DOY.
 
-  hdu = headfits (fts_file, /SILENT)
+    mday      = [0,31,59,90,120,151,181,212,243,273,304,334]
+    mday_leap = [0,31,60,91,121,152,182,213,244,274,305,335] ;leap year 
 
-  ;--- Extract desired items from header.
+    if ((fix(year) mod 4) eq 0) then begin
+      doy = mday_leap[fix(month) - 1] + fix(day)
+    endif else begin 
+      doy = mday[fix(month) - 1] + fix(day)
+    endelse
+  doy_str = string(doy, format='(%"%3d")')
 
-  date_obs   = sxpar (hdu, 'DATE-OBS', count=qdate_obs)
-  rcamfocs   = sxpar (hdu, 'RCAMFOCS', count=qrcamfocs)
-  tcamfocs   = sxpar (hdu, 'TCAMFOCS', count=qtcamfocs)
-  modltrt    = sxpar (hdu, 'MODLTRT',  count=qmodltrt)
-  o1focs     = sxpar (hdu, 'O1FOCS',   count=q01focs)
-  sgsdimv    = sxpar (hdu, 'SGSDIMV',  count=qsgsdimv)
-  sgsdims    = sxpar (hdu, 'SGSDIMS',  count=qsgsdims)
-  sgssumv    = sxpar (hdu, 'SGSSUMV',  count=qsgssumv)
-  sgsrav     = sxpar (hdu, 'SGSRAV',   count=qsgsrav)
-  sgsras     = sxpar (hdu, 'SGSRAS',   count=qsgsras)
-  sgsrazr    = sxpar (hdu, 'SGSRAZR',  count=qsgsrazr)
-  sgsdecv    = sxpar (hdu, 'SGSDECV',  count=qsgsdecv)
-  sgsdecs    = sxpar (hdu, 'SGSDECS',  count=qsgsdecs)
-  sgsdeczr   = sxpar (hdu, 'SGSDECZR', count=qsgsdeczr)
-  sgsscint   = sxpar (hdu, 'SGSSCINT', count=qsgsscint)
-  sgssums    = sxpar (hdu, 'SGSSUMS',  count=qsgssums)
-
-  rcamfocs_str = strtrim (string (rcamfocs), 2)
-  tcamfocs_str = strtrim (string (tcamfocs), 2)
-  print, 'rcamfocs, tcamfocs: ', rcamfocs, tcamfocs
-;  if (rcamfocs_str EQ 'NaN') then print, 'rcamfocs: Not a Number'
-;  if (tcamfocs_str EQ 'NaN') then print, 'tcamfocs: Not a Number' 
-  if (rcamfocs_str EQ 'NaN') then rcamfocs = -99.99
-  if (tcamfocs_str EQ 'NaN') then tcamfocs = -99.99
-
-  ;--- Construct variables for database table fields.
-
-  year  = strmid (date_obs, 0, 4)	; yyyy
-  month = strmid (date_obs, 5, 2)	; mm
-  day   = strmid (date_obs, 8, 2)	; dd
-
-   ;--- Determine DOY.
-
-  mday      = [0,31,59,90,120,151,181,212,243,273,304,334]
-  mday_leap = [0,31,60,91,121,152,182,213,244,274,305,335] ;leap year 
-
-  IF ((fix (year) mod 4) EQ 0) THEN $
-  doy = mday_leap [fix (month) - 1] + fix (day) $
-  ELSE $
-  doy = mday [fix (month) - 1] + fix (day)
-  doy_str = string (doy, format='(%"%3d")')
-
-  date_dash    = strmid (date_obs, 0, 10)	; yyyy-mm-dd
-  time_obs     = strmid (date_obs, 11, 8)	; hh:mm:ss
+  date_dash    = strmid(date_obs, 0, 10)	; yyyy-mm-dd
+  time_obs     = strmid(date_obs, 11, 8)	; hh:mm:ss
   date_eng     = date_dash + ' ' + time_obs	; yyyy-mm-dd hh:mm:ss
-  fits_file    = strmid (fts_file, 0, 27)	; remove '.gz' from file name.
+  fits_file    = strmid(fts_file, 0, 27)	; remove '.gz' from file name.
 
-;--- DB insert command.
+  ; DB insert command.
 
-  db->execute, 'INSERT INTO kcor_eng (file_name, date, rcamfocs, tcamfocs, modltrt, o1focs, sgsdimv, sgsdims, sgssumv, sgsrav, sgsras, sgsrazr, sgsdecv, sgsdecs, sgsdeczr, sgsscint, sgssums) VALUES (''%s'', ''%s'', %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f) ', fits_file, date_eng, rcamfocs, tcamfocs, modltrt, o1focs, sgsdimv, sgsdims, sgssumv, sgsrav, sgsras, sgsrazr, sgsdecv, sgsdecs, sgsdeczr, sgsscint, sgssums, status=status, error_message=error_message, sql_statement=sql_cmd
+  db->execute, 'INSERT INTO kcor_eng (file_name, date, rcamfocs, tcamfocs, modltrt, o1focs, sgsdimv, sgsdims, sgssumv, sgsrav, sgsras, sgsrazr, sgsdecv, sgsdecs, sgsdeczr, sgsscint, sgssums) VALUES (''%s'', ''%s'', %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f) ', $
+               fits_file, date_eng, rcamfocs, tcamfocs, modltrt, o1focs, $
+               sgsdimv, sgsdims, sgssumv, sgsrav, sgsras, sgsrazr, sgsdecv, $
+               sgsdecs, sgsdeczr, sgsscint, sgssums, $
+               status=status, error_message=error_message, sql_statement=sql_cmd
 
-  print,       fits_file, '  status: ', strtrim (string (status), 2), $
-                          '  error_message: ', error_message
-  printf, LOG, fits_file, '  status: ', strtrim (string (status), 2), $
-                          '  error_message: ', error_message
-  print,       sql_cmd
-  printf, LOG, sql_cmd
-  print
+    mg_log, '%s: status: %d, error message: %s', status, error_message, $
+            name='kcor', /debug
+    mg_log, 'sql_cmd: %s', sql_cmd, name='kcor', /debug
+  endwhile
 
-;  if (i EQ 2) then  goto, DONE
-end   ;}
-;-------------------------------------------------------------------------------
-; End of file loop.
-;-------------------------------------------------------------------------------
+  done:
+  obj_destroy, db
 
-DONE: $
-
-obj_destroy, db
-
-print,       '*** end of kcor_eng_insert ***'
-printf, LOG, '*** end of kcor_eng_insert ***'
-close,  LOG
-free_lun, LOG
-
+  mg_log, '*** end of kcor_eng_insert ***', name='kcor', /info
 end
