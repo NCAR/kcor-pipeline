@@ -6,6 +6,7 @@ cd build
 
 cmake \
   -DCMAKE_INSTALL_PREFIX:PATH=~/software/kcor-pipeline \
-  -DIDLdoc_DIR:PATH=~/projects/idldoc/src \
+  -DIDL_ROOT_DIR:PATH=/opt/share/idl8.5/idl85 \
+  -DIDLdoc_DIR:PATH=~/projects/idldoc \
   -Dmgunit_DIR:PATH=~/projects/mgunit/src \
   ..

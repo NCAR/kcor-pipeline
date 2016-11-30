@@ -52,7 +52,7 @@ endif ()
 
 if (IDLdoc_FOUND)
   add_custom_target(doc
-    COMMAND ${IDL_EXECUTABLE} -IDL_STARTUP "\"\"" -IDL_PATH "${CMAKE_CURRENT_SOURCE_DIR}${SEP_CHAR}+${CMAKE_CURRENT_SOURCE_DIR}/src${SEP_CHAR}+${IDLdoc_DIR}${SEP_CHAR}\"<IDL_DEFAULT>\"" -e kcor_make_docs -args ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMAND ${IDL_EXECUTABLE} -IDL_STARTUP "\"\"" -IDL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lib${SEP_CHAR}${CMAKE_CURRENT_SOURCE_DIR}${SEP_CHAR}+${CMAKE_CURRENT_SOURCE_DIR}/src${SEP_CHAR}+${IDLdoc_DIR}${SEP_CHAR}\"<IDL_DEFAULT>\"" -e kcor_make_docs -args ${CMAKE_CURRENT_SOURCE_DIR}
     COMMENT build developer API documentation
   )
 endif ()
@@ -92,3 +92,4 @@ add_custom_target(dist
 if (IDLdoc_FOUND)
   add_dependencies(dist doc)
 endif ()
+
