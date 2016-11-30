@@ -39,6 +39,7 @@ find_package(mgunit)
 include_directories(${IDL_INCLUDE_DIR})
 
 add_subdirectory(bin)
+add_subdirectory(config)
 add_subdirectory(gen)
 add_subdirectory(lib)
 add_subdirectory(resources)
