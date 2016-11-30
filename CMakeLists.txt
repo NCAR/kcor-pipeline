@@ -41,8 +41,10 @@ include_directories(${IDL_INCLUDE_DIR})
 add_subdirectory(bin)
 add_subdirectory(gen)
 add_subdirectory(lib)
+add_subdirectory(resources)
 add_subdirectory(src)
 add_subdirectory(ssw)
+
 
 if (WIN32 OR CYGWIN)
   set(SEP_CHAR ";")
