@@ -3,14 +3,17 @@
 ;+
 ; Insert values into the MLSO database table: kcor_dp.
 ;
-; Reads a list of L1 files for a specified date & inserts a row of data into
+; Reads a list of L1 files for a specified date and inserts a row of data into
 ; 'kcor_dp'.
 ;
 ; :Params:
-;   date ; in, type=string  'yyyymmdd'
+;   date : in, type=string
+;     date in the form 'YYYYMMDD'
 ;
-; :Examples: 
-;   kcor_dp_insert, '20150324', 'okligz.ls'
+; :Examples:
+;   For example::
+;
+;     kcor_dp_insert, '20150324', 'okligz.ls'
 ;
 ; :Author: 
 ;   Andrew Stanger
@@ -22,13 +25,13 @@
 ;   15 Sep 2015 Use /hao/acos/year/month/day directory    for L1 fits files.
 ;   28 Sep 2015 Remove bitpix, xdim, ydim fields.
 ;-
-pro kcor_dp_insert, date
+pro kcor_dp_insert, date, run=run
   compile_opt strictarr
   on_error, 2
 
   np = n_params() 
   if (np ne 1) then begin
-    mg_log, 'missing date parameter', name='kcor', /error
+    mg_log, 'missing date parameter', name='kcor/dbinsert', /error
     return
   end
 
@@ -36,16 +39,12 @@ pro kcor_dp_insert, date
   ; Connect to MLSO database.
   ;--------------------------
 
-  ; Note: The connect procedure accesses DB connection information in the file
-  ;       /home/stanger/.mysqldb. The "config_section" parameter specifies
-  ;       which group of data to use.
-
   db = mgdbmysql()
-  db->connect, config_filename='/home/stanger/.mysqldb', $
-               config_section='stanger@databases'
+  db->connect, config_filename=run.database_config_filename, $
+               config_section=run.database_config_section
 
   db->getProperty, host_name=host
-  mg_log, 'connected to %s...', host, name='kcor', /info
+  mg_log, 'connected to %s...', host, name='kcor/dbinsert', /info
 
   db->setProperty, database='MLSO'
 
@@ -66,19 +65,15 @@ pro kcor_dp_insert, date
 
   db->execute, 'DELETE FROM kcor_dp WHERE date_obs like ''%s''', pdate_dash, $
                status=status, error_message=error_message, sql_statement=sql_cmd
-  mg_log, 'sql_cmd: %s', sql_cmd, name='kcor', /info
+  mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /info
   mg_log, 'status: %d, error message: %s', status, error_message, $
-          name='kcor', /info
+          name='kcor/dbinsert', /info
 
   ;-----------------------
   ; Directory definitions.
   ;-----------------------
 
-  fts_dir  = '/hao/acos/' + year + '/' + month + '/' + day
-  log_dir  = '/hao/acos/kcor/db/'
-
-  log_file = 'kcor_dp_insert.log'
-  log_path = log_dir + log_file
+  fts_dir = filepath('', subdir=[year, month, day], root=run.archive_dir)
 
   ;----------------
   ; Move to fts_dir.
@@ -93,8 +88,8 @@ pro kcor_dp_insert, date
 
   fits_list = file_search('*kcor_l1.fts*', count=nfiles)
 
-  if (nfiles EQ 0) then begin
-    mg_log, 'No images in list file', name='kcor', /info
+  if (nfiles eq 0) then begin
+    mg_log, 'no images in list file', name='kcor/dbinsert', /info
     goto, done
   end
 
@@ -128,7 +123,7 @@ pro kcor_dp_insert, date
 
     obsswid    = strtrim (obsswid,  2)	; Remove leading/trailing blanks
 
-    mg_log, 'xdim: %d, ydim: %d', xdim, ydim, name='kcor', /debug
+    mg_log, 'xdim: %d, ydim: %d', xdim, ydim, name='kcor/dbinsert', /debug
 
     if (qbunit eq 0) then begin
       bunit = 'quasi-pB'
@@ -174,8 +169,8 @@ pro kcor_dp_insert, date
                status=status, error_message=error_message, sql_statement=sql_cmd
 
     mg_log, '%s: status: %d, error message: %s', status, error_message, $
-            name='kcor', /debug
-    mg_log, 'sql_cmd: %s', sql_cmd, name='kcor', /debug
+            name='kcor/dbinsert', /debug
+    mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /debug
 
     if (i eq 0) then goto, done	  ; Process only first fits file in list
   endwhile
@@ -183,5 +178,5 @@ pro kcor_dp_insert, date
   done:
   obj_destroy, db
 
-  mg_log, '*** end of kcor_dp_insert ***', name='kcor', /info
+  mg_log, '*** end of kcor_dp_insert ***', name='kcor/dbinsert', /info
 end

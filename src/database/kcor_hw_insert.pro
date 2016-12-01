@@ -24,13 +24,13 @@
 ;               Use /hao/mlsodata1/Data/KCor/raw/yyyymmdd for L1 fits files.
 ;   15 Sep 2015 Use /hao/acos/year/month/day directory    for L1 fits files.
 ;-
-pro kcor_hw_insert, date
+pro kcor_hw_insert, date, run=run
   compile_opt strictarr
   on_error, 2
 
   np = n_params() 
   if (np ne 1) then begin
-    mg_log, 'missing date parameter', name='kcor', /error
+    mg_log, 'missing date parameter', name='kcor/dbinsert', /error
     return
   endif
 
@@ -38,16 +38,12 @@ pro kcor_hw_insert, date
   ; Connect to MLSO database.
   ;--------------------------
 
-  ; Note: The connect procedure accesses DB connection information in the file
-  ;       /home/stanger/.mysqldb. The "config_section" parameter specifies
-  ;       which group of data to use.
-
   db = mgdbmysql()
-  db->connect, config_filename='/home/stanger/.mysqldb', $
-               config_section='stanger@databases'
+  db->connect, config_filename=run.database_config_filename, $
+               config_section=run.database_config_section
 
   db->getProperty, host_name=host
-  mg_log, 'connected to %s...', host, name='kcor', /info
+  mg_log, 'connected to %s...', host, name='kcor/dbinsert', /info
 
   db->setProperty, database='MLSO'
 
@@ -68,19 +64,15 @@ pro kcor_hw_insert, date
 
   db->execute, 'DELETE FROM kcor_hw WHERE date like ''%s''', pdate_dash, $
                status=status, error_message=error_message, sql_statement=sql_cmd
-  mg_log, 'sql_cmd: %s', sql_cmd, name='kcor', /info
+  mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /info
   mg_log, 'status: %d, error message: %s', status, error_message, $
-          name='kcor', /info
+          name='kcor/dbinsert', /info
 
   ;-----------------------
   ; Directory definitions.
   ;-----------------------
 
-  fts_dir  = '/hao/acos/' + year + '/' + month + '/' + day
-  log_dir  = '/hao/acos/kcor/db/'
-
-  log_file = 'kcor_hw_insert.log'
-  log_path = log_dir + log_file
+  fts_dir = filepath('', subdir=[year, month, day], root=run.archive_dir)
 
   ;-----------------
   ; Move to fts_dir.
@@ -96,7 +88,7 @@ pro kcor_hw_insert, date
   fits_list = file_search('*kcor_l1.fts*', count=nfiles)
 
   if (nfiles eq 0) then begin
-    mg_log, 'No images in list file', name='kcor', /info
+    mg_log, 'no images in list file', name='kcor/dbinsert', /info
     goto, done
   endif
 
@@ -162,8 +154,8 @@ pro kcor_hw_insert, date
                status=status, error_message=error_message, sql_statement=sql_cmd
 
     mg_log, '%s: status: %d, error message: %s', status, error_message, $
-            name='kcor', /debug
-    mg_log, 'sql_cmd: %s', sql_cmd, name='kcor', /debug
+            name='kcor/dbinsert', /debug
+    mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /debug
 
     if (i eq 0) then  goto, done   ; Process only the first file in the list.
   endwhile
@@ -171,5 +163,5 @@ pro kcor_hw_insert, date
   done:
   obj_destroy, db
 
-  mg_log, '*** end of kcor_hw_insert ***', name='kcor', /info
+  mg_log, '*** end of kcor_hw_insert ***', name='kcor/dbinsert', /info
 end

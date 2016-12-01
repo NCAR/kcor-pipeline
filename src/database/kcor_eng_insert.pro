@@ -25,13 +25,13 @@
 ;   15 Sep 2015 Use /hao/acos/year/month/day directory for L1 fits files.
 ;
 ;-
-pro kcor_eng_insert, date, list
+pro kcor_eng_insert, date, run=run
   compile_opt strictarr
   on_error, 2
 
   np = n_params() 
   if (np ne 1) then begin
-    mg_log, 'missing date parameter', name='kcor', /error
+    mg_log, 'missing date parameter', name='kcor/dbinsert', /error
     return
   endif
 
@@ -39,16 +39,12 @@ pro kcor_eng_insert, date, list
   ; Connect to MLSO database.
   ;--------------------------
 
-  ; Note: The connect procedure accesses DB connection information in the file
-  ;       /home/stanger/.mysqldb. The "config_section" parameter specifies
-  ;       which group of data to use.
-
   db = mgdbmysql()
-  db->connect, config_filename='/home/stanger/.mysqldb', $
-               config_section='stanger@databases'
+  db->connect, config_filename=run.database_config_filename, $
+               config_section=run.database_config_section
 
   db->getProperty, host_name=host
-  mg_log, 'connected to %s...', host, name='kcor', /info
+  mg_log, 'connected to %s...', host, name='kcor/dbinsert', /info
 
   db->setProperty, database='MLSO'
 
@@ -70,9 +66,9 @@ pro kcor_eng_insert, date, list
 
   db->execute, 'DELETE FROM kcor_eng WHERE date like ''%s''', pdate_wild, $
                status=status, error_message=error_message, sql_statement=sql_cmd
-  mg_log, 'sql_cmd: %s', sql_cmd, name='kcor', /info
+  mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /info
   mg_log, 'status: %d, error message: %s', status, error_message, $
-          name='kcor', /info
+          name='kcor/dbinsert', /info
 
   ; Delete table & reset auto-increment value to 1.
   ;db->execute, 'TRUNCATE TABLE kcor_eng', $
@@ -81,19 +77,15 @@ pro kcor_eng_insert, date, list
   ; Set auto-increment value to 1.
   ;db->execute, 'ALTER TABLE kcor_eng AUTO_INCREMENT = 1'
 
-  ;mg_log, 'sql_cmd: %s', sql_cmd, name='kcor', /info
+  ;mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /info
   ;mg_log, 'status: %d, error message: %s', status, error_message, $
-  ;        name='kcor', /info
+  ;        name='kcor/dbinsert', /info
 
   ;-----------------------
   ; Directory definitions.
   ;-----------------------
 
-  fts_dir  = '/hao/acos/' + year + '/' + month + '/' + day
-  log_dir  = '/hao/acos/kcor/db/'
-
-  log_file = 'kcor_eng_insert.log'
-  log_path = log_dir + log_file
+  fts_dir = filepath('', subdir=[year, month, day], root=run.archive_dir)
 
   ;----------------
   ; Move to fts_dir.
@@ -109,7 +101,7 @@ pro kcor_eng_insert, date, list
   fits_list = file_search('*kcor_l1.fts*', count=nfiles)
 
   if (nfiles eq 0) then begin
-    mg_log, 'No images in list file', name='kcor', /info
+    mg_log, 'no images in list file', name='kcor/dbinsert', /info
     goto, done
   endif
 
@@ -117,7 +109,7 @@ pro kcor_eng_insert, date, list
   fts_file = 'img.fts'
 
   while (++i lt nfiles) do begin
-    fts_file = fits_list [i]
+    fts_file = fits_list[i]
     finfo = file_info(fts_file)	  ; Get file information.
 
     ; Read FITS header.
@@ -145,7 +137,7 @@ pro kcor_eng_insert, date, list
 
     rcamfocs_str = strtrim(rcamfocs, 2)
     tcamfocs_str = strtrim(tcamfocs, 2)
-    mg_log, 'rcamfocs: %f, tcamfocs: %f', rcamfocs, tcamfocs, name='kcor', /debug
+    mg_log, 'rcamfocs: %f, tcamfocs: %f', rcamfocs, tcamfocs, name='kcor/dbinsert', /debug
     ;  if (rcamfocs_str EQ 'NaN') then print, 'rcamfocs: Not a Number'
     ;  if (tcamfocs_str EQ 'NaN') then print, 'tcamfocs: Not a Number' 
     if (rcamfocs_str eq 'NaN') then rcamfocs = -99.99
@@ -183,12 +175,12 @@ pro kcor_eng_insert, date, list
                status=status, error_message=error_message, sql_statement=sql_cmd
 
     mg_log, '%s: status: %d, error message: %s', status, error_message, $
-            name='kcor', /debug
-    mg_log, 'sql_cmd: %s', sql_cmd, name='kcor', /debug
+            name='kcor/dbinsert', /debug
+    mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /debug
   endwhile
 
   done:
   obj_destroy, db
 
-  mg_log, '*** end of kcor_eng_insert ***', name='kcor', /info
+  mg_log, '*** end of kcor_eng_insert ***', name='kcor/dbinsert', /info
 end

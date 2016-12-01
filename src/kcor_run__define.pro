@@ -36,6 +36,12 @@ pro kcor_run::setup_loggers, date
                        time_format=log_time_fmt, $
                        level=log_level, $
                        filename=filepath(date + '.calibration.log', root=log_dir)
+
+  mg_log, name='kcor/dbinsert', logger=logger
+  logger->setProperty, format=log_fmt, $
+                       time_format=log_time_fmt, $
+                       level=log_level, $
+                       filename=filepath(date + '.dbinsert.log', root=log_dir)
 end
 
 
@@ -51,6 +57,7 @@ pro kcor_run::getProperty, binary_dir=binary_dir, $
                            cal_out_dir=cal_out_dir, $
                            raw_basedir=raw_basedir, $
                            process_basedir=process_basedir, $
+                           archive_dir=archive_dir, $
                            log_dir=log_dir, $
                            log_level=log_level, $
                            database_config_filename=database_config_filename, $
@@ -83,6 +90,11 @@ pro kcor_run::getProperty, binary_dir=binary_dir, $
   endif
   if (arg_present(process_basedir)) then begin
     process_basedir = self.options->get('process_basedir', section='processing')
+  endif
+
+  ; results
+  if (arg_present(archive_dir)) then begin
+    archive_dir = self.options->get('archive_dir', section='results')
   endif
 
   ; logging

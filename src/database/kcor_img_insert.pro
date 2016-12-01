@@ -31,13 +31,13 @@
 ;   Add field for sky polarization coefficients
 ;   Add field for modulation matrix coefficients (at 3 pixels).
 ;-
-pro kcor_img_insert, date
+pro kcor_img_insert, date, run=run
   compile_opt strictarr
   on_error, 2
 
   np = n_params() 
   if (np ne 1) then begin
-    mg_log, 'missing date parameter', name='kcor', /error
+    mg_log, 'missing date parameter', name='kcor/dbinsert', /error
     return
   end
 
@@ -50,11 +50,11 @@ pro kcor_img_insert, date
   ;       which group of data to use.
 
   db = mgdbmysql()
-  db->connect, config_filename='/home/stanger/.mysqldb', $
-               config_section='stanger@databases'
+  db->connect, config_filename=run.database_config_filename, $
+               config_section=run.database_config_section
 
   db->getProperty, host_name=host
-  mg_log, 'connected to %s...', host, name='kcor', /info
+  mg_log, 'connected to %s...', host, name='kcor/dbinsert', /info
 
   db->setProperty, database='MLSO'
 
@@ -75,19 +75,15 @@ pro kcor_img_insert, date
 
   db->execute, 'DELETE FROM kcor_img WHERE date_obs like ''%s''', odate_dash, $
                status=status, error_message=error_message, sql_statement=sql_cmd
-  mg_log, 'sql_cmd: %s', sql_cmd, name='kcor', /info
+  mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /info
   mg_log, 'status: %d, error message: %s', status, error_message, $
-          name='kcor', /info
+          name='kcor/dbinsert', /info
 
   ;-----------------------
   ; Directory definitions.
   ;-----------------------
 
-  fts_dir  = '/hao/acos/' + year + '/' + month + '/' + day
-  log_dir  = '/hao/acos/kcor/db/'
-
-  log_file = 'kcor_img_insert.log'
-  log_path = log_dir + log_file
+  fts_dir = filepath('', subdir=[year, month, day], root=run.archive_dir)
 
   ;----------------
   ; Move to fts_dir.
@@ -103,7 +99,7 @@ pro kcor_img_insert, date
   fits_list = file_search('*kcor_l1.fts*', count=nfiles)
 
   if (nfiles eq 0) then begin
-    mg_log, 'No images in list file', name='kcor', /info
+    mg_log, 'no images in list file', name='kcor/dbinsert', /info
     goto, done
   end
 
@@ -144,29 +140,29 @@ pro kcor_img_insert, date
     quality    = 'u'
     filetype   = 'fits'
 
-    mg_log, 'date_obs: %s', date_obs, name='kcor', /debug
-    mg_log, 'date_end: %s', date_end, name='kcor', /debug
-    mg_log, 'telescop: %s', telescop, name='kcor', /debug
-    mg_log, 'instrume: %s', instrume, name='kcor', /debug
-    mg_log, 'datatype: %s', datatype, name='kcor', /debug
-    mg_log, 'level:    %s', level, name='kcor', /debug
-    mg_log, 'exptime:  %s', exptime, name='kcor', /debug
-    mg_log, 'numsum:   %s', numsum, name='kcor', /debug
-    mg_log, 'rsun:     %s', rsun, name='kcor', /debug
-    mg_log, 'solar_p0: %s', solar_p0, name='kcor', /debug
-    mg_log, 'carr_lat: %s', carr_lat, name='kcor', /debug
-    mg_log, 'carr_lon: %s', carr_lon, name='kcor', /debug
-    mg_log, 'carr_rot: %s', carr_rot, name='kcor', /debug
-    mg_log, 'solar_ra: %s', solar_ra, name='kcor', /debug
-    mg_log, 'solardec: %s', solardec, name='kcor', /debug
+    mg_log, 'date_obs: %s', date_obs, name='kcor/dbinsert', /debug
+    mg_log, 'date_end: %s', date_end, name='kcor/dbinsert', /debug
+    mg_log, 'telescop: %s', telescop, name='kcor/dbinsert', /debug
+    mg_log, 'instrume: %s', instrume, name='kcor/dbinsert', /debug
+    mg_log, 'datatype: %s', datatype, name='kcor/dbinsert', /debug
+    mg_log, 'level:    %s', level, name='kcor/dbinsert', /debug
+    mg_log, 'exptime:  %s', exptime, name='kcor/dbinsert', /debug
+    mg_log, 'numsum:   %s', numsum, name='kcor/dbinsert', /debug
+    mg_log, 'rsun:     %s', rsun, name='kcor/dbinsert', /debug
+    mg_log, 'solar_p0: %s', solar_p0, name='kcor/dbinsert', /debug
+    mg_log, 'carr_lat: %s', carr_lat, name='kcor/dbinsert', /debug
+    mg_log, 'carr_lon: %s', carr_lon, name='kcor/dbinsert', /debug
+    mg_log, 'carr_rot: %s', carr_rot, name='kcor/dbinsert', /debug
+    mg_log, 'solar_ra: %s', solar_ra, name='kcor/dbinsert', /debug
+    mg_log, 'solardec: %s', solardec, name='kcor/dbinsert', /debug
 
     if (qdatatype eq 0) then begin
-      mg_log, 'qdatatype: %s', qdatatype, name='kcor', /debug
+      mg_log, 'qdatatype: %s', qdatatype, name='kcor/dbinsert', /debug
       datatype = 'unknown'
     endif
 
     if (qinstrume eq 0) then begin
-      mg_log, 'qinstrume: %s', qinstrume, name='kcor', /debug
+      mg_log, 'qinstrume: %s', qinstrume, name='kcor/dbinsert', /debug
       instrume = telescop
     endif
 
@@ -212,26 +208,26 @@ pro kcor_img_insert, date
     instrume_results = db->query ('SELECT * FROM instrume WHERE instrument=''%s''', $
                                   instrume, fields=fields)
     instrume_num = instrume_results.id
-    mg_log, 'instrume:            %s', instrume, name='kcor', /debug
-    mg_log, 'instrume_results.id: %s', instrume_results.id, name='kcor', /debug
+    mg_log, 'instrume:            %s', instrume, name='kcor/dbinsert', /debug
+    mg_log, 'instrume_results.id: %s', instrume_results.id, name='kcor/dbinsert', /debug
 
     quality_results = db->query('SELECT * FROM quality WHERE quality=''%s''', $
                                  quality, fields=fields)
     quality_num = quality_results.id
-    mg_log, 'quality:             %s', quality, name='kcor', /debug
-    mg_log, 'quality_results.id:  %s', quality_results.id, name='kcor', /debug
+    mg_log, 'quality:             %s', quality, name='kcor/dbinsert', /debug
+    mg_log, 'quality_results.id:  %s', quality_results.id, name='kcor/dbinsert', /debug
 
     filetype_results = db->query('SELECT * FROM filetype WHERE filetype=''%s''', $
                                  filetype, fields=fields)
     filetype_num = filetype_results.id
-    mg_log, 'filetype:            %s', filetype, name='kcor', /debug
-    mg_log, 'filetype_results.id: %s', filetype_results.id, name='kcor', /debug
+    mg_log, 'filetype:            %s', filetype, name='kcor/dbinsert', /debug
+    mg_log, 'filetype_results.id: %s', filetype_results.id, name='kcor/dbinsert', /debug
 
     level_results = db->query('SELECT * FROM level WHERE level=''%s''', level, $
                               fields=fields)
     level_num = level_results.id
-    mg_log, 'level:               %s', level, name='kcor', /debug
-    mg_log, 'level_results.id:    %s', level_results.id, name='kcor', /debug
+    mg_log, 'level:               %s', level, name='kcor/dbinsert', /debug
+    mg_log, 'level_results.id:    %s', level_results.id, name='kcor/dbinsert', /debug
 
     ;--- DB insert command.
 
@@ -242,13 +238,13 @@ pro kcor_img_insert, date
                  status=status, error_message=error_message, sql_statement=sql_cmd
 
     mg_log, '%s: status: %d, error message: %s', status, error_message, $
-            name='kcor', /debug
-    mg_log, 'sql_cmd: %s', sql_cmd, name='kcor', /debug
+            name='kcor/dbinsert', /debug
+    mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /debug
 
   endwhile
 
   done:
   obj_destroy, db
 
-  mg_log, '*** end of kcor_img_insert ***', name='kcor', /info
+  mg_log, '*** end of kcor_img_insert ***', name='kcor/dbinsert', /info
 end

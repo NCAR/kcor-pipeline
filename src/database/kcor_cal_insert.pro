@@ -23,13 +23,13 @@
 ;   28 Sep 2015 IDL procedure created.  
 ;             Use /hao/mlsodata1/Data/raw/yyyymmdd/level1 directory.
 ;-
-pro kcor_cal_insert, date
+pro kcor_cal_insert, date, run=run
   compile_opt strictarr
   on_error, 2
 
   np = n_params() 
   if (np ne 1) then begin
-    mg_log, 'missing date parameter', name='kcor', /error
+    mg_log, 'missing date parameter', name='kcor/dbinsert', /error
     return
   endif
 
@@ -37,16 +37,12 @@ pro kcor_cal_insert, date
   ; Connect to MLSO database.
   ;--------------------------
 
-  ; Note: The connect procedure accesses DB connection information in the file
-  ;       /home/stanger/.mysqldb. The "config_section" parameter specifies
-  ;       which group of data to use.
-
   db = mgdbmysql()
-  db->connect, config_filename='/home/stanger/.mysqldb', $
-               config_section='stanger@databases'
+  db->connect, config_filename=run.database_config_filename, $
+               config_section=run.database_config_section
 
   db->getProperty, host_name=host
-  mg_log, 'connected to %s...', host, name='kcor', /info
+  mg_log, 'connected to %s...', host, name='kcor/dbinsert', /info
 
   db->setProperty, database='MLSO'
 
@@ -67,21 +63,15 @@ pro kcor_cal_insert, date
 
   db->execute, 'DELETE FROM kcor_cal WHERE date_obs like ''%s''', odate_dash, $
                status=status, error_message=error_message, sql_statement=sql_cmd
-  mg_log, 'sql_cmd: %s', sql_cmd, name='kcor', /info
+  mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /info
   mg_log, 'status: %d, error message: %s', status, error_message, $
-          name='kcor', /info
+          name='kcor/dbinsert', /info
 
   ;-----------------------
   ; Directory definitions.
   ;-----------------------
 
-  raw_dir = '/hao/mlsodata1/Data/KCor/raw/'
-  fts_dir = raw_dir + date + '/level0'
-  ;fts_dir = '/hao/acos/' + year + '/' + month + '/' + day
-  log_dir = '/hao/acos/kcor/db/'
-
-  log_file = 'kcor_cal_insert.log'
-  log_path = log_dir + log_file
+  fts_dir = filepath('level0', subdir=date, root=run.raw_basedir)
 
   ;----------------
   ; Move to fts_dir.
@@ -97,13 +87,13 @@ pro kcor_cal_insert, date
   fits_list = file_search('*kcor.fts*', count=nfiles)
 
   if (nfiles eq 0) then begin
-    mg_log, 'No images in list file', name='kcor', /info
+    mg_log, 'No images in list file', name='kcor/dbinsert', /info
     goto, done
   endif
 
   i       = -1
   fts_file = 'img.fts'
-  mg_log, 'nfiles: %d', nfiles, name='kcor', /info
+  mg_log, 'nfiles: %d', nfiles, name='kcor/dbinsert', /info
 
   while (++i lt nfiles) do begin
     fts_file = fits_list[i]
@@ -140,27 +130,27 @@ pro kcor_cal_insert, date
     quality    = 'u'
     filetype   = 'fits'
 
-    mg_log, 'date_obs: %s', date_obs, name='kcor', /debug
-    mg_log, 'date_end: %s', date_end, name='kcor', /debug
-    mg_log, 'telescop: %s', telescop, name='kcor', /debug
-    mg_log, 'instrume: %s', instrume, name='kcor', /debug
-    mg_log, 'datatype: %s', datatype, name='kcor', /debug
-    mg_log, 'level:    %s', level, name='kcor', /debug
-    mg_log, 'exptime:  %s', exptime, name='kcor', /debug
-    mg_log, 'numsum:   %s', numsum, name='kcor', /debug
-    mg_log, 'cover:    %s', cover, name='kcor', /debug
-    mg_log, 'darkshut: %s', darkshut, name='kcor', /debug
-    mg_log, 'diffuser: %s', diffuser, name='kcor', /debug
-    mg_log, 'calpol:   %s', calpol, name='kcor', /debug
-    mg_log, 'calplang: %s', calpang, name='kcor', /debug
+    mg_log, 'date_obs: %s', date_obs, name='kcor/dbinsert', /debug
+    mg_log, 'date_end: %s', date_end, name='kcor/dbinsert', /debug
+    mg_log, 'telescop: %s', telescop, name='kcor/dbinsert', /debug
+    mg_log, 'instrume: %s', instrume, name='kcor/dbinsert', /debug
+    mg_log, 'datatype: %s', datatype, name='kcor/dbinsert', /debug
+    mg_log, 'level:    %s', level, name='kcor/dbinsert', /debug
+    mg_log, 'exptime:  %s', exptime, name='kcor/dbinsert', /debug
+    mg_log, 'numsum:   %s', numsum, name='kcor/dbinsert', /debug
+    mg_log, 'cover:    %s', cover, name='kcor/dbinsert', /debug
+    mg_log, 'darkshut: %s', darkshut, name='kcor/dbinsert', /debug
+    mg_log, 'diffuser: %s', diffuser, name='kcor/dbinsert', /debug
+    mg_log, 'calpol:   %s', calpol, name='kcor/dbinsert', /debug
+    mg_log, 'calplang: %s', calpang, name='kcor/dbinsert', /debug
 
     if (qdatatype eq 0) then begin
-      mg_log, 'qdatatype: %s', qdatatype, name='kcor', /debug
+      mg_log, 'qdatatype: %s', qdatatype, name='kcor/dbinsert', /debug
       datatype = 'unknown'
     endif
 
     if (qinstrume eq 0) then begin
-      mg_log, 'qinstrume: %s', qinstrume, name='kcor', /debug
+      mg_log, 'qinstrume: %s', qinstrume, name='kcor/dbinsert', /debug
       instrume = telescop
     endif
 
@@ -192,34 +182,34 @@ pro kcor_cal_insert, date
 
     fits_file = strmid(fts_file, 0, 27)	     ; remove '.gz' from file name.
 
-    mg_log, 'date_img: %s', date_img, name='kcor', /debug
-    mg_log, 'date_eod: %s', date_eod, name='kcor', /debug
+    mg_log, 'date_img: %s', date_img, name='kcor/dbinsert', /debug
+    mg_log, 'date_eod: %s', date_eod, name='kcor/dbinsert', /debug
 
     ; Encode index columns.
 
     instrume_results = db->query('SELECT * FROM instrume WHERE instrument=''%s''', $
                                  instrume, fields=fields)
     instrume_num = instrume_results.id
-    mg_log, 'instrume:            %s', instrume, name='kcor', /debug
-    mg_log, 'instrume_results.id: %s', instrume_results.id, name='kcor', /debug
+    mg_log, 'instrume:            %s', instrume, name='kcor/dbinsert', /debug
+    mg_log, 'instrume_results.id: %s', instrume_results.id, name='kcor/dbinsert', /debug
 
     quality_results = db->query('SELECT * FROM quality WHERE quality=''%s''', $
                                 quality, fields=fields)
     quality_num = quality_results.id
-    mg_log, 'quality:             %s', quality, name='kcor', /debug
-    mg_log, 'quality_results.id:  %s', quality_results.id, name='kcor', /debug
+    mg_log, 'quality:             %s', quality, name='kcor/dbinsert', /debug
+    mg_log, 'quality_results.id:  %s', quality_results.id, name='kcor/dbinsert', /debug
 
     filetype_results = db->query('SELECT * FROM filetype WHERE filetype=''%s''', $
                                  filetype, fields=fields)
     filetype_num = filetype_results.id
-    mg_log, 'filetype:            %s', filetype, name='kcor', /debug
-    mg_log, 'filetype_results.id: %s', filetype_results.id, name='kcor', /debug
+    mg_log, 'filetype:            %s', filetype, name='kcor/dbinsert', /debug
+    mg_log, 'filetype_results.id: %s', filetype_results.id, name='kcor/dbinsert', /debug
 
     level_results = db->query('SELECT * FROM level WHERE level=''%s''', level, $
                               fields=fields)
     level_num = level_results.id
-    mg_log, 'level:               %s', level, name='kcor', /debug
-    mg_log, 'level_results.id:    %s', level_results.id, name='kcor', /debug
+    mg_log, 'level:               %s', level, name='kcor/dbinsert', /debug
+    mg_log, 'level_results.id:    %s', level_results.id, name='kcor/dbinsert', /debug
 
     ; DB insert command.
 
@@ -231,12 +221,12 @@ pro kcor_cal_insert, date
                  sql_statement=sql_cmd
 
     mg_log, '%s: status: %d, error message: %s', status, error_message, $
-            name='kcor', /debug
-    mg_log, 'sql_cmd: %s', sql_cmd, name='kcor', /debug
+            name='kcor/dbinsert', /debug
+    mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /debug
   endfor
 
   done:
   obj_destroy, db
 
-  mg_log, '*** end of kcor_cal_insert ***', name='kcor', /info
+  mg_log, '*** end of kcor_cal_insert ***', name='kcor/dbinsert', /info
 end

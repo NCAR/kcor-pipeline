@@ -3,7 +3,7 @@
 ;+
 ; Insert values into the MLSO database table: kcor_mission.
 ;
-; Reads a list of L1 files for a specified date & inserts a row of data into
+; Reads a list of L1 files for a specified date and inserts a row of data into
 ; 'kcor_mission'.
 ;
 ; :Params:
@@ -24,13 +24,13 @@
 ;             Use /hao/mlsodata1/Data/KCor/raw/yyyymmdd for L1 fits files.
 ;    15 Sep 2015 Use /hao/acos/year/month/day directory    for L1 fits files.
 ;-
-pro kcor_mission_insert, date
+pro kcor_mission_insert, date, run=run
   compile_opt strictarr
   on_error, 2
 
   np = n_params() 
   if (np ne 1) then begin
-    mg_log, 'missing date parameter'
+    mg_log, 'missing date parameter', name='kcor/dbinsert', /error
     return
   endif
 
@@ -43,11 +43,11 @@ pro kcor_mission_insert, date
   ;       group of data to use.
 
   db = mgdbmysql()
-  db->connect, config_filename='/home/stanger/.mysqldb', $
-               config_section='stanger@databases'
+  db->connect, config_filename=run.database_config_filename, $
+               config_section=run.database_config_section
 
   db->getProperty, host_name=host
-  mg_log, 'connected to %s...', host, name='kcor', /info
+  mg_log, 'connected to %s...', host, name='kcor/dbinsert', /info
 
   db->setProperty, database='MLSO'
 
@@ -69,19 +69,15 @@ pro kcor_mission_insert, date
   db->execute, 'DELETE FROM kcor_mission WHERE date like ''%s''', pdate_dash, $
                status=status, error_message=error_message, sql_statement=sql_cmd
 
-  mg_log, 'sql_cmd: %s', sql_cmd, name='kcor', /info
+  mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /info
   mg_log, 'status: %d, error message: %s', status, error_message, $
-          name='kcor', /info
+          name='kcor/dbinsert', /info
 
   ;-----------------------
   ; Directory definitions.
   ;-----------------------
 
-  fts_dir  = '/hao/acos/' + year + '/' + month + '/' + day
-  log_dir  = '/hao/acos/kcor/db/'
-
-  log_file = 'kcor_img_insert.log'
-  log_path = log_dir + log_file
+  fts_dir = filepath('', subdir=[year, month, day], root=run.archive_dir)
 
   ;----------------
   ; Move to fts_dir.
@@ -96,15 +92,15 @@ pro kcor_mission_insert, date
 
   fits_list = file_search('*kcor_l1.fts*', count=nfiles)
 
-  if (nfiles EQ 0) then begin
-    mg_log, 'No images in list file', name='kcor', /info
+  if (nfiles eq 0) then begin
+    mg_log, 'no images in list file', name='kcor/dbinsert', /info
     goto, done
   end
 
   i       = -1
   fts_file = 'img.fts'
 
-  while (++i LT nfiles) do begin
+  while (++i lt nfiles) do begin
     fts_file = fits_list[i]
 
     finfo = file_info(fts_file)          ; Get file information.
@@ -171,26 +167,24 @@ pro kcor_mission_insert, date
   date_mission = date_dash + ' ' + time_obs     ; yyyy-mm-dd hh:mm:ss
 
   date_cal  = cal_year + '-' + cal_month + '-' + cal_day
-  mlso_url  = 'www2.hao.ucar.edu/mlso'
-  doi_url   = 'http://ezid.cdlib.org/id/doi:10.5065/D69G5JV8'
   fits_file = strmid(fts_file, 0, 27)
 
 ;--- DB insert command.
 
   db->execute, 'INSERT INTO kcor_mission (date, mlso_url, doi_url, telescope, instrument, location, origin, object, wavelength, wavefwhm, resolution, fov_min, fov_max, bitpix, xdim, ydim) VALUES (''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, %f, %f, %f, %d, %d, %d) ', $
-               date_mission, mlso_url, doi_url, telescop, instrume, location, $
+               date_mission, run.mlso_url, run.doi_url, telescop, instrume, location, $
                origin, object, wavelnth, wavefwhm, resolution, $
                fov_min, fov_max, bitpix, naxis1, naxis2, $
                status=status, error_message=error_message, sql_statement=sql_cmd
 
     mg_log, '%s: status: %d, error message: %s', status, error_message, $
-            name='kcor', /debug
-    mg_log, 'sql_cmd: %s', sql_cmd, name='kcor', /debug
+            name='kcor/dbinsert', /debug
+    mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /debug
     if (i EQ 0) then  goto, done
   end
 
   done:
   obj_destroy, db
 
-  mg_log, '*** end of kcor_mission_insert ***', name='kcor', /info
+  mg_log, '*** end of kcor_mission_insert ***', name='kcor/dbinsert', /info
 end
