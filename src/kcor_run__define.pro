@@ -1,8 +1,41 @@
 ; docformat = 'rst'
 
+;+
+; Class representing a KCor processing run.
+;-
+
+
+;= helper methods
+
+;+
+; Setup logging.
+;
+; :Params:
+;   date : in, required, type=string
+;     date in the form 'YYYYMMDD'
+;-
+pro kcor_run::setup_loggers, date
+  compile_opt strictarr
+
+  ; setup logging
+  log_fmt = '%(time)s %(levelshortname)s: %(routine)s: %(message)s'
+  log_time_fmt = '(C(CYI4, "-", CMOI2.2, "-", CDI2.2, " " CHI2.2, ":", CMI2.2, ":", CSI2.2))'
+  mg_log, name='kcor/cal', logger=logger
+  self->getProperty, log_level=log_level, log_dir=log_dir
+
+  if (~file_test(log_dir, /directory)) then file_mkdir, log_dir
+  logger->setProperty, format=log_fmt, $
+                       time_format=log_time_fmt, $
+                       level=log_level, $
+                       filename=filepath(date + '.log', root=log_dir)
+end
+
 
 ;= property access
 
+;+
+; Get properties.
+;-
 pro kcor_run::getProperty, binary_dir=binary_dir, $
                            mlso_url=mlso_url, $
                            doi_url=doi_url, $
@@ -70,6 +103,9 @@ end
 
 ;= lifecycle methods
 
+;+
+; Free resources.
+;-
 pro kcor_run::cleanup
   compile_opt strictarr
 
@@ -77,27 +113,30 @@ pro kcor_run::cleanup
 end
 
 
+;+
+; Create `kcor_run` object.
+;
+; :Returns:
+;   1 if successful, 0 otherwise
+;
+; :Params:
+;   date : in, required, type=string
+;     date in the form 'YYYYMMDD'
+;-
 function kcor_run::init, date, config_filename=config_filename
   compile_opt strictarr
 
   self.options = mg_read_config(config_filename)
 
-  ; setup logging
-  log_fmt = '%(time)s %(levelshortname)s: %(routine)s: %(message)s'
-  log_time_fmt = '(C(CYI4, "-", CMOI2.2, "-", CDI2.2, " " CHI2.2, ":", CMI2.2, ":", CSI2.2))'
-  mg_log, name='kcor/cal', logger=logger
-  self->getProperty, log_level=log_level, log_dir=log_dir
-
-  if (~file_test(log_dir, /directory)) then file_mkdir, log_dir
-  logger->setProperty, format=log_fmt, $
-                       time_format=log_time_fmt, $
-                       level=log_level, $
-                       filename=filepath(date + '.log', root=log_dir)
+  self->setup_loggers, date
 
   return, 1
 end
 
 
+;+
+; Define instance variables.
+;-
 pro kcor_run__define
   compile_opt strictarr
 
