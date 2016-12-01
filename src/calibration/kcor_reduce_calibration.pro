@@ -62,7 +62,8 @@ pro kcor_reduce_calibration, date, config_filename=config_filename
     ; pick pixels with good signal
     w = where(data.gain[*, *, beam] ge median(data.gain[*, *, beam]) / sqrt(2), nw)
     if (nw lt npick) then begin
-      mg_log, 'Didn''t find enough pixels with signal', name='kcor/cal', /error
+      mg_log, 'didn''t find enough pixels with signal: %d', nw, $
+              name='kcor/cal', /error
       return
     endif
     pick = sort(randomu(seed, nw))
@@ -124,31 +125,35 @@ pro kcor_reduce_calibration, date, config_filename=config_filename
     fitimgs = fltarr(sz[0], sz[1], 12)
     for i = 1, 12 do begin
       tmp = sfit([cpixels, fits[i, *]], degree, kx=kx, /irregular, /max_degree)
-      fitimgs[*, *, i - 1] = reform(reform(kx,n2) # ut, sz[0], sz[1])
+      fitimgs[*, *, i - 1] = reform(reform(kx, n2) # ut, sz[0], sz[1])
     endfor
     mg_log, 'done fitting 4th order polynomials', name='kcor/cal', /info
 
     ; populate the modulation matrix
-    mg_log,  'calculating modulation and demodulation matrices... ', $
+    mg_log,  'calculating modulation/demodulation matrices... ', $
              name='kcor/cal', /info
     mmat[*, *, beam, 0, *] = fitimgs[*, *, 0:3]
-    mmat[*, *, beam, 1, *] = fitimgs[*, *, 0:3] * fitimgs[*, *, 4:7] * cos(fitimgs[*, *, 8:11])
-    mmat[*, *, beam, 2, *] = fitimgs[*, *, 0:3] * fitimgs[*, *, 4:7] * sin(fitimgs[*, *, 8:11])
+    mmat[*, *, beam, 1, *] = fitimgs[*, *, 0:3] $
+                               * fitimgs[*, *, 4:7] $
+                               * cos(fitimgs[*, *, 8:11])
+    mmat[*, *, beam, 2, *] = fitimgs[*, *, 0:3] $
+                               * fitimgs[*, *, 4:7] $
+                               * sin(fitimgs[*, *, 8:11])
     ; populate the demodulation matrix
     for x = 0, sz[0] - 1 do for y = 0, sz[1] - 1 do begin
       xymmat = reform(mmat[x, y, beam, *, *])
       txymmat = transpose(xymmat)
       dmat[x, y, beam, *, *] = la_invert(txymmat ## xymmat) ## txymmat
     endfor
-    mg_log, 'done calculating moduluation and demodulation matrices', $
+    mg_log, 'done calculating moduluation/demodulation matrices', $
             name='kcor/cal', /info
 
     ; save pixels, fits, fiterrors
-    if beam eq 0 then begin
+    if (beam eq 0) then begin
       pixels0 = pixels
       fits0 = fits
       fiterrors0 = fiterrors
-    endif else if beam eq 1 then begin
+    endif else if (beam eq 1) then begin
       pixels1 = pixels
       fits1 = fits
       fiterrors1 = fiterrors
@@ -170,6 +175,8 @@ pro kcor_reduce_calibration, date, config_filename=config_filename
                                       pixels0, fits0, fiterrors0, $
                                       pixels1, fits1, fiterrors1
   mg_log, 'done writing output', name='kcor/cal', /info
+
+  mg_log, 'done', name='kcor/cal', /info
 
   done:
   obj_destroy, run

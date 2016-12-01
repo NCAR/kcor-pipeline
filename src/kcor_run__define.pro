@@ -19,15 +19,23 @@ pro kcor_run::setup_loggers, date
 
   ; setup logging
   log_fmt = '%(time)s %(levelshortname)s: %(routine)s: %(message)s'
+  cal_log_fmt = '%(time)s %(levelshortname)s: %(message)s'
   log_time_fmt = '(C(CYI4, "-", CMOI2.2, "-", CDI2.2, " " CHI2.2, ":", CMI2.2, ":", CSI2.2))'
-  mg_log, name='kcor/cal', logger=logger
-  self->getProperty, log_level=log_level, log_dir=log_dir
 
+  self->getProperty, log_level=log_level, log_dir=log_dir
   if (~file_test(log_dir, /directory)) then file_mkdir, log_dir
+
+  mg_log, name='kcor', logger=logger
   logger->setProperty, format=log_fmt, $
                        time_format=log_time_fmt, $
                        level=log_level, $
                        filename=filepath(date + '.log', root=log_dir)
+
+  mg_log, name='kcor/cal', logger=logger
+  logger->setProperty, format=cal_log_fmt, $
+                       time_format=log_time_fmt, $
+                       level=log_level, $
+                       filename=filepath(date + '.calibration.log', root=log_dir)
 end
 
 
