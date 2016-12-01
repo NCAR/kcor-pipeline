@@ -1,24 +1,22 @@
+; docformat = 'rst'
+
 ;+
-;-------------------------------------------------------------------------------
-; pro dokcor_catalog			IDL procedure
-;
 ; Execute the "kcor_catalog.pro" procedure for all kcor L0 fits files
 ; for a specified date.
 ;
 ; syntax: dokcor_catalog, 'yyyymmdd'
 ; yyyymmdd: observation date.  Example: '20150527' (27 May 2015).
-;-------------------------------------------------------------------------------
-; Andrew L. Stanger   HAO/NCAR	MLSO K-coronagraph
-; 18 March 2015
-;-------------------------------------------------------------------------------
+;
+; :Author:
+;   Andrew L. Stanger   HAO/NCAR	MLSO K-coronagraph
+;   18 March 2015
 ;-
-
 pro dokcor_catalog, date
+  compile_opt strictarr
 
-
-common kcor_paths, bias_dir, flat_dir, mask_dir, binary_dir, $
-                   raw_basedir, process_basedir, hpss_gateway, $
-		   archive_dir, movie_dir, fullres_dir, log_dir
+  common kcor_paths, bias_dir, flat_dir, mask_dir, binary_dir, $
+                     raw_basedir, process_basedir, hpss_gateway, $
+                     archive_dir, movie_dir, fullres_dir, log_dir
 
 ;--- Set up directory paths.
 
