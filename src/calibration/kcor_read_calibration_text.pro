@@ -9,25 +9,24 @@
 ; :Params:
 ;   date : in, required, type=string
 ;     date in the form 'YYYYMMDD'
+;   process_basedir : in, required, type=string
+;     process base directory
 ;
 ; :Keywords:
-;   run : in, required, type=object
-;     `kcor_run` object
 ;   exposures : out, optional, type=strarr
 ;     set to a named variable to retrieve the exposures matching the filenames
 ;     returned
 ;   n_files : out, optional, type=long
 ;     set to a named variable to retrieve the number of filenames returned
 ;-
-function kcor_read_calibration_text, date, $
-                                     run=run, $
+function kcor_read_calibration_text, date, process_basedir, $
                                      exposures=exposures, $
                                      n_files=n_files
   compile_opt strictarr
 
   cal_file = filepath('calibration_files.txt', $
                       subdir=date, $
-                      root=run.process_basedir)
+                      root=process_basedir)
 
   if (~file_test(cal_file)) then begin
     n_files = 0L
@@ -61,7 +60,8 @@ config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())
 run = kcor_run(config_filename=config_filename)
-filenames = kcor_read_calibration_text('20161127', run=run, exposures=exposures)
+filenames = kcor_read_calibration_text('20161127', run.process_basedir, $
+                                       exposures=exposures, n_files=n_files)
 obj_destroy, run
 
 end

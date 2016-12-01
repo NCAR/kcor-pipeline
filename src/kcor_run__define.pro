@@ -6,7 +6,10 @@
 pro kcor_run::getProperty, binary_dir=binary_dir, $
                            mlso_url=mlso_url, $
                            doi_url=doi_url, $
+                           npick=npick, $
+                           cal_out_dir=cal_out_dir, $
                            raw_basedir=raw_basedir, $
+                           process_basedir=process_basedir, $
                            log_dir=log_dir, $
                            log_level=log_level, $
                            database_config_filename=database_config_filename, $
@@ -24,9 +27,21 @@ pro kcor_run::getProperty, binary_dir=binary_dir, $
     doi_url = self.options->get('doi_url', section='mission')
   endif
 
-  ; processing section
+  ; calibration
+  if (arg_present(npick)) then begin
+    npick = self.options->get('npick', section='calibration', $
+                              type=3, default=10000L)
+  endif
+  if (arg_present(cal_out_dir)) then begin
+    cal_out_dir = self.options->get('out_dir', section='calibration')
+  endif
+
+  ; processing
   if (arg_present(raw_basedir)) then begin
     raw_basedir = self.options->get('raw_basedir', section='processing')
+  endif
+  if (arg_present(process_basedir)) then begin
+    process_basedir = self.options->get('process_basedir', section='processing')
   endif
 
   ; logging

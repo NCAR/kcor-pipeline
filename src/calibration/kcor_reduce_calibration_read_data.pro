@@ -1,21 +1,26 @@
 ; docformat = 'rst'
 
 ;+
+; Read a calibration FITS file.
+;
 ; :Params:
 ;   file_list : in, required, type=strarr
-;     array of filenames
+;     array of file basenames
+;   basedir : in, required, type=string
+;     base directory which all files in `file_list` are in
+;
+; :Keywords:
 ;   data : out, optional, type=structure
 ;     structure with dark, gain, and calibration fields
 ;   metadata : out, optional, type=structure
 ;     structure with angles, idiff, vdimref, date, file_list, and file_types
 ;     fields
-;
-; :Keywords:
-;   verbose : in, optional, type=boolean
-;     set to produce verbose output
 ;-
-pro kcor_reduce_calibration_read_data, file_list, data, metadata, verbose=verbose
+pro kcor_reduce_calibration_read_data, file_list, basedir, $
+                                       data=data, metadata=metadata
   compile_opt strictarr
+
+  filenames = filepath(file_list, root=basedir)
 
   ; this procedure reads in the data for the calibration data reduction
 
@@ -23,7 +28,8 @@ pro kcor_reduce_calibration_read_data, file_list, data, metadata, verbose=verbos
   idiff = 13.8 ; from Elmore et al, SPIE, 'Polarimetry in Astronomy', V 4843, pp 66-75
 
   ; read header of the first file to determine image size etc.
-  header = fitshead2struct(headfits(file_list[0]))
+  if (~file_test(filenames[0], /regular)) then filenames[0] += '.gz'
+  header = fitshead2struct(headfits(filenames[0]))
   date = (strsplit(header.date_obs, 'T', /extract))[0]
   dark = fltarr(header.naxis1, header.naxis2, 2)
   clear = fltarr(header.naxis1, header.naxis2, 2)
@@ -37,54 +43,60 @@ pro kcor_reduce_calibration_read_data, file_list, data, metadata, verbose=verbos
   vdimref = 0.
   file_types = replicate('unused', n_elements(file_list))
   for f = 0, n_elements(file_list) - 1 do begin
-    thisdata = readfits(file_list[f], header, /silent)
+    ; check for zipped file if the FTS file is not present
+    if (~file_test(filenames[f], /regular)) then filenames[f] += '.gz'
+
+    thisdata = readfits(filenames[f], header, /silent)
     header = fitshead2struct(header)
     if strmatch(header.darkshut, '*in*', /fold_case) then begin
       dark += mean(thisdata, dimension=3)
       gotdark++
       file_types[f] = 'dark'
-      if keyword_set(verbose) then print, 'Found dark, file ' + file_list[f]
+      mg_log, 'found dark, file %s', file_list[f], name='kcor', /debug
     endif else if strmatch(header.diffuser, '*in*', /fold_case) then begin
       if strmatch(header.calpol, '*out*', /fold_case) then begin
         clear += mean(thisdata, dimension=3)
         vdimref += header.sgsdimv
         gotclear++
         file_types[f] = 'clear'
-        if keyword_set(verbose) then print, 'Found clear, file ' + file_list[f]
+        mg_log, 'found clear, file %s', file_list[f], name='kcor', /debug
       endif else begin
         calibration[*, *, *, *, gotcal] = thisdata
         angles[gotcal] = header.calpang
         gotcal++
         file_types[f] = 'calibration'
-        if keyword_set(verbose) then $
-            print, 'Found calibration data, file ' + file_list[f] + ', angle ' + string(header.calpang)
+        mg_log, 'found calibration data, file %s, angle %0.1f', $
+                file_list[f], header.calpang, name='kcor', /debug
       endelse
     endif
   endfor
 
   ; check that we have all required data products
 
-  if gotdark ne 0 then begin
+  if (gotdark ne 0) then begin
     dark /= float(gotdark)
   endif else begin
-    message, 'No dark data found!'
+    mg_log, 'no dark data found!', name='kcor', /error
+    return
   endelse
 
-  if gotclear ne 0 then begin
+  if (gotclear ne 0) then begin
     ; determine the gain
     gain = (clear / float(gotclear) - dark) / idiff
     ; determine the DIM reference voltage
     vdimref /= float(gotclear)
   endif else begin
-    message, 'No clear data found!'
+    mg_log, 'no clear data found!', name='kcor', /error
+    return
   endelse
 
-  if gotcal ge 4 then begin
+  if (gotcal ge 4) then begin
     ; resize to the actual number of polarizer positions
     calibration = calibration[*, *, *, *, 0:gotcal - 1]
     angles = angles[0:gotcal - 1]
   endif else begin
-    message, 'Insufficient calibration positions!'
+    mg_log, 'insufficient calibration positions!', name='kcor', /error
+    return
   endelse
 
   data = {dark:dark, gain:gain, calibration:calibration}
