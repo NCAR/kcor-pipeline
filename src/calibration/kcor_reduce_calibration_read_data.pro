@@ -52,21 +52,21 @@ pro kcor_reduce_calibration_read_data, file_list, basedir, $
       dark += mean(thisdata, dimension=3)
       gotdark++
       file_types[f] = 'dark'
-      mg_log, 'found dark, file %s', file_list[f], name='kcor', /debug
+      mg_log, 'found dark, file %s', file_list[f], name='kcor/cal', /debug
     endif else if strmatch(header.diffuser, '*in*', /fold_case) then begin
       if strmatch(header.calpol, '*out*', /fold_case) then begin
         clear += mean(thisdata, dimension=3)
         vdimref += header.sgsdimv
         gotclear++
         file_types[f] = 'clear'
-        mg_log, 'found clear, file %s', file_list[f], name='kcor', /debug
+        mg_log, 'found clear, file %s', file_list[f], name='kcor/cal', /debug
       endif else begin
         calibration[*, *, *, *, gotcal] = thisdata
         angles[gotcal] = header.calpang
         gotcal++
         file_types[f] = 'calibration'
         mg_log, 'found calibration data, file %s, angle %0.1f', $
-                file_list[f], header.calpang, name='kcor', /debug
+                file_list[f], header.calpang, name='kcor/cal', /debug
       endelse
     endif
   endfor
@@ -76,7 +76,7 @@ pro kcor_reduce_calibration_read_data, file_list, basedir, $
   if (gotdark ne 0) then begin
     dark /= float(gotdark)
   endif else begin
-    mg_log, 'no dark data found!', name='kcor', /error
+    mg_log, 'no dark data found!', name='kcor/cal', /error
     return
   endelse
 
@@ -86,7 +86,7 @@ pro kcor_reduce_calibration_read_data, file_list, basedir, $
     ; determine the DIM reference voltage
     vdimref /= float(gotclear)
   endif else begin
-    mg_log, 'no clear data found!', name='kcor', /error
+    mg_log, 'no clear data found!', name='kcor/cal', /error
     return
   endelse
 
@@ -95,7 +95,7 @@ pro kcor_reduce_calibration_read_data, file_list, basedir, $
     calibration = calibration[*, *, *, *, 0:gotcal - 1]
     angles = angles[0:gotcal - 1]
   endif else begin
-    mg_log, 'insufficient calibration positions!', name='kcor', /error
+    mg_log, 'insufficient calibration positions!', name='kcor/cal', /error
     return
   endelse
 

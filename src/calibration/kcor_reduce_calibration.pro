@@ -19,14 +19,14 @@
 pro kcor_reduce_calibration, date, config_filename=config_filename
   common kcor_random, seed
 
-  run = kcor_run(config_filename=config_filename)
+  run = kcor_run(date, config_filename=config_filename)
 
   file_list = kcor_read_calibration_text(date, run.process_basedir, $
                                          exposures=exposures, $
                                          n_files=n_files)
 
   if (n_files lt 1L) then begin
-    mg_log, 'missing or empty calibration_files.txt file', name='kcor', /error
+    mg_log, 'missing or empty calibration_files.txt file', name='kcor/cal', /error
     goto, done
   endif
 
@@ -34,19 +34,19 @@ pro kcor_reduce_calibration, date, config_filename=config_filename
   unique_exposure_indices = uniq(exposures, sort(exposures))
   if (n_elements(unique_exposure_indices) gt 1L) then begin
     mg_log, 'more than one exposure time in calibration_files.txt', $
-            name='kcor', /error
+            name='kcor/cal', /error
     goto, done
   endif
 
   ; read the data
-  mg_log, 'reading data...', name='kcor', /info
+  mg_log, 'reading data...', name='kcor/cal', /info
   kcor_reduce_calibration_read_data, file_list, $
                                      filepath('level0', $
                                               subdir=date, $
                                               root=run.raw_basedir), $
                                      data=data, metadata=metadata
   sz = size(data.gain, /dimensions)
-  mg_log, 'done reading data', name='kcor', /info
+  mg_log, 'done reading data', name='kcor/cal', /info
 
   ; modulation matrix
   mmat = fltarr(sz[0], sz[1], 2, 3, 4)
@@ -57,18 +57,18 @@ pro kcor_reduce_calibration, date, config_filename=config_filename
 
   ; fit the calibration data
   for beam = 0, 1 do begin
-    mg_log, 'processing beam %d', beam, name='kcor', /info
+    mg_log, 'processing beam %d', beam, name='kcor/cal', /info
 
     ; pick pixels with good signal
     w = where(data.gain[*, *, beam] ge median(data.gain[*, *, beam]) / sqrt(2), nw)
     if (nw lt npick) then begin
-      mg_log, 'Didn''t find enough pixels with signal', name='kcor', /error
+      mg_log, 'Didn''t find enough pixels with signal', name='kcor/cal', /error
       return
     endif
     pick = sort(randomu(seed, nw))
     pixels = array_indices(data.gain[*, *, beam], w[pick[0:npick - 1]])
 
-    mg_log, 'fitting model to data...', name='kcor', /info
+    mg_log, 'fitting model to data...', name='kcor/cal', /info
     fits = dblarr(17, npick)
     fiterrors = dblarr(17, npick)
     for i = 0, npick - 1 do begin
@@ -83,7 +83,7 @@ pro kcor_reduce_calibration, date, config_filename=config_filename
       fiterrors[*, i] = fiterror
 
       if i ne 0 and i mod (npick / 10) eq 0 then begin
-        mg_log, '%d%% complete', 100L * i / npick, name='kcor', /debug
+        mg_log, '%d%% complete', 100L * i / npick, name='kcor/cal', /debug
       endif
     endfor
 
@@ -99,12 +99,12 @@ pro kcor_reduce_calibration, date, config_filename=config_filename
       fits[i, *] += (fix(fits[i, *] lt (mlv - !pi)) $
                        - fix(fits[i, *] gt (mlv + !pi))) * 2 * !pi
     endfor
-    mg_log, 'done fitting model', name='kcor', /info
+    mg_log, 'done fitting model', name='kcor/cal', /info
 
     ; 4th order polynomial fits for all parameters
     ; set up some things
     ; center the pixel values in the image for better numerical stability
-    mg_log, 'fitting 4th order polynomials...', name='kcor', /info
+    mg_log, 'fitting 4th order polynomials...', name='kcor/cal', /info
 
     cpixels = pixels - rebin([sz[0], sz[1]] / 2., 2, npick)
     x = (findgen(sz[0]) - sz[0] / 2.) # replicate(1., sz[1])  ; X values at each point
@@ -126,11 +126,11 @@ pro kcor_reduce_calibration, date, config_filename=config_filename
       tmp = sfit([cpixels, fits[i, *]], degree, kx=kx, /irregular, /max_degree)
       fitimgs[*, *, i - 1] = reform(reform(kx,n2) # ut, sz[0], sz[1])
     endfor
-    mg_log, 'done fitting 4th order polynomials', name='kcor', /info
+    mg_log, 'done fitting 4th order polynomials', name='kcor/cal', /info
 
     ; populate the modulation matrix
     mg_log,  'calculating modulation and demodulation matrices... ', $
-             name='kcor', /info
+             name='kcor/cal', /info
     mmat[*, *, beam, 0, *] = fitimgs[*, *, 0:3]
     mmat[*, *, beam, 1, *] = fitimgs[*, *, 0:3] * fitimgs[*, *, 4:7] * cos(fitimgs[*, *, 8:11])
     mmat[*, *, beam, 2, *] = fitimgs[*, *, 0:3] * fitimgs[*, *, 4:7] * sin(fitimgs[*, *, 8:11])
@@ -141,7 +141,7 @@ pro kcor_reduce_calibration, date, config_filename=config_filename
       dmat[x, y, beam, *, *] = la_invert(txymmat ## xymmat) ## txymmat
     endfor
     mg_log, 'done calculating moduluation and demodulation matrices', $
-            name='kcor', /info
+            name='kcor/cal', /info
 
     ; save pixels, fits, fiterrors
     if beam eq 0 then begin
@@ -164,12 +164,12 @@ pro kcor_reduce_calibration, date, config_filename=config_filename
 
   if (~file_test(run.cal_out_dir, /directory)) then file_mkdir, run.cal_out_dir
 
-  mg_log, 'writing output to %s', outfile, name='kcor', /info
+  mg_log, 'writing output to %s', outfile, name='kcor/cal', /info
   kcor_reduce_calibration_write_data, data, metadata, $
                                       mmat, dmat, outfile, $
                                       pixels0, fits0, fiterrors0, $
                                       pixels1, fits1, fiterrors1
-  mg_log, 'done writing output'
+  mg_log, 'done writing output', name='kcor/cal', /info
 
   done:
   obj_destroy, run

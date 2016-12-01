@@ -49,7 +49,7 @@ pro kcor_run::getProperty, binary_dir=binary_dir, $
     log_dir = self.options->get('log_dir', section='logging')
   endif
   if (arg_present(log_level)) then begin
-    log_level = self.options->get('log_level', section='logging', $
+    log_level = self.options->get('level', section='logging', $
                                   type=3, default=4L)
   endif
 
@@ -77,10 +77,22 @@ pro kcor_run::cleanup
 end
 
 
-function kcor_run::init, config_filename=config_filename
+function kcor_run::init, date, config_filename=config_filename
   compile_opt strictarr
 
   self.options = mg_read_config(config_filename)
+
+  ; setup logging
+  log_fmt = '%(time)s %(levelshortname)s: %(routine)s: %(message)s'
+  log_time_fmt = '(C(CYI4, "-", CMOI2.2, "-", CDI2.2, " " CHI2.2, ":", CMI2.2, ":", CSI2.2))'
+  mg_log, name='kcor/cal', logger=logger
+  self->getProperty, log_level=log_level, log_dir=log_dir
+
+  if (~file_test(log_dir, /directory)) then file_mkdir, log_dir
+  logger->setProperty, format=log_fmt, $
+                       time_format=log_time_fmt, $
+                       level=log_level, $
+                       filename=filepath(date + '.log', root=log_dir)
 
   return, 1
 end
