@@ -21,12 +21,17 @@ pro kcor_eod, date, config_filename=config_filename
   ; TODO: dokcor_catalog
 
   ; put results in database
-  kcor_cal_insert, date, run=run
-  kcor_dp_insert, date, run=run
-  kcor_eng_insert, date, run=run
-  kcor_hw_insert, date, run=run
-  kcor_img_insert, date, run=run
-  kcor_mission_insert, date, run=run
+  if (run.update_database) then begin
+    kcor_cal_insert, date, run=run
+    kcor_dp_insert, date, run=run
+    kcor_eng_insert, date, run=run
+    kcor_hw_insert, date, run=run
+    kcor_img_insert, date, run=run
+    kcor_mission_insert, date, run=run
+  endif
+
+  ; produce calibration for tomorrow
+  kcor_reduce_calibration, data, run=run
 
   obj_destroy, run
 end
