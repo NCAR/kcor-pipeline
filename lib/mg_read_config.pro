@@ -82,11 +82,14 @@
 ;   fold_case : in, optional, type=boolean
 ;     set for case-insensitive results (for section and option names, but not
 ;     for values)
+;   use_environment : in, optional, type=boolean
+;     set to use environment variables for substitution
 ;-
 function mg_read_config, filename, $
                          defaults=defaults, $
                          error=error, $
-                         fold_case=fold_case
+                         fold_case=fold_case, $
+                         use_environment=use_environment
   compile_opt strictarr
   on_error, 2
 
@@ -99,7 +102,7 @@ function mg_read_config, filename, $
   endif
 
   ; start with copy of the defaults hash, if present, otherwise an empty hash
-  h = mgffoptions(fold_case=fold_case)
+  h = mgffoptions(fold_case=fold_case, use_environment=use_environment)
   case 1 of
     isa(defaults, 'mgffoptions'): begin
         foreach section, defaults, section_name do begin
@@ -192,5 +195,8 @@ end
 config = mg_read_config(filepath('config.ini', root=mg_src_root()))
 print, config->has_option('foodir', section='My Section')
 print, config->get('foodir', section='My Section')
+print, config->get('value1', section='My Section', /boolean)
+print, config->get('value2', section='My Section', /boolean)
+print, config->get('value3', section='My Section', /boolean, default=1B)
 
 end
