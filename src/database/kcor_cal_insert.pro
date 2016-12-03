@@ -223,7 +223,7 @@ pro kcor_cal_insert, date, run=run
     mg_log, '%s: status: %d, error message: %s', status, error_message, $
             name='kcor/dbinsert', /debug
     mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /debug
-  endfor
+  endwhile
 
   done:
   obj_destroy, db
