@@ -8,13 +8,59 @@
 ;= helper methods
 
 ;+
+; Lookup a value for a single parameter based on the date in the `epochs.cfg`
+; configuration file.
+;
+; :Private:
+;
+; :Returns:
+;   by default returns a string, unless `TYPE` is specified
+;
+; :Params:
+;   option : in, required, type=string
+;     option name
+;   date : in, required, type=string
+;     date on which to check for the value in the form "YYYYMMDD"
+;
+; :Keywords:
+;   found : out, optional, type=boolean
+;     set to a named variable to retrieve whether the option was found
+;   type : in, optional, type=integer
+;     `SIZE` type to retrieve value as
+;   _extra : in, optional, type=keywords
+;     keywords to `MGffOptions::get` such as `BOOLEAN` and `EXTRACT`
+;-
+function kcor_run::_readepoch, option, date, $
+                               found=found, $
+                               type=type, $
+                               _extra=e
+  compile_opt strictarr
+
+  found = 1B
+  dates = self.epochs->sections()
+  dates = dates[sort(dates)]
+  date_index = value_locate(dates, date)
+  for d = date_index, 0L, -1L do begin
+    option_value = self.epochs->get(option, section=dates[d], $
+                                    found=option_found, type=type, _extra=e)
+    if (option_found) then begin
+      return, option_value
+    endif
+  endfor
+
+  found = 0B
+  return, !null
+end
+
+
+;+
 ; Setup logging.
 ;
 ; :Params:
 ;   date : in, required, type=string
 ;     date in the form 'YYYYMMDD'
 ;-
-pro kcor_run::setup_loggers, date
+pro kcor_run::setup_loggers
   compile_opt strictarr
 
   ; setup logging
@@ -29,19 +75,25 @@ pro kcor_run::setup_loggers, date
   logger->setProperty, format=log_fmt, $
                        time_format=log_time_fmt, $
                        level=log_level, $
-                       filename=filepath(date + '.log', root=log_dir)
+                       filename=filepath(self.date + '.log', root=log_dir)
 
   mg_log, name='kcor/cal', logger=logger
   logger->setProperty, format=cal_log_fmt, $
                        time_format=log_time_fmt, $
                        level=log_level, $
-                       filename=filepath(date + '.calibration.log', root=log_dir)
+                       filename=filepath(self.date + '.calibration.log', root=log_dir)
+
+  mg_log, name='kcor/eod', logger=logger
+  logger->setProperty, format=log_fmt, $
+                       time_format=log_time_fmt, $
+                       level=log_level, $
+                       filename=filepath(self.date + '.eod.log', root=log_dir)
 
   mg_log, name='kcor/dbinsert', logger=logger
   logger->setProperty, format=log_fmt, $
                        time_format=log_time_fmt, $
                        level=log_level, $
-                       filename=filepath(date + '.dbinsert.log', root=log_dir)
+                       filename=filepath(self.date + '.dbinsert.log', root=log_dir)
 end
 
 
@@ -62,7 +114,9 @@ pro kcor_run::getProperty, binary_dir=binary_dir, $
                            log_level=log_level, $
                            database_config_filename=database_config_filename, $
                            database_config_section=database_config_section, $
-                           notification_email=notification_email
+                           notification_email=notification_email, $
+                           update_database=update_database, $
+                           use_default_darks=use_default_darks
   compile_opt strictarr
 
   if (arg_present(binary_dir)) then binary_dir = mg_src_root()
@@ -108,15 +162,26 @@ pro kcor_run::getProperty, binary_dir=binary_dir, $
 
   ; database
   if (arg_present(database_config_filename)) then begin
-    database_config_filename =  self.options->get('config_filename', section='database')
+    database_config_filename = self.options->get('config_filename', section='database')
   endif
   if (arg_present(database_config_section)) then begin
-    database_config_section =  self.options->get('config_section', section='database')
+    database_config_section = self.options->get('config_section', section='database')
   endif
 
   ; notifications
   if (arg_present(notification_email)) then begin
     notification_email = self.options->get('email', section='notifications')
+  endif
+
+  ; actions
+  if (arg_present(update_database)) then begin
+    update_database = self.options->get('update_database', section='actions', $
+                                        /boolean, default=1B)
+  endif
+
+  ; epochs file
+  if (arg_present(use_default_darks)) then begin
+    use_default_darks = self->_readepoch('use_default_darks', self.date, /boolean)
   endif
 end
 
@@ -146,9 +211,12 @@ end
 function kcor_run::init, date, config_filename=config_filename
   compile_opt strictarr
 
-  self.options = mg_read_config(config_filename)
+  self.date = date
 
-  self->setup_loggers, date
+  self.options = mg_read_config(config_filename)
+  self.epochs = mg_read_config(filepath('epochs.cfg', root=mg_src_root()))
+
+  self->setup_loggers
 
   return, 1
 end
@@ -161,5 +229,7 @@ pro kcor_run__define
   compile_opt strictarr
 
   !null = {kcor_run, inherits IDL_Object, $
-           options: obj_new()}
+           date: '', $
+           options: obj_new(), $
+           epochs: obj_new()}
 end
