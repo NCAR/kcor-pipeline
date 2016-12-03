@@ -13,13 +13,18 @@
 ;     date in the form 'YYYYMMDD' to produce calibration for
 ;
 ; :Keywords:
-;   config_filename : in, required, type=string
-;     filename of configuration file
+;   config_filename : in, optional, type=string
+;     filename of configuration file; `config_filename` or `run` is required
+;   run : in, optional, type=object
+;     `kcor_run` object; `config_filename` or `run` is required
 ;-
-pro kcor_reduce_calibration, date, config_filename=config_filename
+pro kcor_reduce_calibration, date, config_filename=config_filename, run=run
   common kcor_random, seed
 
-  run = kcor_run(date, config_filename=config_filename)
+  run_created = ~obj_valid(run)
+  if (run_created) then begin
+    run = kcor_run(date, config_filename=config_filename)
+  endif
 
   file_list = kcor_read_calibration_text(date, run.process_basedir, $
                                          exposures=exposures, $
@@ -179,7 +184,7 @@ pro kcor_reduce_calibration, date, config_filename=config_filename
   mg_log, 'done', name='kcor/cal', /info
 
   done:
-  obj_destroy, run
+  if (run_created) then obj_destroy, run
 end
 
 

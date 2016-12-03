@@ -16,6 +16,10 @@ pro kcor_eod, date, config_filename=config_filename
 
   run = kcor_run(date, config_filename=config_filename)
 
+  files = file_search(filepath('*kcor.fts*', $
+                               subdir=[date, 'level0'], $
+                               root=run.raw_basedir), count=n_files)
+
   ; TODO: kcorp
   ; TODO: kcor_plotcen
   ; TODO: dokcor_catalog
@@ -31,7 +35,7 @@ pro kcor_eod, date, config_filename=config_filename
   endif
 
   ; produce calibration for tomorrow
-  kcor_reduce_calibration, data, run=run
+  kcor_reduce_calibration, date, run=run
 
   obj_destroy, run
 end

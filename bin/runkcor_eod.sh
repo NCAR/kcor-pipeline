@@ -1,41 +1,31 @@
-#!/bin/csh
-#-------------------------------------------------------------------------------
-# runkcor_eod.sh
-#-------------------------------------------------------------------------------
-# Execute "kcor_eod" perl script, which verifies that all kcor L0 files
-# in the level0 directory match the list of files in the yyyymmdd.kcor.t1.log
-# file.
-#
-# If all T1 files are found, and the sizes are correct:
-#    kcor_eod generates IDL calls to "kcorp.pro" and "dokcor_catalog.pro".
-#
-#    "kcorar" [perl] is called by "kcor_eod" to generate a tar file,
-#    a tar list, and to insert a link to the tar file in the HPSS-Queue/KCor
-#    directory.
-#
-#    An E-mail message is sent with the status: "ok'.
-#
-# Otherwise, an E-mail message is sent with the status: "error".
-# 
-#-------------------------------------------------------------------------------
-# Andrew L. Stanger   HAO/NCAR
-#-------------------------------------------------------------------------------
-# 21 Apr 2015 
-# 04 May 2015 Add dokcor_nrgf.
-# 30 May 2015 Remove dokcor_nrgf.
-#-------------------------------------------------------------------------------
+#!/bin/sh
 
-echo "runkcor_eod.sh --- start"
+# u=rwx,g=rwx,o=rx
+umask 0002
 
-#--- Set up environment path variables.
+# use today if date not passed to script
+if [[ $# -eq 1 ]]; then
+  DATE=$1
+else
+  DATE=$(date +"%Y%m%d")
+fi
 
-source /home/iguana/.cshrc
+# find locations relative to this script
+SCRIPT_LOC=$(readlink -f $0)
+BIN_DIR=$(dirname ${SCRIPT_LOC})
+PIPE_DIR=$(dirname ${BIN_DIR})
 
-#--- Get today's date.
+IDL=/opt/share/exelis/idl82/bin/idl
 
-set datestr = `date +"%Y%m%d"`
+# setup IDL paths
+SSW_DIR=${PIPE_DIR}/ssw
+GEN_DIR=${PIPE_DIR}/gen
+LIB_DIR=${PIPE_DIR}/lib
+KCOR_SRC_DIR=${PIPE_DIR}/src
+KCOR_PATH=+${KCOR_SRC_DIR}:${SSW_DIR}:${GEN_DIR}:+${LIB_DIR}:"<IDL_DEFAULT>"
+KCOR_DLM_PATH={KCOR_SRCDIR}/realtime:${LIB_DIR}/mysql:"<IDL_DEFAULT>"
 
-#--- Execute "kcor_eod" (perl).
+#CONFIG=${PIPE_DIR}/config/kcor.mgalloy.kaula.production.cfg
+CONFIG=${PIPE_DIR}/config/kcor.mgalloy.mahi.latest.cfg
 
-/hao/acos/sw/bin/kcor_eod $datestr
-
+${IDL} -IDL_STARTUP "" -IDL_PATH ${KCOR_PATH} -IDL_DLM_PATH ${KCOR_DLM_PATH} -e "kcor_eod, '${DATE}', config_filename='${CONFIG}'"
