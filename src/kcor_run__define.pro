@@ -105,6 +105,7 @@ end
 pro kcor_run::getProperty, binary_dir=binary_dir, $
                            mlso_url=mlso_url, $
                            doi_url=doi_url, $
+                           gunzip=gunzip, $
                            npick=npick, $
                            cal_out_dir=cal_out_dir, $
                            raw_basedir=raw_basedir, $
@@ -127,6 +128,11 @@ pro kcor_run::getProperty, binary_dir=binary_dir, $
   endif
   if (arg_present(doi_url)) then begin
     doi_url = self.options->get('doi_url', section='mission')
+  endif
+
+  ; externals
+  if (arg_present(gunzip)) then begin
+    gunzip = self.options->get('gunzip', section='externals')
   endif
 
   ; calibration
