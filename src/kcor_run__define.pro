@@ -200,6 +200,7 @@ end
 pro kcor_run::cleanup
   compile_opt strictarr
 
+  mg_log, /quit
   obj_destroy, self.options
 end
 

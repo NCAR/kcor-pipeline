@@ -14,6 +14,13 @@
 pro kcor_eod, date, config_filename=config_filename
   compile_opt strictarr
 
+  catch, error
+  if (error ne 0L) then begin
+    catch, /cancel
+    mg_log, /last_error, name='kcor/eod', /critical
+    goto, done
+  endif
+
   run = kcor_run(date, config_filename=config_filename)
 
   mg_log, 'starting end-of-day processing for %s', date, name='kcor/eod', /info
@@ -115,7 +122,8 @@ pro kcor_eod, date, config_filename=config_filename
     kcor_send_mail, run.notifcation_email, $
                     string(date, format='(%"kcor_eod %s : ok")'), $
                     string(date, n_l0_files, $
-                           format='(%"kcor L0 eod %s : ok # files: %d")')
+                           format='(%"kcor L0 eod %s : ok # files: %d")'), $
+                    logger_name='kcor/eod'
 
     ; TODO: kcorar
 
@@ -138,7 +146,8 @@ pro kcor_eod, date, config_filename=config_filename
     kcor_send_mail, run.notifcation_email, $
                     string(date, format='(%"kcor_eod %s : error")'), $
                     string(date, n_l0_files, $
-                           format='(%"kcor L0 eod %s : error # files: %d")')
+                           format='(%"kcor L0 eod %s : error # files: %d")'), $
+                    logger_name='kcor/eod'
     goto, done
   endelse
 
