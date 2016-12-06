@@ -31,10 +31,7 @@
 pro kcorp, date, list=list
   compile_opt strictarr
 
-  ; determine the number of command line parameters. 
-  np = n_params()
-
-  if (np eq 0) then begin
+  if (n_params() eq 0) then begin
     mg_log, 'missing date parameter', name='kcor/eod', /error
     return
   endif

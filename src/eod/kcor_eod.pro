@@ -115,9 +115,9 @@ pro kcor_eod, date, config_filename=config_filename
     files = file_search(filepath('*kcor.fts*', root=l0_dir), count=n_files)
 
     kcorp, date, list=files, run=run
+    kcor_plotcen, date, list=files, run=run
 
     ; TODO: these routines need to accept the correct params and use config file
-    kcor_plotcen, date, list=files, run=run
     dokcor_catalog, date, run=run
 
     kcor_send_mail, run.notifcation_email, $

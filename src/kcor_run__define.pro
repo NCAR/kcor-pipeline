@@ -102,7 +102,8 @@ end
 ;+
 ; Get properties.
 ;-
-pro kcor_run::getProperty, binary_dir=binary_dir, $
+pro kcor_run::getProperty, pipe_dir=pipe_dir, $
+                           resources_dir=resources_dir, $
                            mlso_url=mlso_url, $
                            doi_url=doi_url, $
                            gunzip=gunzip, $
@@ -121,7 +122,10 @@ pro kcor_run::getProperty, binary_dir=binary_dir, $
                            use_default_darks=use_default_darks
   compile_opt strictarr
 
-  if (arg_present(binary_dir)) then binary_dir = mg_src_root()
+  if (arg_present(pipe_dir)) then pipe_dir = self.pipe_dir
+  if (arg_present(resources_dir)) then begin
+    resources_dir = filepath('resources', root=self.pipe_dir)
+  endif
 
   ; mission
   if (arg_present(mlso_url)) then begin
@@ -223,6 +227,7 @@ function kcor_run::init, date, config_filename=config_filename
   compile_opt strictarr
 
   self.date = date
+  self.pipe_dir = file_expand_path(filepath('..', root=mg_src_root()))
 
   self.options = mg_read_config(config_filename)
   self.epochs = mg_read_config(filepath('epochs.cfg', root=mg_src_root()))
@@ -241,6 +246,7 @@ pro kcor_run__define
 
   !null = {kcor_run, inherits IDL_Object, $
            date: '', $
+           pipe_dir: '', $
            options: obj_new(), $
            epochs: obj_new()}
 end
