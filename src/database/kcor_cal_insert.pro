@@ -10,6 +10,10 @@
 ;   date : in, required, type=string
 ;     date in the form 'YYYYMMDD'
 ;
+; :Keywords:
+;   run : in, required, type=object
+;     `kcor_run` object
+;
 ; :Examples:
 ;   For example::
 ;

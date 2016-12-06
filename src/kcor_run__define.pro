@@ -117,6 +117,7 @@ pro kcor_run::getProperty, binary_dir=binary_dir, $
                            database_config_section=database_config_section, $
                            notification_email=notification_email, $
                            update_database=update_database, $
+                           plate_scale=plate_scale, $
                            use_default_darks=use_default_darks
   compile_opt strictarr
 
@@ -186,6 +187,9 @@ pro kcor_run::getProperty, binary_dir=binary_dir, $
   endif
 
   ; epochs file
+  if (arg_present(plate_scale)) then begin
+    plate_scale = self->_readepoch('plate_scale', self.date, type=4)
+  endif
   if (arg_present(use_default_darks)) then begin
     use_default_darks = self->_readepoch('use_default_darks', self.date, /boolean)
   endif
