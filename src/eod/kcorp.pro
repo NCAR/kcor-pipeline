@@ -28,7 +28,7 @@
 ;               Also print focus values in log file.
 ;-
 
-pro kcorp, date, list=list
+pro kcorp, date, list=list, run=run
   compile_opt strictarr
 
   if (n_params() eq 0) then begin
@@ -54,9 +54,9 @@ pro kcorp, date, list=list
   cd, current=start_dir   ; save current directory.
   cd, l0_dir              ; move to raw (l0) kcor directory.
 
-   doview = 0
+  doview = 0
 
-   ; Establish list of files to process.
+  ; establish list of files to process
 
   mg_log, 'start_dir: %s', start_dir, name='kcor/eod', /debug
   mg_log, 'l0_dir:    %s', l0_dir, name='kcor/eod', /debug
@@ -65,19 +65,14 @@ pro kcorp, date, list=list
   ;----------------------------------------------------------------------------
   ; Set up graphics window & color table.
   ;----------------------------------------------------------------------------
-
-  ;set_plot, 'X'
-  ;window, 0, xs=1024, ys=1024, retain=2
-
-  set_plot, ''
-  device, set_resolution=[772,1000], decomposed=0, set_colors=256, $
+  set_plot, 'Z'
+  device, set_resolution=[772, 1000], decomposed=0, set_colors=256, $
           z_buffering=0
   !p.multi = [0, 1, 3]
 
   ;----------------------------------------------------------------------------
   ; Determine the number of files to process.
   ;----------------------------------------------------------------------------
-
   nimg = n_elements(list)
   mg_log, 'nimg: %d', nimg, name='kcor/eod', /debug
 
@@ -161,10 +156,10 @@ pro kcorp, date, list=list
     radius_guess = occulter / platescale   ; occulter size [pixels]
 
     mg_log, '%27s %4d %11s %7.3f %7.3f %9.3f', $
-            l0_file, i + 1, datetype, modltrt, sgsdimvm sgsscint, $
+            l0_file, i + 1, datetype, modltrt, sgsdimv, sgsscint, $
             name='kcor/eod', /debug
     mg_log, '%7.3f %7.3f %9.3f', $
-            tcamfocs, rcamfocs, o1focs
+            tcamfocs, rcamfocs, o1focs, $
             name='kcor/eod', /debug
 
     ;-------------------------------------------------------------------------
@@ -202,20 +197,6 @@ pro kcorp, date, list=list
     hours[i] = obs_hour + minute / 60.0 + second / 3600.0
 
     ;-------------------------------------------------------------------------
-    ; Find ephemeris data (pangle,bangle ...) using solarsoft routine pb0r.
-    ;-------------------------------------------------------------------------
-
-    ;   ephem = pb0r (datetime, /arcsec)
-    ;   pangle = ephem (0) 		; degrees.
-    ;   bangle = ephem (1)		; degrees.
-    ;   rsun   = ephem (2)		; solar radius (arcsec).
-
-    ;   PRINTF, ULOG, 'pangle, bangle, rsun: ', pangle, bangle, rsun
-    ;   PRINT,        'pangle, bangle, rsun: ', pangle, bangle, rsun
-
-    ;   pangle += 180.0		; adjust orientation for Kcor telescope.
-
-    ;-------------------------------------------------------------------------
     ; Verify that image is Level 0.
     ;-------------------------------------------------------------------------
     if (level ne 'l0')  then begin
@@ -224,7 +205,7 @@ pro kcorp, date, list=list
     endif
   endfor
 
-  ; TODO: these aren't produced?
+  ; TODO: these files aren't produced?
   modgif  = filepath(date + '_list_mtmp.gif', root=p_dir)
   dimvgif = filepath(date + '_list_dimv.gif', root=p_dir)
   scingif = filepath(date + '_list_scin.gif', root=p_dir)
@@ -248,15 +229,10 @@ pro kcorp, date, list=list
   ; use fixed y-axis scaling, unless values wander outside the range: 0 to 10.
   smin = min(sgs_scin)
   smax = max(sgs_scin)
-  ;if (smin gt 0.0 and smax lt 10.0) then $
-     plot, hours, sgs_scin, title=pdate + '  Kcor SGS Scintillation', $
-           xtitle='Hours [UT]', ytitle='Scintillation [arcsec]', $
-           xrange=[16.0, 28.0], yrange=[0.0, 10.0], $
-           background=255, color=0, charsize=2.0 
-  ;else $
-  ;   plot, hours, sgs_scin, title=pdate + '  Kcor SGS Scintillation', $
-  ;         xtitle='Hours [UT]', ytitle='Scintillation [arcsec]', $
-  ;         background=255, color=0, charsize=2.0 
+  plot, hours, sgs_scin, title=pdate + '  Kcor SGS Scintillation', $
+        xtitle='Hours [UT]', ytitle='Scintillation [arcsec]', $
+        xrange=[16.0, 28.0], yrange=[0.0, 10.0], $
+        background=255, color=0, charsize=2.0 
 
   save = tvrd ()
   write_gif, enggif, save

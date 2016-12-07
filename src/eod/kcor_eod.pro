@@ -14,6 +14,7 @@
 pro kcor_eod, date, config_filename=config_filename
   compile_opt strictarr
 
+  ; catch and log any crashes
   catch, error
   if (error ne 0L) then begin
     catch, /cancel
@@ -71,6 +72,7 @@ pro kcor_eod, date, config_filename=config_filename
   cd, l0_dir
 
   cmd = string(run.gunzip, format='(%"%s *fts.gz")')
+  mg_log, 'unzipping FITS files...', name='kcor/eod', /info
   spawn, cmd, result, error_result, exit_status=status
   if (status ne 0L) then begin
     mg_log, 'problem unzipping FITS files with command: %s', cmd, $
@@ -95,20 +97,19 @@ pro kcor_eod, date, config_filename=config_filename
         n_wrongsize += 1
         mg_log, '%s file size: %d != %d', t1_file, t1_size, mg_filesize(t1_file), $
                 name='kcor/eod', /warn
-      endif else begin
-        n_missing += 1
-        mg_log, '%s not found in level0/', t1_file, name='kcor/eod', /warn
-      endelse
+      endif
     endif else begin
+      n_missing += 1
+      mg_log, '%s not found in level0/', t1_file, name='kcor/eod', /warn
     endelse
   endwhile
 
-  mg_log, 't1.log # L0 files: %d', n_l0_files, name='kcor/eod', /info
+  mg_log, 't1.log: # L0 files: %d', n_l0_files, name='kcor/eod', /info
   if (n_missing gt 0L) then begin
-    mg_log, 't1.log # missing files: %d', n_missing, name='kcor/eod', /info
+    mg_log, 't1.log: # missing files: %d', n_missing, name='kcor/eod', /info
   endif
   if (n_wrongsize gt 0L) then begin
-    mg_log, 't1.log # wrong size files: %d', n_wrongsize, name='kcor/eod', /info
+    mg_log, 't1.log: # wrong size files: %d', n_wrongsize, name='kcor/eod', /info
   endif
 
   if (n_missing eq 0L && n_wrongsize eq 0L) then begin
@@ -118,7 +119,7 @@ pro kcor_eod, date, config_filename=config_filename
     kcor_plotcen, date, list=files, run=run
     dokcor_catalog, date, list=files, run=run
 
-    kcor_send_mail, run.notifcation_email, $
+    kcor_send_mail, run.notification_email, $
                     string(date, format='(%"kcor_eod %s : ok")'), $
                     string(date, n_l0_files, $
                            format='(%"kcor L0 eod %s : ok # files: %d")'), $
@@ -142,7 +143,7 @@ pro kcor_eod, date, config_filename=config_filename
     file_delete, filepath(date + '.kcor.t1.log', root=l0_dir), $
                  filepath(date + '.kcor.t2.log', root=l0_dir), $
                  /allow_nonexistent
-    kcor_send_mail, run.notifcation_email, $
+    kcor_send_mail, run.notification_email, $
                     string(date, format='(%"kcor_eod %s : error")'), $
                     string(date, n_l0_files, $
                            format='(%"kcor L0 eod %s : error # files: %d")'), $
