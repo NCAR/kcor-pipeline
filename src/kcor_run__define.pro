@@ -102,16 +102,22 @@ end
 ;+
 ; Get properties.
 ;-
-pro kcor_run::getProperty, pipe_dir=pipe_dir, $
+pro kcor_run::getProperty, date=date, $
+                           pipe_dir=pipe_dir, $
                            resources_dir=resources_dir, $
                            mlso_url=mlso_url, $
                            doi_url=doi_url, $
                            gunzip=gunzip, $
                            npick=npick, $
                            cal_out_dir=cal_out_dir, $
+                           bias_dir=bias_dir, $
+                           flat_dir=flat_dir, $
+                           mask_dir=mask_dir, $
                            raw_basedir=raw_basedir, $
                            process_basedir=process_basedir, $
                            archive_dir=archive_dir, $
+                           movie_dir=movie_dir, $
+                           fullres_dir=fullres_dir, $
                            log_dir=log_dir, $
                            log_level=log_level, $
                            database_config_filename=database_config_filename, $
@@ -122,6 +128,7 @@ pro kcor_run::getProperty, pipe_dir=pipe_dir, $
                            use_default_darks=use_default_darks
   compile_opt strictarr
 
+  if (arg_present(date)) then date = self.date
   if (arg_present(pipe_dir)) then pipe_dir = self.pipe_dir
   if (arg_present(resources_dir)) then begin
     resources_dir = filepath('resources', root=self.pipe_dir)
@@ -148,6 +155,15 @@ pro kcor_run::getProperty, pipe_dir=pipe_dir, $
   if (arg_present(cal_out_dir)) then begin
     cal_out_dir = self.options->get('out_dir', section='calibration')
   endif
+  if (arg_present(bias_dir)) then begin
+    bias_dir = self.options->get('bias_dir', section='calibration')
+  endif
+  if (arg_present(flat_dir)) then begin
+    flat_dir = self.options->get('flat_dir', section='calibration')
+  endif
+  if (arg_present(mask_dir)) then begin
+    mask_dir = self.options->get('mask_dir', section='calibration')
+  endif
 
   ; processing
   if (arg_present(raw_basedir)) then begin
@@ -160,6 +176,12 @@ pro kcor_run::getProperty, pipe_dir=pipe_dir, $
   ; results
   if (arg_present(archive_dir)) then begin
     archive_dir = self.options->get('archive_dir', section='results')
+  endif
+  if (arg_present(movie_dir)) then begin
+    movie_dir = self.options->get('movie_dir', section='results')
+  endif
+  if (arg_present(fullres_dir)) then begin
+    fullres_dir = self.options->get('fullres_dir', section='results')
   endif
 
   ; logging

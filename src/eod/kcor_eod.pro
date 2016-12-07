@@ -116,9 +116,7 @@ pro kcor_eod, date, config_filename=config_filename
 
     kcorp, date, list=files, run=run
     kcor_plotcen, date, list=files, run=run
-
-    ; TODO: these routines need to accept the correct params and use config file
-    dokcor_catalog, date, run=run
+    dokcor_catalog, date, list=files, run=run
 
     kcor_send_mail, run.notifcation_email, $
                     string(date, format='(%"kcor_eod %s : ok")'), $
