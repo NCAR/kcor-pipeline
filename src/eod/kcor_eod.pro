@@ -58,7 +58,7 @@ pro kcor_eod, date, config_filename=config_filename
   endif else begin
     mg_log, 'T1 log does not exist in %s', date_dir, name='kcor/eod', /info
     goto, done
-  endif
+  endelse
 
   t2_log_file = filepath(date + '.kcor.t2.log', root=date_dir)
   if (file_test(t2_log_file, /regular)) then begin
@@ -159,7 +159,7 @@ pro kcor_eod, date, config_filename=config_filename
     if (mg_filesize(list_files[f]) eq 0L) then begin
       file_delete, list_files[f], /allow_nonexistent
     endif
-  endif
+  endfor
 
   cd, filepath('', root=date_dir)
   file_delete, 'list_okf', /allow_nonexistent
