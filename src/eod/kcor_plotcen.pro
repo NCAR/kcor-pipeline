@@ -397,7 +397,7 @@ pro kcor_plotcen, date, list=list, append=append, run=run
     ;---------------------
     ; Print image summary.
     ;---------------------
-    mg_log, '%s%s%s%s%s%s%s%s%s' $
+    mg_log, '%s%s%s%s%s%s%s%s%s', $
             img_file, datatype_str, exptime_str, cover_str, dshutter_str, $
             diffuser_str, calpol_str, calpang_str, qual_str, $
             name='kcor/eod', /info
