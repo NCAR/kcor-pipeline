@@ -217,7 +217,7 @@ pro kcor_plotcen, date, list=list, append=append, run=run
     if (occulter eq '1006.') then occulter = 1006.9
     if (occulter eq '1018.') then occulter = 1018.9
 
-    platescale = run.place_scale           ; arsec/pixel
+    platescale = run.plate_scale           ; arsec/pixel
     radius_guess = occulter / platescale   ; occulter size [pixels].
 
     ;--------------------------------------
