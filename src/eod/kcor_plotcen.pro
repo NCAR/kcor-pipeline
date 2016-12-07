@@ -281,7 +281,7 @@ pro kcor_plotcen, date, list=list, append=append, run=run
     ; Verify that image is Level 0.
     ;------------------------------
 
-    if (level ne 'l0') then begin
+    if (level ne 'L0') then begin
       mg_log, 'not level 0 data', name='kcor/eod', /warn
       continue
     endif
