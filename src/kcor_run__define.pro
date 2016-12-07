@@ -107,6 +107,7 @@ pro kcor_run::getProperty, date=date, $
                            resources_dir=resources_dir, $
                            mlso_url=mlso_url, $
                            doi_url=doi_url, $
+                           gzip=gzip, $
                            gunzip=gunzip, $
                            npick=npick, $
                            cal_out_dir=cal_out_dir, $
@@ -118,6 +119,7 @@ pro kcor_run::getProperty, date=date, $
                            archive_dir=archive_dir, $
                            movie_dir=movie_dir, $
                            fullres_dir=fullres_dir, $
+                           hpss_gateway=hpss_gateway, $
                            log_dir=log_dir, $
                            log_level=log_level, $
                            database_config_filename=database_config_filename, $
@@ -143,6 +145,9 @@ pro kcor_run::getProperty, date=date, $
   endif
 
   ; externals
+  if (arg_present(gzip)) then begin
+    gzip = self.options->get('gzip', section='externals')
+  endif
   if (arg_present(gunzip)) then begin
     gunzip = self.options->get('gunzip', section='externals')
   endif
@@ -182,6 +187,9 @@ pro kcor_run::getProperty, date=date, $
   endif
   if (arg_present(fullres_dir)) then begin
     fullres_dir = self.options->get('fullres_dir', section='results')
+  endif
+  if (arg_present(hpss_gateway)) then begin
+    hpss_gateway = self.options->get('hpss_gateway', section='results')
   endif
 
   ; logging

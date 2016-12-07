@@ -124,7 +124,7 @@ pro kcor_eod, date, config_filename=config_filename
                            format='(%"kcor L0 eod %s : ok # files: %d")'), $
                     logger_name='kcor/eod'
 
-    ; TODO: kcorar (convert kcorar to kcorar.pro)
+    kcor_archive, run=run
 
     ; put results in database
     if (run.update_database) then begin
