@@ -146,7 +146,6 @@ pro kcorp, date, list=list, run=run
     o1_focus[i]   = o1focs
 
     ; determine occulter size in pixels
-
     occulter = strmid (occltrid, 3, 5)   ; extract 5 characters from occltrid
     if (occulter eq '991.6') then occulter =  991.6
     if (occulter eq '1018.') then occulter = 1018.9
@@ -156,7 +155,7 @@ pro kcorp, date, list=list, run=run
     radius_guess = occulter / platescale   ; occulter size [pixels]
 
     mg_log, '%27s %4d %11s %7.3f %7.3f %9.3f', $
-            l0_file, i + 1, datetype, modltrt, sgsdimv, sgsscint, $
+            l0_file, i + 1, datatype, modltrt, sgsdimv, sgsscint, $
             name='kcor/eod', /debug
     mg_log, '%7.3f %7.3f %9.3f', $
             tcamfocs, rcamfocs, o1focs, $
