@@ -27,7 +27,6 @@
 ;   10 Jun 2015 Modify yrange for O1 focus from [125, 150] to [110, 150].
 ;               Also print focus values in log file.
 ;-
-
 pro kcorp, date, list=list, run=run
   compile_opt strictarr
 

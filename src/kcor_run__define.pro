@@ -14,7 +14,8 @@
 ; :Private:
 ;
 ; :Returns:
-;   by default returns a string, unless `TYPE` is specified
+;   returns a string by default, unless `TYPE` (or `BOOLEAN`, `FLOAT`, etc.) is
+;   specified
 ;
 ; :Params:
 ;   option : in, required, type=string
@@ -55,10 +56,6 @@ end
 
 ;+
 ; Setup logging.
-;
-; :Params:
-;   date : in, required, type=string
-;     date in the form 'YYYYMMDD'
 ;-
 pro kcor_run::setup_loggers
   compile_opt strictarr

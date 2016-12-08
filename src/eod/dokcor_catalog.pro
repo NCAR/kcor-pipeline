@@ -1,7 +1,7 @@
 ; docformat = 'rst'
 
 ;+
-; Execute the `kcor_catalog` procedure for all kcor L0 fits files for a
+; Execute the `kcor_catalog` procedure for all KCor L0 FITS files for a
 ; specified date.
 ;
 ; :Params:
