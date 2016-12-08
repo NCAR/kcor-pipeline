@@ -1,3 +1,2 @@
-#file(GLOB SCRIPT_FILES "*")
-set(SCRIPT_FILES runkcor_eod.sh)
-install(PROGRAMS ${SCRIPT_FILES} DESTINATION bin)
+configure_file(runkcor_eod.sh.in runkcor_eod.sh @ONLY)
+install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/runkcor_eod.sh DESTINATION bin)
