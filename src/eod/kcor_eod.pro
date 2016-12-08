@@ -150,7 +150,11 @@ pro kcor_eod, date, config_filename=config_filename
     endelse
 
     ; produce calibration for tomorrow
-    kcor_reduce_calibration, date, run=run
+    if (run.reduce_calibration) then begin
+      kcor_reduce_calibration, date, run=run
+    endif else begin
+      mg_log, 'skipping reducing calibration', name='kcor/eod', /info
+    endelse
   endif else begin
     file_delete, filepath(date + '.kcor.t1.log', root=l0_dir), $
                  filepath(date + '.kcor.t2.log', root=l0_dir), $
