@@ -35,11 +35,7 @@ else
   CONFIG=${PIPE_DIR}/config/kcor.${USER}.${MACHINE}.${2}.cfg
 fi
 
-if [ "$(uname)" == "Darwin" ]; then
-  IDL=/Applications/exelis/idl/bin/idl
-else
-  IDL=/opt/share/exelis/idl82/bin/idl
-fi
+IDL=@IDL_EXECUTABLE@
 
 # setup IDL paths
 SSW_DIR=${PIPE_DIR}/ssw
