@@ -98,7 +98,15 @@ pro kcor_archive, run=run
   endif
   file_chmod, tarlist, /a_read, /g_write
 
-  file_link, filepath(tarfile, root=l0_dir), run.hpss_gateway
+  ; remove old links to tarballs
+  dst_tarfile = filepath(tarfile, root=run.hpss_gateway)
+  if (file_test(dst_tarfile)) then begin
+    mg_log, 'removing link to tarball in HPSS gateway', name='kcor/eod', /warn
+    file_delete, dst_tarfile
+  endif
+
+  file_link, filepath(tarfile, root=l0_dir), $
+             filepath(tarfile, root=run.hpss_gateway)
 
   done:
   cd, cwd

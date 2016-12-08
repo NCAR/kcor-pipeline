@@ -57,14 +57,14 @@ pro kcor_catalog, filename, run=run
      openw, calibration_lun, filepath('calibration_files.txt', root=process_dir), $
             /append, /get_lun
      printf, calibration_lun, $
-             filename, exposure, datatype, darkshut, diffuser, calpol, calpang, $
+             file_basename(filename), exposure, datatype, darkshut, diffuser, calpol, calpang, $
              format='(a, 3x, f10.4, 2x, "ms", 2x, "Data: ", a, 3x, "Dark: ", a, 3x, "Diff: ", a, 3x, "Cal: ", a, 3x, "Ang: ", f6.1, "  means: ", $)'
 
      ; print a measure of every image in the cube
      image = readfits(filename, /silent)
      for camera = 0, 1 do begin
        for sequence = 0, 3 do begin
-         printf, calibration_lun, format='(e12.5, "   ", $)', mean (image[*, *, sequence, camera])
+         printf, calibration_lun, format='(e12.5, "   ", $)', mean(image[*, *, sequence, camera])
        endfor
      endfor
 
