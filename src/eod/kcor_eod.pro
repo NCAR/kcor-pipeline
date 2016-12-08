@@ -24,6 +24,11 @@ pro kcor_eod, date, config_filename=config_filename
 
   run = kcor_run(date, config_filename=config_filename)
 
+  version = kcor_find_code_version(revision=revision, branch=branch)
+  mg_log, 'kcor-pipeline %s (%s) [%s]', version, revision, branch, $
+          name='kcor/eod', /info
+  mg_log, 'IDL %s (%s %s)', !version.release, !version.os_name, !version.arch, $
+          name='kcor/eod', /info
   mg_log, 'starting end-of-day processing for %s', date, name='kcor/eod', /info
 
   date_dir = filepath(date, root=run.raw_basedir)
