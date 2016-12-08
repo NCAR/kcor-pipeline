@@ -30,7 +30,7 @@ pro kcor_send_mail, address, subject, body, error=error, logger_name=logger_name
     body_filename = filepath(string(timestamp, format='(%"comp-%s.txt")'), /tmp)
 
     openw, lun, body_filename, /get_lun
-    printf, lun, transpose(body)
+    printf, lun, transpose([body])
     free_lun, lun
   endelse
 

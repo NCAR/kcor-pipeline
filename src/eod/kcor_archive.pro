@@ -11,6 +11,8 @@ pro kcor_archive, run=run
   compile_opt strictarr
 
   cd, current=cwd
+
+  l0_dir = filepath('level0', subdir=run.date, root=run.raw_basedir)
   cd, l0_dir
 
   date = run.date
@@ -47,7 +49,7 @@ pro kcor_archive, run=run
 
   l0_fits_files = file_search('*kcor.fts', count=n_l0_fits_files)
   if (n_l0_fits_files eq 0L) then begin
-    mg_log, 'No L0 FITS files to archive to HPSS', name='kcor/eod', /warn
+    mg_log, 'no L0 FITS files to archive to HPSS', name='kcor/eod', /warn
     goto, done
   endif
 
@@ -57,7 +59,7 @@ pro kcor_archive, run=run
   if (status ne 0L) then begin
     mg_log, 'problem zipping files with command: %s', zip_cmd, $
             name='kcor/eod', /error
-    mg_log, '%s', error_result, name='kcor/eod', /error
+    mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
     goto, done
   endif
 
@@ -67,26 +69,31 @@ pro kcor_archive, run=run
     mg_log, 'no L0 compressed files exist in L0 dir: %s', l0_dir, $
             name='kcor/eod', /error
     goto, done
-  endif
+  endif else begin
+    mg_log, '%d compressed files exist in L0 dir', n_gz_fits_files, $
+            name='kcor/eod', /info
+  endelse
 
   tar_cmd = string(tarfile, $
-                   format='(%"tar cf %s *.kcor.fts.gz *t1.log *t2.log")')
+                   format='(%"tar cf %s *_kcor.fts.gz *t1.log *t2.log")')
+  mg_log, 'creating tarfile...', name='kcor/eod', /info
   spawn, tar_cmd, result, error_result, exit_status=status
   if (status ne 0L) then begin
     mg_log, 'problem tarring files with command: %s', tar_cmd, $
             name='kcor/eod', /error
-    mg_log, '%s', error_result, name='kcor/eod', /error
+    mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
     goto, done
   endif
   file_chmod, tarfile, /a_read, /g_write
 
   tarlist_cmd = string(tarfile, tarlist, $
                        format='(%"tar tfv %s > %s")')
+  mg_log, 'creating tarlist...', name='kcor/eod', /info
   spawn, tarlist_cmd, result, error_result, exit_status=status
   if (status ne 0L) then begin
     mg_log, 'problem create tarlist file with command: %s', tarlist_cmd, $
             name='kcor/eod', /error
-    mg_log, '%s', error_result, name='kcor/eod', /error
+    mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
     goto, done
   endif
   file_chmod, tarlist, /a_read, /g_write
@@ -94,7 +101,6 @@ pro kcor_archive, run=run
   file_link, filepath(tarfile, root=l0_dir), run.hpss_gateway
 
   done:
-
   cd, cwd
   mg_log, 'done', name='kcor/eod', /info
 end

@@ -398,7 +398,7 @@ pro kcor_plotcen, date, list=list, append=append, run=run
     ; Print image summary.
     ;---------------------
     mg_log, '%s%s%s%s%s%s%s%s%s', $
-            img_file, datatype_str, exptime_str, cover_str, dshutter_str, $
+            file_basename(img_file), datatype_str, exptime_str, cover_str, dshutter_str, $
             diffuser_str, calpol_str, calpang_str, qual_str, $
             name='kcor/eod', /info
   endfor
@@ -440,7 +440,7 @@ pro kcor_plotcen, date, list=list, append=append, run=run
         yrange = [460.0, 540.0]
  
   ocen_gif = 'ocen.gif'
-  ocen_gif = date + '_' + listfile + '_ocen.gif'
+  ocen_gif = date + '_list_ocen.gif'
   save = tvrd()
   write_gif, ocen_gif, save
 
@@ -463,7 +463,7 @@ pro kcor_plotcen, date, list=list, append=append, run=run
         yrange = [170.0, 200.0]
 
   rocc_gif = 'rocc.gif'
-  rocc_gif = date + '_' + listfile + '_rocc.gif'
+  rocc_gif = date + '_list_rocc.gif'
   save     = tvrd()
   write_gif, rocc_gif, save
 
@@ -473,8 +473,8 @@ pro kcor_plotcen, date, list=list, append=append, run=run
   cd, start_dir
   set_plot, 'X'
 
-  ; get system time & compute elapsed time since "TIC" command
+  ; get system time & compute elapsed time since TIC command
   qtime = toc()
   mg_log, 'elapsed_time: %0.1f sec', qtime, name='kcor/eod', /info
-  mg_log, ' sec/image', qtime / num_img, name='kcor/eod', /info
+  mg_log, '%0.1f sec/image', qtime / num_img, name='kcor/eod', /info
 end

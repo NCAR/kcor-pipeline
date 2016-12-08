@@ -125,6 +125,7 @@ pro kcor_run::getProperty, date=date, $
                            database_config_filename=database_config_filename, $
                            database_config_section=database_config_section, $
                            notification_email=notification_email, $
+                           send_notifications=send_notifications, $
                            update_database=update_database, $
                            plate_scale=plate_scale, $
                            use_default_darks=use_default_darks
@@ -211,7 +212,11 @@ pro kcor_run::getProperty, date=date, $
 
   ; notifications
   if (arg_present(notification_email)) then begin
-    notification_email = self.options->get('email', section='notifications')
+    notification_email = self.options->get('email', section='notifications', default='')
+  endif
+  if (arg_present(send_notifications)) then begin
+    send_notifications = self.options->get('send_notifications', section='notifications', $
+                                           /boolean, default=1B)
   endif
 
   ; actions

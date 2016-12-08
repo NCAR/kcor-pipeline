@@ -77,7 +77,7 @@ pro kcor_eod, date, config_filename=config_filename
   if (status ne 0L) then begin
     mg_log, 'problem unzipping FITS files with command: %s', cmd, $
             name='kcor/eod', /error
-    mg_log, '%s', error_result, name='kcor/eod', /error
+    mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
   endif
 
   n_missing = 0L
@@ -119,23 +119,30 @@ pro kcor_eod, date, config_filename=config_filename
     kcor_plotcen, date, list=files, run=run
     dokcor_catalog, date, list=files, run=run
 
-    kcor_send_mail, run.notification_email, $
-                    string(date, format='(%"kcor_eod %s : ok")'), $
-                    string(date, n_l0_files, $
-                           format='(%"kcor L0 eod %s : ok # files: %d")'), $
-                    logger_name='kcor/eod'
+    if (run.send_notifications && run.notification_email ne '') then begin
+      kcor_send_mail, run.notification_email, $
+                      string(date, format='(%"kcor_eod %s : ok")'), $
+                      string(date, n_l0_files, $
+                             format='(%"kcor L0 eod %s : ok # files: %d")'), $
+                      logger_name='kcor/eod'
+    endif else begin
+      mg_log, 'not sending notification email', name='kcor/eod', /warn
+    endelse
 
     kcor_archive, run=run
 
     ; put results in database
     if (run.update_database) then begin
+      mg_log, 'updating database', name='kcor/eod', /info
       kcor_cal_insert, date, run=run
       kcor_dp_insert, date, run=run
       kcor_eng_insert, date, run=run
       kcor_hw_insert, date, run=run
       kcor_img_insert, date, run=run
       kcor_mission_insert, date, run=run
-    endif
+    endif else begin
+      mg_log, 'skipping updating database', name='kcor/eod', /info
+    endelse
 
     ; produce calibration for tomorrow
     kcor_reduce_calibration, date, run=run
@@ -143,11 +150,15 @@ pro kcor_eod, date, config_filename=config_filename
     file_delete, filepath(date + '.kcor.t1.log', root=l0_dir), $
                  filepath(date + '.kcor.t2.log', root=l0_dir), $
                  /allow_nonexistent
-    kcor_send_mail, run.notification_email, $
-                    string(date, format='(%"kcor_eod %s : error")'), $
-                    string(date, n_l0_files, $
-                           format='(%"kcor L0 eod %s : error # files: %d")'), $
-                    logger_name='kcor/eod'
+    if (run.send_notifications && run.notification_email ne '') then begin
+      kcor_send_mail, run.notification_email, $
+                      string(date, format='(%"kcor_eod %s : error")'), $
+                      string(date, n_l0_files, $
+                             format='(%"kcor L0 eod %s : error # files: %d")'), $
+                      logger_name='kcor/eod'
+    endif else begin
+      mg_log, 'not sending notification email', name='kcor/eod', /warn
+    endelse
     goto, done
   endelse
 
