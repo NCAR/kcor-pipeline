@@ -62,7 +62,6 @@ pro kcor_run::setup_loggers
 
   ; setup logging
   log_fmt = '%(time)s %(levelshortname)s: %(routine)s: %(message)s'
-  cal_log_fmt = '%(time)s %(levelshortname)s: %(message)s'
   log_time_fmt = '(C(CYI4, "-", CMOI2.2, "-", CDI2.2, " " CHI2.2, ":", CMI2.2, ":", CSI2.2))'
 
   self->getProperty, log_level=log_level, log_dir=log_dir
@@ -75,7 +74,7 @@ pro kcor_run::setup_loggers
                        filename=filepath(self.date + '.log', root=log_dir)
 
   mg_log, name='kcor/cal', logger=logger
-  logger->setProperty, format=cal_log_fmt, $
+  logger->setProperty, format=log_fmt, $
                        time_format=log_time_fmt, $
                        level=log_level, $
                        filename=filepath(self.date + '.calibration.log', root=log_dir)
@@ -124,6 +123,7 @@ pro kcor_run::getProperty, date=date, $
                            notification_email=notification_email, $
                            send_notifications=send_notifications, $
                            update_database=update_database, $
+                           reduce_calibration=reduce_calibration, $
                            plate_scale=plate_scale, $
                            use_default_darks=use_default_darks
   compile_opt strictarr
@@ -220,6 +220,10 @@ pro kcor_run::getProperty, date=date, $
   if (arg_present(update_database)) then begin
     update_database = self.options->get('update_database', section='actions', $
                                         /boolean, default=1B)
+  endif
+  if (arg_present(reduce_calibration)) then begin
+    reduce_calibration = self.options->get('reduce_calibration', section='actions', $
+                                           /boolean, default=1B)
   endif
 
   ; epochs file
