@@ -21,10 +21,16 @@ find_package(Git)
 if (GIT_FOUND)
   execute_process(
     COMMAND ${GIT_EXECUTABLE} log -1 --pretty=format:%h
-    OUTPUT_VARIABLE REVISION
+    OUTPUT_VARIABLE GIT_REVISION
+  )
+  execute_process(
+    COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    OUTPUT_VARIABLE GIT_BRANCH
   )
 else ()
-  set(REVISION "")
+  set(GIT_REVISION "")
+  set(GIT_BRANCH "")
 endif ()
 
 include(${CMAKE_SOURCE_DIR}/cmake/GetDate.cmake)
