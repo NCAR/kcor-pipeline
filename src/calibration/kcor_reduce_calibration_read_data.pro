@@ -47,26 +47,31 @@ pro kcor_reduce_calibration_read_data, file_list, basedir, $
     if (~file_test(filenames[f], /regular)) then filenames[f] += '.gz'
 
     thisdata = readfits(filenames[f], header, /silent)
-    header = fitshead2struct(header)
-    if strmatch(header.darkshut, '*in*', /fold_case) then begin
+    darkshut = sxpar(header, 'DARKSHUT', count=n_darkshut)
+    diffuser = sxpar(header, 'DIFFUSER', count=n_diffuser)
+    calpol = sxpar(header, 'CALPOL', count=n_calpol)
+    calpang = sxpar(header, 'CALPANG', count=n_calpang)
+    sgsdimv = sxpar(header, 'SGSDIMV', count=n_sgsdimv)
+
+    if strmatch(darkshut, '*in*', /fold_case) then begin
       dark += mean(thisdata, dimension=3)
       gotdark++
       file_types[f] = 'dark'
       mg_log, 'dark: %s', file_list[f], name='kcor/cal', /debug
-    endif else if strmatch(header.diffuser, '*in*', /fold_case) then begin
-      if strmatch(header.calpol, '*out*', /fold_case) then begin
+    endif else if strmatch(diffuser, '*in*', /fold_case) then begin
+      if strmatch(calpol, '*out*', /fold_case) then begin
         clear += mean(thisdata, dimension=3)
-        vdimref += header.sgsdimv
+        vdimref += sgsdimv
         gotclear++
         file_types[f] = 'clear'
         mg_log, 'clear: %s', file_list[f], name='kcor/cal', /debug
       endif else begin
         calibration[*, *, *, *, gotcal] = thisdata
-        angles[gotcal] = header.calpang
+        angles[gotcal] = calpang
         gotcal++
         file_types[f] = 'calibration'
         mg_log, 'calibration @ angle %0.1f: %s', $
-                header.calpang, file_list[f], name='kcor/cal', /debug
+                calpang, file_list[f], name='kcor/cal', /debug
       endelse
     endif
   endfor
