@@ -6,10 +6,6 @@
 ; :Returns:
 ;   1 if lock/unlock successful, 0 if not
 ;
-; :Params:
-;   date_dir : in, required, type=string
-;     day of year to process, in `YYYYMMDD` format
-;
 ; :Keywords:
 ;   lock : in, optional, type=boolean
 ;     set to try to obtain a lock on the `date_dir` in the raw
