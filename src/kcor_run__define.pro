@@ -125,7 +125,8 @@ pro kcor_run::getProperty, date=date, $
                            update_database=update_database, $
                            reduce_calibration=reduce_calibration, $
                            plate_scale=plate_scale, $
-                           use_default_darks=use_default_darks
+                           use_default_darks=use_default_darks, $
+                           gbuparams_filename=gbuparams_filename
   compile_opt strictarr
 
   if (arg_present(date)) then date = self.date
@@ -232,6 +233,9 @@ pro kcor_run::getProperty, date=date, $
   endif
   if (arg_present(use_default_darks)) then begin
     use_default_darks = self->_readepoch('use_default_darks', self.date, /boolean)
+  endif
+  if (arg_present(gbuparams_filename)) then begin
+    gbuparams_filename = self->_readepoch('gbuparams_filename', self.date, /boolean)
   endif
 end
 
