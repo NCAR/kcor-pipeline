@@ -8,7 +8,7 @@ use DBI;
 # Create MLSO db table: kcor_img (mysql).
 # ------------------------------------------------------------------------------
 # Andrew Stanger   MLSO/HAO/NCAR   08 Dec 2015
-# New edits by Don Kolinski 2017
+# New edits by Don Kolinski Jan 2017
 # ------------------------------------------------------------------------------
 #--- DB name
 #--- DB host
