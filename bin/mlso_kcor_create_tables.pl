@@ -6,6 +6,8 @@ use DBI;
 # Create MLSO db tables (mysql).
 # ------------------------------------------------------------------------------
 # Andrew Stanger   MLSO/HAO/NCAR   24 Sep 2015
+# NOTE (from DJK): This script to create all KCOR table at once is now deprecated.
+# 		Use the individual scripts to create each table, such as kcor_img_create_table.pl
 # ------------------------------------------------------------------------------
 #--- DB name
 #--- DB host
