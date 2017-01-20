@@ -22,22 +22,21 @@ use DBI;
 #--- DB user
 #--- DB password
 
-# Warn user of database drop
-print "WARNING!!!! This script will drop the table kcor_img!\nDo you wish to continue? ";
-print "Press <Enter> to continue, or 'q' to quit: ";
-my $input = <STDIN>;
-exit if $input eq "q\n";
-
 # Check the arguments for existence of config file
 if ($#ARGV != 0 ) {
     print "Usage: $0 <ConfigFile>\n";
     exit;
 }
 
+# Warn user of database drop
+print "WARNING!!!! This script will drop the table kcor_img!\nDo you wish to continue? ";
+print "Press <Enter> to continue, or 'q' to quit: ";
+my $input = <STDIN>;
+exit if $input eq "q\n";
+
 # Read config file
 $configfile = $ARGV[0];
 open (CONFIG, "$configfile") or die "ERROR: Config file not found : $configfile";
-
 while (<CONFIG>) {
     chomp;                  # no newline
     s/#.*//;                # no comments
@@ -83,17 +82,24 @@ if (! $sth)
   die () ;
   }
 
+# Define fields
+#	Notes:
+#	Removing 'instrument' field for now (unless I hear that VSO needs it in this table)
+#	'level' type changed to char(4), but could also be float(4,1) like xxx.x
+#	'quality' type changed to tinyint, and will be stored as a number between 0-99
+#	Added 'datatype' field at end, because VARCHAR slows down queries if there are fields after it
+# TODO: define other indices.
 $command = "CREATE TABLE kcor_img_test
   (
   img_id     INT (10) AUTO_INCREMENT PRIMARY KEY,
-  file_name  VARCHAR (40) NOT NULL, 
+  file_name  CHAR (35) NOT NULL, 
   date_obs   DATETIME NOT NULL, 
   date_end   DATETIME NOT NULL, 
-  instrument VARCHAR (24) NOT NULL, 
-  level      VARCHAR (2) NOT NULL, 
-  quality    VARCHAR (8),
+  level      CHAR (4) NOT NULL,
+  quality    TINYINT (2),
   numsum     SMALLINT (4), 
-  exptime    FLOAT (7, 4)  
+  exptime    FLOAT (7, 4),
+  datatype   VARCHAR (8)
   )" ;  # TODO: remove _test when in production
 
 $sth = $dbh->prepare ($command) ;
