@@ -83,7 +83,7 @@ if (! $sth)
 #	Removing 'instrument' field for now (unless I hear that VSO needs it in this table)
 #	'level' type changed to char(4), but could also be float(4,1) like xxx.x
 #	'quality' type changed to tinyint, and will be stored as a number between 0-99
-#	Added 'datatype' field at end, because VARCHAR slows down queries if there are fields after it
+#	Added 'datatype' and 'filetype' fields at end, because VARCHAR slows down queries if there are fields after it
 # TODO: define other indices.
 $command = "CREATE TABLE kcor_img_test
   (
@@ -95,7 +95,8 @@ $command = "CREATE TABLE kcor_img_test
   quality    TINYINT (2),
   numsum     SMALLINT (4), 
   exptime    FLOAT (7, 4),
-  datatype   VARCHAR (8)
+  datatype   VARCHAR (8),
+  filetype   VARCHAR (6)
   )" ;  # TODO: remove _test when in production
 
 $sth = $dbh->prepare ($command) ;
