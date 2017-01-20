@@ -103,22 +103,22 @@ $okrg_list = "okrg.ls" ;
 # Check existence of directories.
 #--------------------------------
 
-unless (-e $date_dir)
+unless (-d $date_dir)
    {
    die "Directory $date_dir does not exist.  $!\n" ;
    }
 
-unless (-e $l0_dir or mkdir ($l0_dir, 0775))
+unless (-d $l0_dir or mkdir ($l0_dir, 0775))
    {
    die "Unable to create directory $l0_dir.  $!\n" ;
    }
 
-unless (-e $l1_dir or mkdir ($l1_dir, 0775))
+unless (-d $l1_dir or mkdir ($l1_dir, 0775))
    {
    die "Unable to create directory $l1_dir.  $!\n" ;
    }
 
-unless (-e $q_dir or mkdir ($q_dir, 0775))
+unless (-d $q_dir or mkdir ($q_dir, 0775))
    {
    die "Unable to create directory $q_dir.  $!\n" ;
    }
@@ -146,6 +146,24 @@ $day   = substr $date, 6, 2 ;			# day of month
 $okcgif_web  = "/hao/ftp/$year/$month/$day" ;		# cropped  gif web dir.
 $okfgif_web  = "/hao/acos/fullres/$year/$month/$day" ;	# full res gif web dir.
 $okl1fts_web = "/hao/acos/$year/$month/$day" ;		# L1 fits      web dir.
+
+unless (-d $okcgif_web or mkdir ($okcgif_web, 0775))
+   {
+   print (LOG "Unable to create directory $okcgif_web\n");
+   die "Unable to create directory $okcgif_web.  $!\n" ;
+   }
+
+unless (-d $okfgif_web or mkdir ($okfgif_web, 0775))
+   {
+   print (LOG "Unable to create directory $okfgif_web\n");
+   die "Unable to create directory $okfgif_web.  $!\n" ;
+   }
+
+unless (-d $okl1fts_web or mkdir ($okl1fts_web, 0775))
+   {
+   print (LOG "Unable to create directory $okl1fts_web\n");
+   die "Unable to create directory $okl1fts_web.  $!\n" ;
+   }
 
 #-----------------------------
 # Move to kcor date directory: [/hao/mlsodata1/Data/KCor/raw/yyyymmdd]
@@ -400,25 +418,25 @@ $rg_day_dir    = $rg_month_dir . '/' . $day ;
 $rg_remote_dir = '/export/data1/instruments/gallery/kcor' ;
 $mlso_computer   = 'mlsoserver.mlso.ucar.edu' ;
 
-unless (-e $rg_base_dir or mkdir ($rg_base_dir, 0775))
+unless (-d $rg_base_dir or mkdir ($rg_base_dir, 0775))
    {
    print (LOG "Unable to create directory $rg_base_dir\n");
    die "Unable to create directory $rg_base_dir.  $!\n" ;
    }
 
-unless (-e $rg_year_dir or mkdir ($rg_year_dir, 0775))
+unless (-d $rg_year_dir or mkdir ($rg_year_dir, 0775))
    {
    print (LOG "Unable to create directory $rg_year_dir\n");
    die "Unable to create directory $rg_year_dir.  $!\n" ;
    } 
 
-unless (-e $rg_month_dir or mkdir ($rg_month_dir, 0775))
+unless (-d $rg_month_dir or mkdir ($rg_month_dir, 0775))
    {
    print (LOG "Unable to create directory $rg_month_dir\n");
    die "Unable to create directory $rg_month_dir.  $!\n" ;
    } 
 
-unless (-e $rg_day_dir or mkdir ($rg_day_dir, 0775))
+unless (-d $rg_day_dir or mkdir ($rg_day_dir, 0775))
    {
    print (LOG "Unable to create directory $rg_day_dir\n");
    die "Unable to create directory $rg_day_dir.  $!\n" ;
