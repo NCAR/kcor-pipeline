@@ -7,16 +7,44 @@ use DBI;
 # Create MLSO db table: kcor_mission (mysql).
 # ------------------------------------------------------------------------------
 # Andrew Stanger   MLSO/HAO/NCAR   08 Dec 2015
+# New edits by Don Kolinski Jan 2017
+#	Added new argument containing path/configfile:
+#		config file format:
+#		username = <value>
+#		password = <value>
+#		host = <value>
+#		dbname = <value>
+#	Added/edited database fields
 # ------------------------------------------------------------------------------
-#--- DB name
-#--- DB host
-#--- DB user
-#--- DB password
 
-$db   = "MLSO" ;
-$host = "databases.hao.ucar.edu" ;
-$user = "stanger" ;
-$pass = "mml4so14" ;
+# Check the arguments for existence of config file
+if ($#ARGV != 0 ) {
+    print "Usage: $0 <ConfigFile>\n";
+    exit;
+}
+
+# Warn user of database drop
+print "WARNING!!!! This script will drop the table kcor_mission!\nDo you wish to continue? ";
+print "Press <Enter> to continue, or 'q' to quit: ";
+my $input = <STDIN>;
+exit if $input eq "q\n";
+
+# Read config file
+$configfile = $ARGV[0];
+open (CONFIG, "$configfile") or die "ERROR: Config file not found : $configfile";
+while (<CONFIG>) {
+    chomp;                  # no newline
+    s/#.*//;                # no comments
+    s/^\s+//;               # no leading white
+    s/\s+$//;               # no trailing white
+    next unless length;     # anything left?
+    my ($var, $value) = split(/\s*=\s*/, $_, 2);
+    $configvar{$var} = $value;
+} 
+$user = $configvar{"username"};
+$pass = $configvar{"password"};
+$host = $configvar{"host"};
+$db = $configvar{"dbname"};
 
 #---------------------
 # Connect to database.
@@ -38,7 +66,7 @@ else
 # Create new kcor_mission table.
 #-------------------------------
 
-$command = "DROP TABLE kcor_mission IF EXISTS" ;
+$command = "DROP TABLE IF EXISTS kcor_mission_test" ;
 $sth     = $dbh->prepare ($command) ;
 
 $sth->execute () ;
@@ -49,25 +77,45 @@ if (! $sth)
   die () ;
   }
 
-$command = "CREATE TABLE kcor_mission 
+# Define fields
+#	Notes:
+#  
+$command = "CREATE TABLE kcor_mission_test 
   (
-  mission_id INT (10) AUTO_INCREMENT PRIMARY KEY, 
-  date       DATETIME NOT NULL, 
-  mlso_url   VARCHAR (24),
-  doi_url    VARCHAR (48),
-  telescope  VARCHAR (24),
-  instrument VARCHAR (24),
-  location   VARCHAR (12),
-  origin     VARCHAR (12),
-  object     VARCHAR (14),
-  wavelength FLOAT (6, 1),
-  wavefwhm   FLOAT (4, 1),
-  platescale FLOAT (6, 3),
-  fov_min    FLOAT (4, 2),
-  fov_max    FLOAT (4, 2),
-  xdim       SMALLINT (5),
-  ydim       SMALLINT (5)
-  )"; 
+  mission_id	INT (10) AUTO_INCREMENT PRIMARY KEY, 
+  date			DATETIME NOT NULL, 
+  mlso_url		CHAR (24),
+  doi_url		CHAR (48),
+  telescope		CHAR (24),
+  instrument	CHAR (24),
+  location		CHAR (27),
+  origin 		CHAR (12),
+  object		CHAR (32),
+  wavelength	FLOAT (7, 2),
+  wavefwhm		FLOAT (5, 2),
+  cdelt			FLOAT (7, 3),
+  fov_min		FLOAT (4, 2),
+  fov_max		FLOAT (4, 2),
+  bitpix		TINYINT (3),
+  xdim			SMALLINT (5),
+  ydim			SMALLINT (5),
+  wcsname		CHAR (26),
+  ctype			CHAR (8),
+  timesys		CHAR (3),
+  inst_rot		FLOAT (7, 2),
+  calpol_seq00	CHAR (10),
+  calpol_seq01	CHAR (10),
+  calpol_seq02	CHAR (10),
+  calpol_seq03	CHAR (10),
+  calpol_seq10	CHAR (10),
+  calpol_seq11	CHAR (10),
+  calpol_seq12	CHAR (10),
+  calpol_seq13	CHAR (10),
+  pc1_1			FLOAT (7, 3),
+  pc1_2			FLOAT (7, 3),
+  pc2_1			FLOAT (7, 3),
+  pc2_2			FLOAT (7, 3)
+  )";  # TODO: remove _test when in production
 
 $sth = $dbh->prepare ($command) ;
 $sth->execute () ;
