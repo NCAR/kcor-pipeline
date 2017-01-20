@@ -15,12 +15,8 @@ use DBI;
 #		password = <value>
 #		host = <value>
 #		dbname = <value>
-
+#	Added/edited database fields
 # ------------------------------------------------------------------------------
-#--- DB name
-#--- DB host
-#--- DB user
-#--- DB password
 
 # Check the arguments for existence of config file
 if ($#ARGV != 0 ) {
