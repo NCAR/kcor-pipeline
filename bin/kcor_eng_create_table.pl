@@ -90,7 +90,7 @@ $command = "CREATE TABLE kcor_eng_test
   tcamfocs		FLOAT (6, 2),
   modltrt		FLOAT (6, 2),
   o1focs		FLOAT (8, 3),
-  level			FLOAT (5, 1),
+  level			CHAR (4),
   bunit			VARCHAR (15),
   bzero			INT (10),
   bscale		FLOAT (5, 4),
