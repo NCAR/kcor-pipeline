@@ -78,8 +78,6 @@ if (! $sth)
   }
 
 # Define fields
-#	Notes:
-#  
 $command = "CREATE TABLE kcor_mission_test 
   (
   mission_id	INT (10) AUTO_INCREMENT PRIMARY KEY, 
