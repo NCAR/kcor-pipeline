@@ -3,9 +3,9 @@
 use DBI;
 
 # ------------------------------------------------------------------------------
-# kcor_hw_create_table.pro
+# mlso_event_create_table.pro
 # ------------------------------------------------------------------------------
-# Create MLSO db table: kcor_cme (mysql).
+# Create MLSO db table: mlso_event (mysql).
 # ------------------------------------------------------------------------------
 # Don Kolinski Jan 2017
 #	Added new argument containing path/configfile:
@@ -24,7 +24,7 @@ if ($#ARGV != 0 ) {
 }
 
 # Warn user of database drop
-print "WARNING!!!! This script will drop the table kcor_cme!\nDo you wish to continue? ";
+print "WARNING!!!! This script will drop the table mlso_event!\nDo you wish to continue? ";
 print "Press <Enter> to continue, or 'q' to quit: ";
 my $input = <STDIN>;
 exit if $input eq "q\n";
@@ -66,7 +66,7 @@ else
 # Create new kcor_hw table.
 #-----------------------------
 
-$command = "DROP TABLE IF EXISTS kcor_cme_test" ;
+$command = "DROP TABLE IF EXISTS mlso_event_test" ;
 $sth     = $dbh->prepare ($command) ;
 
 $sth->execute () ;
@@ -78,14 +78,15 @@ if (! $sth)
   }
 
 # Define fields
-$command = "CREATE TABLE kcor_cme_test 
+$command = "CREATE TABLE mlso_event_test 
   (
-  cme_id   		INT (10) AUTO_INCREMENT PRIMARY KEY,
-  cmestartdate  DATETIME NOT NULL,
-  cmeenddate	DATETIME NOT NULL,
-  cmequad		CHAR (4),
-  prom			CHAR (1),
-  promquad		CHAR (4)
+  event_id   		INT (10) AUTO_INCREMENT PRIMARY KEY,
+  eventstartdate	DATETIME NOT NULL,
+  eventenddate		DATETIME NOT NULL,
+  eventinstr		VARCHAR (10),
+  eventtype			VARCHAR (12) NOT NULL,
+  eventquad			CHAR (4),
+  eventcomm			VARCHAR (300)
   )" ;  # TODO: remove _test when in production
 
 $sth = $dbh->prepare ($command) ;
