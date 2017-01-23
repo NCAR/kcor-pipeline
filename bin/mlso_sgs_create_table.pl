@@ -3,7 +3,7 @@
 use DBI;
 
 # ------------------------------------------------------------------------------
-# kcor_sgs_create_table.pl
+# mlso_sgs_create_table.pl
 # ------------------------------------------------------------------------------
 # Create MLSO db table: kcor_sgs (mysql).
 # ------------------------------------------------------------------------------
@@ -24,7 +24,7 @@ if ($#ARGV != 0 ) {
 }
 
 # Warn user of database drop
-print "WARNING!!!! This script will drop the table kcor_img!\nDo you wish to continue? ";
+print "WARNING!!!! This script will drop the table mlso_sgs!\nDo you wish to continue? ";
 print "Press <Enter> to continue, or 'q' to quit: ";
 my $input = <STDIN>;
 exit if $input eq "q\n";
@@ -66,7 +66,7 @@ else
 # Create new kcor_sgs table.
 #-------------------------------
 
-$command = "DROP TABLE IF EXISTS kcor_sgs_test" ;
+$command = "DROP TABLE IF EXISTS mlso_sgs_test" ;
 $sth     = $dbh->prepare ($command) ;
 
 $sth->execute () ;
@@ -81,7 +81,7 @@ if (! $sth)
 #	Notes:
 #	Took out 'file_name'.  The data are in the K-Cor files, so we could add it back later.
 #
-$command = "CREATE TABLE kcor_sgs_test
+$command = "CREATE TABLE mlso_sgs_test
   (
   sgs_id    INT (10) AUTO_INCREMENT PRIMARY KEY,
   date_obs  DATETIME NOT NULL,
