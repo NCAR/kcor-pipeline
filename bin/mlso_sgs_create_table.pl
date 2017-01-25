@@ -5,7 +5,7 @@ use DBI;
 # ------------------------------------------------------------------------------
 # mlso_sgs_create_table.pl
 # ------------------------------------------------------------------------------
-# Create MLSO db table: kcor_sgs (mysql).
+# Create MLSO db table: mlso_sgs (mysql).
 # ------------------------------------------------------------------------------
 # Don Kolinski Jan 2017
 #	Added new argument containing path/configfile:
@@ -95,7 +95,12 @@ $command = "CREATE TABLE mlso_sgs_test
   sgsdecs   FLOAT (10, 7),
   sgsdeczr  FLOAT (7, 2),
   sgsscint  FLOAT (7, 3),
-  sgssums   FLOAT (9, 6)
+  sgssums   FLOAT (9, 6),
+  sgsloop	TINYINT (1),
+  UNIQUE (date_obs),
+  INDEX (sgsdimv),
+  INDEX (sgsdims),
+  INDEX (sgsscint)
   )" ;  # TODO: remove _test when in production
 
 $sth = $dbh->prepare ($command) ;
