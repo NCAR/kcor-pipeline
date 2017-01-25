@@ -113,7 +113,7 @@ $command = "CREATE TABLE kcor_mission_test
   pc1_2				FLOAT (7, 3),
   pc2_1				FLOAT (7, 3),
   pc2_2				FLOAT (7, 3),
-  INDEX (date)
+  UNIQUE (date)
   )";  # TODO: remove _test when in production
 
 $sth = $dbh->prepare ($command) ;
