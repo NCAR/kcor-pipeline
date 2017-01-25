@@ -90,6 +90,8 @@ $command = "CREATE TABLE kcor_eng_test
   tcamfocs		FLOAT (6, 2),
   modltrt		FLOAT (6, 2),
   o1focs		FLOAT (8, 3),
+  kcor_sgsdimv	FLOAT (7, 4),
+  kcor_sgsdims	FLOAT (8, 5),
   level			CHAR (4),
   bunit			VARCHAR (15),
   bzero			INT (10),
@@ -106,8 +108,8 @@ $command = "CREATE TABLE kcor_eng_test
   diffuser		CHAR (3),
   calpol		CHAR (3),
   calpang		float (8, 3),
-  datatype		VARCHAR (12)
-  
+  datatype		VARCHAR (12),
+  UNIQUE (file_name)  
   )" ;  # TODO: remove _test when in production
 
 $sth = $dbh->prepare ($command) ;
