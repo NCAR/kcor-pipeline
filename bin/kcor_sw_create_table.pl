@@ -100,7 +100,8 @@ $command = "CREATE TABLE kcor_sw_test
   socketcamid		VARCHAR (20),
   sgsswid			VARCHAR (20),
   sky_pol_factor	FLOAT (6, 3),
-  sky_bias			FLOAT (7, 4)  
+  sky_bias			FLOAT (7, 4),
+  UNIQUE (date)
   )" ;  # TODO: remove _test when in production
 
 $sth = $dbh->prepare ($command) ;
