@@ -93,7 +93,8 @@ $command = "CREATE TABLE kcor_hw_test
   o1id      	CHAR (14),
   occltrid  	CHAR (10),
   filterid  	CHAR (12),
-  calpolid		CHAR (12)
+  calpolid		CHAR (12),
+  UNIQUE (date)
   )" ;  # TODO: remove _test when in production
 
 $sth = $dbh->prepare ($command) ;
