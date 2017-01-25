@@ -87,16 +87,20 @@ if (! $sth)
 # TODO: define other indices.
 $command = "CREATE TABLE kcor_img_test
   (
-  img_id     INT (10) AUTO_INCREMENT PRIMARY KEY,
-  file_name  CHAR (35) NOT NULL, 
-  date_obs   DATETIME NOT NULL, 
-  date_end   DATETIME NOT NULL, 
-  level      CHAR (4) NOT NULL,
-  quality    TINYINT (2),
-  numsum     SMALLINT (4), 
-  exptime    FLOAT (7, 4),
-  datatype   VARCHAR (8),
-  filetype   VARCHAR (6)
+  img_id		INT (10) AUTO_INCREMENT PRIMARY KEY,
+  file_name		CHAR (35) NOT NULL, 
+  date_obs		DATETIME NOT NULL, 
+  date_end		DATETIME NOT NULL, 
+  level			CHAR (4) NOT NULL,
+  quality		TINYINT (2),
+  numsum		SMALLINT (4), 
+  exptime		FLOAT (7, 4),
+  datatype		VARCHAR (8),
+  filetype		VARCHAR (6),
+  UNIQUE (file_name),
+  INDEX (date_obs),
+  INDEX (quality),
+  INDEX (datatype)
   )" ;  # TODO: remove _test when in production
 
 $sth = $dbh->prepare ($command) ;
