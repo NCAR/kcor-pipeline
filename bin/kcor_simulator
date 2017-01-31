@@ -1,0 +1,62 @@
+#!/usr/bin/env python
+
+import argparse
+import datetime
+import logging
+import os
+import time
+
+
+# setup the logging mechanism
+logging.basicConfig(format='%(asctime)s %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S',
+                    level=logging.DEBUG)
+
+
+def find_data_start_time(archive_dir):
+    '''KCor raw data filenames look like "0170131_022253_kcor.fts"'''
+    pass
+
+
+def find_files_to_copy(archive_dir):
+    pass
+
+
+def download_loop(archive_dir, raw_dir, batch_time):
+    logging.info('starting simulator...')
+    logging.info('archive directory : %s', archive_dir)
+    logging.info('raw directory     : %s', raw_dir)
+    logging.info('batch time        : %d minutes', batch_time)
+
+    last_check_time = datetime.datetime.now()
+
+    data_start_time = find_data_start_time(archive_dir)
+
+    while True:
+        new_files = find_files_to_copy()
+        logging.info('copying %d files...', len(new_files))
+        try:
+            time.sleep(60 * batch_time)
+        except KeyboardInterrupt:
+            logging.info('quitting...')
+            break
+
+
+if __name__ == '__main__':
+    name = 'Realtime KCor pipeline simulator'
+    parser = argparse.ArgumentParser(description=name)
+    archivedir_help = '''source directory of data files'''
+    parser.add_argument('archivedir', type=str, help=archivedir_help)
+    raw_dir_help = '''destination for copying, the default is the
+                      current directory'''
+    parser.add_argument('--raw-dir', type=str, help=raw_dir_help)
+    batch_time_help = '''number of minutes between copies, default is 15 
+                         minutes'''
+    parser.add_argument('--batch-time',
+                        type=int,
+                        help=batch_time_help,
+                        default=15)
+    args = parser.parse_args()
+
+    raw_dir = os.getcwd() if args.raw_dir is None else args.archive_dir
+    download_loop(args.archivedir, raw_dir, args.batch_time)
