@@ -34,7 +34,7 @@ if __name__ == '__main__':
     parser.add_argument('config_filename', type=str, help=config_filename_help)
     frequency_help = '''number of minutes between launches of realtime
                         pipeline, default is 10 minutes'''
-    parser.add_argument('--frequency',
+    parser.add_argument('-f', '--frequency',
                         type=int,
                         help=frequency_help,
                         default=10)

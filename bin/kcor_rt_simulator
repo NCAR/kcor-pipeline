@@ -88,10 +88,10 @@ if __name__ == '__main__':
     parser.add_argument('archivedir', type=str, help=archivedir_help)
     raw_dir_help = '''destination for copying, the default is the
                       current directory'''
-    parser.add_argument('--raw-dir', type=str, help=raw_dir_help)
+    parser.add_argument('-r', '--raw-dir', type=str, help=raw_dir_help)
     batch_time_help = '''number of minutes between copies, default is 3
                          minutes'''
-    parser.add_argument('--batch-time',
+    parser.add_argument('-b', '--batch-time',
                         type=int,
                         help=batch_time_help,
                         default=3)
