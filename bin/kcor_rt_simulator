@@ -5,9 +5,13 @@ import datetime
 import logging
 import os
 import re
+import shutil
 import time
 
+
 KCOR_L0_RE = '^\d{8}_\d{6}_kcor\.fts\.gz$'
+KCOR_LOG_RE = '^\d{8}\.kcor\.t\d\.log$'
+
 DOWNLOAD_TIME = 3.0  # in seconds
 
 
@@ -26,22 +30,33 @@ def catalog_archive(archive_dir):
     '''KCor raw data filenames look like "0170131_022253_kcor.fts"'''
     files = os.listdir(archive_dir)
     l0_re = re.compile(KCOR_L0_RE)
-    files = [f for f in files if l0_re.match(f)]
-    dates = [datetime.datetime(*decompose_filename(f)) for f in files]
-    return [{'filename': f, 'date': d} for f, d in zip(files, dates)]
+    log_re = re.compile(KCOR_LOG_RE)
+    data_files = [f for f in files if l0_re.match(f)]
+    dates = [datetime.datetime(*decompose_filename(f)) for f in data_files]
+    logs = [f for f in files if log_re.match(f)]
+    return [{'filename': f, 'date': d} for f, d in zip(data_files, dates)], logs
 
 
 def download_loop(archive_dir, raw_dir, batch_time):
-    logging.info('starting simulator...')
+    logging.info('starting KCor realtime simulator...')
     logging.info('archive directory : %s', archive_dir)
     logging.info('raw directory     : %s', raw_dir)
     logging.info('batch time        : %d minutes', batch_time)
+    logging.info('download time     : %0.1f seconds', DOWNLOAD_TIME)
 
     start_time = datetime.datetime.now()
-    catalog = catalog_archive(archive_dir)
+    catalog, logs = catalog_archive(archive_dir)
     delta = start_time - catalog[0]['date'] - datetime.timedelta(minutes=batch_time)
 
     logging.info('%d files in archive...', len(catalog))
+    logging.info('%s to %s (duration: %s)',
+                 catalog[0]['date'],
+                 catalog[-1]['date'],
+                 catalog[-1]['date'] - catalog[0]['date'])
+
+    if not len(logs) == 2:
+        logging.error('%d t1/t2 logs present, exiting...', len(logs))
+        return
 
     while True:
         # copy files before now - delta that are still in catalog
@@ -49,14 +64,22 @@ def download_loop(archive_dir, raw_dir, batch_time):
         d = catalog[0]['date']
         while catalog and d < now - delta:
             c = catalog.pop(0)
+            d = None if not catalog else catalog[0]['date']
             logging.info('copying %s...' % c['filename'])
-            d = catalog[0]['date']
+            shutil.copy(os.path.join(archive_dir, c['filename']), raw_dir)
             try:
                 time.sleep(DOWNLOAD_TIME)
             except KeyboardInterrupt:
                 logging.info('quitting...')
                 return
-            
+
+        if not catalog:
+            for f in logs:
+              logging.info('copying %s...', f)
+              shutil.copy(os.path.join(archive_dir, f), raw_dir)
+            logging.info('done copying files')
+            return
+
         try:
             downloading_time = (datetime.datetime.now() - now).total_seconds()
             time.sleep(60 * batch_time - downloading_time)
