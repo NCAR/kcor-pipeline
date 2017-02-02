@@ -27,7 +27,8 @@ def decompose_filename(f):
 
 
 def catalog_archive(archive_dir):
-    '''KCor raw data filenames look like "0170131_022253_kcor.fts"'''
+    '''KCor raw data filenames are of the form `20170131_022253_kcor.fts`; log
+       files are of the form `20170131.kcor.t1.log`.'''
     files = os.listdir(archive_dir)
     l0_re = re.compile(KCOR_L0_RE)
     log_re = re.compile(KCOR_LOG_RE)
@@ -67,25 +68,17 @@ def download_loop(archive_dir, raw_dir, batch_time):
             d = None if not catalog else catalog[0]['date']
             logging.info('copying %s...' % c['filename'])
             shutil.copy(os.path.join(archive_dir, c['filename']), raw_dir)
-            try:
-                time.sleep(DOWNLOAD_TIME)
-            except KeyboardInterrupt:
-                logging.info('quitting...')
-                return
+            time.sleep(DOWNLOAD_TIME)
 
         if not catalog:
             for f in logs:
-              logging.info('copying %s...', f)
-              shutil.copy(os.path.join(archive_dir, f), raw_dir)
+                logging.info('copying %s...', f)
+                shutil.copy(os.path.join(archive_dir, f), raw_dir)
             logging.info('done copying files')
             return
 
-        try:
-            downloading_time = (datetime.datetime.now() - now).total_seconds()
-            time.sleep(60 * batch_time - downloading_time)
-        except KeyboardInterrupt:
-            logging.info('quitting...')
-            return
+        downloading_time = (datetime.datetime.now() - now).total_seconds()
+        time.sleep(60 * batch_time - downloading_time)
 
 
 if __name__ == '__main__':
@@ -105,4 +98,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     raw_dir = os.getcwd() if args.raw_dir is None else args.archive_dir
-    download_loop(args.archivedir, raw_dir, args.batch_time)
+
+    try:
+        download_loop(args.archivedir, raw_dir, args.batch_time)
+    except KeyboardInterrupt:
+        logging.info('quitting...')
