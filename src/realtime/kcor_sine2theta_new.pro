@@ -17,7 +17,7 @@
 ;     set to a named variable to retrieve partial derivatives with respect to
 ;     `a[0]`, `a[1]`, ...
 ;-
-pro sine2theta_new, degrees, a, radavg, pder
+pro kcor_sine2theta_new, degrees, a, radavg, pder
   compile_opt strictarr
 
   ; some temporary variables

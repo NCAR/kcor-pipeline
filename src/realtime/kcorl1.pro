@@ -56,12 +56,12 @@
 ;   Dec 2014: Calibrated image is shifted and rotated using ROT - so only
 ;             one interpolation is made to put north up and image in the
 ;             array center (Giuliana de Toma & Andrew Stanger)
-;   Jan 2015: fixed error in sine2theta fit: 
-;             converted degrees in radiants for input in sine2theta_new.pro
+;   Jan 2015: fixed error in kcor_sine2theta fit: 
+;             converted degrees in radiants for input in kcor_sine2theta_new.pro
 ;             changed degrees and "a" coeff to double precision
 ;             changed phase guess to zero (this should not make any difference)
 ; 24 Jan 2015 [ALS] Modify L1SWID = 'kcorl1g.pro 24jan2015'.
-;             Remove sine2theta U plots to display.
+;             Remove kcor_sine2theta U plots to display.
 ;             Replace pb0r.pro with sun.pro to compute ephemeris data.
 ; 28 Jan 2015 [ALS] Modify L1SWID = 'kcorl1g.pro 28jan2015'.
 ;             Set maxi=1.8, exp=0.7 [previous values: maxi=1.2, exp=0.8]
@@ -1291,7 +1291,7 @@ begin ;{
       endfor ;}
 
       sky_polar_cam1 = curvefit (degrees, double (angle_ave_u), weights, a, $
-                                 FUNCTION_NAME = 'sine2theta_new')
+                                 FUNCTION_NAME = 'kcor_sine2theta_new')
 
 ;      print, 'angle_ave_u (0)', angle_ave_u (0)
 ;      print, 'radius_beg/end : ', radius_beg, radius_end
