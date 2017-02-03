@@ -247,13 +247,12 @@
 ;------------------------------------------------------------------------------
 ; :Uses:
 ;
-; apply_dist         (/hao/acos/sw/idl/kcor/pipe; tomczyk)
-; datecal            (/hao/acos/sw/idl/kcor/pipe; sitongia)
+; kcor_apply_dist    (/hao/acos/sw/idl/kcor/pipe; tomczyk)
+; kcor_datecal       (/hao/acos/sw/idl/kcor/pipe; sitongia)
 ; kcor_find_image    (/hao/acos/sw/idl/kcor/pipe; tomczyk/detoma)
 ; kcor_radial_der    (/hao/acos/sw/idl/kcor/pipe; tomczyk/detoma)
 ; fitcircle          (/hao/acos/sw/idl/kcor/pipe; Randy Meisner)
-; fshift             (/hao/acos/sw/idl/kcor/pipe)
-; jd_carr_long.pro   (/hao/acos/sw/idl/kcor/pipe)
+; kcor_fshift        (/hao/acos/sw/idl/kcor/pipe)
 ;
 ; anytim2tai         (/hao/contrib/ssw/gen/idl/time)
 ; anytim2jd          (/hao/contrib/ssw/gen/idl/time)
@@ -977,7 +976,7 @@ begin ;{
 
    dat1 = img0
    dat2 = img1
-   apply_dist, dat1, dat2, dx1_c, dy1_c, dx2_c, dy2_c
+   kcor_apply_dist, dat1, dat2, dx1_c, dy1_c, dx2_c, dy2_c
    cimg0 = dat1
    cimg1 = dat2
 
@@ -1060,7 +1059,7 @@ begin ;{
    begin  ;{
       dat1 = cal_data (*, *, 0, s)
       dat2 = cal_data (*, *, 1, s)
-      apply_dist, dat1, dat2, dx1_c, dy1_c, dx2_c, dy2_c
+      kcor_apply_dist, dat1, dat2, dx1_c, dy1_c, dx2_c, dy2_c
       cal_data (*, *, 0, s) = dat1
       cal_data (*, *, 1, s) = dat2
    endfor ;}
@@ -1074,7 +1073,7 @@ begin ;{
    FOR s = 0, 2 DO $
    begin  ;{
       cal_data_combined (*, *, s) = $
-         ( fshift (cal_data (*, *, 0, s), deltax, deltay) $
+         ( kcor_fshift(cal_data[*, *, 0, s], deltax, deltay) $
 	         + cal_data (*, *, 1, s) ) * 0.5
    endfor ;}
 
@@ -1652,7 +1651,7 @@ begin ;{
    fxaddpar, newheader, 'LEVEL',    'L1', $
                         ' Level 1 intensity is quasi-calibrated'
 
-;   fxaddpar, newheader, 'DATE-L1', datecal(), ' Level 1 processing date'
+;   fxaddpar, newheader, 'DATE-L1', kcor_datecal(), ' Level 1 processing date'
 ;   fxaddpar, newheader, 'L1SWID',  'kcorl1.pro 10nov2015', $
 ;                        ' Level 1 software'
 
@@ -1948,7 +1947,7 @@ begin ;{
    ; newheader
    ; sxaddhist, 'data reduction paper (reference).', newheader
    ; fxaddpar, newheader, 'LEVEL', 'L2', ' Processing Level'
-   ; fxaddpar, newheader, 'DATE-L2', datecal(), ' Level 2 processing date'
+   ; fxaddpar, newheader, 'DATE-L2', kcor_datecal(), ' Level 2 processing date'
    ; fxaddpar, newheader, 'L2SWID', 'Calib Reduction Mar 31, 2014', $
    ;           ' Demodulation Software Version'
    ;----------------------------------------------------------------------------
