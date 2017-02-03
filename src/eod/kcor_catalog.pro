@@ -1,96 +1,42 @@
 ; docformat = 'rst'
 
 ;+
-; Identify type of given KCor data file.
+; Execute the `kcor_catalog` procedure for all KCor L0 FITS files for a
+; specified date.
 ;
 ; :Params:
-;   filename : in, required, type=string
-;     input KCor level 0 file
+;   date : in, required, type=string
+;     date in the form 'YYYYMMDD'
 ;
 ; :Keywords:
+;   list : in, required, type=strarr
+;     list of files to process
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;
 ; :Author:
-;   Sitongia
+;   Andrew L. Stanger   HAO/NCAR	MLSO K-coronagraph
+;   18 March 2015
 ;-
-pro kcor_catalog, filename, run=run
+pro kcor_catalog, date, list=list, run=run
   compile_opt strictarr
 
-  process_dir = filepath(run.date, root=run.process_basedir)
+  l0_dir = filepath('level0', subdir=date, root=run.raw_basedir)
 
-  ; read FITS header and read selected keyword parameters
-  header = headfits(filename)
-
-  datatype = sxpar(header, 'DATATYPE')
-  diffuser = sxpar(header, 'DIFFUSER')
-  calpol   = sxpar(header, 'CALPOL')
-  calpang  = sxpar(header, 'CALPANG')
-  darkshut = sxpar(header, 'DARKSHUT')
-
-  exposure = sxpar(header, 'EXPTIME', count=nrecords)
-  if (nrecords eq 0) then exposure = sxpar(header, 'EXPOSURE')
-
-  ; datatype = science
-  if (datatype eq 'science') then begin
-    openw, science_lun, filepath('science_files.txt', root=process_dir), $
-           /append, /get_lun
-    printf, science_lun, $
-            filename, exposure, datatype, darkshut, diffuser, calpol, calpang, $
-            format='(a, 3x, f10.4, 2x, "ms", 2x, "Data: ", a, 3x, "Dark: ", a, 3x, "Diff: ", a, 3x, "Cal: ", a, 3x, "Ang: ", f6.1)'
-
-    ; print a measure of every image in the cube
-    image = readfits(filename, /silent)
-    for camera = 0, 1 do begin
-      for sequence = 0, 3 do begin
-         printf, science_lun, mean(image[*, *, sequence, camera]), $
-                 format='(e12.5, "   ", $)'
-      endfor
-    endfor
-
-    printf, science_lun
-    free_lun, science_lun
+  ; if date directory does not exist in 'process_basedir', create it
+  process_datedir = filepath(date, root=run.process_basedir)
+  if (~file_test (process_datedir, /directory)) then begin
+    file_mkdir, process_datedir
   endif
 
-  ; datatype = calibration
-  if (datatype eq 'calibration') then begin
-     openw, calibration_lun, filepath('calibration_files.txt', root=process_dir), $
-            /append, /get_lun
-     printf, calibration_lun, $
-             file_basename(filename), exposure, datatype, darkshut, diffuser, calpol, calpang, $
-             format='(a, 3x, f10.4, 2x, "ms", 2x, "Data: ", a, 3x, "Dark: ", a, 3x, "Diff: ", a, 3x, "Cal: ", a, 3x, "Ang: ", f6.1, "  means: ", $)'
+  ; move to kcor L0 directory
+  cd, l0_dir
 
-     ; print a measure of every image in the cube
-     image = readfits(filename, /silent)
-     for camera = 0, 1 do begin
-       for sequence = 0, 3 do begin
-         printf, calibration_lun, format='(e12.5, "   ", $)', mean(image[*, *, sequence, camera])
-       endfor
-     endfor
-
-     printf, calibration_lun
-     free_lun, calibration_lun
-  endif
-
-  ; datatype = engineering
-  if (datatype eq "engineering") then begin
-    openw, engineering_lun, filepath('engineering_files.txt', root=process_dir), $
-           /append, /get_lun
-    printf, engineering_lun, $
-            filename, exposure, datatype, darkshut, diffuser, calpol, calpang, $
-            format='(a, 3x, f10.4, 2x, "ms", 2x, "Data: ", a, 3x, "Dark: ", a, 3x, "Diff: ", a, 3x, "Cal: ", a, 3x, "Ang: ", f6.1)'
-    free_lun, engineering_lun
-  endif
-
-  ; datatype = unknown
-  if ((datatype ne 'science') $
-        && (datatype ne 'calibration') $
-        && (datatype ne 'engineering')) then begin
-     openw, unknown_lun, filepath('misc_files.txt', root=process_dir), $
-            /append, /get_lun
-     printf, unknown_lun, $
-             filename, exposure, datatype, darkshut, diffuser, calpol, calpang, $
-             format='(a, 3x, f10.4, 2x, "ms", 2x, "Data: ", a, 3x, "Dark: ", a, 3x, "Diff: ", a, 3x, "Cal: ", a, 3x, "Ang: ", f6.1)'
-     free_lun, unknown_lun
-  endif
+  for f = 0L, n_elements(list) - 1L do begin
+    fits_file = list[f]
+    mg_log, '%d/%d: %s', f + 1, n_elements(list), file_basename(fits_file), $
+            name='kcor/eod', /info
+    kcor_catalog_file, fits_file, run=run
+  endfor
 end
+

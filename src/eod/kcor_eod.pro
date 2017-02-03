@@ -120,9 +120,9 @@ pro kcor_eod, date, config_filename=config_filename
   if (n_missing eq 0L && n_wrongsize eq 0L) then begin
     files = file_search(filepath('*kcor.fts*', root=l0_dir), count=n_files)
 
-    kcorp, date, list=files, run=run
-    kcor_plotcen, date, list=files, run=run
-    dokcor_catalog, date, list=files, run=run
+    kcor_plotparams, date, list=files, run=run
+    kcor_plotcenters, date, list=files, run=run
+    kcor_catalog, date, list=files, run=run
 
     if (run.send_notifications && run.notification_email ne '') then begin
       kcor_send_mail, run.notification_email, $

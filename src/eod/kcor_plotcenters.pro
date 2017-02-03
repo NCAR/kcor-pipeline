@@ -23,7 +23,7 @@
 ;   append : in, optional, type=boolean
 ;     if set, append log information to existing log file.
 ;-
-pro kcor_plotcen, date, list=list, append=append, run=run
+pro kcor_plotcenters, date, list=list, append=append, run=run
   compile_opt strictarr
 
   ; store initial system time
