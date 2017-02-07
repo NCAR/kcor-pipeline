@@ -252,3 +252,15 @@ pro kcor_img_insert, date, run=run
 
   mg_log, '*** end of kcor_img_insert ***', name='kcor/dbinsert', /info
 end
+
+
+; main-level example program
+
+date = '20170204'
+run = kcor_run(date, $
+               config_filename=filepath('kcor.mgalloy.thyme.latest.cfg', $
+                                        subdir=['..', '..', 'config'], $
+                                        root=mg_src_root())
+kcor_img_insert, date, run=run
+
+end
