@@ -43,7 +43,7 @@
 
 use File::Copy ;
 use Cwd ;
-use File::Path qw(make_path);
+use File::Path qw(mkpath);
 
 print (     "dokcorl1\n") ;
 
@@ -148,19 +148,19 @@ $okcgif_web  = "/hao/ftp/$year/$month/$day" ;		# cropped  gif web dir.
 $okfgif_web  = "/hao/acos/fullres/$year/$month/$day" ;	# full res gif web dir.
 $okl1fts_web = "/hao/acos/$year/$month/$day" ;		# L1 fits      web dir.
 
-unless (-d $okcgif_web or make_path ($okcgif_web, { mode => 0775 }))
+unless (-d $okcgif_web or mkpath ($okcgif_web, { mode => 0775, error => \my $err }))
    {
    print (LOG "Unable to create directory $okcgif_web\n");
    die "Unable to create directory $okcgif_web.  $!\n" ;
    }
 
-unless (-d $okfgif_web or make_path ($okfgif_web, { mode => 0775 }))
+unless (-d $okfgif_web or mkpath ($okfgif_web, { mode => 0775, error => \my $err }))
    {
    print (LOG "Unable to create directory $okfgif_web\n");
    die "Unable to create directory $okfgif_web.  $!\n" ;
    }
 
-unless (-d $okl1fts_web or make_path ($okl1fts_web, { mode => 0775 }))
+unless (-d $okl1fts_web or mkpath ($okl1fts_web, { mode => 0775, error => \my $err }))
    {
    print (LOG "Unable to create directory $okl1fts_web\n");
    die "Unable to create directory $okl1fts_web.  $!\n" ;
