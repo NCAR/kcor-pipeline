@@ -28,6 +28,7 @@
 ;               Use /hao/mlsodata1/Data/raw/yyyymmdd/level1 directory.
 ;   14 Sep 2015 Use /hao/acos/year/month/day directory.
 ;   28 Sep 2015 Add date_end field.
+;   7 Feb 2017 Starting to edit for new table fields
 ;
 ; :Todo:
 ;   Get image quality to fill "quality" field in db.
@@ -241,7 +242,7 @@ pro kcor_img_insert, date, run=run
                  carr_lon, carr_lat, carr_rot, solar_ra, solardec, $
                  status=status, error_message=error_message, sql_statement=sql_cmd
 
-    mg_log, '%s: status: %d, error message: %s', status, error_message, $
+    mg_log, '%d, error message: %s', status, error_message, $
             name='kcor/dbinsert', /debug
     mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /debug
 
@@ -258,9 +259,9 @@ end
 
 date = '20170204'
 run = kcor_run(date, $
-               config_filename=filepath('kcor.mgalloy.thyme.latest.cfg', $
+               config_filename=filepath('kcor.kolinski.mahi.latest.cfg', $
                                         subdir=['..', '..', 'config'], $
-                                        root=mg_src_root())
+                                        root=mg_src_root()))
 kcor_img_insert, date, run=run
 
 end
