@@ -28,7 +28,7 @@
 ;               Use /hao/mlsodata1/Data/raw/yyyymmdd/level1 directory.
 ;   14 Sep 2015 Use /hao/acos/year/month/day directory.
 ;   28 Sep 2015 Add date_end field.
-;   7 Feb 2017 Starting to edit for new table fields
+;   7 Feb 2017 Starting to edit for new table fields and noting new changes to come (search for TODO)
 ;
 ; :Todo:
 ;   Get image quality to fill "quality" field in db.
@@ -77,8 +77,14 @@ pro kcor_img_insert, date, run=run
   month   = strmid (date, 4, 2)	; mm
   day     = strmid (date, 6, 2)	; dd
   odate_dash = year + '-' + month + '-' + day + '%'
-
-  db->execute, 'DELETE FROM kcor_img WHERE date_obs like ''%s''', odate_dash, $
+  
+; TODO: This DELETE statement will need to be removed from this script.  In the new
+;   pipeline, kcor data will be processed and added to the database in realtime through 
+;   the day, so we don't want to delete previous entries.  However, the statement will 
+;   likely be used in an 'update_database' script later.
+ 
+; TODO: remove _test from table name
+  db->execute, 'DELETE FROM kcor_img_test WHERE date_obs like ''%s''', odate_dash, $
                status=status, error_message=error_message, sql_statement=sql_cmd
   mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /info
   mg_log, 'status: %d, error message: %s', status, error_message, $
@@ -235,8 +241,8 @@ pro kcor_img_insert, date, run=run
     mg_log, 'level_results.id:    %s', level_results.id, name='kcor/dbinsert', /debug
 
     ;--- DB insert command.
-
-    db->execute, 'INSERT INTO kcor_img (file_name, date_obs, date_end, instrument, level, datatype, quality, numsum, exptime, rsun, solar_p0, carr_lat, carr_lon, carr_rot, solar_ra, solardec) VALUES (''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', %d, %f, %f, %f, %f, %f, %f, %f, %f) ', $
+; TODO: remove _test from table name
+    db->execute, 'INSERT INTO kcor_img_test (file_name, date_obs, date_end, instrument, level, datatype, quality, numsum, exptime, rsun, solar_p0, carr_lat, carr_lon, carr_rot, solar_ra, solardec) VALUES (''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', %d, %f, %f, %f, %f, %f, %f, %f, %f) ', $
                  fits_file, date_img, date_eod, instrume, level_str, datatype, $
                  quality, numsum, exptime, rsun, solar_p0, $
                  carr_lon, carr_lat, carr_rot, solar_ra, solardec, $
