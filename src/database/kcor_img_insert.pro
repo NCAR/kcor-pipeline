@@ -30,11 +30,6 @@
 ;   28 Sep 2015 Add date_end field.
 ;   7 Feb 2017 Starting to edit for new table fields and noting new changes to come (search for TODO)
 ;
-; :Todo:
-;   Get image quality to fill "quality" field in db.
-;   Add field for raw occulter center.
-;   Add field for sky polarization coefficients
-;   Add field for modulation matrix coefficients (at 3 pixels).
 ;-
 pro kcor_img_insert, date, filelist, run=run
   compile_opt strictarr
@@ -64,12 +59,6 @@ pro kcor_img_insert, date, filelist, run=run
 
   db->setProperty, database='MLSO'
 
-  ;----------------------------------
-  ; Print DB tables in MLSO database.
-  ;----------------------------------
-
-  ;print, db, format='(A, /, 4(A-20))'
-
   ;-------------------------------------------------------------------------------
   ; Delete all pre-existing rows with date_obs = designated date to be processed.
   ;-------------------------------------------------------------------------------
@@ -84,9 +73,7 @@ pro kcor_img_insert, date, filelist, run=run
 ;   the day, so we don't want to delete previous entries.  However, the statement will 
 ;   likely be used in an 'update_database' script later. Be sure to note date change to next
 ;   day.
- 
-; TODO: remove _test from table name
-  db->execute, 'DELETE FROM kcor_img_test WHERE date_obs like ''%s''', odate_dash, $
+   db->execute, 'DELETE FROM kcor_img_test WHERE date_obs like ''%s''', odate_dash, $
                status=status, error_message=error_message, sql_statement=sql_cmd
   mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /info
   mg_log, 'status: %d, error message: %s', status, error_message, $
@@ -107,10 +94,9 @@ pro kcor_img_insert, date, filelist, run=run
   cd, fts_dir
 
   ;------------------------------------------------
-  ; Create list of fits files in current directory.
+  ; Step through list of fits files passed in parameter
   ;------------------------------------------------
 
-  ;fits_list = file_search('*kcor_l1*.fts*', count=nfiles)
   fits_list = filelist
   nfiles = n_elements(fits_list)
 
@@ -120,72 +106,60 @@ pro kcor_img_insert, date, filelist, run=run
     goto, done
   end
 
-  i       = -1
+  i = -1
   fts_file = 'img.fts'
   while (++i lt nfiles) do begin
     fts_file = fits_list[i]
     finfo = file_info(fts_file)   ; Get file information.
 
-    hdu   = headfits(fts_file, /silent)   ; Read FITS header.
-
-     ; Extract desired items from header.
+    ;----- Extract desired items from header.
+	
+	hdu   = headfits(fts_file, /silent)   ; Read FITS header.
 
     date_obs   = sxpar(hdu, 'DATE-OBS', count=qdate_obs)
     date_end   = sxpar(hdu, 'DATE-END', count=qdate_end)
-	
-	; TODO: Do not read datatype from header, but set from filename ('nrgf', 'pB')
-    ; datatype   = sxpar(hdu, 'DATATYPE', count=qdatatype)
-		
-	;TODO: Level in header includes NRGF for those files (ie. L1NRGF or L1.5NRGF), making parsing difficult, get from filename instead
-    ;level      = sxpar(hdu, 'LEVEL',    count=qlevel)
-	parts = strsplit(fts_file, '_', /extract) ; NOPE!! in non-nrgf filenames, there is not delimiter that works
-	level = trim(parts[3],2)
-	
-    exptime    = sxpar(hdu, 'EXPTIME',  count=qexptime)
+	exptime    = sxpar(hdu, 'EXPTIME',  count=qexptime)
     numsum     = sxpar(hdu, 'NUMSUM',   count=qnumsum)
-	
-	; THIS NEXT BLOCK IS FOR TESTING:  TODO: change kcor_img table field datatype to producttype
-		p = strpos(fts_file, "nrgf")
-		if (p ne -1) then begin	
-			producttype = 'nrgf'
-		endif else begin
-			producttype = 'pB'
-		endelse
-		
-    level_str = strtrim(level, 2)
-	
-	; TODO: Read quality info here when available
 	quality	   = sxpar(hdu, 'QUALITY',    count=qquality)
 	if (trim(quality, 2) eq 'ok') then begin 
 		quality    = 75
 	endif
+		
+	;Level in header includes NRGF for those files (ie. L1NRGF or L1.5NRGF), making parsing difficult, get from filename instead
+    ;level      = sxpar(hdu, 'LEVEL',    count=qlevel)
+	parts = strsplit(fts_file, '_', /extract) ; NOPE!! in non-nrgf filenames, there is not delimiter that works
+	level = trim(parts[3],2)
+	os = strpos(level, '.')  ; need this when level not surrounded by '_', but has the extension after it
+	if (os ne -1) then begin
+		level = strmid(level, 0, os)	
+	endif	
 	
-	; The decision was to not include non-fits in the database as raster files (GIFS)
+	; Get product type from filename; TODO: are there any more?
+	p = strpos(fts_file, "nrgf")
+	if (p ne -1) then begin	
+		producttype = 'nrgf'
+	endif else begin
+		producttype = 'pB'
+	endelse
+	
+	; The decision is to not include non-fits in the database because raster files (GIFS)
 	;  will be created for every image in database
     filetype   = 'fits'
 
+	fits_file = file_basename(fts_file, '.gz') ; remove '.gz' from file name.
+	
+	mg_log, 'file_name: %s', fits_file, name='kcor/dbinsert', /debug
     mg_log, 'date_obs: %s', date_obs, name='kcor/dbinsert', /debug
     mg_log, 'date_end: %s', date_end, name='kcor/dbinsert', /debug
+	mg_log, 'level:    %s', level, name='kcor/dbinsert', /debug
+	mg_log, 'quality:    %s', quality, name='kcor/dbinsert', /debug
+	mg_log, 'numsum:   %s', numsum, name='kcor/dbinsert', /debug
+	mg_log, 'exptime:  %s', exptime, name='kcor/dbinsert', /debug
     mg_log, 'producttype: %s', producttype, name='kcor/dbinsert', /debug
-    mg_log, 'level:    %s', level, name='kcor/dbinsert', /debug
-    mg_log, 'exptime:  %s', exptime, name='kcor/dbinsert', /debug
-    mg_log, 'numsum:   %s', numsum, name='kcor/dbinsert', /debug
-    ; TODO: add in missing mg_log calls
+	mg_log, 'filetype: %s', filetype, name='kcor/dbinsert', /debug    
 
-    ;if (qdatatype eq 0) then begin
-    ;  mg_log, 'qdatatype: %s', qdatatype, name='kcor/dbinsert', /debug
-    ;  datatype = 'unknown'
-    ;endif
-
-    ; Construct variables for database table fields.
-
-	fits_file = file_basename(fts_file, '.gz') ; remove '.gz' from file name.
-
-
-    ; Get IDs from relational tables.
-
-	; TODO: Which tables to use? Probably filetype and level, may add one 
-	;  for this version of datatype (like producttype not like current datatype table). Currently this 
+	; Get IDs from relational tables.
+	; TODO: Which tables to use? Maybe filetype, producttype and level. Currently this 
 	;  is not implemented in INSERT below.
 
     ;filetype_results = db->query('SELECT * FROM filetype WHERE filetype=''%s''', $
@@ -200,10 +174,10 @@ pro kcor_img_insert, date, filelist, run=run
     ;mg_log, 'level:               %s', level, name='kcor/dbinsert', /debug
     ;mg_log, 'level_results.id:    %s', level_results.id, name='kcor/dbinsert', /debug
 
-    ;--- DB insert command.
+    ;----- DB insert command.
 ; TODO: remove _test from table name
     db->execute, 'INSERT INTO kcor_img_test (file_name, date_obs, date_end, level, quality, numsum, exptime, producttype, filetype) VALUES (''%s'', ''%s'', ''%s'', ''%s'', ''%d'', ''%d'', ''%f'', ''%s'', ''%s'') ', $
-                 fits_file, date_obs, date_end, level_str, quality, numsum, exptime, producttype, filetype, $
+                 fits_file, date_obs, date_end, level, quality, numsum, exptime, producttype, filetype, $
                  status=status, error_message=error_message, sql_statement=sql_cmd
 
     mg_log, '%d, error message: %s', status, error_message, $
