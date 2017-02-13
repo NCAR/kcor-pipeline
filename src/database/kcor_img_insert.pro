@@ -147,9 +147,9 @@ pro kcor_img_insert, date, filelist, run=run
 	; THIS NEXT BLOCK IS FOR TESTING:  TODO: change kcor_img table field datatype to producttype
 		p = strpos(fts_file, "nrgf")
 		if (p ne -1) then begin	
-			datatype = 'nrgf'
+			producttype = 'nrgf'
 		endif else begin
-			datatype = 'pB'
+			producttype = 'pB'
 		endelse
 		
     level_str = strtrim(level, 2)
@@ -166,7 +166,7 @@ pro kcor_img_insert, date, filelist, run=run
 
     mg_log, 'date_obs: %s', date_obs, name='kcor/dbinsert', /debug
     mg_log, 'date_end: %s', date_end, name='kcor/dbinsert', /debug
-    mg_log, 'datatype: %s', datatype, name='kcor/dbinsert', /debug
+    mg_log, 'producttype: %s', producttype, name='kcor/dbinsert', /debug
     mg_log, 'level:    %s', level, name='kcor/dbinsert', /debug
     mg_log, 'exptime:  %s', exptime, name='kcor/dbinsert', /debug
     mg_log, 'numsum:   %s', numsum, name='kcor/dbinsert', /debug
@@ -202,8 +202,8 @@ pro kcor_img_insert, date, filelist, run=run
 
     ;--- DB insert command.
 ; TODO: remove _test from table name
-    db->execute, 'INSERT INTO kcor_img_test (file_name, date_obs, date_end, level, quality, numsum, exptime, datatype, filetype) VALUES (''%s'', ''%s'', ''%s'', ''%s'', ''%d'', ''%d'', ''%f'', ''%s'', ''%s'') ', $
-                 fits_file, date_obs, date_end, level_str, quality, numsum, exptime, datatype, filetype, $
+    db->execute, 'INSERT INTO kcor_img_test (file_name, date_obs, date_end, level, quality, numsum, exptime, producttype, filetype) VALUES (''%s'', ''%s'', ''%s'', ''%s'', ''%d'', ''%d'', ''%f'', ''%s'', ''%s'') ', $
+                 fits_file, date_obs, date_end, level_str, quality, numsum, exptime, producttype, filetype, $
                  status=status, error_message=error_message, sql_statement=sql_cmd
 
     mg_log, '%d, error message: %s', status, error_message, $
