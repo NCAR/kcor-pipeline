@@ -84,6 +84,7 @@ if (! $sth)
 #	'level' type changed to char(4), but could also be float(4,1) like xxx.x
 #	'quality' type changed to tinyint, and will be stored as a number between 0-99
 #	Added 'datatype' and 'filetype' fields at end, because VARCHAR slows down queries if there are fields after it
+#	Changed field 'datatype' to 'producttype' to avoid confusion with header field
 # TODO: define other indices.
 $command = "CREATE TABLE kcor_img_test
   (
@@ -95,12 +96,12 @@ $command = "CREATE TABLE kcor_img_test
   quality		TINYINT (2),
   numsum		SMALLINT (4), 
   exptime		FLOAT (7, 4),
-  datatype		VARCHAR (8),
+  producttype	VARCHAR (8),
   filetype		VARCHAR (6),
   UNIQUE (file_name),
   INDEX (date_obs),
   INDEX (quality),
-  INDEX (datatype)
+  INDEX (producttype)
   )" ;  # TODO: remove _test when in production
 
 $sth = $dbh->prepare ($command) ;
