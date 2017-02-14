@@ -33,7 +33,7 @@
 ;   7 Feb 2017 DJK - Starting to edit for new table fields and noting new changes to come (search for TODO)
 ;
 ;-
-pro kcor_img_insert, date, filelist, run=run
+pro kcor_img_insert, date, fits_list, run=run
   compile_opt strictarr
   on_error, 2
 
@@ -99,12 +99,11 @@ pro kcor_img_insert, date, filelist, run=run
   ; Step through list of fits files passed in parameter
   ;------------------------------------------------
 
-  fits_list = filelist
   nfiles = n_elements(fits_list)
 
   if (nfiles eq 0) then begin
     print, 'no images in fits_list'
-    mg_log, 'no images in list file', name='kcor/dbinsert', /info
+    mg_log, 'no images in fits list', name='kcor/dbinsert', /info
     goto, done
   end
 
