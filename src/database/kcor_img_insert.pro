@@ -73,11 +73,11 @@ pro kcor_img_insert, date, filelist, run=run
 ;   the day, so we don't want to delete previous entries.  However, the statement will 
 ;   likely be used in an 'update_database' script later. Be sure to note date change to next
 ;   day.
-   db->execute, 'DELETE FROM kcor_img_test WHERE date_obs like ''%s''', odate_dash, $
-               status=status, error_message=error_message, sql_statement=sql_cmd
-  mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /info
-  mg_log, 'status: %d, error message: %s', status, error_message, $
-          name='kcor/dbinsert', /info
+;  db->execute, 'DELETE FROM kcor_img_test WHERE date_obs like ''%s''', odate_dash, $
+;               status=status, error_message=error_message, sql_statement=sql_cmd
+;  mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /info
+;  mg_log, 'status: %d, error message: %s', status, error_message, $
+;          name='kcor/dbinsert', /info
 
   ;-----------------------
   ; Directory definitions.
@@ -124,17 +124,16 @@ pro kcor_img_insert, date, filelist, run=run
 	if (trim(quality, 2) eq 'ok') then begin 
 		quality    = 75
 	endif
-		
-	;Level in header includes NRGF for those files (ie. L1NRGF or L1.5NRGF), making parsing difficult, get from filename instead
-    ;level      = sxpar(hdu, 'LEVEL',    count=qlevel)
-	parts = strsplit(fts_file, '_', /extract) ; NOPE!! in non-nrgf filenames, there is not delimiter that works
-	level = trim(parts[3],2)
-	os = strpos(level, '.')  ; need this when level not surrounded by '_', but has the extension after it
+	
+    level      = trim(sxpar(hdu, 'LEVEL',    count=qlevel),2)
+	; TODO: Older NRGF headers have 'NRGF' appended to level string, but newer headers
+	;   will have another keyword added to header for producttype
+	os = strpos(level, "NRGF")  
 	if (os ne -1) then begin
-		level = strmid(level, 0, os)	
+		level = strmid(level, 0, os)
 	endif	
 	
-	; Get product type from filename; TODO: are there any more?
+	; Get product type from filename; TODO: are there any more? Parse from header when it is added.
 	p = strpos(fts_file, "nrgf")
 	if (p ne -1) then begin	
 		producttype = 'nrgf'
@@ -143,7 +142,8 @@ pro kcor_img_insert, date, filelist, run=run
 	endelse
 	
 	; The decision is to not include non-fits in the database because raster files (GIFS)
-	;  will be created for every image in database
+	;  will be created for every image in database.  However, since we may add them later,
+	;  or other file types, we'll keep the field in the kcor_img database table.
     filetype   = 'fits'
 
 	fits_file = file_basename(fts_file, '.gz') ; remove '.gz' from file name.
@@ -159,25 +159,26 @@ pro kcor_img_insert, date, filelist, run=run
 	mg_log, 'filetype: %s', filetype, name='kcor/dbinsert', /debug    
 
 	; Get IDs from relational tables.
-	; TODO: Which tables to use? Maybe filetype, producttype and level. Currently this 
-	;  is not implemented in INSERT below.
 
-    ;filetype_results = db->query('SELECT * FROM filetype WHERE filetype=''%s''', $
-    ;                             filetype, fields=fields)
-    ;filetype_num = filetype_results.id
-    ;mg_log, 'filetype:            %s', filetype, name='kcor/dbinsert', /debug
-    ;mg_log, 'filetype_results.id: %s', filetype_results.id, name='kcor/dbinsert', /debug
+	producttype_results = db->query('SELECT * FROM producttype WHERE producttype=''%s''', $
+                                 producttype, fields=fields)
+    producttype_num = producttype_results.id
+    mg_log, 'producttype_num: %s', producttype_num, name='kcor/dbinsert', /debug	
 
-    ;level_results = db->query('SELECT * FROM level WHERE level=''%s''', level, $
-    ;                          fields=fields)
-    ;level_num = level_results.id
-    ;mg_log, 'level:               %s', level, name='kcor/dbinsert', /debug
-    ;mg_log, 'level_results.id:    %s', level_results.id, name='kcor/dbinsert', /debug
+    filetype_results = db->query('SELECT * FROM filetype WHERE filetype=''%s''', $
+                                 filetype, fields=fields)
+    filetype_num = filetype_results.id
+    mg_log, 'filetype_num: %s', filetype_num, name='kcor/dbinsert', /debug
+
+    level_results = db->query('SELECT * FROM kcor_level WHERE level=''%s''', $
+							   level, fields=fields)
+    level_num = level_results.level_id
+    mg_log, 'level_num:    %s', level_num, name='kcor/dbinsert', /debug
 
     ;----- DB insert command.
 ; TODO: remove _test from table name
-    db->execute, 'INSERT INTO kcor_img_test (file_name, date_obs, date_end, level, quality, numsum, exptime, producttype, filetype) VALUES (''%s'', ''%s'', ''%s'', ''%s'', ''%d'', ''%d'', ''%f'', ''%s'', ''%s'') ', $
-                 fits_file, date_obs, date_end, level, quality, numsum, exptime, producttype, filetype, $
+    db->execute, 'INSERT INTO kcor_img_test (file_name, date_obs, date_end, level, quality, producttype, filetype, numsum, exptime) VALUES (''%s'', ''%s'', ''%s'', ''%s'', ''%d'', ''%d'', ''%f'', ''%s'', ''%s'') ', $
+                 fits_file, date_obs, date_end, level_num, quality, producttype_num, filetype_num, numsum, exptime, $
                  status=status, error_message=error_message, sql_statement=sql_cmd
 
     mg_log, '%d, error message: %s', status, error_message, $
@@ -195,7 +196,6 @@ end
 
 ; main-level example program
 
-; TODO: Accept a date and list of filenames as parameters
 date = '20170204'
 filelist = ['20170204_205610_kcor_l1_nrgf.fts.gz','20170204_205625_kcor_l1.fts.gz','20170204_205640_kcor_l1.fts.gz','20170204_205656_kcor_l1.fts.gz','20170204_205711_kcor_l1.fts.gz']
 run = kcor_run(date, $
