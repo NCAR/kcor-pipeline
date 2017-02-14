@@ -9,6 +9,7 @@
 ; :Params:
 ;   date : in, required, type=string
 ;     date in the form 'YYYYMMDD'
+;	filelist: in, required, type=array of strings
 ;
 ; :Keywords:
 ;   run : in, required, type=object
@@ -16,8 +17,9 @@
 ;
 ; :Examples:
 ;   For example::
-;
-;     kcor_img_insert, '20150324'
+;	  date = '20170204'
+;     filelist = ['20170204_205610_kcor_l1_nrgf.fts.gz','20170204_205625_kcor_l1.fts.gz','20170204_205640_kcor_l1.fts.gz','20170204_205656_kcor_l1.fts.gz','20170204_205711_kcor_l1.fts.gz']
+;     kcor_img_insert, date, filelist;
 ;
 ; :Author: 
 ;   Andrew Stanger
@@ -28,7 +30,7 @@
 ;               Use /hao/mlsodata1/Data/raw/yyyymmdd/level1 directory.
 ;   14 Sep 2015 Use /hao/acos/year/month/day directory.
 ;   28 Sep 2015 Add date_end field.
-;   7 Feb 2017 Starting to edit for new table fields and noting new changes to come (search for TODO)
+;   7 Feb 2017 DJK - Starting to edit for new table fields and noting new changes to come (search for TODO)
 ;
 ;-
 pro kcor_img_insert, date, filelist, run=run
