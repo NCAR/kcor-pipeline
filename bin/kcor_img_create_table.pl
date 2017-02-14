@@ -84,7 +84,8 @@ if (! $sth)
 #	'level' type changed to char(4), but could also be float(4,1) like xxx.x
 #	'quality' type changed to tinyint, and will be stored as a number between 0-99
 #	Added 'datatype' and 'filetype' fields at end, because VARCHAR slows down queries if there are fields after it
-#	Changed field 'datatype' to 'producttype' to avoid confusion with header field
+#	Changed field 'datatype' to 'producttype' to avoid confusion with header field (20170213 DJK)
+#	Alterting data types of level, producttype, and filetype to normalize with level, producttype, and filetype mysql tables (20170213)
 # TODO: define other indices.
 $command = "CREATE TABLE kcor_img_test
   (
@@ -92,12 +93,13 @@ $command = "CREATE TABLE kcor_img_test
   file_name		CHAR (35) NOT NULL, 
   date_obs		DATETIME NOT NULL, 
   date_end		DATETIME NOT NULL, 
-  level			CHAR (4) NOT NULL,
+  level			TINYINT (2) NOT NULL,
   quality		TINYINT (2),
+  producttype	TINYINT (2),
+  filetype		TINYINT (2),
   numsum		SMALLINT (4), 
   exptime		FLOAT (7, 4),
-  producttype	VARCHAR (8),
-  filetype		VARCHAR (6),
+  
   UNIQUE (file_name),
   INDEX (date_obs),
   INDEX (quality),
