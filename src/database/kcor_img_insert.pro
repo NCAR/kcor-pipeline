@@ -122,11 +122,11 @@ pro kcor_img_insert, date, fits_list, run=run
 	exptime    = sxpar(hdu, 'EXPTIME',  count=qexptime)
     numsum     = sxpar(hdu, 'NUMSUM',   count=qnumsum)
 	quality	   = sxpar(hdu, 'QUALITY',    count=qquality)
-	if (trim(quality, 2) eq 'ok') then begin 
+	if (strtrim(quality, 2) eq 'ok') then begin 
 		quality    = 75
 	endif
 	
-    level      = trim(sxpar(hdu, 'LEVEL',    count=qlevel),2)
+    level      = strtrim(sxpar(hdu, 'LEVEL',    count=qlevel),2)
 	; TODO: Older NRGF headers have 'NRGF' appended to level string, but newer headers
 	;   will have another keyword added to header for producttype
 	os = strpos(level, "NRGF")  
@@ -134,7 +134,7 @@ pro kcor_img_insert, date, fits_list, run=run
 		level = strmid(level, 0, os)
 	endif	
 	
-	; Get product type from filename; TODO: are there any more? Parse from header when it is added.
+	; Get product type from filename; TODO: are there any more? Parse from header when new producttype keyword is added.
 	p = strpos(fts_file, "nrgf")
 	if (p ne -1) then begin	
 		producttype = 'nrgf'
@@ -178,7 +178,7 @@ pro kcor_img_insert, date, fits_list, run=run
 
     ;----- DB insert command.
 ; TODO: remove _test from table name
-    db->execute, 'INSERT INTO kcor_img_test (file_name, date_obs, date_end, level, quality, producttype, filetype, numsum, exptime) VALUES (''%s'', ''%s'', ''%s'', ''%s'', ''%d'', ''%d'', ''%f'', ''%s'', ''%s'') ', $
+    db->execute, 'INSERT INTO kcor_img_test (file_name, date_obs, date_end, level, quality, producttype, filetype, numsum, exptime) VALUES (''%s'', ''%s'', ''%s'', %d, %d, %d, %d, %d, %f) ', $
                  fits_file, date_obs, date_end, level_num, quality, producttype_num, filetype_num, numsum, exptime, $
                  status=status, error_message=error_message, sql_statement=sql_cmd
 
