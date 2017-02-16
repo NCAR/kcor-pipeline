@@ -81,6 +81,8 @@ if (! $sth)
 # Define fields
 #	Notes:
 #	Removed sgs fields and moved them to new table, kcor_sgs
+#   Added back sgsdimv and sgsdims
+#	Removed calpang and datatype
 $command = "CREATE TABLE kcor_eng_test
   (
   eng_id		INT (10) AUTO_INCREMENT PRIMARY KEY,
@@ -92,7 +94,7 @@ $command = "CREATE TABLE kcor_eng_test
   o1focs		FLOAT (8, 3),
   kcor_sgsdimv	FLOAT (7, 4),
   kcor_sgsdims	FLOAT (8, 5),
-  level			CHAR (4),
+  level			TINYINT (2),
   bunit			VARCHAR (15),
   bzero			INT (10),
   bscale		FLOAT (5, 4),
@@ -107,9 +109,8 @@ $command = "CREATE TABLE kcor_eng_test
   darkshut		CHAR (3),
   diffuser		CHAR (3),
   calpol		CHAR (3),
-  calpang		float (8, 3),
-  datatype		VARCHAR (12),
-  UNIQUE (file_name)  
+  UNIQUE (file_name),
+  INDEX (date_obs)
   )" ;  # TODO: remove _test when in production
 
 $sth = $dbh->prepare ($command) ;
