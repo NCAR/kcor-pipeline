@@ -122,7 +122,7 @@ pro kcor_eng_insert, date, fits_list, run=run
   while (++i lt nfiles) do begin
     fts_file = fits_list[i]
 	
-;TODO: don't do anything for non-pB images
+;TODO: Don't insert non-pB images
 ; Get product type from filename and skip inserting of non-pB;  Parse from header when new producttype keyword is added.
 	p = strpos(fts_file, "nrgf")
 	if (p ne -1) then begin	
@@ -155,7 +155,7 @@ pro kcor_eng_insert, date, fits_list, run=run
 		;   will have another keyword added to header for producttype
 		os = strpos(level, "NRGF")  
 		if (os ne -1) then begin
-			level = strmid(level, 0, os)
+			level = strmid(level, 0, os) ; Strip off NRGF from level, if present
 		endif	
 		
 		bunit      = strtrim(sxpar(hdu, 'BUNIT',  count=qbunit),2)
