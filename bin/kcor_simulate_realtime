@@ -12,12 +12,12 @@ logging.basicConfig(format='%(asctime)s %(message)s',
                     level=logging.DEBUG)
 
 
-def launch_loop(date, config_filename, frequency):
+def launch_loop(date, config_flags, frequency):
     logging.info('starting KCor realtime runner...')
-    logging.info('config filename   : %s', config_filename)
-    logging.info('frequency         : %d minutes', frequency)
+    logging.info('config flags  : %s', config_flags)
+    logging.info('frequency     : %d minutes', frequency)
 
-    launch_cmd = ['runkcor_rt.sh', date, config_filename]
+    launch_cmd = ['runkcor_rt.sh', date, config_flags]
 
     while True:
         pid = subprocess.Popen(launch_cmd).pid
@@ -28,10 +28,10 @@ def launch_loop(date, config_filename, frequency):
 if __name__ == '__main__':
     name = 'Realtime KCor pipeline runner'
     parser = argparse.ArgumentParser(description=name)
-    config_filename_help = '''source directory of data files'''
+    config_flags_help = '''FLAGS section of config filename'''
     date_help = '''date to run on'''
     parser.add_argument('date', type=str, help=date_help)
-    parser.add_argument('config_filename', type=str, help=config_filename_help)
+    parser.add_argument('config_flags', type=str, help=config_flags_help)
     frequency_help = '''number of minutes between launches of realtime
                         pipeline, default is 10 minutes'''
     parser.add_argument('-f', '--frequency',
@@ -41,6 +41,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     try:
-        launch_loop(args.date, args.config_filename, args.frequency)
+        launch_loop(args.date, args.config_flags, args.frequency)
     except KeyboardInterrupt:
         logging.info('quitting...')
