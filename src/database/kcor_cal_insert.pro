@@ -1,14 +1,18 @@
 ; docformat = 'rst'
 
 ;+
-; Utility to insert values into the MLSO database table: kcor_img.
+; Utility to insert values into the MLSO database table: kcor_cal.
 ;
-; Reads a list of L1 files for a specified date and inserts a row of data into
-; 'kcor_img'.
+; Reads a list of L0 cal files for a specified date and inserts a row of data into
+; 'kcor_cal'.  As of 20170216, the setup is to pass this script an array of cal filename,
+; and the script will look for them in /hao/mlsodata1/Data/KCor/raw/yyyymmdd/level0, however 
+; it could easily be edited to read in the list of cal files in:
+;  /hao/mlsodata1/Data/KCor/raw/yyyymmdd/q/cal.ls
 ;
 ; :Params:
 ;   date : in, required, type=string
 ;     date in the form 'YYYYMMDD'
+;	filelist: in, required, type=array of strings
 ;
 ; :Keywords:
 ;   run : in, required, type=object
@@ -16,221 +20,207 @@
 ;
 ; :Examples:
 ;   For example::
-;
-;     kcor_img_insert, '20150324'
+;	  date = '20170204'
+;     filelist = ['20170214_190402_kcor.fts.gz','20170214_190417_kcor.fts.gz','20170214_190548_kcor.fts.gz','20170214_190604_kcor.fts','20170214_190619_kcor.fts']
+;     kcor_cal_insert, date, filelist;
 ;
 ; :Author: 
-;   Andrew Stanger
+;   Don Kolinski
 ;   HAO/NCAR  K-coronagraph
 ;
 ; :History:
-;   28 Sep 2015 IDL procedure created.  
-;             Use /hao/mlsodata1/Data/raw/yyyymmdd/level1 directory.
+;   20170216 - First version
 ;-
-pro kcor_cal_insert, date, run=run
-  compile_opt strictarr
-  on_error, 2
+pro kcor_cal_insert, date, fits_list, run=run
+compile_opt strictarr
+on_error, 2
 
-  np = n_params() 
-  if (np ne 1) then begin
-    mg_log, 'missing date parameter', name='kcor/dbinsert', /error
-    return
-  endif
+np = n_params() 
+if (np ne 2) then begin
+	print, 'missing date or filelist parameters'
+	mg_log, 'missing date or filelist parameters', name='kcor/dbinsert', /error
+	return
+endif
 
-  ;--------------------------
-  ; Connect to MLSO database.
-  ;--------------------------
+;--------------------------
+; Connect to MLSO database.
+;--------------------------
 
-  db = mgdbmysql()
-  db->connect, config_filename=run.database_config_filename, $
-               config_section=run.database_config_section
+; Note: The connect procedure accesses DB connection information in the file
+;       .mysqldb. The "config_section" parameter specifies
+;       which group of data to use.
 
-  db->getProperty, host_name=host
-  mg_log, 'connected to %s...', host, name='kcor/dbinsert', /info
+db = mgdbmysql()
+db->connect, config_filename=run.database_config_filename, $
+		   config_section=run.database_config_section
 
-  db->setProperty, database='MLSO'
+db->getProperty, host_name=host
+mg_log, 'connected to %s...', host, name='kcor/dbinsert', /info
 
-  ;----------------------------------
-  ; Print DB tables in MLSO database.
-  ;----------------------------------
+db->setProperty, database='MLSO'
 
-  ;print, db, format='(A, /, 4(A-20))'
+;-------------------------------------------------------------------------------
+; Delete all pre-existing rows with date_obs = designated date to be processed.
+;-------------------------------------------------------------------------------
 
-  ;-------------------------------------------------------------------------------
-  ; Delete all pre-existing rows with date_obs = designated date to be processed.
-  ;-------------------------------------------------------------------------------
+year    = strmid(date, 0, 4)	; yyyy
+month   = strmid(date, 4, 2)	; mm
+day     = strmid(date, 6, 2)	; dd
+odate_dash = year + '-' + month + '-' + day + '%'
 
-  year    = strmid(date, 0, 4)	; yyyy
-  month   = strmid(date, 4, 2)	; mm
-  day     = strmid(date, 6, 2)	; dd
-  odate_dash = year + '-' + month + '-' + day + '%'
+; TODO: This DELETE statement will need to be removed from this script.  In the new
+;   pipeline, kcor data will be processed and added to the database in realtime through 
+;   the day, so we don't want to delete previous entries.  However, the statement will 
+;   likely be used in an 'update_database' script later. Be sure to note date change to next
+;   day. 
+;  db->execute, 'DELETE FROM kcor_cal WHERE date_obs like ''%s''', odate_dash, $
+;               status=status, error_message=error_message, sql_statement=sql_cmd
+;  mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /info
+;  mg_log, 'status: %d, error message: %s', status, error_message, $
+;          name='kcor/dbinsert', /info
 
-  db->execute, 'DELETE FROM kcor_cal WHERE date_obs like ''%s''', odate_dash, $
-               status=status, error_message=error_message, sql_statement=sql_cmd
-  mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /info
-  mg_log, 'status: %d, error message: %s', status, error_message, $
-          name='kcor/dbinsert', /info
+;-----------------------
+; Directory definitions.
+;-----------------------
 
-  ;-----------------------
-  ; Directory definitions.
-  ;-----------------------
+; TODO: Set to cal file directory (confer with Mike and Joan)
+fts_dir = filepath('level0', subdir=date, root=run.raw_basedir)
+mg_log, 'fts_dir: %s', fts_dir, name='kcor/dbinsert', /info
 
-  fts_dir = filepath('level0', subdir=date, root=run.raw_basedir)
+;----------------
+; Move to fts_dir.
+;----------------
 
-  ;----------------
-  ; Move to fts_dir.
-  ;----------------
+cd, current=start_dir
+cd, fts_dir
 
-  cd, current=start_dir
-  cd, fts_dir
 
-  ;------------------------------------------------
-  ; Create list of fits files in current directory.
-  ;------------------------------------------------
+;------------------------------------------------
+; Step through list of fits files passed in parameter
+;------------------------------------------------
+nfiles = n_elements(fits_list)
 
-  fits_list = file_search('*kcor.fts*', count=nfiles)
+if (nfiles eq 0) then begin
+	print, 'no images in fits_list'
+	mg_log, 'No images in list file', name='kcor/dbinsert', /info
+	goto, done
+endif
 
-  if (nfiles eq 0) then begin
-    mg_log, 'No images in list file', name='kcor/dbinsert', /info
-    goto, done
-  endif
+i = -1
+fts_file = 'img.fts'
+while (++i lt nfiles) do begin
+	fts_file = fits_list[i]
+	finfo = file_info(fts_file)         ; Get file information.
 
-  i       = -1
-  fts_file = 'img.fts'
-  mg_log, 'nfiles: %d', nfiles, name='kcor/dbinsert', /info
+	;----- Extract desired items from header.
 
-  while (++i lt nfiles) do begin
-    fts_file = fits_list[i]
+	hdu   = headfits(fts_file, /silent) ; Read FITS header.
+	
+	date_obs	= sxpar(hdu, 'DATE-OBS', count=qdate_obs)
+	date_end	= sxpar(hdu, 'DATE-END', count=qdate_end)
+	
+	level		= strtrim(sxpar(hdu, 'LEVEL', count=qlevel), 2)
+	; TODO: Older NRGF headers have 'NRGF' appended to level string, but newer headers
+	;   will have another keyword added to header for producttype
+	os = strpos(level, "NRGF")  
+	if (os ne -1) then begin
+		level = strmid(level, 0, os)
+	endif	
+	
+	numsum		= sxpar(hdu, 'NUMSUM',   count=qnumsum)
+	exptime		= sxpar(hdu, 'EXPTIME',  count=qexptime)
+	cover		= strtrim(sxpar(hdu, 'COVER',    count=qcover),2)
+	darkshut	= strtrim(sxpar(hdu, 'DARKSHUT', count=qdarkshut),2)
+	diffuser	= strtrim(sxpar(hdu, 'DIFFUSER', count=qdiffuser),2)
+	calpol		= strtrim(sxpar(hdu, 'CALPOL',   count=qcalpol),2)
+	calpang		= sxpar(hdu, 'CALPANG',  count=qcalpang)
 
-    finfo = file_info(fts_file)         ; Get file information.
+;TODO: Get values for these quantities from pipeline output (test values set for now)
+mean_int_img0 = 99.99
+mean_int_img1 = 99.99
+mean_int_img2 = 99.99
+mean_int_img3 = 99.99
+mean_int_img4 = 99.99
+mean_int_img5 = 99.99
+mean_int_img6 = 99.99
+mean_int_img7 = 99.99
+	
+	rcamid		= strtrim(sxpar(hdu, 'RCAMID', count=qrcamid),2)
+	tcamid		= strtrim(sxpar(hdu, 'TCAMID', count=qtcamid),2)
+	rcamlut		= strtrim(sxpar(hdu, 'RCAMLUT', count=qrcamlut),2)
+	tcamlut		= strtrim(sxpar(hdu, 'TCAMLUT', count=qtcamlut),2)
+	rcamxcen	= sxpar(hdu, 'RCAMXCEN', count=qrcamxcen)
+	rcamycen	= sxpar(hdu, 'RCAMYCEN', count=qrcamycen)
+	tcamxcen	= sxpar(hdu, 'TCAMXCEN', count=qtcamxcen)
+	tcamycen	= sxpar(hdu, 'TCAMYCEN', count=qtcamycen)
+	rcam_rad	= sxpar(hdu, 'RCAM_RAD', count=qrcam_rad)
+	tcam_rad	= sxpar(hdu, 'TCAM_RAD', count=qtcam_rad)
+	rcamfocs	= sxpar(hdu, 'RCAMFOCS', count=qrcamfocs)
+	tcamfocs	= sxpar(hdu, 'TCAMFOCS', count=qtcamfocs)
+	modltrid	= strtrim(sxpar(hdu, 'MODLTRID', count=qmodltrid),2)
+	modltrt		= sxpar(hdu, 'MODLTRT', count=qmodltrt)
+	occltrid	= strtrim(sxpar(hdu, 'OCCLTRID', count=qoccltrid),2)
+	o1id		= strtrim(sxpar(hdu, 'O1ID', count=qo1id),2)
+	o1focs		= sxpar(hdu, 'O1FOCS', count=qo1focs)
+	calpolid	= strtrim(sxpar(hdu, 'CALPOLID', count=qcalpolid),2)
+	diffsrid	= strtrim(sxpar(hdu, 'DIFFSRID', count=qdiffsrid),2)
+	filterid	= strtrim(sxpar(hdu, 'FILTERID', count=qfilterid),2)
+	sgsdimv 	= sxpar(hdu, 'SGSDIMV', count=qkcor_sgsdimv)
+	sgsdims 	= sxpar(hdu, 'SGSDIMS', count=qkcor_sgsdims)
 
-    ;--- Read FITS header.
+	fits_file = file_basename(fts_file, '.gz') ; remove '.gz' from file name.
 
-    hdu   = headfits(fts_file, /silent) ; Read FITS header.
+	mg_log, 'date_obs: %s', date_obs, name='kcor/dbinsert', /debug
+	mg_log, 'date_end: %s', date_end, name='kcor/dbinsert', /debug
+	mg_log, 'level:    %s', level, name='kcor/dbinsert', /debug
+	mg_log, 'exptime:  %s', exptime, name='kcor/dbinsert', /debug
+	mg_log, 'numsum:   %s', numsum, name='kcor/dbinsert', /debug
+	mg_log, 'cover:    %s', cover, name='kcor/dbinsert', /debug
+	mg_log, 'darkshut: %s', darkshut, name='kcor/dbinsert', /debug
+	mg_log, 'diffuser: %s', diffuser, name='kcor/dbinsert', /debug
+	mg_log, 'calpol:   %s', calpol, name='kcor/dbinsert', /debug
+	mg_log, 'calplang: %s', calpang, name='kcor/dbinsert', /debug
+	
+	; Get IDs from relational tables.
+	
+	level_results = db->query('SELECT * FROM kcor_level WHERE level=''%s''', $
+							   level, fields=fields)
+	level_num = level_results.level_id
+	mg_log, 'level_num:    %d', level_num, name='kcor/dbinsert', /debug
 
-    datatype = 'unknown'
-    instrume = 'missing_keyword'
+	; DB insert command.
 
-    ; Extract desired items from header.
+;TODO: Remove _test from table name
+	db->execute, 'INSERT INTO kcor_cal_test (file_name, date_obs, date_end, level, numsum, exptime, cover, darkshut, diffuser, calpol, calpang, mean_int_img0, mean_int_img1, mean_int_img2, mean_int_img3, mean_int_img4, mean_int_img5, mean_int_img6, mean_int_img7, rcamid, tcamid, rcamlut, tcamlut, rcamxcen, rcamycen, tcamxcen, tcamycen, rcam_rad, tcam_rad, rcamfocs, tcamfocs, modltrid, modltrt, occltrid, o1id, o1focs, calpolid, diffsrid, filterid, kcor_sgsdimv, kcor_sgsdims) VALUES (''%s'', ''%s'', ''%s'', %d, %d, %f, ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', %f, ''%s'', ''%s'', %f, ''%s'', ''%s'', ''%s'', %f, %f) ', $
+				 fits_file, date_obs, date_end, level_num, numsum, $
+				 exptime, cover, darkshut, diffuser, calpol, calpang, $
+				 mean_int_img0, mean_int_img1, mean_int_img2, mean_int_img3, mean_int_img4, $
+				 mean_int_img5, mean_int_img6, mean_int_img7, rcamid, tcamid, rcamlut, tcamlut, $
+				 rcamxcen, rcamycen, tcamxcen, tcamycen, rcam_rad, tcam_rad, rcamfocs, tcamfocs, $
+				 modltrid, modltrt, occltrid, o1id, o1focs, calpolid, diffsrid, filterid, sgsdimv, sgsdims, $
+				 status=status, $
+				 error_message=error_message, $
+				 sql_statement=sql_cmd
 
-    date_obs   = sxpar(hdu, 'DATE-OBS', count=qdate_obs)
-    date_end   = sxpar(hdu, 'DATE-END', count=qdate_end)
-    telescop   = sxpar(hdu, 'TELESCOP', count=qtelescop)
-    instrume   = sxpar(hdu, 'INSTRUME', count=qinstrume)
-    datatype   = sxpar(hdu, 'DATATYPE', count=qdatatype)
-    level      = sxpar(hdu, 'LEVEL',    count=qlevel)
-    exptime    = sxpar(hdu, 'EXPTIME',  count=qexptime)
-    numsum     = sxpar(hdu, 'NUMSUM',   count=qnumsum)
-    cover      = sxpar(hdu, 'COVER',    count=qcover)
-    darkshut   = sxpar(hdu, 'DARKSHUT', count=qdarkshut)
-    diffuser   = sxpar(hdu, 'DIFFUSER', count=qdiffuser)
-    calpol     = sxpar(hdu, 'CALPOL',   count=qcalpol)
-    calpang    = sxpar(hdu, 'CALPANG',  count=qcalpang)
-
-    datatype_str = strtrim(datatype, 2)
-    if (datatype_str ne 'calibration') then continue   ; only process cal images.
-
-    level_str = strtrim(string (level), 2)
-    quality    = 'u'
-    filetype   = 'fits'
-
-    mg_log, 'date_obs: %s', date_obs, name='kcor/dbinsert', /debug
-    mg_log, 'date_end: %s', date_end, name='kcor/dbinsert', /debug
-    mg_log, 'telescop: %s', telescop, name='kcor/dbinsert', /debug
-    mg_log, 'instrume: %s', instrume, name='kcor/dbinsert', /debug
-    mg_log, 'datatype: %s', datatype, name='kcor/dbinsert', /debug
-    mg_log, 'level:    %s', level, name='kcor/dbinsert', /debug
-    mg_log, 'exptime:  %s', exptime, name='kcor/dbinsert', /debug
-    mg_log, 'numsum:   %s', numsum, name='kcor/dbinsert', /debug
-    mg_log, 'cover:    %s', cover, name='kcor/dbinsert', /debug
-    mg_log, 'darkshut: %s', darkshut, name='kcor/dbinsert', /debug
-    mg_log, 'diffuser: %s', diffuser, name='kcor/dbinsert', /debug
-    mg_log, 'calpol:   %s', calpol, name='kcor/dbinsert', /debug
-    mg_log, 'calplang: %s', calpang, name='kcor/dbinsert', /debug
-
-    if (qdatatype eq 0) then begin
-      mg_log, 'qdatatype: %s', qdatatype, name='kcor/dbinsert', /debug
-      datatype = 'unknown'
-    endif
-
-    if (qinstrume eq 0) then begin
-      mg_log, 'qinstrume: %s', qinstrume, name='kcor/dbinsert', /debug
-      instrume = telescop
-    endif
-
-    ; Construct variables for database table fields.
-
-    year  = strmid(date_obs, 0, 4)	; yyyy
-    month = strmid(date_obs, 5, 2)	; mm
-    day   = strmid(date_obs, 8, 2)	; dd
-    
-    ; Determine DOY.
-
-    mday      = [0,31,59,90,120,151,181,212,243,273,304,334]
-    mday_leap = [0,31,60,91,121,152,182,213,244,274,305,335] ; leap year 
-
-    if ((fix(year) mod 4) eq 0) then begin
-      doy = mday_leap[fix (month) - 1] + fix(day)
-    endif else begin
-      doy = mday[fix (month) - 1] + fix(day)
-    endelse
-    doy_str = string(doy, format='(%"%3d")')
-
-    date_dash = strmid(date_obs, 0, 10)	     ; yyyy-mm-dd
-    time_obs  = strmid(date_obs, 11, 8)	     ; hh:mm:ss
-    date_img  = date_dash + ' ' + time_obs   ; yyyy-mm-dd hh:mm:ss
-
-    date_dash = strmid(date_end, 0, 10)	     ; yyyy-mm-dd
-    time_obs  = strmid(date_end, 11, 8)	     ; hh:mm:ss
-    date_eod  = date_dash + ' ' + time_obs   ; yyyy-mm-dd hh:mm:ss
-
-    fits_file = strmid(fts_file, 0, 27)	     ; remove '.gz' from file name.
-
-    mg_log, 'date_img: %s', date_img, name='kcor/dbinsert', /debug
-    mg_log, 'date_eod: %s', date_eod, name='kcor/dbinsert', /debug
-
-    ; Encode index columns.
-
-    instrume_results = db->query('SELECT * FROM instrume WHERE instrument=''%s''', $
-                                 instrume, fields=fields)
-    instrume_num = instrume_results.id
-    mg_log, 'instrume:            %s', instrume, name='kcor/dbinsert', /debug
-    mg_log, 'instrume_results.id: %s', instrume_results.id, name='kcor/dbinsert', /debug
-
-    quality_results = db->query('SELECT * FROM quality WHERE quality=''%s''', $
-                                quality, fields=fields)
-    quality_num = quality_results.id
-    mg_log, 'quality:             %s', quality, name='kcor/dbinsert', /debug
-    mg_log, 'quality_results.id:  %s', quality_results.id, name='kcor/dbinsert', /debug
-
-    filetype_results = db->query('SELECT * FROM filetype WHERE filetype=''%s''', $
-                                 filetype, fields=fields)
-    filetype_num = filetype_results.id
-    mg_log, 'filetype:            %s', filetype, name='kcor/dbinsert', /debug
-    mg_log, 'filetype_results.id: %s', filetype_results.id, name='kcor/dbinsert', /debug
-
-    level_results = db->query('SELECT * FROM level WHERE level=''%s''', level, $
-                              fields=fields)
-    level_num = level_results.id
-    mg_log, 'level:               %s', level, name='kcor/dbinsert', /debug
-    mg_log, 'level_results.id:    %s', level_results.id, name='kcor/dbinsert', /debug
-
-    ; DB insert command.
-
-    db->execute, 'INSERT INTO kcor_cal (file_name, date_obs, date_end, instrument, level, numsum, exptime, cover, darkshut, diffuser, calpol, calpang) VALUES (''%s'', ''%s'', ''%s'', ''%s'', ''%s'', %d, %f, ''%s'', ''%s'', ''%s'', ''%s'', %f) ', $
-                 fits_file, date_img, date_eod, instrume, level_str, numsum, $
-                 exptime, cover, darkshut, diffuser, calpol, calpang, $
-                 status=status, $
-                 error_message=error_message, $
-                 sql_statement=sql_cmd
-
-    mg_log, '%s: status: %d, error message: %s', status, error_message, $
+	mg_log, '%d, error message: %s', status, error_message, $
             name='kcor/dbinsert', /debug
     mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /debug
-  endwhile
+endwhile
 
-  done:
-  obj_destroy, db
+done:
+obj_destroy, db
 
-  mg_log, '*** end of kcor_cal_insert ***', name='kcor/dbinsert', /info
+mg_log, '*** end of kcor_cal_insert ***', name='kcor/dbinsert', /info
+end
+
+; main-level example program
+
+date = '20170214'
+filelist = ['20170214_190402_kcor.fts.gz','20170214_190417_kcor.fts.gz','20170214_190548_kcor.fts.gz','20170214_190604_kcor.fts','20170214_190619_kcor.fts']
+run = kcor_run(date, $
+               config_filename=filepath('kcor.kolinski.mahi.latest.cfg', $
+                                        subdir=['..', '..', 'config'], $
+                                        root=mg_src_root()))
+kcor_cal_insert, date, filelist, run=run
+
 end
