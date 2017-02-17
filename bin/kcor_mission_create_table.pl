@@ -66,7 +66,7 @@ else
 # Create new kcor_mission table.
 #-------------------------------
 
-$command = "DROP TABLE IF EXISTS kcor_mission_test" ;
+$command = "DROP TABLE IF EXISTS kcor_mission" ;
 $sth     = $dbh->prepare ($command) ;
 
 $sth->execute () ;
@@ -78,7 +78,7 @@ if (! $sth)
   }
 
 # Define fields
-$command = "CREATE TABLE kcor_mission_test 
+$command = "CREATE TABLE kcor_mission 
   (
   mission_id		INT (10) AUTO_INCREMENT PRIMARY KEY, 
   date				DATETIME NOT NULL, 

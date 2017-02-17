@@ -89,7 +89,7 @@ $command = "CREATE TABLE kcor_cal_test
   file_name		CHAR (40) NOT NULL, 
   date_obs		DATETIME NOT NULL, 
   date_end		DATETIME NOT NULL, 
-  level			CHAR (4) NOT NULL, 
+  level			TINYINT (2) NOT NULL, 
   numsum		SMALLINT (4), 
   exptime		FLOAT (7, 4),
   cover			CHAR (3),

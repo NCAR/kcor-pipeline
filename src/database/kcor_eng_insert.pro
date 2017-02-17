@@ -122,7 +122,7 @@ pro kcor_eng_insert, date, fits_list, run=run
   while (++i lt nfiles) do begin
     fts_file = fits_list[i]
 	
-;TODO: don't do anything for non-pB images
+;TODO: Don't insert non-pB images
 ; Get product type from filename and skip inserting of non-pB;  Parse from header when new producttype keyword is added.
 	p = strpos(fts_file, "nrgf")
 	if (p ne -1) then begin	
@@ -155,7 +155,7 @@ pro kcor_eng_insert, date, fits_list, run=run
 		;   will have another keyword added to header for producttype
 		os = strpos(level, "NRGF")  
 		if (os ne -1) then begin
-			level = strmid(level, 0, os)
+			level = strmid(level, 0, os) ; Strip off NRGF from level, if present
 		endif	
 		
 		bunit      = strtrim(sxpar(hdu, 'BUNIT',  count=qbunit),2)
@@ -172,7 +172,6 @@ pro kcor_eng_insert, date, fits_list, run=run
 		diffuser   = strtrim(sxpar(hdu, 'DIFFUSER',  count=qdarkshut),2)
 		calpol     = strtrim(sxpar(hdu, 'CALPOL',  count=qcalpol),2)
 
-
 ; TODO: get mean_phase1 from pipeline output because it is not in header
 mean_phase1 = 99.99 ; just for testing
 	 
@@ -181,10 +180,6 @@ mean_phase1 = 99.99 ; just for testing
 		; Debug prints
 		mg_log, 'fits_file:   %s', fits_file, name='kcor/dbinsert', /debug
 		mg_log, 'date_obs:    %s', date_obs, name='kcor/dbinsert', /debug	
-		mg_log, 'cover:    %s', cover, name='kcor/dbinsert', /debug
-		mg_log, 'darkshut:    %s', darkshut, name='kcor/dbinsert', /debug
-		mg_log, 'diffuser:    %s', diffuser, name='kcor/dbinsert', /debug
-		mg_log, 'calpol:    %s', calpol, name='kcor/dbinsert', /debug
 		
 		; Get IDs from relational tables.
 		level_results = db->query('SELECT * FROM kcor_level WHERE level=''%s''', $
@@ -193,7 +188,6 @@ mean_phase1 = 99.99 ; just for testing
 		mg_log, 'level_num:    %d', level_num, name='kcor/dbinsert', /debug
 		
 		; ----- DB insert command.
-	dummy = 0
 	;TODO: Remove _test from table name
 		db->execute, 'INSERT INTO kcor_eng_test (file_name, date_obs, rcamfocs, tcamfocs, modltrt, o1focs, kcor_sgsdimv, kcor_sgsdims, level, bunit, bzero, bscale, rcamxcen, rcamycen, tcamxcen, tcamycen, rcam_rad, tcam_rad, mean_phase1, cover, darkshut, diffuser, calpol) VALUES (''%s'', ''%s'', %f, %f, %f, %f, %f, %f, %d, ''%s'', %d, %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', ''%s'', ''%s'', ''%s'') ', $
 				   fits_file, date_obs, rcamfocs, tcamfocs, modltrt, o1focs, $
