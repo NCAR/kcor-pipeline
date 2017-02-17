@@ -136,18 +136,18 @@ pro kcor_eod, date, config_filename=config_filename
 
     kcor_archive, run=run
 
-    ; put results in database
-    if (run.update_database) then begin
-      mg_log, 'updating database', name='kcor/eod', /info
-      kcor_cal_insert, date, run=run
-      kcor_dp_insert, date, run=run
-      kcor_eng_insert, date, run=run
-      kcor_hw_insert, date, run=run
-      kcor_img_insert, date, run=run
-      kcor_mission_insert, date, run=run
-    endif else begin
-      mg_log, 'skipping updating database', name='kcor/eod', /info
-    endelse
+    ; ; put results in database
+    ; if (run.update_database) then begin
+    ;   mg_log, 'updating database', name='kcor/eod', /info
+    ;   kcor_cal_insert, date, run=run
+    ;   kcor_dp_insert, date, run=run
+    ;   kcor_eng_insert, date, run=run
+    ;   kcor_hw_insert, date, run=run
+    ;   kcor_img_insert, date, run=run
+    ;   kcor_mission_insert, date, run=run
+    ; endif else begin
+    ;   mg_log, 'skipping updating database', name='kcor/eod', /info
+    ; endelse
 
     ; produce calibration for tomorrow
     if (run.reduce_calibration) then begin

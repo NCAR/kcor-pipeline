@@ -5,6 +5,37 @@
 ;-
 
 
+;= API
+
+;+
+; Write the values used from the epochs file to the given filename.
+;
+; :Params:
+;   filename : in, optional, type=string, default=stdout
+;     filename to write epoch values to, default is to print to stdout
+;-
+pro kcor_run::write_epochs, filename
+  compile_opt strictarr
+
+  if (n_elements(filename) gt 0L) then begin
+    openw, lun, filename, /get_lun
+  endif else begin
+    lun = -1   ; stdout
+  endelse
+
+  self->getProperty, plate_scale=plate_scale, $
+                     use_default_dark=use_default_darks, $
+                     gbuparams_filename=gbuparams_filename
+  printf, lun, 'plate_scale', plate_scale, format='(%"%-20s : %0.3f")'
+  printf, lun, 'use_default_darks', use_default_darks ? 'YES' : 'NO', $
+               format='(%"%-20s : %s")'
+  printf, lun, 'gbuparams_filename', gbuparams_filename, $
+               format='(%"%-20s : %s")'
+
+  if (n_elements(filename) gt 0L) then free_lun, lun
+end
+
+
 ;= helper methods
 
 ;+
@@ -219,11 +250,11 @@ pro kcor_run::getProperty, date=date, $
 
   ; actions
   if (arg_present(update_database)) then begin
-    update_database = self.options->get('update_database', section='actions', $
+    update_database = self.options->get('update_database', section='realtime', $
                                         /boolean, default=1B)
   endif
   if (arg_present(reduce_calibration)) then begin
-    reduce_calibration = self.options->get('reduce_calibration', section='actions', $
+    reduce_calibration = self.options->get('reduce_calibration', section='eod', $
                                            /boolean, default=1B)
   endif
 
@@ -235,7 +266,7 @@ pro kcor_run::getProperty, date=date, $
     use_default_darks = self->_readepoch('use_default_darks', self.date, /boolean)
   endif
   if (arg_present(gbuparams_filename)) then begin
-    gbuparams_filename = self->_readepoch('gbuparams_filename', self.date, /boolean)
+    gbuparams_filename = self->_readepoch('gbuparams_filename', self.date, type=7)
   endif
 end
 
@@ -269,6 +300,7 @@ function kcor_run::init, date, config_filename=config_filename
   self.date = date
   self.pipe_dir = file_expand_path(filepath('..', root=mg_src_root()))
 
+  if (~file_test(config_filename)) then return, 0
   self.options = mg_read_config(config_filename)
   self.epochs = mg_read_config(filepath('epochs.cfg', root=mg_src_root()))
 

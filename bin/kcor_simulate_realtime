@@ -12,17 +12,15 @@ logging.basicConfig(format='%(asctime)s %(message)s',
                     level=logging.DEBUG)
 
 
-def launch_loop(config_filename, frequency):
+def launch_loop(date, config_filename, frequency):
     logging.info('starting KCor realtime runner...')
     logging.info('config filename   : %s', config_filename)
     logging.info('frequency         : %d minutes', frequency)
 
-    # TODO: replace dummy sleep command below with the following when ready
-    launch_cmd = ['idl',
-                  '-e',
-                  '"kcor_rt, config_filename=\'%s\'"' % config_filename]
+    launch_cmd = ['runkcor_rt.sh', date, config_filename]
+
     while True:
-        pid = subprocess.Popen(['sleep', '30']).pid
+        pid = subprocess.Popen(launch_cmd).pid
         logging.info('launched KCor realtime pipeline with pid %d', pid)
         time.sleep(60.0 * frequency)
 
@@ -31,6 +29,8 @@ if __name__ == '__main__':
     name = 'Realtime KCor pipeline runner'
     parser = argparse.ArgumentParser(description=name)
     config_filename_help = '''source directory of data files'''
+    date_help = '''date to run on'''
+    parser.add_argument('date', type=str, help=date_help)
     parser.add_argument('config_filename', type=str, help=config_filename_help)
     frequency_help = '''number of minutes between launches of realtime
                         pipeline, default is 10 minutes'''
@@ -41,6 +41,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     try:
-        launch_loop(args.config_filename, args.frequency)
+        launch_loop(args.date, args.config_filename, args.frequency)
     except KeyboardInterrupt:
         logging.info('quitting...')
