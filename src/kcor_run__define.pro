@@ -143,9 +143,12 @@ pro kcor_run::getProperty, date=date, $
                            mask_dir=mask_dir, $
                            raw_basedir=raw_basedir, $
                            process_basedir=process_basedir, $
-                           archive_dir=archive_dir, $
-                           movie_dir=movie_dir, $
-                           fullres_dir=fullres_dir, $
+                           lock_raw=lock_raw, $
+                           archive_basedir=archive_basedir, $
+                           movie_dir=movie_basedir, $
+                           fullres_basedir=fullres_basedir, $
+                           croppedgif_basedir=croppedgif_basedir, $
+                           rg_basedir=rg_basedir, $
                            hpss_gateway=hpss_gateway, $
                            log_dir=log_dir, $
                            log_level=log_level, $
@@ -207,16 +210,31 @@ pro kcor_run::getProperty, date=date, $
   if (arg_present(process_basedir)) then begin
     process_basedir = self.options->get('process_basedir', section='processing')
   endif
+  if (arg_present(lock_raw)) then begin
+    lock_raw = self.options->get('lock_raw', section='processing', /boolean)
+  endif
 
   ; results
-  if (arg_present(archive_dir)) then begin
-    archive_dir = self.options->get('archive_dir', section='results')
+  if (arg_present(archive_basedir)) then begin
+    archive_basedir = self.options->get('archive_basedir', section='results')
   endif
-  if (arg_present(movie_dir)) then begin
-    movie_dir = self.options->get('movie_dir', section='results')
+  if (arg_present(movie_basedir)) then begin
+    movie_basedir = self.options->get('movie_basedir', section='results')
   endif
-  if (arg_present(fullres_dir)) then begin
-    fullres_dir = self.options->get('fullres_dir', section='results')
+  if (arg_present(fullres_basedir)) then begin
+    fullres_basedir = self.options->get('fullres_basedir', section='results')
+  endif
+  if (arg_present(croppedgif_basedir)) then begin
+    croppedgif_basedir = self.options->get('croppedgif_basedir', section='results')
+  endif
+  if (arg_present(rg_basedir)) then begin
+    rg_basedir = self.options->get('rg_basedir', section='results')
+  endif
+  if (arg_present(rg_remote_dir)) then begin
+    rg_remote_dir = self.options->get('rg_remote_dir', section='results')
+  endif
+  if (arg_present(rg_remote_server)) then begin
+    rg_remote_server = self.options->get('rg_remote_server', section='results')
   endif
   if (arg_present(hpss_gateway)) then begin
     hpss_gateway = self.options->get('hpss_gateway', section='results')
@@ -248,11 +266,13 @@ pro kcor_run::getProperty, date=date, $
                                            /boolean, default=1B)
   endif
 
-  ; actions
+  ; realtime
   if (arg_present(update_database)) then begin
     update_database = self.options->get('update_database', section='realtime', $
                                         /boolean, default=1B)
   endif
+
+  ; end-of-day
   if (arg_present(reduce_calibration)) then begin
     reduce_calibration = self.options->get('reduce_calibration', section='eod', $
                                            /boolean, default=1B)
