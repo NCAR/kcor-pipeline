@@ -163,6 +163,7 @@ pro kcor_run::getProperty, date=date, $
                            notification_email=notification_email, $
                            send_notifications=send_notifications, $
                            update_database=update_database, $
+                           update_remote_server=update_remote_server, $
                            reduce_calibration=reduce_calibration, $
                            plate_scale=plate_scale, $
                            use_default_darks=use_default_darks, $
@@ -277,6 +278,10 @@ pro kcor_run::getProperty, date=date, $
   if (arg_present(update_database)) then begin
     update_database = self.options->get('update_database', section='realtime', $
                                         /boolean, default=1B)
+  endif
+  if (arg_present(update_remote_server)) then begin
+    update_remote_server = self.options->get('update_remote_server', section='realtime', $
+                                             /boolean, default=1B)
   endif
 
   ; end-of-day

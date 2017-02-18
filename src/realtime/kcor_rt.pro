@@ -136,17 +136,21 @@ pro kcor_rt, date, config_filename=config_filename
     rg_dir = filepath('', subdir=date_parts, root=rg_basedir)
     if (~file_test(rg_dir, /directory)) then file_mkdir, rg_dir
 
-    spawn_cmd = string(run.rg_remove_server, run.rg_remote_dir, $
-                       format='(%"scp -B -r -p *rg*.gif %s:%s")')
-    spawn, spawn_cmd, result, error_result, exit_status=status
-    if (status ne 0L) then begin
-      mg_log, 'problem scp-ing RG files with command: %s', spawn_cmd, $
-              name='kcor/rt', /error
-      mg_log, '%s', error_result, name='kcor/rt', /error
-    endif
-
     file_move, '*rg*.gif', rg_dir
     file_move, '*rg*.fts*', archive_dir
+
+    if (run.update_remote_server) then begin
+      spawn_cmd = string(run.rg_remove_server, run.rg_remote_dir, $
+                         format='(%"scp -B -r -p *rg*.gif %s:%s")')
+      spawn, spawn_cmd, result, error_result, exit_status=status
+      if (status ne 0L) then begin
+        mg_log, 'problem scp-ing RG files with command: %s', spawn_cmd, $
+                name='kcor/rt', /error
+        mg_log, '%s', error_result, name='kcor/rt', /error
+      endif
+    endif else begin
+      mg_log, 'skipping updating remote server with RG images', name='kcor/rt', /info
+    endelse
 
     if (run.update_database) then begin
       mg_log, 'updating database', name='kcor/rt', /info
