@@ -59,10 +59,10 @@ pro kcor_rt, date, config_filename=config_filename
   available = kcor_state(/lock, run=run)
 
   if (available) then begin
-    mg_log, 'unzipping L0 FITS files', name='kcor/rt', /info
     l0_fits_glob = '*.fts.gz'
     l0_fits_files = file_search(l0_fits_glob, count=n_l0_fits_files)
     if (n_l0_fits_files gt 0L) then begin
+      mg_log, 'unzipping %d L0 FITS files', n_l0_fits_files, name='kcor/rt', /info
       gunzip_cmd = string(run.gunzip, l0_fits_glob, format='(%"%s %s")')
       spawn, gunzip_cmd, result, error_result, exit_status=status
       if (status ne 0L) then begin
@@ -94,10 +94,10 @@ pro kcor_rt, date, config_filename=config_filename
 
     cd, l1_dir
 
-    mg_log, 'zipping L1 FITS files', name='kcor/rt', /info
     l1_fits_glob = '*l1*fts'
     l1_fits_files = file_search(l1_fits_glob, count=n_l1_fits_files)
     if (n_l1_fits_files gt 0L) then begin
+      mg_log, 'zipping %d L1 FITS files', n_l1_fits_files, name='kcor/rt', /info
       gzip_cmd = string(run.gzip, l1_fits_glob, format='(%"%s %s")')
       spawn, gzip_cmd, result, error_result, exit_status=status
       if (status ne 0L) then begin
@@ -147,6 +147,29 @@ pro kcor_rt, date, config_filename=config_filename
 
     file_move, '*rg*.gif', rg_dir
     file_move, '*rg*.fts*', archive_dir
+
+    if (run.update_database) then begin
+      mg_log, 'updating database', name='kcor/rt', /info
+
+      ; update databases that use L1 files
+      if (n_l1_fits_files gt 0L) then begin
+        kcor_img_insert, date, l1_fits_files, run=run
+        ;kcor_dp_insert, date, l1_fits_files, run=run
+        kcor_eng_insert, date, l1_fits_files, run=run
+        ;kcor_hw_insert, date, l1_fits_files, run=run
+      endif else begin
+        mg_log, 'no L1 files for img, eng, and hw databases', name='kcor/rt', /info
+      endelse
+
+      ; update databases that use L0 files
+      if (n_l0_fits_files gt 0L) then begin
+        kcor_cal_insert, date, l0_fits_files, run=run
+      endif else begin
+        mg_log, 'no L0 files for cal database', name='kcor/rt', /info
+      endelse
+    endif else begin
+      mg_log, 'skipping updating database', name='kcor/rt', /info
+    endelse
   endif else begin
     mg_log, 'raw directory locked, quitting', name='kcor/rt', /info
   endelse
