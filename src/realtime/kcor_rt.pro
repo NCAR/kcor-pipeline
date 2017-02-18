@@ -1,6 +1,17 @@
 ; docformat = 'rst'
 
 
+;+
+; This is the top-level realtime pipeline routine.
+;
+; :Params:
+;   date : in, required, type=string
+;     date to process in the form "YYYYMMDD"
+;
+; :Keywords:
+;   config_filename : in, required, type=string
+;     configuration file specifying the parameters of the run
+;-
 pro kcor_rt, date, config_filename=config_filename
   compile_opt strictarr
 
@@ -8,11 +19,13 @@ pro kcor_rt, date, config_filename=config_filename
   catch, error
   if (error ne 0L) then begin
     catch, /cancel
-    mg_log, /last_error, name='kcor/eod', /critical
+    mg_log, /last_error, name='kcor/rt', /critical
     goto, done
   endif
 
   run = kcor_run(date, config_filename=config_filename)
+
+  mg_log, '------------------------------', name='kcor/rt', /info
 
   version = kcor_find_code_version(revision=revision, branch=branch)
   mg_log, 'kcor-pipeline %s (%s) [%s]', version, revision, branch, $
@@ -21,10 +34,9 @@ pro kcor_rt, date, config_filename=config_filename
           name='kcor/rt', /info
   mg_log, 'starting realtime processing for %s', date, name='kcor/rt', /info
 
-
   raw_dir = filepath('', subdir=date, root=run.raw_basedir)
-  l0_dir = filepath('l0', root=raw_dir)
-  l1_dir = filepath('l1', root=raw_dir)
+  l0_dir = filepath('level0', root=raw_dir)
+  l1_dir = filepath('level1', root=raw_dir)
   q_dir = filepath('q', root=raw_dir)
 
   if (~file_test(raw_dir, /directory)) then file_mkdir, raw_dir
@@ -34,9 +46,9 @@ pro kcor_rt, date, config_filename=config_filename
 
   date_parts = kcor_decompose_date(date)
 
-  croppedgif_dir = filepath('', subdir=date_parts, root=croppedgif_basedir)
-  fullres_dir = filepath('', subdir=date_parts, root=fullres_basedir)
-  archive_dir = filepath('', subdir=date_parts, root=archive_basedir)
+  croppedgif_dir = filepath('', subdir=date_parts, root=run.croppedgif_basedir)
+  fullres_dir = filepath('', subdir=date_parts, root=run.fullres_basedir)
+  archive_dir = filepath('', subdir=date_parts, root=run.archive_basedir)
 
   if (~file_test(croppedgif_dir, /directory)) then file_mkdir, croppedgif_dir
   if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
@@ -44,16 +56,23 @@ pro kcor_rt, date, config_filename=config_filename
 
   cd, raw_dir
 
-  available = kcor_state(/lock)
+  available = kcor_state(/lock, run=run)
+
   if (available) then begin
-    mg_log, 'unzipping L0 files', name='kcor/rt', /info
-    gunzip_cmd = string(run.gunzip, format='(%"%s *.fts.gz")')
-    spawn, gunzip_cmd, result, error_result, exit_status=status
-    if (status ne 0L) then begin
-      mg_log, 'problem unzipping files with command: %s', gunzip_cmd, $
-              name='kcor/rt', /error
-      mg_log, '%s', error_result, name='kcor/rt', /error
-    endif
+    mg_log, 'unzipping L0 FITS files', name='kcor/rt', /info
+    l0_fits_glob = '*.fts.gz'
+    l0_fits_files = file_search(l0_fits_glob, count=n_l0_fits_files)
+    if (n_l0_fits_files gt 0L) then begin
+      gunzip_cmd = string(run.gunzip, l0_fits_glob, format='(%"%s %s")')
+      spawn, gunzip_cmd, result, error_result, exit_status=status
+      if (status ne 0L) then begin
+        mg_log, 'problem unzipping files with command: %s', gunzip_cmd, $
+                name='kcor/rt', /error
+        mg_log, '%s', error_result, name='kcor/rt', /error
+      endif
+    endif else begin
+      mg_log, 'no L0 FITS files to unzip', name='kcor/rt', /info
+    endelse
 
     l0_fits_files = file_search(filepath('*_*kcor.fts', root=raw_dir), $
                                 count=n_l0_fits_files)
@@ -65,27 +84,33 @@ pro kcor_rt, date, config_filename=config_filename
     mg_log, 'processing %d L0 files', n_l0_fits_files, name='kcor/rt', /info
 
     ; TODO: change interface here
-    kcor_qsc, date, l0_fits_files, ok_files=ok_files, /append
+    ;kcor_qsc, date, l0_fits_files, ok_files=ok_files, /append, run=run
 
     ; TODO: change interface here
-    kcorl1, date, ok_files, /append
+    ;kcor_l1, date, ok_files, /append, run=run
 
     mg_log, 'moving processed files to l0_dir', name='kcor/rt', /info
     file_move, l0_fits_files, l0_dir
 
     cd, l1_dir
 
-    mg_log, 'zipping L1 files', name='kcor/rt', /info
-    gzip_cmd = string(run.gzip, format='(%"%s *l1*fts")')
-    spawn, gzip_cmd, result, error_result, exit_status=status
-    if (status ne 0L) then begin
-      mg_log, 'problem zipping files with command: %s', gzip_cmd, $
-              name='kcor/rt', /error
-      mg_log, '%s', error_result, name='kcor/rt', /error
-    endif
+    mg_log, 'zipping L1 FITS files', name='kcor/rt', /info
+    l1_fits_glob = '*l1*fts'
+    l1_fits_files = file_search(l1_fits_glob, count=n_l1_fits_files)
+    if (n_l1_fits_files gt 0L) then begin
+      gzip_cmd = string(run.gzip, l1_fits_glob, format='(%"%s %s")')
+      spawn, gzip_cmd, result, error_result, exit_status=status
+      if (status ne 0L) then begin
+        mg_log, 'problem zipping files with command: %s', gzip_cmd, $
+                name='kcor/rt', /error
+        mg_log, '%s', error_result, name='kcor/rt', /error
+      endif
+    endif else begin
+      mg_log, 'no L1 FITS files to zip', name='kcor/rt', /info
+    endelse
 
     if (n_elements(ok_files) eq 0L) then begin
-      mg_log, 'no files to archive', name='kcor/rt', info
+      mg_log, 'no files to archive', name='kcor/rt', /info
       goto, done
     endif
 
@@ -127,7 +152,7 @@ pro kcor_rt, date, config_filename=config_filename
   endelse
 
   done:
-  !null = kcor_state(/unlock)
+  !null = kcor_state(/unlock, run=run)
   mg_log, 'done with realtime processing run', name='kcor/rt', /info
   obj_destroy, run
 end

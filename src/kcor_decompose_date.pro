@@ -10,7 +10,7 @@
 ;   date : in, required, type=string
 ;     date in the form "20150801"
 ;-
-function comp_decompose_date, date
+function kcor_decompose_date, date
   compile_opt strictarr
 
   year = strmid(date, 0, 4)

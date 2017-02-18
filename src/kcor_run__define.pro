@@ -116,6 +116,12 @@ pro kcor_run::setup_loggers
                        level=log_level, $
                        filename=filepath(self.date + '.eod.log', root=log_dir)
 
+  mg_log, name='kcor/rt', logger=logger
+  logger->setProperty, format=log_fmt, $
+                       time_format=log_time_fmt, $
+                       level=log_level, $
+                       filename=filepath(self.date + '.realtime.log', root=log_dir)
+
   mg_log, name='kcor/dbinsert', logger=logger
   logger->setProperty, format=log_fmt, $
                        time_format=log_time_fmt, $
@@ -211,7 +217,8 @@ pro kcor_run::getProperty, date=date, $
     process_basedir = self.options->get('process_basedir', section='processing')
   endif
   if (arg_present(lock_raw)) then begin
-    lock_raw = self.options->get('lock_raw', section='processing', /boolean)
+    lock_raw = self.options->get('lock_raw', section='processing', /boolean, $
+                                 default=1B)
   endif
 
   ; results

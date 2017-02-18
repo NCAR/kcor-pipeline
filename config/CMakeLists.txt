@@ -1,1 +1,2 @@
-install(FILES kcor.user.machine.flags.cfg DESTINATION config)
+file(GLOB CONFIG_FILES "*.cfg")
+install(FILES ${CONFIG_FILES} DESTINATION config)
