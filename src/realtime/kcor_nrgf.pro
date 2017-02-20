@@ -1,280 +1,228 @@
-pro kcor_nrgf, fits_file
+; docformat = 'rst'
+
 ;+
-;-------------------------------------------------------------------------------
-; NAME:
-;   kcor_nrgf
+; Apply NRG (normalized, radially-graded) filter to a KCor image. Creates FITS
+; and GIF files.
 ;
-; PURPOSE:
-;   Apply NRG (normalized, radially-graded) filter to a kcor image.
+; :Params:
+;   fits_file : in, required, type=string
+;     KCor L1 fits file
 ;
-; INPUTS:
-;   fits_file:	kcor L1 fits file
-;
-; OUTPUTS:
-;   NRG gif  file
-;   NRG fits file
-;
-; AUTHOR:
+; :Author:
 ;   Andrew L. Stanger   HAO/NCAR
 ;
-; HISTORY:
+; :History:
 ;   14 Apr 2015
 ;   29 May 2015 Mask image with black in occulter & with R > 504 pixels.
 ;   15 Jul 2015 Add /NOSCALE keyword to readfits.
 ;   04 Mar 2016 Generate a 16 bit fits nrgf image in addition to a gif.
-;-------------------------------------------------------------------------------
 ;-
+pro kcor_nrgf, fits_file
+  compile_opt strictarr
 
-;--------------------
-; Read L1 FITS image.
-;--------------------
+  ; read L1 FITS image
+  img = readfits(fits_file, hdu, /noscale, /silent)
 
-img = readfits (fits_file, hdu, /NOSCALE, /SILENT)
+  xdim       = sxpar(hdu, 'NAXIS1')
+  ydim       = sxpar(hdu, 'NAXIS2')
+  xcen       = xdim / 2.0 - 0.5
+  ycen       = ydim / 2.0 - 0.5
+  date_obs   = sxpar(hdu, 'DATE-OBS')   ; yyyy-mm-ddThh:mm:ss
+  platescale = sxpar(hdu, 'CDELT1')     ; arcsec/pixel
+  rsun       = sxpar(hdu, 'RSUN')       ; radius of photosphere [arcsec]
 
-xdim       = sxpar (hdu, 'NAXIS1')
-ydim       = sxpar (hdu, 'NAXIS2')
-xcen       = xdim / 2.0 - 0.5
-ycen       = ydim / 2.0 - 0.5
-date_obs   = sxpar (hdu, 'DATE-OBS')	; yyyy-mm-ddThh:mm:ss
-platescale = sxpar (hdu, 'CDELT1')	; arcsec/pixel
-rsun       = sxpar (hdu, 'RSUN')	; radius of photosphere [arcsec].
+  ; extract date and time from FITS header
+  year   = strmid(date_obs, 0, 4)
+  month  = strmid(date_obs, 5, 2)
+  day    = strmid(date_obs, 8, 2)
+  hour   = strmid(date_obs, 11, 2)
+  minute = strmid(date_obs, 14, 2)
+  second = strmid(date_obs, 17, 2)
 
-;--- Extract date and time from FITS header.
+  odate   = strmid(date_obs, 0, 10)   ; yyyy-mm-dd
+  otime   = strmid(date_obs, 11, 8)   ; hh:mm:ss
 
-year   = strmid (date_obs, 0, 4)
-month  = strmid (date_obs, 5, 2)
-day    = strmid (date_obs, 8, 2)
-hour   = strmid (date_obs, 11, 2)
-minute = strmid (date_obs, 14, 2)
-second = strmid (date_obs, 17, 2)
+  ; convert month from integer to name of month
+  name_month = (['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', $
+                 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])[fix(month)]
 
-odate   = strmid (date_obs, 0, 10)	; yyyy-mm-dd
-otime   = strmid (date_obs, 11, 8)	; hh:mm:ss
+  ; determine DOY
+  mday      = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
+  mday_leap = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]   ; leap year
 
-;--- Convert month from integer to name of month.
+  if ((fix(year) mod 4) eq 0) then begin
+    doy = mday_leap[fix(month) - 1] + fix(day)
+  endif else begin
+    doy = mday[fix(month) - 1] + fix(day)
+  endelse
 
-IF (month EQ '01') THEN name_month = 'Jan'
-IF (month EQ '02') THEN name_month = 'Feb'
-IF (month EQ '03') THEN name_month = 'Mar'
-IF (month EQ '04') THEN name_month = 'Apr'
-IF (month EQ '05') THEN name_month = 'May'
-IF (month EQ '06') THEN name_month = 'Jun'
-IF (month EQ '07') THEN name_month = 'Jul'
-IF (month EQ '08') THEN name_month = 'Aug'
-IF (month EQ '09') THEN name_month = 'Sep'
-IF (month EQ '10') THEN name_month = 'Oct'
-IF (month EQ '11') THEN name_month = 'Nov'
-IF (month EQ '12') THEN name_month = 'Dec'
+  ; find size of occulter
+  ;   - one occulter has 4 digits; other two have 5
+  ;   - Oonly read in 4 digits to avoid confusion
+  occulter_id = ''
+  occulter_id = sxpar(hdu, 'OCCLTRID')
+  occulter    = strmid(occulter_id, 3, 5)
+  occulter    = float(occulter)
+  if (occulter eq 1018.0) then occulter = 1018.9
+  if (occulter eq 1006.0) then occulter = 1006.9
 
-;--- Determine DOY.
+  radius_guess = 178
+  img_info = kcor_find_image(img, radius_guess)
+  xc   = img_info[0]
+  yc   = img_info[1]
+  r    = img_info[2]
 
-mday      = [0,31,59,90,120,151,181,212,243,273,304,334]
-mday_leap = [0,31,60,91,121,152,182,213,244,274,305,335] ;leap year
+  rocc    = occulter / platescale   ; occulter radius [pixels]
+  r_photo = rsun / platescale       ; photosphere radius [pixels]
+  r0      = rocc + 2                ; add 2 pixels for inner FOV
+  ;r0   = (rsun * 1.05) / platescale
 
-IF ((fix(year) mod 4) EQ 0) THEN $
-   doy = (mday_leap(fix(month)-1) + fix(day))$
-ELSE $
-   doy = (mday (fix (month) - 1) + fix (day))
+  cneg = fix(ycen - r_photo)
+  cpos = fix(ycen + r_photo)
 
-; ----------------------
-; Find size of occulter.
-; ----------------------
-; One occulter has 4 digits; Other two have 5.
-; Only read in 4 digits to avoid confusion.
+  print, '--- kcor_nrgf ---'
+  print, 'rsun     [arcsec]: ', rsun 
+  print, 'occulter [arcsec]: ', occulter
+  print, 'r_photo  [pixels]: ', r_photo
+  print, 'rocc     [pixels]: ', rocc
+  print, 'r0:                ', r0
 
-occulter_id = ''
-occulter_id = sxpar (hdu, 'OCCLTRID')
-occulter    = strmid (occulter_id, 3, 5)
-occulter    = float (occulter)
-IF (occulter eq 1018.0) THEN occulter = 1018.9
-IF (occulter eq 1006.0) THEN occulter = 1006.9
+  ; compute normalized, radially-graded filter
+  for_nrgf, img, xcen, ycen, r0, imgflt
 
-radius_guess = 178
-img_info = kcor_find_image (img, radius_guess)
-xc   = img_info (0)
-yc   = img_info (1)
-r    = img_info (2)
+  imin = min(imgflt)
+  imax = max(imgflt)
+  ;cmin = imin / 2.0 
+  ;cmax = imax / 2.0
+  cmin = imin
+  cmax = imax
 
-rocc    = occulter / platescale		; occulter radius [pixels].
-r_photo = rsun / platescale		; photosphere radius [pixels]
-r0 = rocc + 2				; add 2 pixels for inner FOV.
-;r0   = (rsun * 1.05) / platescale
+  if (imin LT 0.0) then begin
+    amin = abs(imin)
+    amax = abs(imax)
+    max = amax gt amin ? amax : amin
+  endif
 
-cneg = FIX (ycen - r_photo)
-cpos = FIX (ycen + r_photo)
+  ;print, 'imin/imax: ', imin, imax
+  print, 'cmin/cmax: ', cmin, cmax
 
-print, '--- kcor_nrgf ---'
-print, 'rsun     [arcsec]: ', rsun 
-print, 'occulter [arcsec]: ', occulter
-print, 'r_photo  [pixels]: ', r_photo
-print, 'rocc     [pixels]: ', rocc
-print, 'r0:                ', r0
+  ; use mask to build gif image
 
-;--- Compute normalized, radially-graded filter.
+  ; create masking arrays
+  xx1  = findgen(xdim, ydim) mod xdim - xcen
+  yy1  = transpose(findgen(ydim, xdim) mod ydim) - ycen
+  xx1  = double(xx1)
+  yy1  = double(yy1)
+  rad1 = sqrt(xx1 ^ 2.0 + yy1 ^ 2.0)
 
-for_nrgf, img, xcen, ycen, r0, imgflt
+  ; set masking limits
+  r_in  = fix(occulter / platescale) + 5.0
+  r_out = 504.0
 
-imin = min (imgflt)
-imax = max (imgflt)
-;cmin = imin / 2.0 
-;cmax = imax / 2.0
-cmin = imin
-cmax = imax
+  print, 'r_in: ', r_in, ' r_out: ', r_out
 
-if (imin LT 0.0) then $
-begin ;{
-   amin = abs (imin)
-   amax = abs (imax)
-   if (amax GT amin) then max = amax else max = amin
-end   ;}
+  dark = where(rad1 lt r_in or rad1 ge r_out)
+  imgflt[dark] = -10.0   ; set pixels outside annulus to -10
 
-;print, 'imin/imax: ', imin, imax
-print, 'cmin/cmax: ', cmin, cmax
+  ; graphics device
+  set_plot, 'Z'
+  device, set_resolution=[xdim, ydim], decomposed=0, set_colors=256, z_buffering=0
+  erase
 
-;-----------------------------
-; Use mask to build gif image.
-;-----------------------------
+  ;set_plot, 'X'
+  ;device, decomposed = 1
+  ;window, xsize=xdim, ysize=xdim, retain=2
 
-;--- Create masking arrays.
+  ; load color table
+  lct,   '/hao/acos/sw/idl/color/quallab.lut'
+  tvlct, red, green, blue, /get
 
-xx1   = findgen (xdim, ydim) mod (xdim) - xcen
-yy1   = transpose (findgen (ydim, xdim) mod (ydim)) - ycen
-xx1   = double (xx1)
-yy1   = double (yy1)
-rad1  = sqrt (xx1^2.0 + yy1^2.0)
+  ; display image and annotate
+  tv, bytscl(imgflt, cmin, cmax)
 
-;--- Set masking limits.
+  xyouts, 4, 990, 'HAO/MLSO/Kcor', color=255, charsize=1.5, /device
+  xyouts, 4, 970, 'K-Coronagraph', color=255, charsize=1.5, /device
 
-r_in  = fix (occulter / platescale) + 5.0
-r_out = 504.0
+  ;xyouts, 512, 1000, 'North', color=255, charsize=1.2, alignment=0.5, $
+  ;        /device
+  ;xyouts, 22, 512, 'East', color=255, charsize=1.2, alignment=0.5, $
+  ;        orientation = 90., /device
+  ;xyouts, 1012, 512, 'West', color=255, charsize=1.2, alignment=0.5, $
+  ;        orientation = 90., /device
+  ;xyouts, 512, 12, 'South', color=255, charsize=1.2, alignment=0.5, $
+  ;        /device
 
-print, 'r_in: ', r_in, ' r_out: ', r_out
+  xyouts, 505, cpos - 24, 'N', color=254, charsize=1.5, /device
+  xyouts, cneg + 12, 505, 'E', color=254, charsize=1.5, /device
+  xyouts, 506, cneg + 12, 'S', color=254, charsize=1.5, /device
+  xyouts, cpos - 24, 505, 'W', color=254, charsize=1.5, /device
 
-dark = where (rad1 LT r_in OR rad1 GE r_out)
-imgflt (dark) = -10.0		; Set pixels outside annulus to -10.
+  xyouts, 1018, 995, string(format='(a2)', day) + ' ' + $
+                     string(format='(a3)', name_month) +  ' ' + $
+                     string(format='(a4)', year), /device, alignment=1.0, $
+                     charsize=1.2, color=255
+  xyouts, 1010, 975, 'DOY ' + string (format='(i3)', doy), /device, $
+                     alignment=1.0, charsize=1.2, color=255
+  xyouts, 1018, 955, string(format='(a2)', hour) + ':' + $
+                     string(format='(a2)', minute) + ':' + $
+                     string(format='(a2)', second) + ' UT', /device, $
+                     alignment=1.0, charsize=1.2, color=255
 
-;-----------------
-; Graphics device.
-;-----------------
+  xyouts, 4, 46, 'Level 1 data', color=255, charsize=1.2, /device
+  xyouts, 4, 26, 'min/max: ' + string(format='(f4.1)', cmin) + ', ' $
+                             + string(format='(f4.1)', cmax), $
+                 color=255, charsize=1.2, /device
 
-set_plot, 'Z'
-device, set_resolution = [xdim, ydim], $
-        decomposed=0, set_colors=256, z_buffering=0
-erase
+  xyouts, 4, 6, 'Intensity: normalized, radially-graded', $
+                color=255, charsize=1.2, /device
+  xyouts, 1018, 6, 'circle: photosphere', $
+                   color=255, charsize=1.2, /device, alignment=1.0
 
-;set_plot, 'X'
-;device, decomposed = 1
-;window, xsize = xdim, ysize = xdim, retain = 2
+  ; image has been shifted to center of array
+  ; draw circle at photosphere
+  ;tvcircle, r_photo, 511.5, 511.5, color=255, /device
+  suncir_kcor, xdim, ydim, xcen, ycen, 0, 0, r_photo, 0.0
 
-;--- Load color table.
+  ; create NRG gif file
+  save     = tvrd()
+  fts_loc  = strpos(fits_file, '.fts')
+  gif_file = strmid(fits_file, 0, fts_loc) + '_nrgf.gif'
 
-lct,   '/hao/acos/sw/idl/color/quallab.lut'    ; color table.
-tvlct, red, green, blue, /get
+  print, 'gif_file:  ', gif_file
 
-;----------------------------
-; Display image and annotate.
-;----------------------------
+  write_gif, gif_file, save, red, green, blue
 
-tv, bytscl (imgflt, cmin, cmax)
+  ; create short integer image
+  bscale = 0.001
+  simg = fix(imgflt * 1000.0)   ; convert RG image to short integer.
+  datamin = min(simg) * bscale
+  datamax = max(simg) * bscale
+  dispmin = cmin
+  dispmax = cmax
 
-xyouts, 4, 990, 'HAO/MLSO/Kcor', color = 255, charsize = 1.5, /device
-xyouts, 4, 970, 'K-Coronagraph', color = 255, charsize = 1.5, /device
+  ; modify the FITS header for an NRG fits image
+  rhdu = hdu
+  fxaddpar, rhdu, 'LEVEL', 'L1NRGF', $
+            ' Level 1 Normalized Radially-Graded Intensity'
+  fxaddpar, rhdu, 'BSCALE', bscale, $
+            ' Normalized Radially-Graded H.Morgan+S.Fineschi', $
+            format='(f10.3)'
+  fxaddpar, rhdu, 'DATAMIN', datamin, ' minimum value of  data', $
+            format='(f10.3)'
+  fxaddpar, rhdu, 'DATAMAX', datamax, ' maximum value of  data', $
+            format='(f10.3)'
+  fxaddpar, rhdu, 'DISPMIN', dispmin, ' minimum value for display', $
+            format='(f10.3)'
+  fxaddpar, rhdu, 'DISPMAX', dispmax, ' maximum value for display', $
+            format='(f10.3)'
+  fxaddpar, rhdu, 'DISPEXP', 1, ' exponent value for display (d=b^dispexp)', $
+            format='(f10.3)'
 
-;xyouts, 512, 1000, 'North', color = 255, charsize = 1.2, alignment = 0.5, $
-;	            /device
-;xyouts, 22, 512, 'East', color = 255, charsize = 1.2, alignment = 0.5, $
-;                 orientation = 90., /device
-;xyouts, 1012, 512, 'West', color = 255, charsize = 1.2, alignment = 0.5, $
-;                   orientation = 90., /device
-;xyouts, 512, 12, 'South', color = 255, charsize = 1.2, alignment = 0.5, $
-;	            /device
+  ; write NRG fits file
+  fts_loc   = strpos(fits_file, '.fts')
+  rfts_file = strmid(fits_file, 0, fts_loc) + '_nrgf.fts'
 
-xyouts, 505, cpos-24, 'N', color=254, charsize=1.5, /device
-xyouts, cneg+12, 505, 'E', color=254, charsize=1.5, /device
-xyouts, 506, cneg+12, 'S', color=254, charsize=1.5, /device
-xyouts, cpos-24, 505, 'W', color=254, charsize=1.5, /device
+  print, 'rfts_file: ', rfts_file
 
-xyouts, 1018, 995, string (format = '(a2)', day) + ' ' + $
-                   string (format = '(a3)', name_month) +  ' ' + $
-                   string (format = '(a4)', year), /device, alignment = 1.0, $
-                   charsize = 1.2, color = 255
-xyouts, 1010, 975, 'DOY ' + string (format = '(i3)', doy), /device, $
-                   alignment = 1.0, charsize = 1.2, color = 255
-xyouts, 1018, 955, string (format = '(a2)', hour) + ':' + $
-                   string (format = '(a2)', minute) + ':' + $
-	           string(format = '(a2)', second) + ' UT', /device, $
-                   alignment = 1.0, charsize = 1.2, color = 255
-
-xyouts, 4, 46, 'Level 1 data', color = 255, charsize = 1.2, /device
-xyouts, 4, 26, 'min/max: ' + string (format = '(f4.1)', cmin) + ', ' $
-                           + string (format = '(f4.1)', cmax), $
-               color = 255, charsize = 1.2, /device
-	       
-xyouts, 4, 6, 'Intensity: normalized, radially-graded', $
-              color = 255, charsize = 1.2, /device
-xyouts, 1018, 6, 'circle: photosphere', $
-                 color = 255, charsize = 1.2, /device, alignment = 1.0
-
-;--- Image has been shifted to center of array.
-;--- Draw circle at photosphere.
-
-;tvcircle, r_photo, 511.5, 511.5, color = 255, /device
-
-suncir_kcor, xdim, ydim, xcen, ycen, 0, 0, r_photo, 0.0
-
-;---------------------
-; Create NRG gif file.
-;---------------------
-
-save     = tvrd ()
-fts_loc  = strpos (fits_file, '.fts')
-gif_file = strmid (fits_file, 0, fts_loc) + '_nrgf.gif'
-
-print, 'gif_file:  ', gif_file
-
-write_gif, gif_file, save, red, green, blue
-
-;----------------------------
-; Create short integer image.
-;----------------------------
-
-bscale = 0.001
-simg = fix (imgflt * 1000.0)	; convert RG image to short integer.
-datamin = min (simg) * bscale
-datamax = max (simg) * bscale
-dispmin = cmin
-dispmax = cmax
-
-;----------------------------------------------
-; Modify the FITS header for an NRG fits image.
-;----------------------------------------------
-
-rhdu = hdu
-fxaddpar, rhdu, 'LEVEL', 'L1NRGF', $
-                          ' Level 1 Normalized Radially-Graded Intensity'
-fxaddpar, rhdu, 'BSCALE', bscale, $
-                           ' Normalized Radially-Graded H.Morgan+S.Fineschi', $
-			   format = '(f10.3)'
-fxaddpar, rhdu, 'DATAMIN', datamin, ' minimum value of  data', $
-                           format = '(f10.3)'
-fxaddpar, rhdu, 'DATAMAX', datamax, ' maximum value of  data', $
-                           format = '(f10.3)'
-fxaddpar, rhdu, 'DISPMIN', dispmin, ' minimum value for display', $
-                           format = '(f10.3)'
-fxaddpar, rhdu, 'DISPMAX', dispmax, ' maximum value for display', $
-                           format = '(f10.3)'
-fxaddpar, rhdu, 'DISPEXP', 1, ' exponent value for display (d=b^dispexp)', $
-                           format = '(f10.3)'
-
-;---------------------
-; Write NRG fits file.
-;---------------------
-
-fts_loc   = strpos (fits_file, '.fts')
-rfts_file = strmid (fits_file, 0, fts_loc) + '_nrgf.fts'
-
-print, 'rfts_file: ', rfts_file
-
-writefits, rfts_file, simg, rhdu
-
+  writefits, rfts_file, simg, rhdu
 end

@@ -1,6 +1,5 @@
 ; docformat = 'rst'
 
-
 ;+
 ; This is the top-level realtime pipeline routine.
 ;

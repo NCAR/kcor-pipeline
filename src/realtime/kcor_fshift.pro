@@ -23,8 +23,8 @@
 ;     interpolation). See IDL manual for details. 
 ;
 ; :History:
-;	version 1.0	T.Sakao written on 95.06.30 (Fri)
-;		1.1	96.01.16 (Tue)	Option interp added. 
+;   version 1.0  T.Sakao written on 95.06.30 (Fri)
+;           1.1  96.01.16 (Tue) Option interp added. 
 ;-
 function kcor_fshift, data, x, y, interp=itp
   compile_opt strictarr
