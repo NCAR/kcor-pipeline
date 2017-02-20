@@ -1,8 +1,22 @@
 ; docformat = 'rst'
 
 ;+
-;  procedure to apply distortion correction to the sub-images
-;  dat1 and dat2 given the distortion coefficients.
+; Apply distortion correction to the sub-images `dat1` and `dat2` given the
+; distortion coefficients.
+;
+; :Params:
+;   dat1 : in, required, type=array
+;     image from camera 0
+;   dat1 : in, required, type=array
+;     image from camera 1
+;   dx1_c : in, required, type="fltarr(4, 4)"
+;     x-coefficents for camera 0 image
+;   dy1_c : in, required, type="fltarr(4, 4)"
+;     y-coefficents for camera 0 image
+;   dx2_c : in, required, type="fltarr(4, 4)"
+;     x-coefficents for camera 1 image
+;   dy2_c : in, required, type="fltarr(4, 4)"
+;     y-coefficents for camera 1 image
 ;-
 pro kcor_apply_dist, dat1, dat2, dx1_c, dy1_c, dx2_c, dy2_c
   compile_opt strictarr
