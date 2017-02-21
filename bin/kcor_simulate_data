@@ -82,7 +82,7 @@ def download_loop(archive_dir, raw_dir, batch_time):
 
 
 if __name__ == '__main__':
-    name = 'Realtime KCor pipeline simulator'
+    name = 'Realtime KCor pipeline data simulator'
     parser = argparse.ArgumentParser(description=name)
     archivedir_help = '''source directory of data files'''
     parser.add_argument('archivedir', type=str, help=archivedir_help)
