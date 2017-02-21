@@ -26,7 +26,6 @@ if __name__ == '__main__':
 
     config_basename = 'kcor.%s.%s.%s.cfg' % (username, machine, args.config_flags)
 
-
     # construct config file filename
     config_filename = os.path.join(pipeline_dir, 'config', config_basename)
 
@@ -34,7 +33,7 @@ if __name__ == '__main__':
     config = ConfigParser.ConfigParser()
     config.read(config_filename)
 
-    depot_dir = config.get('testing', 'depot_dir')
+    depot_basedir = config.get('testing', 'depot_dir')
 
     raw_basedir = config.get('processing', 'raw_basedir')
     raw_dir = os.path.join(raw_basedir, args.date)
@@ -42,23 +41,21 @@ if __name__ == '__main__':
     frequency = config.get('testing', 'frequency')
     batch_time = config.get('testing', 'batch_time')
 
-
     # launch processing simulator
     processing_cmd = [os.path.join(pipeline_dir, 'bin', 'kcor_simulate_processing'),
-                      '-f %s' % frequency,
+                      '-f',
+                      '%s' % frequency,
                       args.date,
-                      config_filename]
+                      args.config_flags]
     print(' '.join(processing_cmd))
     pid = subprocess.Popen(processing_cmd).pid
 
-    # wait a few seconds
-    time.sleep(5.0)
-
     # launch incoming data simulator
     data_cmd = [os.path.join(pipeline_dir, 'bin', 'kcor_simulate_data'),
-                '-r %s' % raw_dir,
-                '-b %s' % batch_time,
-                args.date,
-                config_filename]
+                '-r',
+                ' %s' % raw_dir,
+                '-b',
+                ' %s' % batch_time,
+                os.path.join(depot_basedir, args.date)]
     print(' '.join(data_cmd))
     pid = subprocess.Popen(data_cmd).pid

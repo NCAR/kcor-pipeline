@@ -26,10 +26,10 @@ def decompose_filename(f):
     return tuple(int(p) for p in parts)
 
 
-def catalog_archive(archive_dir):
+def catalog_depot(depot_dir):
     '''KCor raw data filenames are of the form `20170131_022253_kcor.fts`; log
        files are of the form `20170131.kcor.t1.log`.'''
-    files = os.listdir(archive_dir)
+    files = os.listdir(depot_dir)
     l0_re = re.compile(KCOR_L0_RE)
     log_re = re.compile(KCOR_LOG_RE)
     data_files = [f for f in files if l0_re.match(f)]
@@ -38,18 +38,18 @@ def catalog_archive(archive_dir):
     return [{'filename': f, 'date': d} for f, d in zip(data_files, dates)], logs
 
 
-def download_loop(archive_dir, raw_dir, batch_time):
-    logging.info('starting KCor realtime simulator...')
-    logging.info('archive directory : %s', archive_dir)
+def download_loop(depot_dir, raw_dir, batch_time):
+    logging.info('starting KCor realtime data simulator...')
+    logging.info('depot directory   : %s', depot_dir)
     logging.info('raw directory     : %s', raw_dir)
     logging.info('batch time        : %d minutes', batch_time)
     logging.info('download time     : %0.1f seconds', DOWNLOAD_TIME)
 
     start_time = datetime.datetime.now()
-    catalog, logs = catalog_archive(archive_dir)
+    catalog, logs = catalog_depot(depot_dir)
     delta = start_time - catalog[0]['date'] - datetime.timedelta(minutes=batch_time)
 
-    logging.info('%d files in archive...', len(catalog))
+    logging.info('%d files in depot...', len(catalog))
     logging.info('%s to %s (duration: %s)',
                  catalog[0]['date'],
                  catalog[-1]['date'],
@@ -59,6 +59,10 @@ def download_loop(archive_dir, raw_dir, batch_time):
         logging.error('%d t1/t2 logs present, exiting...', len(logs))
         return
 
+    # if raw_dir does not exist, create it
+    if not os.path.isdir(raw_dir):
+        os.makedirs(raw_dir)
+
     while True:
         # copy files before now - delta that are still in catalog
         now = datetime.datetime.now()
@@ -67,13 +71,13 @@ def download_loop(archive_dir, raw_dir, batch_time):
             c = catalog.pop(0)
             d = None if not catalog else catalog[0]['date']
             logging.info('copying %s...' % c['filename'])
-            shutil.copy(os.path.join(archive_dir, c['filename']), raw_dir)
+            shutil.copy(os.path.join(depot_dir, c['filename']), raw_dir)
             time.sleep(DOWNLOAD_TIME)
 
         if not catalog:
             for f in logs:
                 logging.info('copying %s...', f)
-                shutil.copy(os.path.join(archive_dir, f), raw_dir)
+                shutil.copy(os.path.join(depot_dir, f), raw_dir)
             logging.info('done copying files')
             return
 
@@ -84,8 +88,8 @@ def download_loop(archive_dir, raw_dir, batch_time):
 if __name__ == '__main__':
     name = 'Realtime KCor pipeline data simulator'
     parser = argparse.ArgumentParser(description=name)
-    archivedir_help = '''source directory of data files'''
-    parser.add_argument('archivedir', type=str, help=archivedir_help)
+    depot_dir_help = '''source directory of data files'''
+    parser.add_argument('depot_dir', type=str, help=depot_dir_help)
     raw_dir_help = '''destination for copying, the default is the
                       current directory'''
     parser.add_argument('-r', '--raw-dir', type=str, help=raw_dir_help)
@@ -97,9 +101,9 @@ if __name__ == '__main__':
                         default=3)
     args = parser.parse_args()
 
-    raw_dir = os.getcwd() if args.raw_dir is None else args.archive_dir
+    raw_dir = args.raw_dir if args.raw_dir else os.getcwd()
 
     try:
-        download_loop(args.archivedir, raw_dir, args.batch_time)
+        download_loop(args.depot_dir, raw_dir.lstrip(), args.batch_time)
     except KeyboardInterrupt:
         logging.info('quitting...')
