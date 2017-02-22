@@ -44,7 +44,7 @@ pro kcor_nrgf, fits_file
 
   ; convert month from integer to name of month
   name_month = (['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', $
-                 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])[fix(month)]
+                 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])[fix(month) - 1]
 
   ; determine DOY
   mday      = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]

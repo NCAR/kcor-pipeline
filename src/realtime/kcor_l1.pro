@@ -1,182 +1,183 @@
+; docformat = 'rst'
+
 ;+
-; pro kcorl1
-;-------------------------------------------------------------------------------
-; :Author: Joan Burkepile [JB]
-;-------------------------------------------------------------------------------
 ; :Description: Make semi-calibrated kcor images.
-;-------------------------------------------------------------------------------
+;
+; :Author:
+;   Joan Burkepile [JB]
+;
 ; :History:
-; Modified version of 'make_calib_kcor_vig_gif.pro' 
-; 8 Oct 2014 09:57 (Andrew Stanger [ALS])
-; Extensive revisions by Giliana de Toma [GdT].
-; Merge two camera images prior to removal of sky polarization (radius, angle).
+;   Modified version of 'make_calib_kcor_vig_gif.pro' 
+;   8 Oct 2014 09:57 (Andrew Stanger [ALS])
+;   Extensive revisions by Giliana de Toma [GdT].
+;   Merge two camera images prior to removal of sky polarization (radius, angle).
 ;
-; 03 Oct 2014: Add date & list parameters.
-; 13 Nov 2014: Add base_dir parameter.
-; 13 Nov 2014: Use kcor_find_image function to locate disc center.
-; 14 Nov 2014: Use Z-buffer instead of X window device for GIF images.
-;              Note: charsize for xyouts needs to be reduced to about 2/3 of
-;              of the size used for the X window device to yield approximately
-;              the same size of characters in the annotated image.
-; 19 Nov 2014: Change log file name so that the date always refers to 
-;              the observing day (instead of calendar day for the L0 list).
+;   03 Oct 2014: Add date & list parameters.
+;   13 Nov 2014: Add base_dir parameter.
+;   13 Nov 2014: Use kcor_find_image function to locate disc center.
+;   14 Nov 2014: Use Z-buffer instead of X window device for GIF images.
+;                Note: charsize for xyouts needs to be reduced to about 2/3 of
+;                of the size used for the X window device to yield approximately
+;                the same size of characters in the annotated image.
+;   19 Nov 2014: Change log file name so that the date always refers to 
+;                the observing day (instead of calendar day for the L0 list).
 ;
-; 7 Nov 2014: [GdT] Modified centering algorithm, since it did not find 
-;             the correct center.
-; 7 Nov 2014: [GdT] Changed to double precision to properly find inflection 
-;             points
-;             Added keyword center_guess to guess center location using with 
-;             vertical/horizonatl scans (see Alice's quick-look code).
-;             Added iteration if center is not found at first attempt.
-;             Used Randy Meisner fitcircle.pro to fit a circle because faster.
-;                
-; Revisions to speed up code and fixed a few other things (GdT):
-;   Dec 1 2014: negative and zero values in the gain are replaced with the
-;               mean value in a 5x5 region centered on bad data point
-;   Dec 1 2014: coordinates and radius are defined as arrays for gain and images
-;   Dec 1 2014: solar radius, platescale, and occulter are determined at the 
-;               beginning of the code
-;   Dec 1 2014: gain is not shifted to properly flat-field images 
-;               region where gain is not available is based on a shifted gain 
-;   Dec 1 2014: removed part about finding the center after demodulation 
-;               center for final images is based on distorted raw images - 
-;               this is the best way to find the correct center (hard to find 
-;               the center after image calibration because of saturation ring).
-;   Dec 1 2014: Mk4 cordinate transformation is now based on arrays 
-;               (removed loops).
-;   Dec 1 2014: sky polaritzion correction is now based on on arrays 
-;               (removed loops).
-;               sin2theta uses 2 instead of 3 parameters
-;               changed derivative in sin2theta and initial guesses in main code
-;               U fit is shifted by 45deg for Q correction
-;   Dec 1 2014: "a" was used as fit parameter and also as index in for-loops
-;               changed to avoid possible variable conflicts
-;   Dec 1 2014: final image masking is done with array (removed loop)
+;   7 Nov 2014: [GdT] Modified centering algorithm, since it did not find 
+;               the correct center.
+;   7 Nov 2014: [GdT] Changed to double precision to properly find inflection 
+;               points
+;               Added keyword center_guess to guess center location using with 
+;               vertical/horizonatl scans (see Alice's quick-look code).
+;               Added iteration if center is not found at first attempt.
+;               Used Randy Meisner fitcircle.pro to fit a circle because faster.
 ;
-;   Dec 2014: Calibrated image is shifted and rotated using ROT - so only
-;             one interpolation is made to put north up and image in the
-;             array center (Giuliana de Toma & Andrew Stanger)
-;   Jan 2015: fixed error in kcor_sine2theta fit: 
-;             converted degrees in radiants for input in kcor_sine2theta_new.pro
-;             changed degrees and "a" coeff to double precision
-;             changed phase guess to zero (this should not make any difference)
-; 24 Jan 2015 [ALS] Modify L1SWID = 'kcorl1g.pro 24jan2015'.
-;             Remove kcor_sine2theta U plots to display.
-;             Replace pb0r.pro with sun.pro to compute ephemeris data.
-; 28 Jan 2015 [ALS] Modify L1SWID = 'kcorl1g.pro 28jan2015'.
-;             Set maxi=1.8, exp=0.7 [previous values: maxi=1.2, exp=0.8]
-; 03 Feb 2015 [ALS] Add append keyword (for output log file).
-; 12 Feb 2015 [ALS] Add TIC & TOC commands to compute elapsed time.
-; 19 Feb 2015 [ALS] Add current time to log file.
-; 27 Feb 2015 [GdT] changed the DOY computation
-; 27 Feb 2015 [GdT] removed some print statements
-; 27 Feb 2015 [GdT] commened out the pb0r (not used anymore)
-; 27 Feb 2015 [GdT] added mask of good data and make demodulation for 
-;                   good data only
-;  3 Mar 2015 [GdT] changed code so distorsion coeff file is restored  only once
-;  3 Mar 2015 [GdT] made phase0 and phase1 keywords and set default values
-;  3 Mar 2015 [GdT] made bias and sky_factor keywords and set default values
-;  3 Mar 2015 [GdT] made cal_dir and cal_file keywords and set defaults
-;  3 Mar 2015 [GdT] removed more print statements
-;  3 Mar 2015 [GdT] changed call to sun.pro and removed ephem2.pro, 
-;                   julian_date.pro, jd_carr_long.pro
-;                   all ephemeris info is computed using sun.pro
-;  4 Mar 2015 [ALS] L1SWID = 'kcorl1_quick.pro 04mar2015'.
-;  6 Mar 2015 [JB] Replaced application of demodulation matrix multiplication
-;                  with M. Galloy C-code method. 
-;                  *** To execute Galloy C-code, you need a new environmental
-;                  variable in your .login or .cshrc:
-;                  IDL_DLM_PATH=/hao/acos/sw/idl/kcor/pipe:"<IDL_DEFAULT>"
-; 10 Mar 2015 [ALS] Cropped gif annotation was incorrect (power 0.7 should have
-;                   been 0.8).  Changed exponent to 0.8.
-;                   Now both cropped & fullres gif images use the following:
-;                   tv, bytscl (img^0.8, min=0.0 max=1.8).
-;                   Annotation will also now be correct for both GIF images.
-; 11 Mar 2015 [ALS] Modified GIF scaling: exp=0.7, mini=0.1, maxi=1.4
-;                   This provides an improvement in contrast.
-;                   L1SWID = "kcorl1g.pro 11mar2015"
-; 15 Mar 2015 [JB]  Updated ncdf file from Jan 1, 2015 to March 15, 2015. 
-; 18 Mar 2015 [ALS] Modified FITS header comment for RCAMLUT & RCAMLUT.
-;                   RCAMLUT is the Reflected camera & TCAMLUT is Transmitted.
+;   Revisions to speed up code and fixed a few other things (GdT):
+;     Dec 1 2014: negative and zero values in the gain are replaced with the
+;                 mean value in a 5x5 region centered on bad data point
+;     Dec 1 2014: coordinates and radius are defined as arrays for gain and images
+;     Dec 1 2014: solar radius, platescale, and occulter are determined at the 
+;                 beginning of the code
+;     Dec 1 2014: gain is not shifted to properly flat-field images 
+;                 region where gain is not available is based on a shifted gain 
+;     Dec 1 2014: removed part about finding the center after demodulation 
+;                 center for final images is based on distorted raw images - 
+;                 this is the best way to find the correct center (hard to find 
+;                 the center after image calibration because of saturation ring).
+;     Dec 1 2014: Mk4 cordinate transformation is now based on arrays 
+;                 (removed loops).
+;     Dec 1 2014: sky polaritzion correction is now based on on arrays 
+;                 (removed loops).
+;                 sin2theta uses 2 instead of 3 parameters
+;                 changed derivative in sin2theta and initial guesses in main code
+;                 U fit is shifted by 45deg for Q correction
+;     Dec 1 2014: "a" was used as fit parameter and also as index in for-loops
+;                 changed to avoid possible variable conflicts
+;     Dec 1 2014: final image masking is done with array (removed loop)
 ;
-;                   Kcor data acquired prior to 16 Mar 2015 were using the
-;                   WRONG LUT values !.
-;                   Greg Card reported (15 Mar 2015) that the following tables
-;                   were in use (KcoConfig.ini file [C:\kcor directory]) :
-;                   LUT_Names
-;                   c:/kcor/lut/Photonfocus_MV-D1024E_13890_adc0_20131203.bin
-;                   c:/kcor/lut/Photonfocus_MV-D1024E_13890_adc1_20131203.bin
-;                   c:/kcor/lut/Photonfocus_MV-D1024E_13890_adc2_20131203.bin
-;                   c:/kcor/lut/Photonfocus_MV-D1024E_13890_adc3_20131203.bin
-;                   c:/kcor/lut/Photonfocus_MV-D1024E_13891_adc0_20131203.bin
-;                   c:/kcor/lut/Photonfocus_MV-D1024E_13891_adc1_20131203.bin
-;                   c:/kcor/lut/Photonfocus_MV-D1024E_13891_adc2_20131203.bin
-;                   c:/kcor/lut/Photonfocus_MV-D1024E_13891_adc3_20131203.bin
-;                   These look-up tables are for the two SPARE cameras, NOT
-;                   the ones in use at MLSO.
+;     Dec 2014: Calibrated image is shifted and rotated using ROT - so only
+;               one interpolation is made to put north up and image in the
+;               array center (Giuliana de Toma & Andrew Stanger)
+;     Jan 2015: fixed error in kcor_sine2theta fit: 
+;               converted degrees in radiants for input in kcor_sine2theta_new.pro
+;               changed degrees and "a" coeff to double precision
+;               changed phase guess to zero (this should not make any difference)
+;   24 Jan 2015 [ALS] Modify L1SWID = 'kcorl1g.pro 24jan2015'.
+;               Remove kcor_sine2theta U plots to display.
+;               Replace pb0r.pro with sun.pro to compute ephemeris data.
+;   28 Jan 2015 [ALS] Modify L1SWID = 'kcorl1g.pro 28jan2015'.
+;               Set maxi=1.8, exp=0.7 [previous values: maxi=1.2, exp=0.8]
+;   03 Feb 2015 [ALS] Add append keyword (for output log file).
+;   12 Feb 2015 [ALS] Add TIC & TOC commands to compute elapsed time.
+;   19 Feb 2015 [ALS] Add current time to log file.
+;   27 Feb 2015 [GdT] changed the DOY computation
+;   27 Feb 2015 [GdT] removed some print statements
+;   27 Feb 2015 [GdT] commened out the pb0r (not used anymore)
+;   27 Feb 2015 [GdT] added mask of good data and make demodulation for 
+;                     good data only
+;    3 Mar 2015 [GdT] changed code so distorsion coeff file is restored  only once
+;    3 Mar 2015 [GdT] made phase0 and phase1 keywords and set default values
+;    3 Mar 2015 [GdT] made bias and sky_factor keywords and set default values
+;    3 Mar 2015 [GdT] made cal_dir and cal_file keywords and set defaults
+;    3 Mar 2015 [GdT] removed more print statements
+;    3 Mar 2015 [GdT] changed call to sun.pro and removed ephem2.pro, 
+;                     julian_date.pro, jd_carr_long.pro
+;                     all ephemeris info is computed using sun.pro
+;    4 Mar 2015 [ALS] L1SWID = 'kcorl1_quick.pro 04mar2015'.
+;    6 Mar 2015 [JB] Replaced application of demodulation matrix multiplication
+;                    with M. Galloy C-code method. 
+;                    *** To execute Galloy C-code, you need a new environmental
+;                    variable in your .login or .cshrc:
+;                    IDL_DLM_PATH=/hao/acos/sw/idl/kcor/pipe:"<IDL_DEFAULT>"
+;   10 Mar 2015 [ALS] Cropped gif annotation was incorrect (power 0.7 should have
+;                     been 0.8).  Changed exponent to 0.8.
+;                     Now both cropped & fullres gif images use the following:
+;                     tv, bytscl (img^0.8, min=0.0 max=1.8).
+;                     Annotation will also now be correct for both GIF images.
+;   11 Mar 2015 [ALS] Modified GIF scaling: exp=0.7, mini=0.1, maxi=1.4
+;                     This provides an improvement in contrast.
+;                     L1SWID = "kcorl1g.pro 11mar2015"
+;   15 Mar 2015 [JB]  Updated ncdf file from Jan 1, 2015 to March 15, 2015. 
+;   18 Mar 2015 [ALS] Modified FITS header comment for RCAMLUT & RCAMLUT.
+;                     RCAMLUT is the Reflected camera & TCAMLUT is Transmitted.
 ;
-;                   On 16 Mar 2015, Ben Berkey changed the KcoConfig.ini file:
-;                   LUT_Names
-;                   c:/kcor/lut/Photonfocus_MV-D1024E_11461_adc0_20131203.bin
-;                   c:/kcor/lut/Photonfocus_MV-D1024E_11461_adc1_20131203.bin
-;                   c:/kcor/lut/Photonfocus_MV-D1024E_11461_adc2_20131203.bin
-;                   c:/kcor/lut/Photonfocus_MV-D1024E_11461_adc3_20131203.bin
-;                   c:/kcor/lut/Photonfocus_MV-D1024E_13889_adc0_20131203.bin
-;                   c:/kcor/lut/Photonfocus_MV-D1024E_13889_adc1_20131203.bin
-;                   c:/kcor/lut/Photonfocus_MV-D1024E_13889_adc2_20131203.bin
-;                   c:/kcor/lut/Photonfocus_MV-D1024E_13889_adc3_20131203.bin
-;                   These are the correct tables to be used, since the cameras
-;                   in use at MLSO (since deployment, Nov 2013) are:
-;                   camera 0 (Reflected)   S/N 11461
-;                   camera 1 (Transmitted) S/N 13889
-; 09 Apr 2015 [ALS] L1SWID='kcorl1s.pro 09apr2015'.
-;                   Combine images from both cameras prior to removal
-;                   of sky polarization (radius, angle).
-;		    cal_file='20150403_203428_ALL_ANGLES_kcor_1ms_new_dark.ncdf'
-; 10 Apr 2015 [ALS] Add fits header keyword: 'DATATYPE' (cal, eng, science).
-;                   L1SWID='kcorl1s.pro 10apr2015'.
-; 29 May 2015 [ALS] Generate NRGF file via "kcor_nrgf.pro".
-;                   Ben Berkey installed painted occulter (1018.9 arcsec).
-;                   new calibration file: 20150529_180919_cal_1.0ms.ncdf
-; 01 Jun 2015 [ALS] L1SWID = 'kcorl1r.pro 01jun2015'
-; 15 Jul 2015 [ALS] Change BSCALE parameter from 1.0 to 0.001.  Prior to this
-;                   date, the value of BSCALE needs to be changed to 0.001 .
-;                   Delete DATE-L1 keyword (replaced by DATE_DP).
-;                   Delete L1SWID keyword (replaced by DPSWID).
-;                   Add DPSWID  keyword (data processing software ID). 
-;                   set DPSWID='kcorl1v.pro 16jul2015'.
-;                   Add DATE_DP keyword (data processing date).
-;                   Add DATE-BEG keyword (same as DATE-OBS).
-;                   Add DATAMIN, DATAMAX keywords.
-;                   Add DISPMIN, DISPMAX, DISPEXP keywords.
-;                   Add XPOSURE keyword (total exposure for image).
-;                   DATASUM & CHECKSUM keywords not yet implemented.
-; 24 Sep 2015 [ALS] Add QUALITY keyword (image quality).
-;                   Add RCAM_XCEN keyword (reflected camera x-center raw image).
-;                   Add RCAM_YCEN keyword (reflected camera y-center raw image).
-;                   Add RCAM_RAD keyword (reflected camera occ radius raw image)
-;                   Add TCAM_XCEN keyword (transmit camera x-center raw image).
-;                   Add TCAM_YCEN keyword (transmit camera y-center raw image).
-;                   Add TCAM_RAD keyword (transmit camera occ radius raw image).
-; 19 Oct 2015 [ALS] Replace DPSWID with L1SWID.
-;                   Delete  DATE_DP keyword.
-;                   Restore DATE-L1 keyword.
-;                   Delete  DATE-BEG keyword.
-;                   Delete  XPOSURE keyword.
-;                   set L1SWID='kcorl1v.pro 19oct2015'.
-;                   Rearrange keywords.
-; 04 Nov 2015 [ALS] Add DATE_HST keyword (Hawaii Standart Time date: yyyy-mm-dd)
-;                   Replace L1SWID  with DPSWID='kcorl1v.pro 04nov2015'.
-;                   Replace DATE-L1 with DATE_DP.
-; 10 Dec 2015 [ALS] Change name to kcorl1.pro.
-;                   DPSWID='kcorl1.pro 10dec2015'.
-; 14 Dec 2015 [ALS] Add comment to telescop keyword.
-;                   set rcamfocs = tcamfocs = 0.0 if level0 values are 'NaN'.
-;                   DPSWID='kcorl1.pro 14dec2015'.
-; 26 Jan 2016 [ALS] Modify all paths to be in non-user directories.
-;		    Use color table in /hao/acos/sw/idl/color.
-; 04 Mar 2016 [ALS] Use kcor_nrgf.pro to generate both gif & FITS RG files.
-;-------------------------------------------------------------------------------
+;                     Kcor data acquired prior to 16 Mar 2015 were using the
+;                     WRONG LUT values !.
+;                     Greg Card reported (15 Mar 2015) that the following tables
+;                     were in use (KcoConfig.ini file [C:\kcor directory]) :
+;                     LUT_Names
+;                     c:/kcor/lut/Photonfocus_MV-D1024E_13890_adc0_20131203.bin
+;                     c:/kcor/lut/Photonfocus_MV-D1024E_13890_adc1_20131203.bin
+;                     c:/kcor/lut/Photonfocus_MV-D1024E_13890_adc2_20131203.bin
+;                     c:/kcor/lut/Photonfocus_MV-D1024E_13890_adc3_20131203.bin
+;                     c:/kcor/lut/Photonfocus_MV-D1024E_13891_adc0_20131203.bin
+;                     c:/kcor/lut/Photonfocus_MV-D1024E_13891_adc1_20131203.bin
+;                     c:/kcor/lut/Photonfocus_MV-D1024E_13891_adc2_20131203.bin
+;                     c:/kcor/lut/Photonfocus_MV-D1024E_13891_adc3_20131203.bin
+;                     These look-up tables are for the two SPARE cameras, NOT
+;                     the ones in use at MLSO.
+;
+;                     On 16 Mar 2015, Ben Berkey changed the KcoConfig.ini file:
+;                     LUT_Names
+;                     c:/kcor/lut/Photonfocus_MV-D1024E_11461_adc0_20131203.bin
+;                     c:/kcor/lut/Photonfocus_MV-D1024E_11461_adc1_20131203.bin
+;                     c:/kcor/lut/Photonfocus_MV-D1024E_11461_adc2_20131203.bin
+;                     c:/kcor/lut/Photonfocus_MV-D1024E_11461_adc3_20131203.bin
+;                     c:/kcor/lut/Photonfocus_MV-D1024E_13889_adc0_20131203.bin
+;                     c:/kcor/lut/Photonfocus_MV-D1024E_13889_adc1_20131203.bin
+;                     c:/kcor/lut/Photonfocus_MV-D1024E_13889_adc2_20131203.bin
+;                     c:/kcor/lut/Photonfocus_MV-D1024E_13889_adc3_20131203.bin
+;                     These are the correct tables to be used, since the cameras
+;                     in use at MLSO (since deployment, Nov 2013) are:
+;                     camera 0 (Reflected)   S/N 11461
+;                     camera 1 (Transmitted) S/N 13889
+;   09 Apr 2015 [ALS] L1SWID='kcorl1s.pro 09apr2015'.
+;                     Combine images from both cameras prior to removal
+;                     of sky polarization (radius, angle).
+;                     cal_file='20150403_203428_ALL_ANGLES_kcor_1ms_new_dark.ncdf'
+;   10 Apr 2015 [ALS] Add fits header keyword: 'DATATYPE' (cal, eng, science).
+;                     L1SWID='kcorl1s.pro 10apr2015'.
+;   29 May 2015 [ALS] Generate NRGF file via "kcor_nrgf.pro".
+;                     Ben Berkey installed painted occulter (1018.9 arcsec).
+;                     new calibration file: 20150529_180919_cal_1.0ms.ncdf
+;   01 Jun 2015 [ALS] L1SWID = 'kcorl1r.pro 01jun2015'
+;   15 Jul 2015 [ALS] Change BSCALE parameter from 1.0 to 0.001.  Prior to this
+;                     date, the value of BSCALE needs to be changed to 0.001 .
+;                     Delete DATE-L1 keyword (replaced by DATE_DP).
+;                     Delete L1SWID keyword (replaced by DPSWID).
+;                     Add DPSWID  keyword (data processing software ID). 
+;                     set DPSWID='kcorl1v.pro 16jul2015'.
+;                     Add DATE_DP keyword (data processing date).
+;                     Add DATE-BEG keyword (same as DATE-OBS).
+;                     Add DATAMIN, DATAMAX keywords.
+;                     Add DISPMIN, DISPMAX, DISPEXP keywords.
+;                     Add XPOSURE keyword (total exposure for image).
+;                     DATASUM & CHECKSUM keywords not yet implemented.
+;   24 Sep 2015 [ALS] Add QUALITY keyword (image quality).
+;                     Add RCAM_XCEN keyword (reflected camera x-center raw image).
+;                     Add RCAM_YCEN keyword (reflected camera y-center raw image).
+;                     Add RCAM_RAD keyword (reflected camera occ radius raw image)
+;                     Add TCAM_XCEN keyword (transmit camera x-center raw image).
+;                     Add TCAM_YCEN keyword (transmit camera y-center raw image).
+;                     Add TCAM_RAD keyword (transmit camera occ radius raw image).
+;   19 Oct 2015 [ALS] Replace DPSWID with L1SWID.
+;                     Delete  DATE_DP keyword.
+;                     Restore DATE-L1 keyword.
+;                     Delete  DATE-BEG keyword.
+;                     Delete  XPOSURE keyword.
+;                     set L1SWID='kcorl1v.pro 19oct2015'.
+;                     Rearrange keywords.
+;   04 Nov 2015 [ALS] Add DATE_HST keyword (Hawaii Standart Time date: yyyy-mm-dd)
+;                     Replace L1SWID  with DPSWID='kcorl1v.pro 04nov2015'.
+;                     Replace DATE-L1 with DATE_DP.
+;   10 Dec 2015 [ALS] Change name to kcorl1.pro.
+;                     DPSWID='kcorl1.pro 10dec2015'.
+;   14 Dec 2015 [ALS] Add comment to telescop keyword.
+;                     set rcamfocs = tcamfocs = 0.0 if level0 values are 'NaN'.
+;                     DPSWID='kcorl1.pro 14dec2015'.
+;   26 Jan 2016 [ALS] Modify all paths to be in non-user directories.
+;                     Use color table in /hao/acos/sw/idl/color.
+;   04 Mar 2016 [ALS] Use kcor_nrgf.pro to generate both gif & FITS RG files.
+;
 ;   Make semi-calibrated kcor images.
 ;-------------------------------------------------------------------------------
 ; 1. Uses a coordinate transform to a mk4-q like image. Need to find a better 
@@ -306,13 +307,15 @@
 ; qual : in, optional, type=string.  Image quality.
 ;------------------------------------------------------------------------------
 ; :Examples:
-; kcorl1, date_string, list='list_of_L0_files', $
-;               base_dir='base_directory_path'
-; kcorl1, 'yyyymmdd', list='L0_list', $
-;               base_dir='/hao/mlsodata3/Data/KCor/raw/2015/'
-; kcorl1, '20141101', list='list17'
-; kcorl1, '20141101', list='list17', /append
-; kcorl1, '20140731', list='doy212.ls',base_dir='/hao/mlsodata1/Data/KCor/work'
+;   Try::
+;
+;     kcorl1, date_string, list='list_of_L0_files', $
+;             base_dir='base_directory_path'
+;     kcorl1, 'yyyymmdd', list='L0_list', $
+;             base_dir='/hao/mlsodata3/Data/KCor/raw/2015/'
+;     kcorl1, '20141101', list='list17'
+;     kcorl1, '20141101', list='list17', /append
+;     kcorl1, '20140731', list='doy212.ls',base_dir='/hao/mlsodata1/Data/KCor/work'
 ;
 ; The default base directory is '/hao/mlsodata1/Data/KCor/raw'.
 ; The base directory may be altered via the 'base_dir' keyword parameter.
@@ -326,805 +329,662 @@
 ;
 ; All Level 1 files (fits & gif) will be stored in the sub-directory 'level1',
 ; under the date directory.
-;------------------------------------------------------------------------------
 ;-
-
-pro kcorl1, date_str, list=list, $
-             base_dir=base_dir, append=append, $
-             cal_dir=cal_dir, cal_file=cal_file, $
-             phase0=phase0, phase1=phase1, bias=bias, $
+pro kcor_l1, date_str, $
+             list=list, $
+             base_dir=base_dir, $
+             append=append, $
+             cal_dir=cal_dir, $
+             cal_file=cal_file, $
+             phase0=phase0, $
+             phase1=phase1, $
+             bias=bias, $
              sky_factor=sky_factor, $
-	     dc_dir=dc_dir, dc_file=dc_file, $
-	     qual=qual
+             dc_dir=dc_dir, $
+             dc_file=dc_file, $
+             qual=qual
+  compile_opt strictarr
 
-;--- Use TIC & TOC to determine elapsed duration of procedure execution.
+  ; use TIC & TOC to determine elapsed duration of procedure execution
+  tic
 
-TIC
+  ; default values for optional keywords
+  default, cal_dir,   '/hao/mlsodata1/Data/KCor/calib_files'
 
-;-------------------------------------------------------------------------------
-; Default values for optional keywords.
-;-------------------------------------------------------------------------------
+  ; default, cal_file,  '20150101_190612_kcor_cal_1.0ms.ncdf' ; < 10 Mar 2015.
+  ; Use 20150315 file >= March 10, 2015 due to color corrector lens changes
+  ; by Dennis G.
+  ;
+  ;default, cal_file,  '20150315_202646_kcor_cal_1.0ms.ncdf'   
+  ;
+  ; Use 20150403_203428_ALL_ANGLES_kcor_1ms_new_dark.ncdf after 03 Apr 2015 20:12.
+  ; default, cal_file,  '20150403_203428_ALL_ANGLES_kcor_1ms_new_dark.ncdf'   
+  ;
+  ; Use 20150529_180919_cal_1.0ms.ncdf for 29 May 2015 & beyond.
+  default, cal_file,  '20150529_180919_cal_1.0ms.ncdf'
 
-default, cal_dir,   '/hao/mlsodata1/Data/KCor/calib_files'
+  default, phase0,  !pi / 11.       ; camera 0   16. degrees look ok for 18 Jun 2014
+                                    ; and April 27, 2014
+  default, phase1, -1. * !pi / 9.   ; camera 1  -20. degrees look ok for 27 Apr 2014
 
-; default, cal_file,  '20150101_190612_kcor_cal_1.0ms.ncdf' ; < 10 Mar 2015.
-; Use 20150315 file >= March 10, 2015 due to color corrector lens changes
-; by Dennis G.
-;
-;default, cal_file,  '20150315_202646_kcor_cal_1.0ms.ncdf'   
-;
-; Use 20150403_203428_ALL_ANGLES_kcor_1ms_new_dark.ncdf after 03 Apr 2015 20:12.
-; default, cal_file,  '20150403_203428_ALL_ANGLES_kcor_1ms_new_dark.ncdf'   
-;
-; Use 20150529_180919_cal_1.0ms.ncdf for 29 May 2015 & beyond.
+  ; GdT: bias and sky_factor are now keywords
+  ; default values should be 0 and 1 but I kept the old values for now.
+  default, bias, 0.07
+  default, sky_factor, 0.5
 
-default, cal_file,  '20150529_180919_cal_1.0ms.ncdf'   
+  default, dc_dir,  '/hao/acos/sw/idl/kcor/pipe'
+  default, dc_file, 'dist_coeff_20131030_2058.sav'   ; distortion correction
 
-default, phase0,  !pi/11.       ; camera 0   16. degrees look ok for 18 Jun 2014
-                                ; and April 27, 2014
-default, phase1, -1.*!pi/9.	; camera 1  -20. degrees look ok for 27 Apr 2014
+  dc_file = 'dist_coeff_20131030_2058.sav'
 
-; GdT: bias and sky_factor are now keywords
-; default values should be 0 and 1 but I kept the old values for now.
+  ; define directories
+  if (not keyword_set(base_dir)) then base_dir = '/hao/mlsodata1/Data/KCor/raw'
 
-default, bias, 0.07
-default, sky_factor, 0.5
+  l0_dir   = base_dir + '/' + date_str                ; level 0
+  l1_dir   = base_dir + '/' + date_str + '/level1/'   ; level 1
+  l0_file  = ''
+  dc_path  = dc_dir + '/' + dc_file   ; distortion correction pathname
 
-default, dc_dir,  '/hao/acos/sw/idl/kcor/pipe'
-default, dc_file, 'dist_coeff_20131030_2058.sav'	; distortion correction
+  if (not file_test(l1_dir, /directory)) then file_mkdir, l1_dir
 
-dc_file = 'dist_coeff_20131030_2058.sav'
+  ; move to the processing directory
 
-;--------------------
-; Define directories.
-;--------------------
+  cd, current=start_dir   ; save current directory
+  cd, l0_dir              ; move to L0 processing directory
 
-if NOT KEYWORD_SET (base_dir) then base_dir = '/hao/mlsodata1/Data/KCor/raw'
+  ; identify list of L0 files
+  if (keyword_set(list)) then begin
+    listfile = list
+  endif else begin
+    listfile = l0_dir + 'l0_list'
+    ; openw, ulist, listfile, /get_lun
+    ; printf, ulist, 'test.fts'
+    ; free_lun, ulist
+    spawn, 'ls *kcor.fts* > l0_list'
+  endelse
 
-l0_dir   = base_dir + '/' + date_str			; level 0
-l1_dir   = base_dir + '/' + date_str + '/level1/'	; level 1
-l0_file  = ''
-dc_path  = dc_dir + '/' + dc_file	; distortion correction pathname.
+  ; get current date & time
+  current_time = systime(/utc)
 
-if (NOT FILE_TEST (l1_dir, /DIRECTORY)) then FILE_MKDIR, l1_dir
+  ; open log file
+  logfile = date_str + '_l1_' + listfile + '.log'
+  if (keyword_set (append)) then begin
+    openw, ulog, l1_dir + logfile, /append, /free $
+  endif else begin
+    openw, ulog, l1_dir + logfile, /free
+  endelse
 
-;-------------------------------------------------------------------------------
-; Move to the processing directory.
-;-------------------------------------------------------------------------------
+  ;print,        '--- kcorl1 ', date_str, ' --- ', current_time
+  ;print,        'l0_dir: ', l0_dir
+  ;print,        'l1_dir: ', l1_dir
 
-cd, current=start_dir			; Save current directory.
-cd, l0_dir				; Move to L0 processing directory
+  printf, ulog, '--- kcorl1 ', date_str, ' --- ', current_time
 
-;-------------------------------------------------------------------------------
-; Identify list of L0 files.
-;-------------------------------------------------------------------------------
+  ;printf, ulog, 'l0_dir: ', l0_dir
+  ;printf, ulog, 'l1_dir: ', l1_dir
 
-get_lun, ULIST
-close,   ULIST
+  ; check for empty list file
+  nfiles = fix(file_lines(listfile))   ; # files in list file.
+  if (nfiles eq 0) then begin
+    print,        listfile, ' empty.  No files to process.'
+    printf, ulog, listfile, ' empty.  No files to process.'
+    goto, done
+  endif
 
-if (KEYWORD_SET (list)) then $
-begin ;{
-   listfile = list   
-end $ ;}
-else $
-begin ;{
-   listfile = l0_dir + 'l0_list'
+  ; extract information from calibration file
+  calpath = cal_dir + '/' + cal_file
 
-;   openw,   ULIST, listfile
-;   printf,  ULIST, 'test.fts'
-;   close,   ULIST
+  print,        'calpath: ', calpath
+  printf, ULOG, 'calpath: ', calpath
 
-   spawn, 'ls *kcor.fts* > l0_list'
-end ;}
-
-;-------------------------
-; Get current date & time.
-;-------------------------
-
-current_time = systime (/UTC)
-
-;-------------------------------------------------------------------------------
-; Open log file.
-;-------------------------------------------------------------------------------
-
-logfile = date_str + '_l1_' + listfile + '.log'
-get_lun, ULOG
-close,   ULOG
-if (keyword_set (append)) then $
-   openw,   ULOG, l1_dir + logfile, /append $
-else	$
-   openw,   ULOG, l1_dir + logfile
-
-;print,        '--- kcorl1 ', date_str, ' --- ', current_time
-;print,        'l0_dir: ', l0_dir
-;print,        'l1_dir: ', l1_dir
-
-printf, ULOG, '--- kcorl1 ', date_str, ' --- ', current_time
-
-;printf, ULOG, 'l0_dir: ', l0_dir
-;printf, ULOG, 'l1_dir: ', l1_dir
-
-;-------------------------------------------------------------------------------
-; Check for empty list file.
-;-------------------------------------------------------------------------------
-
-nfiles = fix (file_lines (listfile))		; # files in list file.
-if (nfiles EQ 0) then $
-begin ;{
-   print,        listfile, ' empty.  No files to process.'
-   printf, ULOG, listfile, ' empty.  No files to process.'
-   GOTO, DONE
-end   ;}
-
-;-------------------------------------------------------------------------------
-; Extract information from calibration file.
-;-------------------------------------------------------------------------------
-
-calpath = cal_dir + '/' + cal_file
-
-print,        'calpath: ', calpath
-printf, ULOG, 'calpath: ', calpath
-
-unit = ncdf_open (calpath)
+  unit = ncdf_open(calpath)
   ncdf_varget, unit, 'Dark', dark_alfred
   ncdf_varget, unit, 'Gain', gain_alfred
   ncdf_varget, unit, 'Modulation Matrix', mmat
   ncdf_varget, unit, 'Demodulation Matrix', dmat
-ncdf_close, unit
+  ncdf_close, unit
 
-; FUTURE: Check matrix for any elements > 1.0
-; I am only printing matrix for one pixel.
+  ; FUTURE: Check matrix for any elements > 1.0
+  ; I am only printing matrix for one pixel.
 
-;print, 'Mod Matrix = camera 0'
-;print, reform (mmat(100, 100, 0, *, *))
-;print, 'Mod Matrix = camera 1'
-;print, reform (mmat(100, 100, 1, *, *))
+  ;print, 'Mod Matrix = camera 0'
+  ;print, reform(mmat[100, 100, 0, *, *])
+  ;print, 'Mod Matrix = camera 1'
+  ;print, reform(mmat[100, 100, 1, *, *])
 
-;printf, ULOG, 'Mod Matrix = camera 0'
-;printf, ULOG, reform (mmat(100, 100, 0, *, *))
-;printf, ULOG, 'Mod Matrix = camera 1'
-;printf, ULOG, reform (mmat(100, 100, 1, *, *))
+  ;printf, ulog, 'Mod Matrix = camera 0'
+  ;printf, ulog, reform(mmat[100, 100, 0, *, *])
+  ;printf, ulog, 'Mod Matrix = camera 1'
+  ;printf, ulog, reform(mmat[100, 100, 1, *, *])
 
-; Set image dimensions.
+  ; set image dimensions
+  xsize = 1024L
+  ysize = 1024L
 
-xsize = 1024L
-ysize = 1024L
+  ; modify gain images
+  ;   - set zero and negative values in gain to value stored in 'gain_negative'
 
-;-------------------------------------------------------------------------------
-; Modify gain images.
-; Set zero and negative values in gain to value stored in 'gain_negative'.
-;-------------------------------------------------------------------------------
-; GdT: changed gain correction and moved it up (not inside the loop)
-; this will change when we read the daily gain instead of a fixed one.
+  ; GdT: changed gain correction and moved it up (not inside the loop)
+  ; this will change when we read the daily gain instead of a fixed one
+  gain_negative = -10
+  gain_alfred[WHERE (gain_alfred le 0, /null)] = gain_negative
 
-gain_negative = -10
-gain_alfred (WHERE (gain_alfred LE 0, /NULL)) = gain_negative
+  ; replace zero and negative values with mean of 5x5 neighbour pixels
+  for b = 0, 1 do begin
+    gain_temp = double(reform(gain_alfred[*, *, b]))
+    filter = mean_filter(gain_temp, 5, 5, invalid=gain_negative, missing=1)
+    bad = where(gain_temp eq gain_negative, nbad)
 
-;--- Replace zero and negative values with mean of 5x5 neighbour pixels.
+    if (nbad gt 0) then begin
+      gain_temp[bad] = filter[bad]
+      gain_alfred[*, *, b] = gain_temp
+    endif
+  endfor
+  gain_temp = 0
 
-for b = 0, 1 do $
-begin ;{
-   gain_temp = double (reform (gain_alfred (*, *, b)))
-   filter = mean_filter (gain_temp, 5, 5, invalid = gain_negative , missing=1)
-   bad = WHERE (gain_temp EQ gain_negative, nbad)
+  ; find center and radius for gain images
 
-   if (nbad GT 0) then $
-   begin ;{
-      gain_temp (bad) = filter (bad)
-      gain_alfred (*, *, b) = gain_temp
-   endif ;}
-endfor ;}
-gain_temp = 0
+  ; set guess for radius - needed to find center
+  radius_guess = 178   ; average radius for occulter
 
-;----------------------------------------
-; Find center and radius for gain images.
-;----------------------------------------
+  ;printf, ULOG, 'radius_guess ', radius_guess
+  info_gain0 = kcor_find_image(gain_alfred[*, *, 0], radius_guess)
+  info_gain1 = kcor_find_image(gain_alfred[*, *, 1], radius_guess)
 
-; Set guess for radius - needed to find center.
+  ; define coordinate arrays for gain images
+  gxx0 = findgen(xsize, ysize) mod xsize - info_gain0[0]
+  gyy0 = transpose(findgen(ysize, xsize) mod ysize) - info_gain0[1]]
 
-radius_guess = 178		; average radius for occulter.
+  gxx0 = double(gxx0)
+  gyy0 = double(gyy0)
+  grr0 = sqrt(gxx0 ^ 2.0 + gyy0 ^ 2.0)
 
-;printf, ULOG, 'radius_guess ', radius_guess
+  gxx1 = findgen(xsize, ysize) mod xsize - info_gain1[0]
+  gyy1 = transpose(findgen(ysize, xsize) mod ysize) - info_gain1[1]
 
-info_gain0 = kcor_find_image (gain_alfred (*, *, 0), radius_guess)
-info_gain1 = kcor_find_image (gain_alfred (*, *, 1), radius_guess)
+  gxx1 = double(gxx1)
+  gyy1 = double(gyy1)
+  grr1 = sqrt(gxx1 ^ 2.0 + gyy1 ^ 2.0)
 
-;------------------------------------------
-; Define coordinate arrays for gain images.
-;------------------------------------------
+  printf, ulog, 'Gain 0 center and radius : ', info_gain0
+  printf, ulog, 'Gain 1 center and radius : ', info_gain1
 
-gxx0 = findgen (xsize, ysize) mod (xsize) - info_gain0 (0)
-gyy0 = transpose (findgen (ysize, xsize) mod (ysize) ) - info_gain0 (1)
+  ; initialize variables
+  cal_data     = dblarr(xsize, ysize, 2, 3)
+  cal_data_new = dblarr(xsize, ysize, 2, 3)
+  gain_shift   = dblarr(xsize, ysize, 2)
 
-gxx0 = double (gxx0)  &  gyy0 = double (gyy0)
-grr0 = sqrt (gxx0^2.0 + gyy0^2.0)  
+  set_plot, 'Z'
+  doplot = 0   ; flag to do diagnostic plots & images
 
-gxx1 = findgen (xsize, ysize) mod (xsize) - info_gain1 (0)
-gyy1 = transpose (findgen (ysize, xsize) mod (ysize) ) - info_gain1 (1)
+  ;set_plot, 'X'
+  ;device, set_resolution=[768, 768], decomposed=0, set_colors=256, $
+  ;        z_buffering=0
+  ;erase
 
-gxx1 = double (gxx1)  &  gyy1 = double (gyy1)
-grr1 = sqrt (gxx1^2.0 + gyy1^2.0)  
+  ; load color table
+  lct, '/hao/acos/sw/idl/color/quallab_ver2.lut'
+  tvlct, red, green, blue, /get
 
-printf, ULOG, 'Gain 0 center and radius : ' , info_gain0
-printf, ULOG, 'Gain 1 center and radius : ' , info_gain1
+  ; image file loop
+  fnum = 0
+  openr, ulist, listfile, /get_lun
+  while (not eof(ulist)) do begin
+    fnum += 1
+    lclock = tic('Loop_' + strtrim(fnum, 2))
 
-;-------------------------------------------------------------------------------
-; Initialize variables.
-;-------------------------------------------------------------------------------
+    ; get current date & time
+    current_time = systime(/utc)
 
-cal_data     = dblarr (xsize, ysize, 2, 3)
-cal_data_new = dblarr (xsize, ysize, 2, 3)
-gain_shift   = dblarr (xsize, ysize, 2)
+    bdate   = bin_date(current_time)
+    cyear   = strtrim(string(bdate[0]), 2)
+    cmonth  = strtrim(string(bdate[1]), 2)
+    cday    = strtrim(string(bdate[2]), 2)
+    chour   = strtrim(string(bdate[3]), 2)
+    cminute = strtrim(string(bdate[4]), 2)
+    csecond = strtrim(string(bdate[5]), 2)
+    if (bdate[1] lt 10) then cmonth  = '0' + cmonth
+    if (bdate[2] lt 10) then cday    = '0' + cday
+    if (bdate[3] lt 10) then chour   = '0' + chour
+    if (bdate[4] lt 10) then cminute = '0' + cminute
+    if (bdate[5] lt 10) then csecond = '0' + csecond
+    date_dp = cyear + '-' + cmonth + '-' + cday + 'T' $
+                + chour + ':' + cminute + ':' + csecond
 
-set_plot, 'Z'
+    readf, ulist, l0_file
+    ;   print, 'l0_file: ', l0_file
+    img  = readfits(l0_file, header, /silent)
+    img  = float(img)
+    img0 = reform(img[*, *, 0, 0])   ; camera 0 [reflected]
+    img1 = reform(img[*, *, 0, 1])   ; camera 1 [transmitted] 
+    type = ''
+    type = fxpar(header, 'DATATYPE')
 
-doplot = 0			; Flag to do diagnostic plots & images.
+    print,        '>>>>>>> ', l0_file, '  ', fnum, '  ', type, ' <<<<<<<'
+    printf, ulog, '>>>>>>> ', l0_file, '  ', fnum, '  ', type, ' <<<<<<<'
 
-;set_plot, 'X'
-;device, set_resolution=[768, 768], decomposed=0, set_colors=256, $
-;        z_buffering=0
-;erase
+    ; read date of observation (needed to compute ephemeris info)
+    date_obs = sxpar(header, 'DATE-OBS')   ; yyyy-mm-ddThh:mm:ss
+    date     = strmid(date_obs, 0, 10)     ; yyyy-mm-dd
 
-;--- Load color table.
+    ; create string data for annotating image
 
-lct, '/hao/acos/sw/idl/color/quallab_ver2.lut'	; color table.
-tvlct, red, green, blue, /get
+    ; extract fields from DATE_OBS
+    syear   = strmid(date_obs,  0, 4)
+    smonth  = strmid(date_obs,  5, 2)
+    sday    = strmid(date_obs,  8, 2)
+    shour   = strmid(date_obs, 11, 2)
+    sminute = strmid(date_obs, 14, 2)
+    ssecond = strmid(date_obs, 17, 2)
 
-;*******************************************************************************
-;*******************************************************************************
-; Image file loop.
-;*******************************************************************************
-;*******************************************************************************
+    ; print,         'date_obs: ', date_obs
+    ; printf, ulog,  'date_obs: ', date_obs
 
-fnum = 0
-openr, ULIST, listfile
+    ; convert month from integer to name of month
+    name_month = (['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', $
+                   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])[fix(smonth) - 1]
 
-while (not EOF (ULIST) ) do $
-begin ;{
-   fnum += 1
-   lclock = TIC ('Loop_' + STRTRIM (fnum, 2))
+    date_img = sday + ' ' + name_month + ' ' + syear + ' ' $
+                 + shour + ':' + sminute + ':'  + ssecond
 
-   ;-------------------------
-   ; Get current date & time.
-   ;-------------------------
+    ; print,        'date_img: ', date_img
+    ; printf, ULOG, 'date_img: ', date_img
 
-   current_time = systime (/UTC)
+    ; compute DOY [day-of-year]
+    mday      = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
+    mday_leap = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]   ; leap year
 
-   bdate   = bin_date (current_time)
-   cyear   = strtrim (string (bdate (0)), 2)
-   cmonth  = strtrim (string (bdate (1)), 2)
-   cday    = strtrim (string (bdate (2)), 2)
-   chour   = strtrim (string (bdate (3)), 2)
-   cminute = strtrim (string (bdate (4)), 2)
-   csecond = strtrim (string (bdate (5)), 2)
-   if (bdate (1) LT 10) then cmonth  = '0' + cmonth
-   if (bdate (2) LT 10) then cday    = '0' + cday
-   if (bdate (3) LT 10) then chour   = '0' + chour
-   if (bdate (4) LT 10) then cminute = '0' + cminute
-   if (bdate (5) LT 10) then csecond = '0' + csecond
-   date_dp = cyear + '-' + cmonth + '-' + cday + 'T' $
-           + chour + ':' + cminute + ':' + csecond
+    if ((fix(syear) mod 4) eq 0) then begin
+      odoy = (mday_leap[fix(smonth) - 1] + fix(sday))
+    endif else begin
+      odoy = (mday[fix(smonth) - 1] + fix (sday))
+    endelse
 
-   readf, ULIST,   l0_file
-;   print, 'l0_file: ', l0_file
-   img  = readfits (l0_file, header, /SILENT)
-   img  = float (img)
-   img0 = reform (img (*, *, 0, 0))	; camera 0 [reflected]
-   img1 = reform (img (*, *, 0, 1))	; camera 1 [transmitted] 
-   TYPE = ''
-   TYPE = fxpar (header, 'DATATYPE')
+    ; convert strings to integers
+    oyear   = fix(syear)
+    omonth  = fix(smonth)
+    oday    = fix(sday)
+    ohour   = fix(shour)
+    ominute = fix(sminute)
+    osecond = fix(ssecond)
 
-   print,        '>>>>>>> ', l0_file, '  ', fnum, '  ', TYPE, ' <<<<<<<'
-   printf, ULOG, '>>>>>>> ', l0_file, '  ', fnum, '  ', TYPE, ' <<<<<<<'
+    ehour   = float(ohour) + ominute / 60.0 + osecond / 3600.0
 
-   ;--------------------------
-   ; Read date of observation.  (needed to compute ephemeris info)
-   ;--------------------------
+    ; print, 'oyear, odoy, omonth, oday : ', oyear, odoy, omonth, oday
+    ; print, 'ohour, ominute, osecond :   ', ohour, ominute, osecond
 
-   date_obs = SXPAR  (header, 'DATE-OBS') 	; yyyy-mm-ddThh:mm:ss
-   date     = strmid (date_obs,  0,10)		; yyyy-mm-dd
+    ; determine observing time at MLSO [HST time zone]
+    hdoy    = odoy
+    hyear   = oyear
+    hmonth  = omonth
+    hday    = oday
+    hhour   = ohour - 10
+    hminute = ominute
+    hsecond = osecond
 
-   ;-----------------------------------------
-   ; Create string data for annotating image.
-   ;-----------------------------------------
+    ; print, 'hyear, hmonth, hday, hdoy : ', hyear, hmonth, hday, hdoy
+    ; print, 'hhour, hminute, hsecond :   ', hhour, hminute, hsecond
 
-   ;--- Extract fields from DATE_OBS.
-
-   syear   = strmid (date_obs,  0, 4)
-   smonth  = strmid (date_obs,  5, 2)
-   sday    = strmid (date_obs,  8, 2)
-   shour   = strmid (date_obs, 11, 2)
-   sminute = strmid (date_obs, 14, 2)
-   ssecond = strmid (date_obs, 17, 2)
-
-;   print,         'date_obs: ', date_obs
-;   printf, ULOG,  'date_obs: ', date_obs
-
-   ;--- Convert month from integer to name of month.
-
-   if (smonth EQ '01') then name_month = 'Jan'
-   if (smonth EQ '02') then name_month = 'Feb'
-   if (smonth EQ '03') then name_month = 'Mar'
-   if (smonth EQ '04') then name_month = 'Apr'
-   if (smonth EQ '05') then name_month = 'May'
-   if (smonth EQ '06') then name_month = 'Jun'
-   if (smonth EQ '07') then name_month = 'Jul'
-   if (smonth EQ '08') then name_month = 'Aug'
-   if (smonth EQ '09') then name_month = 'Sep'
-   if (smonth EQ '10') then name_month = 'Oct'
-   if (smonth EQ '11') then name_month = 'Nov'
-   if (smonth EQ '12') then name_month = 'Dec'
-
-   date_img = sday + ' ' + name_month + ' ' + syear + ' ' $
-            + shour + ':' + sminute + ':'  + ssecond
-
-;   print,        'date_img: ', date_img
-;   printf, ULOG, 'date_img: ', date_img
-
-   ;---------------------------
-   ; Compute DOY [day-of-year].
-   ;---------------------------
-
-    mday      = [0,31,59,90,120,151,181,212,243,273,304,334]   
-    mday_leap = [0,31,60,91,121,152,182,213,244,274,305,335] ;leap year
-
-    if ( (fix (syear) mod 4) EQ 0 ) then $
-       odoy = ( mday_leap (fix (smonth) - 1) + fix (sday) ) $
-    else $
-       odoy = (mday (fix (smonth) - 1) + fix (sday))
-
-   ;-----------------------------
-   ; Convert strings to integers.
-   ;-----------------------------
-
-   oyear   = fix (syear)
-   omonth  = fix (smonth)
-   oday    = fix (sday)
-   ohour   = fix (shour)
-   ominute = fix (sminute)
-   osecond = fix (ssecond)
-
-   ehour   = float (ohour) + ominute / 60.0 + osecond / 3600.0
-
-;   print, 'oyear, odoy, omonth, oday : ', oyear, odoy, omonth, oday
-;   print, 'ohour, ominute, osecond :   ', ohour, ominute, osecond
-
-   ;--- Determine observing time at MLSO [HST time zone].
-
-   hdoy    = odoy
-   hyear   = oyear
-   hmonth  = omonth
-   hday    = oday
-   hhour   = ohour - 10
-   hminute = ominute
-   hsecond = osecond
-
-;   print, 'hyear, hmonth, hday, hdoy : ', hyear, hmonth, hday, hdoy
-;   print, 'hhour, hminute, hsecond :   ', hhour, hminute, hsecond
-
-   if (ohour LT 5) then $		; previous HST day if UTC hour < 5.
-   begin ;{
+    if (ohour lt 5) then begin   ; previous HST day if UTC hour < 5
       hhour += 24
       hdoy  -=  1
 
-      ydn2md, hyear, hdoy, hmon, hday	; convert DOY to month & day.
+      ydn2md, hyear, hdoy, hmon, hday   ; convert DOY to month & day
 
-      if (hdoy EQ 0) then $		; 31 Dec of previous year if DOY = 0.
-      begin ;{ 
-         hyear -=  1 
-	 hmonth = 12
-	 hday   = 31
-      end   ;}
-   end   ;}
+      if (hdoy eq 0) then begin   ; 31 Dec of previous year if DOY = 0
+        hyear -=  1 
+        hmonth = 12
+        hday   = 31
+      endif
+    endif
 
-;   print, 'hyear, hmonth, hday, hdoy: ', hyear, hmonth, hday, hdoy
-;   print, 'hhour, hminute, hsecond:   ', hhour, hminute, hsecond
+    ; print, 'hyear, hmonth, hday, hdoy: ', hyear, hmonth, hday, hdoy
+    ; print, 'hhour, hminute, hsecond:   ', hhour, hminute, hsecond
 
-   hst_year   = strtrim (string (hyear,   format='(i04)'), 2)
-   hst_month  = strtrim (string (hmonth,  format='(i02)'), 2)
-   hst_day    = strtrim (string (hday,    format='(i02)'), 2)
+    hst_year   = strtrim(string(hyear,   format='(i04)'), 2)
+    hst_month  = strtrim(string(hmonth,  format='(i02)'), 2)
+    hst_day    = strtrim(string(hday,    format='(i02)'), 2)
 
-   hst_hour   = strtrim (string (hhour,   format='(i02)'), 2)
-   hst_minute = strtrim (string (hminute, format='(i02)'), 2)
-   hst_second = strtrim (string (hsecond, format='(i02)'), 2)
+    hst_hour   = strtrim(string(hhour,   format='(i02)'), 2)
+    hst_minute = strtrim(string(hminute, format='(i02)'), 2)
+    hst_second = strtrim(string(hsecond, format='(i02)'), 2)
 
-   ;--------------------------------------------
-   ; Create MLSO [HST] date: yyyy-mm-ddThh:mm:ss
-   ;--------------------------------------------
+    ; create MLSO [HST] date: yyyy-mm-ddThh:mm:ss
+    date_hst = hst_year + '-' + hst_month  + '-' + hst_day + 'T' + $
+               hst_hour + ':' + hst_minute + ':' + hst_second
 
-   date_hst = hst_year + '-' + hst_month  + '-' + hst_day + 'T' + $
-              hst_hour + ':' + hst_minute + ':' + hst_second
+    print,         'date_obs: ', date_obs, '    date_hst: ', date_hst
+    printf, ulog,  'date_obs: ', date_obs, '    date_hst: ', date_hst
 
-   print,         'date_obs: ', date_obs, '    date_hst: ', date_hst
-   printf, ULOG,  'date_obs: ', date_obs, '    date_hst: ', date_hst
+    ; put the Level-0 FITS header into a structure
 
-   ;----------------------------------------------------------------------------
-   ; Put the Level-0 FITS header into a structure.
-   ;----------------------------------------------------------------------------
+    struct = fitshead2struct ((header), DASH2UNDERSCORE = dash2underscore)
 
-   struct = fitshead2struct ((header), DASH2UNDERSCORE = dash2underscore)
+    ; window, 0, xsize=1024, ysize=1024, retain=2
+    ; window, 0, xsize=1024, ysize=1024, retain=2, xpos=512, ypos=512
 
-;   window, 0, xs = 1024, ys = 1024, retain = 2
-;   window, 0, xs = 1024, ys = 1024, retain = 2, xpos = 512, ypos = 512
+    device, set_resolution=[1024,1024], decomposed=0, set_colors=256, $
+            z_buffering=0
+    erase
 
-   device, set_resolution=[1024,1024], decomposed=0, set_colors=256, $
-           z_buffering=0
-   erase
+    ; print,        'year, month, day, hour, minute, second: ', $
+    ;               syear, ' ', smonth, ' ', sday, ' ', shour, ' ', sminute, ' ', second
+    ; printf, ulog, 'year, month, day, hour, minute, second: ', $
+    ;               syear, ' ', smonth, ' ', sday, ' ', shour, ' ', sminute, ' ', ssecond
 
-;  print,        'year, month, day, hour, minute, second: ', $
-;           syear, ' ', smonth, ' ', sday, ' ', shour, ' ', sminute, ' ', second
-;  printf, ULOG, 'year, month, day, hour, minute, second: ', $
-;          syear, ' ', smonth, ' ', sday, ' ', shour, ' ', sminute, ' ', ssecond
-
-   ; ----------------------------------
-   ; Solar radius, P and B angle.
-   ; ---------------------------------
+    ; solar radius, P and B angle
    
-   ;ephem  = pb0r (date_obs, /earth)
-   ;pangle = ephem (0)      
-   ;bangle = ephem (1)
-   ;radsun = ephem (2)    ; arcmin
+    ;ephem  = pb0r(date_obs, /earth)
+    ;pangle = ephem[0]
+    ;bangle = ephem[1]
+    ;radsun = ephem[2]    ; arcmin
 
-   ; --------------------------------
-   ; Ephemeris data.
-   ;---------------------------------
-   
-   sun, oyear, omonth, oday, ehour, sd=radsun, pa=pangle, lat0=bangle, $
-        true_ra=sol_ra, true_dec=sol_dec, $
-        carrington=carrington, long0=carrington_long
+    ; ephemeris data
+    sun, oyear, omonth, oday, ehour, sd=radsun, pa=pangle, lat0=bangle, $
+         true_ra=sol_ra, true_dec=sol_dec, $
+         carrington=carrington, long0=carrington_long
 
-   sol_ra = sol_ra * 15.0		; Convert from hours to degrees.
-   carrington_rotnum = fix (carrington)
+    sol_ra = sol_ra * 15.0   ; convert from hours to degrees
+    carrington_rotnum = fix(carrington)
 
-;   julian_date = julday (omonth, oday, oyear, ohour, ominute, osecond)
+    ; julian_date = julday(omonth, oday, oyear, ohour, ominute, osecond)
 
-   ; ---------------------
-   ;  Platescale
-   ; ---------------------
-   ; Made PRELIMARY measurements of 3 occulter diameters to compute 
-   ; first estimate of platescale.
-   ; Largest occulter: radius = 1018.9" is 361 pixels in diameter,
-   ; giving platescale = 5.64488" / pixel
-   ; Medium occulter: radius = 1006.9" is 356.5 pixels in diameter,
-   ; giving platescale = 5.64881" / pixel
-   ; Smallest occulter: radius = 991.6" is 352 pixels in diameter,
-   ; giving platescale = 5.63409" / pixel
-   ; Avg value = 5.643 +/- 0.008" / pixel
+    ;  Platescale
+    ; -----------
+    ; Made PRELIMARY measurements of 3 occulter diameters to compute 
+    ; first estimate of platescale.
+    ; Largest occulter: radius = 1018.9" is 361 pixels in diameter,
+    ; giving platescale = 5.64488" / pixel
+    ; Medium occulter: radius = 1006.9" is 356.5 pixels in diameter,
+    ; giving platescale = 5.64881" / pixel
+    ; Smallest occulter: radius = 991.6" is 352 pixels in diameter,
+    ; giving platescale = 5.63409" / pixel
+    ; Avg value = 5.643 +/- 0.008" / pixel
 
-   platescale = 5.643			; arcsec/pixel.
+    platescale = 5.643   ; arcsec/pixel
 
-   ; ----------------------
-   ; Find size of occulter.
-   ; ----------------------
-   ; One occulter has 4 digits; Other two have 5. 
-   ; Only read in 4 digits to avoid confusion.
+    ; find size of occulter
+    ;   - one occulter has 4 digits; other two have 5
+    ;   - only read in 4 digits to avoid confusion
+    occulter_id = ''
+    occulter_id = fxpar(header, 'OCCLTRID')
+    occulter = strmid(occulter_id, 3, 5)
+    occulter = float(occulter)
+    if (occulter eq 1018.0) then occulter = 1018.9
+    if (occulter eq 1006.0) then occulter = 1006.9
 
-   occulter_id = ''
-   occulter_id = fxpar (header, 'OCCLTRID')
-   occulter = strmid (occulter_id, 3, 5)
-   occulter = float (occulter)
-   if (occulter eq 1018.0) then occulter = 1018.9
-   if (occulter eq 1006.0) then occulter = 1006.9
+    ; print,        'occulter size [arcsec] : ', occulter
+    ; printf, ulog, 'occulter size [arcsec] : ', occulter
 
-;   print,        'occulter size [arcsec] : ', occulter
-;   printf, ULOG, 'occulter size [arcsec] : ', occulter
+    radius_guess = occulter / platescale   ; pixels
 
-   radius_guess = occulter / platescale			; pixels
-
-   ;----------------------------------------------------------------------------
-   ; Find image centers & radii of raw images.
-   ;----------------------------------------------------------------------------
+    ; find image centers & radii of raw images
  
-   ; Camera 0. (reflected)
-    
-   info_raw  = kcor_find_image (img (*, *, 0, 0), $
-                                       radius_guess, /center_guess)
-   xcen0    = info_raw (0)
-   ycen0    = info_raw (1)
-   radius_0 = info_raw (2)
+    ; camera 0 (reflected)
+    info_raw  = kcor_find_image(img[*, *, 0, 0], $
+                                radius_guess, /center_guess)
+    xcen0    = info_raw[0]
+    ycen0    = info_raw[1]
+    radius_0 = info_raw[2]
 
-   xx0 = findgen (xsize, ysize) mod (xsize) - xcen0   
-   yy0 = transpose (findgen (ysize, xsize) mod (ysize) ) - ycen0
+    xx0 = findgen(xsize, ysize) mod xsize - xcen0
+    yy0 = transpose(findgen(ysize, xsize) mod ysize) - ycen0
 
-   xx0 = double (xx0)  &  yy0 = double (yy0)
-   rr0 = sqrt (xx0^2.0 + yy0^2.0)
+    xx0 = double(xx0)
+    yy0 = double(yy0)
+    rr0 = sqrt(xx0 ^ 2.0 + yy0 ^ 2.0)
 
-   theta0 = (atan (-yy0, -xx0)) 
-   theta0 = theta0 + !pi
+    theta0 = atan(- yy0, - xx0)
+    theta0 += !pi
 
-;   pick0 = where (rr0 gt radius_0 -1.0 and rr0 lt 506.0 )
-;   mask_occulter0 = fltarr (xsize, ysize)
-;   mask_occulter0 (*) = 0
-;   mask_occulter0 (pick0) = 1.
+    ; pick0 = where (rr0 gt radius_0 -1.0 and rr0 lt 506.0 )
+    ; mask_occulter0 = fltarr (xsize, ysize)
+    ; mask_occulter0 (*) = 0
+    ; mask_occulter0 (pick0) = 1.
 
-   ; Camera 1. (transmitted)
+    ; camera 1 (transmitted)
+    info_raw = kcor_find_image(img[*, *, 0, 1], $
+                               radius_guess, /center_guess)
+    xcen1    = info_raw[0]
+    ycen1    = info_raw[1]
+    radius_1 = info_raw[2]
 
-   info_raw = kcor_find_image (img (*, *, 0, 1), $
-                                      radius_guess, /center_guess)
-   xcen1    = info_raw (0)
-   ycen1    = info_raw (1)
-   radius_1 = info_raw (2)
+    xx1 = findgen(xsize, ysize) mod xsize - xcen1
+    yy1 = transpose(findgen(ysize, xsize) mod ysize) - ycen1
 
-   xx1 = findgen (xsize, ysize) mod (xsize) - xcen1  
-   yy1 = transpose (findgen (ysize, xsize) mod (ysize) ) - ycen1
+    xx1 = double(xx1)
+    yy1 = double(yy1)
+    rr1 = sqrt(xx1 ^ 2.0 + yy1 ^ 2.0)
 
-   xx1 = double (xx1) &  yy1 = double (yy1)
-   rr1 = sqrt (xx1^2.0 + yy1^2.0)
+    theta1 = atan(- yy1, - xx1)
+    theta1 += !pi
 
-   theta1 = (atan (-yy1, -xx1)) 
-   theta1 = theta1 + !pi
+    ; pick1 = where(rr1 ge radius_1 -1.0 and rr1 lt 506.0)
+    ; mask_occulter1 = fltarr(xsize, ysize)
+    ; mask_occulter1[*] = 0
+    ; mask_occulter1[pick1] = 1.0
 
-;   pick1 = where (rr1 ge radius_1 -1.0 and rr1 lt 506.0)
-;   mask_occulter1 = fltarr (xsize, ysize)
-;   mask_occulter1 (*) = 0
-;   mask_occulter1 (pick1) = 1.0
+    ; printf, ulog, 'CAMERA CENTER INFO FOR RAW IMAGES'
+    printf, ulog, 'Camera 0 center and radius: ', xcen0, ycen0, radius_0
+    printf, ulog, 'Camera 1 center and radius: ', xcen1, ycen1, radius_1
 
-;   printf, ULOG, 'CAMERA CENTER INFO FOR RAW IMAGES'
-   printf, ULOG, 'Camera 0 center and radius: ', xcen0, ycen0, radius_0
-   printf, ULOG, 'Camera 1 center and radius: ', xcen1, ycen1, radius_1
+    ; create new gain to account for image shift
+    ;   Region of missing data is set to a constant for now.
+    ;   It should be replaced with the values from the gain we took without
+    ;   occulter in.
 
-   ;--------------------------------------------
-   ; Create new gain to account for image shift.
-   ;--------------------------------------------
-   ; Region of missing data is set to a constant for now.
-   ; It should be replaced with the values from the gain we took without
-   ; occulter in.
-
-   ;--- camera 0:
-
-   replace = WHERE (rr0 GT radius_0 -4. AND grr0 LE info_gain0 (2) + 4.0, $
-                    nrep)
-   if (nrep GT 0) then $
-   begin ;{
-      gain_temp = gain_alfred (*, *, 0)
-      gain_replace = shift (gain_alfred (*, *, 0), $
-                            xcen0 - info_gain0 (0), $
-                            ycen0 - info_gain0 (1) )
-      gain_temp (replace) = gain_replace (replace)  ;gain_no_occulter0 (replace)
+    ; camera 0
+    replace = where(rr0 gt radius_0 -4. and grr0 le info_gain0[2] + 4.0, nrep)
+    if (nrep gt 0) then begin
+      gain_temp = gain_alfred[*, *, 0]
+      gain_replace = shift(gain_alfred[*, *, 0], $
+                           xcen0 - info_gain0[0], $
+                           ycen0 - info_gain0[1])
+      gain_temp[replace] = gain_replace[replace]   ; gain_no_occulter0[replace]
       gain_shift (*, *, 0) = gain_temp
-;      printf, ULOG, 'Gain for CAMERA 0 shifted to image position.'     
-   endif ;}
+      ; printf, ulog, 'Gain for CAMERA 0 shifted to image position.'
+    endif
 
-   ;--- camera 1:
+    ; camera 1
+    replace = where(rr1 gt radius_1 -4. and grr1 le info_gain1[2] + 4.0, nrep)
+    if (nrep GT 0) then begin
+      gain_temp = gain_alfred[*, *, 1]
+      gain_replace = shift(gain_alfred[*, *, 1], $
+                           xcen1 - info_gain1[0], $
+                           ycen1 - info_gain1[1])
+      gain_temp[replace] = gain_replace[replace]   ; gain_no_occulter1[replace]
+      gain_shift[*, *, 1] = gain_temp
+      ; printf, ulog, 'Gain for CAMERA 1 shifted to image position.'
+    endif
 
-   replace = WHERE (rr1 GT radius_1 -4. AND grr1 LE info_gain1 (2) + 4.0, $
-                    nrep)
-   if (nrep GT 0) then $
-   begin ;{
-      gain_temp =  gain_alfred (*, *, 1)
-      gain_replace = shift (gain_alfred (*, *, 1), $
-                            xcen1 - info_gain1 (0), $
-			    ycen1 - info_gain1 (1) )
-      gain_temp (replace) = gain_replace (replace) ; gain_no_occulter1 (replace)
-      gain_shift (*, *, 1) = gain_temp
-;      printf, ULOG, 'Gain for CAMERA 1 shifted to image position.'
-   endif ;}
+    gain_temp    = 0
+    gain_replace = 0
+    img_cor      = img
 
-   gain_temp    = 0
-   gain_replace = 0
-   img_cor      = img
+    ; apply dark and gain correction
+    ; (Set negative values (after dark subtraction) to zero.)
 
-   ;----------------------------------------------------------------------------
-   ; Apply dark and gain correction.
-   ;----------------------------------------------------------------------------
-   ; (Set negative values (after dark subtraction) to zero.)
+    for b = 0, 1 do begin
+      for s = 0, 3 do begin
+        ; img[*, *, s, b] = $
+        ;   (img[*, *, s, b] - dark_alfred[*, *, b]) / gain_shift[*, *, b]
 
-   FOR b = 0, 1 DO $
-   begin  ;{ 
-      FOR s = 0, 3 DO $
-      begin  ;{
-;         img (*, *, s, b) = $
-;            (img (*, *, s, b) - dark_alfred (*, *, b)) / gain_shift (*, *, b)
+        img_cor[*, *, s, b] = img[*, *, s, b] - dark_alfred[*, *, b]
+        img_temp = reform(img_cor[*, *, s, b])
+        img_temp[where(img_temp le 0, /null)] = 0
+        img_cor[*, *, s, b]  = img_temp
+        img_cor[*, *, s, b] /= gain_shift[*, *, b]
+      endfor
+    endfor
 
-         img_cor (*, *, s, b) = img (*, *, s, b) - dark_alfred (*, *, b)
-	 img_temp = reform (img_cor (*, *, s, b))
-	 img_temp (WHERE (img_temp LE 0, /NULL)) = 0
-	 img_cor (*, *, s, b)  = img_temp
-         img_cor (*, *, s, b) /= gain_shift (*, *, b)
-      endfor ;}
-   endfor ;}
+    img_temp = 0
 
-   img_temp = 0
+    ; printf, ulog, 'Applied dark and gain correction.'  
 
-;   printf, ULOG, 'Applied dark and gain correction.'  
+    ; apply demodulation matrix to get I, Q, U images from each camera
 
-   ;----------------------------------------------------------------------------
-   ; Apply demodulation matrix to get I, Q, U images from each camera.
-   ;----------------------------------------------------------------------------
+    ; method 27 Feb 2015
 
-   ;--- Method 27 Feb 2015.
+    ; for y = 0, ysize - 1 do begin
+    ;    for x = 0, xsize - 1 do begin
+    ;       if (mask_occulter0[x, y] eq 1) then $
+    ;       cal_data[x, y, 0, *] = reform(dmat[x, y, 0, *, *]) $
+    ;                                ## reform(img_cor[x, y, *, 0])
+    ;       if (mask_occulter1[x, y] eq 1) then $
+    ;         cal_data[x, y, 1, *] = reform(dmat[x, y, 1, *, *]) $
+    ;                                  ## reform(img_cor[x, y, *, 1])
+    ;    endfor
+    ; endfor
 
-;   FOR y = 0, ysize - 1 do begin
-;      FOR x = 0, xsize - 1 do begin
-;         if (mask_occulter0 (x, y) EQ 1) then $
-;         cal_data (x, y, 0, *) = reform (   dmat (x, y, 0, *, *)) $
-;                              ## reform (img_cor (x, y, *, 0))
-;         if (mask_occulter1 (x, y) EQ 1) then $
-;         cal_data (x, y, 1, *) = reform (   dmat (x, y, 1, *, *)) $
-;                              ## reform (img_cor (x, y, *, 1))
-;      endfor
-;   endfor
+    ; new method using M. Galloy C-language code (04 Mar 2015)
 
-  ;--- New method using M. Galloy C-language code. (04 Mar 2015).
+    dclock = tic('demod_matrix')
 
-   dclock = TIC ('demod_matrix')
+    a = transpose(dmat, [3, 4, 0, 1, 2])
+    b = transpose(img_cor, [2, 0, 1, 3])
+    result = kcor_batched_matrix_vector_multiply(a, b, 4, 3, xsize * ysize * 2)
+    cal_data = reform(transpose(result), xsize, ysize, 2, 3)
 
-   a = transpose (   dmat, [3, 4, 0, 1, 2])
-   b = transpose (img_cor, [2, 0, 1, 3])
-   result = kcor_batched_matrix_vector_multiply (a, b, 4, 3, xsize * ysize * 2)
-   cal_data = reform (transpose (result), xsize, ysize, 2, 3)
+    demod_time = toc(dclock)
 
-   demod_time = TOC (dclock)
+    print,        '--- demod matrix   [sec]:  ', demod_time 
+    printf, ulog, '--- demod matrix   [sec]:  ', demod_time 
 
-   print,        '--- demod matrix   [sec]:  ', demod_time 
-   printf, ULOG, '--- demod matrix   [sec]:  ', demod_time 
+    ; print,        'Applied demodulation.'
+    ; printf, ulog, 'Applied demodulation.'
 
-;  print,        'Applied demodulation.'
-;  printf, ULOG, 'Applied demodulation.'
+    ; apply distortion correction for raw images
+    img0 = reform(img[*, *, 0, 0])    ; camera 0 [reflected]
+    img0 = reverse(img0, 2)           ; y-axis inversion
+    img1 = reform(img[*, *, 0, 1])    ; camera 1 [transmitted]
 
-   ;----------------------------------------------------------------------------
-   ; Apply distortion correction for raw images.
-   ;----------------------------------------------------------------------------
+    ; restore, '/hao/acos/sw/idl/kcor/pipe/dist_coeff.sav'
 
-   img0 = reform  (img (*, *, 0, 0))		; camera 0 [reflected]
-   img0 = reverse (img0, 2)			; y-axis inversion.
-   img1 = reform  (img (*, *, 0, 1))		; camera 1 [transmitted]
+    restore, dc_path   ; distortion correction file
 
-;   restore, '/hao/acos/sw/idl/kcor/pipe/dist_coeff.sav'
+    dat1 = img0
+    dat2 = img1
+    kcor_apply_dist, dat1, dat2, dx1_c, dy1_c, dx2_c, dy2_c
+    cimg0 = dat1
+    cimg1 = dat2
 
-   restore, dc_path			; distortion correction file.
+    ; find image centers of distortion-corrected images
+    ; camera 0:
+    info_dc0 = kcor_find_image(cimg0, radius_guess, /center_guess)
+    xcc0     = info_dc0[0]
+    ycc0     = info_dc0[1]
+    radius_0 = info_dc0[2]
 
-   dat1 = img0
-   dat2 = img1
-   kcor_apply_dist, dat1, dat2, dx1_c, dy1_c, dx2_c, dy2_c
-   cimg0 = dat1
-   cimg1 = dat2
-
-   ;----------------------------------------------------------------------------
-   ; Find image centers of distortion-corrected images.
-   ;----------------------------------------------------------------------------
-   ;--- Camera 0:
-
-   info_dc0 = kcor_find_image (cimg0, radius_guess, /center_guess)
-   xcc0    = info_dc0 (0)
-   ycc0    = info_dc0 (1)
-   radius_0 = info_dc0 (2)
-
-   if (doplot EQ 1) then $
-   begin ;{
-      tv, bytscl (cimg0, 0, 20000)
+    if (doplot eq 1) then begin
+      tv, bytscl(cimg0, 0, 20000)
       loadct, 39
       draw_circle, xcc0, ycc0, radius_0, /dev, color=250
       loadct, 0
       print, 'center camera 0 ', info_dc0
       wait, 1  
-   endif ;}
+    endif
 
-   ;--- Camera 1:
+    ; camera 1:
+    info_dc1 = kcor_find_image(cimg1, radius_guess, /center_guess)
+    xcc1     = info_dc1[0]
+    ycc1     = info_dc1[1]
+    radius_1 = info_dc1[2]
 
-   info_dc1 = kcor_find_image (cimg1, radius_guess, /center_guess)
-   xcc1    = info_dc1 (0)
-   ycc1    = info_dc1 (1)
-   radius_1 = info_dc1 (2)
+    xx1 = findgen(xsize, ysize) mod xsize - xcc1
+    yy1 = transpose(findgen(ysize, xsize) mod ysize) - ycc1
 
-   xx1 = findgen (xsize, ysize) mod (xsize) - xcc1
-   yy1 = transpose (findgen (ysize, xsize) mod (ysize) ) - ycc1
+    xx1 = double(xx1)
+    yy1 = double(yy1)
+    rad1 = sqrt(xx1 ^ 2.0 + yy1 ^ 2.0)
 
-   xx1 = double (xx1)
-   yy1 = double (yy1)
-   rad1 = sqrt (xx1^2.0 + yy1^2.0)
+    theta1 = atan(- yy1, - xx1)
+    theta1 += !pi
 
-   theta1 = atan (-yy1, -xx1)
-   theta1 = theta1 + !pi
-
-   if (doplot EQ 1) then $
-   begin ;{
-      tv, bytscl (cimg1, 0, 20000)
+    if (doplot eq 1) then begin
+      tv, bytscl(cimg1, 0, 20000)
       loadct, 39
       draw_circle, xcc1, ycc1, radius_1, /dev, color=250
       loadct, 0
       print, 'center camera 1 ', info_dc1
       wait, 1  
-   endif ;}
+    endif
 
-   ;----------------------------------------------------------------------------
-   ; Combine I, Q, U images from camera 0 and camera 1.
-   ;----------------------------------------------------------------------------
+    ; combine I, Q, U images from camera 0 and camera 1
 
-   radius = (radius_0 + radius_1) * 0.5
+    radius = (radius_0 + radius_1) * 0.5
 
-   ;--- To shift camera 0 to canera 1:
+    ; to shift camera 0 to canera 1:
+    deltax = xcc1 - xcc0
+    deltay = ycc1 - ycc0
 
-   deltax = xcc1 - xcc0
-   deltay = ycc1 - ycc0
+    ; print, 'combine beams'
 
-;   print, 'combine beams'
+    ; invert calibrated data for camera 0 in Y-axis
 
-   ;-----------------------------------------------
-   ; Invert calibrated data for camera 0 in Y-axis.
-   ;-----------------------------------------------
+    for s = 0, 2 do begin
+      cal_data[*, *, 0, s] = reverse(cal_data[*, *, 0, s], 2, /overwrite)
+    endfor
 
-   FOR s = 0, 2 DO $
-   begin  ;{
-      cal_data (*, *, 0, s) = reverse (cal_data (*, *, 0, s), 2, /overwrite)
-   endfor ;}
+    ; apply distortion correction to calibrated data
+    restore, dc_path   ; distortion correction file
 
-   ;------------------------------------------------
-   ; Apply distortion correction to calibrated data.
-   ;------------------------------------------------
-
-   restore, dc_path			; distortion correction file.
-
-   FOR s = 0, 2 DO $
-   begin  ;{
-      dat1 = cal_data (*, *, 0, s)
-      dat2 = cal_data (*, *, 1, s)
+    for s = 0, 2 do begin
+      dat1 = cal_data[*, *, 0, s]
+      dat2 = cal_data[*, *, 1, s]
       kcor_apply_dist, dat1, dat2, dx1_c, dy1_c, dx2_c, dy2_c
-      cal_data (*, *, 0, s) = dat1
-      cal_data (*, *, 1, s) = dat2
-   endfor ;}
+      cal_data[*, *, 0, s] = dat1
+      cal_data[*, *, 1, s] = dat2
+    endfor
 
-   ;----------------------------------------------------------------------------
-   ; Compute image average from cameras 0 & 1.
-   ;----------------------------------------------------------------------------
+    ; compute image average from cameras 0 & 1
+    cal_data_combined = dblarr(xsize, ysize, 3)
 
-   cal_data_combined = dblarr (xsize, ysize, 3)
+    for s = 0, 2 do begin
+      cal_data_combined[*, *, s] = $
+        (kcor_fshift(cal_data[*, *, 0, s], deltax, deltay) $
+          + cal_data[*, *, 1, s]) * 0.5
+    endfor
 
-   FOR s = 0, 2 DO $
-   begin  ;{
-      cal_data_combined (*, *, s) = $
-         ( kcor_fshift(cal_data[*, *, 0, s], deltax, deltay) $
-	         + cal_data (*, *, 1, s) ) * 0.5
-   endfor ;}
-
-   if (doplot EQ 1) then $
-   begin ;{
-      tv, bytscl (cal_data_combined (*, *, 0), 0, 100)
-      draw_circle, xcc1, ycc1, radius_1, /dev, color=0
+    if (doplot eq 1) then begin
+      tv, bytscl(cal_data_combined[*, *, 0], 0, 100)
+      draw_circle, xcc1, ycc1, radius_1, /device, color=0
       wait, 1
-   endif ;}
+    endif
 
-   phase = -17 / !radeg
-;   phase = 0.0
+    phase = -17 / !radeg
+    ; phase = 0.0
 
-   ;--- Polar coordinate images (mk4 scheme).
+    ; polar coordinate images (mk4 scheme)
+    qmk4 = - cal_data_combined[*, *, 1] * sin(2.0 * theta1 + phase) $
+             + cal_data_combined[*, *, 2] * cos(2.0 * theta1 + phase)
+    ; qmk4 = -1.0 * qmk4
 
-   qmk4 = - cal_data_combined (*, *, 1) * sin (2.0 * theta1 + phase) $
-          + cal_data_combined (*, *, 2) * cos (2.0 * theta1 + phase)
-;   qmk4 = -1.0 * qmk4
+    umk4 = cal_data_combined[*, *, 1] * cos(2.0 * theta1 + phase) $
+             + cal_data_combined[*, *, 2] * sin(2.0 * theta1 + phase)
 
-   umk4 =   cal_data_combined (*, *, 1) * cos (2.0 * theta1 + phase) $
-          + cal_data_combined (*, *, 2) * sin (2.0 * theta1 + phase)
+    intensity = cal_data_combined[*, *, 0]
 
-   intensity = cal_data_combined (*, *, 0)
-
-   if (doplot EQ 1) then $
-   begin ;{
+    if (doplot eq 1) then begin
       tv, bytscl (umk4, -0.5, 0.5)
       wait, 1
-   endif ;}
+    endif
 
-;   print, 'finished combining beams.'
+    ; print, 'finished combining beams.'
 
-   ;----------------------------------------------------------------------------
-   ; Shift images to center of array & orient north up.
-   ;----------------------------------------------------------------------------
+    ; shift images to center of array & orient north up
+    xcen = 511.5 + 1     ; X Center of FITS array equals one plus IDL center.
+    ycen = 511.5 + 1     ; Y Center of FITS array equals one plus IDL center.
 
-   xcen = 511.5 + 1     ; X Center of FITS array equals one plus IDL center.
-   ycen = 511.5 + 1     ; Y Center of FITS array equals one plus IDL center.
+                         ; IDL starts at zero but FITS starts at one.
+                         ; See Bill Thompson Solar Soft Tutorial on
+                         ; basic World Coorindate System Fits header.
 
-                        ; IDL starts at zero but FITS starts at one.
-                        ; See Bill Thompson Solar Soft Tutorial on
-                        ; basic World Coorindate System Fits header.
+    shift_center = 0
+    shift_center = 1
+    if (shift_center eq 1) then begin
+      cal_data_combined_center = dblarr(xsize, ysize, 3)
 
-   shift_center = 0
-   shift_center = 1
-   if (shift_center EQ 1) then $
-   begin ;{
-      cal_data_combined_center = dblarr (xsize, ysize, 3)
-
-      FOR s = 0, 2 DO $
-      begin ;{
+      for s = 0, 2 do begin
          cal_data_new (*, *, 0, s) = rot (reverse (cal_data (*, *, 0, s), 1), $
 	                                  pangle, 1, xsize - 1 - xcc0, ycc0, $
 					  cubic=-0.5)
@@ -2058,9 +1918,6 @@ print,        '>>>>>>> End of kcorl1 <<<<<<<'
 printf, ULOG, '>>>>>>> End of kcorl1 <<<<<<<'
 printf, ULOG, '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -'
 
-close, ULIST
-close, ULOG
-free_lun, ULIST
-free_lun, ULOG
-
-END
+  free_lun, ulist
+  free_lun, ulog
+end
