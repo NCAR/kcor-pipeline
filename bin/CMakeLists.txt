@@ -4,6 +4,7 @@ configure_file(runkcor_rt.sh.in runkcor_rt.sh @ONLY)
 install(PROGRAMS
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_eod.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_rt.sh
+          kcor_simulate
           kcor_simulate_data
-          kcor_simulate_realtime
+          kcor_simulate_processing
         DESTINATION bin)

@@ -83,7 +83,7 @@ pro kcor_rt, date, config_filename=config_filename
     mg_log, 'processing %d L0 files', n_l0_fits_files, name='kcor/rt', /info
 
     ; TODO: change interface here
-    ;kcor_qsc, date, l0_fits_files, ok_files=ok_files, /append, run=run
+    ;kcor_quality, date, l0_fits_files, ok_files=ok_files, /append, run=run
 
     ; TODO: change interface here
     ;kcor_l1, date, ok_files, /append, run=run

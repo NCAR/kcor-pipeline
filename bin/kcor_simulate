@@ -1,0 +1,61 @@
+#!/usr/bin/env python
+
+import argparse
+import ConfigParser
+import os
+import socket
+import subprocess
+import time
+
+
+if __name__ == '__main__':
+    name = 'Realtime KCor pipeline simulator'
+    parser = argparse.ArgumentParser(description=name)
+    config_flags_help = '''FLAGS section of config filename'''
+    date_help = '''date to run on'''
+    parser.add_argument('date', type=str, help=date_help)
+    parser.add_argument('config_flags', type=str, help=config_flags_help)
+    args = parser.parse_args()
+
+    # read config file to get options
+    pipeline_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+
+    userhome = os.path.expanduser('~')
+    username = os.path.split(userhome)[-1]
+    machine = socket.gethostname().split('.')[0]
+
+    config_basename = 'kcor.%s.%s.%s.cfg' % (username, machine, args.config_flags)
+
+    # construct config file filename
+    config_filename = os.path.join(pipeline_dir, 'config', config_basename)
+
+    # read config file to get arguments to launch data/processing simulators
+    config = ConfigParser.ConfigParser()
+    config.read(config_filename)
+
+    depot_basedir = config.get('testing', 'depot_dir')
+
+    raw_basedir = config.get('processing', 'raw_basedir')
+    raw_dir = os.path.join(raw_basedir, args.date)
+
+    frequency = config.get('testing', 'frequency')
+    batch_time = config.get('testing', 'batch_time')
+
+    # launch processing simulator
+    processing_cmd = [os.path.join(pipeline_dir, 'bin', 'kcor_simulate_processing'),
+                      '-f',
+                      '%s' % frequency,
+                      args.date,
+                      args.config_flags]
+    print(' '.join(processing_cmd))
+    pid = subprocess.Popen(processing_cmd).pid
+
+    # launch incoming data simulator
+    data_cmd = [os.path.join(pipeline_dir, 'bin', 'kcor_simulate_data'),
+                '-r',
+                ' %s' % raw_dir,
+                '-b',
+                ' %s' % batch_time,
+                os.path.join(depot_basedir, args.date)]
+    print(' '.join(data_cmd))
+    pid = subprocess.Popen(data_cmd).pid

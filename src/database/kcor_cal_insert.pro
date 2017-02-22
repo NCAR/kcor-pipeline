@@ -29,7 +29,7 @@
 ;   HAO/NCAR  K-coronagraph
 ;
 ; :History:
-;   20170216 - First version
+;   20170216 - First version, with all cal fields from spreadsheet plan
 ;-
 pro kcor_cal_insert, date, fits_list, run=run
 compile_opt strictarr
@@ -136,14 +136,14 @@ while (++i lt nfiles) do begin
 	calpang		= sxpar(hdu, 'CALPANG',  count=qcalpang)
 
 ;TODO: Get values for these quantities from pipeline output (test values set for now)
-mean_int_img0 = 99.99
-mean_int_img1 = 99.99
-mean_int_img2 = 99.99
-mean_int_img3 = 99.99
-mean_int_img4 = 99.99
-mean_int_img5 = 99.99
-mean_int_img6 = 99.99
-mean_int_img7 = 99.99
+mean_int_img0 = -9999.9900000
+mean_int_img1 = -9999.9900000
+mean_int_img2 = -9999.9900000
+mean_int_img3 = -9999.9900000
+mean_int_img4 = -9999.9900000
+mean_int_img5 = -9999.9900000
+mean_int_img6 = -9999.9900000
+mean_int_img7 = -9999.9900000
 	
 	rcamid		= strtrim(sxpar(hdu, 'RCAMID', count=qrcamid),2)
 	tcamid		= strtrim(sxpar(hdu, 'TCAMID', count=qtcamid),2)
@@ -157,6 +157,13 @@ mean_int_img7 = 99.99
 	tcam_rad	= sxpar(hdu, 'TCAM_RAD', count=qtcam_rad)
 	rcamfocs	= sxpar(hdu, 'RCAMFOCS', count=qrcamfocs)
 	tcamfocs	= sxpar(hdu, 'TCAMFOCS', count=qtcamfocs)
+	;TODO: Deal with NaN (where else can we expect it?)
+	if (strtrim(rcamfocs,2) eq 'NaN') then begin
+		rcamfocs = -999.990
+	endif
+	if (strtrim(tcamfocs,2) eq 'NaN') then begin
+		tcamfocs = -999.990
+	endif
 	modltrid	= strtrim(sxpar(hdu, 'MODLTRID', count=qmodltrid),2)
 	modltrt		= sxpar(hdu, 'MODLTRT', count=qmodltrt)
 	occltrid	= strtrim(sxpar(hdu, 'OCCLTRID', count=qoccltrid),2)
@@ -170,16 +177,8 @@ mean_int_img7 = 99.99
 
 	fits_file = file_basename(fts_file, '.gz') ; remove '.gz' from file name.
 
+	mg_log, 'fits_file: %s', fits_file, name='kcor/dbinsert', /debug
 	mg_log, 'date_obs: %s', date_obs, name='kcor/dbinsert', /debug
-	mg_log, 'date_end: %s', date_end, name='kcor/dbinsert', /debug
-	mg_log, 'level:    %s', level, name='kcor/dbinsert', /debug
-	mg_log, 'exptime:  %s', exptime, name='kcor/dbinsert', /debug
-	mg_log, 'numsum:   %s', numsum, name='kcor/dbinsert', /debug
-	mg_log, 'cover:    %s', cover, name='kcor/dbinsert', /debug
-	mg_log, 'darkshut: %s', darkshut, name='kcor/dbinsert', /debug
-	mg_log, 'diffuser: %s', diffuser, name='kcor/dbinsert', /debug
-	mg_log, 'calpol:   %s', calpol, name='kcor/dbinsert', /debug
-	mg_log, 'calplang: %s', calpang, name='kcor/dbinsert', /debug
 	
 	; Get IDs from relational tables.
 	
@@ -216,7 +215,7 @@ end
 ; main-level example program
 
 date = '20170214'
-filelist = ['20170214_190402_kcor.fts.gz','20170214_190417_kcor.fts.gz','20170214_190548_kcor.fts.gz','20170214_190604_kcor.fts','20170214_190619_kcor.fts']
+filelist = ['20170214_190402_kcor.fts.gz','20170214_190417_kcor.fts.gz','20170214_190548_kcor.fts.gz','20170214_190604_kcor.fts.gz','20170214_190619_kcor.fts.gz']
 run = kcor_run(date, $
                config_filename=filepath('kcor.kolinski.mahi.latest.cfg', $
                                         subdir=['..', '..', 'config'], $

@@ -17,12 +17,17 @@ def launch_loop(date, config_flags, frequency):
     logging.info('config flags  : %s', config_flags)
     logging.info('frequency     : %d minutes', frequency)
 
-    launch_cmd = ['runkcor_rt.sh', date, config_flags]
+    realtime_cmd = ['runkcor_rt.sh', date, config_flags]
+    eod_cmd = ['runkcor_eod.sh', date, config_flags]
 
     while True:
-        pid = subprocess.Popen(launch_cmd).pid
+        pid = subprocess.Popen(realtime_cmd).pid
         logging.info('launched KCor realtime pipeline with pid %d', pid)
         time.sleep(60.0 * frequency)
+
+    # TODO: launch end-of-day processing at some point
+    # pid = subprocess.Popen(eod_cmd).pid
+    # logging.info('launched KCor end-of-day pipeline with pid %d', pid)
 
 
 if __name__ == '__main__':
