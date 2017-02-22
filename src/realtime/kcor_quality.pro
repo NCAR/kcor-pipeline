@@ -28,21 +28,24 @@
 ;   12 Jan 2016 Fix path names for gif sub-directories.
 ;   26 Jan 2016 Color table location: /hao/acos/sw/idl/color.
 ;
+; :Returns:
+;   strarr of OK files to continue processing
+;
 ; :Params:
 ;   date : in, required, type=string
 ;     format: 'yyyymmdd'
+;   l0_fits_files : in, required, type=strarr
+;     raw FITS files to process
 ;
 ; :Keywords:
 ;   append : in, optional, type=boolean
 ;     if set, append log information to existing log file
 ;   gif : in, optional, type=boolean
 ;     if set, produce raw GIF images
-;   list : in, required, type=strarr
-;     list of files to process
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;-
-pro kcorqsc, date, list=list, append=append, gif=gif, run=run
+function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
   compile_opt strictarr
 
   ; store initial system time
@@ -50,18 +53,14 @@ pro kcorqsc, date, list=list, append=append, gif=gif, run=run
 
   maskfile = filepath('kcor_mask.img', root=mg_src_root())
 
-  cal_path  = run.cal_basedir   ; calibration base directory.
-
-  ; L0 fits files.
+  ; L0 fits files
   date_dir   = filepath(date, root=run.raw_basedir)
-  date_path  = date_dir
 
-  ; calibration date directory.
-  cdate_dir  = filepath(date, root=cal_path)
-  cdate_path = cdate_dir + '/'
+  ; calibration date directory
+  cdate_dir  = filepath(date, root=run.cal_basedir)
 
-  q_dir      = date_path + 'q'		; Quality directory.
-  q_path     = q_dir + '/'
+  ; quality directory
+  q_dir      = filepath('q', root=date_dir)
 
   cal_list  = 'cal.ls'
   dev_list  = 'dev.ls'
@@ -72,20 +71,20 @@ pro kcorqsc, date, list=list, append=append, gif=gif, run=run
   sat_list  = 'sat.ls'
   oka_list  = 'oka.ls'   ; ok files: all or cumulative.
 
-  cal_qpath = q_path + cal_list
-  dev_qpath = q_path + dev_list
-  brt_qpath = q_path + brt_list
-  dim_qpath = q_path + dim_list
-  cld_qpath = q_path + cld_list
-  nsy_qpath = q_path + nsy_list
-  sat_qpath = q_path + sat_list
-  oka_qpath = q_path + oka_list
+  cal_qpath = filepath(cal_list, root=q_dir)
+  dev_qpath = filepath(dev_list, root=q_dir)
+  brt_qpath = filepath(brt_list, root=q_dir)
+  dim_qpath = filepath(dim_list, root=q_dir)
+  cld_qpath = filepath(cld_list, root=q_dir)
+  nsy_qpath = filepath(nsy_list, root=q_dir)
+  sat_qpath = filepath(sat_list, root=q_dir)
+  oka_qpath = filepath(oka_list, root=q_dir)
 
-  okf_list  = 'list_okf'			 ; ok files for one invocation.
-  okf_qpath = filepath(okf_list, root=q_path)    ; ok fits file list in q    directory.
-  okf_dpath = filepath(okf_list, root=date_path) ; ok fits file list in date directory.
+  okf_list  = 'list_okf'			; ok files for one invocation
+  okf_qpath = filepath(okf_list, root=q_dir)    ; ok fits file list in q    directory
+  okf_dpath = filepath(okf_list, root=date_dir) ; ok fits file list in date directory
 
-  ;--- Sub-directory names.
+  ; sub-directory names
 
   q_ok  = 'ok'
   q_bad = 'bad'
@@ -97,15 +96,15 @@ pro kcorqsc, date, list=list, append=append, gif=gif, run=run
   q_nsy = 'nsy'
   q_sat = 'sat'
 
-  q_dir_ok  = q_path + q_ok  + '/'   ; ok quality images
-  q_dir_bad = q_path + q_bad + '/'   ; bad quality images
-  q_dir_brt = q_path + q_brt + '/'   ; bright images
-  q_dir_cal = q_path + q_cal + '/'   ; calibration images
-  q_dir_cld = q_path + q_cld + '/'   ; cloudy images
-  q_dir_dim = q_path + q_dim + '/'   ; dim images
-  q_dir_dev = q_path + q_dev + '/'   ; device images
-  q_dir_nsy = q_path + q_nsy + '/'   ; noisy images
-  q_dir_sat = q_path + q_sat + '/'   ; saturated images
+  q_dir_ok  = filepath(q_ok, root=q_dir)    ; ok quality images
+  q_dir_bad = filepath(q_bad, root=q_dir)   ; bad quality images
+  q_dir_brt = filepath(q_brt, root=q_dir)   ; bright images
+  q_dir_cal = filepath(q_cal, root=q_dir)   ; calibration images
+  q_dir_cld = filepath(q_cld, root=q_dir)   ; cloudy images
+  q_dir_dim = filepath(q_dim, root=q_dir)   ; dim images
+  q_dir_dev = filepath(q_dev, root=q_dir)   ; device images
+  q_dir_nsy = filepath(q_nsy, root=q_dir)   ; noisy images
+  q_dir_sat = filepath(q_sat, root=q_dir)   ; saturated images
 
   ;q_dir_unk    = q_path + 'unk/'    ; unknown images
   ;q_dir_eng    = q_path + 'eng/'    ; engineering images
@@ -199,10 +198,12 @@ pro kcorqsc, date, list=list, append=append, gif=gif, run=run
   free_lun, umask
 
   ; set up graphics window & color table
-  set_plot, 'z'
-  ; window, 0, xs=1024, ys=1024, retain=2
+  set_plot, 'Z'
+  ; window, 0, xsize=1024, ysize=1024, retain=2
 
-  device, set_resolution=[1024, 1024], decomposed=0, set_colors=256, $
+  device, set_resolution=[1024, 1024], $
+          decomposed=0, $
+          set_colors=256, $
           z_buffering=0
 
   ;lct, '/hao/acos/sw/idl/color/quallab_ver2.lut'   ; color table.
@@ -938,4 +939,16 @@ pro kcorqsc, date, list=list, append=append, gif=gif, run=run
   mg_log, 'done', name='kcor/rt', /info
 
   free_lun, ulist
+
+  n_ok_files = file_lines(okf_dpath)
+  if (n_ok_files gt 0L) then begin
+    ok_files = strarr(n_ok_files)
+    openr, ok_lun, okf_dpath, /get_lun
+    readf, ok_lun, ok_files
+    free_lun, ok_lun
+  endif else begin
+    ok_files = !null
+  endelse
+
+  return, ok_files
 end

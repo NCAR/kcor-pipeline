@@ -80,10 +80,9 @@ pro kcor_rt, date, config_filename=config_filename
       goto, done
     endif
 
-    mg_log, 'processing %d L0 files', n_l0_fits_files, name='kcor/rt', /info
-
-    ; TODO: change interface here
-    ;kcor_quality, date, l0_fits_files, ok_files=ok_files, /append, run=run
+    mg_log, 'checking %d L0 files', n_l0_fits_files, name='kcor/rt', /info
+    ok_files = kcor_quality(date, l0_fits_files, /append, run=run)
+    mg_log, '%d OK L0 files', n_elements(ok_files), name='kcor/rt', /info
 
     ; TODO: change interface here
     ;kcor_l1, date, ok_files, /append, run=run
