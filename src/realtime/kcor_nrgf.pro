@@ -80,12 +80,12 @@ pro kcor_nrgf, fits_file
   cneg = fix(ycen - r_photo)
   cpos = fix(ycen + r_photo)
 
-  print, '--- kcor_nrgf ---'
-  print, 'rsun     [arcsec]: ', rsun 
-  print, 'occulter [arcsec]: ', occulter
-  print, 'r_photo  [pixels]: ', r_photo
-  print, 'rocc     [pixels]: ', rocc
-  print, 'r0:                ', r0
+  mg_log, '--- kcor_nrgf ---', name='kcor/rt', /info
+  mg_log, 'rsun     [arcsec]: %f', rsun, name='kcor/rt', /debug
+  mg_log, 'occulter [arcsec]: %f', occulter, name='kcor/rt', /debug
+  mg_log, 'r_photo  [pixels]: %f', r_photo, name='kcor/rt', /debug
+  mg_log, 'rocc     [pixels]: %f', rocc, name='kcor/rt', /debug
+  mg_log, 'r0               : %f', r0, name='kcor/rt', /debug
 
   ; compute normalized, radially-graded filter
   for_nrgf, img, xcen, ycen, r0, imgflt
@@ -103,8 +103,7 @@ pro kcor_nrgf, fits_file
     max = amax gt amin ? amax : amin
   endif
 
-  ;print, 'imin/imax: ', imin, imax
-  print, 'cmin/cmax: ', cmin, cmax
+  mg_log, 'cmin: %f, cmax: %f', cmin, cmax, name='kcor/rt', /debug
 
   ; use mask to build gif image
 
@@ -119,7 +118,7 @@ pro kcor_nrgf, fits_file
   r_in  = fix(occulter / platescale) + 5.0
   r_out = 504.0
 
-  print, 'r_in: ', r_in, ' r_out: ', r_out
+  mg_log, 'masking limits: r_in=%f, r_out=%f', r_in, r_out, name='kcor/rt', /debug
 
   dark = where(rad1 lt r_in or rad1 ge r_out)
   imgflt[dark] = -10.0   ; set pixels outside annulus to -10
@@ -188,9 +187,8 @@ pro kcor_nrgf, fits_file
   fts_loc  = strpos(fits_file, '.fts')
   gif_file = strmid(fits_file, 0, fts_loc) + '_nrgf.gif'
 
-  print, 'gif_file:  ', gif_file
-
   write_gif, gif_file, save, red, green, blue
+  mg_log, 'wrote GIF file %s', gif_file, name='kcor/rt', /debug
 
   ; create short integer image
   bscale = 0.001
@@ -222,7 +220,7 @@ pro kcor_nrgf, fits_file
   fts_loc   = strpos(fits_file, '.fts')
   rfts_file = strmid(fits_file, 0, fts_loc) + '_nrgf.fts'
 
-  print, 'rfts_file: ', rfts_file
+  mg_log, 'wrote NRGF FITS file %s', rfts_file, name='kcor/rt', /debug
 
   writefits, rfts_file, simg, rhdu
 end
