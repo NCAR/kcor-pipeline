@@ -19,7 +19,7 @@ function kcor_get_date_dir, filename
 
   date_dir = strmid(filename, 0, 8)
   time = strmid(filename, 9, 6)
-  hour = long(strmid(filename,9,2))
+  hour = long(strmid(filename, 9, 2))
 
   ; subtract a day if this is after midnight UT
   if (hour lt 10) then begin
@@ -31,10 +31,7 @@ function kcor_get_date_dir, filename
     jd -= 1
     caldat, jd, nextmonth, nextday, nextyear
 
-    nextyear  = string(nextyear, format='(I4)')
-    nextmonth = string(nextmonth, format='(I02)')
-    nextday   = string(nextday, format='(I02)')
-    date_dir  = string(nextyear) + string(nextmonth) + string(nextday)
+    date_dir = string(nextyear, nextmonth, nextday, format='(I4, I02, I02)')
   endif
   
   return, date_dir
@@ -43,7 +40,10 @@ end
 
 ; main-level test program
 
-dir = kcor_get_date_dir('20131222_021234_kcor.fts.gz')
+dir = kcor_get_date_dir('20130203_021234_kcor.fts.gz')
+print, dir
+
+dir = kcor_get_date_dir('20130203_121234_kcor.fts.gz')
 print, dir
 
 end
