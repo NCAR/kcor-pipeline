@@ -143,6 +143,7 @@ pro kcor_run::getProperty, date=date, $
                            gzip=gzip, $
                            gunzip=gunzip, $
                            npick=npick, $
+                           cal_basedir=cal_basedir, $
                            cal_out_dir=cal_out_dir, $
                            bias_dir=bias_dir, $
                            flat_dir=flat_dir, $
@@ -196,6 +197,9 @@ pro kcor_run::getProperty, date=date, $
   if (arg_present(npick)) then begin
     npick = self.options->get('npick', section='calibration', $
                               type=3, default=10000L)
+  endif
+  if (arg_present(cal_basedir)) then begin
+    cal_basedir = self.options->get('basedir', section='calibration')
   endif
   if (arg_present(cal_out_dir)) then begin
     cal_out_dir = self.options->get('out_dir', section='calibration')
