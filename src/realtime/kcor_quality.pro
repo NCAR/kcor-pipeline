@@ -50,14 +50,14 @@ pro kcorqsc, date, list=list, append=append, gif=gif, run=run
 
   maskfile = filepath('kcor_mask.img', root=mg_src_root())
 
-  log_file  = date + '_qsc_' + listfile + '.log'
+  cal_path  = run.cal_basedir   ; calibration base directory.
 
-  cal_path  = '/hao/mlsodata1/Data/KCor/cal/'   ; calibration base directory.
+  ; L0 fits files.
+  date_dir   = filepath(date, root=run.raw_basedir)
+  date_path  = date_dir
 
-  date_dir   = run.raw_basedir + '/' + date   ; L0 fits files.
-  date_path  = date_dir + '/'
-
-  cdate_dir  = cal_path + date   ; calibration date directory.
+  ; calibration date directory.
+  cdate_dir  = filepath(date, root=cal_path)
   cdate_path = cdate_dir + '/'
 
   q_dir      = date_path + 'q'		; Quality directory.
@@ -72,7 +72,6 @@ pro kcorqsc, date, list=list, append=append, gif=gif, run=run
   sat_list  = 'sat.ls'
   oka_list  = 'oka.ls'   ; ok files: all or cumulative.
 
-  log_qpath = q_path + log_file
   cal_qpath = q_path + cal_list
   dev_qpath = q_path + dev_list
   brt_qpath = q_path + brt_list
@@ -82,9 +81,9 @@ pro kcorqsc, date, list=list, append=append, gif=gif, run=run
   sat_qpath = q_path + sat_list
   oka_qpath = q_path + oka_list
 
-  okf_list  = 'list_okf'			; ok files for one invocation.
-  okf_qpath = q_path    + okf_list	; ok fits file list in q    directory.
-  okf_dpath = date_path + okf_list	; ok fits file list in date directory.
+  okf_list  = 'list_okf'			 ; ok files for one invocation.
+  okf_qpath = filepath(okf_list, root=q_path)    ; ok fits file list in q    directory.
+  okf_dpath = filepath(okf_list, root=date_path) ; ok fits file list in date directory.
 
   ;--- Sub-directory names.
 
@@ -142,8 +141,7 @@ pro kcorqsc, date, list=list, append=append, gif=gif, run=run
   openw, uokf, okf_qpath, /get_lun   ; open new file for writing
 
   ; open to write in append mode
-  if (keyword_set (append)) then begin
-    openw, ulog, log_qpath, /append, /get_lun
+  if (keyword_set(append)) then begin
     openw, uoka, oka_qpath, /append, /get_lun
 
     openw, ubrt, brt_qpath, /append, /get_lun
@@ -154,7 +152,6 @@ pro kcorqsc, date, list=list, append=append, gif=gif, run=run
     openw, unsy, nsy_qpath, /append, /get_lun
     openw, usat, sat_qpath, /append, /get_lun
   endif else begin   ; open NEW file for writing
-    openw, ulog, log_qpath, /get_lun
     openw, uoka, oka_qpath, /get_lun
 
     openw, ubrt, brt_qpath, /get_lun
@@ -167,33 +164,17 @@ pro kcorqsc, date, list=list, append=append, gif=gif, run=run
   endelse
 
   ; print information
-  print, "kcorqsc, '", date, "', list='", list, "'"
-  printf, ulog, "kcorqsc, '", date, "', list='", list, "'"
-  ;printf, ulog, 'start_dir:    ', start_dir
+  mg_log, 'starting quality for %s', date, name='kcor/rt', /info
 
   if (keyword_set(gif)) then begin
-    print, 'q_dir_ok:  ', q_dir_ok
-    print, 'q_dir_bad: ', q_dir_bad
-    print, 'q_dir_brt: ', q_dir_brt
-    print, 'q_dir_cal: ', q_dir_cal
-    print, 'q_dir_cld: ', q_dir_cld
-    print, 'q_dir_dim: ', q_dir_dim 
-    print, 'q_dir_nsy: ', q_dir_nsy
-    print, 'q_dir_sat: ', q_dir_sat
-
-    printf, ulog, 'q_dir_ok:  ', q_dir_ok
-    printf, ulog, 'q_dir_bad: ', q_dir_bad
-    printf, ulog, 'q_dir_brt: ', q_dir_brt
-    printf, ulog, 'q_dir_cal: ', q_dir_cal
-    printf, ulog, 'q_dir_cld: ', q_dir_cld
-    printf, ulog, 'q_dir_dim: ', q_dir_dim
-    printf, ulog, 'q_dir_nsy: ', q_dir_nsy
-    printf, ulog, 'q_dir_sat: ', q_dir_sat
-
-    ;PRINT, 'q_dir_unk:    ', q_dir_unk
-    ;PRINTF, ULOG, 'q_dir_unk:    ', q_dir_unk
-    ;PRINT, 'q_dir_ugly:   ', q_dir_ugly
-    ;PRINTF, ULOG, 'q_dir_ugly:   ', q_dir_ugly
+    mg_log, 'q_dir_ok: %s', q_dir_ok, name='kcor/rt', /debug
+    mg_log, 'q_dir_bad: %s', q_dir_bad, name='kcor/rt', /debug
+    mg_log, 'q_dir_brt: %s', q_dir_brt, name='kcor/rt', /debug
+    mg_log, 'q_dir_cal: %s', q_dir_cal, name='kcor/rt', /debug
+    mg_log, 'q_dir_cld: %s', q_dir_cld, name='kcor/rt', /debug
+    mg_log, 'q_dir_dim: %s', q_dir_dim, name='kcor/rt', /debug
+    mg_log, 'q_dir_nsy: %s', q_dir_nsy, name='kcor/rt', /debug
+    mg_log, 'q_dir_sat: %s', q_dir_sat, name='kcor/rt', /debug
   endif
 
   ; initialize count variables
@@ -242,13 +223,8 @@ pro kcorqsc, date, list=list, append=append, gif=gif, run=run
   white  = 255
 
   ; open file containing a list of kcor L0 FITS files
-
-  ;PRINT,        'listfile: ', listfile
-  ;PRINTF, ULOG, 'listfile: ', listfile
-
   header = 'file name                datatype    exp  cov drk dif pol angle  qual'
-  print, header
-  printf, ulog, header
+  mg_log, header, name='kcor/rt', /debug
 
   get_lun, ulist
   close,   ulist
@@ -308,14 +284,7 @@ pro kcorqsc, date, list=list, append=append, gif=gif, run=run
     platescale = 5.643   ; arsec/pixel
     radius_guess = occulter / platescale   ; occulter size [pixels]
 
-    ; print,        '>>>>>>> ', l0_file, i, '  ', datatype, ' <<<<<<<'
-    ; printf, ulog, '>>>>>>> ', l0_file, i, '  ', datatype, ' <<<<<<<'
-
-    ; print,        'file size: ', finfo.size
-    ; printf, ulog, 'file size: ', finfo.size
-
     ; define variables for azimuthal angle "scans"
-
     nray  = 36
     acirc = !pi * 2.0 / float(nray)
     dp    = findgen(nray) * acirc
@@ -340,16 +309,8 @@ pro kcorqsc, date, list=list, append=append, gif=gif, run=run
     for j = 1, ndim do nelem *= imgsize[j]   ; compute # elements in array
     if (ndim eq 4) then nelem = n1 * n2 * n3 * n4
 
-    ; imgmin = min (img)
-    ; imgmax = max (img)
-
-    ; printf, ulog, 'imgmin,imgmax: ', imgmin, imgmax
-    ; print,        'imgmin,imgmax: ', imgmin, imgmax
-    
-    ; printf, ulog, 'size(img): ', imgsize
-    ; print,        'size(img): ', imgsize
-    ; printf, ulog, 'nelem:     ', nelem
-    ; print,        'nelem:     ', nelem
+    ; imgmin = min(img)
+    ; imgmax = max(img)
 
     ; define array center coordinates
     xdim = naxis1
@@ -370,26 +331,21 @@ pro kcorqsc, date, list=list, append=append, gif=gif, run=run
 
     ; find ephemeris data (pangle,bangle ...) using solarsoft routine pb0r
     ephem = pb0r(date, /arcsec)
-    pangle = ephem (0)   ; degrees
-    bangle = ephem (1)   ; degrees
-    rsun   = ephem (2)   ; solar radius (arcsec)
-
-    ; print,        'pangle, bangle, rsun: ', pangle, bangle, rsun
-    ; printf, ulog, 'pangle, bangle, rsun: ', pangle, bangle, rsun
+    pangle = ephem[0]   ; degrees
+    bangle = ephem[1]   ; degrees
+    rsun   = ephem[2]   ; solar radius (arcsec)
 
     pangle += 180.0   ; adjust orientation for Kcor telescope
 
     ; verify that image size agrees with FITS header information
-    if (nelem    ne  np)   then begin
-      print,        '*** nelem: ', nelem, 'ne np: ', np
-      printf, ulog, '*** nelem: ', nelem, 'ne np: ', np
+    if (nelem ne np)   then begin
+      mg_log, 'nelem: %d, ne np: %d', nelem, np, name='kcor/rt', /warn
       continue
     endif
 
     ; verify that image is Level 0
-    if (level    ne 'l0')  then begin
-      print,        '*** not level 0 data ***'
-      printf, ulog, '*** not level 0 data ***'
+    if (level ne 'l0')  then begin
+      mg_log, 'not level 0 data', name='kcor/rt', /warn
       continue
     endif
 
@@ -421,8 +377,6 @@ pro kcorqsc, date, list=list, append=append, gif=gif, run=run
     if (diffuser ne 'out') then begin
       dev  += 1
       diff += 1
-      ; PRINT,        '+ + + ', l0_file, '                     diffuser: ', diffuser
-      ; PRINTF, ULOG, '+ + + ', l0_file, '                     diffuser: ', diffuser
     endif
 
     if (qdiffuser ne 1) then begin
@@ -779,9 +733,8 @@ pro kcorqsc, date, list=list, append=append, gif=gif, run=run
     if (cal gt 0 or dev gt 0) then begin
       pb0m = pb0rot
     end else if (nx ne xdim or ny ne ydim) then begin
-      print,  'Image dimensions incompatible with mask.', nx, ny, xdim, ydim
-      printf, ulog, $
-              'Image dimensions incompatible with mask.', nx, ny, xdim, ydim
+      mg_log, 'image dimensions incompatible with mask: %d, %d, %d, %d', $
+              nx, ny, xdim, ydim, name='kcor/rt', /warn
       pb0m = pb0rot 
     endif else begin
       pb0m = pb0rot * mask 
@@ -940,10 +893,10 @@ pro kcorqsc, date, list=list, append=append, gif=gif, run=run
     calpang_str  = string(format='(f7.2)', calpang)
     qual_str     = string(format='(a4)', qual)
 
-    print,        l0_file, datatype_str, exptime_str, cover_str, darkshut_str, $
-                  diffuser_str, calpol_str, calpang_str, qual_str
-    printf, ulog, l0_file, datatype_str, exptime_str, cover_str, darkshut_str, $
-                  diffuser_str, calpol_str, calpang_str, qual_str
+    mg_log, '%s %s %s %s % %s %s %s %s', $
+            l0_file, datatype_str, exptime_str, cover_str, darkshut_str, $
+            diffuser_str, calpol_str, calpang_str, qual_str, $
+            name='kcor/rt', /debug
   endwhile   ; end of image loop
 
   free_lun, ucal
@@ -969,26 +922,20 @@ pro kcorqsc, date, list=list, append=append, gif=gif, run=run
   ; move 'okf_list' to 'date' directory
   ;if (file_test(okf_qpath)) then file_copy, okf_qpath, okf_dpath, /overwrite
   if (file_test(okf_qpath)) then begin
-    print, okf_qpath, ' --> ', okf_dpath
-    ; printf, ulog, okf_qpath, ' --> ', okf_dpath
+    mg_log, 'moving %s to %s', okf_path, okf_dpath, name='kcor/rt', /debug
     file_move, okf_qpath, okf_dpath, /overwrite
   endif
 
-  print,        'nimg: ', num_img
-  printf, ulog, 'nimg: ', num_img
+  mg_log, 'number of images: %d', num_img, name='kcor/rt', /debug
 
   cd, start_dir
   set_plot, 'X'
 
   ; get system time & compute elapsed time since "TIC" command
   qtime = toc()
-  printf, ulog, 'elapsed time: ', qtime
-  printf, ulog, qtime / num_img, ' sec/image'
-
-  print,        '===== end ... kcorqsc ====='
-  printf, ulog, '===== end ... kcorqsc ====='
-  printf, ulog, '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -'
+  mg_log, 'elapsed time: %0.1f sec', qtime, name='kcor/rt', /info
+  mg_log, '%0.1 sec/image', qtime / num_img, name='kcor/rt', /info
+  mg_log, 'done', name='kcor/rt', /info
 
   free_lun, ulist
-  free_lun, ulog
 end
