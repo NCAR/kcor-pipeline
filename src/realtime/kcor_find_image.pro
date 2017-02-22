@@ -51,7 +51,7 @@ function kcor_find_image, data, radius_guess, $
 
   data = double(data)
 
-  if (debug eq 1) then begin 
+  if (debug eq 1) then begin
     datamax = 25000 
     if (max(data) lt datamax) then datamax = 2000
     window, xsize=1024, ysize=1024, retain=2
@@ -116,7 +116,7 @@ function kcor_find_image, data, radius_guess, $
     ycen_guess = ycen
   endelse
 
-  if debug eq 1 then begin 
+  if (debug eq 1) then begin 
     loadct, 0
     tv, bytscl(data, 0, datamax)
     loadct, 39
@@ -139,8 +139,8 @@ function kcor_find_image, data, radius_guess, $
   ; range if it fails again, replace fit values with array center and
   ; radius_guess
   if (finite(xc) eq 0 or finite(yc) eq 0) then begin
-    print, '  WARNING: CENTER NOT FOUND......TRYING LARGER RANGE'
-    drad=52
+    mg_log, 'center not found, trying larger range', name='kcor/rt', /warn
+    drad = 52
     kcor_radial_der, data, xcen_guess, ycen_guess, radius_guess, drad, theta, cent
     x = cent * cos(theta)
     x = transpose(x)
@@ -151,8 +151,7 @@ function kcor_find_image, data, radius_guess, $
       xc = 511.5 - xcen_guess
       yc = 511.5 - ycen_guess
       r = radius_guess
-      print, '  WARNING: CENTER NOT FOUND !!!!! '
-     ; ANDREW: add something in the logs so we capture we did not find the center'
+      mg_log, 'center not found', name='kcor/rt', /warn
     endif
   endif
 
