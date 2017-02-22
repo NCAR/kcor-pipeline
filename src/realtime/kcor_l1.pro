@@ -985,938 +985,855 @@ pro kcor_l1, date_str, $
       cal_data_combined_center = dblarr(xsize, ysize, 3)
 
       for s = 0, 2 do begin
-         cal_data_new (*, *, 0, s) = rot (reverse (cal_data (*, *, 0, s), 1), $
-	                                  pangle, 1, xsize - 1 - xcc0, ycc0, $
-					  cubic=-0.5)
-         cal_data_new (*, *, 1, s) = rot (reverse (cal_data (*, *, 1, s), 1), $
-                                          pangle, 1, xsize - 1 - xcc1, ycc1, $
-					  cubic=-0.5)
+        cal_data_new[*, *, 0, s] = rot(reverse(cal_data[*, *, 0, s], 1), $
+                                       pangle, $
+                                       1, $
+                                       xsize - 1 - xcc0, $
+                                       ycc0, $
+                                       cubic=-0.5)
+        cal_data_new[*, *, 1, s] = rot(reverse(cal_data[*, *, 1, s], 1), $
+                                       pangle, $
+                                       1, $
+                                       xsize - 1 - xcc1, $
+                                       ycc1, $
+                                       cubic=-0.5)
+         cal_data_combined_center[*, *, s] = (cal_data_new[*, *, 0, s]  $
+                                               + cal_data_new[*, *, 1, s]) * 0.5
+      endfor
 
-         cal_data_combined_center (*, *, s) = (cal_data_new (*, *, 0, s)  $
-	                                    +  cal_data_new (*, *, 1, s)) * 0.5
-      endfor ;}
+      xx1    = findgen(xsize, ysize) mod xsize - 511.5
+      yy1    = transpose(findgen(ysize, xsize) mod ysize) - 511.5
 
-      xx1    = findgen (xsize, ysize) mod (xsize) - 511.5
-      yy1    = transpose (findgen (ysize, xsize) mod (ysize) ) - 511.5
+      xx1    = double(xx1)
+      yy1    = double(yy1)
+      rad1   = sqrt(xx1 ^ 2.0 + yy1 ^ 2.0)
 
-      xx1    = double (xx1)
-      yy1    = double (yy1)
-      rad1   = sqrt ( xx1^2.0 + yy1^2.0 )
-
-      theta1 = atan (-yy1, -xx1)
-      theta1 = theta1 + !pi
-      theta1 = rot (reverse (theta1), pangle, 1)
+      theta1 = atan(- yy1, - xx1)
+      theta1 += !pi
+      theta1 = rot(reverse(theta1), pangle, 1)
 
       xcc1  = 511.5
       ycc1  = 511.5
 
-;      print, 'finished combined beams center'
+      ; print, 'finished combined beams center'
 
-      if (doplot EQ 1) then $
-      begin ;{
-         window, 1, xs = xsize, ys = ysize, retain = 2
-         wset,1
-         tv, bytscl (cal_data_combined_center (*, *, 0), 0, 100)
-         draw_circle,  xcc1, ycc1, radius, /dev, color=0
-         wset,1
-      endif ;}
+      if (doplot eq 1) then begin
+        window, 1, xsize=xsize, ysize=ysize, retain=2
+        wset, 1
+        tv, bytscl(cal_data_combined_center[*, *, 0], 0, 100)
+        draw_circle, xcc1, ycc1, radius, /dev, color=0
+        wset, 1
+      endif
 
-      ;--- Polar coordinates.
+      ; polar coordinates
+      qmk4 = - cal_data_combined_center[*, *, 1] * sin(2.0 * theta1 + phase) $
+             + cal_data_combined_center[*, *, 2] * cos(2.0 * theta1 + phase)
+      ; qmk4 = -1.0 * qmk4
 
-      qmk4 = - cal_data_combined_center (*, *, 1) * sin (2.0 * theta1 + phase) $
-             + cal_data_combined_center (*, *, 2) * cos (2.0 * theta1 + phase)
-;      qmk4 = -1.0 * qmk4
+      umk4 =   cal_data_combined_center[*, *, 1] * cos(2.0 * theta1 + phase) $
+             + cal_data_combined_center[*, *, 2] * sin(2.0 * theta1 + phase)
 
-      umk4 =   cal_data_combined_center (*, *, 1) * cos (2.0 * theta1 + phase) $
-             + cal_data_combined_center (*, *, 2) * sin (2.0 * theta1 + phase)
+      intensity = cal_data_combined_center[*, *, 0]
 
-      intensity = cal_data_combined_center (*, *, 0)
+      if (doplot eq 1) then begin
+        tv, bytscl(umk4, -0.5, 0.5)
+      endif
+    endif
 
-      if (doplot EQ 1) then $
-      begin ;{
-         tv, bytscl (umk4, -0.5, 0.5)
-      endif ;}
+    ; sky polarization removal on coordinate-transformed data
+    ; print, 'Remove sky polarization.'
 
-   endif ;}
+    r_init = 1.8
+    rnum   = 11
 
-   ; -------------------------------------------------------------------------
-   ; Sky polarization removal on coordinate-transformed data.
-   ; -------------------------------------------------------------------------
+    radscan    = fltarr(rnum)
+    amplitude1 = fltarr(rnum)
+    phase1     = fltarr(rnum)
 
-;   print, 'Remove sky polarization.'
+    ; numdeg = 360
+    ; numdeg = 180
 
-   r_init = 1.8
-   rnum   = 11 
+    numdeg  = 90
+    stepdeg = 360 / numdeg
+    degrees = findgen(numdeg) * stepdeg + 0.5 * stepdeg
+    degrees = double(degrees) / !radeg
 
-   radscan    = fltarr (rnum)
-   amplitude1 = fltarr (rnum)
-   phase1     = fltarr (rnum)
+    a           = dblarr(2)   ; coefficients for sine (2 * theta) fit.
+    weights     = fltarr(numdeg)
+    weights[*] = 1.0
 
-;   numdeg = 360
-;   numdeg = 180
+    angle_ave_u = dblarr(numdeg)
+    angle_ave_q = dblarr(numdeg)
 
-   numdeg  = 90
-   stepdeg = 360 / numdeg
-   degrees = findgen (numdeg) * stepdeg + 0.5 * stepdeg
-   degrees = double (degrees)/!radeg
+    !p.multi    = [0, 2, 2]
+    !p.charsize = 1.5
+    !y.style    = 1
 
-   a           = dblarr (2)		; coefficients for sine (2 * theta) fit.
-   weights     = fltarr (numdeg)
-   weights (*) = 1.0
+    ; initialize guess for parameters
+    ;   - as we loop, we will use the parameters from the previous fit as a guess
 
-   angle_ave_u = dblarr (numdeg)
-   angle_ave_q = dblarr (numdeg)
+    ; fit in U and Q
 
-   !p.multi    = [0,2,2]
-   !p.charsize = 1.5
-   !y.style    = 1
+    ; a[0] = 0.012
+    ; a[1] = 0.25
 
-;-- Initialize guess for parameters.
-;   As we loop, we will use the parameters from the previous fit as a guess.
+    ; fit in U/I and Q/I
 
-;   fit in U and Q
+    a[0] = 0.0033
+    a[1] = 0.14
 
-;   a (0) = 0.012
-;   a (1) = 0.25
+    factor = 1.00
 
-;  fit in U/I and Q/I
+    ; constant sky bias
+    bias   = 0.0015 
 
-   a (0) = 0.0033
-   a (1) = 0.14
+    ; sky bias as a function of radius
 
-   factor = 1.00
+    ; bias_sky = fltarr(rnum)
+    ; bias_sky = [0.0000, 0.0000, 0.0005, 0.0008, 0.0008, $
+    ;             0.0010, 0.0015, 0.0015, 0.0015, 0.0015, 0.0015]
 
-   ;-- Constant sky bias.
+    ; radius loop
 
-   bias   = 0.0015 
+    for ii = 0, rnum - 1 do begin
+      angle_ave_u[*] = 0d0
+      angle_ave_q[*] = 0d0
 
-   ;-- Sky bias as a function of radius.
-
-;   bias_sky = fltarr (rnum)
-;   bias_sky = [0.0000, 0.0000, 0.0005, 0.0008, 0.0008, $
-;               0.0010, 0.0015, 0.0015, 0.0015, 0.0015, 0.0015]
-
-   ;----------------------------------------------------------------------------
-   ; Radius loop.
-   ;----------------------------------------------------------------------------
-
-   FOR ii = 0, rnum - 1 DO $
-   begin ;{
-      angle_ave_u (*) = 0d0
-      angle_ave_q (*) = 0d0
-
-      ; Use solar radius: radsun = radius in arcsec.  
-
+      ; use solar radius: radsun = radius in arcsec
       radstep = 0.10
-      r_in    = (r_init + ii * radstep)
-      r_out   = (r_init + ii * radstep + radstep)
+      r_in    = r_init + ii * radstep
+      r_out   = r_init + ii * radstep + radstep
       radius_beg = r_in
       radius_end = r_out
 
-      r_in  = r_in  * radsun / platescale
-      r_out = r_out * radsun / platescale
-      radscan (ii) = (r_in + r_out) / 2.0
+      r_in  *= radsun / platescale
+      r_out *= radsun / platescale
+      radscan[ii] = (r_in + r_out) / 2.0
 
-      ;-----------------------------------------
-      ; Extract annulus and average all heights 
-      ; at 'stepdeg' increments around the sun.
-      ;-----------------------------------------
+      ; extract annulus and average all heights at 'stepdeg' increments around
+      ; the sun
 
-      ; Make new theta arrays in degrees.
-
+      ; make new theta arrays in degrees
       theta1_deg = theta1 * !radeg
 
-      ; Define U/I and Q/I.
-
+      ; define U/I and Q/I
       umk4_int = umk4 / intensity
       qmk4_int = qmk4 / intensity
-      
-;      print, 'min/max (umk4):      ', minmax (umk4)
-;      print, 'min/max (intensity): ', minmax (intensity)
-;      print, 'mean (umk4), mean (intensity): ', mean (umk4), mean (intensity)
+
+      ; print, 'min/max(umk4):      ', minmax(umk4)
+      ; print, 'min/max(intensity): ', minmax(intensity)
+      ; print, 'mean(umk4), mean(intensity): ', mean(umk4), mean(intensity)
 
       j = 0
-      FOR i = 0, 360 - stepdeg, stepdeg DO $
-      begin ;{
-         angle = float (i)
-         pick1 = where (rr1 GE r_in AND rr1 LE r_out $
-	                AND theta1_deg GE angle $
-                        AND theta1_deg LT angle + stepdeg, nnl1)
-         if (nnl1 GT 0) then $
-         begin ;{
-            angle_ave_u (j) = mean ( umk4_int (pick1) )
-            angle_ave_q (j) = mean ( qmk4_int (pick1) )
-         endif ;}
-         j = j + 1
-      endfor ;}
+      for i = 0, 360 - stepdeg, stepdeg do begin
+        angle = float[i]
+        pick1 = where(rr1 ge r_in and rr1 le r_out $
+                        and theta1_deg ge angle $
+                        and theta1_deg lt angle + stepdeg, nnl1)
+        if (nnl1 GT 0) then begin
+          angle_ave_u (j) = mean ( umk4_int (pick1) )
+          angle_ave_q (j) = mean ( qmk4_int (pick1) )
+        endif
+        j += 1
+      endfor
 
-      sky_polar_cam1 = curvefit (degrees, double (angle_ave_u), weights, a, $
-                                 FUNCTION_NAME = 'kcor_sine2theta_new')
+      sky_polar_cam1 = curvefit(degrees, double(angle_ave_u), weights, a, $
+                                function_name='kcor_sine2theta_new')
 
-;      print, 'angle_ave_u (0)', angle_ave_u (0)
-;      print, 'radius_beg/end : ', radius_beg, radius_end
-;      print, 'fit coeff :   ', a (0), a (1) * !radeg
+      ; print, 'angle_ave_u (0)', angle_ave_u (0)
+      ; print, 'radius_beg/end : ', radius_beg, radius_end
+      ; print, 'fit coeff :   ', a (0), a (1) * !radeg
 
-      amplitude1 (ii) = a (0)
-      phase1 (ii)     = a (1)
+      amplitude1[ii] = a[0]
+      phase1[ii]     = a[1]
       mini = -0.15
       maxi =  0.15
 
       skyplot = 0
-      if (skyplot EQ 1) then $
-      begin ;{
-         loadct, 39
-         plot,  degrees  *!radeg,  angle_ave_u, thick=2, title='U', ystyle=1
-         oplot, degrees * !radeg, sky_polar_cam1, color=100, thick=5
-         oplot, degrees * !radeg, a(0) * factor * sin (2.0 * degrees + a(1)), $
-                lines=2,thick=5, color=50
-         wait,1
-         plot,  degrees * !radeg, angle_ave_q, thick=2, title='Q', ystyle=1
-         oplot, degrees * !radeg, a(0) * sin(2.0*degrees +90./!radeg + a(1)), $
-	        color=100, thick=5
-         oplot, degrees * !radeg, $
-	        a(0) * factor * sin (2.0*degrees +90./!radeg + a(1)) + bias , $
-		lines=2, color=50, thick=5
+      if (skyplot eq 1) then begin
+        loadct, 39
+        plot,  degrees  *!radeg,  angle_ave_u, thick=2, title='U', ystyle=1
+        oplot, degrees * !radeg, sky_polar_cam1, color=100, thick=5
+        oplot, degrees * !radeg, a[0] * factor * sin(2.0 * degrees + a[1]), $
+               lines=2,thick=5, color=50
+        wait, 1
+        plot,  degrees * !radeg, angle_ave_q, thick=2, title='Q', ystyle=1
+        oplot, degrees * !radeg, a[0] * sin(2.0 * degrees + 90.0 / !radeg + a[1]), $
+               color=100, thick=5
+        oplot, degrees * !radeg, a[0] * factor * sin(2.0 * degrees + 90.0 / !radeg + a[1]) + bias, $
+               linestyle=2, color=50, thick=5
          wait, 0.4
          loadct, 0
          pause
-      endif ;}
+      endif
+    endfor
 
-   endfor ;}
-   ;----------------------------------------------------------------------------
+    mean_phase1 = mean(phase1)
 
-   mean_phase1 = mean (phase1)
+    ; radial_amplitude1 = interpol (amplitude1, radscan, rr1,/spline)
+    ; radial_amplitude1 = interpol (amplitude1, radscan, rr1, /quadratic)
 
-;   radial_amplitude1 = interpol (amplitude1, radscan, rr1,/spline)
-;   radial_amplitude1 = interpol (amplitude1, radscan, rr1, /quadratic)
+    ; force the fit to be a straight line
+    afit_amplitude    = poly_fit(radscan, amplitude1, 1, afit)
+    radial_amplitude1 = interpol(afit, radscan, rr1, /quadratic)
 
-   ;--- Force the fit to be a straight line.
+    ; afit_bias  = poly_fit(radscan, bias_sky, 1, biasfit)
+    ; bias_image = interpol(biasfit, radscan, rr1, /quadratic)
 
-   afit_amplitude    = poly_fit (radscan, amplitude1, 1, afit)
-   radial_amplitude1 = interpol (afit, radscan, rr1, /quadratic)
-
-;   afit_bias  = poly_fit (radscan, bias_sky, 1, biasfit)
-;   bias_image = interpol (biasfit, radscan, rr1, /quadratic)
-
-   if (doplot EQ 1) then $
-   begin ;{
-      plot, rr1 (*, 500) * platescale / (radsun), $
-            radial_amplitude1 (*, 500), $
-	    xtitle='distance (solar radii)', $
+    if (doplot eq 1) then begin
+      plot, rr1[*, 500] * platescale / radsun, radial_amplitude1[*, 500], $
+            xtitle='distance (solar radii)', $
             ytitle='amplitude', title='CAMERA 1'
       oplot, radscan * platescale / (radsun), amplitude1, psym=2
-      wait,1
-   endif ;}
+      wait, 1
+    endif
 
-   radial_amplitude1 = reform (radial_amplitude1, xsize, ysize)
+    radial_amplitude1 = reform(radial_amplitude1, xsize, ysize)
 
-;   bias_image        = reform (bias_image, xsize, ysize)
-;   tv, bytscl (bias_image, 0.0, 0.002)
-;   save = tvrd ()
-;   write_gif, 'bias_image.gif', save
+    ;   bias_image        = reform(bias_image, xsize, ysize)
+    ;   tv, bytscl(bias_image, 0.0, 0.002)
+    ;   save = tvrd()
+    ;   write_gif, 'bias_image.gif', save
 
-   if (doplot EQ 1)then $
-   begin ;{
+    if (doplot eq 1) then begin
       tvscl, radial_amplitude1
       wait, 1
-   end   ;} 
+    endif
 
-   sky_polar_u1 = radial_amplitude1 * sin (2.0 * theta1 + mean_phase1)
-   sky_polar_q1 = radial_amplitude1 * sin (2.0 * theta1 + 90.0 / !radeg $
-                                           + mean_phase1 ) + bias
+    sky_polar_u1 = radial_amplitude1 * sin(2.0 * theta1 + mean_phase1)
+    sky_polar_q1 = radial_amplitude1 * sin(2.0 * theta1 + 90.0 / !radeg $
+                                             + mean_phase1 ) + bias
 
-;   sky_polar_q1 = radial_amplitude1 * sin (2.0 * theta1 + 90.0 / !radeg $
-;                                           + mean_phase1 ) + bias_image
+    ;   sky_polar_q1 = radial_amplitude1 * sin (2.0 * theta1 + 90.0 / !radeg $
+    ;                                           + mean_phase1 ) + bias_image
 
-   qmk4_new = qmk4 - factor * sky_polar_q1 * intensity
-   umk4_new = umk4 - factor * sky_polar_u1 * intensity
+    qmk4_new = qmk4 - factor * sky_polar_q1 * intensity
+    umk4_new = umk4 - factor * sky_polar_u1 * intensity
 
-   if (doplot EQ 1) then $
-   begin ;{
-      tv, bytscl (qmk4_new, -1, 1)
+    if (doplot eq 1) then begin
+      tv, bytscl(qmk4_new, -1, 1)
       draw_circle, xcc1, ycc1, radius_1, thick=4, color=0,  /dev
-      FOR i  = 0, rnum-1   DO draw_circle, xcc1, ycc1, radscan (i), /dev
-      FOR ii = 0, numdeg-1 DO plots, [xcc1, xcc1 + 500 * cos (degrees(ii))], $
-                                  [ycc1, ycc1 + 500 * sin (degrees(ii))], $
-				  /dev
+      for i  = 0, rnum - 1 do draw_circle, xcc1, ycc1, radscan (i), /device
+      for ii = 0, numdeg - 1 do begin
+        plots, [xcc1, xcc1 + 500 * cos(degrees[ii])], $
+               [ycc1, ycc1 + 500 * sin(degrees[ii])], $
+               /device
+        pause
+        wait,1
+    endif
+
+    ; print, 'Finished sky polarization removal.'
+
+    ; add beams Q and U - withOUT sky polarization correction = linear pol
+    corona0 = sqrt(qmk4 ^ 2 + umk4 ^ 2)
+
+    ; add beams Q and U - WITH sky polarization correction = linear pol
+    corona2 = sqrt(qmk4_new ^ 2 + umk4_new ^ 2)
+
+    ; add beams only Q - with sky polarization correction = pB
+    corona = sqrt(qmk4_new ^ 2)
+
+    ; use mask to build final image
+    r_in  = fix(occulter / platescale) + 5.0
+    r_out = 504.0
+
+    mask = where(rad1 LT r_in OR rad1 GE r_out)	; pixels beyond field of view.
+    corona[mask] = 0
+    corona2[mask] = 0
+    corona0[mask] = 0
+
+    cbias = 0.02
+    corona_bias = corona + cbias
+    corona_bias[mask] = 0
+
+    if (doplot eq 1) then begin
+      wset, 0
+      tv, bytscl(sqrt(corona), 0.0, 1.5)
       pause
-      wait,1
-   endif ;}
+    endif
 
-;   print, 'Finished sky polarization removal.'
+    lct, '/hao/acos/sw/idl/color/quallab_ver2.lut'
+    tvlct, red, green, blue, /get
 
-   ; Add beams Q and U - withOUT sky polarization correction = linear pol.
+    mini = 0.00
+    maxi = 1.20
 
-   corona0 = sqrt (qmk4^2 + umk4^2)	
+    test = (corona + 0.03) ^ 0.8
+    test[mask] = 0
 
-   ; Add beams Q and U - WITH sky polarization correction = linear pol.
-
-   corona2 = sqrt (qmk4_new^2 + umk4_new^2)           
-
-   ; Add beams only Q - with sky polarization correction = pB.
-
-   corona =  sqrt (qmk4_new^2)                        
-
-   ;-------------------------------
-   ; Use mask to build final image.
-   ;-------------------------------
-
-   r_in  = fix (occulter / platescale) + 5.0
-   r_out = 504.0
-
-   mask = where (rad1 LT r_in OR rad1 GE r_out)	; pixels beyond field of view.
-   corona  (mask) = 0
-   corona2 (mask) = 0
-   corona0 (mask) = 0
-
-   cbias = 0.02
-   corona_bias = corona + cbias
-   corona_bias (mask) = 0
-
-   if (doplot EQ 1) then $
-   begin ;{
-      wset,0
-      tv, bytscl (sqrt (corona), 0.0, 1.5)
+    if (doplot eq 1) then begin
+      tv, bytscl(test, min=mini, max=maxi)
       pause
-   end   ;}
+    endif
 
-   lct, '/hao/acos/sw/idl/color/quallab_ver2.lut'      ; color table.
-   tvlct, red, green, blue, /get
+    ; print, 'Finished.'
 
-   mini = 0.00
-   maxi = 1.20
+    ; end of new beam combination modifications
 
-   test = (corona + 0.03) ^ 0.8
-   test (mask) = 0
+    ; photosphere height = apparent diameter of sun [arcseconds] 
+    ;                      divided by platescale [arcseconds / pixel]
+    ;                    * radius of occulter [pixels] :
 
-   if (doplot EQ 1) then $
-   begin ;{
-      tv, bytscl (test,  min = mini, max = maxi)
-      pause
-   end   ;}
+    r_photo = radsun / platescale
 
-;   print, 'Finished.'
+    ; print,        'Radius of photosphere [pixels] : ', r_photo
+    ; printf, ULOG, 'Radius of photosphere [pixels] : ', r_photo
 
-;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-; End of new beam combination modifications.
-;* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+    lct,   '/hao/acos/sw/idl/color/quallab_ver2.lut'
+    tvlct, red, green, blue, /get
 
-   ; photosphere height = apparent diameter of sun [arcseconds] 
-   ;                      divided by platescale [arcseconds / pixel]
-   ;                    * radius of occulter [pixels] :
+    ; display image, annotate, and save as a full resolution GIF file
+    ; mini = -.02 ; USED FOR MARCH 10, 2014
+    ; maxi =  0.5 ; USED FOR MARCH 10, 2014
+    ; maxi =  1.2 ; maximum intensity scaling value.  Used < 28 jan 2015.
 
-   r_photo = radsun / platescale
+    ; mini =  0.0 ; minimum intensity scaling value.  Used <  11 Mar 2015.
+    ; maxi =  1.8 ; maximum intensity scaling value.  Used 28 Jan - 10 Mar 2015.
+    ; exp  =  0.8 ; scaling exponent.                 Used 28 Jan - 10 Mar 2015.
 
-;   print,        'Radius of photosphere [pixels] : ', r_photo
-;   printf, ULOG, 'Radius of photosphere [pixels] : ', r_photo
+    mini = 0.1    ; minimum intensity scaling value.  Used >= 11 Mar 2015.
+    maxi = 1.4    ; maximum intensity scaling value.  Used >= 11 Mar 2015.
+    exp  = 0.7    ; scaling exponent.                 Used >= 11 Mar 2015.
 
-   ;--- Load color table.
+    mini  = 0.0   ; minimum intensity scaling value.  Used >= 09 Apr 2015.
+    maxi  = 1.2   ; maximum intensity scaling value.  Used >= 09 Apr 2015.
+    exp   = 0.7   ; scaling exponent.                 Used >= 09 Apr 2015.
 
-   lct,   '/hao/acos/sw/idl/color/quallab_ver2.lut'	; color table.
-   tvlct, red, green, blue, /get
+    ; cbias = 0.03
+    ; tv, bytscl((corona + cbias)^exp, min=mini, max=maxi)
 
-   ;----------------------------------------------------------------------------
-   ; Display image, annotate, and save as a full resolution GIF file.
-   ;----------------------------------------------------------------------------
+    tv, bytscl(corona_bias ^ exp, min=mini, max=maxi)
 
-   ; mini = -.02 ; USED FOR MARCH 10, 2014
-   ; maxi =  0.5 ; USED FOR MARCH 10, 2014
-   ; maxi =  1.2 ; maximum intensity scaling value.  Used < 28 jan 2015.
+    corona_int = intarr(1024, 1024)
+    corona_int = fix(1000 * corona)   ; multiply by 1000 to store as integer
 
-   ; mini =  0.0 ; minimum intensity scaling value.  Used <  11 Mar 2015.
-   ; maxi =  1.8 ; maximum intensity scaling value.  Used 28 Jan - 10 Mar 2015.
-   ; exp  =  0.8 ; scaling exponent.                 Used 28 Jan - 10 Mar 2015.
+    corona_min    = min(corona)
+    corona_max    = max(corona)
+    corona_median = median(corona)
 
-   mini = 0.1    ; minimum intensity scaling value.  Used >= 11 Mar 2015.
-   maxi = 1.4    ; maximum intensity scaling value.  Used >= 11 Mar 2015.
-   exp  = 0.7    ; scaling exponent.                 Used >= 11 Mar 2015.
-   
-   mini  = 0.0	; minimum intensity scaling value.  Used >= 09 Apr 2015.
-   maxi  = 1.2	; maximum intensity scaling value.  Used >= 09 Apr 2015.
-   exp   = 0.7	; scaling exponent.                 Used >= 09 Apr 2015.
+    icorona_min    = min(corona_int)
+    icorona_max    = max(corona_int)
+    icorona_median = median(corona_int)
 
-;   cbias = 0.03
-;   tv, bytscl ((corona + cbias)^exp, min = mini, max = maxi)
+    datamin = icorona_min
+    datamax = icorona_max
+    dispmin = mini
+    dispmax = maxi
+    dispexp = exp
 
-   tv, bytscl ((corona_bias)^exp, min = mini, max = maxi)
+    ;   print, 'corona      min, max, median :', $
+    ;          corona_min, corona_max, corona_median
+    ;   print, 'corona*1000 min, max, median :', $
+    ;          icorona_min, icorona_max, icorona_median
+    ;   print, 'mini, maxi, exp: ', mini, maxi, exp
+    ;
+    ;   print, minmax(corona), median(corona)
+    ;   print, minmax(corona_int), median(corona_int)
+    ;
+    ;   printf, ulog, 'corona      min, max, median :', $
+    ;                 corona_min, corona_max, corona_median
+    ;   printf, ulog, 'corona*1000 min, max, median :', $
+    ;                 icorona_min, icorona_max, icorona_median
+    ;   printf, ulog, 'mini, maxi, exp: ', mini, maxi, exp
+    ;
+    ;   printf, ulog, minmax(corona), median(corona)
+    ;   printf, ulog, minmax(corona_int), median(corona_int)
 
-   corona_int = intarr (1024, 1024)
-   corona_int = fix (1000 * corona)	; Multiply by 1000 to store as integer.
+    xyouts, 4, 990, 'MLSO/HAO/KCOR', color=255, charsize=1.5, /device
+    xyouts, 4, 970, 'K-Coronagraph', color=255, charsize=1.5, /device
+    xyouts, 512, 1000, 'North', color=255, charsize=1.2, alignment=0.5, $
+            /device
+    xyouts, 1018, 995, string(format='(a2)', sday) + ' ' $
+                         + string(format='(a3)', name_month) $
+                         + ' ' + string(format = '(a4)', syear), $
+                       /device, alignment=1.0, $
+                       charsize=1.2, color=255
+    xyouts, 1010, 975, 'DOY ' + string(format='(i3)', odoy), /device, $
+                       alignment=1.0, charsize=1.2, color=255
+    xyouts, 1018, 955, string(format='(a2)', shour) + ':' $
+                         + string(format = '(a2)', sminute) $
+                         + ':' + string(format='(a2)', ssecond) + ' UT', $
+                         /device, $
+                         alignment=1.0, charsize=1.2, color=255
+    xyouts, 22, 512, 'East', color=255, charsize=1.2, alignment=0.5, $
+                     orientation=90., /device
+    xyouts, 1012, 512, 'West', color=255, charsize=1.2, alignment=0.5, $
+            orientation=90., /device
+    xyouts, 4, 46, 'Level 1 data', color=255, charsize=1.2, /device
+    xyouts, 4, 26, 'min/max: ' + string(format='(f3.1)', mini) + ', ' + $
+            string(format='(f3.1)', maxi), $
+            color=255, charsize=1.2, /device
+    xyouts, 4, 6, 'scaling: Intensity ^ ' + string(format='(f3.1)', exp), $
+            color=255, charsize=1.2, /device
+    xyouts, 1018, 6, 'Circle = photosphere.', $
+            color=255, charsize=1.2, /device, alignment=1.0
 
-   corona_min    = min (corona)
-   corona_max    = max (corona)
-   corona_median = median (corona)
+    ; image has been shifted to center of array
+    ; draw circle at photosphere
+    tvcircle, r_photo, 511.5, 511.5, color=255, /device
 
-   icorona_min    = min (corona_int)
-   icorona_max    = max (corona_int)
-   icorona_median = median (corona_int)
+    device, decomposed=1
+    save     = tvrd()
+    gif_file = 'l1.gif'
+    gif_file = strmid(l0_file, 0, 20) + '.gif'
+    write_gif, l1_dir + gif_file, save, red, green, blue
 
-   datamin = icorona_min
-   datamax = icorona_max
-   dispmin = mini
-   dispmax = maxi
-   dispexp = exp
+    ;----------------------------------------------------------------------------
+    ; CREATE A FITS IMAGE:
+    ;****************************************************************************
+    ; BUILD NEW HEADER: reorder old header and insert new information.
+    ;****************************************************************************
+    ; Enter the info from the level 0 header and insert ephemeris and comments
+    ; in proper order. Remove information from level 0 header that is 
+    ; NOT correct for level 1 and 2 images.
+    ; For example:  NAXIS = 4 for level 0 but NAXIS =  2 for level 1&2 data. 
+    ; Therefore NAXIS3 and NAXIS4 fields are not relevent for level 1 and 2 data.
+    ;----------------------------------------------------------------------------
+    ; Issues of interest:
+    ;----------------------------------------------------------------------------
+    ; 1. 01ID objective lens id added on June 18, 2014 
+    ; 2. On June 17, 2014 19:30 Allen reports the Optimax 01 was installed. 
+    ;    Prior to that date the 01 was from Jenoptik
+    ;    NEED TO CHECK THE EXACT TIME NEW OBJECTIVE WENT IN BY OBSERVING 
+    ;    CHANGES IN ARTIFACTS.  IT MAY HAVE BEEN INSTALLED EARLIER IN DAY.
+    ; 3. IDL stuctures turn boolean 'T' and 'F' into integers (1, 0); 
+    ;    Need to turn back to boolean to meet FITS headers standards.
+    ; 4. Structures don't accept dashes ('-') in keywords which are FITS header 
+    ;    standards (e.g. date-obs). 
+    ;    use /DASH2UNDERSCORE  
+    ; 5. Structures don't save comments. Need to type them back in.
+    ;----------------------------------------------------------------------------
 
-;   print, 'corona      min, max, median :', $
-;          corona_min, corona_max, corona_median
-;   print, 'corona*1000 min, max, median :', $
-;          icorona_min, icorona_max, icorona_median
-;   print, 'mini, maxi, exp: ', mini, maxi, exp
-;
-;   print, minmax (corona), median (corona)
-;   print, minmax (corona_int), median (corona_int)
-;
-;   printf, ULOG, 'corona      min, max, median :', $
-;                 corona_min, corona_max, corona_median
-;   printf, ULOG, 'corona*1000 min, max, median :', $
-;                 icorona_min, icorona_max, icorona_median
-;   printf, ULOG, 'mini, maxi, exp: ', mini, maxi, exp
-;
-;   printf, ULOG, minmax (corona), median (corona)
-;   printf, ULOG, minmax (corona_int), median (corona_int)
+    bscale = 0.001   ; pB * 1000 is stored in FITS image.
+    bunit  = 'quasi-pB'
+    datacite = 'ww2.hao.ucar.edu/mlso/instruments/mlso-kcor-coronagraph'
+    datacite = 'http://ezid.cdlib.org/id/doi:10.5065/D69G5JV8'
+    img_quality = 'ok'
+    newheader    = strarr(200)
+    newheader[0] = header[0]         ; contains SIMPLE keyword
 
-   xyouts, 4, 990, 'MLSO/HAO/KCOR', color = 255, charsize = 1.5, /device
-   xyouts, 4, 970, 'K-Coronagraph', color = 255, charsize = 1.5, /device
-   xyouts, 512, 1000, 'North', color = 255, charsize = 1.2, alignment = 0.5, $
-           /device
-   xyouts, 1018, 995, string (format = '(a2)', sday) + ' ' + $
-           string (format = '(a3)', name_month) + $
-           ' ' + string(format = '(a4)', syear), /device, alignment = 1.0, $
-	   charsize = 1.2, color = 255
-   xyouts, 1010, 975, 'DOY ' + string(format = '(i3)', odoy), /device, $
-           alignment = 1.0, charsize = 1.2, color = 255
-   xyouts, 1018, 955, string (format = '(a2)', shour) + ':' + $
-           string (format = '(a2)', sminute) + $
-           ':' + string(format = '(a2)', ssecond) + ' UT', /device, $
-	   alignment = 1.0, charsize = 1.2, color = 255
-   xyouts, 22, 512, 'East', color = 255, charsize = 1.2, alignment = 0.5, $
-           orientation = 90., /device
-   xyouts, 1012, 512, 'West', color = 255, charsize = 1.2, alignment = 0.5, $
-           orientation = 90., /device
-   xyouts, 4, 46, 'Level 1 data', color = 255, charsize = 1.2, /device
-   xyouts, 4, 26, 'min/max: ' + string (format = '(f3.1)', mini) + ', ' + $
-           string (format = '(f3.1)', maxi), $
-           color = 255, charsize = 1.2, /device
-   xyouts, 4, 6, 'scaling: Intensity ^ ' + string (format = '(f3.1)', exp), $
-           color = 255, charsize = 1.2, /device
-   xyouts, 1018, 6, 'Circle = photosphere.', $
-           color = 255, charsize = 1.2, /device, alignment = 1.0
+    ; image array information
+    fxaddpar, newheader, 'BITPIX',   struct.bitpix, ' bits per pixel'
+    fxaddpar, newheader, 'NAXIS', 2, ' number of dimensions; FITS image' 
+    fxaddpar, newheader, 'NAXIS1',   struct.naxis1, ' (pixels) x dimension'
+    fxaddpar, newheader, 'NAXIS2',   struct.naxis2, ' (pixels) y dimension'
+    if (struct.extend eq 0) then val_extend = 'F'
+    if (struct.extend eq 1) then val_extend = 'T'
+    fxaddpar, newheader, 'EXTEND', 'F', ' No FITS extensions'
 
-   ;--- Image has been shifted to center of array.
-   ;--- Draw circle at photosphere.
+    ; observation information
+    fxaddpar, newheader, 'DATE-OBS', struct.date_d$obs, ' UTC observation start'
+    ; fxaddpar, newheader, 'DATE-BEG', struct.date_d$obs, ' UTC observation start'
+    fxaddpar, newheader, 'DATE-END', struct.date_d$end, ' UTC observation end'
+    fxaddpar, newheader, 'TIMESYS',  'UTC', $
+                         ' date/time system: Coordinated Universal Time'
+    fxaddpar, newheader, 'DATE_HST', date_hst, ' MLSO observation date [HST]
+    fxaddpar, newheader, 'LOCATION', 'MLSO', $
+                         ' Mauna Loa Solar Observatory, Hawaii'
+    fxaddpar, newheader, 'ORIGIN',   struct.origin, $
+                         ' Nat.Ctr.Atmos.Res. High Altitude Observatory'
+    fxaddpar, newheader, 'TELESCOP', 'COSMO K-Coronagraph', $
+                         ' COSMO: COronal Solar Magnetism Observatory' 
+    fxaddpar, newheader, 'INSTRUME', 'COSMO K-Coronagraph'
+    fxaddpar, newheader, 'OBJECT',   struct.object, $
+                         ' white light polarization brightness'
+    fxaddpar, newheader, 'DATATYPE', struct.datatype, ' type of data acquired'
+    fxaddpar, newheader, 'OBSERVER', struct.observer, $
+                         ' name of Mauna Loa observer'
 
-   tvcircle, r_photo, 511.5, 511.5, color = 255, /device
+    ; mechanism positions
+    fxaddpar, newheader, 'DARKSHUT', struct.darkshut, $
+                         ' dark shutter open(out) or closed(in)'
+    fxaddpar, newheader, 'COVER',    struct.cover, $
+                         ' cover in or out of the light beam'
+    fxaddpar, newheader, 'DIFFUSER', struct.diffuser, $
+                         ' diffuser in or out of the light beam'
+    fxaddpar, newheader, 'CALPOL',   struct.calpol, $
+                         ' calibration polarizer in or out of beam'
+    fxaddpar, newheader, 'CALPANG',  struct.calpang, $
+                         ' calibration polarizer angle', format='(f9.3)'
+    fxaddpar, newheader, 'EXPTIME',  struct.exptime*1.e-3, $
+                         ' [s] exposure time for each frame', format = '(f10.4)'
+    ; fxaddpar, newheader, 'XPOSURE',  struct.exptime * 1.e-3 * struct.numsum, $
+    ;                      ' [s] total exposure for image', format = '(f10.4)'
+    fxaddpar, newheader, 'NUMSUM',   struct.numsum, $
+                         ' # frames summed per camera & polarizer state'
 
-   device, decomposed = 1 
-   save     = tvrd ()
-   gif_file = 'l1.gif'
-   gif_file = strmid (l0_file, 0, 20) + '.gif'
-   write_gif, l1_dir + gif_file, save, red, green, blue
+    ; software information
+    fxaddpar, newheader, 'QUALITY', img_quality, ' Image quality'
+    fxaddpar, newheader, 'LEVEL',    'L1', $
+                         ' Level 1 intensity is quasi-calibrated'
 
-   ;----------------------------------------------------------------------------
-   ; CREATE A FITS IMAGE:
-   ;****************************************************************************
-   ; BUILD NEW HEADER: reorder old header and insert new information.
-   ;****************************************************************************
-   ; Enter the info from the level 0 header and insert ephemeris and comments
-   ; in proper order. Remove information from level 0 header that is 
-   ; NOT correct for level 1 and 2 images.
-   ; For example:  NAXIS = 4 for level 0 but NAXIS =  2 for level 1&2 data. 
-   ; Therefore NAXIS3 and NAXIS4 fields are not relevent for level 1 and 2 data.
-   ;----------------------------------------------------------------------------
-   ; Issues of interest: 
-   ;----------------------------------------------------------------------------
-   ; 1. 01ID objective lens id added on June 18, 2014 
-   ; 2. On June 17, 2014 19:30 Allen reports the Optimax 01 was installed. 
-   ;    Prior to that date the 01 was from Jenoptik
-   ;    NEED TO CHECK THE EXACT TIME NEW OBJECTIVE WENT IN BY OBSERVING 
-   ;    CHANGES IN ARTIFACTS.  IT MAY HAVE BEEN INSTALLED EARLIER IN DAY.
-   ; 3. IDL stuctures turn boolean 'T' and 'F' into integers (1, 0); 
-   ;    Need to turn back to boolean to meet FITS headers standards.
-   ; 4. Structures don't accept dashes ('-') in keywords which are FITS header 
-   ;    standards (e.g. date-obs). 
-   ;    use /DASH2UNDERSCORE  
-   ; 5. Structures don't save comments. Need to type them back in.
-   ;----------------------------------------------------------------------------
+    ; fxaddpar, newheader, 'DATE-L1', kcor_datecal(), ' Level 1 processing date'
+    ; fxaddpar, newheader, 'L1SWID',  'kcorl1.pro 10nov2015', $
+    ;                      ' Level 1 software'
 
-   bscale = 0.001			; pB * 1000 is stored in FITS image.
-   bunit  = 'quasi-pB'
-   datacite = 'ww2.hao.ucar.edu/mlso/instruments/mlso-kcor-coronagraph'
-   datacite = 'http://ezid.cdlib.org/id/doi:10.5065/D69G5JV8'
-   img_quality = 'ok'
-   newheader    = strarr (200)
-   newheader(0) = header(0)         ; contains SIMPLE keyword
+    fxaddpar, newheader, 'DATE_DP', date_dp, ' L1 processing date (UTC)'
+    fxaddpar, newheader, 'DPSWID',  'kcorl1.pro 14dec2015', $
+                         ' L1 data processing software'
 
-   ;-------------------------
-   ; Image array information.
-   ;-------------------------
+    fxaddpar, newheader, 'CALFILE', cal_file, $
+                         ' calibration file'
+    ;                        ' calibration file:dark, opal, 4 pol.states'
+    fxaddpar, newheader, 'DISTORT', dc_file, ' distortion file'
+    fxaddpar, newheader, 'DMODSWID', '18 Aug 2014', $
+                         ' date of demodulation software'
+    fxaddpar, newheader, 'OBSSWID', struct.obsswid, $
+                         ' version of the observing software'
 
-   fxaddpar, newheader, 'BITPIX',   struct.bitpix, ' bits per pixel'
-   fxaddpar, newheader, 'NAXIS', 2, ' number of dimensions; FITS image' 
-   fxaddpar, newheader, 'NAXIS1',   struct.naxis1, ' (pixels) x dimension'
-   fxaddpar, newheader, 'NAXIS2',   struct.naxis2, ' (pixels) y dimension'
-   if (struct.extend eq 0) then val_extend = 'F'
-   if (struct.extend eq 1) then val_extend = 'T'
-   fxaddpar, newheader, 'EXTEND', 'F', ' No FITS extensions'
+    fxaddpar, newheader, 'BUNIT', bunit, $
+                         ' note: Level-1 intensities are quasi-pB.'
 
-   ;-------------------------
-   ; Observation information.
-   ;-------------------------
+    fxaddpar, newheader, 'BZERO', struct.bzero, $
+                         ' offset for unsigned integer data'
+    fxaddpar, newheader, 'BSCALE', bscale, $
+                         ' physical = data * BSCALE + BZERO', format = '(f8.3)'
 
-   fxaddpar, newheader, 'DATE-OBS', struct.date_d$obs, ' UTC observation start'
-;   fxaddpar, newheader, 'DATE-BEG', struct.date_d$obs, ' UTC observation start'
-   fxaddpar, newheader, 'DATE-END', struct.date_d$end, ' UTC observation end'
-   fxaddpar, newheader, 'TIMESYS',  'UTC', $
-                        ' date/time system: Coordinated Universal Time'
-   fxaddpar, newheader, 'DATE_HST', date_hst, ' MLSO observation date [HST]
-   fxaddpar, newheader, 'LOCATION', 'MLSO', $
-                        ' Mauna Loa Solar Observatory, Hawaii'
-   fxaddpar, newheader, 'ORIGIN',   struct.origin, $
-                        ' Nat.Ctr.Atmos.Res. High Altitude Observatory'
-   fxaddpar, newheader, 'TELESCOP', 'COSMO K-Coronagraph', $
-                        ' COSMO: COronal Solar Magnetism Observatory' 
-   fxaddpar, newheader, 'INSTRUME', 'COSMO K-Coronagraph'
-   fxaddpar, newheader, 'OBJECT',   struct.object, $
-                        ' white light polarization brightness'
-   fxaddpar, newheader, 'DATATYPE', struct.datatype, ' type of data acquired'
-   fxaddpar, newheader, 'OBSERVER', struct.observer, $
-                        ' name of Mauna Loa observer'
+    ; data display information
+    fxaddpar, newheader, 'DATAMIN', datamin, ' minimum  value of  data'
+    fxaddpar, newheader, 'DATAMAX', datamax, ' maximum  value of  data'
+    fxaddpar, newheader, 'DISPMIN', dispmin, ' minimum  value for display', $
+                         format='(f10.2)'
+    fxaddpar, newheader, 'DISPMAX', dispmax, ' maximum  value for display', $
+                         format='(f10.2)'
+    fxaddpar, newheader, 'DISPEXP', dispexp, $
+                         ' exponent value for display (d=b^dispexp)', $
+                         format='(f10.2)'
 
-   ;---------------------
-   ; Mechanism positions.
-   ;---------------------
+    ; coordinate system information
+    fxaddpar, newheader, 'WCSNAME',  'helioprojective-cartesian', $
+                         'World Coordinate System (WCS) name'
+    fxaddpar, newheader, 'CTYPE1',   'HPLN-TAN', $
+                         ' [deg] helioprojective west angle: solar X'
+    fxaddpar, newheader, 'CRPIX1',   xcen, $
+                         ' [pixel]  solar X sun center (origin=1)', $
+                         format='(f9.2)'
+    fxaddpar, newheader, 'CRVAL1',   0.00, ' [arcsec] solar X sun center', $
+                         format='(f9.2)'
+    fxaddpar, newheader, 'CDELT1',   platescale, $
+                         ' [arcsec/pix] solar X increment = platescale', $
+                         format='(f9.4)'
+    fxaddpar, newheader, 'CUNIT1',   'arcsec'
+    fxaddpar, newheader, 'CTYPE2',   'HPLT-TAN', $
+                         ' [deg] helioprojective north angle: solar Y'
+    fxaddpar, newheader, 'CRPIX2',   ycen, $
+                         ' [pixel]  solar Y sun center (origin=1)', $
+                         format='(f9.2)'
+    fxaddpar, newheader, 'CRVAL2',   0.00, ' [arcsec] solar Y sun center', $
+                         format='(f9.2)'
+    fxaddpar, newheader, 'CDELT2',   platescale, $
+                         ' [arcsec/pix] solar Y increment = platescale', $
+                         format='(f9.4)'
+    fxaddpar, newheader, 'CUNIT2',   'arcsec'
+    fxaddpar, newheader, 'INST_ROT', 0.00, $
+                         ' [deg] rotation of the image wrt solar north', $
+                           format='(f9.3)'
+    fxaddpar, newheader, 'PC1_1',    1.00, $
+                         ' coord transform matrix element (1, 1) WCS std.', $
+                         format='(f9.3)'
+    fxaddpar, newheader, 'PC1_2',    0.00, $
+                         ' coord transform matrix element (1, 2) WCS std.', $
+                         format='(f9.3)'
+    fxaddpar, newheader, 'PC2_1',    0.00, $
+                         ' coord transform matrix element (2, 1) WCS std.', $
+                         format='(f9.3)'
+    fxaddpar, newheader, 'PC2_2',    1.00, $
+                         ' coord transform matrix element (2, 2) WCS std.', $
+                         format='(f9.3)'
 
-   fxaddpar, newheader, 'DARKSHUT', struct.darkshut, $
-                        ' dark shutter open(out) or closed(in)'
-   fxaddpar, newheader, 'COVER',    struct.cover, $
-                        ' cover in or out of the light beam'
-   fxaddpar, newheader, 'DIFFUSER', struct.diffuser, $
-                        ' diffuser in or out of the light beam'
-   fxaddpar, newheader, 'CALPOL',   struct.calpol, $
-                        ' calibration polarizer in or out of beam'
-   fxaddpar, newheader, 'CALPANG',  struct.calpang, $
-                        ' calibration polarizer angle', format='(f9.3)'
-   fxaddpar, newheader, 'EXPTIME',  struct.exptime*1.e-3, $
-                        ' [s] exposure time for each frame', format = '(f10.4)'
-;   fxaddpar, newheader, 'XPOSURE',  struct.exptime * 1.e-3 * struct.numsum, $
-;                        ' [s] total exposure for image', format = '(f10.4)'
-   fxaddpar, newheader, 'NUMSUM',   struct.numsum, $
-                        ' # frames summed per camera & polarizer state'
+    ; raw camera occulting center & radius information
+    fxaddpar, newheader, 'RCAMXCEN', xcen0 + 1, $
+                         ' [pixel] camera 0 raw X-coord occulting center', $
+                         format='(f8.3)'
+    fxaddpar, newheader, 'RCAMYCEN', ycen0 + 1, $
+                         ' [pixel] camera 0 raw Y-coord occulting center', $
+                         format='(f8.3)'
+    fxaddpar, newheader, 'RCAM_RAD',  radius_0, $
+                         ' [pixel] camera 0 raw occulter radius', $
+                         format='(f8.3)'
+    fxaddpar, newheader, 'TCAMXCEN', xcen1 + 1, $
+                         ' [pixel] camera 1 raw X-coord occulting center', $
+                         format='(f8.3)'
+    fxaddpar, newheader, 'TCAMYCEN', ycen1 + 1, $
+                         ' [pixel] camera 1 raw Y-coord occulting center', $
+                         format='(f8.3)'
+    fxaddpar, newheader, 'TCAM_RAD',  radius_1, $
+                         ' [pixel] camera 1 raw occulter radius', $
+                         format='(f8.3)'
 
-   ;----------------------
-   ; Software information.
-   ;----------------------
+    ; add ephemeris data
+    fxaddpar, newheader, 'RSUN',     radsun, $
+                         ' [arcsec] solar radius', format = '(f9.3)'
+    fxaddpar, newheader, 'SOLAR_P0', pangle, $
+                         ' [deg] solar P angle',   format = '(f9.3)'
+    fxaddpar, newheader, 'CRLT_OBS', bangle, $
+                         ' [deg] solar B angle: Carrington latitude ', $
+                         format='(f8.3)'
+    fxaddpar, newheader, 'CRLN_OBS', carrington_long, $
+                         ' [deg] solar L angle: Carrington longitude', $
+                         format='(f9.3)'
+    fxaddpar, newheader, 'CAR_ROT',  carrington_rotnum, $
+                         ' Carrington rotation number', format = '(i4)'
+    fxaddpar, newheader, 'SOLAR_RA', sol_ra, $
+                         ' [h]   solar Right Ascension (hours)', $
+                         format='(f9.3)'
+    fxaddpar, newheader, 'SOLARDEC', sol_dec, $
+                         ' [deg] solar Declination (deg)', format = '(f9.3)'
 
-   fxaddpar, newheader, 'QUALITY',  img_quality, ' Image quality'
-   fxaddpar, newheader, 'LEVEL',    'L1', $
-                        ' Level 1 intensity is quasi-calibrated'
+    ; wavelength information
+    fxaddpar, newheader, 'WAVELNTH', 735, $
+                         ' [nm] center wavelength   of bandpass filter', $
+                         format='(i4)'
+    fxaddpar, newheader, 'WAVEFWHM', 30, $
+                         ' [nm] full width half max of bandpass filter', $
+                         format='(i3)'
 
-;   fxaddpar, newheader, 'DATE-L1', kcor_datecal(), ' Level 1 processing date'
-;   fxaddpar, newheader, 'L1SWID',  'kcorl1.pro 10nov2015', $
-;                        ' Level 1 software'
+    ; engineering data
+    rcamfocs = struct.rcamfocs
+    srcamfocs = strmid(string(struct.rcamfocs), 0, 3)
+    if (srcamfocs eq 'NaN') then rcamfocs = 0.0
+    tcamfocs = struct.tcamfocs
+    stcamfocs = strmid(string(struct.tcamfocs), 0, 3)
+    if (stcamfocs eq 'NaN') then tcamfocs = 0.0
 
-   fxaddpar, newheader, 'DATE_DP', date_dp,    ' L1 processing date (UTC)'
-   fxaddpar, newheader, 'DPSWID',  'kcorl1.pro 14dec2015', $
-                        ' L1 data processing software'
+    fxaddpar, newheader, 'O1FOCS',   struct.o1focs, $
+                         ' [mm] objective lens (01) focus position', $
+                         format='(f8.3)'
+    fxaddpar, newheader, 'RCAMFOCS', rcamfocs, $
+                         ' [mm] camera 0 focus position', format='(f9.3)'
+    fxaddpar, newheader, 'TCAMFOCS', tcamfocs, $
+                         ' [mm] camera 1 focus position', format='(f9.3)'
+    fxaddpar, newheader, 'MODLTRT',  struct.modltrt, $
+                         ' [deg C] modulator temperature', format = '(f8.3)'
+    fxaddpar, newheader, 'SGSDIMV',  struct.sgsdimv, $
+                         ' [V] mean Spar Guider Sys. (SGS) DIM signal', $
+                         format='(f9.4)'
+    fxaddpar, newheader, 'SGSDIMS',  struct.sgsdims, $
+                         ' [V] SGS DIM signal standard deviation', $
+                         format='(e11.3)'
+    fxaddpar, newheader, 'SGSSUMV',  struct.sgssumv, $
+                         ' [V] mean SGS sum signal',          format = '(f9.4)'
+    fxaddpar, newheader, 'SGSRAV',   struct.sgsrav, $
+                         ' [V] mean SGS RA error signal',     format = '(e11.3)'
+    fxaddpar, newheader, 'SGSRAS',   struct.sgsras, $
+                         ' [V] mean SGS RA error standard deviation', $
+                         format='(e11.3)'
+    fxaddpar, newheader, 'SGSRAZR',  struct.sgsrazr, $
+                         ' [arcsec] SGS RA zeropoint offset', format = '(f9.4)'
+    fxaddpar, newheader, 'SGSDECV',  struct.sgsdecv, $
+                         ' [V] mean SGS DEC error signal',    format = '(e11.3)'
+    fxaddpar, newheader, 'SGSDECS',  struct.sgsdecs, $
+                         ' [V] mean SGS DEC error standard deviation', $
+                         format='(e11.3)'
+    fxaddpar, newheader, 'SGSDECZR', struct.sgsdeczr, $ 
+                         ' [arcsec] SGS DEC zeropoint offset', format = '(f9.4)'
+    fxaddpar, newheader, 'SGSSCINT', struct.sgsscint, $
+                         ' [arcsec] SGS scintillation seeing estimate', $
+                         format='(f9.4)'
+    fxaddpar, newheader, 'SGSLOOP',  struct.sgsloop, ' SGS loop closed fraction'
+    fxaddpar, newheader, 'SGSSUMS',  struct.sgssums, $
+                         ' [V] SGS sum signal standard deviation', $
+                         format='(e11.3)'
 
-   fxaddpar, newheader, 'CALFILE', cal_file, $
-                        ' calibration file'
-;                        ' calibration file:dark, opal, 4 pol.states'
-   fxaddpar, newheader, 'DISTORT', dc_file, ' distortion file'
-   fxaddpar, newheader, 'DMODSWID', '18 Aug 2014', $
-                        ' date of demodulation software'
-   fxaddpar, newheader, 'OBSSWID',  struct.obsswid, $
-                        ' version of the observing software'
+    ; component identifiers
+    fxaddpar, newheader, 'CALPOLID', struct.calpolid, $
+                         ' ID polarizer'
+    fxaddpar, newheader, 'DIFFSRID', struct.diffsrid, $
+                         ' ID diffuser'
+    fxaddpar, newheader, 'FILTERID', struct.filterid, $
+                         ' ID bandpass filter'
 
-   fxaddpar, newheader, 'BUNIT', bunit, $
-             ' note: Level-1 intensities are quasi-pB.'
-
-   fxaddpar, newheader, 'BZERO',    struct.bzero, $
-                        ' offset for unsigned integer data'
-   fxaddpar, newheader, 'BSCALE',   bscale, $
-             ' physical = data * BSCALE + BZERO', format = '(f8.3)'
-
-   ;--------------------------
-   ; Data display information.
-   ;--------------------------
-
-   fxaddpar, newheader, 'DATAMIN', datamin, ' minimum  value of  data'
-   fxaddpar, newheader, 'DATAMAX', datamax, ' maximum  value of  data'
-   fxaddpar, newheader, 'DISPMIN', dispmin, ' minimum  value for display', $
-                        format='(f10.2)'
-   fxaddpar, newheader, 'DISPMAX', dispmax, ' maximum  value for display', $
-                        format='(f10.2)'
-   fxaddpar, newheader, 'DISPEXP', dispexp, $
-                        ' exponent value for display (d=b^dispexp)', $
-                        format='(f10.2)'
-  
-   ;-------------------------------
-   ; Coordinate system information.
-   ;-------------------------------
-
-   fxaddpar, newheader, 'WCSNAME',  'helioprojective-cartesian', $
-                        'World Coordinate System (WCS) name'
-   fxaddpar, newheader, 'CTYPE1',   'HPLN-TAN', $
-                        ' [deg] helioprojective west angle: solar X'
-   fxaddpar, newheader, 'CRPIX1',   xcen, $
-                        ' [pixel]  solar X sun center (origin=1)', $
-			format='(f9.2)'
-   fxaddpar, newheader, 'CRVAL1',   0.00, ' [arcsec] solar X sun center', $
-			format='(f9.2)'
-   fxaddpar, newheader, 'CDELT1',   platescale, $
-                        ' [arcsec/pix] solar X increment = platescale', $
-			format='(f9.4)'
-   fxaddpar, newheader, 'CUNIT1',   'arcsec'
-   fxaddpar, newheader, 'CTYPE2',   'HPLT-TAN', $
-                        ' [deg] helioprojective north angle: solar Y'
-   fxaddpar, newheader, 'CRPIX2',   ycen, $
-                        ' [pixel]  solar Y sun center (origin=1)', $
-			format='(f9.2)'
-   fxaddpar, newheader, 'CRVAL2',   0.00, ' [arcsec] solar Y sun center', $
-			format='(f9.2)'
-   fxaddpar, newheader, 'CDELT2',   platescale, $
-                        ' [arcsec/pix] solar Y increment = platescale', $
-			format='(f9.4)'
-   fxaddpar, newheader, 'CUNIT2',   'arcsec'
-   fxaddpar, newheader, 'INST_ROT', 0.00, $
-                        ' [deg] rotation of the image wrt solar north', $
-			format='(f9.3)'
-   fxaddpar, newheader, 'PC1_1',    1.00, $
-                        ' coord transform matrix element (1, 1) WCS std.', $
-			format='(f9.3)'
-   fxaddpar, newheader, 'PC1_2',    0.00, $
-                        ' coord transform matrix element (1, 2) WCS std.', $
-			format='(f9.3)'
-   fxaddpar, newheader, 'PC2_1',    0.00, $
-                        ' coord transform matrix element (2, 1) WCS std.', $
-			format='(f9.3)'
-   fxaddpar, newheader, 'PC2_2',    1.00, $
-                        ' coord transform matrix element (2, 2) WCS std.', $
-			format='(f9.3)'
-
-   ;--------------------------------------------------
-   ; Raw camera occulting center & radius information.
-   ;--------------------------------------------------
-
-   fxaddpar, newheader, 'RCAMXCEN', xcen0 + 1, $
-                        ' [pixel] camera 0 raw X-coord occulting center', $
-			format='(f8.3)'
-   fxaddpar, newheader, 'RCAMYCEN', ycen0 + 1, $
-                        ' [pixel] camera 0 raw Y-coord occulting center', $
-			format='(f8.3)'
-   fxaddpar, newheader, 'RCAM_RAD',  radius_0, $
-                        ' [pixel] camera 0 raw occulter radius', $
-			format='(f8.3)'
-   fxaddpar, newheader, 'TCAMXCEN', xcen1 + 1, $
-                        ' [pixel] camera 1 raw X-coord occulting center', $
-			format='(f8.3)'
-   fxaddpar, newheader, 'TCAMYCEN', ycen1 + 1, $
-                        ' [pixel] camera 1 raw Y-coord occulting center', $
-			format='(f8.3)'
-   fxaddpar, newheader, 'TCAM_RAD',  radius_1, $
-                        ' [pixel] camera 1 raw occulter radius', $
-			format='(f8.3)'
-
-   ;--------------------
-   ; Add ephemeris data.
-   ;--------------------
-
-   fxaddpar, newheader, 'RSUN',     radsun, $
-                        ' [arcsec] solar radius', format = '(f9.3)'
-   fxaddpar, newheader, 'SOLAR_P0', pangle, $
-                        ' [deg] solar P angle',   format = '(f9.3)'
-   fxaddpar, newheader, 'CRLT_OBS', bangle, $
-                        ' [deg] solar B angle: Carrington latitude ', $
-			format = '(f8.3)'
-   fxaddpar, newheader, 'CRLN_OBS', carrington_long, $
-                        ' [deg] solar L angle: Carrington longitude', $
-			format = '(f9.3)'
-   fxaddpar, newheader, 'CAR_ROT',  carrington_rotnum, $
-                        ' Carrington rotation number', format = '(i4)'
-   fxaddpar, newheader, 'SOLAR_RA', sol_ra, $
-                        ' [h]   solar Right Ascension (hours)', $
-			format = '(f9.3)'
-   fxaddpar, newheader, 'SOLARDEC', sol_dec, $
-                        ' [deg] solar Declination (deg)', format = '(f9.3)'
-
-   ;------------------------
-   ; Wavelength information.
-   ;------------------------
-
-   fxaddpar, newheader, 'WAVELNTH', 735, $
-                        ' [nm] center wavelength   of bandpass filter', $
-	                format = '(i4)'
-   fxaddpar, newheader, 'WAVEFWHM', 30, $
-                        ' [nm] full width half max of bandpass filter', $
-	                format = '(i3)'
-   ;------------------
-   ; Engineering data.
-   ;------------------
-
-   rcamfocs = struct.rcamfocs
-   srcamfocs = strmid (string (struct.rcamfocs), 0, 3)
-   if (srcamfocs EQ 'NaN') then rcamfocs = 0.0
-   tcamfocs = struct.tcamfocs
-   stcamfocs = strmid (string (struct.tcamfocs), 0, 3)
-   if (stcamfocs EQ 'NaN') then tcamfocs = 0.0
-
-   fxaddpar, newheader, 'O1FOCS',   struct.o1focs, $
-                        ' [mm] objective lens (01) focus position', $
-			format = '(f8.3)'
-   fxaddpar, newheader, 'RCAMFOCS', rcamfocs, $
-                        ' [mm] camera 0 focus position', format='(f9.3)'
-   fxaddpar, newheader, 'TCAMFOCS', tcamfocs, $
-                        ' [mm] camera 1 focus position', format='(f9.3)'
-   fxaddpar, newheader, 'MODLTRT',  struct.modltrt, $
-                        ' [deg C] modulator temperature', format = '(f8.3)'
-   fxaddpar, newheader, 'SGSDIMV',  struct.sgsdimv, $
-                        ' [V] mean Spar Guider Sys. (SGS) DIM signal', $
-			format = '(f9.4)'
-   fxaddpar, newheader, 'SGSDIMS',  struct.sgsdims, $
-                        ' [V] SGS DIM signal standard deviation', $
-			format = '(e11.3)'
-   fxaddpar, newheader, 'SGSSUMV',  struct.sgssumv, $
-                        ' [V] mean SGS sum signal',          format = '(f9.4)'
-   fxaddpar, newheader, 'SGSRAV',   struct.sgsrav, $
-                        ' [V] mean SGS RA error signal',     format = '(e11.3)'
-   fxaddpar, newheader, 'SGSRAS',   struct.sgsras, $
-                        ' [V] mean SGS RA error standard deviation', $
-			format = '(e11.3)'
-   fxaddpar, newheader, 'SGSRAZR',  struct.sgsrazr, $
-                        ' [arcsec] SGS RA zeropoint offset', format = '(f9.4)'
-   fxaddpar, newheader, 'SGSDECV',  struct.sgsdecv, $
-                        ' [V] mean SGS DEC error signal',    format = '(e11.3)'
-   fxaddpar, newheader, 'SGSDECS',  struct.sgsdecs, $
-                        ' [V] mean SGS DEC error standard deviation', $
-			format = '(e11.3)' 
-   fxaddpar, newheader, 'SGSDECZR', struct.sgsdeczr, $ 
-                        ' [arcsec] SGS DEC zeropoint offset', format = '(f9.4)'
-   fxaddpar, newheader, 'SGSSCINT', struct.sgsscint, $
-                        ' [arcsec] SGS scintillation seeing estimate', $
-			format = '(f9.4)'
-   fxaddpar, newheader, 'SGSLOOP',  struct.sgsloop, ' SGS loop closed fraction'
-   fxaddpar, newheader, 'SGSSUMS',  struct.sgssums, $
-                        ' [V] SGS sum signal standard deviation', $
-			format = '(e11.3)'
-   ;-----------------------
-   ; Component identifiers.
-   ;-----------------------
-   fxaddpar, newheader, 'CALPOLID', struct.calpolid, $
-                        ' ID polarizer'
-   fxaddpar, newheader, 'DIFFSRID', struct.diffsrid, $
-                        ' ID diffuser'
-   fxaddpar, newheader, 'FILTERID', struct.filterid, $
-                        ' ID bandpass filter'
-   ;--------------------------------------------------------------------
-   ; Ben Berkey added keyword 'O1ID' (objective lens id) on 18 June 2014 
-   ; to accommodate installation of Optimax objective lens.
-   ;--------------------------------------------------------------------
-
-   if (oyear LT 2014) then $
+    ; Ben Berkey added keyword 'O1ID' (objective lens id) on 18 June 2014 
+    ; to accommodate installation of Optimax objective lens.
+    if (oyear lt 2014) then begin
       fxaddpar, newheader, 'O1ID',     'Jenoptik', $
                            ' ID objective (01) lens'
+    endif
 
-   if (oyear EQ 2014) then $
-   begin ;{
+    if (oyear eq 2014) then begin
       if (month lt 6) then $
-         fxaddpar, newheader, 'O1ID',     'Jenoptik', $
-	                      ' ID objective (01) lens'
+        fxaddpar, newheader, 'O1ID',     'Jenoptik', $
+                             ' ID objective (01) lens'
       if (month eq 6) and (day lt 17) then $
-         fxaddpar, newheader, 'O1ID',     'Jenoptik', $
-	                      ' ID objective (01) lens'
+        fxaddpar, newheader, 'O1ID',     'Jenoptik', $
+                             ' ID objective (01) lens'
       if (month eq 6) and (day ge 17) then $
-         fxaddpar, newheader, 'O1ID',     'Optimax', $
-	                      ' ID objective (01) lens'
+        fxaddpar, newheader, 'O1ID',     'Optimax', $
+                             ' ID objective (01) lens'
       if (month gt 6) then $
-         fxaddpar, newheader, 'O1ID',     'Optimax', $
-	                      ' ID objective (01) lens'
-   endif ;}
+        fxaddpar, newheader, 'O1ID',     'Optimax', $
+                             ' ID objective (01) lens'
+    endif
 
-   if (oyear gt 2014) then $
+    if (oyear gt 2014) then $
       fxaddpar, newheader, 'O1ID',     struct.o1id, $
                            ' ID objective (01) lens' 
 
-   fxaddpar, newheader, 'OCCLTRID', struct.occltrid, $
-                        ' ID occulter'
+    fxaddpar, newheader, 'OCCLTRID', struct.occltrid, $
+                         ' ID occulter'
 
-   fxaddpar, newheader, 'MODLTRID', struct.modltrid, $
-                           ' ID modulator'
+    fxaddpar, newheader, 'MODLTRID', struct.modltrid, $
+                         ' ID modulator'
 
-   fxaddpar, newheader, 'RCAMID',   'MV-D1024E-CL-11461', $
-                        ' ID camera 0 (reflected)'
-   fxaddpar, newheader, 'TCAMID',   'MV-D1024E-CL-13889', $
-                        ' ID camera 1 (transmitted)' 
-   fxaddpar, newheader, 'RCAMLUT',  '11461-20131203', $
-                        ' ID LUT for camera 0'
-   fxaddpar, newheader, 'TCAMLUT',  '13889-20131203', $
-                        ' ID LUT for camera 1'
+    fxaddpar, newheader, 'RCAMID',   'MV-D1024E-CL-11461', $
+                         ' ID camera 0 (reflected)'
+    fxaddpar, newheader, 'TCAMID',   'MV-D1024E-CL-13889', $
+                         ' ID camera 1 (transmitted)' 
+    fxaddpar, newheader, 'RCAMLUT',  '11461-20131203', $
+                         ' ID LUT for camera 0'
+    fxaddpar, newheader, 'TCAMLUT',  '13889-20131203', $
+                         ' ID LUT for camera 1'
 
-   ;-------------------
-   ; Data citation URL.
-   ;-------------------
-   fxaddpar, newheader, 'DATACITE', datacite, ' URL for DOI'
- 
-;   fxaddpar, newheader, 'DATASUM', datasum,   ' data checksum'
-;   fxaddpar, newheader, 'CHECKSUM', checksum, ' HDU  checksum'
+    ; data citation URL
+    fxaddpar, newheader, 'DATACITE', datacite, ' URL for DOI'
 
-   ;---------------------
-   ; Instrument comments.
-   ;---------------------
+    ; fxaddpar, newheader, 'DATASUM', datasum,   ' data checksum'
+    ; fxaddpar, newheader, 'CHECKSUM', checksum, ' HDU  checksum'
 
-   fxaddpar, newheader, 'COMMENT', $
-      ' The COSMO K-coronagraph is a 20-cm aperture, internally occulted'
-   fxaddpar, newheader, 'COMMENT', $
-      ' coronagraph, which observes the polarization brightness of the corona'
-   fxaddpar, newheader, 'COMMENT', $
-      ' with a field-of-view from ~1.05 to 3 solar radii in a wavelength range'
-   fxaddpar, newheader, 'COMMENT', $
-      ' from 720 to 750 nm. Nominal time cadence is 15 seconds.'
-  
-   ;--------------------------
-   ; Data Processing comments.
-   ;--------------------------
+    ; instrument comments
+    fxaddpar, newheader, 'COMMENT', $
+              ' The COSMO K-coronagraph is a 20-cm aperture, internally occulted'
+    fxaddpar, newheader, 'COMMENT', $
+              ' coronagraph, which observes the polarization brightness of the corona'
+    fxaddpar, newheader, 'COMMENT', $
+              ' with a field-of-view from ~1.05 to 3 solar radii in a wavelength range'
+    fxaddpar, newheader, 'COMMENT', $
+              ' from 720 to 750 nm. Nominal time cadence is 15 seconds.'
 
-   sxaddhist, $
-     ' Level 1 processing : dark current subtracted, gain correction,',$
+    ; data Processing comments
+    sxaddhist, $
+      ' Level 1 processing : dark current subtracted, gain correction,',$
       newheader
-   sxaddhist, $
-     ' polarimetric demodulation, coordinate transformation from cartesian', $
+    sxaddhist, $
+      ' polarimetric demodulation, coordinate transformation from cartesian', $
+       newheader
+    sxaddhist, $
+      ' to tangent/radial, preliminary removal of sky polarization, ',$
       newheader
-   sxaddhist, $
-     ' to tangent/radial, preliminary removal of sky polarization, ',$
-      newheader
-   sxaddhist, $
-     ' image distortion correction, beams combined, platescale calculated.', $
+    sxaddhist, $
+      ' image distortion correction, beams combined, platescale calculated.', $
       newheader
 
-   ;----------------------------------------------------------------------------
-   ; For FULLY CALIBRATED DATA:  Add these when ready.
-   ;----------------------------------------------------------------------------
-   ;  fxaddpar, newheader, 'BUNIT', '10^-6 Bsun', $
-   ;                       ' Brightness with respect to solar disc.'
-   ;  fxaddpar, newheader, 'BOPAL', '1.38e-05', $
-   ;                       ' Opal Transmission Calibration by Elmore at 775 nm'
-   ; sxaddhist, $
-   ; 'Level 2 processing performed: sky polarization removed, alignment to ', $
-   ; newheader
-   ; sxaddhist, $
-   ; 'solar north calculated, polarization split in radial and tangential ', $
-   ;  newheader
-   ; sxaddhist, $
-   ; 'components.  For detailed information see the COSMO K-coronagraph ', $
-   ; newheader
-   ; sxaddhist, 'data reduction paper (reference).', newheader
-   ; fxaddpar, newheader, 'LEVEL', 'L2', ' Processing Level'
-   ; fxaddpar, newheader, 'DATE-L2', kcor_datecal(), ' Level 2 processing date'
-   ; fxaddpar, newheader, 'L2SWID', 'Calib Reduction Mar 31, 2014', $
-   ;           ' Demodulation Software Version'
-   ;----------------------------------------------------------------------------
+    ;----------------------------------------------------------------------------
+    ; For FULLY CALIBRATED DATA:  Add these when ready.
+    ;----------------------------------------------------------------------------
+    ;  fxaddpar, newheader, 'BUNIT', '10^-6 Bsun', $
+    ;                       ' Brightness with respect to solar disc.'
+    ;  fxaddpar, newheader, 'BOPAL', '1.38e-05', $
+    ;                       ' Opal Transmission Calibration by Elmore at 775 nm'
+    ; sxaddhist, $
+    ; 'Level 2 processing performed: sky polarization removed, alignment to ', $
+    ; newheader
+    ; sxaddhist, $
+    ; 'solar north calculated, polarization split in radial and tangential ', $
+    ;  newheader
+    ; sxaddhist, $
+    ; 'components.  For detailed information see the COSMO K-coronagraph ', $
+    ; newheader
+    ; sxaddhist, 'data reduction paper (reference).', newheader
+    ; fxaddpar, newheader, 'LEVEL', 'L2', ' Processing Level'
+    ; fxaddpar, newheader, 'DATE-L2', kcor_datecal(), ' Level 2 processing date'
+    ; fxaddpar, newheader, 'L2SWID', 'Calib Reduction Mar 31, 2014', $
+    ;           ' Demodulation Software Version'
+    ;----------------------------------------------------------------------------
 
-   ;--- Write FITS image to disc.
+    ; write FITS image to disk
 
-   l1_file = strmid (l0_file, 0, 20) + '_l1.fts'
-   writefits, l1_dir + l1_file, corona_int, newheader
+    l1_file = strmid(l0_file, 0, 20) + '_l1.fts'
+    writefits, l1_dir + l1_file, corona_int, newheader
 
-   ;----------------------------------------------------------------------------
-   ; Now make low resolution GIF file:
-   ;
-   ; Use congrid to rebin to 768x768 (75% of original size) 
-   ; and crop around center to 512 x 512 image.
-   ;----------------------------------------------------------------------------
+    ; Now make low resolution GIF file:
+    ;
+    ; Use congrid to rebin to 768x768 (75% of original size) 
+    ; and crop around center to 512 x 512 image.
 
-   rebin_img = fltarr (768, 768)
-   rebin_img = congrid (corona_bias, 768, 768)
+    rebin_img = fltarr(768, 768)
+    rebin_img = congrid(corona_bias, 768, 768)
 
-   crop_img = fltarr (512, 512)
-   crop_img = rebin_img (128:639, 128:639)
+    crop_img = fltarr(512, 512)
+    crop_img = rebin_img[128:639, 128:639]
 
-;   window, 0, xs = 512, ys = 512, retain = 2
+    ; window, 0, xsize=512, ysize=512, retain=2
 
-   set_plot='Z'
-   erase
-   device, set_resolution=[512,512], decomposed=0, set_colors=256, $
-           z_buffering=0
-   erase
-   tv, bytscl ((crop_img)^exp, min = mini, max = maxi)
+    set_plot, 'Z'
+    erase
+    device, set_resolution=[512,512], decomposed=0, set_colors=256, $
+            z_buffering=0
+    erase
+    tv, bytscl(crop_img ^ exp, min=mini, max=maxi)
 
-   xyouts, 4, 495, 'MLSO/HAO/KCOR', color = 255, charsize = 1.2, /device
-   xyouts, 4, 480, 'K-Coronagraph', color = 255, charsize = 1.2, /device
-   xyouts, 256, 500, 'North', color = 255, $
-           charsize = 1.0, alignment = 0.5, /device
-   xyouts, 507, 495, string (format = '(a2)', sday) + ' ' + $
-           string (format = '(a3)', name_month) + $
-           ' ' + string(format = '(a4)', syear), /device, alignment = 1.0, $
-	   charsize = 1.0, color = 255
-   xyouts, 500, 480, 'DOY ' + string (format = '(i3)', odoy), $
-           /device, alignment = 1.0, charsize = 1.0, color = 255
-   xyouts, 507, 465, string (format = '(a2)', shour) + ':' + $
-           string (format = '(a2)', sminute) + ':' + $
-	   string (format = '(a2)', ssecond) + ' UT', /device, alignment = 1.0,$
-	   charsize = 1.0, color = 255
-   xyouts, 12, 256, 'East', color = 255, $
-           charsize = 1.0, alignment = 0.5, orientation = 90., /device
-   xyouts, 507, 256, 'West', color = 255, $
-           charsize = 1.0, alignment = 0.5, orientation = 90., /device
-   xyouts, 4, 34, 'Level 1 data', color = 255, charsize = 1.0, /device
-   xyouts, 4, 20, 'min/max: ' + string (format = '(f3.1)', mini) + ', ' + $
-           string (format = '(f3.1)', maxi), $
-	   color = 255, charsize = 1.0, /device
-   xyouts, 4, 6, 'scaling: Intensity ^ ' + string (format = '(f3.1)', exp), $
-           color = 255, charsize = 1.0, /device
-   xyouts, 508, 6, 'Circle = photosphere', color = 255, $
-           charsize = 1.0, /device, alignment = 1.0
+    xyouts, 4, 495, 'MLSO/HAO/KCOR', color=255, charsize=1.2, /device
+    xyouts, 4, 480, 'K-Coronagraph', color=255, charsize=1.2, /device
+    xyouts, 256, 500, 'North', color=255, $
+                      charsize=1.0, alignment=0.5, /device
+    xyouts, 507, 495, string(format='(a2)', sday) + ' ' $
+                        + string(format='(a3)', name_month)$
+                        + ' ' + string(format='(a4)', syear), $
+                      /device, alignment = 1.0, $
+                      charsize=1.0, color=255
+    xyouts, 500, 480, 'DOY ' + string(format='(i3)', odoy), $
+                      /device, alignment=1.0, charsize=1.0, color=255
+    xyouts, 507, 465, string(format='(a2)', shour) + ':' $
+                        + string(format='(a2)', sminute) + ':' $
+                        + string(format='(a2)', ssecond) + ' UT', $
+                      /device, alignment=1.0, $
+                      charsize=1.0, color=255
+    xyouts, 12, 256, 'East', color=255, $
+                     charsize=1.0, alignment=0.5, orientation=90., /device
+    xyouts, 507, 256, 'West', color=255, $
+                      charsize=1.0, alignment=0.5, orientation=90., /device
+    xyouts, 4, 34, 'Level 1 data', color=255, charsize=1.0, /device
+    xyouts, 4, 20, 'min/max: ' + string(format='(f3.1)', mini) + ', ' $
+                     + string(format='(f3.1)', maxi), $
+                   color=255, charsize=1.0, /device
+    xyouts, 4, 6, 'scaling: Intensity ^ ' + string(format='(f3.1)', exp), $
+                  color=255, charsize=1.0, /device
+    xyouts, 508, 6, 'Circle = photosphere', color=255, $
+                    charsize=1.0, /device, alignment=1.0
 
-   r = r_photo*0.75    ;  image is rebined to 75% of original size
-   tvcircle, r, 255.5, 255.5, color = 255, /device
+    r = r_photo * 0.75    ;  image is rebined to 75% of original size
+    tvcircle, r, 255.5, 255.5, color=255, /device
 
-   save = tvrd ()
-   cgif_file = strmid (l0_file, 0, 20) + '_cropped.gif'
-   write_gif, l1_dir + cgif_file, save, red, green, blue
+    save = tvrd()
+    cgif_file = strmid(l0_file, 0, 20) + '_cropped.gif'
+    write_gif, l1_dir + cgif_file, save, red, green, blue
 
-   ;----------------------------------------------------------------------------
-   ; Create NRG (normalized, radially-graded) GIF image.
-   ;----------------------------------------------------------------------------
-
-   cd, l1_dir
-   if (osecond LT 15 AND fix (ominute / 2)* 2 EQ ominute) then $
+    ; create NRG (normalized, radially-graded) GIF image
+    cd, l1_dir
+    if (osecond lt 15 and fix(ominute / 2) * 2 eq ominute) then $
       kcor_nrgf, l1_file
 
-   cd, l0_dir
+    cd, l0_dir
 
-   ;----------------------------------------------------------------------------
+    flush, ulog  ; send buffered output to file
 
-   FLUSH, ULOG				; send buffered output to file.
+    loop_time = toc(lclock)   ; save loop time.
+    print,        '--- Loop  duration [sec]: ', loop_time
+    printf, ulog, '--- Loop  duration [sec]: ', loop_time
+  endwhile
 
-   loop_time = TOC (lclock)		; save loop time.
-   print,        '--- Loop  duration [sec]: ', loop_time
-   printf, ULOG, '--- Loop  duration [sec]: ', loop_time
-endwhile ;}
-;*******************************************************************************
-; end of WHILE loop
-;*******************************************************************************
+  ; get system time & compute elapsed time since "TIC" command
+  done:
+  total_time = toc()
+  print,        '--- Total duration [sec]: ', total_time
+  printf, ulog, '--- Total duration [sec]: ', total_time
 
-;--- Get system time & compute elapsed time since "TIC" command.
+  if (fnum ne 0) then begin
+    image_time = total_time / fnum
+  endif else begin
+    image_time = 0.0
+  endelse
 
-DONE: $
-total_time = TOC ()
-print,        '--- Total duration [sec]: ', total_time
-printf, ULOG, '--- Total duration [sec]: ', total_time
+  print,        '    time/image:           ', image_time, '   # images: ', fnum
+  printf, ulog, '    time/image:           ', image_time, '   # images: ', fnum
 
-if (fnum NE 0)  then $
-   image_time = total_time / fnum $
-else $
-   image_time = 0.0
+  ;toc, report=report
+  ;print,       report[-1]
+  ;print, ulog, report[-1]
 
-print,        '    time/image:           ', image_time, '   # images: ', fnum
-printf, ULOG, '    time/image:           ', image_time, '   # images: ', fnum
-
-;TOC, REPORT=report
-;print,       report[-1]
-;print, ULOG, report[-1]
-
-print,        '>>>>>>> End of kcorl1 <<<<<<<'
-printf, ULOG, '>>>>>>> End of kcorl1 <<<<<<<'
-printf, ULOG, '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -'
+  print,        '>>>>>>> End of kcorl1 <<<<<<<'
+  printf, ulog, '>>>>>>> End of kcorl1 <<<<<<<'
+  printf, ulog, '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -'
 
   free_lun, ulist
   free_lun, ulog
