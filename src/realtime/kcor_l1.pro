@@ -406,36 +406,18 @@ pro kcor_l1, date_str, $
   ; get current date & time
   current_time = systime(/utc)
 
-  ; open log file
-  logfile = date_str + '_l1_' + listfile + '.log'
-  if (keyword_set (append)) then begin
-    openw, ulog, l1_dir + logfile, /append, /free $
-  endif else begin
-    openw, ulog, l1_dir + logfile, /free
-  endelse
-
-  ;print,        '--- kcorl1 ', date_str, ' --- ', current_time
-  ;print,        'l0_dir: ', l0_dir
-  ;print,        'l1_dir: ', l1_dir
-
-  printf, ulog, '--- kcorl1 ', date_str, ' --- ', current_time
-
-  ;printf, ulog, 'l0_dir: ', l0_dir
-  ;printf, ulog, 'l1_dir: ', l1_dir
+  mg_log, '%s : %s', date_str, current_time, name='kcor/rt', /info
 
   ; check for empty list file
   nfiles = fix(file_lines(listfile))   ; # files in list file.
   if (nfiles eq 0) then begin
-    print,        listfile, ' empty.  No files to process.'
-    printf, ulog, listfile, ' empty.  No files to process.'
+    mg_log, 'no files to process', name='kcor/rt', /warn
     goto, done
   endif
 
   ; extract information from calibration file
-  calpath = cal_dir + '/' + cal_file
-
-  print,        'calpath: ', calpath
-  printf, ULOG, 'calpath: ', calpath
+  calpath = filepath(cal_file, root=cal_dir)
+  mg_log, 'calpath: %s', calpath, name='kcor/rt', /debug
 
   unit = ncdf_open(calpath)
   ncdf_varget, unit, 'Dark', dark_alfred
@@ -506,8 +488,10 @@ pro kcor_l1, date_str, $
   gyy1 = double(gyy1)
   grr1 = sqrt(gxx1 ^ 2.0 + gyy1 ^ 2.0)
 
-  printf, ulog, 'Gain 0 center and radius : ', info_gain0
-  printf, ulog, 'Gain 1 center and radius : ', info_gain1
+  mg_log, 'gain 0 center: %0.1f, %0.1f and radius: %0.1f', $
+          info_gain0, name='kcor/rt', /debug
+  mg_log, 'gain 1 center: %0.1f, %0.1f and radius: %0.1f', $
+          info_gain1, name='kcor/rt', /debug
 
   ; initialize variables
   cal_data     = dblarr(xsize, ysize, 2, 3)
@@ -560,8 +544,7 @@ pro kcor_l1, date_str, $
     type = ''
     type = fxpar(header, 'DATATYPE')
 
-    print,        '>>>>>>> ', l0_file, '  ', fnum, '  ', type, ' <<<<<<<'
-    printf, ulog, '>>>>>>> ', l0_file, '  ', fnum, '  ', type, ' <<<<<<<'
+    mg_log, 'file %d: %s, type: %d', fnum, file_basename(l0_file), type, name='kcor/rt', /debug
 
     ; read date of observation (needed to compute ephemeris info)
     date_obs = sxpar(header, 'DATE-OBS')   ; yyyy-mm-ddThh:mm:ss
@@ -587,9 +570,6 @@ pro kcor_l1, date_str, $
     date_img = sday + ' ' + name_month + ' ' + syear + ' ' $
                  + shour + ':' + sminute + ':'  + ssecond
 
-    ; print,        'date_img: ', date_img
-    ; printf, ULOG, 'date_img: ', date_img
-
     ; compute DOY [day-of-year]
     mday      = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
     mday_leap = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]   ; leap year
@@ -610,9 +590,6 @@ pro kcor_l1, date_str, $
 
     ehour   = float(ohour) + ominute / 60.0 + osecond / 3600.0
 
-    ; print, 'oyear, odoy, omonth, oday : ', oyear, odoy, omonth, oday
-    ; print, 'ohour, ominute, osecond :   ', ohour, ominute, osecond
-
     ; determine observing time at MLSO [HST time zone]
     hdoy    = odoy
     hyear   = oyear
@@ -621,9 +598,6 @@ pro kcor_l1, date_str, $
     hhour   = ohour - 10
     hminute = ominute
     hsecond = osecond
-
-    ; print, 'hyear, hmonth, hday, hdoy : ', hyear, hmonth, hday, hdoy
-    ; print, 'hhour, hminute, hsecond :   ', hhour, hminute, hsecond
 
     if (ohour lt 5) then begin   ; previous HST day if UTC hour < 5
       hhour += 24
@@ -638,9 +612,6 @@ pro kcor_l1, date_str, $
       endif
     endif
 
-    ; print, 'hyear, hmonth, hday, hdoy: ', hyear, hmonth, hday, hdoy
-    ; print, 'hhour, hminute, hsecond:   ', hhour, hminute, hsecond
-
     hst_year   = strtrim(string(hyear,   format='(i04)'), 2)
     hst_month  = strtrim(string(hmonth,  format='(i02)'), 2)
     hst_day    = strtrim(string(hday,    format='(i02)'), 2)
@@ -653,12 +624,10 @@ pro kcor_l1, date_str, $
     date_hst = hst_year + '-' + hst_month  + '-' + hst_day + 'T' + $
                hst_hour + ':' + hst_minute + ':' + hst_second
 
-    print,         'date_obs: ', date_obs, '    date_hst: ', date_hst
-    printf, ulog,  'date_obs: ', date_obs, '    date_hst: ', date_hst
+    mg_log, 'date_obs: %s, date_hist: %s', date_obs, date_hst, name='kcor/rt', /debug
 
     ; put the Level-0 FITS header into a structure
-
-    struct = fitshead2struct ((header), DASH2UNDERSCORE = dash2underscore)
+    struct = fitshead2struct(header, dash2underscore=dash2underscore)
 
     ; window, 0, xsize=1024, ysize=1024, retain=2
     ; window, 0, xsize=1024, ysize=1024, retain=2, xpos=512, ypos=512
@@ -713,9 +682,6 @@ pro kcor_l1, date_str, $
     if (occulter eq 1018.0) then occulter = 1018.9
     if (occulter eq 1006.0) then occulter = 1006.9
 
-    ; print,        'occulter size [arcsec] : ', occulter
-    ; printf, ulog, 'occulter size [arcsec] : ', occulter
-
     radius_guess = occulter / platescale   ; pixels
 
     ; find image centers & radii of raw images
@@ -765,8 +731,10 @@ pro kcor_l1, date_str, $
     ; mask_occulter1[pick1] = 1.0
 
     ; printf, ulog, 'CAMERA CENTER INFO FOR RAW IMAGES'
-    printf, ulog, 'Camera 0 center and radius: ', xcen0, ycen0, radius_0
-    printf, ulog, 'Camera 1 center and radius: ', xcen1, ycen1, radius_1
+    mg_log, 'camera 0 center: %0.1f, %0.1f and radius: %0.1f', $
+            xcen0, ycen0, radius_0, name='kcor/rt', /debug
+    mg_log, 'camera 1 center: %0.1f, %0.1f and radius: %0.1f', $
+            xcen1, ycen1, radius_1, name='kcor/rt', /debug
 
     ; create new gain to account for image shift
     ;   Region of missing data is set to a constant for now.
@@ -847,11 +815,7 @@ pro kcor_l1, date_str, $
 
     demod_time = toc(dclock)
 
-    print,        '--- demod matrix   [sec]:  ', demod_time 
-    printf, ulog, '--- demod matrix   [sec]:  ', demod_time 
-
-    ; print,        'Applied demodulation.'
-    ; printf, ulog, 'Applied demodulation.'
+    mg_log, 'demod_matrix: %0.1f sec', demod_time, name='kcor/rt', /info
 
     ; apply distortion correction for raw images
     img0 = reform(img[*, *, 0, 0])    ; camera 0 [reflected]
@@ -881,7 +845,7 @@ pro kcor_l1, date_str, $
       draw_circle, xcc0, ycc0, radius_0, /dev, color=250
       loadct, 0
       print, 'center camera 0 ', info_dc0
-      wait, 1  
+      wait, 1
     endif
 
     ; camera 1:
@@ -916,8 +880,6 @@ pro kcor_l1, date_str, $
     ; to shift camera 0 to canera 1:
     deltax = xcc1 - xcc0
     deltay = ycc1 - ycc0
-
-    ; print, 'combine beams'
 
     ; invert calibrated data for camera 0 in Y-axis
 
@@ -1070,7 +1032,8 @@ pro kcor_l1, date_str, $
     !y.style    = 1
 
     ; initialize guess for parameters
-    ;   - as we loop, we will use the parameters from the previous fit as a guess
+    ;   - as we loop, we will use the parameters from the previous fit as a
+    ;     guess
 
     ; fit in U and Q
 
@@ -1805,18 +1768,14 @@ pro kcor_l1, date_str, $
 
     cd, l0_dir
 
-    flush, ulog  ; send buffered output to file
-
     loop_time = toc(lclock)   ; save loop time.
-    print,        '--- Loop  duration [sec]: ', loop_time
-    printf, ulog, '--- Loop  duration [sec]: ', loop_time
+    mg_log, 'loop duration: %0.1f sec', loop_time, name='kcor/rt', /info
   endwhile
 
   ; get system time & compute elapsed time since "TIC" command
   done:
   total_time = toc()
-  print,        '--- Total duration [sec]: ', total_time
-  printf, ulog, '--- Total duration [sec]: ', total_time
+  mg_log, 'total duration: %0.1f sec', total_time, name='kcor/rt', /info
 
   if (fnum ne 0) then begin
     image_time = total_time / fnum
@@ -1824,17 +1783,8 @@ pro kcor_l1, date_str, $
     image_time = 0.0
   endelse
 
-  print,        '    time/image:           ', image_time, '   # images: ', fnum
-  printf, ulog, '    time/image:           ', image_time, '   # images: ', fnum
-
-  ;toc, report=report
-  ;print,       report[-1]
-  ;print, ulog, report[-1]
-
-  print,        '>>>>>>> End of kcorl1 <<<<<<<'
-  printf, ulog, '>>>>>>> End of kcorl1 <<<<<<<'
-  printf, ulog, '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -'
+  mg_log, 'time/image: %0.1f sec', image_time, name='kcor/rt', /debug
+  mg_log, 'number of images: %d', fnum, name='kcor/rt', /debug
 
   free_lun, ulist
-  free_lun, ulog
 end
