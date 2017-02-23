@@ -112,9 +112,9 @@ pro kcor_rt, date, config_filename=config_filename
       goto, done
     endif
 
-    openu, okcgif_lun, 'okcgif.ls', /get_lun
-    openu, okfgif_lun, 'okfgif.ls', /get_lun
-    openu, okl1gz_lun, 'okl1gz.ls', /get_lun
+    openw, okcgif_lun, 'okcgif.ls', /append, /get_lun
+    openw, okfgif_lun, 'okfgif.ls', /append, /get_lun
+    openw, okl1gz_lun, 'okl1gz.ls', /append, /get_lun
 
     for f = 0L, n_elements(ok_files) - 1L do begin
       base = file_basename(ok_files[f], '.fts')
@@ -122,20 +122,26 @@ pro kcor_rt, date, config_filename=config_filename
       printf, okfgif_lun, base + '.gif'
       printf, okl1gz_lun, base + '_l1.fts.gz'
 
-      file_copy, base + '_cropped.gif', croppedgif_dir
-      file_copy, base + '.gif', fullres_dir
-      file_copy, base + '_l1.fts.gz', archive_dir
+      ; TODO: turn on when kcor_l1 is running
+      if (0) then begin
+        file_copy, base + '_cropped.gif', croppedgif_dir
+        file_copy, base + '.gif', fullres_dir
+        file_copy, base + '_l1.fts.gz', archive_dir
+      endif
     endfor
 
     free_lun, okcgif_lun
     free_lun, okfgif_lun
     free_lun, okl1gz_lun
 
-    rg_dir = filepath('', subdir=date_parts, root=rg_basedir)
+    rg_dir = filepath('', subdir=date_parts, root=run.rg_basedir)
     if (~file_test(rg_dir, /directory)) then file_mkdir, rg_dir
 
-    file_move, '*rg*.gif', rg_dir
-    file_move, '*rg*.fts*', archive_dir
+    ; TODO: turn on when kcor_l1 is running
+    if (0) then begin
+      file_move, '*rg*.gif', rg_dir
+      file_move, '*rg*.fts*', archive_dir
+    endif
 
     if (run.update_remote_server) then begin
       spawn_cmd = string(run.rg_remove_server, run.rg_remote_dir, $

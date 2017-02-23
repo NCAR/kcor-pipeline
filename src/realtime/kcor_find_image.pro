@@ -73,7 +73,7 @@ function kcor_find_image, data, radius_guess, $
     ; extract coords
     xtest  = data[*, ycen]
     xtest2 = data[*, ycen - 50]
-    xtest3 = data[*, ycen + 50)
+    xtest3 = data[*, ycen + 50]
     ytest  = data[xcen - 60, *]
     ytest2 = data[xcen + 60, *]
 
@@ -161,7 +161,7 @@ function kcor_find_image, data, radius_guess, $
     loadct, 0
     tv, bytscl(data, 0, datamax)
     loadct, 39
-    draw_circle, a[0], a[1], a[2, /device, color=250, thick=1
+    draw_circle, a[0], a[1], a[2], /device, color=250, thick=1
     print, xcen_guess, ycen_guess, radius_guess
     print, xc, yc, r 
     print, a 

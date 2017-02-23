@@ -47,8 +47,7 @@ if __name__ == '__main__':
                       '%s' % frequency,
                       args.date,
                       args.config_flags]
-    print(' '.join(processing_cmd))
-    pid = subprocess.Popen(processing_cmd).pid
+    processing_process = subprocess.Popen(processing_cmd)
 
     # launch incoming data simulator
     data_cmd = [os.path.join(pipeline_dir, 'bin', 'kcor_simulate_data'),
@@ -57,5 +56,13 @@ if __name__ == '__main__':
                 '-b',
                 ' %s' % batch_time,
                 os.path.join(depot_basedir, args.date)]
-    print(' '.join(data_cmd))
-    pid = subprocess.Popen(data_cmd).pid
+    data_process = subprocess.Popen(data_cmd)
+
+    try:
+        while True:
+            time.sleep(1.0)
+    except KeyboardInterrupt:
+        print('killing data (%d) and processing (%d) subprocesses...' % (data_process.pid, processing_process.pid))
+        processing_process.kill()
+        data_process.kill()
+

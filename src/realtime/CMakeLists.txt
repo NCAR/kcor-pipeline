@@ -25,3 +25,4 @@ install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/${DLM_NAME}.dlm" DESTINATION src/${DI
 
 file(GLOB PRO_FILES "*.pro")
 install(FILES ${PRO_FILES} DESTINATION src/${DIRNAME})
+install(FILES kcor_mask.img DESTINATION src/${DIRNAME})

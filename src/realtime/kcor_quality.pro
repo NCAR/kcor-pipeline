@@ -227,16 +227,13 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
   header = 'file name                datatype    exp  cov drk dif pol angle  qual'
   mg_log, header, name='kcor/rt', /debug
 
-  get_lun, ulist
-  close,   ulist
-  openr,   ulist, listfile
+
   l0_file = ''
   num_img = 0
 
   ; image file loop
-  while (not eof(ulist)) do begin
+  foreach l0_file, l0_fits_files do begin
     num_img += 1
-    readf, ulist, l0_file
     img = readfits(l0_file, hdu, /silent)   ; read fits image & header
 
     ; get FITS header size
@@ -345,7 +342,7 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     endif
 
     ; verify that image is Level 0
-    if (level ne 'l0')  then begin
+    if (level ne 'L0')  then begin
       mg_log, 'not level 0 data', name='kcor/rt', /warn
       continue
     endif
@@ -513,7 +510,7 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
       ; if too many pixels in circle exceed threshold, set bright = 1
 
       bright = 0
-      if (brightpix (0) NE -1) THEN BEGIN
+      if (brightpix[0] ne -1) THEN BEGIN
         ; print, 'cloud check brightpix: ', brightpix
         ; print, 'cloud check bsize:     ', bsize
         bsize = size(brightpix)
@@ -555,11 +552,11 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
       ;--- if too many pixels are saturated, set sat = 1.
 
       sat = 0
-      if (satpix (0) ne -1) then begin
+      if (satpix[0] ne -1) then begin
         ; print, 'saturation check satpix: ', satpix
         ; print, 'saturation check ssize:  ', ssize
         ssize = size(satpix)
-        if (ssize (1) ge (nray / 5)) then begin
+        if (ssize[1] ge (nray / 5)) then begin
           sat = 1
           ; print,        'saturation radius, limit: ', rpixt, smax
           ; print,        'saturation image info: '
@@ -598,10 +595,10 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
       nelemhi    = n_elements(cloudpixhi)
 
       ; if too many pixels are below lower limit, set clo = 1
-      if (cloudpixlo (0) ne -1) then begin
-        closize = size (cloudpixlo)
+      if (cloudpixlo[0] ne -1) then begin
+        closize = size(cloudpixlo)
 
-        if (closize (1) ge (nray / 5)) then begin
+        if (closize[1] ge (nray / 5)) then begin
           clo = 1
           ; print,        'cloud cmin, cmax, radius: ', cmin, cmax, rpixc
           ; print,        'cloud image info: '
@@ -622,9 +619,9 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
         endif
       endif
 
-      if (cloudpixhi (0) ne -1) then begin
+      if (cloudpixhi[0] ne -1) then begin
         chisize = size(cloudpixhi)
-        ; if (chisize (1) ge (nray / 5) then $
+        ; if (chisize[1] ge (nray / 5) then $
 
         if (cave ge cmax) then begin
           chi = 1
@@ -865,8 +862,8 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
       gif_path = q_dir_ok + gif_file
       qual = q_ok
       nokf += 1
-      printf, uokf, l0_file
-      printf, uoka, l0_file
+      printf, uokf, file_basename(l0_file)
+      printf, uoka, file_basename(l0_file)
     endelse
 
     ; write GIF file
@@ -894,11 +891,11 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     calpang_str  = string(format='(f7.2)', calpang)
     qual_str     = string(format='(a4)', qual)
 
-    mg_log, '%s %s %s %s % %s %s %s %s', $
-            l0_file, datatype_str, exptime_str, cover_str, darkshut_str, $
+    mg_log, '%s%s%s%s%s%s%s%s%s', $
+            file_basename(l0_file), datatype_str, exptime_str, cover_str, darkshut_str, $
             diffuser_str, calpol_str, calpang_str, qual_str, $
             name='kcor/rt', /debug
-  endwhile   ; end of image loop
+  endforeach   ; end of image loop
 
   free_lun, ucal
   free_lun, udev
@@ -923,7 +920,7 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
   ; move 'okf_list' to 'date' directory
   ;if (file_test(okf_qpath)) then file_copy, okf_qpath, okf_dpath, /overwrite
   if (file_test(okf_qpath)) then begin
-    mg_log, 'moving %s to %s', okf_path, okf_dpath, name='kcor/rt', /debug
+    mg_log, 'moving %s to %s', okf_qpath, okf_dpath, name='kcor/rt', /debug
     file_move, okf_qpath, okf_dpath, /overwrite
   endif
 
@@ -935,10 +932,8 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
   ; get system time & compute elapsed time since "TIC" command
   qtime = toc()
   mg_log, 'elapsed time: %0.1f sec', qtime, name='kcor/rt', /info
-  mg_log, '%0.1 sec/image', qtime / num_img, name='kcor/rt', /info
+  mg_log, '%0.1f sec/image', qtime / num_img, name='kcor/rt', /info
   mg_log, 'done', name='kcor/rt', /info
-
-  free_lun, ulist
 
   n_ok_files = file_lines(okf_dpath)
   if (n_ok_files gt 0L) then begin
