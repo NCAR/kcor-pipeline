@@ -1,11 +1,18 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
 import argparse
-import ConfigParser
 import os
 import socket
 import subprocess
+import sys
 import time
+
+PY3 = sys.version_info[0] == 3
+
+if PY3:
+    import configparser
+else:
+    import ConfigParser as configparser
 
 
 if __name__ == '__main__':
@@ -30,7 +37,7 @@ if __name__ == '__main__':
     config_filename = os.path.join(pipeline_dir, 'config', config_basename)
 
     # read config file to get arguments to launch data/processing simulators
-    config = ConfigParser.ConfigParser()
+    config = configparser.ConfigParser()
     config.read(config_filename)
 
     depot_basedir = config.get('testing', 'depot_dir')
