@@ -312,7 +312,7 @@
 ; All Level 1 files (fits & gif) will be stored in the sub-directory 'level1',
 ; under the date directory.
 ;-
-pro kcor_l1, date_str, ok_files, append=append
+pro kcor_l1, date_str, ok_files, append=append, run=run
   compile_opt strictarr
 
   tic
@@ -335,7 +335,7 @@ pro kcor_l1, date_str, ok_files, append=append
   mg_log, '%s : %s', date_str, current_time, name='kcor/rt', /info
 
   ; check for empty list of OK files
-  n_files = n_elements(ok_files)
+  nfiles = n_elements(ok_files)
   if (nfiles eq 0) then begin
     mg_log, 'no files to process', name='kcor/rt', /warn
     goto, done
@@ -401,7 +401,7 @@ pro kcor_l1, date_str, ok_files, append=append
 
   ; define coordinate arrays for gain images
   gxx0 = findgen(xsize, ysize) mod xsize - info_gain0[0]
-  gyy0 = transpose(findgen(ysize, xsize) mod ysize) - info_gain0[1]]
+  gyy0 = transpose(findgen(ysize, xsize) mod ysize) - info_gain0[1]
 
   gxx0 = double(gxx0)
   gyy0 = double(gyy0)
@@ -468,7 +468,7 @@ pro kcor_l1, date_str, ok_files, append=append
     type = ''
     type = fxpar(header, 'DATATYPE')
 
-    mg_log, 'file %d: %s, type: %d', fnum, file_basename(l0_file), type, name='kcor/rt', /debug
+    mg_log, 'file %d: %s, type: %s', fnum, file_basename(l0_file), type, name='kcor/rt', /debug
 
     ; read date of observation (needed to compute ephemeris info)
     date_obs = sxpar(header, 'DATE-OBS')   ; yyyy-mm-ddThh:mm:ss
@@ -673,7 +673,7 @@ pro kcor_l1, date_str, ok_files, append=append
                            xcen0 - info_gain0[0], $
                            ycen0 - info_gain0[1])
       gain_temp[replace] = gain_replace[replace]   ; gain_no_occulter0[replace]
-      gain_shift (*, *, 0) = gain_temp
+      gain_shift[*, *, 0] = gain_temp
       ; printf, ulog, 'Gain for CAMERA 0 shifted to image position.'
     endif
 
@@ -837,21 +837,18 @@ pro kcor_l1, date_str, ok_files, append=append
       wait, 1
     endif
 
-    phase = -17 / !radeg
-    ; phase = 0.0
-
     ; polar coordinate images (mk4 scheme)
-    qmk4 = - cal_data_combined[*, *, 1] * sin(2.0 * theta1 + phase) $
-             + cal_data_combined[*, *, 2] * cos(2.0 * theta1 + phase)
+    qmk4 = - cal_data_combined[*, *, 1] * sin(2.0 * theta1 + run.phase) $
+             + cal_data_combined[*, *, 2] * cos(2.0 * theta1 + run.phase)
     ; qmk4 = -1.0 * qmk4
 
-    umk4 = cal_data_combined[*, *, 1] * cos(2.0 * theta1 + phase) $
-             + cal_data_combined[*, *, 2] * sin(2.0 * theta1 + phase)
+    umk4 = cal_data_combined[*, *, 1] * cos(2.0 * theta1 + run.phase) $
+             + cal_data_combined[*, *, 2] * sin(2.0 * theta1 + run.phase)
 
     intensity = cal_data_combined[*, *, 0]
 
     if (doplot eq 1) then begin
-      tv, bytscl (umk4, -0.5, 0.5)
+      tv, bytscl(umk4, -0.5, 0.5)
       wait, 1
     endif
 
@@ -912,12 +909,12 @@ pro kcor_l1, date_str, ok_files, append=append
       endif
 
       ; polar coordinates
-      qmk4 = - cal_data_combined_center[*, *, 1] * sin(2.0 * theta1 + phase) $
-             + cal_data_combined_center[*, *, 2] * cos(2.0 * theta1 + phase)
+      qmk4 = - cal_data_combined_center[*, *, 1] * sin(2.0 * theta1 + run.phase) $
+             + cal_data_combined_center[*, *, 2] * cos(2.0 * theta1 + run.phase)
       ; qmk4 = -1.0 * qmk4
 
-      umk4 =   cal_data_combined_center[*, *, 1] * cos(2.0 * theta1 + phase) $
-             + cal_data_combined_center[*, *, 2] * sin(2.0 * theta1 + phase)
+      umk4 =   cal_data_combined_center[*, *, 1] * cos(2.0 * theta1 + run.phase) $
+             + cal_data_combined_center[*, *, 2] * sin(2.0 * theta1 + run.phase)
 
       intensity = cal_data_combined_center[*, *, 0]
 
@@ -944,7 +941,7 @@ pro kcor_l1, date_str, ok_files, append=append
     degrees = findgen(numdeg) * stepdeg + 0.5 * stepdeg
     degrees = double(degrees) / !radeg
 
-    a           = dblarr(2)   ; coefficients for sine (2 * theta) fit.
+    a           = dblarr(8)   ; coefficients for sine (2 * theta) fit.
     weights     = fltarr(numdeg)
     weights[*] = 1.0
 
@@ -966,8 +963,17 @@ pro kcor_l1, date_str, ok_files, append=append
 
     ; fit in U/I and Q/I
 
-    a[0] = 0.0033
-    a[1] = 0.14
+    ; a[0] = 0.0033
+    ; a[1] = 0.14
+
+    a[0] = 0.0033   ; amplitude of sine 2 theta
+    a[1] = 1.       ; distance of sun from center of occulter
+    a[2] = 250.     ; radius to observer
+    a[3] = 90.      ; delta angle from angle of occulter to observer
+    a[4] = 0.14     ; sine 2theta phase
+    a[5] = -0.1     ;  Offset from zero
+    a[6] = 0.001    ; amplitude of sine theta term
+    a[7] = 0.       ; phase angle of sine theta term
 
     factor = 1.00
 
@@ -1010,13 +1016,13 @@ pro kcor_l1, date_str, ok_files, append=append
 
       j = 0
       for i = 0, 360 - stepdeg, stepdeg do begin
-        angle = float[i]
+        angle = float(i)
         pick1 = where(rr1 ge r_in and rr1 le r_out $
                         and theta1_deg ge angle $
                         and theta1_deg lt angle + stepdeg, nnl1)
-        if (nnl1 GT 0) then begin
-          angle_ave_u (j) = mean ( umk4_int (pick1) )
-          angle_ave_q (j) = mean ( qmk4_int (pick1) )
+        if (nnl1 gt 0) then begin
+          angle_ave_u[j] = mean(umk4_int[pick1])
+          angle_ave_q[j] = mean(qmk4_int[pick1])
         endif
         j += 1
       endfor
@@ -1086,7 +1092,7 @@ pro kcor_l1, date_str, ok_files, append=append
 
     sky_polar_u1 = radial_amplitude1 * sin(2.0 * theta1 + mean_phase1)
     sky_polar_q1 = radial_amplitude1 * sin(2.0 * theta1 + 90.0 / !radeg $
-                                             + mean_phase1 ) + run.bias
+                                             + mean_phase1) + run.bias_term
 
     ;   sky_polar_q1 = radial_amplitude1 * sin (2.0 * theta1 + 90.0 / !radeg $
     ;                                           + mean_phase1 ) + bias_image
@@ -1104,6 +1110,7 @@ pro kcor_l1, date_str, ok_files, append=append
                /device
         pause
         wait,1
+      endfor
     endif
 
     ; print, 'Finished sky polarization removal.'
@@ -1260,7 +1267,7 @@ pro kcor_l1, date_str, ok_files, append=append
     save     = tvrd()
     gif_file = 'l1.gif'
     gif_file = strmid(l0_file, 0, 20) + '.gif'
-    write_gif, l1_dir + gif_file, save, red, green, blue
+    write_gif, filepath(gif_file, root=l1_dir), save, red, green, blue
 
     ;----------------------------------------------------------------------------
     ; CREATE A FITS IMAGE:
@@ -1681,7 +1688,7 @@ pro kcor_l1, date_str, ok_files, append=append
 
     save = tvrd()
     cgif_file = strmid(l0_file, 0, 20) + '_cropped.gif'
-    write_gif, l1_dir + cgif_file, save, red, green, blue
+    write_gif, filepath(cgif_file, root=l1_dir), save, red, green, blue
 
     ; create NRG (normalized, radially-graded) GIF image
     cd, l1_dir
@@ -1699,12 +1706,12 @@ pro kcor_l1, date_str, ok_files, append=append
   total_time = toc()
   mg_log, 'total duration: %0.1f sec', total_time, name='kcor/rt', /info
 
-  if (fnum ne 0) then begin
-    image_time = total_time / fnum
+  if (nfiles ne 0) then begin
+    image_time = total_time / nfiles
   endif else begin
     image_time = 0.0
   endelse
 
   mg_log, 'time/image: %0.1f sec', image_time, name='kcor/rt', /debug
-  mg_log, 'number of images: %d', fnum, name='kcor/rt', /debug
+  mg_log, 'number of images: %d', nfiles, name='kcor/rt', /debug
 end

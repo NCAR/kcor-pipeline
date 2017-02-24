@@ -241,7 +241,7 @@ BEGIN ;{
    
 ;   tvcircle, r_photo, xcen, ycen, color = 255, /device
 
-   suncir_kcor, xdim, ydim, xcen, ycen, 0, 0, r_photo, 0.0
+   kcor_suncir, xdim, ydim, xcen, ycen, 0, 0, r_photo, 0.0
    
    ;--------------------------------------
    ; Save displayed image into a GIF file.

@@ -173,11 +173,12 @@ pro kcor_run::getProperty, date=date, $
                            reduce_calibration=reduce_calibration, $
                            plate_scale=plate_scale, $
                            use_default_darks=use_default_darks, $
-                           bias=bias, $
+                           bias_term=bias_term, $
                            sky_factor=sky_factor, $
                            gbuparams_filename=gbuparams_filename, $
                            cal_file=cal_file, $
-                           distortion_correction_filename=distortion_correction_filename
+                           distortion_correction_filename=distortion_correction_filename, $
+                           phase=phase
   compile_opt strictarr
 
   if (arg_present(date)) then date = self.date
@@ -313,8 +314,8 @@ pro kcor_run::getProperty, date=date, $
   if (arg_present(gbuparams_filename)) then begin
     gbuparams_filename = self->_readepoch('gbuparams_filename', self.date, type=7)
   endif
-  if (arg_present(bias)) then begin
-    bias = self->_readepoch('bias', self.date, type=4)
+  if (arg_present(bias_term)) then begin
+    bias_term = self->_readepoch('bias', self.date, type=4)
   endif
   if (arg_present(sky_factor)) then begin
     sky_factor = self->_readepoch('sky_factor', self.date, type=4)
@@ -324,7 +325,10 @@ pro kcor_run::getProperty, date=date, $
                                                       self.date, type=7)
   endif
   if (arg_present(cal_file)) then begin
-    sky_factor = self->_readepoch('cal_file', self.date, type=7)
+    cal_file = self->_readepoch('cal_file', self.date, type=7)
+  endif
+  if (arg_present(phase)) then begin
+    phase = self->_readepoch('phase', self.date, type=4)
   endif
 end
 

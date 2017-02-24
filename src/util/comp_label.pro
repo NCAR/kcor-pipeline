@@ -18,7 +18,7 @@
 ; 29 Jun 2015 IDL procedure created.
 ;-------------------------------------------------------------------------------
 ; external subroutines:
-;   suncir_kcor.pro
+;   kcor_suncir.pro
 ;-------------------------------------------------------------------------------
 ; NOTE: Graphics window must be previously established, with 1024x1024 pixels.
 ;-------------------------------------------------------------------------------

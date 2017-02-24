@@ -103,8 +103,8 @@ pro kcor_radial_der, data, xcen, ycen, radius, dr, theta, cent, $
                 + parabola([double(imax - 1.), $
                             double(imax), $
                             double(imax + 1.)], $
-                           [rad(imax - 1), $
-                            rad(imax), $
-                            rad(imax + 1)])
+                           [rad[imax - 1], $
+                            rad[imax], $
+                            rad[imax + 1]])
   endfor
 end

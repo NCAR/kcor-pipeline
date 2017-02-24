@@ -173,7 +173,7 @@ endfor ;}
 fmin = MIN (imgflt)
 fmax = MAX (imgflt)
 
-print, 'fmin/fmax: ', fmin, fmax
+;print, 'fmin/fmax: ', fmin, fmax
 
 ;--- Remove spikes.
 

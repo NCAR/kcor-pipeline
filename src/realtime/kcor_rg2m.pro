@@ -242,7 +242,7 @@ pro kcor_rg2m, fits_list, fits=fits
     ; draw circle at photosphere
 
     ; tvcircle, r_photo, 511.5, 511.5, color=255, /device
-    suncir_kcor, xdim, ydim, xcen, ycen, 0, 0, r_photo, 0.0
+    kcor_suncir, xdim, ydim, xcen, ycen, 0, 0, r_photo, 0.0
 
     ; save displayed image into a GIF file
     save     = tvrd()

@@ -324,11 +324,11 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     minute = strmid(date_obs, 14, 2)
     second = strmid(date_obs, 17, 2)
 
-    date = string(year, month, day, hour, minute, second, $
-                  format='(%"%s-%s-%sT%s:%s:%s")')
+    date_str = string(year, month, day, hour, minute, second, $
+                      format='(%"%s-%s-%sT%s:%s:%s")')
 
     ; find ephemeris data (pangle,bangle ...) using solarsoft routine pb0r
-    ephem = pb0r(date, /arcsec)
+    ephem = pb0r(date_str, /arcsec)
     pangle = ephem[0]   ; degrees
     bangle = ephem[1]   ; degrees
     rsun   = ephem[2]   ; solar radius (arcsec)

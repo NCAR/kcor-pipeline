@@ -392,7 +392,7 @@ BEGIN	;{
    BEGIN ;{
       xb = 0
       yb = 0
-      suncir_kcor, oxdim, oydim, xcen, ycen, xb, yb, pixrs, roll
+      kcor_suncir, oxdim, oydim, xcen, ycen, xb, yb, pixrs, roll
    END   ;}
 
    byt_img = TVRD ()

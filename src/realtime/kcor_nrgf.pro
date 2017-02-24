@@ -180,7 +180,7 @@ pro kcor_nrgf, fits_file
   ; image has been shifted to center of array
   ; draw circle at photosphere
   ;tvcircle, r_photo, 511.5, 511.5, color=255, /device
-  suncir_kcor, xdim, ydim, xcen, ycen, 0, 0, r_photo, 0.0
+  kcor_suncir, xdim, ydim, xcen, ycen, 0, 0, r_photo, 0.0
 
   ; create NRG gif file
   save     = tvrd()

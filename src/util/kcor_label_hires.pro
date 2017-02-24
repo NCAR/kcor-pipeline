@@ -12,7 +12,7 @@
 ; 17 Jun 2015 IDL procedure created.
 ;-------------------------------------------------------------------------------
 ; external subroutines:
-;   suncir_kcor.pro
+;   kcor_suncir.pro
 ;-------------------------------------------------------------------------------
 ; NOTE: Graphics window must be previously established, with 1024x1024 pixels.
 ;-------------------------------------------------------------------------------
@@ -102,15 +102,11 @@ xyouts, 4, 6, datalabel, color = 251, charsize = 1.2, /device
 xyouts, 1018, 6, 'circle: photosphere', $
                  color = 251, charsize = 1.2, /device, alignment = 1.0
 
-;--- Image has been shifted to center of array.
-;--- Draw circle at photosphere.
+  ; image has been shifted to center of array
+  ; draw circle at photosphere
 
-;tvcircle, pixrs, 511.5, 511.5, color = 251, /device
+  ;tvcircle, pixrs, 511.5, 511.5, color = 251, /device
 
-;----------------------------------
-; Draw polar grid in occulter area.
-;----------------------------------
-
-suncir_kcor, xdim, ydim, xcen, ycen, 0, 0, pixrs, 0.0
-
-END
+  ; draw polar grid in occulter area
+  kcor_suncir, xdim, ydim, xcen, ycen, 0, 0, pixrs, 0.0
+end

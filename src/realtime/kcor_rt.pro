@@ -121,12 +121,9 @@ pro kcor_rt, date, config_filename=config_filename
       printf, okfgif_lun, base + '.gif'
       printf, okl1gz_lun, base + '_l1.fts.gz'
 
-      ; TODO: turn on when kcor_l1 is running
-      if (0) then begin
-        file_copy, base + '_cropped.gif', croppedgif_dir
-        file_copy, base + '.gif', fullres_dir
-        file_copy, base + '_l1.fts.gz', archive_dir
-      endif
+      file_copy, base + '_cropped.gif', croppedgif_dir
+      file_copy, base + '.gif', fullres_dir
+      file_copy, base + '_l1.fts.gz', archive_dir
     endfor
 
     free_lun, okcgif_lun
@@ -136,11 +133,11 @@ pro kcor_rt, date, config_filename=config_filename
     rg_dir = filepath('', subdir=date_parts, root=run.rg_basedir)
     if (~file_test(rg_dir, /directory)) then file_mkdir, rg_dir
 
-    ; TODO: turn on when kcor_l1 is running
-    if (0) then begin
-      file_move, '*rg*.gif', rg_dir
-      file_move, '*rg*.fts*', archive_dir
-    endif
+    rg_gifs = file_search('*rg*.gif', count=n_rg_gifs)
+    if (n_rg_gifs gt 0L) then file_move, rg_gifs, rg_dir
+
+    rg_files = file_search('*rg*.fts*', count=n_rg_files)
+    if (n_rg_files gt 0L) then file_move, rg_files, archive_dir
 
     if (run.update_remote_server) then begin
       spawn_cmd = string(run.rg_remove_server, run.rg_remote_dir, $
