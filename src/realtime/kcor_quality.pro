@@ -224,9 +224,9 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
   white  = 255
 
   ; open file containing a list of kcor L0 FITS files
-  header = 'file name                datatype    exp  cov drk dif pol angle  qual'
-  mg_log, header, name='kcor/rt', /debug
-
+  mg_log, 'inventory for current run...', name='kcor/rt', /debug
+  header = 'filename                 datatype    exp  cov drk dif pol angle  qual'
+  mg_log, header, name='kcor/noformat', /debug
 
   l0_file = ''
   num_img = 0
@@ -894,7 +894,7 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     mg_log, '%s%s%s%s%s%s%s%s%s', $
             file_basename(l0_file), datatype_str, exptime_str, cover_str, darkshut_str, $
             diffuser_str, calpol_str, calpang_str, qual_str, $
-            name='kcor/rt', /debug
+            name='kcor/noformat', /debug
   endforeach   ; end of image loop
 
   free_lun, ucal

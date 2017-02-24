@@ -84,8 +84,7 @@ pro kcor_rt, date, config_filename=config_filename
     ok_files = kcor_quality(date, l0_fits_files, /append, run=run)
     mg_log, '%d OK L0 files', n_elements(ok_files), name='kcor/rt', /info
 
-    ; TODO: change interface here
-    ;kcor_l1, date, ok_files, /append, run=run
+    kcor_l1, date, ok_files, /append, run=run
 
     mg_log, 'moving processed files to l0_dir', name='kcor/rt', /info
     file_move, l0_fits_files, l0_dir

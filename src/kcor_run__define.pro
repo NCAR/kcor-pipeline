@@ -122,6 +122,11 @@ pro kcor_run::setup_loggers
                        level=log_level, $
                        filename=filepath(self.date + '.realtime.log', root=log_dir)
 
+  mg_log, name='kcor/noformat', logger=logger
+  logger->setProperty, format='%(message)s', $
+                       level=log_level, $
+                       filename=filepath(self.date + '.realtime.log', root=log_dir)
+
   mg_log, name='kcor/dbinsert', logger=logger
   logger->setProperty, format=log_fmt, $
                        time_format=log_time_fmt, $
@@ -168,7 +173,11 @@ pro kcor_run::getProperty, date=date, $
                            reduce_calibration=reduce_calibration, $
                            plate_scale=plate_scale, $
                            use_default_darks=use_default_darks, $
-                           gbuparams_filename=gbuparams_filename
+                           bias=bias, $
+                           sky_factor=sky_factor, $
+                           gbuparams_filename=gbuparams_filename, $
+                           cal_file=cal_file, $
+                           distortion_correction_filename=distortion_correction_filename
   compile_opt strictarr
 
   if (arg_present(date)) then date = self.date
@@ -303,6 +312,19 @@ pro kcor_run::getProperty, date=date, $
   endif
   if (arg_present(gbuparams_filename)) then begin
     gbuparams_filename = self->_readepoch('gbuparams_filename', self.date, type=7)
+  endif
+  if (arg_present(bias)) then begin
+    bias = self->_readepoch('bias', self.date, type=4)
+  endif
+  if (arg_present(sky_factor)) then begin
+    sky_factor = self->_readepoch('sky_factor', self.date, type=4)
+  endif
+  if (arg_present(distortion_correction_filename)) then begin
+    distortion_correction_filename = self->_readepoch('distortion_correction_filename', $
+                                                      self.date, type=7)
+  endif
+  if (arg_present(cal_file)) then begin
+    sky_factor = self->_readepoch('cal_file', self.date, type=7)
   endif
 end
 

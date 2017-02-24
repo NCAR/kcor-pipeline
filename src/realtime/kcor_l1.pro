@@ -288,22 +288,6 @@
 ;
 ; append : in, optional.  If set, append log output to existing log file.
 ; 
-; cal_dir : in, optional.  NCDF calibration file directory.
-;
-; cal_file : in, optional.  NCDF calibration file name.
-;
-; phase0 : in, optional.  Phase value for camera 0.
-;
-; phase1 : in, optional.  Phase value for camera 1.
-;
-; bias : in, optional.  Bias value.
-;
-; sky_factor: in, optional.  Sky factor value.
-;
-; dc_dir : in, optional.  Distortion correction directory.
-;
-; dc_file : in, optional.  Distorion correction file name.
-;
 ; qual : in, optional, type=string.  Image quality.
 ;------------------------------------------------------------------------------
 ; :Examples:
@@ -334,61 +318,20 @@ pro kcor_l1, date_str, $
              list=list, $
              base_dir=base_dir, $
              append=append, $
-             cal_dir=cal_dir, $
-             cal_file=cal_file, $
-             phase0=phase0, $
-             phase1=phase1, $
-             bias=bias, $
-             sky_factor=sky_factor, $
-             dc_dir=dc_dir, $
-             dc_file=dc_file, $
              qual=qual
   compile_opt strictarr
 
-  ; use TIC & TOC to determine elapsed duration of procedure execution
   tic
 
-  ; default values for optional keywords
-  default, cal_dir,   '/hao/mlsodata1/Data/KCor/calib_files'
+  l0_dir  = filepath(date_str, root=run.raw_basedir)
+  l1_dir  = filepath('level1', subdir=date_str, root=run.raw_basedir)
+  l0_file = ''
 
-  ; default, cal_file,  '20150101_190612_kcor_cal_1.0ms.ncdf' ; < 10 Mar 2015.
-  ; Use 20150315 file >= March 10, 2015 due to color corrector lens changes
-  ; by Dennis G.
-  ;
-  ;default, cal_file,  '20150315_202646_kcor_cal_1.0ms.ncdf'   
-  ;
-  ; Use 20150403_203428_ALL_ANGLES_kcor_1ms_new_dark.ncdf after 03 Apr 2015 20:12.
-  ; default, cal_file,  '20150403_203428_ALL_ANGLES_kcor_1ms_new_dark.ncdf'   
-  ;
-  ; Use 20150529_180919_cal_1.0ms.ncdf for 29 May 2015 & beyond.
-  default, cal_file,  '20150529_180919_cal_1.0ms.ncdf'
+  dc_path = filepath(run.distortion_correction_filename, root=run.resources_dir)
 
-  default, phase0,  !pi / 11.       ; camera 0   16. degrees look ok for 18 Jun 2014
-                                    ; and April 27, 2014
-  default, phase1, -1. * !pi / 9.   ; camera 1  -20. degrees look ok for 27 Apr 2014
-
-  ; GdT: bias and sky_factor are now keywords
-  ; default values should be 0 and 1 but I kept the old values for now.
-  default, bias, 0.07
-  default, sky_factor, 0.5
-
-  default, dc_dir,  '/hao/acos/sw/idl/kcor/pipe'
-  default, dc_file, 'dist_coeff_20131030_2058.sav'   ; distortion correction
-
-  dc_file = 'dist_coeff_20131030_2058.sav'
-
-  ; define directories
-  if (not keyword_set(base_dir)) then base_dir = '/hao/mlsodata1/Data/KCor/raw'
-
-  l0_dir   = base_dir + '/' + date_str                ; level 0
-  l1_dir   = base_dir + '/' + date_str + '/level1/'   ; level 1
-  l0_file  = ''
-  dc_path  = dc_dir + '/' + dc_file   ; distortion correction pathname
-
-  if (not file_test(l1_dir, /directory)) then file_mkdir, l1_dir
+  if (~file_test(l1_dir, /directory)) then file_mkdir, l1_dir
 
   ; move to the processing directory
-
   cd, current=start_dir   ; save current directory
   cd, l0_dir              ; move to L0 processing directory
 
@@ -416,7 +359,7 @@ pro kcor_l1, date_str, $
   endif
 
   ; extract information from calibration file
-  calpath = filepath(cal_file, root=cal_dir)
+  calpath = filepath(run.cal_file, root=run.cal_out_dir)
   mg_log, 'calpath: %s', calpath, name='kcor/rt', /debug
 
   unit = ncdf_open(calpath)
@@ -507,7 +450,7 @@ pro kcor_l1, date_str, $
   ;erase
 
   ; load color table
-  lct, '/hao/acos/sw/idl/color/quallab_ver2.lut'
+  lct, filepath('quallab_ver2.lut', root=run.resources_dir)
   tvlct, red, green, blue, /get
 
   ; image file loop
@@ -1047,9 +990,6 @@ pro kcor_l1, date_str, $
 
     factor = 1.00
 
-    ; constant sky bias
-    bias   = 0.0015 
-
     ; sky bias as a function of radius
 
     ; bias_sky = fltarr(rnum)
@@ -1123,7 +1063,7 @@ pro kcor_l1, date_str, $
         plot,  degrees * !radeg, angle_ave_q, thick=2, title='Q', ystyle=1
         oplot, degrees * !radeg, a[0] * sin(2.0 * degrees + 90.0 / !radeg + a[1]), $
                color=100, thick=5
-        oplot, degrees * !radeg, a[0] * factor * sin(2.0 * degrees + 90.0 / !radeg + a[1]) + bias, $
+        oplot, degrees * !radeg, a[0] * factor * sin(2.0 * degrees + 90.0 / !radeg + a[1]) + run.bias, $
                linestyle=2, color=50, thick=5
          wait, 0.4
          loadct, 0
@@ -1165,7 +1105,7 @@ pro kcor_l1, date_str, $
 
     sky_polar_u1 = radial_amplitude1 * sin(2.0 * theta1 + mean_phase1)
     sky_polar_q1 = radial_amplitude1 * sin(2.0 * theta1 + 90.0 / !radeg $
-                                             + mean_phase1 ) + bias
+                                             + mean_phase1 ) + run.bias
 
     ;   sky_polar_q1 = radial_amplitude1 * sin (2.0 * theta1 + 90.0 / !radeg $
     ;                                           + mean_phase1 ) + bias_image
@@ -1215,7 +1155,7 @@ pro kcor_l1, date_str, $
       pause
     endif
 
-    lct, '/hao/acos/sw/idl/color/quallab_ver2.lut'
+    lct, filepath('quallab_ver2.lut', root=run.resources_dir)
     tvlct, red, green, blue, /get
 
     mini = 0.00
@@ -1242,7 +1182,7 @@ pro kcor_l1, date_str, $
     ; print,        'Radius of photosphere [pixels] : ', r_photo
     ; printf, ULOG, 'Radius of photosphere [pixels] : ', r_photo
 
-    lct,   '/hao/acos/sw/idl/color/quallab_ver2.lut'
+    lct, filepath('quallab_ver2.lut', root=run.resources_dir)
     tvlct, red, green, blue, /get
 
     ; display image, annotate, and save as a full resolution GIF file
@@ -1369,7 +1309,7 @@ pro kcor_l1, date_str, $
 
     bscale = 0.001   ; pB * 1000 is stored in FITS image.
     bunit  = 'quasi-pB'
-    datacite = 'ww2.hao.ucar.edu/mlso/instruments/mlso-kcor-coronagraph'
+    ;datacite = 'ww2.hao.ucar.edu/mlso/instruments/mlso-kcor-coronagraph'
     datacite = 'http://ezid.cdlib.org/id/doi:10.5065/D69G5JV8'
     img_quality = 'ok'
     newheader    = strarr(200)
@@ -1435,10 +1375,11 @@ pro kcor_l1, date_str, $
     fxaddpar, newheader, 'DPSWID',  'kcorl1.pro 14dec2015', $
                          ' L1 data processing software'
 
-    fxaddpar, newheader, 'CALFILE', cal_file, $
+    fxaddpar, newheader, 'CALFILE', run.cal_file, $
                          ' calibration file'
     ;                        ' calibration file:dark, opal, 4 pol.states'
-    fxaddpar, newheader, 'DISTORT', dc_file, ' distortion file'
+    fxaddpar, newheader, 'DISTORT', run.distortion_correction_filename, $
+                         ' distortion file'
     fxaddpar, newheader, 'DMODSWID', '18 Aug 2014', $
                          ' date of demodulation software'
     fxaddpar, newheader, 'OBSSWID', struct.obsswid, $
@@ -1703,7 +1644,7 @@ pro kcor_l1, date_str, $
     ; write FITS image to disk
 
     l1_file = strmid(l0_file, 0, 20) + '_l1.fts'
-    writefits, l1_dir + l1_file, corona_int, newheader
+    writefits, filepath(l1_file, root=l1_dir), corona_int, newheader
 
     ; Now make low resolution GIF file:
     ;
