@@ -6,7 +6,7 @@
 ;
 ; :Params:
 ;   fits_list : in, required, type=string
-;     list file containing kcor L1 fits files
+;     list file containing KCor L1 fits files
 ;
 ; :Author:
 ;   Andrew L. Stanger   HAO/NCAR
@@ -31,7 +31,7 @@ pro kcor_rg2m, fits_list, fits=fits
 
   ; file loop
   openr, ulist, fits_list, /get_lun
-  while (not eof(ulist)) do begin
+  while (~eof(ulist)) do begin
     nfiles += 1
     readf, ulist, fits_file 
     fts_loc  = strpos(fits_file, '.fts')
@@ -59,7 +59,7 @@ pro kcor_rg2m, fits_list, fits=fits
     if (m2 eq '1' or m2 eq '3' or m2 eq '5' or m2 eq '7' or m2 eq '9') then $
       continue
     if (sec gt 14) then continue
-    print, 'sec: ', sec
+    mg_log, 'sec: %f', sec, name='kcor/rt', /debug
 
     odate   = strmid(date_obs, 0, 10)   ; yyyy-mm-dd
     otime   = strmid(date_obs, 11, 8)   ; hh:mm:ss
@@ -106,10 +106,10 @@ pro kcor_rg2m, fits_list, fits=fits
     cneg = fix(ycen - r_photo)
     cpos = fix(ycen + r_photo)
 
-    print, 'rsun     [arcsec]: ', rsun 
-    print, 'occulter [arcsec]: ', occulter
-    print, 'rocc     [pixels]: ', rocc
-    print, 'r0       [pixels]: ', r0
+    mg_log, 'rsun     [arcsec]: %f', rsun, name='kcor/rt', /debug
+    mg_log, 'occulter [arcsec]: %f', occulter, name='kcor/rt', /debug
+    mg_log, 'rocc     [pixels]: %f', rocc, name='kcor/rt', /debug
+    mg_log, 'r0       [pixels]: %f', r0, name='kcor/rt', /debug
 
     ; compute normalized, radially-graded filter
     for_nrgf, img, xcen, ycen, r0, imgflt
@@ -127,8 +127,8 @@ pro kcor_rg2m, fits_list, fits=fits
       max = amax gt amin ? amax : amin
     endif
 
-    print, 'imin/imax: ', imin, imax
-    print, 'cmin/cmax: ', cmin, cmax
+    mg_log, 'imin: %f, imax: %f', imin, imax, name='kcor/rt', /debug
+    mg_log, 'cmin: %f, cmax: %f', cmin, cmax, name='kcor/rt', /debug
 
     ; use mask to build gif image
 
@@ -179,7 +179,7 @@ pro kcor_rg2m, fits_list, fits=fits
       fts_loc   = strpos(fits_file, '.fts')
       rfts_file = strmid(fits_file, 0, fts_loc) + '_nrgf.fts'
 
-      print, 'rfts_file: ', rfts_file
+      mg_log, 'rfts_file: %s', rfts_file, name='kcor/rt', /debug
 
       writefits, rfts_file, simg, rhdu
     endif
@@ -248,7 +248,7 @@ pro kcor_rg2m, fits_list, fits=fits
     save     = tvrd()
     gif_file = strmid(fits_file, 0, fts_loc) + '_nrgf.gif'
 
-    print, 'gif_file: ', gif_file
+    mg_log, 'gif_file: %s', gif_file, name='kcor/rt', /debug
 
     write_gif, gif_file, save, red, green, blue
   endwhile   ; end of file loop
@@ -257,5 +257,7 @@ pro kcor_rg2m, fits_list, fits=fits
 
   total_time = toc()
   loop_time  = total_time / nfiles
-  print, 'loop_time: ', loop_time, ' total_time: ', total_time
+  mg_log, 'loop time: %0.1f sec/file, total time: %0.1f sec', $
+          loop_time, total_time, $
+          name='kcor/rt', /info
 end

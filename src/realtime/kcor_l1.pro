@@ -278,17 +278,15 @@
 ; maxi= 0.08     
 ;------------------------------------------------------------------------------
 ; :Params:
-; date : in, required, type=string, 
-;         format='yyyymmdd', where yyyy=year, mm=month, dd=day
+;   date : in, required, type=string, 
+;     format='yyyymmdd', where yyyy=year, mm=month, dd=day
 ;
 ; :Keywords:
-; list : in, optional, type=string.  File containing a list of FITS Level0 files
-;        
-; base_dir: in, optional, type=string.  Directory containing Level 0 FITS files.
-;
-; append : in, optional.  If set, append log output to existing log file.
+;   ok_files : in, optional, type=strarr
+;     array containing FITS level 0 filenames
+;  append : in, optional, type=boolean
+;     if set, append log output to existing log file
 ; 
-; qual : in, optional, type=string.  Image quality.
 ;------------------------------------------------------------------------------
 ; :Examples:
 ;   Try::
@@ -314,11 +312,7 @@
 ; All Level 1 files (fits & gif) will be stored in the sub-directory 'level1',
 ; under the date directory.
 ;-
-pro kcor_l1, date_str, $
-             list=list, $
-             base_dir=base_dir, $
-             append=append, $
-             qual=qual
+pro kcor_l1, date_str, ok_files, append=append
   compile_opt strictarr
 
   tic
@@ -335,24 +329,13 @@ pro kcor_l1, date_str, $
   cd, current=start_dir   ; save current directory
   cd, l0_dir              ; move to L0 processing directory
 
-  ; identify list of L0 files
-  if (keyword_set(list)) then begin
-    listfile = list
-  endif else begin
-    listfile = l0_dir + 'l0_list'
-    ; openw, ulist, listfile, /get_lun
-    ; printf, ulist, 'test.fts'
-    ; free_lun, ulist
-    spawn, 'ls *kcor.fts* > l0_list'
-  endelse
-
   ; get current date & time
   current_time = systime(/utc)
 
   mg_log, '%s : %s', date_str, current_time, name='kcor/rt', /info
 
-  ; check for empty list file
-  nfiles = fix(file_lines(listfile))   ; # files in list file.
+  ; check for empty list of OK files
+  n_files = n_elements(ok_files)
   if (nfiles eq 0) then begin
     mg_log, 'no files to process', name='kcor/rt', /warn
     goto, done
@@ -455,8 +438,7 @@ pro kcor_l1, date_str, $
 
   ; image file loop
   fnum = 0
-  openr, ulist, listfile, /get_lun
-  while (not eof(ulist)) do begin
+  foreach l0_file, ok_files do begin
     fnum += 1
     lclock = tic('Loop_' + strtrim(fnum, 2))
 
@@ -478,7 +460,6 @@ pro kcor_l1, date_str, $
     date_dp = cyear + '-' + cmonth + '-' + cday + 'T' $
                 + chour + ':' + cminute + ':' + csecond
 
-    readf, ulist, l0_file
     ;   print, 'l0_file: ', l0_file
     img  = readfits(l0_file, header, /silent)
     img  = float(img)
@@ -1711,7 +1692,7 @@ pro kcor_l1, date_str, $
 
     loop_time = toc(lclock)   ; save loop time.
     mg_log, 'loop duration: %0.1f sec', loop_time, name='kcor/rt', /info
-  endwhile
+  endforeach   ; end file loop
 
   ; get system time & compute elapsed time since "TIC" command
   done:
@@ -1726,6 +1707,4 @@ pro kcor_l1, date_str, $
 
   mg_log, 'time/image: %0.1f sec', image_time, name='kcor/rt', /debug
   mg_log, 'number of images: %d', fnum, name='kcor/rt', /debug
-
-  free_lun, ulist
 end

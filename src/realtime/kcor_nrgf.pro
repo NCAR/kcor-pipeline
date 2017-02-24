@@ -97,7 +97,7 @@ pro kcor_nrgf, fits_file
   cmin = imin
   cmax = imax
 
-  if (imin LT 0.0) then begin
+  if (imin lt 0.0) then begin
     amin = abs(imin)
     amax = abs(imax)
     max = amax gt amin ? amax : amin
