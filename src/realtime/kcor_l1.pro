@@ -548,7 +548,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
     date_hst = hst_year + '-' + hst_month  + '-' + hst_day + 'T' + $
                hst_hour + ':' + hst_minute + ':' + hst_second
 
-    mg_log, 'date_obs: %s, date_hist: %s', date_obs, date_hst, name='kcor/rt', /debug
+    mg_log, 'date_obs: %s, HST: %s', date_obs, date_hst, name='kcor/rt', /debug
 
     ; put the Level-0 FITS header into a structure
     struct = fitshead2struct(header, dash2underscore=dash2underscore)
@@ -739,14 +739,13 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
 
     demod_time = toc(dclock)
 
-    mg_log, 'demod_matrix: %0.1f sec', demod_time, name='kcor/rt', /info
+    mg_log, 'elapsed time for demod_matrix: %0.1f sec', demod_time, $
+            name='kcor/rt', /info
 
     ; apply distortion correction for raw images
     img0 = reform(img[*, *, 0, 0])    ; camera 0 [reflected]
     img0 = reverse(img0, 2)           ; y-axis inversion
     img1 = reform(img[*, *, 0, 1])    ; camera 1 [transmitted]
-
-    ; restore, '/hao/acos/sw/idl/kcor/pipe/dist_coeff.sav'
 
     restore, dc_path   ; distortion correction file
 

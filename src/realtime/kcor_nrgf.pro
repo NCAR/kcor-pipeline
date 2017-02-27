@@ -80,18 +80,18 @@ pro kcor_nrgf, fits_file
   cneg = fix(ycen - r_photo)
   cpos = fix(ycen + r_photo)
 
-  mg_log, '--- kcor_nrgf ---', name='kcor/rt', /info
-  mg_log, 'rsun     [arcsec]: %f', rsun, name='kcor/rt', /debug
-  mg_log, 'occulter [arcsec]: %f', occulter, name='kcor/rt', /debug
-  mg_log, 'r_photo  [pixels]: %f', r_photo, name='kcor/rt', /debug
-  mg_log, 'rocc     [pixels]: %f', rocc, name='kcor/rt', /debug
-  mg_log, 'r0               : %f', r0, name='kcor/rt', /debug
+  mg_log, 'starting NRGF', name='kcor/rt', /info
+  mg_log, 'rsun     [arcsec]: %0.4f', rsun, name='kcor/rt', /debug
+  mg_log, 'occulter [arcsec]: %0.4f', occulter, name='kcor/rt', /debug
+  mg_log, 'r_photo  [pixels]: %0.2f', r_photo, name='kcor/rt', /debug
+  mg_log, 'rocc     [pixels]: %0.2f', rocc, name='kcor/rt', /debug
+  mg_log, 'r0       [pixels]: %0.2f', r0, name='kcor/rt', /debug
 
   ; compute normalized, radially-graded filter
-  for_nrgf, img, xcen, ycen, r0, imgflt
+  for_nrgf, img, xcen, ycen, r0, filtered_image
 
-  imin = min(imgflt)
-  imax = max(imgflt)
+  imin = min(filtered_image)
+  imax = max(filtered_image)
   ;cmin = imin / 2.0 
   ;cmax = imax / 2.0
   cmin = imin
@@ -103,7 +103,7 @@ pro kcor_nrgf, fits_file
     max = amax gt amin ? amax : amin
   endif
 
-  mg_log, 'cmin: %f, cmax: %f', cmin, cmax, name='kcor/rt', /debug
+  mg_log, 'cmin: %0.3f, cmax: %0.3f', cmin, cmax, name='kcor/rt', /debug
 
   ; use mask to build gif image
 
@@ -118,10 +118,11 @@ pro kcor_nrgf, fits_file
   r_in  = fix(occulter / platescale) + 5.0
   r_out = 504.0
 
-  mg_log, 'masking limits: r_in=%f, r_out=%f', r_in, r_out, name='kcor/rt', /debug
+  mg_log, 'masking limits r_in: %0.2f, r_out: %0.2f', $
+          r_in, r_out, name='kcor/rt', /debug
 
   dark = where(rad1 lt r_in or rad1 ge r_out)
-  imgflt[dark] = -10.0   ; set pixels outside annulus to -10
+  filtered_image[dark] = -10.0   ; set pixels outside annulus to -10
 
   ; graphics device
   set_plot, 'Z'
@@ -137,7 +138,7 @@ pro kcor_nrgf, fits_file
   tvlct, red, green, blue, /get
 
   ; display image and annotate
-  tv, bytscl(imgflt, cmin, cmax)
+  tv, bytscl(filtered_image, cmin, cmax)
 
   xyouts, 4, 990, 'HAO/MLSO/Kcor', color=255, charsize=1.5, /device
   xyouts, 4, 970, 'K-Coronagraph', color=255, charsize=1.5, /device
@@ -192,7 +193,7 @@ pro kcor_nrgf, fits_file
 
   ; create short integer image
   bscale = 0.001
-  simg = fix(imgflt * 1000.0)   ; convert RG image to short integer.
+  simg = fix(filtered_image * 1000.0)   ; convert RG image to short integer.
   datamin = min(simg) * bscale
   datamax = max(simg) * bscale
   dispmin = cmin

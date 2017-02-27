@@ -136,24 +136,31 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     rg_dir = filepath('', subdir=date_parts, root=run.rg_basedir)
     if (~file_test(rg_dir, /directory)) then file_mkdir, rg_dir
 
-    rg_gifs = file_search('*rg*.gif', count=n_rg_gifs)
-    if (n_rg_gifs gt 0L) then file_move, rg_gifs, rg_dir
-
     rg_files = file_search('*rg*.fts*', count=n_rg_files)
     if (n_rg_files gt 0L) then file_move, rg_files, archive_dir
 
-    if (run.update_remote_server) then begin
-      spawn_cmd = string(run.rg_remove_server, run.rg_remote_dir, $
-                         format='(%"scp -B -r -p *rg*.gif %s:%s")')
-      spawn, spawn_cmd, result, error_result, exit_status=status
-      if (status ne 0L) then begin
-        mg_log, 'problem scp-ing RG files with command: %s', spawn_cmd, $
-                name='kcor/rt', /error
-        mg_log, '%s', error_result, name='kcor/rt', /error
-      endif
+    rg_gifs = file_search('*rg*.gif', count=n_rg_gifs)
+
+    if (run.update_remote_server && ~keyword_set(reprocess)) then begin
+      if (n_rg_gifs gt 0L) then begin
+        mg_log, 'transferring %d RG GIFs to remote server', n_rg_gifs, $
+                name='kcor/rt', /debug
+        spawn_cmd = string(run.rg_remote_server, run.rg_remote_dir, $
+                           format='(%"scp -B -r -p *rg*.gif %s:%s")')
+        spawn, spawn_cmd, result, error_result, exit_status=status
+        if (status ne 0L) then begin
+          mg_log, 'problem scp-ing RG files with command: %s', spawn_cmd, $
+                  name='kcor/rt', /error
+          mg_log, '%s', error_result, name='kcor/rt', /error
+        endif
+      endif else begin
+        mg_log, 'no RG imagess to transfer to remote server', name='kcor/rt', /info
+      endelse
     endif else begin
       mg_log, 'skipping updating remote server with RG images', name='kcor/rt', /info
     endelse
+
+    if (n_rg_gifs gt 0L) then file_move, rg_gifs, rg_dir
 
     if (run.update_database) then begin
       mg_log, 'updating database', name='kcor/rt', /info
