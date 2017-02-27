@@ -1028,7 +1028,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
       endfor
 
       sky_polar_cam1 = curvefit(degrees, double(angle_ave_u), weights, a, $
-                                function_name='kcor_sine2theta_new')
+                                function_name='kcor_sine2theta_best')
 
       ; print, 'angle_ave_u (0)', angle_ave_u (0)
       ; print, 'radius_beg/end : ', radius_beg, radius_end
