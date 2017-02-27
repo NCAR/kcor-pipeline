@@ -10,8 +10,11 @@
 ; :Keywords:
 ;   config_filename : in, required, type=string
 ;     configuration file specifying the parameters of the run
+;   reprocess : in, optional, type=boolean
+;     set to indicate a reprocessing; level 0 files are not distributed in a
+;     reprocessing
 ;-
-pro kcor_rt, date, config_filename=config_filename
+pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
   compile_opt strictarr
 
   ; catch and log any crashes

@@ -10,8 +10,11 @@
 ; :Keywords:
 ;   config_filename : in, required, type=string
 ;     filename of configuration file
+;   reprocess : in, optional, type=boolean
+;     set to indicate a reprocessing; level 0 files are not distributed in a
+;     reprocessing
 ;-
-pro kcor_eod, date, config_filename=config_filename
+pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   compile_opt strictarr
 
   ; catch and log any crashes
@@ -134,7 +137,9 @@ pro kcor_eod, date, config_filename=config_filename
       mg_log, 'not sending notification email', name='kcor/eod', /warn
     endelse
 
-    kcor_archive, run=run
+    if (~keyword_set(reprocess) && run.send_to_hpss) then begin
+      kcor_archive, run=run, reprocess=reprocess
+    endif
 
     ; produce calibration for tomorrow
     if (run.reduce_calibration) then begin

@@ -127,6 +127,13 @@ pro kcor_run::setup_loggers
                        level=log_level, $
                        filename=filepath(self.date + '.realtime.log', root=log_dir)
 
+  mg_log, name='kcor/reprocess', logger=logger
+  logger->setProperty, format=log_fmt, $
+                       time_format=log_time_fmt, $
+                       level=log_level, $
+                       filename=filepath(self.date + '.reprocess.log', root=log_dir)
+
+
   mg_log, name='kcor/dbinsert', logger=logger
   logger->setProperty, format=log_fmt, $
                        time_format=log_time_fmt, $
@@ -171,6 +178,7 @@ pro kcor_run::getProperty, date=date, $
                            update_database=update_database, $
                            update_remote_server=update_remote_server, $
                            reduce_calibration=reduce_calibration, $
+                           send_to_hpss=send_to_hpss, $
                            plate_scale=plate_scale, $
                            use_default_darks=use_default_darks, $
                            bias_term=bias_term, $
@@ -302,6 +310,10 @@ pro kcor_run::getProperty, date=date, $
   if (arg_present(reduce_calibration)) then begin
     reduce_calibration = self.options->get('reduce_calibration', section='eod', $
                                            /boolean, default=1B)
+  endif
+  if (arg_present(send_to_hpss)) then begin
+    send_to_hpss = self.options->get('send_to_hpss', section='eod', $
+                                     /boolean, default=1B)
   endif
 
   ; epochs file
