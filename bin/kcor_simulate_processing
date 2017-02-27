@@ -5,6 +5,9 @@ import logging
 import subprocess
 import time
 
+# wait after RT pipeline is launched to launch EOD pipeline
+EOD_WAIT = 30   # seconds
+
 
 # setup the logging mechanism
 logging.basicConfig(format='%(asctime)s %(message)s',
@@ -21,13 +24,12 @@ def launch_loop(date, config_flags, frequency):
     eod_cmd = ['runkcor_eod.sh', date, config_flags]
 
     while True:
-        pid = subprocess.Popen(realtime_cmd).pid
-        logging.info('launched KCor realtime pipeline with pid %d', pid)
-        time.sleep(60.0 * frequency)
-
-    # TODO: launch end-of-day processing at some point
-    # pid = subprocess.Popen(eod_cmd).pid
-    # logging.info('launched KCor end-of-day pipeline with pid %d', pid)
+        realtime_pid = subprocess.Popen(realtime_cmd).pid
+        logging.info('launched KCor realtime pipeline with pid %d', realtime_pid)
+        time.sleep(EOD_WAIT)
+        eod_pid = subprocess.Popen(eod_cmd).pid
+        logging.info('launched KCor end-of-day pipeline with pid %d', eod_pid)
+        time.sleep(60.0 * frequency - EOD_WAIT)
 
 
 if __name__ == '__main__':
