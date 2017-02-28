@@ -17,6 +17,8 @@
 pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
   compile_opt strictarr
 
+  rt_clock = tic('rt')
+
   ; catch and log any crashes
   catch, error
   if (error ne 0L) then begin
@@ -26,6 +28,9 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
   endif
 
   run = kcor_run(date, config_filename=config_filename)
+
+  ; ignore math errors
+  !except = 0
 
   mg_log, '------------------------------', name='kcor/rt', /info
 
@@ -194,5 +199,9 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
   done:
   !null = kcor_state(/unlock, run=run)
   mg_log, 'done with realtime processing run', name='kcor/rt', /info
+
+  rt_time = toc(rt_clock)
+  mg_log, 'total realtime time: %0.1f sec', rt_time, name='kcor/rt', /info
+
   obj_destroy, run
 end
