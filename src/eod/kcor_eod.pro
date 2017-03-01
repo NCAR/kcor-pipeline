@@ -79,14 +79,20 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   cd, l0_dir
 
-  cmd = string(run.gunzip, format='(%"%s *fts.gz")')
-  mg_log, 'unzipping FITS files...', name='kcor/eod', /info
-  spawn, cmd, result, error_result, exit_status=status
-  if (status ne 0L) then begin
-    mg_log, 'problem unzipping FITS files with command: %s', cmd, $
-            name='kcor/eod', /error
-    mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
-  endif
+  l0_zipped_fits_glob = '*fts.gz'
+  l0_zipped_files = file_search(l0_zipped_fits_glob, count=n_l0_zipped_files)
+  if (n_l0_zipped_files gt 0L) then begin
+    cmd = string(run.gunzip, l0_zipped_fits_glob, format='(%"%s %s")')
+    mg_log, 'unzipping FITS files...', name='kcor/eod', /info
+    spawn, cmd, result, error_result, exit_status=status
+    if (status ne 0L) then begin
+      mg_log, 'problem unzipping L0 FITS files with command: %s', cmd, $
+              name='kcor/eod', /error
+      mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
+    endif
+  endif else begin
+    mg_log, 'no zipped L0 files to unzip', name='kcor/eod', /info
+  endelse
 
   n_missing = 0L
   n_wrongsize = 0L
