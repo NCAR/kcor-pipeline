@@ -214,12 +214,12 @@ pro kcor_plotparams, date, list=list, run=run
   mg_log, 'enggif: %s', enggif, name='kcor/eod', /debug
   mg_log, 'focgif: %s', focgif, name='kcor/eod', /debug
 
-  plot, hours, mod_temp, title=pdate + '  Kcor Modulator Temperature', $
+  plot, hours, mod_temp, title=pdate + '  KCor Modulator Temperature', $
         xtitle='Hours [UT]', ytitle='Temperature [deg C]', $
         background=255, color=0, charsize=2.0, $
         xrange=[16.0, 28.0], yrange=[28.0, 36.0]
 
-  plot, hours, sgs_dimv, title=pdate + '  Kcor SGS DIM', $
+  plot, hours, sgs_dimv, title=pdate + '  KCor SGS DIM', $
         xtitle='Hours [UT]', ytitle='DIM [volts]', /ynozero, $
         xrange=[16.0, 28.0], yrange=[5.5, 7.5], $
         background=255, color=0, charsize=2.0
@@ -227,27 +227,27 @@ pro kcor_plotparams, date, list=list, run=run
   ; use fixed y-axis scaling, unless values wander outside the range: 0 to 10.
   smin = min(sgs_scin)
   smax = max(sgs_scin)
-  plot, hours, sgs_scin, title=pdate + '  Kcor SGS Scintillation', $
+  plot, hours, sgs_scin, title=pdate + '  KCor SGS Scintillation', $
         xtitle='Hours [UT]', ytitle='Scintillation [arcsec]', $
         xrange=[16.0, 28.0], yrange=[0.0, 10.0], $
         background=255, color=0, charsize=2.0 
 
-  save = tvrd ()
+  save = tvrd()
   write_gif, enggif, save
 
   erase
 
-  plot, hours, tcam_focus, title=pdate + '  KCOR T Camera Focus position', $
+  plot, hours, tcam_focus, title=pdate + '  KCor T Camera Focus position', $
         xtitle='Hours [UT]', ytitle='T Camera Focus [mm]', $
         background=255, color=0, charsize=2.0, $
         xrange=[16.0, 28.0], yrange=[-1.0, 1.0]
 
-  plot, hours, rcam_focus, title=pdate + '  KCOR R Camera Focus position', $
+  plot, hours, rcam_focus, title=pdate + '  KCor R Camera Focus position', $
         xtitle='Hours [UT]', ytitle='R Camera Focus [mm]', $
         background=255, color=0, charsize=2.0, $
         xrange=[16.0, 28.0], yrange=[-1.0, 1.0]
 
-  plot, hours, o1_focus, title=pdate + '  KCOR O1 Focus position', $
+  plot, hours, o1_focus, title=pdate + '  KCor O1 Focus position', $
         xtitle='Hours [UT]', ytitle='O1 Camera Focus [mm]', $
         background=255, color=0, charsize=2.0, $
         xrange=[16.0, 28.0], yrange=[110.0, 150.0]

@@ -147,7 +147,8 @@ end
 ;+
 ; Get properties.
 ;-
-pro kcor_run::getProperty, date=date, $
+pro kcor_run::getProperty, config_contents=config_contents, $
+                           date=date, $
                            pipe_dir=pipe_dir, $
                            resources_dir=resources_dir, $
                            mlso_url=mlso_url, $
@@ -190,6 +191,10 @@ pro kcor_run::getProperty, date=date, $
                            distortion_correction_filename=distortion_correction_filename, $
                            phase=phase
   compile_opt strictarr
+
+  if (arg_present(config_contents)) then begin
+    config_contents = reform(self.options->_overloadPrint())
+  endif
 
   if (arg_present(date)) then date = self.date
   if (arg_present(pipe_dir)) then pipe_dir = self.pipe_dir

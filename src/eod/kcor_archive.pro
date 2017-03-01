@@ -6,8 +6,11 @@
 ; :Keywords:
 ;   run : in, required, type=object
 ;     `kcor_run` object
+;   reprocess : in, optional, type=boolean
+;     set to indicate a reprocessing; level 0 files are not distributed in a
+;     reprocessing
 ;-
-pro kcor_archive, run=run
+pro kcor_archive, run=run, reprocess=reprocess
   compile_opt strictarr
 
   cd, current=cwd
