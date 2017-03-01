@@ -26,7 +26,7 @@ pro kcor_reprocess, date, config_filename=config_filename
 
   mg_log, 'prepping for reprocessing', name='kcor/reprocess', /info
 
-  ; copy level0 FITS files up a level
+  ; copy level 0 FITS files and t1/t2 logs up a level
   raw_files = file_search(filepath('*_kcor.fts.gz', $
                                    subdir=[date, 'level0'], $
                                    root=run.raw_basedir), $
@@ -37,6 +37,33 @@ pro kcor_reprocess, date, config_filename=config_filename
     file_move, raw_files, filepath(date, root=run.raw_basedir)
   endif else begin
     mg_log, 'no raw files to move', name='kcor/reprocess', /info
+  endelse
+
+  log_files = file_search(filepath('*.log', $
+                                   subdir=[date, 'level0'], $
+                                   root=run.raw_basedir), $
+                          count=n_log_files)
+  if (n_log_files gt 0L) then begin
+    mg_log, 'moving %d t1/t2 log files from level0/ to top-level', n_log_files, $
+            name='kcor/reprocess', /info
+    file_move, log_files, filepath(date, root=run.raw_basedir)
+  endif else begin
+    mg_log, 'no log files to move', name='kcor/reprocess', /info
+  endelse
+
+  ; TODO: remove entire level1 directory
+  ; TODO: remove *kcor* files from archive, movie, fullres, croppedgif, rg dirs
+
+  ; remove level 1 files
+  l1_files = file_search(filepath('*', $
+                                  subdir=[date, 'level1'], $
+                                  root=run.raw_basedir), $
+                         count=n_l1_files)
+  if (n_l1_files gt 0L) then begin
+    mg_log, 'deleting %d level 1 files', n_l1_files, name='kcor/reprocess', /info
+    file_delete, l1_files
+  endif else begin
+    mg_log, 'no level 1 files to delete', name='kcor/reprocess', /info
   endelse
 
   ; clear database for the day
@@ -64,7 +91,7 @@ pro kcor_reprocess, date, config_filename=config_filename
     obj_destroy, db
   endif else begin
     mg_log, 'skipping updating database', name='kcor/reprocess', /info
-  endif
+  endelse
 
   done:
   mg_log, 'done prepping for reprocessing', name='kcor/reprocess', /info
