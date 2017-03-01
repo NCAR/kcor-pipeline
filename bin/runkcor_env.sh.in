@@ -1,6 +1,7 @@
 #!/bin/sh
 
-# This script launches IDL for the realtime pipeline.
+# This script launches IDL in the same environment as the KCor pipeline, but
+# doesn't launch the pipeline code, i.e., kcor_rt, kcor_eod, or kcor_reprocess.
 
 canonicalpath() {
   if [ -d $1 ]; then
@@ -51,4 +52,4 @@ KCOR_SRC_DIR=${PIPE_DIR}/src
 KCOR_PATH=+${KCOR_SRC_DIR}:${SSW_DIR}:${GEN_DIR}:+${LIB_DIR}:"<IDL_DEFAULT>"
 KCOR_DLM_PATH=${KCOR_SRC_DIR}/realtime:${LIB_DIR}/mysql:"<IDL_DEFAULT>"
 
-${IDL} -quiet -IDL_QUIET 1 -IDL_STARTUP "" -IDL_PATH ${KCOR_PATH} -IDL_DLM_PATH ${KCOR_DLM_PATH} -e "kcor_rt, '${DATE}', config_filename='${CONFIG}'"
+${IDL} -quiet -IDL_QUIET 1 -IDL_STARTUP "" -IDL_PATH ${KCOR_PATH} -IDL_DLM_PATH ${KCOR_DLM_PATH}

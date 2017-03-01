@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# This script launches IDL for the pipeline to reprocess a day, both the
+# realtime and end-of-day processing as well as steps to perform before
+# reprocessing.
+
 canonicalpath() {
   if [ -d $1 ]; then
     pushd $1 > /dev/null 2>&1
@@ -37,6 +41,9 @@ else
 fi
 
 IDL=@IDL_EXECUTABLE@
+
+# IDL_DEFAULT will be wrong if IDL_DIR is set
+unset IDL_DIR
 
 # setup IDL paths
 SSW_DIR=${PIPE_DIR}/ssw
