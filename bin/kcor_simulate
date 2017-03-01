@@ -22,7 +22,12 @@ if __name__ == '__main__':
     date_help = '''date to run on'''
     parser.add_argument('date', type=str, help=date_help)
     parser.add_argument('config_flags', type=str, help=config_flags_help)
+    parser.add_argument('--no-eod',
+                        action='store_true',
+                        help='set to not launch end-of-day processing')
     args = parser.parse_args()
+
+    print(args.no_eod)
 
     # read config file to get options
     pipeline_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -52,6 +57,7 @@ if __name__ == '__main__':
     processing_cmd = [os.path.join(pipeline_dir, 'bin', 'kcor_simulate_processing'),
                       '-f',
                       '%s' % frequency,
+                      '--no-eod' if args.no_eod else ''
                       args.date,
                       args.config_flags]
     processing_process = subprocess.Popen(processing_cmd)
