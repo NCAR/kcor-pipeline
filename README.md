@@ -44,20 +44,20 @@ All files with the `cfg` extension in the `config` directory will be copied into
 
 To test the pipeline, use the `kcor_simulate` routine in the `bin` directory of the installation. For example,
 
-    $ kcor-simulate 20161127 latest
+    $ kcor_simulate 20161127 latest
 
 to run the pipeline on the data from 20171127 using the config file with filename where flags is "latest".
 
 
 ## Code for KCor pipeline
 
-## Directories
+### Directories
 
-* bin: scripts
-* config: configuration files
-* gen: non-KCor-specific MLSO IDL routines used in the KCor pipeline
-* lib: 3rd party IDL routines used in KCor pipeline
-* observing: KCor-related observing code
-* resources: data files such as color tables used in KCor pipeline
-* src: KCor pipeline IDL code
-* ssw: SSW IDL routines used in KCor pipeline
+* *bin* for scripts
+* *config* for configuration files
+* *gen* for non-KCor-specific MLSO IDL routines used in the KCor pipeline
+* *lib* for 3rd party IDL routines used in KCor pipeline
+* *observing* for KCor-related observing code
+* *resources* for data files such as color tables used in KCor pipeline
+* *src* for KCor pipeline IDL code
+* *ssw* for SSW IDL routines used in KCor pipeline
