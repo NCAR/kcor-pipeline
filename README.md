@@ -33,9 +33,6 @@ Next, run:
 
 ## Run the KCor pipeline
 
-
-## Code for KCor pipeline
-
 ### Config file
 
 The options of the pipeline are specified via a configuration file. See the example file `kcor.user.machine.flags.cfg` in the `config` directory of the distribution for all the options and their documentation. The filename of the config file must match the pattern given by the example, i.e., replace "user" with your username, "machine" with the name of the machine the pipeline will run on, and "flags" with a memorable name such as "production", "latest", or "geometry-fix".
@@ -51,6 +48,8 @@ To test the pipeline, use the `kcor_simulate` routine in the `bin` directory of 
 
 to run the pipeline on the data from 20171127 using the config file with filename where flags is "latest".
 
+
+## Code for KCor pipeline
 
 ## Directories
 
