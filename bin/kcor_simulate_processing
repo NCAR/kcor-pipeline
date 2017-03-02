@@ -15,7 +15,7 @@ logging.basicConfig(format='%(asctime)s %(message)s',
                     level=logging.DEBUG)
 
 
-def launch_loop(date, config_flags, frequency):
+def launch_loop(date, config_flags, frequency, no_eod):
     logging.info('starting KCor realtime runner...')
     logging.info('config flags  : %s', config_flags)
     logging.info('frequency     : %d minutes', frequency)
@@ -27,9 +27,10 @@ def launch_loop(date, config_flags, frequency):
         realtime_pid = subprocess.Popen(realtime_cmd).pid
         logging.info('launched KCor realtime pipeline with pid %d', realtime_pid)
         time.sleep(EOD_WAIT)
-        eod_pid = subprocess.Popen(eod_cmd).pid
-        logging.info('launched KCor end-of-day pipeline with pid %d', eod_pid)
-        time.sleep(60.0 * frequency - EOD_WAIT)
+        if not no_eod:
+            eod_pid = subprocess.Popen(eod_cmd).pid
+            logging.info('launched KCor end-of-day pipeline with pid %d', eod_pid)
+            time.sleep(60.0 * frequency - EOD_WAIT)
 
 
 if __name__ == '__main__':
@@ -45,9 +46,12 @@ if __name__ == '__main__':
                         type=int,
                         help=frequency_help,
                         default=10)
+    parser.add_argument('--no-eod',
+                        action='store_true',
+                        help='set to not launch end-of-day processing')
     args = parser.parse_args()
 
     try:
-        launch_loop(args.date, args.config_flags, args.frequency)
+        launch_loop(args.date, args.config_flags, args.frequency, args.no_eod)
     except KeyboardInterrupt:
         logging.info('quitting...')
