@@ -2,9 +2,10 @@
 
 ## Requirements
 
-* IDL
+* IDL 8 or later
+* cmake 3.1.3 or later
+* MySQL developer installation
 * python 2.7+ (including 3.x) in order to run the simulators, the production pipeline does not require python
-* MySql developer installation
 
 
 ## Installation
