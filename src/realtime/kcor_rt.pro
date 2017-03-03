@@ -95,7 +95,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     kcor_l1, date, ok_files, /append, run=run
 
     mg_log, 'moving processed files to l0_dir', name='kcor/rt', /info
-    file_move, l0_fits_files, l0_dir
+    file_move, l0_fits_files, l0_dir, /overwrite
 
     cd, l1_dir
 
@@ -129,9 +129,9 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       printf, okfgif_lun, base + '.gif'
       printf, okl1gz_lun, base + '_l1.fts.gz'
 
-      file_copy, base + '_cropped.gif', croppedgif_dir
-      file_copy, base + '.gif', fullres_dir
-      file_copy, base + '_l1.fts.gz', archive_dir
+      file_copy, base + '_cropped.gif', croppedgif_dir, /overwrite
+      file_copy, base + '.gif', fullres_dir, /overwrite
+      file_copy, base + '_l1.fts.gz', archive_dir, /overwrite
     endfor
 
     free_lun, okcgif_lun
@@ -142,7 +142,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     if (~file_test(rg_dir, /directory)) then file_mkdir, rg_dir
 
     rg_files = file_search('*rg*.fts*', count=n_rg_files)
-    if (n_rg_files gt 0L) then file_move, rg_files, archive_dir
+    if (n_rg_files gt 0L) then file_move, rg_files, archive_dir, /overwrite
 
     rg_gifs = file_search('*rg*.gif', count=n_rg_gifs)
 
@@ -165,7 +165,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       mg_log, 'skipping updating remote server with RG images', name='kcor/rt', /info
     endelse
 
-    if (n_rg_gifs gt 0L) then file_move, rg_gifs, rg_dir
+    if (n_rg_gifs gt 0L) then file_move, rg_gifs, rg_dir, /overwrite
 
     if (run.update_database) then begin
       mg_log, 'updating database', name='kcor/rt', /info

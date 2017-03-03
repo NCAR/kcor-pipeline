@@ -63,7 +63,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   t1_log_file = filepath(date + '.kcor.t1.log', root=date_dir)
   if (file_test(t1_log_file, /regular)) then begin
     mg_log, 'copying T1 log to level0/', name='kcor/eod', /info
-    file_copy, t1_log_file, l0_dir
+    file_copy, t1_log_file, l0_dir, /overwrite
   endif else begin
     mg_log, 'T1 log does not exist in %s', date_dir, name='kcor/eod', /info
     goto, done
@@ -72,7 +72,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   t2_log_file = filepath(date + '.kcor.t2.log', root=date_dir)
   if (file_test(t2_log_file, /regular)) then begin
     mg_log, 'copying T2 log to level0/', name='kcor/eod', /info
-    file_copy, t2_log_file, l0_dir
+    file_copy, t2_log_file, l0_dir, /overwrite
   endif else begin
     mg_log, 'T2 log does not exist in %s', date_dir, name='kcor/eod', /warn
   endelse
