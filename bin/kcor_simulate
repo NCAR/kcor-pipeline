@@ -55,9 +55,10 @@ if __name__ == '__main__':
     processing_cmd = [os.path.join(pipeline_dir, 'bin', 'kcor_simulate_processing'),
                       '-f',
                       '%s' % frequency,
-                      '--no-eod' if args.no_eod else '',
                       args.date,
                       args.config_flags]
+    if args.no_eod:
+        processing_cmd.insert(2, '--no-eod')
     processing_process = subprocess.Popen(processing_cmd)
 
     # launch incoming data simulator
