@@ -18,6 +18,9 @@ pro kcor_db_clearday, db, date, db_name
   month   = strmid(date, 4, 2)   ; mm
   day     = strmid(date, 6, 2)   ; dd
 
+  ; TODO: actually need to clear all rows from the "observing day", not just
+  ; those on the same UT day
+
   db->execute, 'DELETE FROM %s WHERE date_obs like ''%s''', $
                db_name, string(year, month, day, format='(%"%s-%s-%s%%")'), $
                status=status, $

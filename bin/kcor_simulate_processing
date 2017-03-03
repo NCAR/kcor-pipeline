@@ -2,6 +2,7 @@
 
 import argparse
 import logging
+import os
 import subprocess
 import time
 
@@ -20,14 +21,22 @@ def launch_loop(date, config_flags, frequency, no_eod):
     logging.info('config flags  : %s', config_flags)
     logging.info('frequency     : %d minutes', frequency)
 
-    realtime_cmd = ['runkcor_rt.sh', date, config_flags]
-    eod_cmd = ['runkcor_eod.sh', date, config_flags]
+    pipeline_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+
+    realtime_cmd = [os.path.join(pipeline_dir, 'bin', 'runkcor_rt.sh'),
+                    date,
+                    config_flags]
+    eod_cmd = [os.path.join(pipeline_dir, 'bin', 'runkcor_eod.sh'),
+               date,
+               config_flags]
 
     while True:
+        logging.info(' '.join(realtime_cmd))
         realtime_pid = subprocess.Popen(realtime_cmd).pid
         logging.info('launched KCor realtime pipeline with pid %d', realtime_pid)
         time.sleep(EOD_WAIT)
         if not no_eod:
+            logging.info(' '.join(eod_cmd))
             eod_pid = subprocess.Popen(eod_cmd).pid
             logging.info('launched KCor end-of-day pipeline with pid %d', eod_pid)
             time.sleep(60.0 * frequency - EOD_WAIT)
