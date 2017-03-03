@@ -34,7 +34,7 @@ pro kcor_reprocess, date, config_filename=config_filename
   if (n_raw_files gt 0L) then begin
     mg_log, 'moving %d raw files from level0/ to top-level', n_raw_files, $
             name='kcor/reprocess', /info
-    file_move, raw_files, filepath(date, root=run.raw_basedir)
+    file_move, raw_files, filepath(date, root=run.raw_basedir), /overwrite
   endif else begin
     mg_log, 'no raw files to move', name='kcor/reprocess', /info
   endelse
