@@ -18,7 +18,7 @@ pro kcor_reprocess, date, config_filename=config_filename
   catch, error
   if (error ne 0L) then begin
     catch, /cancel
-    mg_log, /last_error, name='kcor/rt', /critical
+    mg_log, /last_error, name='kcor/reprocess', /critical
     goto, done
   endif
 
@@ -46,7 +46,7 @@ pro kcor_reprocess, date, config_filename=config_filename
   if (n_log_files gt 0L) then begin
     mg_log, 'moving %d t1/t2 log files from level0/ to top-level', n_log_files, $
             name='kcor/reprocess', /info
-    file_move, log_files, filepath(date, root=run.raw_basedir)
+    file_move, log_files, filepath(date, root=run.raw_basedir), /overwrite
   endif else begin
     mg_log, 'no log files to move', name='kcor/reprocess', /info
   endelse
