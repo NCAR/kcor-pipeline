@@ -36,7 +36,8 @@ pro kcor_catalog_file, filename, run=run
     openw, science_lun, filepath('science_files.txt', root=process_dir), $
            /append, /get_lun
     printf, science_lun, $
-            filename, exposure, datatype, darkshut, diffuser, calpol, calpang, $
+            file_basename(filename), exposure, datatype, darkshut, diffuser, $
+            calpol, calpang, $
             format='(a, 3x, f10.4, 2x, "ms", 2x, "Data: ", a, 3x, "Dark: ", a, 3x, "Diff: ", a, 3x, "Cal: ", a, 3x, "Ang: ", f6.1)'
 
     ; print a measure of every image in the cube
@@ -57,7 +58,8 @@ pro kcor_catalog_file, filename, run=run
      openw, calibration_lun, filepath('calibration_files.txt', root=process_dir), $
             /append, /get_lun
      printf, calibration_lun, $
-             file_basename(filename), exposure, datatype, darkshut, diffuser, calpol, calpang, $
+             file_basename(filename), exposure, datatype, darkshut, diffuser, $
+             calpol, calpang, $
              format='(a, 3x, f10.4, 2x, "ms", 2x, "Data: ", a, 3x, "Dark: ", a, 3x, "Diff: ", a, 3x, "Cal: ", a, 3x, "Ang: ", f6.1, "  means: ", $)'
 
      ; print a measure of every image in the cube
@@ -77,7 +79,8 @@ pro kcor_catalog_file, filename, run=run
     openw, engineering_lun, filepath('engineering_files.txt', root=process_dir), $
            /append, /get_lun
     printf, engineering_lun, $
-            filename, exposure, datatype, darkshut, diffuser, calpol, calpang, $
+            file_basename(filename), exposure, datatype, darkshut, diffuser, $
+            calpol, calpang, $
             format='(a, 3x, f10.4, 2x, "ms", 2x, "Data: ", a, 3x, "Dark: ", a, 3x, "Diff: ", a, 3x, "Cal: ", a, 3x, "Ang: ", f6.1)'
     free_lun, engineering_lun
   endif

@@ -193,7 +193,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   compile_opt strictarr
 
   if (arg_present(config_contents)) then begin
-    config_contents = reform(self.options->_overloadPrint())
+    config_contents = reform(self.options->_toString(/substitute))
   endif
 
   if (arg_present(date)) then date = self.date

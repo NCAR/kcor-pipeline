@@ -462,7 +462,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
     img  = readfits(l0_file, header, /silent)
     img  = float(img)
     img0 = reform(img[*, *, 0, 0])   ; camera 0 [reflected]
-    img1 = reform(img[*, *, 0, 1])   ; camera 1 [transmitted] 
+    img1 = reform(img[*, *, 0, 1])   ; camera 1 [transmitted]
     type = ''
     type = fxpar(header, 'DATATYPE')
 
