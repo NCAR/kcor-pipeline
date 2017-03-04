@@ -46,8 +46,10 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
   base_dir = run.raw_basedir
   date_dir = filepath(date, root=base_dir)
-  p_dir    = filepath('p', root=date_dir)
-  l0_dir   = filepath('level0', root=date_dir)
+
+  ; TODO: change p/ directory to engineering or plots
+  plots_dir = filepath('p', root=date_dir)
+  l0_dir    = filepath('level0', root=date_dir)
 
   q_cal = 'cal'
   q_eng = 'eng'
@@ -59,38 +61,28 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
   nsci = 0
   ndev = 0
 
-  ;-----------------------------------------
-  ; Check for existence of Level0 directory.
-  ;-----------------------------------------
-
+  ; check for existence of Level0 directory
   if (~file_test (l0_dir, /directory)) then begin
     mg_log, '%s does not exist, no files to process', l0_dir, $
             name='kcor/eod', /warn
     goto, done
   endif
 
-  ;-----------------------------------
-  ; Create p sub-directory, if needed.
-  ;-----------------------------------
+  ; create p sub-directory, if needed
+  if (~file_test (plots_dir, /directory)) then file_mkdir, plots_dir
 
-  if (~file_test (p_dir, /directory)) then file_mkdir, p_dir
-
-  ;------------------------
-  ; Move to 'L0' directory.
-  ;------------------------
+  ; move to 'L0' directory
   cd, current=start_dir   ; save current directory.
   cd, l0_dir              ; move to date directory.
 
   doview = 0
 
-  mg_log, 'date: %s', date, name='kcor/eod', /debug
-  mg_log, 'base_dir:     %s', base_dir, name='kcor/eod', /debug
-  mg_log, 'l0_dir:       %s', l0_dir, name='kcor/eod', /debug
-  mg_log, 'p_dir:        %s', p_dir, name='kcor/eod', /debug
+  mg_log, 'date      : %s', date, name='kcor/eod', /debug
+  mg_log, 'base_dir  : %s', base_dir, name='kcor/eod', /debug
+  mg_log, 'l0_dir    : %s', l0_dir, name='kcor/eod', /debug
+  mg_log, 'plots dir : %s', plots_dir, name='kcor/eod', /debug
 
-  ;----------------------------------------------------------------------------
-  ; Set up graphics window & color table.
-  ;----------------------------------------------------------------------------
+  ; set up graphics window & color table
 
   set_plot, 'Z'
   ; window, 0, xs=1024, ys=1024, retain=2
@@ -106,10 +98,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
   lct, filepath('bwy5.lut', root=run.resources_dir)   ; color table
   tvlct, rlut, glut, blut, /get
 
-  ;----------------------------------------------------------------------------
-  ; Define color levels for annotation.
-  ;----------------------------------------------------------------------------
-
+  ; define color levels for annotation
   yellow = 250 
   grey   = 251
   blue   = 252
@@ -122,18 +111,13 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
   sci = 0
   dev = 0
 
-  ;------------------------------------------
-  ; Determine the number of files to process.
-  ;------------------------------------------
-
+  ; determine the number of files to process
   nimg = n_elements(list)
   mg_log, 'nimg: %s', nimg, name='kcor/eod', /debug
   mg_log, 'file name                datatype    exp  cov drk  dif pol angle  qual', $
           name='kcor/eod', /debug
 
-  ;---------------------------------------
-  ; Declare storage for occulting centers.
-  ;---------------------------------------
+  ; declare storage for occulting centers
 
   hours  = fltarr(nimg)
 
@@ -145,10 +129,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
   fycen1 = fltarr(nimg)
   frocc1 = fltarr(nimg)
 
-  ;----------------------------------------------------------------------------
-  ; Image file loop.
-  ;----------------------------------------------------------------------------
-
+  ; image file loop
   for i = 0L, n_elements(list) - 1L do begin
     l0_file = list[i]
     img = readfits (l0_file, hdu, /silent)   ; read fits image & header
@@ -171,9 +152,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     drks = 0
     cov  = 0
 
-    ;---------------------------------------------
-    ; Extract keyword parameters from FITS header.
-    ;---------------------------------------------
+    ; extract keyword parameters from FITS header
 
     diffuser = ''
     calpol   = ''
@@ -209,9 +188,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     if (darkshut eq 'in')  then dshutter = 'shut'
     if (darkshut eq 'out') then dshutter = 'open'
 
-    ;-----------------------------------
-    ; Determine occulter size in pixels.
-    ;-----------------------------------
+    ; determine occulter size in pixels
     occulter = strmid(occltrid, 3, 5)   ; extract 5 characters from occltrid
     if (occulter eq '991.6') then occulter =  991.6
     if (occulter eq '1006.') then occulter = 1006.9
@@ -220,9 +197,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     platescale = run.plate_scale           ; arsec/pixel
     radius_guess = occulter / platescale   ; occulter size [pixels].
 
-    ;--------------------------------------
-    ; Get FITS image size from image array.
-    ;--------------------------------------
+    ; get FITS image size from image array
 
     n1 = 1
     n2 = 1
@@ -240,19 +215,14 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     for j = 1, ndim do nelem *= imgsize[j]   ; compute # elements in array.
     if (ndim eq 4) then nelem = n1 * n2 * n3 * n4
 
-    ;---------------------------------
-    ; Define array center coordinates.
-    ;---------------------------------
+    ; define array center coordinates
 
     xdim = naxis1
     ydim = naxis2
     axcen = (xdim / 2.0) - 0.5   ; x-axis array center.
     aycen = (ydim / 2.0) - 0.5   ; y-axis array center.
 
-    ;----------------------------------------------------------
-    ; Extract date items from FITS header parameter (DATE-OBS).
-    ;----------------------------------------------------------
-
+    ; extract date items from FITS header parameter (DATE-OBS)
     year   = strmid(date_obs,  0, 4)
     month  = strmid(date_obs,  5, 2)
     day    = strmid(date_obs,  8, 2)
@@ -268,72 +238,51 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
     hours[i] = obs_hour + minute / 60.0 + second / 3600.0
 
-    ;------------------------------------------------------------
-    ; Verify that image size agrees with FITS header information.
-    ;------------------------------------------------------------
+    ; verify that image size agrees with FITS header information
     if (nelem ne np) then begin
       mg_log, 'nelem != np (nelem: %d, np: %d)', nelem, np, $
               name='kcor/eod', /warn
       continue
     endif
 
-    ;------------------------------
-    ; Verify that image is Level 0.
-    ;------------------------------
-
+    ; verify that image is Level 0
     if (level ne 'L0') then begin
       mg_log, 'not level 0 data', name='kcor/eod', /warn
       continue
     endif
 
-    ;----------------
-    ; Check datatype.
-    ;----------------
+    ; check datatype
     if (datatype eq 'calibration') then  cal += 1
     if (datatype eq 'engineering') then  eng += 1
     if (datatype eq 'science')     then  sci += 1
 
-    ;---------------------------
-    ; Check mechanism positions.
-    ;---------------------------
+    ; check mechanism positions
 
     ; check diffuser position
-
     if (diffuser ne 'out') then begin
       dev  += 1
       diff += 1
     endif
 
-    ;-----------------------
-    ; Check calpol position. 
-    ;-----------------------
-
+    ; check calpol position
     if (calpol ne 'out') then begin
       dev  += 1
       calp += 1
     endif
 
-    ;-----------------------------
-    ; Check dark shutter position.
-    ;-----------------------------
-
+    ; check dark shutter position
     if (darkshut ne 'out') then begin
       dev  += 1
       drks += 1
     endif
 
-    ;----------------------
-    ; Check cover position.
-    ;----------------------
-
+    ; check cover position
     if (cover ne 'out') then begin
       dev += 1
       cov += 1
     endif
 
-    ;------------------
-    ; Find disc center.
-    ;------------------
+    ; find disc center
 
     rocc0_pix = 0.0
     rocc1_pix = 0.0
@@ -361,9 +310,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     mg_log, 'xcen1, ycen1, rocc1: %0.2f, %0.2f, %0.2f', xcen0, ycen0, rocc0, $
             name='kcor/eod', /debug
 
-    ;-------------------------
-    ; Determine type of image.
-    ;-------------------------
+    ; determine type of image
 
     fitsloc  = strpos(l0_file, '.fts')
     qual     = 'unk'
@@ -394,9 +341,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     calpang_str  = string(format='(f7.2)', calpang)
     qual_str     = string(format='(a4)', qual)
 
-    ;---------------------
-    ; Print image summary.
-    ;---------------------
+    ; print image summary
     mg_log, '%s%s%s%s%s%s%s%s%s', $
             file_basename(img_file), datatype_str, exptime_str, cover_str, dshutter_str, $
             diffuser_str, calpol_str, calpang_str, qual_str, $
@@ -405,13 +350,11 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
   num_img = i + 1
 
-  cd, p_dir
+  cd, plots_dir
 
   mg_log, 'nimg: %d', num_img, name='kcor/eod', /debug
 
-  ;----------------------------
-  ; Plot occulting disc center.
-  ;----------------------------
+  ; plot occulting disc center
 
   set_plot, 'Z'
   device, set_resolution=[772,900], decomposed=0, set_colors=256
@@ -444,9 +387,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
   save = tvrd()
   write_gif, ocen_gif, save
 
-  ;-------------------------------
-  ; Plot occulter radius [pixels].
-  ;-------------------------------
+  ; plot occulter radius [pixels]
 
   !p.multi = [0, 1, 2]
 

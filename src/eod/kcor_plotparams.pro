@@ -35,21 +35,17 @@ pro kcor_plotparams, date, list=list, run=run
     return
   endif
 
-  ;----------------------------------------------------------------------------
-  ; Establish directory paths.
-  ;----------------------------------------------------------------------------
+  ; establish directory paths
   l0_base = run.raw_basedir
   l0_dir  = filepath('level0', subdir=date, root=l0_base)
-  p_dir   = filepath('p', subdir=date, root=l0_base)
 
-  ;----------------------------------------------------------------------------
-  ; Create sub-directory for plots.
-  ;----------------------------------------------------------------------------
-  file_mkdir, p_dir
+  ; TODO: change p/ directory to engineering or plots
+  plots_dir   = filepath('p', subdir=date, root=l0_base)
 
-  ;----------------------------------------------------------------------------
-  ; Move to L0 kcor directory.
-  ;----------------------------------------------------------------------------
+  ; create sub-directory for plots
+  file_mkdir, plots_dir
+
+  ; move to L0 kcor directory
   cd, current=start_dir   ; save current directory.
   cd, l0_dir              ; move to raw (l0) kcor directory.
 
@@ -57,27 +53,21 @@ pro kcor_plotparams, date, list=list, run=run
 
   ; establish list of files to process
 
-  mg_log, 'start_dir: %s', start_dir, name='kcor/eod', /debug
-  mg_log, 'l0_dir:    %s', l0_dir, name='kcor/eod', /debug
-  mg_log, 'p_dir:     %s', p_dir, name='kcor/eod', /debug
+  mg_log, 'start dir : %s', start_dir, name='kcor/eod', /debug
+  mg_log, 'L0 dir    : %s', l0_dir, name='kcor/eod', /debug
+  mg_log, 'plots dir : %s', plots_dir, name='kcor/eod', /debug
 
-  ;----------------------------------------------------------------------------
-  ; Set up graphics window & color table.
-  ;----------------------------------------------------------------------------
+  ; set up graphics window & color table
   set_plot, 'Z'
   device, set_resolution=[772, 1000], decomposed=0, set_colors=256, $
           z_buffering=0
   !p.multi = [0, 1, 3]
 
-  ;----------------------------------------------------------------------------
-  ; Determine the number of files to process.
-  ;----------------------------------------------------------------------------
+  ; determine the number of files to process
   nimg = n_elements(list)
   mg_log, 'nimg: %d', nimg, name='kcor/eod', /debug
 
-  ;----------------------------------------------------------------------------
-  ; Declare storage for plot arrays.
-  ;----------------------------------------------------------------------------
+  ; declare storage for plot arrays
 
   mod_temp = fltarr(nimg)
   sgs_dimv = fltarr(nimg)
@@ -88,9 +78,7 @@ pro kcor_plotparams, date, list=list, run=run
   rcam_focus = fltarr(nimg)
   o1_focus   = fltarr(nimg)
 
-  ;----------------------------------------------------------------------------
-  ; Image file loop.
-  ;----------------------------------------------------------------------------
+  ; image file loop
   for i = 0L, n_elements(list) - 1L do begin
     l0_file = list[i]
 
@@ -160,15 +148,11 @@ pro kcor_plotparams, date, list=list, run=run
             tcamfocs, rcamfocs, o1focs, $
             name='kcor/eod', /debug
 
-    ;-------------------------------------------------------------------------
-    ; Define array dimensions.
-    ;-------------------------------------------------------------------------
+    ; define array dimensions
     xdim = naxis1
     ydim = naxis2
 
-    ;-------------------------------------------------------------------------
-    ; Extract date items from FITS header parameter (DATE-OBS).
-    ;-------------------------------------------------------------------------
+    ; extract date items from FITS header parameter (DATE-OBS)
     year   = strmid(date_obs, 0, 4)
     month  = strmid(date_obs, 5, 2)
     day    = strmid(date_obs, 8, 2)
@@ -194,9 +178,7 @@ pro kcor_plotparams, date, list=list, run=run
 
     hours[i] = obs_hour + minute / 60.0 + second / 3600.0
 
-    ;-------------------------------------------------------------------------
-    ; Verify that image is Level 0.
-    ;-------------------------------------------------------------------------
+    ; verify that image is Level 0
     if (level ne 'L0')  then begin
       mg_log, 'not level 0 data', name='kcor/eod', /warn
       continue
@@ -204,12 +186,12 @@ pro kcor_plotparams, date, list=list, run=run
   endfor
 
   ; TODO: these files aren't produced?
-  modgif  = filepath(date + '_list_mtmp.gif', root=p_dir)
-  dimvgif = filepath(date + '_list_dimv.gif', root=p_dir)
-  scingif = filepath(date + '_list_scin.gif', root=p_dir)
+  modgif  = filepath(date + '_list_mtmp.gif', root=plots_dir)
+  dimvgif = filepath(date + '_list_dimv.gif', root=plots_dir)
+  scingif = filepath(date + '_list_scin.gif', root=plots_dir)
 
-  enggif  = filepath(date + '_list_eng.gif', root=p_dir)
-  focgif  = filepath(date + '_list_foc.gif', root=p_dir)
+  enggif  = filepath(date + '_list_eng.gif', root=plots_dir)
+  focgif  = filepath(date + '_list_foc.gif', root=plots_dir)
 
   mg_log, 'enggif: %s', enggif, name='kcor/eod', /debug
   mg_log, 'focgif: %s', focgif, name='kcor/eod', /debug
