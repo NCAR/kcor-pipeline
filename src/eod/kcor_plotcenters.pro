@@ -356,9 +356,9 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     fycen1[i] = ycen1
     frocc1[i] = rocc1
 
-    mg_log, 'xcen0, ycen0, rocc0: %f, %f, %f', xcen0, ycen0, rocc0, $
+    mg_log, 'xcen0, ycen0, rocc0: %0.2f, %0.2f, %0.2f', xcen0, ycen0, rocc0, $
             name='kcor/eod', /debug
-    mg_log, 'xcen1, ycen1, rocc1: %f, %f, %f', xcen0, ycen0, rocc0, $
+    mg_log, 'xcen1, ycen1, rocc1: %0.2f, %0.2f, %0.2f', xcen0, ycen0, rocc0, $
             name='kcor/eod', /debug
 
     ;-------------------------
