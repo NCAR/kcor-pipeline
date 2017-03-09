@@ -26,6 +26,26 @@ pro kcor_reprocess, date, config_filename=config_filename
 
   mg_log, 'prepping for reprocessing', name='kcor/reprocess', /info
 
+  ; zip any unzipped raw files
+  unzipped_raw_fits_glob = filepath('*_kcor.fts', $
+                                    subdir=[date, 'level0'], $
+                                    root=run.raw_basedir)
+  unzipped_raw_files = file_search(unzipped_raw_fits_glob, $
+                                   count=n_unzipped_raw_files)
+  if (n_unzipped_raw_files gt 0L) then begin
+    mg_log, 'unzipping %d L0 FITS files', n_unzipped_raw_files, $
+            name='kcor/reprocess', /info
+    gzip_cmd = string(run.gzip, unzipped_raw_fits_glob, format='(%"%s %s")')
+    spawn, gzip_cmd, result, error_result, exit_status=status
+    if (status ne 0L) then begin
+      mg_log, 'problem zipping files with command: %s', gzip_cmd, $
+                name='kcor/reprocess', /error
+      mg_log, '%s', error_result, name='kcor/reprocess', /error
+    endif
+  endif else begin
+    mg_log, 'no L0 FITS files to zip', name='kcor/reprocess', /info
+  endelse
+
   ; copy level 0 FITS files and t1/t2 logs up a level
   raw_files = file_search(filepath('*_kcor.fts.gz', $
                                    subdir=[date, 'level0'], $
