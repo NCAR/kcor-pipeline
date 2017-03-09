@@ -423,7 +423,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
   gain_shift   = dblarr(xsize, ysize, 2)
 
   set_plot, 'Z'
-  doplot = 1   ; flag to do diagnostic plots & images
+  doplot = 0   ; flag to do diagnostic plots & images
 
   ;set_plot, 'X'
   ;device, set_resolution=[768, 768], decomposed=0, set_colors=256, $
@@ -843,8 +843,6 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
 
     intensity = cal_data_combined[*, *, 0]
 
-    writefits,'qmk4.fts',qmk4
-    writefits,'umk4.fts',umk4
 
     if (doplot eq 1) then begin
       tv, bytscl(umk4, -0.5, 0.5)
@@ -915,6 +913,9 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
              + cal_data_combined_center[*, *, 2] * sin(2.0 * theta1 )
 
       intensity = cal_data_combined_center[*, *, 0]
+
+      writefits,'qmk4.fts',qmk4
+      writefits,'umk4.fts',umk4
 
       if (doplot eq 1) then begin
         tv, bytscl(umk4, -0.5, 0.5)
@@ -1044,7 +1045,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
       mini = -0.15
       maxi =  0.15
 
-      skyplot = 1
+      skyplot = 0
       if (skyplot eq 1) then begin
         loadct, 39
         plot,  degrees  *!radeg,  angle_ave_u, thick=2, title='U', ystyle=1
