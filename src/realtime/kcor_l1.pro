@@ -914,8 +914,11 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
 
       intensity = cal_data_combined_center[*, *, 0]
 
-      writefits,'qmk4.fts',qmk4
-      writefits,'umk4.fts',umk4
+      cfts_file='' 
+      cfts_file = strmid(l0_file, 0, 20) + '_qmk4.fts'
+      writefits,cfts_file,qmk4
+      cfts_file = strmid(l0_file, 0, 20) + '_umk4.fts'
+      writefits,cfts_file,umk4
 
       if (doplot eq 1) then begin
         tv, bytscl(umk4, -0.5, 0.5)
@@ -1105,6 +1108,12 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
 
     qmk4_new = qmk4 - factor * sky_polar_q1 * intensity
     umk4_new = umk4 - factor * sky_polar_u1 * intensity
+
+      cfts_file='' 
+      cfts_file = strmid(l0_file, 0, 20) + '_qmk4_skypolcor.fts'
+      writefits,cfts_file,qmk4_new
+      cfts_file = strmid(l0_file, 0, 20) + '_umk4_skypolcor.fts'
+      writefits,cfts_file,umk4_new
 
     if (doplot eq 1) then begin
       tv, bytscl(qmk4_new, -1, 1)
