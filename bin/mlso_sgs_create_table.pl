@@ -85,6 +85,7 @@ $command = "CREATE TABLE mlso_sgs_test
   (
   sgs_id    INT (10) AUTO_INCREMENT PRIMARY KEY,
   date_obs  DATETIME NOT NULL,
+  source	CHAR (1),
   sgsdimv   FLOAT (7, 4),
   sgsdims   FLOAT (8, 5),
   sgssumv   FLOAT (7, 4),
