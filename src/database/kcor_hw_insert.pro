@@ -9,15 +9,16 @@
 ; :Params:
 ;   date : in, required, type=string
 ;     date in the form 'YYYYMMDD'
+;	filelist: in, required, type=array of strings
 ;
 ; :Keywords:
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;
 ; :Examples:
-;   For example::
-;
-;     kcor_hw_insert, '20150324', 'okligz.ls'
+;	  date = '20170214'
+;     filelist = ['20170214_190402_kcor.fts.gz','20170214_190417_kcor.fts.gz','20170214_190548_kcor.fts.gz','20170214_190604_kcor.fts','20170214_190619_kcor.fts']
+;     kcor_hw_insert, date, filelist;
 ;
 ; :Author: 
 ;   Andrew Stanger
@@ -27,145 +28,130 @@
 ;   11 Sep 2015 IDL procedure created.
 ;               Use /hao/mlsodata1/Data/KCor/raw/yyyymmdd for L1 fits files.
 ;   15 Sep 2015 Use /hao/acos/year/month/day directory    for L1 fits files.
+;   15 Mar 2017 Edits by D Kolinski to align inserts with kcor_hw db table and to
+;                 check for changes in field values compared to previous database entries to
+;                 determine whether a new entry is needed.
 ;-
-pro kcor_hw_insert, date, run=run
-  compile_opt strictarr
-  on_error, 2
+pro kcor_hw_insert, date, fits_list, run=run
+compile_opt strictarr
+on_error, 2
 
-  np = n_params() 
-  if (np ne 1) then begin
-    mg_log, 'missing date parameter', name='kcor/dbinsert', /error
-    return
-  endif
+np = n_params() 
+if (np ne 2) then begin
+	print, 'missing date or filelist parameters'
+	mg_log, 'missing date or filelist parameter', name='kcor/dbinsert', /error
+	return
+endif
 
-  ;--------------------------
-  ; Connect to MLSO database.
-  ;--------------------------
+;--------------------------
+; Connect to MLSO database.
+;--------------------------
 
-  db = mgdbmysql()
-  db->connect, config_filename=run.database_config_filename, $
-               config_section=run.database_config_section
+; Note: The connect procedure accesses DB connection information in the file
+;       .mysqldb. The "config_section" parameter specifies
+;       which group of data to use.
 
-  db->getProperty, host_name=host
-  mg_log, 'connected to %s...', host, name='kcor/dbinsert', /info
+db = mgdbmysql()
+db->connect, config_filename=run.database_config_filename, $
+		   config_section=run.database_config_section
 
-  db->setProperty, database='MLSO'
+db->getProperty, host_name=host
+mg_log, 'connected to %s...', host, name='kcor/dbinsert', /info
 
-  ;----------------------------------
-  ; Print DB tables in MLSO database.
-  ;----------------------------------
+db->setProperty, database='MLSO'
 
-  ;print, db, format='(A, /, 4(A-20))'
+;-----------------------
+; Directory definitions.
+;-----------------------
 
-  ;-------------------------------------------------------------------------------
-  ; Delete all pre-existing rows with date = designated date to be processed.
-  ;-------------------------------------------------------------------------------
+year    = strmid(date, 0, 4)	; yyyy
+month   = strmid(date, 4, 2)	; mm
+day     = strmid(date, 6, 2)	; dd
 
-  year    = strmid (date, 0, 4)                      ; yyyy
-  month   = strmid (date, 4, 2)                      ; mm
-  day     = strmid (date, 6, 2)                      ; dd
-  pdate_dash = year + '-' + month + '-' + day + '%'  ; 'yyyy-mm-dd%'
+;TODO: Change to proper processing directory
+fts_dir = filepath('', subdir=[year, month, day], root=run.archive_basedir)
 
-  db->execute, 'DELETE FROM kcor_hw WHERE date like ''%s''', pdate_dash, $
-               status=status, error_message=error_message, sql_statement=sql_cmd
-  mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /info
-  mg_log, 'status: %d, error message: %s', status, error_message, $
-          name='kcor/dbinsert', /info
+;-----------------
+; Move to fts_dir.
+;-----------------
 
-  ;-----------------------
-  ; Directory definitions.
-  ;-----------------------
+cd, current=start_dir
+cd, fts_dir
 
-  fts_dir = filepath('', subdir=[year, month, day], root=run.archive_dir)
+;------------------------------------------------
+; Loop through fits list
+;------------------------------------------------
+nfiles = n_elements(fits_list)
 
-  ;-----------------
-  ; Move to fts_dir.
-  ;-----------------
+if (nfiles eq 0) then begin
+	print, 'no images in fits_list'
+	mg_log, 'no images in list file', name='kcor/dbinsert', /info
+	goto, done
+endif
 
-  cd, current=start_dir
-  cd, fts_dir
+i = -1
+fts_file = 'img.fts'
+while (++i lt nfiles) do begin
+	fts_file = fits_list [i]
+	finfo = file_info(fts_file)          ; Get file information.
 
-  ;------------------------------------------------
-  ; Create list of fits files in current directory.
-  ;------------------------------------------------
+	; Extract desired items from header.
+	
+	hdu   = headfits(fts_file, /silent)  ; Read FITS header.
 
-  fits_list = file_search('*kcor_l1.fts*', count=nfiles)
+	date_obs	= sxpar(hdu, 'DATE-OBS', count=qdate_obs)
+	diffsrid	= sxpar(hdu, 'DIFFSRID', count=qdiffsrid)
+	rcamid		= sxpar(hdu, 'RCAMID',   count=qrcamid)
+	tcamid		= sxpar(hdu, 'TCAMID',   count=qtcamid)
+	rcamlut		= sxpar(hdu, 'RCAMLUT',  count=qrcamlut)
+	tcamlut		= sxpar(hdu, 'TCAMLUT',  count=qtcamlut)
+	modltrid	= strtrim(sxpar(hdu, 'MODLTRID', count=qmodltrid), 2)
+	o1id		= strtrim(sxpar(hdu, 'O1ID',     count=qo1id), 2)
+	occltrid	= strtrim(sxpar(hdu, 'OCCLTRID', count=qoccltrid) ,2)
+	filterid	= strtrim(sxpar(hdu, 'FILTERID', count=qfilterid), 2)
+	calpolid	= sxpar(hdu, 'CALPOLID', count=qcalpolid)
+	
+	; TODO: Get value of bopal from Level 2 (1.5?) header?
+bopal = 0.0   ; TEMP for testing
 
-  if (nfiles eq 0) then begin
-    mg_log, 'no images in list file', name='kcor/dbinsert', /info
-    goto, done
-  endif
 
-  i       = -1
-  fts_file = 'img.fts'
+	; TODO: Test for changes from previous db entry
+	;---- Check values against previous db entry (assuming processing in temporal order)
+	change = 0
+	
+	; Set change to 1 if difference from db entry
+	
+	
+	if (change eq 1) then begin
 
-  while (++i lt nfiles) do begin
-    fts_file = fits_list [i]
+		;--- DB insert command.
 
-    finfo = file_info(fts_file)          ; Get file information.
+		;TODO: Remove _test from table names
+		db->execute, 'INSERT INTO kcor_hw_test (date, diffsrid, bopal, rcamid, tcamid, rcamlut, tcamlut, modltrid, o1id, occltrid, filterid, calpolid) VALUES (''%s'', ''%s'', %f, ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'') ',  $
+				   date_obs, diffsrid, bopal, rcamid, tcamid, rcamlut, tcamlut, modltrid, $
+				   o1id, occltrid, filterid, calpolid, $
+				   status=status, error_message=error_message, sql_statement=sql_cmd
 
-    ; Read FITS header.
+		mg_log, '%d, error message: %s', status, error_message, $
+				name='kcor/dbinsert', /debug
+		mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /debug	
+	endif
+endwhile
 
-    hdu   = headfits(fts_file, /silent)  ; Read FITS header.
+done:
+obj_destroy, db
 
-    ; Extract desired items from header.
+mg_log, '*** end of kcor_hw_insert ***', name='kcor/dbinsert', /info
+end
 
-    date_obs   = sxpar(hdu, 'DATE-OBS', count=qdate_obs)
-    diffsrid   = sxpar(hdu, 'DIFFSRID', count=qdiffsrid)
-    rcamid     = sxpar(hdu, 'RCAMID',   count=qrcamid)
-    tcamid     = sxpar(hdu, 'TCAMID',   count=qtcamid)
-    rcamlut    = sxpar(hdu, 'RCAMLUT',  count=qrcamlut)
-    tcamlut    = sxpar(hdu, 'TCAMLUT',  count=qtcamlut)
-    modltrid   = sxpar(hdu, 'MODLTRID', count=qmodltrid)
-    o1id       = sxpar(hdu, 'O1ID',     count=qo1id)
-    occltrid   = sxpar(hdu, 'OCCLTRID', count=qoccltrid)
-    filterid   = sxpar(hdu, 'FILTERID', count=qfilterid)
-    sgsloop    = sxpar(hdu, 'SGSLOOP',  count=qsgsloop)
+; main-level example program
 
-    modltrid   = strtrim(modltrid, 2)	; Remove leading/trailing blanks
-    o1id       = strtrim(o1id,     2)	; Remove leading/trailing blanks
-    occltrid   = strtrim(occltrid, 2)	; Remove leading/trailing blanks
-    filterid   = strtrim(filterid, 2)	; Remove leading/trailing blanks
+date = '20170204'
+filelist = ['20170204_205610_kcor_l1_nrgf.fts.gz','20170204_205625_kcor_l1.fts.gz','20170204_205640_kcor_l1.fts.gz','20170204_205656_kcor_l1.fts.gz','20170204_205711_kcor_l1.fts.gz']
+run = kcor_run(date, $
+		   config_filename=filepath('kcor.kolinski.mahi.latest.cfg', $
+									subdir=['..', '..', 'config'], $
+									root=mg_src_root()))
+kcor_hw_insert, date, filelist, run=run
 
-    ; Construct variables for database table fields.
-
-    year  = strmid(date_obs, 0, 4)	; yyyy
-    month = strmid(date_obs, 5, 2)	; mm
-    day   = strmid(date_obs, 8, 2)	; dd
-
-    ; Determine DOY.
-
-  mday      = [0,31,59,90,120,151,181,212,243,273,304,334]
-  mday_leap = [0,31,60,91,121,152,182,213,244,274,305,335] ;leap year 
-
-  if ((fix(year) mod 4) eq 0) then begin
-  doy = mday_leap[fix(month) - 1] + fix(day)
-  endif else begin
-    doy = mday[fix(month) - 1] + fix(day)
-  endelse
-  doy_str = string(doy, format='(%"%3d")')
-
-  date_dash = strmid(date_obs, 0, 10)	 ; yyyy-mm-dd
-  time_obs  = strmid(date_obs, 11, 8)    ; hh:mm:ss
-  date_hw   = date_dash + ' ' + time_obs ; yyyy-mm-dd hh:mm:ss
-  fits_file = strmid (fts_file, 0, 27)   ; eliminate ".gz" from file name.
-
-  ;--- DB insert command.
-
-  db->execute, 'INSERT INTO kcor_hw (date, diffsrid, rcamid, tcamid, rcamlut, tcamlut, modltrid, o1id, occltrid, filterid, sgsloop) VALUES (''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', %d) ',  $
-               date_hw, diffsrid, rcamid, tcamid, rcamlut, tcamlut, modltrid, $
-               o1id, occltrid, filterid, sgsloop, $
-               status=status, error_message=error_message, sql_statement=sql_cmd
-
-    mg_log, '%s: status: %d, error message: %s', status, error_message, $
-            name='kcor/dbinsert', /debug
-    mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /debug
-
-    if (i eq 0) then  goto, done   ; Process only the first file in the list.
-  endwhile
-
-  done:
-  obj_destroy, db
-
-  mg_log, '*** end of kcor_hw_insert ***', name='kcor/dbinsert', /info
 end
