@@ -67,7 +67,7 @@ else
 # Create new kcor_img table.
 #----------------------------
 
-$command = "DROP TABLE IF EXISTS kcor_img_test" ;  # TODO: remove _test when in production
+$command = "DROP TABLE IF EXISTS kcor_img" ;  # TODO: remove _test when in production
 $sth     = $dbh->prepare ($command) ;
 
 $sth->execute () ;
@@ -87,24 +87,29 @@ if (! $sth)
 #	Changed field 'datatype' to 'producttype' to avoid confusion with header field (20170213 DJK)
 #	Alterting data types of level, producttype, and filetype to normalize with level, producttype, and filetype mysql tables (20170213)
 # TODO: define other indices.
-$command = "CREATE TABLE kcor_img_test
+$command = "CREATE TABLE kcor_img
   (
   img_id		INT (10) AUTO_INCREMENT PRIMARY KEY,
   file_name		CHAR (35) NOT NULL, 
   date_obs		DATETIME NOT NULL, 
   date_end		DATETIME NOT NULL, 
+  obs_day		MEDIUMINT (5) NOT NULL,
   level			TINYINT (2) NOT NULL,
   quality		TINYINT (2),
   producttype	TINYINT (2),
   filetype		TINYINT (2),
   numsum		SMALLINT (4), 
-  exptime		FLOAT (7, 4),
-  
+  exptime		FLOAT (7, 4),  
   UNIQUE (file_name),
   INDEX (date_obs),
+  INDEX (obs_day),
   INDEX (quality),
-  INDEX (producttype)
-  )" ;  # TODO: remove _test when in production
+  INDEX (producttype),
+  FOREIGN KEY (level) REFERENCES kcor_level(level_id),
+  FOREIGN KEY (producttype) REFERENCES mlso_producttype(producttype_id),
+  FOREIGN KEY (filetype) REFERENCES mlso_filetype(filetype_id),
+  FOREIGN KEY (obs_day) REFERENCES mlso_numfiles(day_id)
+  )" ;
 
 $sth = $dbh->prepare ($command) ;
 $sth->execute () ;

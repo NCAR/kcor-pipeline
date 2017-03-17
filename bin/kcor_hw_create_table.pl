@@ -67,7 +67,7 @@ else
 # Create new kcor_hw table.
 #-----------------------------
 
-$command = "DROP TABLE IF EXISTS kcor_hw_test" ;
+$command = "DROP TABLE IF EXISTS kcor_hw" ;
 $sth     = $dbh->prepare ($command) ;
 
 $sth->execute () ;
@@ -79,7 +79,7 @@ if (! $sth)
   }
 
 # Define fields
-$command = "CREATE TABLE kcor_hw_test 
+$command = "CREATE TABLE kcor_hw 
   (
   hw_id    INT (10) AUTO_INCREMENT PRIMARY KEY,
   date      	DATETIME NOT NULL,

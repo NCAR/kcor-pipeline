@@ -66,7 +66,7 @@ else
 # Create new kcor_sgs table.
 #-------------------------------
 
-$command = "DROP TABLE IF EXISTS mlso_sgs_test" ;
+$command = "DROP TABLE IF EXISTS mlso_sgs" ;
 $sth     = $dbh->prepare ($command) ;
 
 $sth->execute () ;
@@ -81,10 +81,11 @@ if (! $sth)
 #	Notes:
 #	Took out 'file_name'.  The data are in the K-Cor files, so we could add it back later.
 #
-$command = "CREATE TABLE mlso_sgs_test
+$command = "CREATE TABLE mlso_sgs
   (
   sgs_id    INT (10) AUTO_INCREMENT PRIMARY KEY,
   date_obs  DATETIME NOT NULL,
+  obs_day	MEDIUMINT (5) NOT NULL,
   source	CHAR (1),
   sgsdimv   FLOAT (7, 4),
   sgsdims   FLOAT (8, 5),
@@ -99,9 +100,11 @@ $command = "CREATE TABLE mlso_sgs_test
   sgssums   FLOAT (9, 6),
   sgsloop	TINYINT (1),
   UNIQUE (date_obs),
+  INDEX (obs_day),
   INDEX (sgsdimv),
   INDEX (sgsdims),
-  INDEX (sgsscint)
+  INDEX (sgsscint),
+  FOREIGN KEY (obs_day) REFERENCES mlso_numfiles(day_id)
   )" ;  # TODO: remove _test when in production
 
 $sth = $dbh->prepare ($command) ;

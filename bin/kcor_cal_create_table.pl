@@ -67,7 +67,7 @@ else
 # Create new kcor_cal table.
 #----------------------------
 
-$command = "DROP TABLE IF EXISTS kcor_cal_test" ;
+$command = "DROP TABLE IF EXISTS kcor_cal" ;
 $sth     = $dbh->prepare ($command) ;
 
 $sth->execute () ;
@@ -83,12 +83,13 @@ if (! $sth)
 #	Removed 'instrument' field
 #	Changed level to CHAR (4). May need as FLOAT (4.1)
 #	Changed cover, darkshut, diffuser, and calpol to CHAR (3)
-$command = "CREATE TABLE kcor_cal_test
+$command = "CREATE TABLE kcor_cal
   (
   cal_id		INT (10) AUTO_INCREMENT PRIMARY KEY, 
   file_name		CHAR (40) NOT NULL, 
   date_obs		DATETIME NOT NULL, 
-  date_end		DATETIME NOT NULL, 
+  date_end		DATETIME NOT NULL,
+  obs_day		MEDIUMINT (5) NOT NULL,
   level			TINYINT (2) NOT NULL, 
   numsum		SMALLINT (4), 
   exptime		FLOAT (7, 4),
@@ -127,7 +128,11 @@ $command = "CREATE TABLE kcor_cal_test
   filterid		CHAR (12),
   kcor_sgsdimv	FLOAT (7, 4),
   kcor_sgsdims	FLOAT (8, 5),
-  UNIQUE (file_name)  
+  UNIQUE (file_name),
+  INDEX (date_obs),
+  INDEX (obs_day),
+  FOREIGN KEY (level) REFERENCES kcor_level(level_id),
+  FOREIGN KEY (obs_day) REFERENCES mlso_numfiles(day_id)  
   )" ;  # TODO: remove _test when in production
 
 $sth = $dbh->prepare ($command) ;
