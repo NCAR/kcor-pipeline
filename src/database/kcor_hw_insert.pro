@@ -116,6 +116,9 @@ bopal = 0.0   ; TEMP for testing
 
 
 	; TODO: Test for changes from previous db entry
+	; TODO: From 20170315 meeting: We will wait for older data to be completely reprocessed to avoid problems caused
+	;    by trying to update this table out of order.
+	
 	;---- Check values against previous db entry (assuming processing in temporal order)
 	change = 0
 	
