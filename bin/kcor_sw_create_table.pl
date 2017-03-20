@@ -67,7 +67,7 @@ else
 # Create new kcor_dp table.
 #-----------------------------
 
-$command = "DROP TABLE IF EXISTS kcor_sw_test" ;
+$command = "DROP TABLE IF EXISTS kcor_sw" ;
 $sth     = $dbh->prepare ($command) ;
 
 $sth->execute () ;
@@ -83,22 +83,19 @@ if (! $sth)
 #   If a lot of queries are done, it is best to have VARCHARS at the end of field list, but this
 #	table will not get a lot of queries.
 #	I left 'labviewid' and 'socketcamid' as varchars due to not knowing their actual length
-$command = "CREATE TABLE kcor_sw_test 
+$command = "CREATE TABLE kcor_sw 
   (
   sw_id				INT (10) AUTO_INCREMENT PRIMARY KEY,
   date				DATETIME NOT NULL,
   dmodswid			CHAR (24),
   distort			CHAR (28),
-  l1swid			CHAR (24),
-  datel1			CHAR (20),
-  l2swid			CHAR (24),
-  datel2			CHAR (20),  
+  sw_version		CHAR (24),
   bunit				VARCHAR (12),
   bzero				FLOAT (4, 1),
   bscale			FLOAT (6, 3),
   labviewid			VARCHAR (20),
   socketcamid		VARCHAR (20),
-  sgsswid			VARCHAR (20),
+  sw_revision		VARCHAR (20),
   sky_pol_factor	FLOAT (6, 3),
   sky_bias			FLOAT (7, 4),
   UNIQUE (date)

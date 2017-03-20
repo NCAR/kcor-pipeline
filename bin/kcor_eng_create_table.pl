@@ -67,7 +67,7 @@ else
 # Create new kcor_eng table.
 #-------------------------------
 
-$command = "DROP TABLE IF EXISTS kcor_eng_test" ;
+$command = "DROP TABLE IF EXISTS kcor_eng" ;
 $sth     = $dbh->prepare ($command) ;
 
 $sth->execute () ;
@@ -83,11 +83,13 @@ if (! $sth)
 #	Removed sgs fields and moved them to new table, kcor_sgs
 #   Added back sgsdimv and sgsdims
 #	Removed calpang and datatype
-$command = "CREATE TABLE kcor_eng_test
+#	kcor_sw_id is the id number of the entry in the kcor_sw table relevant to this entry
+$command = "CREATE TABLE kcor_eng
   (
   eng_id		INT (10) AUTO_INCREMENT PRIMARY KEY,
   file_name		CHAR (32) NOT NULL,
   date_obs		DATETIME NOT NULL,
+  obs_day		MEDIUMINT (5) NOT NULL,
   rcamfocs		FLOAT (6, 2),
   tcamfocs		FLOAT (6, 2),
   modltrt		FLOAT (6, 2),
@@ -109,8 +111,12 @@ $command = "CREATE TABLE kcor_eng_test
   darkshut		CHAR (3),
   diffuser		CHAR (3),
   calpol		CHAR (3),
+  kcor_sw_id    INT (10),
   UNIQUE (file_name),
-  INDEX (date_obs)
+  INDEX (date_obs),
+  FOREIGN KEY (level) REFERENCES kcor_level(level_id),
+  FOREIGN KEY (kcor_sw_id) REFERENCES kcor_sw(sw_id),
+  FOREIGN KEY (obs_day) REFERENCES mlso_numfiles(day_id)
   )" ;  # TODO: remove _test when in production
 
 $sth = $dbh->prepare ($command) ;

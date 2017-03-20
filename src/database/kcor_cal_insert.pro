@@ -19,7 +19,6 @@
 ;     `kcor_run` object
 ;
 ; :Examples:
-;   For example::
 ;	  date = '20170204'
 ;     filelist = ['20170214_190402_kcor.fts.gz','20170214_190417_kcor.fts.gz','20170214_190548_kcor.fts.gz','20170214_190604_kcor.fts','20170214_190619_kcor.fts']
 ;     kcor_cal_insert, date, filelist;
