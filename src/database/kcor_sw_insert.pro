@@ -42,7 +42,6 @@ on_error, 2
 
 np = n_params() 
 if (np ne 2) then begin
-	print, 'missing date or filelist parameters'
 	mg_log, 'missing date or filelist parameter', name='kcor/dbinsert', /error
 	return
 end
@@ -89,7 +88,6 @@ cd, fts_dir
 nfiles = n_elements(fits_list)
 
 if (nfiles eq 0) then begin
-	print, 'no images in fits_list'
 	mg_log, 'no images in list file', name='kcor/dbinsert', /info
 	goto, done
 endif
@@ -114,7 +112,7 @@ while (++i lt nfiles) do begin
 	labviewid		= sxpar(hdu, 'OBSSWID', count=qlabviewid) ;TODO: Replace with new header var for labview sw
 	socketcamid		= sxpar(hdu, 'OBSSWID', count=qsocketcamid) ;TODO: Replace with new header var for socketcam sw
 	
-;TODO: get these from pipline:	
+;TODO: get these from pipline, delete test lines:	
 sw_revision		= '23e45b23'   ; for testing
 sky_pol_factor	= 99.99        ; for testing
 sky_bias		= 99.99        ; for testing
@@ -140,8 +138,7 @@ sky_bias		= 99.99        ; for testing
 
 		;--- DB insert command.
 
-		;TODO: Remove _test from table names
-		db->execute, 'INSERT INTO kcor_sw_test (date, dmodswid, distort, sw_version, bunit, bzero, bscale, labviewid, socketcamid, sw_revision, sky_pol_factor, sky_bias) VALUES (''%s'', ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, ''%s'', ''%s'', ''%s'', %f, %f) ', $
+		db->execute, 'INSERT INTO kcor_sw (date, dmodswid, distort, sw_version, bunit, bzero, bscale, labviewid, socketcamid, sw_revision, sky_pol_factor, sky_bias) VALUES (''%s'', ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, ''%s'', ''%s'', ''%s'', %f, %f) ', $
 				   date, dmodswid, distort, sw_version, bunit, bzero, bscale, labviewid, socketcamid, sw_revision, sky_pol_factor, sky_bias, $
 				   status=status, error_message=error_message, sql_statement=sql_cmd
 

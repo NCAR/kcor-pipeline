@@ -36,7 +36,6 @@ on_error, 2
 
 np = n_params() 
 if (np ne 2) then begin
-	print, 'missing date or filelist parameters'
 	mg_log, 'missing date or filelist parameters', name='kcor/dbinsert', /error
 	return
 endif
@@ -58,25 +57,12 @@ mg_log, 'connected to %s...', host, name='kcor/dbinsert', /info
 
 db->setProperty, database='MLSO'
 
-;-------------------------------------------------------------------------------
-; Delete all pre-existing rows with date_obs = designated date to be processed.
-;-------------------------------------------------------------------------------
-
-year    = strmid(date, 0, 4)	; yyyy
-month   = strmid(date, 4, 2)	; mm
-day     = strmid(date, 6, 2)	; dd
-odate_dash = year + '-' + month + '-' + day + '%'
-
-; TODO: This DELETE statement will need to be removed from this script.  In the new
-;   pipeline, kcor data will be processed and added to the database in realtime through 
-;   the day, so we don't want to delete previous entries.  However, the statement will 
-;   likely be used in an 'update_database' script later. Be sure to note date change to next
-;   day. 
-;  db->execute, 'DELETE FROM kcor_cal WHERE date_obs like ''%s''', odate_dash, $
-;               status=status, error_message=error_message, sql_statement=sql_cmd
-;  mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /info
-;  mg_log, 'status: %d, error message: %s', status, error_message, $
-;          name='kcor/dbinsert', /info
+; Get observation day index
+;TODO: I think we want to call mlso_obsday_insert once in the beginning of each batch
+;  and then pass it to each of these insert scripts as another parameter.  For now, 
+;  however, I will call that function here:
+obs_day_num = mlso_obsday_insert(date, run=run)
+;mg_log, 'obs_day_num: %d', obs_day_num, name='kcor/dbinsert', /debug
 
 ;-----------------------
 ; Directory definitions.
@@ -100,7 +86,6 @@ cd, fts_dir
 nfiles = n_elements(fits_list)
 
 if (nfiles eq 0) then begin
-	print, 'no images in fits_list'
 	mg_log, 'No images in list file', name='kcor/dbinsert', /info
 	goto, done
 endif
@@ -109,7 +94,7 @@ i = -1
 fts_file = 'img.fts'
 while (++i lt nfiles) do begin
 	fts_file = fits_list[i]
-	finfo = file_info(fts_file)         ; Get file information.
+	;finfo = file_info(fts_file)         ; Get file information.
 
 	;----- Extract desired items from header.
 
@@ -176,21 +161,27 @@ mean_int_img7 = -9999.9900000
 
 	fits_file = file_basename(fts_file, '.gz') ; remove '.gz' from file name.
 
-	mg_log, 'fits_file: %s', fits_file, name='kcor/dbinsert', /debug
-	mg_log, 'date_obs: %s', date_obs, name='kcor/dbinsert', /debug
+	;mg_log, 'fits_file: %s', fits_file, name='kcor/dbinsert', /debug
+	;mg_log, 'date_obs: %s', date_obs, name='kcor/dbinsert', /debug
 	
 	; Get IDs from relational tables.
 	
+	level_count = db->query('SELECT count(level_id) FROM kcor_level WHERE level=''%s''', $
+								 level, fields=fields)
+	if (level_count.COUNT_LEVEL_ID_ eq 0) then begin
+		; If given level is not in the kcor_level table, set it to 'unknown' and log error
+		level = 'unk'
+		mg_log, 'level: %s', level, name='kcor/dbinsert', /error
+	endif
 	level_results = db->query('SELECT * FROM kcor_level WHERE level=''%s''', $
-							   level, fields=fields)
-	level_num = level_results.level_id
-	mg_log, 'level_num:    %d', level_num, name='kcor/dbinsert', /debug
+								 level, fields=fields)
+	level_num = level_results.level_id	
+	;mg_log, 'level_num: %d', level_num, name='kcor/dbinsert', /debug
 
 	; DB insert command.
 
-;TODO: Remove _test from table name
-	db->execute, 'INSERT INTO kcor_cal_test (file_name, date_obs, date_end, level, numsum, exptime, cover, darkshut, diffuser, calpol, calpang, mean_int_img0, mean_int_img1, mean_int_img2, mean_int_img3, mean_int_img4, mean_int_img5, mean_int_img6, mean_int_img7, rcamid, tcamid, rcamlut, tcamlut, rcamxcen, rcamycen, tcamxcen, tcamycen, rcam_rad, tcam_rad, rcamfocs, tcamfocs, modltrid, modltrt, occltrid, o1id, o1focs, calpolid, diffsrid, filterid, kcor_sgsdimv, kcor_sgsdims) VALUES (''%s'', ''%s'', ''%s'', %d, %d, %f, ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', %f, ''%s'', ''%s'', %f, ''%s'', ''%s'', ''%s'', %f, %f) ', $
-				 fits_file, date_obs, date_end, level_num, numsum, $
+	db->execute, 'INSERT INTO kcor_cal (file_name, date_obs, date_end, obs_day, level, numsum, exptime, cover, darkshut, diffuser, calpol, calpang, mean_int_img0, mean_int_img1, mean_int_img2, mean_int_img3, mean_int_img4, mean_int_img5, mean_int_img6, mean_int_img7, rcamid, tcamid, rcamlut, tcamlut, rcamxcen, rcamycen, tcamxcen, tcamycen, rcam_rad, tcam_rad, rcamfocs, tcamfocs, modltrid, modltrt, occltrid, o1id, o1focs, calpolid, diffsrid, filterid, kcor_sgsdimv, kcor_sgsdims) VALUES (''%s'', ''%s'', ''%s'', %d, %d, %d, %f, ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', %f, ''%s'', ''%s'', %f, ''%s'', ''%s'', ''%s'', %f, %f) ', $
+				 fits_file, date_obs, date_end, obs_day_num, level_num, numsum, $
 				 exptime, cover, darkshut, diffuser, calpol, calpang, $
 				 mean_int_img0, mean_int_img1, mean_int_img2, mean_int_img3, mean_int_img4, $
 				 mean_int_img5, mean_int_img6, mean_int_img7, rcamid, tcamid, rcamlut, tcamlut, $
@@ -213,8 +204,8 @@ end
 
 ; main-level example program
 
-date = '20170214'
-filelist = ['20170214_190402_kcor.fts.gz','20170214_190417_kcor.fts.gz','20170214_190548_kcor.fts.gz','20170214_190604_kcor.fts.gz','20170214_190619_kcor.fts.gz']
+date = '20170318'
+filelist = ['20170318_205523_kcor.fts.gz','20170318_205538_kcor.fts.gz','20170318_205609_kcor.fts.gz']
 run = kcor_run(date, $
                config_filename=filepath('kcor.kolinski.mahi.latest.cfg', $
                                         subdir=['..', '..', 'config'], $

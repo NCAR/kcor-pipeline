@@ -1,5 +1,8 @@
-; docformat = 'rst'
+; NOTE! THIS SCRIPT IS NOT CURRENTLY IN USE.  THE MISSION TABLE IS UPDATED INFREQUENTLY
+;   AND BY HAND.
 
+
+; docformat = 'rst'
 ;+
 ; Insert values into the MLSO database table: kcor_mission.
 ;
