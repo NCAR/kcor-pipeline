@@ -38,7 +38,6 @@ on_error, 2
 
 np = n_params() 
 if (np ne 2) then begin
-	print, 'missing date or filelist parameters'
 	mg_log, 'missing date or filelist parameter', name='kcor/dbinsert', /error
 	return
 endif
@@ -84,7 +83,6 @@ cd, fts_dir
 nfiles = n_elements(fits_list)
 
 if (nfiles eq 0) then begin
-	print, 'no images in fits_list'
 	mg_log, 'no images in list file', name='kcor/dbinsert', /info
 	goto, done
 endif
@@ -123,14 +121,13 @@ bopal = 0.0   ; TEMP for testing
 	change = 0
 	
 	; Set change to 1 if difference from db entry
-	
+	change = 1   ;for testing
 	
 	if (change eq 1) then begin
 
 		;--- DB insert command.
 
-		;TODO: Remove _test from table names
-		db->execute, 'INSERT INTO kcor_hw_test (date, diffsrid, bopal, rcamid, tcamid, rcamlut, tcamlut, modltrid, o1id, occltrid, filterid, calpolid) VALUES (''%s'', ''%s'', %f, ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'') ',  $
+		db->execute, 'INSERT INTO kcor_hw (date, diffsrid, bopal, rcamid, tcamid, rcamlut, tcamlut, modltrid, o1id, occltrid, filterid, calpolid) VALUES (''%s'', ''%s'', %f, ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'') ',  $
 				   date_obs, diffsrid, bopal, rcamid, tcamid, rcamlut, tcamlut, modltrid, $
 				   o1id, occltrid, filterid, calpolid, $
 				   status=status, error_message=error_message, sql_statement=sql_cmd

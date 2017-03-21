@@ -138,7 +138,6 @@ sky_bias		= 99.99        ; for testing
 
 		;--- DB insert command.
 
-		;TODO: Remove _test from table names
 		db->execute, 'INSERT INTO kcor_sw (date, dmodswid, distort, sw_version, bunit, bzero, bscale, labviewid, socketcamid, sw_revision, sky_pol_factor, sky_bias) VALUES (''%s'', ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, ''%s'', ''%s'', ''%s'', %f, %f) ', $
 				   date, dmodswid, distort, sw_version, bunit, bzero, bscale, labviewid, socketcamid, sw_revision, sky_pol_factor, sky_bias, $
 				   status=status, error_message=error_message, sql_statement=sql_cmd
