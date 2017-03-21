@@ -66,6 +66,7 @@ year    = strmid (date, 0, 4)	; yyyy
 month   = strmid (date, 4, 2)	; mm
 day     = strmid (date, 6, 2)	; dd
 
+; Get observation day index
 ;TODO: I think we want to call mlso_obsday_insert once in the beginning of each batch
 ;  and then pass it to each of these insert scripts as another parameter.  For now, 
 ;  however, I will call that function here:
