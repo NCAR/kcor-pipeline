@@ -33,97 +33,76 @@
 ;
 ;-
 pro kcor_eng_insert, date, fits_list, run=run
-  compile_opt strictarr
-  on_error, 2
+compile_opt strictarr
+on_error, 2
 
-  np = n_params() 
-  if (np ne 2) then begin
-	print, 'missing date or filelist parameters'
-    mg_log, 'missing date or filelist parameters', name='kcor/dbinsert', /error
-    return
-  endif
+np = n_params() 
+if (np ne 2) then begin
+	mg_log, 'missing date or filelist parameters', name='kcor/dbinsert', /error
+	return
+endif
 
-  ;--------------------------
-  ; Connect to MLSO database.
-  ;--------------------------
+;--------------------------
+; Connect to MLSO database.
+;--------------------------
 
-  ; Note: The connect procedure accesses DB connection information in the file
-  ;       .mysqldb. The "config_section" parameter specifies
-  ;       which group of data to use.
-  
-  db = mgdbmysql()
-  db->connect, config_filename=run.database_config_filename, $
-               config_section=run.database_config_section
+; Note: The connect procedure accesses DB connection information in the file
+;       .mysqldb. The "config_section" parameter specifies
+;       which group of data to use.
 
-  db->getProperty, host_name=host
-  mg_log, 'connected to %s...', host, name='kcor/dbinsert', /info
+db = mgdbmysql()
+db->connect, config_filename=run.database_config_filename, $
+		   config_section=run.database_config_section
 
-  db->setProperty, database='MLSO'
+db->getProperty, host_name=host
+mg_log, 'connected to %s...', host, name='kcor/dbinsert', /info
 
-  ;-------------------------------------------------------------------------------
-  ; Delete all pre-existing rows with date = designated date to be processed.
-  ;-------------------------------------------------------------------------------
+db->setProperty, database='MLSO'
 
-  year    = strmid (date, 0, 4)             ; yyyy
-  month   = strmid (date, 4, 2)             ; mm
-  day     = strmid (date, 6, 2)             ; dd
-  pdate_dash = year + '-' + month + '-' + day	; 'yyyy-mm-dd%'
-  pdate_wild = pdate_dash + "%"
+year    = strmid (date, 0, 4)             ; yyyy
+month   = strmid (date, 4, 2)             ; mm
+day     = strmid (date, 6, 2)             ; dd
 
-; TODO: This DELETE statement will need to be removed from this script.  In the new
-;   pipeline, kcor data will be processed and added to the database in realtime through 
-;   the day, so we don't want to delete previous entries.  However, the statement will 
-;   likely be used in an 'update_database' script later. Be sure to note date change to next
-;   day.
-;  db->execute, 'DELETE FROM kcor_eng_test WHERE date like ''%s''', pdate_wild, $
-;               status=status, error_message=error_message, sql_statement=sql_cmd
-;  mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /info
-;  mg_log, 'status: %d, error message: %s', status, error_message, $
-;          name='kcor/dbinsert', /info
+; Get observation day index
+;TODO: I think we want to call mlso_obsday_insert once in the beginning of each batch
+;  and then pass it to each of these insert scripts as another parameter.  For now, 
+;  however, I will call that function here:
+obs_day_num = mlso_obsday_insert(date, run=run)
+;mg_log, 'obs_day_num: %d', obs_day_num, name='kcor/dbinsert', /debug
 
-  ; Delete table & reset auto-increment value to 1.
-  ;db->execute, 'TRUNCATE TABLE kcor_eng', $
-  ;             status=status, error_message=error_message, sql_statement=sql_cmd
-  ; Set auto-increment value to 1.
-  ;db->execute, 'ALTER TABLE kcor_eng AUTO_INCREMENT = 1'
-  ;mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /info
-  ;mg_log, 'status: %d, error message: %s', status, error_message, $
-  ;        name='kcor/dbinsert', /info
+;-----------------------
+; Directory definitions.
+;-----------------------
 
-  ;-----------------------
-  ; Directory definitions.
-  ;-----------------------
+; TODO: Set to processing directory (confer with Mike and Joan)
+fts_dir = filepath('', subdir=[year, month, day], root=run.archive_basedir)
 
-  ; TODO: Set to processing directory (confer with Mike and Joan)
-  fts_dir = filepath('', subdir=[year, month, day], root=run.archive_dir)
+;----------------
+; Move to fts_dir.
+;----------------
 
-  ;----------------
-  ; Move to fts_dir.
-  ;----------------
+cd, current=start_dir
+cd, fts_dir
 
-  cd, current=start_dir
-  cd, fts_dir
+;------------------------------------------------
+; Step through list of fits files passed in parameter
+;------------------------------------------------
 
-  ;------------------------------------------------
-  ; Step through list of fits files passed in parameter
-  ;------------------------------------------------
+;fits_list = filelist
+nfiles = n_elements(fits_list)
 
-  ;fits_list = filelist
-  nfiles = n_elements(fits_list)
+if (nfiles eq 0) then begin
+	mg_log, 'no images in fits list', name='kcor/dbinsert', /info
+	goto, done
+endif
 
-  if (nfiles eq 0) then begin
-    print, 'no images in fits_list'
-    mg_log, 'no images in fits list', name='kcor/dbinsert', /info
-    goto, done
-  endif
+i = -1
+fts_file = 'img.fts'
+while (++i lt nfiles) do begin
+	fts_file = fits_list[i]
 
-  i = -1
-  fts_file = 'img.fts'
-  while (++i lt nfiles) do begin
-    fts_file = fits_list[i]
-	
-;TODO: Don't insert non-pB images
-; Get product type from filename and skip inserting of non-pB;  Parse from header when new producttype keyword is added.
+	;TODO: Don't insert non-pB images
+	; Get product type from filename and skip inserting of non-pB;  Parse from header when new producttype keyword is added.
 	p = strpos(fts_file, "nrgf")
 	if (p ne -1) then begin	
 		producttype = 'nrgf'
@@ -172,25 +151,33 @@ pro kcor_eng_insert, date, fits_list, run=run
 		diffuser   = strtrim(sxpar(hdu, 'DIFFUSER',  count=qdarkshut),2)
 		calpol     = strtrim(sxpar(hdu, 'CALPOL',  count=qcalpol),2)
 
-; TODO: get mean_phase1 from pipeline output because it is not in header
-mean_phase1 = 99.99 ; just for testing
+	; TODO: get mean_phase1 from pipeline output because it is not in header
+	mean_phase1 = 99.99 ; just for testing
 	 
 		fits_file = file_basename(fts_file, '.gz') ; remove '.gz' from file name.
 		
 		; Debug prints
-		mg_log, 'fits_file:   %s', fits_file, name='kcor/dbinsert', /debug
-		mg_log, 'date_obs:    %s', date_obs, name='kcor/dbinsert', /debug	
+		;mg_log, 'fits_file:   %s', fits_file, name='kcor/dbinsert', /debug
+		;mg_log, 'date_obs:    %s', date_obs, name='kcor/dbinsert', /debug	
 		
 		; Get IDs from relational tables.
+		
+		level_count = db->query('SELECT count(level_id) FROM kcor_level WHERE level=''%s''', $
+								 level, fields=fields)
+		if (level_count.COUNT_LEVEL_ID_ eq 0) then begin
+			; If given level is not in the kcor_level table, set it to 'unknown' and log error
+			level = 'unk'
+			mg_log, 'level: %s', level, name='kcor/dbinsert', /error
+		endif
 		level_results = db->query('SELECT * FROM kcor_level WHERE level=''%s''', $
-								   level, fields=fields)
-		level_num = level_results.level_id
-		mg_log, 'level_num:    %d', level_num, name='kcor/dbinsert', /debug
+									 level, fields=fields)
+		level_num = level_results.level_id	
+		;mg_log, 'level_num: %d', level_num, name='kcor/dbinsert', /debug
 		
 		; ----- DB insert command.
-	;TODO: Remove _test from table name
-		db->execute, 'INSERT INTO kcor_eng_test (file_name, date_obs, rcamfocs, tcamfocs, modltrt, o1focs, kcor_sgsdimv, kcor_sgsdims, level, bunit, bzero, bscale, rcamxcen, rcamycen, tcamxcen, tcamycen, rcam_rad, tcam_rad, mean_phase1, cover, darkshut, diffuser, calpol) VALUES (''%s'', ''%s'', %f, %f, %f, %f, %f, %f, %d, ''%s'', %d, %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', ''%s'', ''%s'', ''%s'') ', $
-				   fits_file, date_obs, rcamfocs, tcamfocs, modltrt, o1focs, $
+	
+		db->execute, 'INSERT INTO kcor_eng (file_name, date_obs, obs_day, rcamfocs, tcamfocs, modltrt, o1focs, kcor_sgsdimv, kcor_sgsdims, level, bunit, bzero, bscale, rcamxcen, rcamycen, tcamxcen, tcamycen, rcam_rad, tcam_rad, mean_phase1, cover, darkshut, diffuser, calpol) VALUES (''%s'', ''%s'', %d, %f, %f, %f, %f, %f, %f, %d, ''%s'', %d, %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', ''%s'', ''%s'', ''%s'') ', $
+				   fits_file, date_obs, obs_day_num, rcamfocs, tcamfocs, modltrt, o1focs, $
 				   sgsdimv, sgsdims, level_num, bunit, bzero, bscale, $
 				   rcamxcen, rcamycen, tcamxcen, tcamycen, rcam_rad, tcam_rad, $
 				   mean_phase1, cover, darkshut, diffuser, calpol, $
@@ -199,13 +186,13 @@ mean_phase1 = 99.99 ; just for testing
 		mg_log, '%d, error message: %s', status, error_message, $
 				name='kcor/dbinsert', /debug
 		mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /debug	
-    endif		
- endwhile
+	endif		
+endwhile
 
- done:
- obj_destroy, db
- 
- mg_log, '*** end of kcor_eng_insert ***', name='kcor/dbinsert', /info
+done:
+obj_destroy, db
+
+mg_log, '*** end of kcor_eng_insert ***', name='kcor/dbinsert', /info
 end
 
 
