@@ -55,14 +55,23 @@
 ;                          defined, then defaults to the subdirectory "acos" in
 ;                          the current directory.
 ;
+;               KCOR_MOVIE_DIR = Directory to write movies to.  If not defined,
+;                                then the movies are written to the current
+;                                directory.
+;
+;               KCOR_MAILING_LIST = Text file containing a list of email
+;                                   addresses, one per line.
+;
 ;               KCOR_HPR_DIR = Top of directory tree containing intermediate
 ;                              FITS files in helioprojective-radial (HPR)
 ;                              polar coordinates.  If not defined, then
 ;                              defaults to "kcor_hpr" in current directory.
+;                              Ignored unless used with /STORE.
 ;
 ;               KCOR_HPR_DIFF_DIR = Top of directory tree containing running
 ;                                   difference maps.  If not defined, then
-;                                   defaults to "kcor_hpr_diff".
+;                                   defaults to "kcor_hpr_diff".  Ignored
+;                                   unless used with /STORE.
 ;
 ; Calls       :	DELVARX, CONCAT_DIR, GET_UTC, ANYTIM2UTC, FILE_EXIST,
 ;               KCOR_CME_DET_EVENT
@@ -76,6 +85,9 @@
 ; Prev. Hist. :	None
 ;
 ; History     :	Version 1, 04-Jan-2017, William Thompson, GSFC
+;               Version 2, 22-Mar-2017, William Thompson, GSFC
+;                       Move directory check to event handler.
+;                       Add "Send alert" button.
 ;
 ; Contact     :	WTHOMPSON
 ;-
@@ -147,10 +159,6 @@ endif
 if n_elements(date) eq 0 then get_utc, date
 sdate = anytim2utc(date, /ecs, /date_only)
 datedir = concat_dir(kcor_dir, sdate)
-if not file_exist(datedir) then begin
-    print, 'Directory ' + datedir + ' does not exist'
-    return
-endif
 ;
 ;  Make sure that the output directories exist.
 ;
@@ -187,6 +195,8 @@ wbbase = widget_base(wpolbase, /row)
 wstart = widget_button(wbbase, value='Start', uvalue='START')
 wstop  = widget_button(wbbase, value='Stop', uvalue='STOP', sensitive=0)
 wexit  = widget_button(wbbase, value='Exit', uvalue='EXIT')
+dummy  = widget_label(wbbase, value='                    ')
+walert = widget_button(wbbase, value='Send alert', uvalue='ALERT')
 cstop = 0
 ;
 ;  Define a base for the output

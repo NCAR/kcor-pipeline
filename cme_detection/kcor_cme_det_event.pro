@@ -39,6 +39,9 @@
 ; Prev. Hist. :	None
 ;
 ; History     :	Version 1, 04-Jan-2017, William Thompson, GSFC
+;               Version 2, 22-Mar-2017, WTT, include FILENAME in DATE_ORIG
+;                          Test for existence of data directory.
+;                          Add operator-generated alert event.
 ;
 ; Contact     :	WTHOMPSON
 ;-
@@ -57,13 +60,18 @@ if (tag_names(event, /structure_name) eq 'WIDGET_KILL_REQUEST') then $
 widget_control, event.id, get_uvalue=uvalue
 case uvalue of
     'START': begin
-        cstop = 0
-        widget_control, wstart, sensitive=0
-        widget_control, wstop, sensitive=1
-        widget_control, wexit, sensitive=0
-        widget_control, wfile, set_value=''
-        widget_control, wmessage, set_value='Started', /append
-        widget_control, wtopbase, timer=0.1
+        if file_exist(datedir) then begin
+            cstop = 0
+            widget_control, wstart, sensitive=0
+            widget_control, wstop, sensitive=1
+            widget_control, wexit, sensitive=0
+            widget_control, wfile, set_value=''
+            widget_control, wmessage, set_value='Started', /append
+            widget_control, wtopbase, timer=0.1
+        end else begin
+            message = 'Directory ' + datedir + ' does not exist'
+            widget_control, wmessage, set_value=message, /append
+        endelse
     end
 ;
     'STOP': begin
@@ -74,6 +82,13 @@ stop_point:
         widget_control, wexit, sensitive=1
         widget_control, wtopbase, timer=0.1
         widget_control, wmessage, set_value='Stopped', /append
+    end
+;
+;  Operator-generated alert.
+;
+    'ALERT': begin
+        itime = n_elements(leadingedge) - 1
+        kcor_cme_det_alert, itime, /operator
     end
 ;
     'TIMER': if ~cstop then begin
@@ -134,7 +149,8 @@ stop_point:
                 tai_obs = utc2tai(date_obs)
                 tai_end = utc2tai(date_end)
                 temp = {date_obs: date_obs, tai_obs: tai_obs, $
-                        date_end: date_end, tai_end: tai_end}
+                        date_end: date_end, tai_end: tai_end, $
+                        filename: files[ifile]}
                 if n_elements(date_orig) eq 0 then date_orig = temp else $
                   date_orig = [date_orig, temp]
 ;
