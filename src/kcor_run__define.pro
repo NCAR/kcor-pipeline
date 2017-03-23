@@ -202,14 +202,6 @@ pro kcor_run::getProperty, config_contents=config_contents, $
     resources_dir = filepath('resources', root=self.pipe_dir)
   endif
 
-  ; mission
-  if (arg_present(mlso_url)) then begin
-    mlso_url = self.options->get('mlso_url', section='mission')
-  endif
-  if (arg_present(doi_url)) then begin
-    doi_url = self.options->get('doi_url', section='mission')
-  endif
-
   ; externals
   if (arg_present(gzip)) then begin
     gzip = self.options->get('gzip', section='externals')
@@ -324,6 +316,15 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   endif
 
   ; epochs file
+
+  ; mission
+  if (arg_present(mlso_url)) then begin
+    mlso_url = self->_readepoch('mlso_url', self.date, type=7)
+  endif
+  if (arg_present(doi_url)) then begin
+    doi_url = self->_readepoch('doi_url', self.date, type=7)
+  endif
+
   if (arg_present(plate_scale)) then begin
     plate_scale = self->_readepoch('plate_scale', self.date, type=4)
   endif
