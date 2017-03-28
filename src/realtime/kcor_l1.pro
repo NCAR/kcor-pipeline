@@ -940,7 +940,8 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
     degrees = findgen(numdeg) * stepdeg + 0.5 * stepdeg
     degrees = double(degrees) / !radeg
 
-    a           = dblarr(8)   ; coefficients for sine (2 * theta) fit.
+    a           = dblarr(2)   ; coefficients for sine (2 * theta) fit.
+    ;a           = dblarr(8)   ; coefficients for sine (2 * theta) fit.
     weights     = fltarr(numdeg)
     weights[*] = 1.0
 
@@ -962,17 +963,17 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
 
     ; fit in U/I and Q/I
 
-    ; a[0] = 0.0033
-    ; a[1] = 0.14
+    a[0] = 0.0033
+    a[1] = 0.14
 
-    a[0] = 0.0033   ; amplitude of sine 2 theta
-    a[1] = 1.       ; distance of sun from center of occulter
-    a[2] = 250.     ; radius to observer
-    a[3] = 90.      ; delta angle from angle of occulter to observer
-    a[4] = 0.14     ; sine 2theta phase
-    a[5] = -0.1     ;  Offset from zero
-    a[6] = 0.001    ; amplitude of sine theta term
-    a[7] = 0.       ; phase angle of sine theta term
+;    a[0] = 0.0033   ; amplitude of sine 2 theta
+;    a[1] = 1.       ; distance of sun from center of occulter
+;    a[2] = 250.     ; radius to observer
+;    a[3] = 90.      ; delta angle from angle of occulter to observer
+;    a[4] = 0.14     ; sine 2theta phase
+;    a[5] = -0.1     ;  Offset from zero
+;    a[6] = 0.001    ; amplitude of sine theta term
+;    a[7] = 0.       ; phase angle of sine theta term
 
     factor = 1.00
 
@@ -1027,7 +1028,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
       endfor
 
       sky_polar_cam1 = curvefit(degrees, double(angle_ave_u), weights, a, $
-                                function_name='kcor_sine2theta_best')
+                                function_name='kcor_sine2theta_new')
 
       ; print, 'angle_ave_u (0)', angle_ave_u (0)
       ; print, 'radius_beg/end : ', radius_beg, radius_end
