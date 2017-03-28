@@ -172,22 +172,15 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
 
       ; update databases that use L1 files
       if (n_l1_fits_files gt 0L) then begin
-        kcor_img_insert, date, l1_fits_files, run=run
+        obsday_index = mlso_obsday_insert(date, run=run, database=db)
+
+        kcor_img_insert, date, l1_fits_files, $
+                         run=run, $
+                         database=db, $
+                         obsday_index=obsday_index
         ;kcor_eng_insert, date, l1_fits_files, run=run
-
-        ; TODO: move the rest of these to eod
-        ;kcor_dp_insert, date, l1_fits_files, run=run
-        ;kcor_hw_insert, date, l1_fits_files, run=run
       endif else begin
-        mg_log, 'no L1 files for img, eng, and hw databases', name='kcor/rt', /info
-      endelse
-
-      ; TODO: move to eod
-      ; update databases that use L0 files
-      if (n_l0_fits_files gt 0L) then begin
-        kcor_cal_insert, date, l0_fits_files, run=run
-      endif else begin
-        mg_log, 'no L0 files for cal database', name='kcor/rt', /info
+        mg_log, 'no L1 files for img or eng databases', name='kcor/rt', /info
       endelse
     endif else begin
       mg_log, 'skipping updating database', name='kcor/rt', /info

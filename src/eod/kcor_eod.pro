@@ -174,6 +174,16 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     goto, done
   endelse
 
+  ; TODO: not sure where these go?
+  ; update databases
+  ;if (n_l0_fits_files gt 0L) then begin
+    ;kcor_cal_insert, date, l0_fits_files, run=run
+    ;kcor_dp_insert, date, l1_fits_files, run=run
+    ;kcor_hw_insert, date, l1_fits_files, run=run
+  ;endif else begin
+  ;  mg_log, 'no L0 files for cal database', name='kcor/rt', /info
+  ;endelse
+
   ; remove zero length files in 'q' sub-directory
   cd, filepath('q', root=date_dir)
 
