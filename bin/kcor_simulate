@@ -53,8 +53,7 @@ if __name__ == '__main__':
 
     # launch processing simulator
     processing_cmd = [os.path.join(pipeline_dir, 'bin', 'kcor_simulate_processing'),
-                      '-f',
-                      '%s' % frequency,
+                      '-f %s' % frequency,
                       args.date,
                       args.config_flags]
     if args.no_eod:
