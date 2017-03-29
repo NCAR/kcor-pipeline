@@ -132,13 +132,6 @@ pro kcor_run::setup_loggers
                        time_format=log_time_fmt, $
                        level=log_level, $
                        filename=filepath(self.date + '.reprocess.log', root=log_dir)
-
-
-  mg_log, name='kcor/dbinsert', logger=logger
-  logger->setProperty, format=log_fmt, $
-                       time_format=log_time_fmt, $
-                       level=log_level, $
-                       filename=filepath(self.date + '.dbinsert.log', root=log_dir)
 end
 
 

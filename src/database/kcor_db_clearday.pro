@@ -21,14 +21,14 @@ pro kcor_db_clearday, run=run, database=database, obsday_index=obsday_index
     db = database
 
     db->getProperty, host_name=host
-    mg_log, 'already connected to %s...', host, name='kcor/dbinsert', /info
+    mg_log, 'already connected to %s...', host, name='kcor/reprocess', /info
   endif else begin
     db = mgdbmysql()
     db->connect, config_filename=run.database_config_filename, $
                  config_section=run.database_config_section
 
     db->getProperty, host_name=host
-    mg_log, 'connected to %s...', host, name='kcor/dbinsert', /info
+    mg_log, 'connected to %s...', host, name='kcor/reprocess', /info
   endelse
 
   ; zero num_kcor_pb and num_kcor_nrgf in mlso_numfiles
@@ -37,8 +37,8 @@ pro kcor_db_clearday, run=run, database=database, obsday_index=obsday_index
                status=status, error_message=error_message, sql_statement=sql_cmd
   if (status ne 0L) then begin
     mg_log, 'status: %d, error message: %s', status, error_message, $
-            name='kcor/dbinsert', /warn
-    mg_log, 'SQL command: %s', sql_cmd, name='kcor/dbinsert', /warn
+            name='kcor/reprocess', /warn
+    mg_log, 'SQL command: %s', sql_cmd, name='kcor/reprocess', /warn
   endif
 
   ; kcor_img
@@ -46,8 +46,8 @@ pro kcor_db_clearday, run=run, database=database, obsday_index=obsday_index
                status=status, error_message=error_message, sql_statement=sql_cmd
   if (status ne 0L) then begin
     mg_log, 'status: %d, error message: %s', status, error_message, $
-            name='kcor/dbinsert', /info
-    mg_log, 'SQL command: %s', sql_cmd, name='kcor/dbinsert', /info
+            name='kcor/reprocess', /info
+    mg_log, 'SQL command: %s', sql_cmd, name='kcor/reprocess', /info
   endif
 
   ; TODO: kcor_eng, kcor_cal
@@ -55,7 +55,7 @@ pro kcor_db_clearday, run=run, database=database, obsday_index=obsday_index
   done:
   if (~obj_valid(database)) then obj_destroy, db
 
-  mg_log, 'done', name='kcor/dbinsert', /info
+  mg_log, 'done', name='kcor/reprocess', /info
 end
 
 

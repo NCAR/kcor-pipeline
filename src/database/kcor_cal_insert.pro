@@ -36,7 +36,7 @@ on_error, 2
 
 np = n_params() 
 if (np ne 2) then begin
-	mg_log, 'missing date or filelist parameters', name='kcor/dbinsert', /error
+	mg_log, 'missing date or filelist parameters', name='kcor', /error
 	return
 endif
 
@@ -53,7 +53,7 @@ db->connect, config_filename=run.database_config_filename, $
 		   config_section=run.database_config_section
 
 db->getProperty, host_name=host
-mg_log, 'connected to %s...', host, name='kcor/dbinsert', /info
+mg_log, 'connected to %s...', host, name='kcor', /info
 
 db->setProperty, database='MLSO'
 
@@ -62,7 +62,7 @@ db->setProperty, database='MLSO'
 ;  and then pass it to each of these insert scripts as another parameter.  For now, 
 ;  however, I will call that function here:
 obs_day_num = mlso_obsday_insert(date, run=run)
-;mg_log, 'obs_day_num: %d', obs_day_num, name='kcor/dbinsert', /debug
+;mg_log, 'obs_day_num: %d', obs_day_num, name='kcor', /debug
 
 ;-----------------------
 ; Directory definitions.
@@ -70,7 +70,7 @@ obs_day_num = mlso_obsday_insert(date, run=run)
 
 ; TODO: Set to cal file directory (confer with Mike and Joan)
 fts_dir = filepath('level0', subdir=date, root=run.raw_basedir)
-mg_log, 'fts_dir: %s', fts_dir, name='kcor/dbinsert', /info
+mg_log, 'fts_dir: %s', fts_dir, name='kcor', /info
 
 ;----------------
 ; Move to fts_dir.
@@ -86,7 +86,7 @@ cd, fts_dir
 nfiles = n_elements(fits_list)
 
 if (nfiles eq 0) then begin
-	mg_log, 'No images in list file', name='kcor/dbinsert', /info
+	mg_log, 'No images in list file', name='kcor', /info
 	goto, done
 endif
 
@@ -161,8 +161,8 @@ mean_int_img7 = -9999.9900000
 
 	fits_file = file_basename(fts_file, '.gz') ; remove '.gz' from file name.
 
-	;mg_log, 'fits_file: %s', fits_file, name='kcor/dbinsert', /debug
-	;mg_log, 'date_obs: %s', date_obs, name='kcor/dbinsert', /debug
+	;mg_log, 'fits_file: %s', fits_file, name='kcor', /debug
+	;mg_log, 'date_obs: %s', date_obs, name='kcor', /debug
 	
 	; Get IDs from relational tables.
 	
@@ -171,12 +171,12 @@ mean_int_img7 = -9999.9900000
 	if (level_count.COUNT_LEVEL_ID_ eq 0) then begin
 		; If given level is not in the kcor_level table, set it to 'unknown' and log error
 		level = 'unk'
-		mg_log, 'level: %s', level, name='kcor/dbinsert', /error
+		mg_log, 'level: %s', level, name='kcor', /error
 	endif
 	level_results = db->query('SELECT * FROM kcor_level WHERE level=''%s''', $
 								 level, fields=fields)
 	level_num = level_results.level_id	
-	;mg_log, 'level_num: %d', level_num, name='kcor/dbinsert', /debug
+	;mg_log, 'level_num: %d', level_num, name='kcor', /debug
 
 	; DB insert command.
 
@@ -192,14 +192,14 @@ mean_int_img7 = -9999.9900000
 				 sql_statement=sql_cmd
 
 	mg_log, '%d, error message: %s', status, error_message, $
-            name='kcor/dbinsert', /debug
-    mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /debug
+            name='kcor', /debug
+    mg_log, 'sql_cmd: %s', sql_cmd, name='kcor', /debug
 endwhile
 
 done:
 obj_destroy, db
 
-mg_log, '*** end of kcor_cal_insert ***', name='kcor/dbinsert', /info
+mg_log, '*** end of kcor_cal_insert ***', name='kcor', /info
 end
 
 ; main-level example program

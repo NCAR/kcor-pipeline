@@ -23,14 +23,14 @@ function mlso_obsday_insert, date, run=run, database=db
                config_section=run.database_config_section
 
   db->getProperty, host_name=host
-  mg_log, 'connected to %s...', host, name='kcor/dbinsert', /info
+  mg_log, 'connected to %s...', host, name='kcor/rt', /info
 
   db->setProperty, database='MLSO'
 
   obs_day = strmid(date, 0, 4) + '-' + strmid(date, 4, 2) + '-' + strmid(date, 6, 2)
   obs_day_index = 0
 	
-  ; Check to see if passed observation day date is in mlso_numfiles table
+  ; check to see if passed observation day date is in mlso_numfiles table
   obs_day_results = db->query('SELECT count(obs_day) FROM mlso_numfiles WHERE obs_day=''%s''', $
                               obs_day, fields=fields)
   obs_day_count = obs_day_results.count_obs_day_
@@ -40,9 +40,9 @@ function mlso_obsday_insert, date, run=run, database=db
     db->execute, 'INSERT INTO mlso_numfiles (obs_day) VALUES (''%s'') ', $
                  obs_day, $
                  status=status, error_message=error_message, sql_statement=sql_cmd
-    mg_log, '%d, error message: %s', status, error_message, $
-            name='kcor/dbinsert', /debug
-    mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /debug
+    mg_log, 'status: %d, error message: %s', status, error_message, $
+            name='kcor/rt', /debug
+    mg_log, 'SQL command: %s', sql_cmd, name='kcor/rt', /debug
 		
     obs_day_index = db->query('SELECT LAST_INSERT_ID()')	
   endif else begin
@@ -55,6 +55,7 @@ function mlso_obsday_insert, date, run=run, database=db
 								 
   return, obs_day_index							 
 end
+
 
 ; main-level example program
 

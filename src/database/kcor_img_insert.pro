@@ -50,7 +50,7 @@ pro kcor_img_insert, date, fits_list, $
 
   np = n_params() 
   if (np ne 2) then begin
-    mg_log, 'missing date or filelist parameters', name='kcor/dbinsert', /error
+    mg_log, 'missing date or filelist parameters', name='kcor/rt', /error
     return
   endif
 
@@ -63,14 +63,14 @@ pro kcor_img_insert, date, fits_list, $
     db = database
 
     db->getProperty, host_name=host
-    mg_log, 'already connected to %s...', host, name='kcor/dbinsert', /info
+    mg_log, 'already connected to %s...', host, name='kcor/rt', /info
   endif else begin
     db = mgdbmysql()
     db->connect, config_filename=run.database_config_filename, $
                  config_section=run.database_config_section
 
     db->getProperty, host_name=host
-    mg_log, 'connected to %s...', host, name='kcor/dbinsert', /info
+    mg_log, 'connected to %s...', host, name='kcor/rt', /info
   endelse
 
   year    = strmid (date, 0, 4)	; yyyy
@@ -84,7 +84,7 @@ pro kcor_img_insert, date, fits_list, $
   ; step through list of fits files passed in parameter
   nfiles = n_elements(fits_list)
   if (nfiles eq 0) then begin
-    mg_log, 'no images in fits list', name='kcor/dbinsert', /info
+    mg_log, 'no images in fits list', name='kcor/rt', /info
     goto, done
   endif
 
@@ -98,10 +98,10 @@ pro kcor_img_insert, date, fits_list, $
     fts_file += '.gz'
 
     if (~file_test(fts_file)) then begin
-      mg_log, '%s not found', fts_file, name='kcor/dbinsert', /warn
+      mg_log, '%s not found', fts_file, name='kcor/rt', /warn
       continue
     endif else begin
-      mg_log, 'ingesting %s', fts_file, name='kcor/dbinsert', /info
+      mg_log, 'ingesting %s', fts_file, name='kcor/rt', /info
     endelse
 
     ; extract desired items from header
@@ -142,53 +142,39 @@ pro kcor_img_insert, date, fits_list, $
 
     fits_file = file_basename(fts_file, '.gz') ; remove '.gz' from file name.
 
-    ;mg_log, 'file_name: %s', fits_file, name='kcor/dbinsert', /debug
-    ;mg_log, 'date_obs: %s', date_obs, name='kcor/dbinsert', /debug
-    ;mg_log, 'date_end: %s', date_end, name='kcor/dbinsert', /debug
-    ;mg_log, 'level:    %s', level, name='kcor/dbinsert', /debug
-    ;mg_log, 'quality:    %s', quality, name='kcor/dbinsert', /debug
-    ;mg_log, 'numsum:   %s', numsum, name='kcor/dbinsert', /debug
-    ;mg_log, 'exptime:  %s', exptime, name='kcor/dbinsert', /debug
-    ;mg_log, 'producttype: %s', producttype, name='kcor/dbinsert', /debug
-    ;mg_log, 'filetype: %s', filetype, name='kcor/dbinsert', /debug    
-
     ; get IDs from relational tables
-
     producttype_count = db->query('SELECT count(producttype_id) FROM mlso_producttype WHERE producttype=''%s''', $
                                   producttype, fields=fields)
     if (producttype_count.count_producttype_id_ eq 0) then begin
       ; If given producttype is not in the mlso_producttype table, set it to 'unknown' and log error
       producttype = 'unknown'
-      mg_log, 'producttype: %s', producttype, name='kcor/dbinsert', /error
+      mg_log, 'producttype: %s', producttype, name='kcor/rt', /error
     endif
     producttype_results = db->query('SELECT * FROM mlso_producttype WHERE producttype=''%s''', $
                                     producttype, fields=fields)
     producttype_num = producttype_results.producttype_id	
-    ;mg_log, 'producttype_num: %d', producttype_num, name='kcor/dbinsert', /debug
 		
     filetype_count = db->query('SELECT count(filetype_id) FROM mlso_filetype WHERE filetype=''%s''', $
                                filetype, fields=fields)
     if (filetype_count.count_filetype_id_ eq 0) then begin
       ; If given filetype is not in the mlso_filetype table, set it to 'unknown' and log error
       filetype = 'unknown'
-      mg_log, 'filetype: %s', filetype, name='kcor/dbinsert', /error
+      mg_log, 'filetype: %s', filetype, name='kcor/rt', /error
     endif
     filetype_results = db->query('SELECT * FROM mlso_filetype WHERE filetype=''%s''', $
                                  filetype, fields=fields)
     filetype_num = filetype_results.filetype_id	
-    ;mg_log, 'filetype_num: %d', filetype_num, name='kcor/dbinsert', /debug
 
     level_count = db->query('SELECT count(level_id) FROM kcor_level WHERE level=''%s''', $
                             level, fields=fields)
     if (level_count.count_level_id_ eq 0) then begin
       ; If given level is not in the kcor_level table, set it to 'unknown' and log error
       level = 'unk'
-      mg_log, 'level: %s', level, name='kcor/dbinsert', /error
+      mg_log, 'level: %s', level, name='kcor/rt', /error
     endif
     level_results = db->query('SELECT * FROM kcor_level WHERE level=''%s''', $
                               level, fields=fields)
     level_num = level_results.level_id	
-    ;mg_log, 'level_num: %d', level_num, name='kcor/dbinsert', /debug
 
     ; DB insert command
     db->execute, 'INSERT INTO kcor_img (file_name, date_obs, date_end, obs_day, level, quality, producttype, filetype, numsum, exptime) VALUES (''%s'', ''%s'', ''%s'', %d, %d, %d, %d, %d, %d, %f) ', $
@@ -200,8 +186,8 @@ pro kcor_img_insert, date, fits_list, $
       if (is_nrgf) then n_nrgf_added += 1 else n_pb_added += 1
     endif else begin
       mg_log, 'status: %d, error message: %s', status, error_message, $
-              name='kcor/dbinsert', /warn
-      mg_log, 'SQL command: %s', sql_cmd, name='kcor/dbinsert', /warn
+              name='kcor/rt', /warn
+      mg_log, 'SQL command: %s', sql_cmd, name='kcor/rt', /warn
     endelse
   endwhile
 
@@ -213,20 +199,17 @@ pro kcor_img_insert, date, fits_list, $
   db->execute, 'UPDATE mlso_numfiles SET num_kcor_pb_fits=''%d'', num_kcor_nrgf_fits=''%d'' WHERE day_id=''%d''', $
                n_pb_files, n_nrgf_files, obsday_index, $
                status=status, error_message=error_message, sql_statement=sql_cmd
-  mg_log, 'pb = %d, old = %d, added = %d', $
-          n_pb_files, num_files_results.num_kcor_pb_fits, n_pb_added, $
-          name='kcor/dbinsert', /debug
   if (status ne 0L) then begin
     mg_log, 'status: %d, error message: %s', status, error_message, $
-            name='kcor/dbinsert', /warn
-    mg_log, 'SQL command: %s', sql_cmd, name='kcor/dbinsert', /warn
+            name='kcor/rt', /warn
+    mg_log, 'SQL command: %s', sql_cmd, name='kcor/rt', /warn
   endif
 
   done:
   if (~obj_valid(database)) then obj_destroy, db
   cd, start_dir
 
-  mg_log, 'done', name='kcor/dbinsert', /info
+  mg_log, 'done', name='kcor/rt', /info
 end
 
 

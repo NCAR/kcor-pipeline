@@ -42,7 +42,7 @@ on_error, 2
 
 np = n_params() 
 if (np ne 2) then begin
-	mg_log, 'missing date or filelist parameter', name='kcor/dbinsert', /error
+	mg_log, 'missing date or filelist parameter', name='kcor', /error
 	return
 end
 
@@ -59,7 +59,7 @@ db->connect, config_filename=run.database_config_filename, $
 		   config_section=run.database_config_section
 
 db->getProperty, host_name=host
-mg_log, 'connected to %s...', host, name='kcor/dbinsert', /info
+mg_log, 'connected to %s...', host, name='kcor', /info
 
 db->setProperty, database='MLSO'
 
@@ -88,7 +88,7 @@ cd, fts_dir
 nfiles = n_elements(fits_list)
 
 if (nfiles eq 0) then begin
-	mg_log, 'no images in list file', name='kcor/dbinsert', /info
+	mg_log, 'no images in list file', name='kcor', /info
 	goto, done
 endif
 
@@ -143,8 +143,8 @@ sky_bias		= 99.99        ; for testing
 				   status=status, error_message=error_message, sql_statement=sql_cmd
 
 		mg_log, '%d, error message: %s', status, error_message, $
-					name='kcor/dbinsert', /debug
-		mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /debug
+					name='kcor', /debug
+		mg_log, 'sql_cmd: %s', sql_cmd, name='kcor', /debug
 		
 		;TODO: Write sw_id (auto-incremented in kcor_sw table) into kcor_eng table for every entry processed with these 
 		;  software parameters. Actually, in practice, we will be writing previous sw_id into kcor_eng for every entry 
@@ -157,7 +157,7 @@ endwhile
 done:
 obj_destroy, db
 
-mg_log, '*** end of kcor_sw_insert ***', name='kcor/dbinsert', /info
+mg_log, '*** end of kcor_sw_insert ***', name='kcor', /info
 end
 
 ; main-level example program

@@ -37,7 +37,7 @@ pro kcor_mission_insert, date, run=run
 
   np = n_params() 
   if (np ne 1) then begin
-    mg_log, 'missing date parameter', name='kcor/dbinsert', /error
+    mg_log, 'missing date parameter', name='kcor', /error
     return
   endif
 
@@ -54,7 +54,7 @@ pro kcor_mission_insert, date, run=run
                config_section=run.database_config_section
 
   db->getProperty, host_name=host
-  mg_log, 'connected to %s...', host, name='kcor/dbinsert', /info
+  mg_log, 'connected to %s...', host, name='kcor', /info
 
   db->setProperty, database='MLSO'
 
@@ -76,9 +76,9 @@ pro kcor_mission_insert, date, run=run
   db->execute, 'DELETE FROM kcor_mission WHERE date like ''%s''', pdate_dash, $
                status=status, error_message=error_message, sql_statement=sql_cmd
 
-  mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /info
+  mg_log, 'sql_cmd: %s', sql_cmd, name='kcor', /info
   mg_log, 'status: %d, error message: %s', status, error_message, $
-          name='kcor/dbinsert', /info
+          name='kcor', /info
 
   ;-----------------------
   ; Directory definitions.
@@ -100,7 +100,7 @@ pro kcor_mission_insert, date, run=run
   fits_list = file_search('*kcor_l1.fts*', count=nfiles)
 
   if (nfiles eq 0) then begin
-    mg_log, 'no images in list file', name='kcor/dbinsert', /info
+    mg_log, 'no images in list file', name='kcor', /info
     goto, done
   end
 
@@ -185,13 +185,13 @@ pro kcor_mission_insert, date, run=run
                status=status, error_message=error_message, sql_statement=sql_cmd
 
     mg_log, '%s: status: %d, error message: %s', status, error_message, $
-            name='kcor/dbinsert', /debug
-    mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /debug
+            name='kcor', /debug
+    mg_log, 'sql_cmd: %s', sql_cmd, name='kcor', /debug
     if (i EQ 0) then  goto, done
   end
 
   done:
   obj_destroy, db
 
-  mg_log, '*** end of kcor_mission_insert ***', name='kcor/dbinsert', /info
+  mg_log, '*** end of kcor_mission_insert ***', name='kcor', /info
 end
