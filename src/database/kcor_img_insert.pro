@@ -92,10 +92,18 @@ pro kcor_img_insert, date, fits_list, $
   while (++i lt nfiles) do begin
     fts_file = fits_list[i]
 
-    mg_log, 'ingesting %s into database', fts_file, name='kcor/dbinsert', /info
+    is_nrgf = strpos(file_basename(fts_file), 'nrgf') ge 0L
+    fts_file += '.gz'
+
+    if (~file_test(fts_file)) then begin
+      mg_log, '%s not found', fts_file, name='kcor/dbinsert', /warn
+      continue
+    endif else begin
+      mg_log, 'ingesting %s into database', fts_file, name='kcor/dbinsert', /info
+    endelse
 
     ; extract desired items from header
-    hdu   = headfits(fts_file + '.gz', /silent)   ; read FITS header
+    hdu   = headfits(fts_file, /silent)   ; read FITS header
     date_obs   = sxpar(hdu, 'DATE-OBS', count=qdate_obs)
     date_end   = sxpar(hdu, 'DATE-END', count=qdate_end)
     exptime    = sxpar(hdu, 'EXPTIME',  count=qexptime)

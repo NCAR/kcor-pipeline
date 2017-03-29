@@ -337,7 +337,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
   ; check for empty list of OK files
   nfiles = n_elements(ok_files)
   if (nfiles eq 0) then begin
-    mg_log, 'no files to process', name='kcor/rt', /warn
+    mg_log, 'no files to process', name='kcor/rt', /info
     goto, done
   endif
 

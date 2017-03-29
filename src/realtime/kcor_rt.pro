@@ -138,12 +138,11 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     free_lun, okfgif_lun
     free_lun, okl1gz_lun
 
+    ; find the NRGF files now, will move them after updating database
     rg_dir = filepath('', subdir=date_parts, root=run.rg_basedir)
     if (~file_test(rg_dir, /directory)) then file_mkdir, rg_dir
 
     rg_files = file_search('*rg*.fts*', count=n_rg_files)
-    if (n_rg_files gt 0L) then file_move, rg_files, archive_dir, /overwrite
-
     rg_gifs = file_search('*rg*.gif', count=n_rg_gifs)
 
     if (run.update_remote_server && ~keyword_set(reprocess)) then begin
@@ -165,8 +164,6 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       mg_log, 'skipping updating remote server with RG images', name='kcor/rt', /info
     endelse
 
-    if (n_rg_gifs gt 0L) then file_move, rg_gifs, rg_dir, /overwrite
-
     if (run.update_database) then begin
       mg_log, 'updating database', name='kcor/rt', /info
 
@@ -179,12 +176,17 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
                          database=db, $
                          obsday_index=obsday_index
         ;kcor_eng_insert, date, l1_fits_files, run=run
+        obj_destroy, db
       endif else begin
         mg_log, 'no L1 files for img or eng databases', name='kcor/rt', /info
       endelse
     endif else begin
       mg_log, 'skipping updating database', name='kcor/rt', /info
     endelse
+
+    ; now move NRGF files
+;    if (n_rg_files gt 0L) then file_move, rg_files, archive_dir, /overwrite
+    if (n_rg_gifs gt 0L) then file_move, rg_gifs, rg_dir, /overwrite
   endif else begin
     mg_log, 'raw directory locked, quitting', name='kcor/rt', /info
   endelse
@@ -194,7 +196,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
   mg_log, 'done with realtime processing run', name='kcor/rt', /info
 
   rt_time = toc(rt_clock)
-  mg_log, 'total realtime time: %0.1f sec', rt_time, name='kcor/rt', /info
+  mg_log, 'total realtime processing time: %0.1f sec', rt_time, name='kcor/rt', /info
 
   obj_destroy, run
 end
