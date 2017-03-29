@@ -31,13 +31,24 @@ pro kcor_db_clearday, run=run, database=database, obsday_index=obsday_index
     mg_log, 'connected to %s...', host, name='kcor/dbinsert', /info
   endelse
 
+  ; zero num_kcor_pb and num_kcor_nrgf in mlso_numfiles
+  db->execute, 'UPDATE mlso_numfiles SET num_kcor_pb_fits=''0'', num_kcor_nrgf_fits=''0'', num_kcor_pb_lowresgif=''0'', num_kcor_pb_fullresgif=''0'', num_kcor_nrgf_lowresgif=''0'', num_kcor_nrgf_fullresgif=''0'' WHERE day_id=''%d''', $
+               obsday_index, $
+               status=status, error_message=error_message, sql_statement=sql_cmd
+  if (status ne 0L) then begin
+    mg_log, 'status: %d, error message: %s', status, error_message, $
+            name='kcor/dbinsert', /warn
+    mg_log, 'SQL command: %s', sql_cmd, name='kcor/dbinsert', /warn
+  endif
+
   ; kcor_img
   db->execute, 'DELETE FROM kcor_img WHERE obs_day=''%s''', obsday_index, $
                status=status, error_message=error_message, sql_statement=sql_cmd
-
-  mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /info
-  mg_log, 'status: %d, error message: %s', status, error_message, $
-          name='kcor/dbinsert', /info
+  if (status ne 0L) then begin
+    mg_log, 'status: %d, error message: %s', status, error_message, $
+            name='kcor/dbinsert', /info
+    mg_log, 'SQL command: %s', sql_cmd, name='kcor/dbinsert', /info
+  endif
 
   ; TODO: kcor_eng, kcor_cal
 

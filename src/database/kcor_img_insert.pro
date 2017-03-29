@@ -89,6 +89,8 @@ pro kcor_img_insert, date, fits_list, $
   endif
 
   i = -1
+  n_pb_added = 0L
+  n_nrgf_added = 0L
   while (++i lt nfiles) do begin
     fts_file = fits_list[i]
 
@@ -99,7 +101,7 @@ pro kcor_img_insert, date, fits_list, $
       mg_log, '%s not found', fts_file, name='kcor/dbinsert', /warn
       continue
     endif else begin
-      mg_log, 'ingesting %s into database', fts_file, name='kcor/dbinsert', /info
+      mg_log, 'ingesting %s', fts_file, name='kcor/dbinsert', /info
     endelse
 
     ; extract desired items from header
@@ -194,10 +196,31 @@ pro kcor_img_insert, date, fits_list, $
                  filetype_num, numsum, exptime, $
                  status=status, error_message=error_message, sql_statement=sql_cmd
 
-    mg_log, '%d, error message: %s', status, error_message, $
-            name='kcor/dbinsert', /debug
-    mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/dbinsert', /debug
+    if (status eq 0L) then begin
+      if (is_nrgf) then n_nrgf_added += 1 else n_pb_added += 1
+    endif else begin
+      mg_log, 'status: %d, error message: %s', status, error_message, $
+              name='kcor/dbinsert', /warn
+      mg_log, 'SQL command: %s', sql_cmd, name='kcor/dbinsert', /warn
+    endelse
   endwhile
+
+  ; update num_kcor_pb and num_kcor_nrgf in mlso_numfiles
+  num_files_results = db->query('SELECT * FROM mlso_numfiles WHERE day_id=''%d''', obsday_index)
+  n_pb_files = num_files_results.num_kcor_pb_fits + n_pb_added
+  n_nrgf_files = num_files_results.num_kcor_nrgf_fits + n_nrgf_added
+
+  db->execute, 'UPDATE mlso_numfiles SET num_kcor_pb_fits=''%d'', num_kcor_nrgf_fits=''%d'' WHERE day_id=''%d''', $
+               n_pb_files, n_nrgf_files, obsday_index, $
+               status=status, error_message=error_message, sql_statement=sql_cmd
+  mg_log, 'pb = %d, old = %d, added = %d', $
+          n_pb_files, num_files_results.num_kcor_pb_fits, n_pb_added, $
+          name='kcor/dbinsert', /debug
+  if (status ne 0L) then begin
+    mg_log, 'status: %d, error message: %s', status, error_message, $
+            name='kcor/dbinsert', /warn
+    mg_log, 'SQL command: %s', sql_cmd, name='kcor/dbinsert', /warn
+  endif
 
   done:
   if (~obj_valid(database)) then obj_destroy, db
