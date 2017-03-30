@@ -25,6 +25,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     goto, done
   endif
 
+  mg_log, '------------------------------', name='kcor/eod', /info
+
   run = kcor_run(date, config_filename=config_filename)
 
   version = kcor_find_code_version(revision=revision, branch=branch)
@@ -56,25 +58,25 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   t1_log_file = filepath(date + '.kcor.t1.log', root=l0_dir)
   if (file_test(t1_log_file, /regular)) then begin
-    mg_log, 'T1 log in level0/, validation already done', name='kcor/eod', /info
+    mg_log, 't1 log in level0/, validation already done', name='kcor/eod', /info
     goto, done
   endif
 
   t1_log_file = filepath(date + '.kcor.t1.log', root=date_dir)
   if (file_test(t1_log_file, /regular)) then begin
-    mg_log, 'copying T1 log to level0/', name='kcor/eod', /info
+    mg_log, 'copying t1 log to level0/', name='kcor/eod', /info
     file_copy, t1_log_file, l0_dir, /overwrite
   endif else begin
-    mg_log, 'T1 log does not exist in %s', date_dir, name='kcor/eod', /info
+    mg_log, 't1 log does not exist in %s', date_dir, name='kcor/eod', /info
     goto, done
   endelse
 
   t2_log_file = filepath(date + '.kcor.t2.log', root=date_dir)
   if (file_test(t2_log_file, /regular)) then begin
-    mg_log, 'copying T2 log to level0/', name='kcor/eod', /info
+    mg_log, 'copying t2 log to level0/', name='kcor/eod', /info
     file_copy, t2_log_file, l0_dir, /overwrite
   endif else begin
-    mg_log, 'T2 log does not exist in %s', date_dir, name='kcor/eod', /warn
+    mg_log, 't2 log does not exist in %s', date_dir, name='kcor/eod', /warn
   endelse
 
   cd, l0_dir

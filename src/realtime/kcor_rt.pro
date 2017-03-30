@@ -27,12 +27,12 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     goto, done
   endif
 
+  mg_log, '------------------------------', name='kcor/rt', /info
+
   run = kcor_run(date, config_filename=config_filename)
 
   ; ignore math errors
   !except = 0
-
-  mg_log, '------------------------------', name='kcor/rt', /info
 
   version = kcor_find_code_version(revision=revision, branch=branch)
   mg_log, 'kcor-pipeline %s (%s) [%s]', version, revision, branch, $
