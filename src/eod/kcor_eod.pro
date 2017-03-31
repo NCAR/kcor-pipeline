@@ -25,9 +25,9 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     goto, done
   endif
 
-  mg_log, '------------------------------', name='kcor/eod', /info
-
   run = kcor_run(date, config_filename=config_filename)
+
+  mg_log, '------------------------------', name='kcor/eod', /info
 
   version = kcor_find_code_version(revision=revision, branch=branch)
   mg_log, 'kcor-pipeline %s (%s) [%s]', version, revision, branch, $
@@ -180,8 +180,6 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   ; update databases
   ;if (n_l0_fits_files gt 0L) then begin
     ;kcor_cal_insert, date, l0_fits_files, run=run
-    ;kcor_dp_insert, date, l1_fits_files, run=run
-    ;kcor_hw_insert, date, l1_fits_files, run=run
   ;endif else begin
   ;  mg_log, 'no L0 files for cal database', name='kcor/rt', /info
   ;endelse

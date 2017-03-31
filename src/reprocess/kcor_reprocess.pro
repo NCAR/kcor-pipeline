@@ -90,23 +90,14 @@ pro kcor_reprocess, date, config_filename=config_filename
   if (run.update_database) then begin
     mg_log, 'clear database for the day', name='kcor/reprocess', /info
 
-    db = mgdbmysql()
-    db->connect, config_filename=run.database_config_filename, $
-                 config_section=run.database_config_section
-
-    db->getProperty, host_name=host
-    mg_log, 'connected to %s...', host, name='kcor/reprocess', /debug
-
-    db->setProperty, database='MLSO'
-
-    test_db = 1B
-    db_suffix = keyword_set(test_db) ? '_test' : ''
-
-    kcor_db_clearday, db, date, 'kcor_img' + db_suffix
-    kcor_db_clearday, db, date, 'kcor_eng' + db_suffix
-    kcor_db_clearday, db, date, 'kcor_dp' + db_suffix
-    kcor_db_clearday, db, date, 'kcor_hw' + db_suffix
-    kcor_db_clearday, db, date, 'kcor_cal' + db_suffix
+    obsday_index = mlso_obsday_insert(date, $
+                                      run=run, $
+                                      database=db, $
+                                      log_name='kcor/reprocess')
+    kcor_db_clearday, run=run, $
+                      database=db, $
+                      obsday_index=obsday_index, $
+                      log_name='kcor/reprocess'
 
     obj_destroy, db
   endif else begin

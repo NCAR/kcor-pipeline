@@ -10,8 +10,13 @@
 ;     index into mlso_numfiles database table
 ;   database : in, optional, type=MGdbMySql object
 ;     database connection to use
+;   log_name : in, required, type=string
+;     name of log to send log messages to
 ;-
-pro kcor_db_clearday, run=run, database=database, obsday_index=obsday_index
+pro kcor_db_clearday, run=run, $
+                      database=database, $
+                      obsday_index=obsday_index, $
+                      log_name=log_name
   compile_opt strictarr
 
   ; Note: The connect procedure accesses DB connection information in the file
@@ -21,41 +26,88 @@ pro kcor_db_clearday, run=run, database=database, obsday_index=obsday_index
     db = database
 
     db->getProperty, host_name=host
-    mg_log, 'already connected to %s...', host, name='kcor/reprocess', /info
+    mg_log, 'already connected to %s...', host, name=log_name, /info
   endif else begin
     db = mgdbmysql()
     db->connect, config_filename=run.database_config_filename, $
                  config_section=run.database_config_section
 
     db->getProperty, host_name=host
-    mg_log, 'connected to %s...', host, name='kcor/reprocess', /info
+    mg_log, 'connected to %s...', host, name=log_name, /info
   endelse
 
   ; zero num_kcor_pb and num_kcor_nrgf in mlso_numfiles
+  mg_log, 'zeroing values for mlso_numfiles table for obsday index %d', obsday_index, $
+          name=log_name, /info
   db->execute, 'UPDATE mlso_numfiles SET num_kcor_pb_fits=''0'', num_kcor_nrgf_fits=''0'', num_kcor_pb_lowresgif=''0'', num_kcor_pb_fullresgif=''0'', num_kcor_nrgf_lowresgif=''0'', num_kcor_nrgf_fullresgif=''0'' WHERE day_id=''%d''', $
                obsday_index, $
                status=status, error_message=error_message, sql_statement=sql_cmd
   if (status ne 0L) then begin
+    mg_log, 'error zeroing values in mlso_numfiles table for obsday index %d', $
+            obsday_index, name=log_name, /error
     mg_log, 'status: %d, error message: %s', status, error_message, $
-            name='kcor/reprocess', /warn
-    mg_log, 'SQL command: %s', sql_cmd, name='kcor/reprocess', /warn
+            name=log_name, /error
+    mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
   endif
 
   ; kcor_img
+  mg_log, 'clearing kcor_img table for obsday index %d', obsday_index, $
+          name=log_name, /info
   db->execute, 'DELETE FROM kcor_img WHERE obs_day=''%s''', obsday_index, $
                status=status, error_message=error_message, sql_statement=sql_cmd
   if (status ne 0L) then begin
+    mg_log, 'error clearing kcor_im table for obsday index %d', obsday_index, $
+            name=log_name, /error
     mg_log, 'status: %d, error message: %s', status, error_message, $
-            name='kcor/reprocess', /info
-    mg_log, 'SQL command: %s', sql_cmd, name='kcor/reprocess', /info
+            name=log_name, /error
+    mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
   endif
 
-  ; TODO: kcor_eng, kcor_cal
+  ; kcor_eng
+  mg_log, 'clearing kcor_eng table for obsday index %d', obsday_index, $
+          name=log_name, /info
+  db->execute, 'DELETE FROM kcor_eng WHERE obs_day=''%s''', obsday_index, $
+               status=status, error_message=error_message, sql_statement=sql_cmd
+  if (status ne 0L) then begin
+    mg_log, 'error clearing kcor_eng table for obsday index %d', obsday_index, $
+            name=log_name, /error
+    mg_log, 'status: %d, error message: %s', status, error_message, $
+            name=log_name, /error
+    mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
+  endif
+
+  ; mlso_sgs
+  mg_log, 'clearing mlso_sgs table for obsday index %d', obsday_index, $
+          name=log_name, /info
+  db->execute, 'DELETE FROM mlso_sgs WHERE obs_day=''%s'' AND source=''k''', $
+               obsday_index, $
+               status=status, error_message=error_message, sql_statement=sql_cmd
+  if (status ne 0L) then begin
+    mg_log, 'error clearing mlso_sgs table for obsday index %d', obsday_index, $
+            name=log_name, /error
+    mg_log, 'status: %d, error message: %s', status, error_message, $
+            name=log_name, /error
+    mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
+  endif
+
+  ; kcor_cal
+  mg_log, 'clearing kcor_cal table for obsday index %d', obsday_index, $
+          name=log_name, /info
+  db->execute, 'DELETE FROM kcor_cal WHERE obs_day=''%s''', $
+               obsday_index, $
+               status=status, error_message=error_message, sql_statement=sql_cmd
+  if (status ne 0L) then begin
+    mg_log, 'error clearing kcor_cal table for obsday index %d', obsday_index, $
+            name=log_name, /error
+    mg_log, 'status: %d, error message: %s', status, error_message, $
+            name=log_name, /error
+    mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
+  endif
 
   done:
   if (~obj_valid(database)) then obj_destroy, db
 
-  mg_log, 'done', name='kcor/reprocess', /info
+  mg_log, 'done', name=log_name, /info
 end
 
 

@@ -48,13 +48,12 @@ pro kcor_img_insert, date, fits_list, $
   compile_opt strictarr
   on_error, 2
 
-  np = n_params() 
-  if (np ne 2) then begin
+  if (n_params() ne 2) then begin
     mg_log, 'missing date or filelist parameters', name='kcor/rt', /error
     return
   endif
 
-  ; Connect to MLSO database
+  ; connect to MLSO database
 
   ; Note: The connect procedure accesses DB connection information in the file
   ;       .mysqldb. The "config_section" parameter specifies which group of data
@@ -186,23 +185,25 @@ pro kcor_img_insert, date, fits_list, $
       if (is_nrgf) then n_nrgf_added += 1 else n_pb_added += 1
     endif else begin
       mg_log, 'status: %d, error message: %s', status, error_message, $
-              name='kcor/rt', /warn
-      mg_log, 'SQL command: %s', sql_cmd, name='kcor/rt', /warn
+              name='kcor/rt', /error
+      mg_log, 'SQL command: %s', sql_cmd, name='kcor/rt', /error
     endelse
   endwhile
 
-  ; update num_kcor_pb and num_kcor_nrgf in mlso_numfiles
+  ; update number of files in mlso_numfiles
   num_files_results = db->query('SELECT * FROM mlso_numfiles WHERE day_id=''%d''', obsday_index)
   n_pb_files = num_files_results.num_kcor_pb_fits + n_pb_added
   n_nrgf_files = num_files_results.num_kcor_nrgf_fits + n_nrgf_added
 
-  db->execute, 'UPDATE mlso_numfiles SET num_kcor_pb_fits=''%d'', num_kcor_nrgf_fits=''%d'' WHERE day_id=''%d''', $
-               n_pb_files, n_nrgf_files, obsday_index, $
+  db->execute, 'UPDATE mlso_numfiles SET num_kcor_pb_fits=''%d'', num_kcor_nrgf_fits=''%d'', num_kcor_pb_lowresgif=''%d'', num_kcor_pb_fullresgif=''%d'', num_kcor_nrgf_lowresgif=''%d'', num_kcor_nrgf_fullresgif=''%d'' WHERE day_id=''%d''', $
+               n_pb_files, n_nrgf_files, $
+               n_pb_files, n_pb_files, n_nrgf_files, n_nrgf_files, $
+               obsday_index, $
                status=status, error_message=error_message, sql_statement=sql_cmd
   if (status ne 0L) then begin
     mg_log, 'status: %d, error message: %s', status, error_message, $
-            name='kcor/rt', /warn
-    mg_log, 'SQL command: %s', sql_cmd, name='kcor/rt', /warn
+            name='kcor/rt', /error
+    mg_log, 'SQL command: %s', sql_cmd, name='kcor/rt', /error
   endif
 
   done:

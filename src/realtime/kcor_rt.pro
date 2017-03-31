@@ -27,9 +27,9 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     goto, done
   endif
 
-  mg_log, '------------------------------', name='kcor/rt', /info
-
   run = kcor_run(date, config_filename=config_filename)
+
+  mg_log, '------------------------------', name='kcor/rt', /info
 
   ; ignore math errors
   !except = 0
@@ -92,7 +92,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     ok_files = kcor_quality(date, l0_fits_files, /append, run=run)
     mg_log, '%d OK L0 files', n_elements(ok_files), name='kcor/rt', /info
 
-    kcor_l1, date, ok_files, /append, run=run
+    kcor_l1, date, ok_files, /append, run=run, mean_phase1=mean_phase1
 
     mg_log, 'moving processed files to l0_dir', name='kcor/rt', /info
     file_move, l0_fits_files, l0_dir, /overwrite
@@ -147,21 +147,21 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
 
     if (run.update_remote_server && ~keyword_set(reprocess)) then begin
       if (n_rg_gifs gt 0L) then begin
-        mg_log, 'transferring %d RG GIFs to remote server', n_rg_gifs, $
+        mg_log, 'transferring %d NRGF GIFs to remote server', n_rg_gifs, $
                 name='kcor/rt', /debug
         spawn_cmd = string(run.rg_remote_server, run.rg_remote_dir, $
                            format='(%"scp -B -r -p *rg*.gif %s:%s")')
         spawn, spawn_cmd, result, error_result, exit_status=status
         if (status ne 0L) then begin
-          mg_log, 'problem scp-ing RG files with command: %s', spawn_cmd, $
+          mg_log, 'problem scp-ing NRGF files with command: %s', spawn_cmd, $
                   name='kcor/rt', /error
           mg_log, '%s', error_result, name='kcor/rt', /error
         endif
       endif else begin
-        mg_log, 'no RG imagess to transfer to remote server', name='kcor/rt', /info
+        mg_log, 'no NRGF images to transfer to remote server', name='kcor/rt', /info
       endelse
     endif else begin
-      mg_log, 'skipping updating remote server with RG images', name='kcor/rt', /info
+      mg_log, 'skipping updating remote server with NRGF images', name='kcor/rt', /info
     endelse
 
     if (run.update_database) then begin
@@ -169,13 +169,29 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
 
       ; update databases that use L1 files
       if (n_l1_fits_files gt 0L) then begin
-        obsday_index = mlso_obsday_insert(date, run=run, database=db)
+        obsday_index = mlso_obsday_insert(date, $
+                                          run=run, $
+                                          database=db, $
+                                          status=db_status, $
+                                          log_name='kcor/rt')
 
-        kcor_img_insert, date, l1_fits_files, $
-                         run=run, $
-                         database=db, $
-                         obsday_index=obsday_index
-        ;kcor_eng_insert, date, l1_fits_files, run=run
+        if (db_status eq 0L) then begin
+          kcor_img_insert, date, l1_fits_files, $
+                           run=run, $
+                           database=db, $
+                           obsday_index=obsday_index
+          kcor_eng_insert, date, l1_fits_files, $
+                           mean_phase1=mean_phase1, $
+                           run=run, $
+                           database=db, $
+                           obsday_index=obsday_index
+          mlso_sgs_insert, date, l1_fits_files, $
+                           run=run, $
+                           database=db, $
+                           obsday_index=obsday_index
+        endif else begin
+          mg_log, 'skipping database inserts', name='kcor/rt', /warn
+        endelse
         obj_destroy, db
       endif else begin
         mg_log, 'no L1 files for img or eng databases', name='kcor/rt', /info

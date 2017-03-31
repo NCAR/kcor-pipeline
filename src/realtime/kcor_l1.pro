@@ -280,12 +280,16 @@
 ; :Params:
 ;   date : in, required, type=string, 
 ;     format='yyyymmdd', where yyyy=year, mm=month, dd=day
-;
-; :Keywords:
 ;   ok_files : in, optional, type=strarr
 ;     array containing FITS level 0 filenames
-;  append : in, optional, type=boolean
+;
+; :Keywords:
+;   append : in, optional, type=boolean
 ;     if set, append log output to existing log file
+;   run : in, required, type=object
+;     `kcor_run` object
+;   mean_phase1 : out, optional, type=fltarr
+;     mean_phase1 for each file in `ok_files`
 ; 
 ;------------------------------------------------------------------------------
 ; :Examples:
@@ -312,7 +316,7 @@
 ; All Level 1 files (fits & gif) will be stored in the sub-directory 'level1',
 ; under the date directory.
 ;-
-pro kcor_l1, date_str, ok_files, append=append, run=run
+pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
   compile_opt strictarr
 
   tic
@@ -340,6 +344,8 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
     mg_log, 'no files to process', name='kcor/rt', /info
     goto, done
   endif
+
+  mean_phase1 = fltarr(nfiles)
 
   ; extract information from calibration file
   calpath = filepath(run.cal_file, root=run.cal_out_dir)
@@ -468,7 +474,9 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
     type = ''
     type = fxpar(header, 'DATATYPE')
 
-    mg_log, 'file %d: %s, type: %s', fnum, file_basename(l0_file), type, name='kcor/rt', /debug
+    mg_log, 'processing %d/%d: %s, type: %s', $
+            fnum, nfiles, file_basename(l0_file), type, $
+            name='kcor/rt', /info
 
     ; read date of observation (needed to compute ephemeris info)
     date_obs = sxpar(header, 'DATE-OBS')   ; yyyy-mm-ddThh:mm:ss
@@ -1058,7 +1066,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
       endif
     endfor
 
-    mean_phase1 = mean(phase1)
+    mean_phase1[fnum - 1] = mean(phase1)
 
     ; radial_amplitude1 = interpol (amplitude1, radscan, rr1,/spline)
     ; radial_amplitude1 = interpol (amplitude1, radscan, rr1, /quadratic)
@@ -1090,12 +1098,12 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
       wait, 1
     endif
 
-    sky_polar_u1 = radial_amplitude1 * sin(2.0 * theta1 + mean_phase1)
+    sky_polar_u1 = radial_amplitude1 * sin(2.0 * theta1 + mean_phase1[fnum - 1])
     sky_polar_q1 = radial_amplitude1 * sin(2.0 * theta1 + 90.0 / !radeg $
-                                             + mean_phase1) + run.bias_term
+                                             + mean_phase1[fnum - 1]) + run.bias_term
 
     ;   sky_polar_q1 = radial_amplitude1 * sin (2.0 * theta1 + 90.0 / !radeg $
-    ;                                           + mean_phase1 ) + bias_image
+    ;                                           + mean_phase1[fnum - 1]) + bias_image
 
     qmk4_new = qmk4 - factor * sky_polar_q1 * intensity
     umk4_new = umk4 - factor * sky_polar_u1 * intensity
@@ -1704,7 +1712,6 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
   ; get system time & compute elapsed time since "TIC" command
   done:
   total_time = toc()
-  mg_log, 'total duration: %0.1f sec', total_time, name='kcor/rt', /info
 
   if (nfiles ne 0) then begin
     image_time = total_time / nfiles
@@ -1712,6 +1719,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
     image_time = 0.0
   endelse
 
-  mg_log, 'time/image: %0.1f sec', image_time, name='kcor/rt', /debug
-  mg_log, 'number of images: %d', nfiles, name='kcor/rt', /debug
+  mg_log, 'duration: %0.1f sec, number of images: %d', total_time, nfiles, $
+          name='kcor/rt', /info
+  mg_log, 'time/image: %0.1f sec', image_time, name='kcor/rt', /info
 end

@@ -8,8 +8,29 @@
 ;
 ; :History:
 ;   2017-03-20 Don Kolinski
+;
+; :Returns:
+;   integer
+;
+; :Params:
+;   date : in, required, type=string
+;
+; :Keywords:
+;   run : in, required, type=object
+;     `kcor_run` object
+;   database : out, optional, type=object
+;     set to a named variable to retrieve the database object
+;   status : out, optional, type=long
+;     set to a named variable to retrieve the status of the database connection,
+;     0 for success
+;   log_name : in, required, type=string
+;     name of log to send log messages to
 ;-
-function mlso_obsday_insert, date, run=run, database=db
+function mlso_obsday_insert, date, $
+                             run=run, $
+                             database=db, $
+                             status=status, $
+                             log_name=log_name
   compile_opt strictarr
 
   ; Connect to MLSO database.
@@ -20,10 +41,14 @@ function mlso_obsday_insert, date, run=run, database=db
 
   db = mgdbmysql()
   db->connect, config_filename=run.database_config_filename, $
-               config_section=run.database_config_section
+               config_section=run.database_config_section, $
+               status=status, error_message=error_message
+  if (status ne 0L) then begin
+    mg_log, '%s', error_message, name=log_name, /error
+  endif
 
   db->getProperty, host_name=host
-  mg_log, 'connected to %s...', host, name='kcor/rt', /info
+  mg_log, 'connected to %s...', host, name=log_name, /info
 
   db->setProperty, database='MLSO'
 
@@ -41,8 +66,8 @@ function mlso_obsday_insert, date, run=run, database=db
                  obs_day, $
                  status=status, error_message=error_message, sql_statement=sql_cmd
     mg_log, 'status: %d, error message: %s', status, error_message, $
-            name='kcor/rt', /debug
-    mg_log, 'SQL command: %s', sql_cmd, name='kcor/rt', /debug
+            name=log_name, /debug
+    mg_log, 'SQL command: %s', sql_cmd, name=log_name, /debug
 		
     obs_day_index = db->query('SELECT LAST_INSERT_ID()')	
   endif else begin
@@ -65,7 +90,7 @@ run = kcor_run(date, $
                                         subdir=['..', '..', 'config'], $
                                         root=mg_src_root()))
 										
-obs_day_num = mlso_obsday_insert(date, run=run)
+obs_day_num = mlso_obsday_insert(date, run=run, log_name='kcor/rt')
 print, obs_day_num
 
 end

@@ -920,7 +920,8 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
   ; move 'okf_list' to 'date' directory
   ;if (file_test(okf_qpath)) then file_copy, okf_qpath, okf_dpath, /overwrite
   if (file_test(okf_qpath)) then begin
-    mg_log, 'moving %s to %s', okf_qpath, okf_dpath, name='kcor/rt', /debug
+    mg_log, 'moving %s/q/%s to %s/%s', date, okf_list, date, okf_list, $
+            name='kcor/rt', /debug
     file_move, okf_qpath, okf_dpath, /overwrite
   endif
 
@@ -928,12 +929,6 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
 
   cd, start_dir
   set_plot, 'X'
-
-  ; get system time & compute elapsed time since "TIC" command
-  qtime = toc()
-  mg_log, 'elapsed time: %0.1f sec', qtime, name='kcor/rt', /info
-  mg_log, '%0.1f sec/image', qtime / num_img, name='kcor/rt', /info
-  mg_log, 'done', name='kcor/rt', /info
 
   n_ok_files = file_lines(okf_dpath)
   if (n_ok_files gt 0L) then begin
@@ -944,6 +939,16 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
   endif else begin
     ok_files = !null
   endelse
+
+  mg_log, 'number of OK images: %d', n_ok_files, name='kcor/rt', /debug
+
+  ; get system time & compute elapsed time since "TIC" command
+  qtime = toc()
+  mg_log, 'elapsed time: %0.1f sec', qtime, name='kcor/rt', /info
+  mg_log, '%0.1f sec/image', qtime / num_img, name='kcor/rt', /info
+
+
+  mg_log, 'done', name='kcor/rt', /info
 
   return, ok_files
 end
