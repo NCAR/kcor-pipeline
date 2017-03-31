@@ -174,7 +174,6 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
                                           database=db, $
                                           status=db_status, $
                                           log_name='kcor/rt')
-
         if (db_status eq 0L) then begin
           kcor_img_insert, date, l1_fits_files, $
                            run=run, $
@@ -194,7 +193,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
         endelse
         obj_destroy, db
       endif else begin
-        mg_log, 'no L1 files for img or eng databases', name='kcor/rt', /info
+        mg_log, 'no L1 files for img, eng, or sgs tables', name='kcor/rt', /info
       endelse
     endif else begin
       mg_log, 'skipping updating database', name='kcor/rt', /info

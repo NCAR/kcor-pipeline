@@ -176,13 +176,31 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     goto, done
   endelse
 
-  ; TODO: not sure where these go?
   ; update databases
-  ;if (n_l0_fits_files gt 0L) then begin
-    ;kcor_cal_insert, date, l0_fits_files, run=run
-  ;endif else begin
-  ;  mg_log, 'no L0 files for cal database', name='kcor/rt', /info
-  ;endelse
+  if (run.update_database) then begin
+    mg_log, 'updating database', name='kcor/rt', /info
+    cal_files = kcor_read_calibration_text(date, run.process_basedir, $
+                                           exposures=exposures, $
+                                           n_files=n_cal_files)
+    if (n_cal_files gt 0L) then begin
+      obsday_index = mlso_obsday_insert(date, $
+                                        run=run, $
+                                        database=db, $
+                                        status=db_status, $
+                                        log_name='kcor/eod')
+      if (db_status eq 0L) then begin
+        kcor_cal_insert, date, cal_files, $
+                         run=run, database=db, obsday_index=obsday_index
+      endif else begin
+        mg_log, 'skipping database inserts', name='kcor/eod', /warn
+      endelse
+      obj_destroy, db
+    endif else begin
+      mg_log, 'no cal files for kcor_cal table', name='kcor/eod', /info
+    endelse
+  endif else begin
+    mg_log, 'skipping updating database', name='kcor/eod', /info
+  endelse
 
   ; remove zero length files in 'q' sub-directory
   cd, filepath('q', root=date_dir)
@@ -199,6 +217,6 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   file_delete, 'list_okf', /allow_nonexistent
 
   done:
-  mg_log, 'done with end-of-day processing', name='kcor/eod', /info
+  mg_log, 'done', name='kcor/eod', /info
   obj_destroy, run
 end
