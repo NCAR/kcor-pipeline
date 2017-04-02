@@ -24,6 +24,8 @@
 ;     if set, negative discontinuities will be found
 ;   chisq : out, optional, type=float
 ;     set to a named variable to retrieve the chi^2
+;   log_name : in, required, type=string
+;     name of log to send log messages to
 ;
 ; :Uses:
 ;   kcor_radial_der, fitcircle
@@ -42,7 +44,8 @@ function kcor_find_image, data, radius_guess, $
                           center_guess=center_guess, $
                           drad=drad, $
                           chisq=chisq, $
-                          debug=debug
+                          debug=debug, $
+                          log_name=log_name
   compile_opt strictarr
 
   default, debug, 0
@@ -139,7 +142,7 @@ function kcor_find_image, data, radius_guess, $
   ; range if it fails again, replace fit values with array center and
   ; radius_guess
   if (finite(xc) eq 0 or finite(yc) eq 0) then begin
-    mg_log, 'center not found, trying larger range', name='kcor/rt', /warn
+    mg_log, 'center not found, trying larger range', name=log_name, /warn
     drad = 52
     kcor_radial_der, data, xcen_guess, ycen_guess, radius_guess, drad, theta, cent
     x = cent * cos(theta)
@@ -151,7 +154,7 @@ function kcor_find_image, data, radius_guess, $
       xc = 511.5 - xcen_guess
       yc = 511.5 - ycen_guess
       r = radius_guess
-      mg_log, 'center not found', name='kcor/rt', /warn
+      mg_log, 'center not found', name=log_name, /warn
     endif
   endif
 

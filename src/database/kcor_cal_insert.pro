@@ -57,14 +57,14 @@ pro kcor_cal_insert, date, fits_list, $
     db = database
 
     db->getProperty, host_name=host
-    mg_log, 'already connected to %s...', host, name='kcor/rt', /info
+    mg_log, 'already connected to %s...', host, name='kcor/eod', /info
   endif else begin
     db = mgdbmysql()
     db->connect, config_filename=run.database_config_filename, $
                  config_section=run.database_config_section
 
     db->getProperty, host_name=host
-    mg_log, 'connected to %s...', host, name='kcor/rt', /info
+    mg_log, 'connected to %s...', host, name='kcor/eod', /info
   endelse
 
   l0_dir = filepath('level0', subdir=date, root=run.raw_basedir)
@@ -81,8 +81,15 @@ pro kcor_cal_insert, date, fits_list, $
   i = -1
   while (++i lt nfiles) do begin
     fts_file = fits_list[i]
+
+    fts_file += '.gz'
     
-    ; extract desired items from header
+    if (~file_test(fts_file)) then begin
+      mg_log, '%s not found', fts_file, name='kcor/eod', /warn
+      continue
+    endif else begin
+      mg_log, 'ingesting %s', fts_file, name='kcor/eod', /info
+    endelse
 
     hdu = headfits(fts_file, /silent)   ; read FITS header
 	

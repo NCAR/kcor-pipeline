@@ -67,7 +67,7 @@ pro kcor_nrgf, fits_file
   if (occulter eq 1006.0) then occulter = 1006.9
 
   radius_guess = 178
-  img_info = kcor_find_image(img, radius_guess)
+  img_info = kcor_find_image(img, radius_guess, log_name='kcor/rt')
   xc   = img_info[0]
   yc   = img_info[1]
   r    = img_info[2]

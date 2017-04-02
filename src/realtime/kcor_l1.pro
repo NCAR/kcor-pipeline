@@ -402,8 +402,8 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
   radius_guess = 178   ; average radius for occulter
 
   ;printf, ULOG, 'radius_guess ', radius_guess
-  info_gain0 = kcor_find_image(gain_alfred[*, *, 0], radius_guess)
-  info_gain1 = kcor_find_image(gain_alfred[*, *, 1], radius_guess)
+  info_gain0 = kcor_find_image(gain_alfred[*, *, 0], radius_guess, log_name='kcor/rt')
+  info_gain1 = kcor_find_image(gain_alfred[*, *, 1], radius_guess, log_name='kcor/rt')
 
   ; define coordinate arrays for gain images
   gxx0 = findgen(xsize, ysize) mod xsize - info_gain0[0]
@@ -620,7 +620,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
  
     ; camera 0 (reflected)
     info_raw  = kcor_find_image(img[*, *, 0, 0], $
-                                radius_guess, /center_guess)
+                                radius_guess, /center_guess, log_name='kcor/rt')
     xcen0    = info_raw[0]
     ycen0    = info_raw[1]
     radius_0 = info_raw[2]
@@ -642,7 +642,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
 
     ; camera 1 (transmitted)
     info_raw = kcor_find_image(img[*, *, 0, 1], $
-                               radius_guess, /center_guess)
+                               radius_guess, /center_guess, log_name='kcor/rt')
     xcen1    = info_raw[0]
     ycen1    = info_raw[1]
     radius_1 = info_raw[2]
@@ -765,7 +765,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
 
     ; find image centers of distortion-corrected images
     ; camera 0:
-    info_dc0 = kcor_find_image(cimg0, radius_guess, /center_guess)
+    info_dc0 = kcor_find_image(cimg0, radius_guess, /center_guess, log_name='kcor/rt')
     xcc0     = info_dc0[0]
     ycc0     = info_dc0[1]
     radius_0 = info_dc0[2]
@@ -780,7 +780,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     endif
 
     ; camera 1:
-    info_dc1 = kcor_find_image(cimg1, radius_guess, /center_guess)
+    info_dc1 = kcor_find_image(cimg1, radius_guess, /center_guess, log_name='kcor/rt')
     xcc1     = info_dc1[0]
     ycc1     = info_dc1[1]
     radius_1 = info_dc1[2]

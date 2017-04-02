@@ -40,7 +40,7 @@ pro kcor_reprocess, date, config_filename=config_filename
     if (status ne 0L) then begin
       mg_log, 'problem zipping files with command: %s', gzip_cmd, $
                 name='kcor/reprocess', /error
-      mg_log, '%s', error_result, name='kcor/reprocess', /error
+      mg_log, '%s', stjoin(error_result, ' '), name='kcor/reprocess', /error
     endif
   endif else begin
     mg_log, 'no L0 FITS files to zip', name='kcor/reprocess', /info

@@ -178,7 +178,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   ; update databases
   if (run.update_database) then begin
-    mg_log, 'updating database', name='kcor/rt', /info
+    mg_log, 'updating database', name='kcor/eod', /info
     cal_files = kcor_read_calibration_text(date, run.process_basedir, $
                                            exposures=exposures, $
                                            n_files=n_cal_files)

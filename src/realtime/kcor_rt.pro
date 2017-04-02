@@ -75,7 +75,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       if (status ne 0L) then begin
         mg_log, 'problem unzipping files with command: %s', gunzip_cmd, $
                 name='kcor/rt', /error
-        mg_log, '%s', error_result, name='kcor/rt', /error
+        mg_log, '%s', strjoin(error_result, ' '), name='kcor/rt', /error
       endif
     endif else begin
       mg_log, 'no L0 FITS files to unzip', name='kcor/rt', /info
@@ -108,7 +108,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       if (status ne 0L) then begin
         mg_log, 'problem zipping files with command: %s', gzip_cmd, $
                 name='kcor/rt', /error
-        mg_log, '%s', error_result, name='kcor/rt', /error
+        mg_log, '%s', strjoin(error_result, ' '), name='kcor/rt', /error
       endif
     endif else begin
       mg_log, 'no L1 FITS files to zip', name='kcor/rt', /info
@@ -155,7 +155,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
         if (status ne 0L) then begin
           mg_log, 'problem scp-ing NRGF files with command: %s', spawn_cmd, $
                   name='kcor/rt', /error
-          mg_log, '%s', error_result, name='kcor/rt', /error
+          mg_log, '%s', strjoin(error_result, ' '), name='kcor/rt', /error
         endif
       endif else begin
         mg_log, 'no NRGF images to transfer to remote server', name='kcor/rt', /info

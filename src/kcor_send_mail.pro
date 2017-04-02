@@ -39,7 +39,7 @@ pro kcor_send_mail, address, subject, body, error=error, logger_name=logger_name
   spawn, cmd, result, error_result, exit_status=error
   if (error ne 0L) then begin
     mg_log, 'problem with mail command: %s', cmd, name=logger_name, /error
-    mg_log, error_result, name=logger_name, /error
+    mg_log, strjoin(error_result, ' '), name=logger_name, /error
   endif
 
   if (n_elements(body) gt 0L) then file_delete, body_filename
