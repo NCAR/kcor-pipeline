@@ -135,19 +135,19 @@ pro kcor_eng_insert, date, fits_list, $
       level = strmid(level, 0, os)   ; strip off NRGF from level, if present
     endif	
 		
-    bunit      = strtrim(sxpar(hdu, 'BUNIT',  count=qbunit),2)
-    bzero      = sxpar(hdu, 'BZERO',  count=qbzero)
-    bscale     = sxpar(hdu, 'BSCALE',  count=qbscale)
-    rcamxcen   = sxpar(hdu, 'RCAMXCEN',  count=qrcamxcen)
-    rcamycen   = sxpar(hdu, 'RCAMYCEN',  count=qrcamycen)
-    tcamxcen   = sxpar(hdu, 'TCAMXCEN',  count=qtcamxcen)
-    tcamycen   = sxpar(hdu, 'TCAMYCEN',  count=qtcamycen)
-    rcam_rad   = sxpar(hdu, 'RCAM_RAD',  count=qrcamrad)
-    tcam_rad   = sxpar(hdu, 'TCAM_RAD',  count=qtcamrad)
-    cover      = strtrim(sxpar(hdu, 'COVER',  count=qcover),2)
-    darkshut   = strtrim(sxpar(hdu, 'DARKSHUT',  count=qdarkshut),2)
-    diffuser   = strtrim(sxpar(hdu, 'DIFFUSER',  count=qdarkshut),2)
-    calpol     = strtrim(sxpar(hdu, 'CALPOL',  count=qcalpol),2)
+    bunit      = strtrim(sxpar(hdu, 'BUNIT',    count=qbunit), 2)
+    bzero      =         sxpar(hdu, 'BZERO',    count=qbzero)
+    bscale     =         sxpar(hdu, 'BSCALE',   count=qbscale)
+    rcamxcen   =         sxpar(hdu, 'RCAMXCEN', count=qrcamxcen)
+    rcamycen   =         sxpar(hdu, 'RCAMYCEN', count=qrcamycen)
+    tcamxcen   =         sxpar(hdu, 'TCAMXCEN', count=qtcamxcen)
+    tcamycen   =         sxpar(hdu, 'TCAMYCEN', count=qtcamycen)
+    rcam_rad   =         sxpar(hdu, 'RCAM_RAD', count=qrcamrad)
+    tcam_rad   =         sxpar(hdu, 'TCAM_RAD', count=qtcamrad)
+    cover      = strtrim(sxpar(hdu, 'COVER',    count=qcover), 2)
+    darkshut   = strtrim(sxpar(hdu, 'DARKSHUT', count=qdarkshut), 2)
+    diffuser   = strtrim(sxpar(hdu, 'DIFFUSER', count=qdarkshut), 2)
+    calpol     = strtrim(sxpar(hdu, 'CALPOL',   count=qcalpol), 2)
 
     fits_file = file_basename(fts_file, '.gz') ; remove '.gz' from file name.
 		

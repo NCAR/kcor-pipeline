@@ -1387,7 +1387,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     fxaddpar, newheader, 'BZERO', struct.bzero, $
                          ' offset for unsigned integer data'
     fxaddpar, newheader, 'BSCALE', bscale, $
-                         ' physical = data * BSCALE + BZERO', format = '(f8.3)'
+                         ' physical = data * BSCALE + BZERO', format='(f8.3)'
 
     ; data display information
     fxaddpar, newheader, 'DATAMIN', datamin, ' minimum  value of  data'

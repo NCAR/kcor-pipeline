@@ -110,12 +110,6 @@ $command = "CREATE TABLE kcor_cal
   tcamid		CHAR (18),
   rcamlut		CHAR (14),
   tcamlut		CHAR (14),
-  rcamxcen		FLOAT (9, 3),
-  rcamycen		FLOAT (9, 3),
-  tcamxcen		FLOAT (9, 3),
-  tcamycen		FLOAT (9, 3),
-  rcam_rad		FLOAT (9, 3),
-  tcam_rad		FLOAT (9, 3),
   rcamfocs		FLOAT (7, 3),
   tcamfocs		FLOAT (7, 3),
   modltrid		CHAR (1),
@@ -133,7 +127,7 @@ $command = "CREATE TABLE kcor_cal
   INDEX (obs_day),
   FOREIGN KEY (level) REFERENCES kcor_level(level_id),
   FOREIGN KEY (obs_day) REFERENCES mlso_numfiles(day_id)  
-  )" ;  # TODO: remove _test when in production
+  )" ;
 
 $sth = $dbh->prepare ($command) ;
 $sth->execute () ;

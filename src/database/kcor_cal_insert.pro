@@ -121,35 +121,29 @@ pro kcor_cal_insert, date, fits_list, $
     mean_int_img6 = mean(image[*, *, 2, 1])
     mean_int_img7 = mean(image[*, *, 3, 1])
 	
-    rcamid   = strtrim(sxpar(hdu, 'RCAMID', count=qrcamid),2)
-    tcamid   = strtrim(sxpar(hdu, 'TCAMID', count=qtcamid),2)
-    rcamlut  = strtrim(sxpar(hdu, 'RCAMLUT', count=qrcamlut),2)
-    tcamlut  = strtrim(sxpar(hdu, 'TCAMLUT', count=qtcamlut),2)
-    rcamxcen = sxpar(hdu, 'RCAMXCEN', count=qrcamxcen)
-    rcamycen = sxpar(hdu, 'RCAMYCEN', count=qrcamycen)
-    tcamxcen = sxpar(hdu, 'TCAMXCEN', count=qtcamxcen)
-    tcamycen = sxpar(hdu, 'TCAMYCEN', count=qtcamycen)
-    rcam_rad = sxpar(hdu, 'RCAM_RAD', count=qrcam_rad)
-    tcam_rad = sxpar(hdu, 'TCAM_RAD', count=qtcam_rad)
-    rcamfocs = sxpar(hdu, 'RCAMFOCS', count=qrcamfocs)
-    tcamfocs = sxpar(hdu, 'TCAMFOCS', count=qtcamfocs)
+    rcamid   = strtrim(sxpar(hdu, 'RCAMID', count=qrcamid), 2)
+    tcamid   = strtrim(sxpar(hdu, 'TCAMID', count=qtcamid), 2)
+    rcamlut  = strtrim(sxpar(hdu, 'RCAMLUT', count=qrcamlut), 2)
+    tcamlut  = strtrim(sxpar(hdu, 'TCAMLUT', count=qtcamlut), 2)
+    rcamfocs =         sxpar(hdu, 'RCAMFOCS', count=qrcamfocs)
+    tcamfocs =         sxpar(hdu, 'TCAMFOCS', count=qtcamfocs)
     ;TODO: Deal with NaN (where else can we expect it?)
-    if (strtrim(rcamfocs,2) eq 'NaN') then begin
+    if (strtrim(rcamfocs, 2) eq 'NaN') then begin
       rcamfocs = -999.990
     endif
-    if (strtrim(tcamfocs,2) eq 'NaN') then begin
+    if (strtrim(tcamfocs, 2) eq 'NaN') then begin
       tcamfocs = -999.990
     endif
-    modltrid    = strtrim(sxpar(hdu, 'MODLTRID', count=qmodltrid),2)
-    modltrt     = sxpar(hdu, 'MODLTRT', count=qmodltrt)
-    occltrid    = strtrim(sxpar(hdu, 'OCCLTRID', count=qoccltrid),2)
-    o1id        = strtrim(sxpar(hdu, 'O1ID', count=qo1id),2)
-    o1focs      = sxpar(hdu, 'O1FOCS', count=qo1focs)
-    calpolid    = strtrim(sxpar(hdu, 'CALPOLID', count=qcalpolid),2)
-    diffsrid    = strtrim(sxpar(hdu, 'DIFFSRID', count=qdiffsrid),2)
-    filterid    = strtrim(sxpar(hdu, 'FILTERID', count=qfilterid),2)
-    sgsdimv     = sxpar(hdu, 'SGSDIMV', count=qkcor_sgsdimv)
-    sgsdims     = sxpar(hdu, 'SGSDIMS', count=qkcor_sgsdims)
+    modltrid    = strtrim(sxpar(hdu, 'MODLTRID', count=qmodltrid), 2)
+    modltrt     =         sxpar(hdu, 'MODLTRT',  count=qmodltrt)
+    occltrid    = strtrim(sxpar(hdu, 'OCCLTRID', count=qoccltrid), 2)
+    o1id        = strtrim(sxpar(hdu, 'O1ID',     count=qo1id),2)
+    o1focs      =         sxpar(hdu, 'O1FOCS',   count=qo1focs)
+    calpolid    = strtrim(sxpar(hdu, 'CALPOLID', count=qcalpolid), 2)
+    diffsrid    = strtrim(sxpar(hdu, 'DIFFSRID', count=qdiffsrid), 2)
+    filterid    = strtrim(sxpar(hdu, 'FILTERID', count=qfilterid), 2)
+    sgsdimv     =         sxpar(hdu, 'SGSDIMV',  count=qkcor_sgsdimv)
+    sgsdims     =         sxpar(hdu, 'SGSDIMS',  count=qkcor_sgsdims)
 
     fits_file = file_basename(fts_file, '.gz') ; remove '.gz' from file name
 	
@@ -165,13 +159,12 @@ pro kcor_cal_insert, date, fits_list, $
                               level, fields=fields)
     level_num = level_results.level_id	
     
-    db->execute, 'INSERT INTO kcor_cal (file_name, date_obs, date_end, obs_day, level, numsum, exptime, cover, darkshut, diffuser, calpol, calpang, mean_int_img0, mean_int_img1, mean_int_img2, mean_int_img3, mean_int_img4, mean_int_img5, mean_int_img6, mean_int_img7, rcamid, tcamid, rcamlut, tcamlut, rcamxcen, rcamycen, tcamxcen, tcamycen, rcam_rad, tcam_rad, rcamfocs, tcamfocs, modltrid, modltrt, occltrid, o1id, o1focs, calpolid, diffsrid, filterid, kcor_sgsdimv, kcor_sgsdims) VALUES (''%s'', ''%s'', ''%s'', %d, %d, %d, %f, ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', %f, ''%s'', ''%s'', %f, ''%s'', ''%s'', ''%s'', %f, %f) ', $
+    db->execute, 'INSERT INTO kcor_cal (file_name, date_obs, date_end, obs_day, level, numsum, exptime, cover, darkshut, diffuser, calpol, calpang, mean_int_img0, mean_int_img1, mean_int_img2, mean_int_img3, mean_int_img4, mean_int_img5, mean_int_img6, mean_int_img7, rcamid, tcamid, rcamlut, tcamlut, rcamfocs, tcamfocs, modltrid, modltrt, occltrid, o1id, o1focs, calpolid, diffsrid, filterid, kcor_sgsdimv, kcor_sgsdims) VALUES (''%s'', ''%s'', ''%s'', %d, %d, %d, %f, ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, ''%s'', %f, ''%s'', ''%s'', %f, ''%s'', ''%s'', ''%s'', %f, %f) ', $
                  fits_file, date_obs, date_end, obsday_index, level_num, $
                  numsum, exptime, cover, darkshut, diffuser, calpol, calpang, $
                  mean_int_img0, mean_int_img1, mean_int_img2, mean_int_img3, $
                  mean_int_img4, mean_int_img5, mean_int_img6, mean_int_img7, $
-                 rcamid, tcamid, rcamlut, tcamlut, rcamxcen, rcamycen, $
-                 tcamxcen, tcamycen, rcam_rad, tcam_rad, rcamfocs, tcamfocs, $
+                 rcamid, tcamid, rcamlut, tcamlut, rcamfocs, tcamfocs, $
                  modltrid, modltrt, occltrid, o1id, o1focs, calpolid, $
                  diffsrid, filterid, sgsdimv, sgsdims, $
                  status=status, $
