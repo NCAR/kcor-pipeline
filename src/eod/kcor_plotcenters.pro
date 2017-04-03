@@ -381,11 +381,10 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
         xtitle='Hours [UT]', ytitle='Y center', $
         background=255, color=0, charsize=2.0, $
         yrange = [460.0, 540.0]
- 
-  ocen_gif = 'ocen.gif'
-  ocen_gif = date + '_list_ocen.gif'
+   
+  ocen_gif_filename = string(date, format='(%"%s.kcor.ocen.gif")')
   save = tvrd()
-  write_gif, ocen_gif, save
+  write_gif, ocen_gif_filename, save
 
   ; plot occulter radius [pixels]
 
@@ -403,10 +402,9 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
         background=255, color=0, charsize=1.0, $
         yrange = [170.0, 200.0]
 
-  rocc_gif = 'rocc.gif'
-  rocc_gif = date + '_list_rocc.gif'
+  rocc_gif_filename = string(date, format='(%"%s.kcor.rocc.gif")')
   save     = tvrd()
-  write_gif, rocc_gif, save
+  write_gif, rocc_gif_filename, save
 
   cd, l0_dir
 

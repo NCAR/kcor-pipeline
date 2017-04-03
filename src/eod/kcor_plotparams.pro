@@ -57,12 +57,6 @@ pro kcor_plotparams, date, list=list, run=run
   mg_log, 'L0 dir    : %s', l0_dir, name='kcor/eod', /debug
   mg_log, 'plots dir : %s', plots_dir, name='kcor/eod', /debug
 
-  ; set up graphics window & color table
-  set_plot, 'Z'
-  device, set_resolution=[772, 1000], decomposed=0, set_colors=256, $
-          z_buffering=0
-  !p.multi = [0, 1, 3]
-
   ; determine the number of files to process
   nimg = n_elements(list)
   mg_log, 'nimg: %d', nimg, name='kcor/eod', /debug
@@ -70,8 +64,16 @@ pro kcor_plotparams, date, list=list, run=run
   ; declare storage for plot arrays
 
   mod_temp = fltarr(nimg)
+
   sgs_dimv = fltarr(nimg)
   sgs_scin = fltarr(nimg)
+  sgs_rav = fltarr(nimg)
+  sgs_ras = fltarr(nimg)
+  sgs_decv = fltarr(nimg)
+  sgs_decs = fltarr(nimg)
+  sgs_razr = fltarr(nimg)
+  sgs_deczr = fltarr(nimg)
+
   hours    = fltarr(nimg)
 
   tcam_focus = fltarr(nimg)
@@ -121,12 +123,26 @@ pro kcor_plotparams, date, list=list, run=run
     o1focs   = sxpar(hdu, 'O1FOCS',   count=qo1focs)
 
     modltrt  = sxpar(hdu, 'MODLTRT',  count=qmodltrt)
+
     sgsdimv  = sxpar(hdu, 'SGSDIMV',  count=qsgsdimv)
     sgsscint = sxpar(hdu, 'SGSSCINT', count=qsgsscint)
+    sgsrav   = sxpar(hdu, 'SGSRAV',   count=qsgsrav)
+    sgsras   = sxpar(hdu, 'SGSRAS',   count=qsgsras)
+    sgsdecv  = sxpar(hdu, 'SGSDECV',  count=qsgsdecv)
+    sgsdecs  = sxpar(hdu, 'SGSDECS',  count=qsgsdecs)
+    sgsrazr  = sxpar(hdu, 'SGSRAZR',  count=qsgsrazr)
+    sgsdeczr = sxpar(hdu, 'SGSDECZR', count=qsgsdeczr)
 
     mod_temp[i] = modltrt
-    sgs_dimv[i] = sgsdimv
-    sgs_scin[i] = sgsscint
+
+    sgs_dimv[i]  = sgsdimv
+    sgs_scin[i]  = sgsscint
+    sgs_rav[i]   = sgsrav
+    sgs_ras[i]   = sgsras
+    sgs_decv[i]  = sgsdecv
+    sgs_decs[i]  = sgsdecs
+    sgs_razr[i]  = sgsrazr
+    sgs_deczr[i] = sgsdeczr
 
     tcam_focus[i] = tcamfocs
     rcam_focus[i] = rcamfocs
@@ -185,23 +201,19 @@ pro kcor_plotparams, date, list=list, run=run
     endif
   endfor
 
-  ; TODO: these files aren't produced?
-  modgif  = filepath(date + '_list_mtmp.gif', root=plots_dir)
-  dimvgif = filepath(date + '_list_dimv.gif', root=plots_dir)
-  scingif = filepath(date + '_list_scin.gif', root=plots_dir)
+  eng_gif_filename  = filepath(date + '.sgs.eng.gif', root=plots_dir)
+  foc_gif_filename  = filepath(date + '.kcor.eng.gif', root=plots_dir)
 
-  enggif  = filepath(date + '_list_eng.gif', root=plots_dir)
-  focgif  = filepath(date + '_list_foc.gif', root=plots_dir)
+  mg_log, 'eng gif: %s', eng_gif_filename, name='kcor/eod', /debug
+  mg_log, 'foc gif: %s', foc_gif_filename, name='kcor/eod', /debug
 
-  mg_log, 'enggif: %s', enggif, name='kcor/eod', /debug
-  mg_log, 'focgif: %s', focgif, name='kcor/eod', /debug
+  ; set up graphics window & color table for sgs.eng.gif
+  set_plot, 'Z'
+  device, set_resolution=[772, 1000], decomposed=0, set_colors=256, $
+          z_buffering=0
+  !p.multi = [0, 1, 6]
 
-  plot, hours, mod_temp, title=pdate + '  KCor Modulator Temperature', $
-        xtitle='Hours [UT]', ytitle='Temperature [deg C]', $
-        background=255, color=0, charsize=2.0, $
-        xrange=[16.0, 28.0], yrange=[28.0, 36.0]
-
-  plot, hours, sgs_dimv, title=pdate + '  KCor SGS DIM', $
+  plot, hours, sgs_dimv, title=pdate + ' KCor SGS DIM', $
         xtitle='Hours [UT]', ytitle='DIM [volts]', /ynozero, $
         xrange=[16.0, 28.0], yrange=[5.5, 7.5], $
         background=255, color=0, charsize=2.0
@@ -209,35 +221,64 @@ pro kcor_plotparams, date, list=list, run=run
   ; use fixed y-axis scaling, unless values wander outside the range: 0 to 10.
   smin = min(sgs_scin)
   smax = max(sgs_scin)
-  plot, hours, sgs_scin, title=pdate + '  KCor SGS Scintillation', $
+
+  plot, hours, sgs_scin, title=pdate + ' KCor SGS Scintillation', $
         xtitle='Hours [UT]', ytitle='Scintillation [arcsec]', $
         xrange=[16.0, 28.0], yrange=[0.0, 10.0], $
         background=255, color=0, charsize=2.0 
 
+  plot, hours, sgs_rav, title=pdate + ' RA', $
+        xtitle='Hours [UT]', ytitle='DIM [volts]', $
+        xrange=[16.0, 28.0], yrange=[0.0, 10.0], $
+        background=255, color=0, charsize=2.0 
+
+  plot, hours, sgs_decv, title=pdate + ' Dec', $
+        xtitle='Hours [UT]', ytitle='DIMV [volts]', $
+        xrange=[16.0, 28.0], yrange=[0.0, 10.0], $
+        background=255, color=0, charsize=2.0 
+
+  plot, hours, sgs_razr, title=pdate + ' RA zeropoint offset', $
+        xtitle='Hours [UT]', ytitle='DIMV [volts]', $
+        xrange=[16.0, 28.0], yrange=[0.0, 10.0], $
+        background=255, color=0, charsize=2.0 
+
+  plot, hours, sgs_deczr, title=pdate + ' Dec zeropoint offset', $
+        xtitle='Hours [UT]', ytitle='DIMV [volts]', $
+        xrange=[16.0, 28.0], yrange=[0.0, 10.0], $
+        background=255, color=0, charsize=2.0 
+
   save = tvrd()
-  write_gif, enggif, save
+  write_gif, eng_gif_filename, save
 
   erase
 
-  plot, hours, tcam_focus, title=pdate + '  KCor T Camera Focus position', $
+  !p.multi = [0, 1, 4]
+
+  plot, hours, mod_temp, title=pdate + ' KCor Modulator Temperature', $
+        xtitle='Hours [UT]', ytitle='Temperature [deg C]', $
+        background=255, color=0, charsize=2.0, $
+        xrange=[16.0, 28.0], yrange=[28.0, 36.0]
+
+  plot, hours, tcam_focus, title=pdate + ' KCor T Camera Focus position', $
         xtitle='Hours [UT]', ytitle='T Camera Focus [mm]', $
         background=255, color=0, charsize=2.0, $
         xrange=[16.0, 28.0], yrange=[-1.0, 1.0]
 
-  plot, hours, rcam_focus, title=pdate + '  KCor R Camera Focus position', $
+  plot, hours, rcam_focus, title=pdate + ' KCor R Camera Focus position', $
         xtitle='Hours [UT]', ytitle='R Camera Focus [mm]', $
         background=255, color=0, charsize=2.0, $
         xrange=[16.0, 28.0], yrange=[-1.0, 1.0]
 
-  plot, hours, o1_focus, title=pdate + '  KCor O1 Focus position', $
+  plot, hours, o1_focus, title=pdate + ' KCor O1 Focus position', $
         xtitle='Hours [UT]', ytitle='O1 Camera Focus [mm]', $
         background=255, color=0, charsize=2.0, $
         xrange=[16.0, 28.0], yrange=[110.0, 150.0]
-  save = tvrd() 
-  write_gif, focgif, save
 
-  mg_log, 'done', name='kcor/eod', /info
+  save = tvrd()
+  write_gif, foc_gif_filename, save
 
   cd, start_dir
   set_plot, 'X'
+
+  mg_log, 'done', name='kcor/eod', /info
 end
