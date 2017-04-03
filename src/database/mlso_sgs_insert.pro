@@ -126,9 +126,9 @@ pro mlso_sgs_insert, date, fits_list, $
     ;fits_file = file_basename(fts_file, '.gz') ; remove '.gz' from file name.
 		
     ; DB insert command
-    db->execute, 'INSERT INTO mlso_sgs (date_obs, obs_day, source, sgsdimv, sgsdims, sgssumv, sgsrav, sgsras, sgsrazr, sgsdecv, sgsdecs, sgsdeczr, sgsscint, sgssums, sgsloop) VALUES (''%s'', %d, ''%s'', %f, %f, %f, %f, %f, %f, %f, %s, %f, %s, %f, %d) ', $
+    db->execute, 'INSERT INTO mlso_sgs (date_obs, obs_day, source, sgsdimv, sgsdims, sgssumv, sgsrav, sgsras, sgsrazr, sgsdecv, sgsdecs, sgsdeczr, sgsscint, sgssums, sgsloop) VALUES (''%s'', %d, ''%s'', %f, %f, %f, %f, %f, %s, %f, %f, %s, %f, %f, %d) ', $
                  date_obs, obsday_index, sgs_source, sgsdimv, sgsdims, $
-                 sgssumv, sgsrav, sgsras, sgsrazr, sgsdecv_str, sgsdecs, $
+                 sgssumv, sgsrav, sgsras, sgsrazr_str, sgsdecv, sgsdecs, $
                  sgsdeczr_str, sgsscint, sgssums, sgsloop, $
                  status=status, error_message=error_message, sql_statement=sql_cmd
     if (status ne 0L) then begin

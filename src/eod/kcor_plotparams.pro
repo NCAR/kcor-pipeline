@@ -227,22 +227,22 @@ pro kcor_plotparams, date, list=list, run=run
         xrange=[16.0, 28.0], yrange=[0.0, 10.0], $
         background=255, color=0, charsize=2.0 
 
-  plot, hours, sgs_rav, title=pdate + ' RA', $
+  plot, hours, sgs_rav, title=pdate + ' KCor SGS RA', $
         xtitle='Hours [UT]', ytitle='DIM [volts]', $
         xrange=[16.0, 28.0], yrange=[0.0, 10.0], $
         background=255, color=0, charsize=2.0 
 
-  plot, hours, sgs_decv, title=pdate + ' Dec', $
+  plot, hours, sgs_decv, title=pdate + ' KCor SGS Dec', $
         xtitle='Hours [UT]', ytitle='DIMV [volts]', $
         xrange=[16.0, 28.0], yrange=[0.0, 10.0], $
         background=255, color=0, charsize=2.0 
 
-  plot, hours, sgs_razr, title=pdate + ' RA zeropoint offset', $
+  plot, hours, sgs_razr, title=pdate + ' KCor SGS RA zeropoint offset', $
         xtitle='Hours [UT]', ytitle='DIMV [volts]', $
         xrange=[16.0, 28.0], yrange=[0.0, 10.0], $
         background=255, color=0, charsize=2.0 
 
-  plot, hours, sgs_deczr, title=pdate + ' Dec zeropoint offset', $
+  plot, hours, sgs_deczr, title=pdate + ' KCor SGS Dec zeropoint offset', $
         xtitle='Hours [UT]', ytitle='DIMV [volts]', $
         xrange=[16.0, 28.0], yrange=[0.0, 10.0], $
         background=255, color=0, charsize=2.0 

@@ -167,8 +167,13 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     if (run.send_notifications && run.notification_email ne '') then begin
       kcor_send_mail, run.notification_email, $
                       string(date, format='(%"KCor end-of-day processing for %s : error")'), $
-                      [string(date, n_l0_files, $
-                             format='(%"KCor end-of-day processing for %s\n\nnumber of error files: %d\n\n")'), run.config_content], $
+                      [string(date, $
+                              format='(%"KCor end-of-day processing for %s)")'), $
+                       '', $
+                       string(n_l0_files, $
+                              format='(%"number of error files: %d")'), $
+                       '', '', $
+                       run.config_content], $
                       logger_name='kcor/eod'
     endif else begin
       mg_log, 'not sending notification email', name='kcor/eod', /warn
