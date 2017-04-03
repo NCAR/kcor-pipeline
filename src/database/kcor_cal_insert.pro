@@ -81,7 +81,6 @@ pro kcor_cal_insert, date, fits_list, $
   i = -1
   while (++i lt nfiles) do begin
     fts_file = fits_list[i]
-
     fts_file += '.gz'
     
     if (~file_test(fts_file)) then begin
@@ -180,6 +179,7 @@ pro kcor_cal_insert, date, fits_list, $
                  sql_statement=sql_cmd
 
     if (status ne 0L) then begin
+      mg_log, 'error inserting into kcor_cal table', name='kcor/eod', /error
       mg_log, 'status: %d, error message: %s', status, error_message, $
               name='kcor/eod', /error
       mg_log, 'SQL command: %s', sql_cmd, name='kcor/eod', /error

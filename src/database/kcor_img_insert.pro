@@ -145,7 +145,8 @@ pro kcor_img_insert, date, fits_list, $
     producttype_count = db->query('SELECT count(producttype_id) FROM mlso_producttype WHERE producttype=''%s''', $
                                   producttype, fields=fields)
     if (producttype_count.count_producttype_id_ eq 0) then begin
-      ; If given producttype is not in the mlso_producttype table, set it to 'unknown' and log error
+      ; if given producttype is not in the mlso_producttype table, set it to
+      ; 'unknown' and log error
       producttype = 'unknown'
       mg_log, 'producttype: %s', producttype, name='kcor/rt', /error
     endif
@@ -156,7 +157,8 @@ pro kcor_img_insert, date, fits_list, $
     filetype_count = db->query('SELECT count(filetype_id) FROM mlso_filetype WHERE filetype=''%s''', $
                                filetype, fields=fields)
     if (filetype_count.count_filetype_id_ eq 0) then begin
-      ; If given filetype is not in the mlso_filetype table, set it to 'unknown' and log error
+      ; if given filetype is not in the mlso_filetype table, set it to 'unknown'
+      ; and log error
       filetype = 'unknown'
       mg_log, 'filetype: %s', filetype, name='kcor/rt', /error
     endif
@@ -167,7 +169,8 @@ pro kcor_img_insert, date, fits_list, $
     level_count = db->query('SELECT count(level_id) FROM kcor_level WHERE level=''%s''', $
                             level, fields=fields)
     if (level_count.count_level_id_ eq 0) then begin
-      ; If given level is not in the kcor_level table, set it to 'unknown' and log error
+      ; if given level is not in the kcor_level table, set it to 'unknown' and
+      ; log error
       level = 'unk'
       mg_log, 'level: %s', level, name='kcor/rt', /error
     endif
@@ -184,6 +187,7 @@ pro kcor_img_insert, date, fits_list, $
     if (status eq 0L) then begin
       if (is_nrgf) then n_nrgf_added += 1 else n_pb_added += 1
     endif else begin
+      mg_log, 'error inserting in kcor_img table', name='kcor/rt', /error
       mg_log, 'status: %d, error message: %s', status, error_message, $
               name='kcor/rt', /error
       mg_log, 'SQL command: %s', sql_cmd, name='kcor/rt', /error
@@ -201,6 +205,7 @@ pro kcor_img_insert, date, fits_list, $
                obsday_index, $
                status=status, error_message=error_message, sql_statement=sql_cmd
   if (status ne 0L) then begin
+    mg_log, 'error updating mlso_numfiles table', name='kcor/rt', /error
     mg_log, 'status: %d, error message: %s', status, error_message, $
             name='kcor/rt', /error
     mg_log, 'SQL command: %s', sql_cmd, name='kcor/rt', /error

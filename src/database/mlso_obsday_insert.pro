@@ -45,12 +45,11 @@ function mlso_obsday_insert, date, $
                status=status, error_message=error_message
   if (status ne 0L) then begin
     mg_log, '%s', error_message, name=log_name, /error
+    return, !null
   endif
 
   db->getProperty, host_name=host
   mg_log, 'connected to %s...', host, name=log_name, /info
-
-  db->setProperty, database='MLSO'
 
   obs_day = strmid(date, 0, 4) + '-' + strmid(date, 4, 2) + '-' + strmid(date, 6, 2)
   obs_day_index = 0
@@ -65,9 +64,12 @@ function mlso_obsday_insert, date, $
     db->execute, 'INSERT INTO mlso_numfiles (obs_day) VALUES (''%s'') ', $
                  obs_day, $
                  status=status, error_message=error_message, sql_statement=sql_cmd
-    mg_log, 'status: %d, error message: %s', status, error_message, $
-            name=log_name, /debug
-    mg_log, 'SQL command: %s', sql_cmd, name=log_name, /debug
+    if (status ne 0L) then begin
+      mg_log, 'error inserting into mlso_numfiles table', name=log_name, /error
+      mg_log, 'status: %d, error message: %s', status, error_message, $
+              name=log_name, /error
+      mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
+    endif
 		
     obs_day_index = db->query('SELECT LAST_INSERT_ID()')	
   endif else begin

@@ -114,9 +114,11 @@ pro mlso_sgs_insert, date, fits_list, $
     sgsrav    = sxpar(hdu, 'SGSRAV', count=qsgsrav)
     sgsras    = sxpar(hdu, 'SGSRAS', count=qsgsras)
     sgsrazr   = sxpar(hdu, 'SGSRAZR', count=qsgsrazr)
+    sgsrazr_str = qsgsrazr eq 0L ? 'NULL' : string(sgsrazr, format='(%"%f")')
     sgsdecv   = sxpar(hdu, 'SGSDECV', count=qsgsdecv)
     sgsdecs   = sxpar(hdu, 'SGSDECS', count=qsgsdecs)
     sgsdeczr  = sxpar(hdu, 'SGSDECZR', count=qsgsdeczr)
+    sgsdeczr_str = qsgsdeczr eq 0L ? 'NULL' : string(sgsdeczr, format='(%"%f")')
     sgsscint  = sxpar(hdu, 'SGSSCINT', count=qsgsscint)
     sgssums   = sxpar(hdu, 'SGSSUMS', count=qsgssums)
     sgsloop   = sxpar(hdu, 'SGSLOOP', count=qsgsloop)
@@ -124,12 +126,13 @@ pro mlso_sgs_insert, date, fits_list, $
     ;fits_file = file_basename(fts_file, '.gz') ; remove '.gz' from file name.
 		
     ; DB insert command
-    db->execute, 'INSERT INTO mlso_sgs (date_obs, obs_day, source, sgsdimv, sgsdims, sgssumv, sgsrav, sgsras, sgsrazr, sgsdecv, sgsdecs, sgsdeczr, sgsscint, sgssums, sgsloop) VALUES (''%s'', %d, ''%s'', %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %d) ', $
+    db->execute, 'INSERT INTO mlso_sgs (date_obs, obs_day, source, sgsdimv, sgsdims, sgssumv, sgsrav, sgsras, sgsrazr, sgsdecv, sgsdecs, sgsdeczr, sgsscint, sgssums, sgsloop) VALUES (''%s'', %d, ''%s'', %f, %f, %f, %f, %f, %f, %f, %s, %f, %s, %f, %d) ', $
                  date_obs, obsday_index, sgs_source, sgsdimv, sgsdims, $
-                 sgssumv, sgsrav, sgsras, sgsrazr, sgsdecv, sgsdecs, $
-                 sgsdeczr, sgsscint, sgssums, sgsloop, $
+                 sgssumv, sgsrav, sgsras, sgsrazr, sgsdecv_str, sgsdecs, $
+                 sgsdeczr_str, sgsscint, sgssums, sgsloop, $
                  status=status, error_message=error_message, sql_statement=sql_cmd
     if (status ne 0L) then begin
+      mg_log, 'error inserting to mlso_sgs table', name='kcor/rt', /error
       mg_log, 'status: %d, error message: %s', status, error_message, $
               name='kcor/rt', /error
       mg_log, 'SQL command: %s', sql_cmd, name='kcor/rt', /error

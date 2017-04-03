@@ -174,6 +174,7 @@ pro kcor_eng_insert, date, fits_list, $
                  status=status, error_message=error_message, sql_statement=sql_cmd
 
     if (status ne 0L) then begin
+      mg_log, 'error inserting into kcor_eng table', name='kcor/rt', /error
       mg_log, 'status: %d, error message: %s', status, error_message, $
               name='kcor/rt', /error
       mg_log, 'SQL command: %s', sql_cmd, name='kcor/rt', /error
