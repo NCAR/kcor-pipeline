@@ -108,7 +108,7 @@ pro kcor_run::setup_loggers
   logger->setProperty, format=log_fmt, $
                        time_format=log_time_fmt, $
                        level=log_level, $
-                       filename=filepath(self.date + '.calibration.log', root=log_dir)
+                       filename=filepath(self.date + '.eod.log', root=log_dir)
 
   mg_log, name='kcor/eod', logger=logger
   logger->setProperty, format=log_fmt, $
