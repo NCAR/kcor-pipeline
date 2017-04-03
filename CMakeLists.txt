@@ -33,6 +33,9 @@ else ()
   set(GIT_BRANCH "")
 endif ()
 
+message(STATUS "git branch   = ${GIT_BRANCH}")
+message(STATUS "git revision = ${GIT_REVISION}")
+
 include(${CMAKE_SOURCE_DIR}/cmake/GetDate.cmake)
 LONG_TODAY(kcor_pipeline_BUILD_DATE)
 message(STATUS "Build date = ${kcor_pipeline_BUILD_DATE}")
