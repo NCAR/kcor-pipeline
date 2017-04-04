@@ -82,13 +82,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
   mg_log, 'l0_dir    : %s', l0_dir, name='kcor/eod', /debug
   mg_log, 'plots dir : %s', plots_dir, name='kcor/eod', /debug
 
-  ; set up graphics window & color table
-
   set_plot, 'Z'
-  ; window, 0, xs=1024, ys=1024, retain=2
-
-  device, set_resolution=[1024,1024], decomposed=0, set_colors=256, $
-          z_buffering=0
 
   ;lct,'/hao/acos/sw/idl/color/quallab_ver2.lut' ; color table.
   ;lct,'/hao/acos/sw/idl/color/art.lut' ; color table.
@@ -356,8 +350,10 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
   ; plot occulting disc center
 
+  ; set up graphics window & color table
   set_plot, 'Z'
-  device, set_resolution=[772,900], decomposed=0, set_colors=256
+  device, set_resolution=[772, 1000], decomposed=0, set_colors=256, $
+          z_buffering=0
   !p.multi = [0, 1, 4]
 
   erase
@@ -388,6 +384,8 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
   ; plot occulter radius [pixels]
 
+  device, set_resolution=[772, 500], decomposed=0, set_colors=256, $
+          z_buffering=0
   !p.multi = [0, 1, 2]
 
   erase
