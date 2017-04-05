@@ -218,20 +218,17 @@ pro kcor_plotparams, date, list=list, run=run
         xrange=[16.0, 28.0], yrange=[5.5, 7.5], $
         background=255, color=0, charsize=2.0
 
-  ; use fixed y-axis scaling, unless values wander outside the range: 0 to 10.
-  smin = min(sgs_scin)
-  smax = max(sgs_scin)
-  gap = (smax - smin) * 0.05
+  ; use fixed y-axis scaling
   plot, hours, sgs_scin, title=pdate + ' KCor SGS Scintillation', $
         xtitle='Hours [UT]', ytitle='Scintillation [arcsec]', $
-        xrange=[16.0, 28.0], yrange=[(smin - gap) < 0.0, (smax + gap) > 10.0], $
+        xrange=[16.0, 28.0], yrange=[0.0, 20.0], $
         background=255, color=0, charsize=2.0 
 
   rav_min = min(sgs_rav - sgs_ras)
   rav_max = max(sgs_rav + sgs_ras)
   gap = (rav_max - rav_min) * 0.05
   plot, hours, sgs_rav, title=pdate + ' KCor SGS RA', $
-        xtitle='Hours [UT]', ytitle='DIM [volts]', $
+        xtitle='Hours [UT]', ytitle='volts', $
         xrange=[16.0, 28.0], yrange=[rav_min - gap, rav_max + gap], $
         background=255, color=0, charsize=2.0
   polyfill, [hours, reverse(hours), hours[0]], $
@@ -245,7 +242,7 @@ pro kcor_plotparams, date, list=list, run=run
   decv_max = max(sgs_decv + sgs_decs)
   gap = (decv_max - decv_min) * 0.05
   plot, hours, sgs_decv, title=pdate + ' KCor SGS Dec', $
-        xtitle='Hours [UT]', ytitle='DIMV [volts]', $
+        xtitle='Hours [UT]', ytitle='volts', $
         xrange=[16.0, 28.0], yrange=[decv_min - gap, decv_max + gap], $
         background=255, color=0, charsize=2.0 
   polyfill, [hours, reverse(hours), hours[0]], $
@@ -258,14 +255,14 @@ pro kcor_plotparams, date, list=list, run=run
   razr_min = min(sgs_razr, max=razr_max)
   gap = (razr_max - razr_min) * 0.04
   plot, hours, sgs_razr, title=pdate + ' KCor SGS RA zeropoint offset', $
-        xtitle='Hours [UT]', ytitle='DIMV [volts]', $
+        xtitle='Hours [UT]', ytitle='arcsec', $
         xrange=[16.0, 28.0], yrange=[razr_min - gap, razr_max + gap], $
         background=255, color=0, charsize=2.0 
 
   deczr_min = min(sgs_deczr, max=deczr_max)
   gap = (deczr_max - deczr_min) * 0.04
   plot, hours, sgs_deczr, title=pdate + ' KCor SGS Dec zeropoint offset', $
-        xtitle='Hours [UT]', ytitle='DIMV [volts]', $
+        xtitle='Hours [UT]', ytitle='arcsec', $
         xrange=[16.0, 28.0], yrange=[deczr_min - gap, deczr_max + gap], $
         background=255, color=0, charsize=2.0 
 
