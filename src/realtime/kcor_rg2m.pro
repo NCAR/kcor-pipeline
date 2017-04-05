@@ -41,7 +41,7 @@ pro kcor_rg2m, fits_list, fits=fits
     ydim     = sxpar(hdu, 'NAXIS2')
     xcen     = (xdim / 2.0) - 0.5
     ycen     = (ydim / 2.0) - 0.5
-    date_obs = sxpar (hdu, 'DATE-OBS')	; yyyy-mm-ddThh:mm:ss
+    date_obs = sxpar (hdu, 'DATE-OBS')   ; yyyy-mm-ddThh:mm:ss
 
     ; extract date and time from FITS header
     year   = strmid(date_obs, 0, 4)

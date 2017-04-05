@@ -946,8 +946,6 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
   qtime = toc()
   mg_log, 'elapsed time: %0.1f sec', qtime, name='kcor/rt', /info
   mg_log, '%0.1f sec/image', qtime / num_img, name='kcor/rt', /info
-
-
   mg_log, 'done', name='kcor/rt', /info
 
   return, ok_files

@@ -160,13 +160,13 @@ function kcor_find_image, data, radius_guess, $
 
   a = [xcen_guess + xc, ycen_guess + yc, r]
 
-  if (debug eq 1) then begin 
+  if (debug eq 1) then begin
     loadct, 0
     tv, bytscl(data, 0, datamax)
     loadct, 39
     draw_circle, a[0], a[1], a[2], /device, color=250, thick=1
     print, xcen_guess, ycen_guess, radius_guess
-    print, xc, yc, r 
+    print, xc, yc, r
     print, a 
   endif
 

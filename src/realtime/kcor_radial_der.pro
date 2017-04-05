@@ -11,7 +11,7 @@
 ;
 ; :Returns:
 ;   the the array of radial positions is returned (pixels)
-
+;
 ; :Params:
 ;   data : in, required
 ;     the data image to analyze
@@ -62,9 +62,9 @@ pro kcor_radial_der, data, xcen, ycen, radius, dr, theta, cent, $
   y0 = double(ycen)
 
   nvals = dr * 2   ;number of points in interpolated radial scan
-  
+
   ; if debug eq 1 then tvwin,data
-  
+
   ; make radial scans
   for i = 0L, nscan - 1L do begin
     theta[i] = double(i) * 2.0d * !dpi / double(nscan)   ; angle for radial scan
@@ -98,7 +98,7 @@ pro kcor_radial_der, data, xcen, ycen, radius, dr, theta, cent, $
 
     if (imax gt nvals - 3) then imax = nvals - 3
     if (imax lt 2) then imax = 2
-    
+
     cent[i] = radius - dr $
                 + parabola([double(imax - 1.), $
                             double(imax), $
