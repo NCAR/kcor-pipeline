@@ -166,13 +166,10 @@ pro kcor_nrgf, fits_file, cropped=cropped, run=run
   device, set_resolution=[out_xdim, out_ydim], decomposed=0, set_colors=256, z_buffering=0
   erase
 
-  ;set_plot, 'X'
-  ;device, decomposed = 1
-  ;window, xsize=xdim, ysize=xdim, retain=2
-
   ; load color table
   lct, filepath('quallab.lut', root=run.resources_dir)
   tvlct, red, green, blue, /get
+  annotation_color = keyword_set(cropped) ? 250 : 255
 
   ; display image and annotate
   tv, bytscl(filtered_image, cmin, cmax, top=249)
@@ -182,9 +179,6 @@ pro kcor_nrgf, fits_file, cropped=cropped, run=run
 
   big_charsize = keyword_set(cropped) ? 1.25 : 1.5
   charsize = keyword_set(cropped) ? 1.0 : 1.2
-
-  xyouts, 4, top - 34, 'HAO/MLSO/Kcor', color=255, charsize=big_charsize, /device
-  xyouts, 4, top - 54, 'K-Coronagraph', color=255, charsize=big_charsize, /device
 
   ;xyouts, 512, 1000, 'North', color=255, charsize=1.2, alignment=0.5, $
   ;        /device
@@ -207,27 +201,32 @@ pro kcor_nrgf, fits_file, cropped=cropped, run=run
   xyouts, cpos - 24, out_ydim / 2 - 7, 'W', $
           color=254, charsize=big_charsize, /device
 
-  xyouts, right - 6, top - 29, $
+  xyouts, 4, top - 34 + keyword_set(cropped) * 12, 'HAO/MLSO/Kcor', $
+          color=annotation_color, charsize=big_charsize, /device
+  xyouts, 4, top - 54 + keyword_set(cropped) * 12, 'K-Coronagraph', $
+          color=annotation_color, charsize=big_charsize, /device
+
+  xyouts, right - 6, top - 29 + keyword_set(cropped) * 12, $
           string(format='(a2)', day) + ' '$
             + string(format='(a3)', name_month) +  ' ' $
             + string(format='(a4)', year), $
-          /device, alignment=1.0, charsize=charsize, color=255
-  xyouts, right - 14, top - 49, $
+          /device, alignment=1.0, charsize=charsize, color=annotation_color
+  xyouts, right - 14, top - 49 + keyword_set(cropped) * 12, $
           'DOY ' + string (format='(i3)', doy), $
-          /device, alignment=1.0, charsize=charsize, color=255
-  xyouts, right - 6, top - 69, $
+          /device, alignment=1.0, charsize=charsize, color=annotation_color
+  xyouts, right - 6, top - 69 + keyword_set(cropped) * 12, $
           string(format='(a2)', hour) + ':' $
             + string(format='(a2)', minute) + ':' $
             + string(format='(a2)', second) + ' UT', $
-          /device, alignment=1.0, charsize=charsize, color=255
+          /device, alignment=1.0, charsize=charsize, color=annotation_color
 
-  xyouts, 4, 46, 'Level 1 data', color=255, charsize=charsize, /device
+  xyouts, 4, 46, 'Level 1 data', color=annotation_color, charsize=charsize, /device
   xyouts, 4, 26, string(cmin, cmax, format='(%"min/max: %4.1f, %4.1f")'), $
-          color=255, charsize=charsize, /device
+          color=annotation_color, charsize=charsize, /device
   xyouts, 4, 6, 'Intensity: normalized, radially-graded', $
-          color=255, charsize=charsize, /device
+          color=annotation_color, charsize=charsize, /device
   xyouts, right - 6, 6, 'circle: photosphere', $
-          color=255, charsize=charsize, /device, alignment=1.0
+          color=annotation_color, charsize=charsize, /device, alignment=1.0
 
   ; image has been shifted to center of array
   ; draw circle at photosphere
@@ -283,7 +282,7 @@ end
 
 ; main-level example program
 
-f = '20161127_175011_kcor_l1.fts'
+f = '20161127_175011_kcor_l1.fts.gz'
 run = kcor_run('20161127', $
                config_filename=filepath('kcor.mgalloy.mahi.latest.cfg', $
                                        subdir=['..', '..', 'config'], $
