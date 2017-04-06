@@ -23,7 +23,7 @@ pro kcor_sine2theta_new, degrees, a, radavg, pder
   ; fit function of the form: 
   ;   a0*sin(2*theta + a1) = a0 * (sin(2*theta)cos(a1) + cos(2*theta)sin(a1))
 
-  y = 2.0 * degrees + a(1)
+  y = 2.0 * degrees + a[1]
 
   radavg = a[0] * sin(y)
 

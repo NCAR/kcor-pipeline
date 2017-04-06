@@ -8,6 +8,12 @@
 ;   fits_file : in, required, type=string
 ;     KCor L1 fits file
 ;
+; :Keywords:
+;   cropped : in, optional, type=boolean
+;     set to create a cropped NRGF
+;   run : in, required, type=object
+;     `kcor_run` object
+;
 ; :Author:
 ;   Andrew L. Stanger   HAO/NCAR
 ;
@@ -17,14 +23,26 @@
 ;   15 Jul 2015 Add /NOSCALE keyword to readfits.
 ;   04 Mar 2016 Generate a 16 bit fits nrgf image in addition to a gif.
 ;-
-pro kcor_nrgf, fits_file
+pro kcor_nrgf, fits_file, cropped=cropped, run=run
   compile_opt strictarr
 
   ; read L1 FITS image
   img = readfits(fits_file, hdu, /noscale, /silent)
 
-  xdim       = sxpar(hdu, 'NAXIS1')
-  ydim       = sxpar(hdu, 'NAXIS2')
+  if (keyword_set(cropped)) then begin
+    xdim     = 768
+    ydim     = 768
+    out_xdim = 512
+    out_ydim = 512
+    scale = float(xdim) / 1024.0
+    img = congrid(img, xdim, ydim)
+  endif else begin
+    xdim     = sxpar(hdu, 'NAXIS1')
+    ydim     = sxpar(hdu, 'NAXIS2')
+    out_xdim = xdim
+    out_ydim = ydim
+  endelse
+
   xcen       = xdim / 2.0 - 0.5
   ycen       = ydim / 2.0 - 0.5
   date_obs   = sxpar(hdu, 'DATE-OBS')   ; yyyy-mm-ddThh:mm:ss
@@ -58,7 +76,7 @@ pro kcor_nrgf, fits_file
 
   ; find size of occulter
   ;   - one occulter has 4 digits; other two have 5
-  ;   - Oonly read in 4 digits to avoid confusion
+  ;   - only read in 4 digits to avoid confusion
   occulter_id = ''
   occulter_id = sxpar(hdu, 'OCCLTRID')
   occulter    = strmid(occulter_id, 3, 5)
@@ -67,6 +85,8 @@ pro kcor_nrgf, fits_file
   if (occulter eq 1006.0) then occulter = 1006.9
 
   radius_guess = 178
+  if (keyword_set(cropped)) then radius_guess *= scale
+
   img_info = kcor_find_image(img, radius_guess, log_name='kcor/rt')
   xc   = img_info[0]
   yc   = img_info[1]
@@ -77,8 +97,11 @@ pro kcor_nrgf, fits_file
   r0      = rocc + 2                ; add 2 pixels for inner FOV
   ;r0   = (rsun * 1.05) / platescale
 
-  cneg = fix(ycen - r_photo)
-  cpos = fix(ycen + r_photo)
+  if (keyword_set(cropped)) then begin
+    rocc *= scale
+    r_photo *= scale
+    r0 *= scale
+  endif
 
   mg_log, 'starting NRGF', name='kcor/rt', /info
   mg_log, 'rsun     [arcsec]: %0.4f', rsun, name='kcor/rt', /debug
@@ -89,6 +112,11 @@ pro kcor_nrgf, fits_file
 
   ; compute normalized, radially-graded filter
   for_nrgf, img, xcen, ycen, r0, filtered_image
+
+  ; NOTE: FOR_NRGF changes xcen/ycen, so must set them back to the correct
+  ; values
+  xcen       = xdim / 2.0 - 0.5
+  ycen       = ydim / 2.0 - 0.5
 
   imin = min(filtered_image)
   imax = max(filtered_image)
@@ -115,8 +143,9 @@ pro kcor_nrgf, fits_file
   rad1 = sqrt(xx1 ^ 2.0 + yy1 ^ 2.0)
 
   ; set masking limits
-  r_in  = fix(occulter / platescale) + 5.0
+  r_in  = fix(rocc) + 5.0
   r_out = 504.0
+  if (keyword_set(cropped)) then r_out *= scale
 
   mg_log, 'masking limits r_in: %0.2f, r_out: %0.2f', $
           r_in, r_out, name='kcor/rt', /debug
@@ -124,9 +153,17 @@ pro kcor_nrgf, fits_file
   dark = where(rad1 lt r_in or rad1 ge r_out)
   filtered_image[dark] = -10.0   ; set pixels outside annulus to -10
 
+  if (keyword_set(cropped)) then begin
+    xcen = out_xdim / 2.0 - 0.5
+    ycen = out_ydim / 2.0 - 0.5
+    ;filtered_image = filtered_image[128:639, 128:639]
+    filtered_image = filtered_image[(xdim - out_xdim) / 2:(xdim + out_xdim) / 2 - 1, $
+                                    (xdim - out_xdim) / 2:(xdim + out_xdim) / 2 - 1]
+  endif
+
   ; graphics device
   set_plot, 'Z'
-  device, set_resolution=[xdim, ydim], decomposed=0, set_colors=256, z_buffering=0
+  device, set_resolution=[out_xdim, out_ydim], decomposed=0, set_colors=256, z_buffering=0
   erase
 
   ;set_plot, 'X'
@@ -134,14 +171,20 @@ pro kcor_nrgf, fits_file
   ;window, xsize=xdim, ysize=xdim, retain=2
 
   ; load color table
-  lct,   '/hao/acos/sw/idl/color/quallab.lut'
+  lct, filepath('quallab.lut', root=run.resources_dir)
   tvlct, red, green, blue, /get
 
   ; display image and annotate
-  tv, bytscl(filtered_image, cmin, cmax)
+  tv, bytscl(filtered_image, cmin, cmax, top=249)
 
-  xyouts, 4, 990, 'HAO/MLSO/Kcor', color=255, charsize=1.5, /device
-  xyouts, 4, 970, 'K-Coronagraph', color=255, charsize=1.5, /device
+  top = keyword_set(cropped) ? out_ydim : 1024
+  right = keyword_set(cropped) ? out_xdim : 1024
+
+  big_charsize = keyword_set(cropped) ? 1.25 : 1.5
+  charsize = keyword_set(cropped) ? 1.0 : 1.2
+
+  xyouts, 4, top - 34, 'HAO/MLSO/Kcor', color=255, charsize=big_charsize, /device
+  xyouts, 4, top - 54, 'K-Coronagraph', color=255, charsize=big_charsize, /device
 
   ;xyouts, 512, 1000, 'North', color=255, charsize=1.2, alignment=0.5, $
   ;        /device
@@ -152,76 +195,100 @@ pro kcor_nrgf, fits_file
   ;xyouts, 512, 12, 'South', color=255, charsize=1.2, alignment=0.5, $
   ;        /device
 
-  xyouts, 505, cpos - 24, 'N', color=254, charsize=1.5, /device
-  xyouts, cneg + 12, 505, 'E', color=254, charsize=1.5, /device
-  xyouts, 506, cneg + 12, 'S', color=254, charsize=1.5, /device
-  xyouts, cpos - 24, 505, 'W', color=254, charsize=1.5, /device
+  cneg = fix(ycen - r_photo) - keyword_set(cropped) * 4
+  cpos = fix(ycen + r_photo) + keyword_set(cropped) * 6
 
-  xyouts, 1018, 995, string(format='(a2)', day) + ' ' + $
-                     string(format='(a3)', name_month) +  ' ' + $
-                     string(format='(a4)', year), /device, alignment=1.0, $
-                     charsize=1.2, color=255
-  xyouts, 1010, 975, 'DOY ' + string (format='(i3)', doy), /device, $
-                     alignment=1.0, charsize=1.2, color=255
-  xyouts, 1018, 955, string(format='(a2)', hour) + ':' + $
-                     string(format='(a2)', minute) + ':' + $
-                     string(format='(a2)', second) + ' UT', /device, $
-                     alignment=1.0, charsize=1.2, color=255
+  xyouts, out_xdim / 2, cpos - 24, 'N', $
+          alignment=0.5, color=254, charsize=big_charsize, /device
+  xyouts, cneg + 12, out_ydim / 2 - 7, 'E', $
+          color=254, charsize=big_charsize, /device
+  xyouts, out_xdim / 2, cneg + 12, 'S', $
+          alignment=0.5, color=254, charsize=big_charsize, /device
+  xyouts, cpos - 24, out_ydim / 2 - 7, 'W', $
+          color=254, charsize=big_charsize, /device
 
-  xyouts, 4, 46, 'Level 1 data', color=255, charsize=1.2, /device
-  xyouts, 4, 26, 'min/max: ' + string(format='(f4.1)', cmin) + ', ' $
-                             + string(format='(f4.1)', cmax), $
-                 color=255, charsize=1.2, /device
+  xyouts, right - 6, top - 29, $
+          string(format='(a2)', day) + ' '$
+            + string(format='(a3)', name_month) +  ' ' $
+            + string(format='(a4)', year), $
+          /device, alignment=1.0, charsize=charsize, color=255
+  xyouts, right - 14, top - 49, $
+          'DOY ' + string (format='(i3)', doy), $
+          /device, alignment=1.0, charsize=charsize, color=255
+  xyouts, right - 6, top - 69, $
+          string(format='(a2)', hour) + ':' $
+            + string(format='(a2)', minute) + ':' $
+            + string(format='(a2)', second) + ' UT', $
+          /device, alignment=1.0, charsize=charsize, color=255
 
+  xyouts, 4, 46, 'Level 1 data', color=255, charsize=charsize, /device
+  xyouts, 4, 26, string(cmin, cmax, format='(%"min/max: %4.1f, %4.1f")'), $
+          color=255, charsize=charsize, /device
   xyouts, 4, 6, 'Intensity: normalized, radially-graded', $
-                color=255, charsize=1.2, /device
-  xyouts, 1018, 6, 'circle: photosphere', $
-                   color=255, charsize=1.2, /device, alignment=1.0
+          color=255, charsize=charsize, /device
+  xyouts, right - 6, 6, 'circle: photosphere', $
+          color=255, charsize=charsize, /device, alignment=1.0
 
   ; image has been shifted to center of array
   ; draw circle at photosphere
   ;tvcircle, r_photo, 511.5, 511.5, color=255, /device
-  kcor_suncir, xdim, ydim, xcen, ycen, 0, 0, r_photo, 0.0
+  kcor_suncir, out_xdim, out_ydim, xcen, ycen, 0, 0, r_photo, 0.0
 
   ; create NRG gif file
   save     = tvrd()
   fts_loc  = strpos(fits_file, '.fts')
-  gif_file = strmid(fits_file, 0, fts_loc) + '_nrgf.gif'
+  gif_file = string(strmid(fits_file, 0, fts_loc), $
+                    keyword_set(cropped) ? '_cropped' : '', $
+                    format='(%"%s_nrgf%s.gif")')
 
   write_gif, gif_file, save, red, green, blue
   mg_log, 'wrote GIF file %s', gif_file, name='kcor/rt', /debug
 
-  ; create short integer image
-  bscale = 0.001
-  simg = fix(filtered_image * 1000.0)   ; convert RG image to short integer.
-  datamin = min(simg) * bscale
-  datamax = max(simg) * bscale
-  dispmin = cmin
-  dispmax = cmax
+  if (~keyword_set(cropped)) then begin
+    ; create short integer image
+    bscale = 0.001
+    simg = fix(filtered_image * 1000.0)   ; convert RG image to short integer
+    datamin = min(simg) * bscale
+    datamax = max(simg) * bscale
+    dispmin = cmin
+    dispmax = cmax
 
-  ; modify the FITS header for an NRG fits image
-  rhdu = hdu
-  fxaddpar, rhdu, 'LEVEL', 'L1NRGF', $
-            ' Level 1 Normalized Radially-Graded Intensity'
-  fxaddpar, rhdu, 'BSCALE', bscale, $
-            ' Normalized Radially-Graded H.Morgan+S.Fineschi', $
-            format='(f10.3)'
-  fxaddpar, rhdu, 'DATAMIN', datamin, ' minimum value of  data', $
-            format='(f10.3)'
-  fxaddpar, rhdu, 'DATAMAX', datamax, ' maximum value of  data', $
-            format='(f10.3)'
-  fxaddpar, rhdu, 'DISPMIN', dispmin, ' minimum value for display', $
-            format='(f10.3)'
-  fxaddpar, rhdu, 'DISPMAX', dispmax, ' maximum value for display', $
-            format='(f10.3)'
-  fxaddpar, rhdu, 'DISPEXP', 1, ' exponent value for display (d=b^dispexp)', $
-            format='(f10.3)'
+    ; modify the FITS header for an NRG fits image
+    rhdu = hdu
+    fxaddpar, rhdu, 'LEVEL', 'L1NRGF', $
+              ' Level 1 Normalized Radially-Graded Intensity'
+    fxaddpar, rhdu, 'BSCALE', bscale, $
+              ' Normalized Radially-Graded H.Morgan+S.Fineschi', $
+              format='(f10.3)'
+    fxaddpar, rhdu, 'DATAMIN', datamin, ' minimum value of  data', $
+              format='(f10.3)'
+    fxaddpar, rhdu, 'DATAMAX', datamax, ' maximum value of  data', $
+              format='(f10.3)'
+    fxaddpar, rhdu, 'DISPMIN', dispmin, ' minimum value for display', $
+              format='(f10.3)'
+    fxaddpar, rhdu, 'DISPMAX', dispmax, ' maximum value for display', $
+              format='(f10.3)'
+    fxaddpar, rhdu, 'DISPEXP', 1, ' exponent value for display (d=b^dispexp)', $
+              format='(f10.3)'
 
-  ; write NRG fits file
-  fts_loc   = strpos(fits_file, '.fts')
-  rfts_file = strmid(fits_file, 0, fts_loc) + '_nrgf.fts'
+    ; write NRG fits file
+    fts_loc   = strpos(fits_file, '.fts')
+    rfts_file = strmid(fits_file, 0, fts_loc) + '_nrgf.fts'
 
-  mg_log, 'wrote NRGF FITS file %s', rfts_file, name='kcor/rt', /debug
+    writefits, rfts_file, simg, rhdu
+    mg_log, 'wrote NRGF FITS file %s', rfts_file, name='kcor/rt', /debug
+  endif
+end
 
-  writefits, rfts_file, simg, rhdu
+
+; main-level example program
+
+f = '20161127_175011_kcor_l1.fts'
+run = kcor_run('20161127', $
+               config_filename=filepath('kcor.mgalloy.mahi.latest.cfg', $
+                                       subdir=['..', '..', 'config'], $
+                                       root=mg_src_root()))
+kcor_nrgf, f, /cropped, run=run
+kcor_nrgf, f, run=run
+
 end

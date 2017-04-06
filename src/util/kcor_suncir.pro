@@ -3,21 +3,35 @@
 ;+
 ; Draw a circle at 1.0 Rsun.
 ;
-;		xdim:  x-axis dimension
-;		ydim:  y-axis dimension
-;		xcen:  x-axis center
-;		ycen:  y-axis center
-;		xb:    x-axis border for annotation
-;		yb:    y-axis border for annotation
-;		pixrs: pixels/solar radius
-;		roll:  roll angle (solar north w.r.t. +Y axis, CCW=positive).
+; xdim : in
+;   x-axis dimension
+; ydim : in
+;   y-axis dimension
+; xcen : in
+;   x-axis center
+; ycen : in
+;   y-axis center
+; xb : in
+;   x-axis border for annotation
+; yb : in
+;   y-axis border for annotation
+; pixrs : in
+;   pixels/solar radius
+; roll : in
+;   roll angle (solar north w.r.t. +Y axis, CCW=positive).
 ;
-; HISTORY	Andrew L. Stanger   HAO/NCAR   23 November 2004
-; 11 Feb 2005 [ALS]: Do NOT draw a circle at 1.1 Rsun.
-; 21 May 2015 derived from suncir_mk4.pro.
+; :History:
+;   Andrew L. Stanger   HAO/NCAR   23 November 2004
+;   11 Feb 2005 [ALS]: Do NOT draw a circle at 1.1 Rsun.
+;   21 May 2015 derived from suncir_mk4.pro.
 ;-
 pro kcor_suncir, xdim, ydim, xcen, ycen, xb, yb, pixrs, roll
   compile_opt strictarr
+
+
+  mg_log, 'xdim=%f, ydim=%f, xcen=%f, ycen=%f, xb=%d, yb=%d, pixrs=%f, roll=%f', $
+          xdim, ydim, xcen, ycen, xb, yb, pixrs, roll, $
+          name='kcor/rt', /debug
 
   white  = 255
   red    = 254
@@ -40,7 +54,7 @@ pro kcor_suncir, xdim, ydim, xcen, ycen, xb, yb, pixrs, roll
 
   ;print, 'pixrs: ', pixrs
 
-  ; --- Sun center location.
+  ; sun center location
 
   xg = fix(xcen + xb + 0.5)
   yg = fix(ycen + yb + 0.5)
@@ -62,7 +76,7 @@ pro kcor_suncir, xdim, ydim, xcen, ycen, xb, yb, pixrs, roll
     plots, xg,      yg + rp, /device, color=white, /continue
   endif
 
-  if (pixrs GE 120.0) then begin
+  if (pixrs ge 120.0) then begin
     ; draw a triangle with a base on the equator
     plots, xg - rp,     yg,      /device, color=white
     plots, xg,          yg + rp, /device, color=white, /continue
@@ -106,7 +120,7 @@ pro kcor_suncir, xdim, ydim, xcen, ycen, xb, yb, pixrs, roll
    ; draw radial scans every 30 degrees
   for th = 0.0, 360.0, ang1inc do begin
     for radius = r1min, r1max*1.01, r1inc do begin
-      ierr = rcoord (radius, th, x, y, 1, roll, xcen, ycen, pixrs)
+      ierr = rcoord(radius, th, x, y, 1, roll, xcen, ycen, pixrs)
       xg = fix(x + xb + 0.5)
       yg = fix(y + yb + 0.5)
       plots, xg, yg, /device, color=white
@@ -118,13 +132,13 @@ pro kcor_suncir, xdim, ydim, xcen, ycen, xb, yb, pixrs, roll
   ; draw radial scans every 90 degrees
   for th = 0.0, 360.0, ang2inc do begin
     for radius = r2min, r2max*1.01, r2inc do begin
-      ierr = rcoord (radius, th, x, y, 1, roll, xcen, ycen, pixrs)
+      ierr = rcoord(radius, th, x, y, 1, roll, xcen, ycen, pixrs)
       xg = fix(x + xb + 0.5)
       yg = fix(y + yb + 0.5)
-      PLOTS, xg,   yg,   /device, color=white
-      PLOTS, xg,   yg,   /device, color=white, /continue
-      PLOTS, xg,   yg,   /device, color=white
-      PLOTS, xg,   yg,   /device, color=white, /continue
+      plots, xg, yg, /device, color=white
+      plots, xg, yg, /device, color=white, /continue
+      plots, xg, yg, /device, color=white
+      plots, xg, yg, /device, color=white, /continue
     endfor
   endfor
 

@@ -1643,11 +1643,10 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
 
     ; Now make low resolution GIF file:
     ;
-    ; Use congrid to rebin to 768x768 (75% of original size)
-    ; and crop around center to 512 x 512 image.
+    ; rebin to 768x768 (75% of original size) and crop around center to 512 x
+    ; 512 image
 
     rebin_img = congrid(corona_bias, 768, 768)
-
     crop_img = rebin_img[128:639, 128:639]
 
     ; window, 0, xsize=512, ysize=512, retain=2
@@ -1697,8 +1696,10 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
 
     ; create NRG (normalized, radially-graded) GIF image
     cd, l1_dir
-    if (osecond lt 15 and fix(ominute / 2) * 2 eq ominute) then $
-      kcor_nrgf, l1_file
+    if (osecond lt 15 and fix(ominute / 2) * 2 eq ominute) then begin
+      kcor_nrgf, l1_file, run=run
+      kcor_nrgf, l1_file, /cropped, run=run
+    endif
 
     cd, l0_dir
 
