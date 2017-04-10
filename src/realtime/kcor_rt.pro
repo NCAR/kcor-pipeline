@@ -139,7 +139,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     free_lun, okl1gz_lun
 
     ; find the NRGF files now, will move them after updating database
-    rg_dir = filepath('', subdir=date_parts, root=run.rg_basedir)
+    rg_dir = filepath('', subdir=date_parts, root=run.nrgf_basedir)
     if (~file_test(rg_dir, /directory)) then file_mkdir, rg_dir
 
     rg_files = file_search('*rg*.fts*', count=n_rg_files)
@@ -149,7 +149,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       if (n_rg_gifs gt 0L) then begin
         mg_log, 'transferring %d NRGF GIFs to remote server', n_rg_gifs, $
                 name='kcor/rt', /debug
-        spawn_cmd = string(run.rg_remote_server, run.rg_remote_dir, $
+        spawn_cmd = string(run.nrgf_remote_server, run.nrgf_remote_dir, $
                            format='(%"scp -B -r -p *rg*.gif %s:%s")')
         spawn, spawn_cmd, result, error_result, exit_status=status
         if (status ne 0L) then begin

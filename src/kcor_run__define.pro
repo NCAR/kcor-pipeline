@@ -161,9 +161,9 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            movie_dir=movie_basedir, $
                            fullres_basedir=fullres_basedir, $
                            croppedgif_basedir=croppedgif_basedir, $
-                           rg_basedir=rg_basedir, $
-                           rg_remote_dir=rg_remote_dir, $
-                           rg_remote_server=rg_remote_server, $
+                           nrgf_basedir=nrgf_basedir, $
+                           nrgf_remote_dir=nrgf_remote_dir, $
+                           nrgf_remote_server=nrgf_remote_server, $
                            hpss_gateway=hpss_gateway, $
                            log_dir=log_dir, $
                            log_level=log_level, $
@@ -249,14 +249,14 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   if (arg_present(croppedgif_basedir)) then begin
     croppedgif_basedir = self.options->get('croppedgif_basedir', section='results')
   endif
-  if (arg_present(rg_basedir)) then begin
-    rg_basedir = self.options->get('rg_basedir', section='results')
+  if (arg_present(nrgf_basedir)) then begin
+    nrgf_basedir = self.options->get('nrgf_basedir', section='results')
   endif
-  if (arg_present(rg_remote_dir)) then begin
-    rg_remote_dir = self.options->get('rg_remote_dir', section='results')
+  if (arg_present(nrgf_remote_dir)) then begin
+    nrgf_remote_dir = self.options->get('nrgf_remote_dir', section='results')
   endif
-  if (arg_present(rg_remote_server)) then begin
-    rg_remote_server = self.options->get('rg_remote_server', section='results')
+  if (arg_present(nrgf_remote_server)) then begin
+    nrgf_remote_server = self.options->get('nrgf_remote_server', section='results')
   endif
   if (arg_present(hpss_gateway)) then begin
     hpss_gateway = self.options->get('hpss_gateway', section='results')
