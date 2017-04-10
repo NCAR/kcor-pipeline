@@ -20,6 +20,7 @@ canonicalpath() {
 
 printhelp() {
   echo "syntax: runkcor_reprocess_range.sh start_date end_date config_flag"
+  echo "note: start_date is inclusive, but end_date is not"
 }
 
 # u=rwx,g=rwx,o=rx
@@ -43,6 +44,8 @@ CONFIG_FLAG=$3
 d=$START_DATE
 
 while [ $d != $END_DATE ]; do
-  echo "$REPROCESS_SCRIPT $d $CONFIG_FLAG"
+  cmd="$REPROCESS_SCRIPT $d $CONFIG_FLAG"
+  echo "$cmd"
+  $cmd
   d=$(date +"%Y%m%d" -d "$d + 1 day")
 done
