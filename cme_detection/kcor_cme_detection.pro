@@ -210,6 +210,13 @@ wplot = widget_draw(woutbase, xsize=640, ysize=360)
 ifile = 0
 delvarx, date_orig, maps, date_diff, mdiffs, itheta, detected, leadingedge
 delvarx, param, tairef, angle, speed
+
+; Start up SolarSoft display routines
+defsysv, '!image', exists=sys_image_defined
+if (~sys_image_defined) then imagelib
+defsysv, '!aspect', exists=sys_aspect_defined
+if (~sys_aspect_defined) then devicelib
+
 ;
 widget_control, wtopbase, /realize
 widget_control, wmap, get_value=mapwin
