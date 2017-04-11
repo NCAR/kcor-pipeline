@@ -141,9 +141,12 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     ; find the NRGF files now, will move them after updating database
     rg_dir = filepath('', subdir=date_parts, root=run.nrgf_basedir)
     if (~file_test(rg_dir, /directory)) then file_mkdir, rg_dir
+    cropped_rg_dir = filepath('', subdir=date_parts, root=run.cropped_basedir)
+    if (~file_test(cropped_rg_dir, /directory)) then file_mkdir, cropped_rg_dir
 
-    rg_files = file_search('*rg*.fts*', count=n_rg_files)
-    rg_gifs = file_search('*rg*.gif', count=n_rg_gifs)
+    rg_files = file_search('*nrgf.fts*', count=n_rg_files)
+    rg_gifs = file_search('*nrgf.gif', count=n_rg_gifs)
+    cropped_rg_gifs = file_search('*nrgf_cropped.gif', count=n_cropped_rg_gifs)
 
     if (run.update_remote_server && ~keyword_set(reprocess)) then begin
       if (n_rg_gifs gt 0L) then begin
@@ -200,8 +203,10 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     endelse
 
     ; now move NRGF files
-;    if (n_rg_files gt 0L) then file_move, rg_files, archive_dir, /overwrite
     if (n_rg_gifs gt 0L) then file_move, rg_gifs, rg_dir, /overwrite
+    if (n_cropped_rg_gifs gt 0L) then begin
+      file_move, cropped_rg_gifs, cropped_rg_dir, /overwrite
+    endif
   endif else begin
     mg_log, 'raw directory locked, quitting', name='kcor/rt', /info
   endelse
