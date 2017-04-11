@@ -1,5 +1,8 @@
 ; docformat = 'rst'
 
+;+
+; Output to annotations to the current direct graphics device.
+;-
 pro kcor_nrgf_annotations, year, name_month, day, hour, minute, second, doy, $
                            cmin=cmin, cmax=cmax, $
                            top=top, right=right, $
@@ -8,27 +11,27 @@ pro kcor_nrgf_annotations, year, name_month, day, hour, minute, second, doy, $
                            cropped=cropped
   compile_opt strictarr
 
-  xyouts, 4, top - 34 + keyword_set(cropped) * 12, 'HAO/MLSO/Kcor', $
+  big_line_height = keyword_set(cropped) ? 18 : 20
+  line_height = keyword_set(cropped) ? 15 : 20
+
+  xyouts, 4, top - 34 + keyword_set(cropped) * 12, 'HAO/MLSO/KCor', $
           color=annotation_color, charsize=big_charsize, /device
-  xyouts, 4, top - 54 + keyword_set(cropped) * 12, 'K-Coronagraph', $
+  xyouts, 4, top - 34 - big_line_height + keyword_set(cropped) * 12, 'K-Coronagraph', $
           color=annotation_color, charsize=big_charsize, /device
 
   xyouts, right - 6, top - 29 + keyword_set(cropped) * 12, $
-          string(format='(a2)', day) + ' '$
-            + string(format='(a3)', name_month) +  ' ' $
-            + string(format='(a4)', year), $
+          string(day, name_month, year, format='(a2, " ", a3, " ", a4)'), $
           /device, alignment=1.0, charsize=charsize, color=annotation_color
-  xyouts, right - 14, top - 49 + keyword_set(cropped) * 12, $
-          'DOY ' + string (format='(i3)', doy), $
+  xyouts, right - 14, top - 29 - line_height + keyword_set(cropped) * 12, $
+          string (format='("DOY ", i3)', doy), $
           /device, alignment=1.0, charsize=charsize, color=annotation_color
-  xyouts, right - 6, top - 69 + keyword_set(cropped) * 12, $
-          string(format='(a2)', hour) + ':' $
-            + string(format='(a2)', minute) + ':' $
-            + string(format='(a2)', second) + ' UT', $
+  xyouts, right - 6, top - 29 - 2 * line_height + keyword_set(cropped) * 12, $
+          string(hour, minute, second, format='(a2, ":", a2, ":", a2, " UT")'), $
           /device, alignment=1.0, charsize=charsize, color=annotation_color
 
-  xyouts, 4, 46, 'Level 1 data', color=annotation_color, charsize=charsize, /device
-  xyouts, 4, 26, string(cmin, cmax, format='(%"min/max: %4.1f, %4.1f")'), $
+  xyouts, 4, 6 + 2 * line_height, 'Level 1 data', $
+          color=annotation_color, charsize=charsize, /device
+  xyouts, 4, 6 + line_height, string(cmin, cmax, format='(%"min/max: %4.1f, %4.1f")'), $
           color=annotation_color, charsize=charsize, /device
   xyouts, 4, 6, 'Intensity: normalized, radially-graded', $
           color=annotation_color, charsize=charsize, /device
@@ -216,15 +219,6 @@ pro kcor_nrgf, fits_file, cropped=cropped, run=run
   big_charsize = keyword_set(cropped) ? 1.25 : 1.5
   charsize = keyword_set(cropped) ? 1.0 : 1.2
 
-  ;xyouts, 512, 1000, 'North', color=255, charsize=1.2, alignment=0.5, $
-  ;        /device
-  ;xyouts, 22, 512, 'East', color=255, charsize=1.2, alignment=0.5, $
-  ;        orientation = 90., /device
-  ;xyouts, 1012, 512, 'West', color=255, charsize=1.2, alignment=0.5, $
-  ;        orientation = 90., /device
-  ;xyouts, 512, 12, 'South', color=255, charsize=1.2, alignment=0.5, $
-  ;        /device
-
   cneg = fix(ycen - r_photo) - keyword_set(cropped) * 4
   cpos = fix(ycen + r_photo) + keyword_set(cropped) * 6
 
@@ -239,12 +233,21 @@ pro kcor_nrgf, fits_file, cropped=cropped, run=run
 
   ; image has been shifted to center of array
   ; draw circle at photosphere
-  ;tvcircle, r_photo, 511.5, 511.5, color=255, /device
   kcor_suncir, out_xdim, out_ydim, xcen, ycen, 0, 0, r_photo, 0.0
 
   if (keyword_set(cropped)) then begin
-    save     = tvrd()
-    erase
+    save = tvrd()
+    alpha = 0.50
+
+    ; lower text boxes
+    save[0:259, 0:49] = alpha * save[0:259, 0:49]
+    save[out_xdim - 139:*, 0:19] = alpha * save[out_xdim - 139:*, 0:19]
+
+    ; upper text boxes
+    save[0:144, out_ydim - 49:out_ydim - 1] = alpha * save[0:144, out_ydim - 49:out_ydim - 1]
+    save[out_xdim - 99:*, out_ydim - 54:out_ydim - 1] = alpha * save[out_xdim - 99:*, out_ydim - 54:out_ydim - 1]
+
+    tv, save
   endif
 
   kcor_nrgf_annotations, year, name_month, day, hour, minute, second, doy, $
@@ -253,19 +256,6 @@ pro kcor_nrgf, fits_file, cropped=cropped, run=run
                          charsize=charsize, big_charsize=big_charsize, $
                          annotation_color=annotation_color, $
                          cropped=cropped
-
-  if (keyword_set(cropped)) then begin
-    save_annotation = tvrd() gt 0
-    annotation_background = dilate(save_annotation, intarr(3, 3) + 1)
-
-    tv, save or 255B * annotation_background
-    kcor_nrgf_annotations, year, name_month, day, hour, minute, second, doy, $
-                           cmin=cmin, cmax=cmax, $
-                           top=top, right=right, $
-                           charsize=charsize, big_charsize=big_charsize, $
-                           annotation_color=0, $
-                           cropped=cropped
-  endif
 
   ; create NRG gif file
   save = tvrd()
