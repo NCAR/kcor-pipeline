@@ -48,7 +48,6 @@ pro kcor_eng_insert, date, fits_list, $
   compile_opt strictarr
   on_error, 2
 
-
   if (n_params() ne 2) then begin
     mg_log, 'missing date or filelist parameters', name='kcor/rt', /error
     return
@@ -73,9 +72,9 @@ pro kcor_eng_insert, date, fits_list, $
     mg_log, 'connected to %s...', host, name='kcor/rt', /info
   endelse
 
-  year    = strmid (date, 0, 4)             ; yyyy
-  month   = strmid (date, 4, 2)             ; mm
-  day     = strmid (date, 6, 2)             ; dd
+  year    = strmid(date, 0, 4)   ; YYYY
+  month   = strmid(date, 4, 2)   ; MM
+  day     = strmid(date, 6, 2)   ; DD
 
   l1_dir = filepath('level1', subdir=date, root=run.raw_basedir)
   cd, current=start_dir 
