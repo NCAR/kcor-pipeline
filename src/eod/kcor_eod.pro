@@ -105,7 +105,9 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     openr, lun, nrgf_list, /get_lun
     readf, lun, nrgf_files
     free_lun, lun
-    kcor_plotraw, date, list=nrgf_files, run=run
+    kcor_plotraw, date, list=nrgf_files, run=run, $
+                  line_means=line_means, line_medians=line_medians, $
+                  radial_means=radial_means, radial_medians=radial_medians
   endif
 
   n_missing = 0L
@@ -208,9 +210,19 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
       if (db_status eq 0L) then begin
         kcor_cal_insert, date, cal_files, $
                          run=run, database=db, obsday_index=obsday_index
+
+        if (n_nrgf_files gt 0L) then begin
+          kcor_eng_update, date, nrgf_files, $
+                           line_means=line_means, line_medians=line_medians, $
+                           radial_means=radial_means, radial_medians=radial_medians, $
+                           run=run, database=db, obsday_index=obsday_index
+        endif else begin
+          mg_log, 'no NRGF files to add mean/median values for', name='kcor/eod', /warn
+        endelse
       endif else begin
         mg_log, 'skipping database inserts', name='kcor/eod', /warn
       endelse
+
       obj_destroy, db
     endif else begin
       mg_log, 'no cal files for kcor_cal table', name='kcor/eod', /info

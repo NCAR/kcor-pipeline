@@ -9,18 +9,29 @@
 ;
 ; :Keywords:
 ;   list : in, required, type=strarr
-;     list of files to process
+;     list of NRGF files to process
 ;   run : in, required, type=object
 ;     `kcor_run` object
-;   means : out, optional, type="fltarr(2, n_files)"
+;   line_means : out, optional, type="fltarr(2, n_files)"
 ;     set to a named variable to retrieve the mean of the pixel values of the
 ;     corresponding camera/raw file at `im[10:300, 512]`
-;   medians : out, optional, type="fltarr(2, n_files)"
+;   line_medians : out, optional, type="fltarr(2, n_files)"
 ;     set to a named variable to retrieve the median of the pixel values of the
 ;     corresponding camera/raw file at `im[10:300, 512]`
+;   radial_means : out, optional, type="fltarr(2, n_files)"
+;     set to a named variable to retrieve the mean of the pixel values of the
+;     corresponding camera/raw file at a fixed solar radius 
+;   radial_medians : out, optional, type="fltarr(2, n_files)"
+;     set to a named variable to retrieve the median of the pixel values of the
+;     corresponding camera/raw file at a fixed solar radius
 ;-
-pro kcor_plotraw, date, list=list, run=run, means=means, medians=medians
+pro kcor_plotraw, date, list=list, run=run, $
+                  line_means=line_means, line_medians=line_medians, $
+                  radial_means=radial_means, radial_medians=radial_medians
   compile_opt strictarr
+
+  mg_log, 'plotting values for raw images corresponding to NRGFs', $
+          name='kcor/eod', /info
 
   ; get raw filenames
   raw_nrgf_files = strmid(list, 0, 20) + '.fts'
@@ -31,8 +42,11 @@ pro kcor_plotraw, date, list=list, run=run, means=means, medians=medians
   endif
 
   ; create output arrays
-  means    = fltarr(2, n_nrgf_files)
-  medians  = fltarr(2, n_nrgf_files)
+  line_means    = fltarr(2, n_nrgf_files)
+  line_medians  = fltarr(2, n_nrgf_files)
+
+  radial_means    = fltarr(2, n_nrgf_files)
+  radial_medians  = fltarr(2, n_nrgf_files)
 
   l0_dir   = filepath('level0', subdir=date, root=run.raw_basedir)
   plot_dir = filepath('p', subdir=date, root=run.raw_basedir)
@@ -41,38 +55,83 @@ pro kcor_plotraw, date, list=list, run=run, means=means, medians=medians
   cd, current=orig_dir
   cd, l0_dir
 
+  y_profile_value = 512
+
   ; set up plotting environment
   orig_device = !d.name
   set_plot, 'Z'
-  device, set_resolution=[772, 500], decomposed=0, set_colors=256, z_buffering=0
+  device, set_resolution=[772, 1000], decomposed=0, set_colors=256, z_buffering=0
   red   = 255B - bindgen(256)
   green = 255B - bindgen(256)
   blue  = 255B - bindgen(256)
   tvlct, red, green, blue
-  !p.multi = [0, 1, 2]
+  !p.multi = [0, 1, 4]
+
+  radius = 1.1   ; in solar radii
+  theta_degrees = findgen(360)
+  theta = theta_degrees * !dtor
 
   for f = 0L, n_nrgf_files - 1L do begin
     im = readfits(raw_nrgf_files[f], header, /silent)
 
-    cam0_profile = reform(im[*, 512, 0, 0])
-    cam1_profile = reform(im[*, 512, 0, 1])
+    ; find pixels / solar radius
+    date_obs = sxpar(header, 'DATE-OBS', count=qdate_obs)
+    year   = strmid(date_obs,  0, 4)
+    month  = strmid(date_obs,  5, 2)
+    day    = strmid(date_obs,  8, 2)
+    hour   = strmid(date_obs, 11, 2)
+    minute = strmid(date_obs, 14, 2)
+    second = strmid(date_obs, 17, 2)
 
-    means[0, f] = mean(cam0_profile[10:300])
-    means[1, f] = mean(cam1_profile[10:300])
+    ephem = pb0r(date_str, /arcsec)
+    pangle = ephem[0]   ; degrees
+    bangle = ephem[1]   ; degrees
+    rsun   = ephem[2]   ; solar radius (arcsec)
 
-    medians[0, f] = median(cam0_profile[10:300])
-    medians[1, f] = median(cam1_profile[10:300])
+    sun_pixels = rsun / run.plate_scale
 
-    plot, cam0_profile, $
-          title='Line profile at y=512 for Camera 0', $
-          xticks=8, xstyle=1, xtickformat='(I)', xtitle='Raw image x-coordinate', $
-          ytickformat='(I)', ytitle='Raw pixel value', yrange=[0, 40000], $
-          yticks=4, yminor=1, yticklen=1.0, ygridstyle=1
-    plot, cam1_profile, $
-          title='Line profile at y=512 for Camera 1', $
-          xticks=8, xstyle=1, xtickformat='(I)', xtitle='Raw image x-coordinate', $
-          ytickformat='(I)', yrange=[0, 40000], ytitle='Raw pixel value', $
-          yticks=4, yminor=1, yticklen=1.0, ygridstyle=1
+    occulter_id = fxpar(header, 'OCCLTRID')
+    occulter = strmid(occulter_id, 3, 5)
+    occulter = float(occulter)
+    if (occulter eq 1018.0) then occulter = 1018.9
+    if (occulter eq 1006.0) then occulter = 1006.9
+
+    radius_guess = occulter / run.plate_scale   ; pixels
+
+    for c = 0, 1 do begin
+      line_means[c, f] = mean((im[*, y_profile_value, 0, c])[10:300])
+      line_medians[c, f] = median((im[*, y_profile_value, 0, c])[10:300])
+
+      plot, reform(im[*, y_profile_value, 0, c]), $
+            title=string(y_profile_value, c, $
+                         format='(%"Line profile of intensity at y=%d for camera %d")'), $
+            charsize=2.0, $
+            xticks=8, xstyle=1, xtickformat='(I)', xtitle='Raw image x-coordinate', $
+            ytickformat='(I)', ytitle='Raw pixel value', yrange=[0, 40000], $
+            yticks=4, yminor=1, yticklen=1.0, ygridstyle=1
+    endfor
+
+    for c = 0, 1 do begin
+      info_raw  = kcor_find_image(im[*, *, 0, c], $
+                                  radius_guess, /center_guess, log_name='kcor/eod')
+
+      x_0 = info_raw[0]
+      y_0 = info_raw[1]
+      x = radius * sun_pixels * cos(theta) + x_0
+      y = radius * sun_pixels * sin(theta) + y_0
+      radial_profile = reform(im[x, y, 0, c])
+
+      radial_means[c, f] = mean(radial_profile)
+      radial_medians[c, f] = median(radial_profile)
+
+      plot, theta_degrees, radial_profile, $
+            title=string(radius, c, $
+                         format='(%"Radial profile of intensity at r=%0.1f solar radius for camera %d")'), $
+            charsize=2.0, $
+            xticks=8, xstyle=1, xtickformat='(I)', xtitle='Angle (degrees)', $
+            ytickformat='(I)', yrange=[0, 40000], ytitle='Raw pixel value', $
+            yticks=4, yminor=1, yticklen=1.0, ygridstyle=1
+    endfor
 
     plot_image = tvrd()
 

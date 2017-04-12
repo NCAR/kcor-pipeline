@@ -77,11 +77,6 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
   doview = 0
 
-  mg_log, 'date      : %s', date, name='kcor/eod', /debug
-  mg_log, 'base_dir  : %s', base_dir, name='kcor/eod', /debug
-  mg_log, 'l0_dir    : %s', l0_dir, name='kcor/eod', /debug
-  mg_log, 'plots dir : %s', plots_dir, name='kcor/eod', /debug
-
   set_plot, 'Z'
 
   ;lct,'/hao/acos/sw/idl/color/quallab_ver2.lut' ; color table.

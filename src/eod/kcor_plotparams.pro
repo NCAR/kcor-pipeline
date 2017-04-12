@@ -53,13 +53,9 @@ pro kcor_plotparams, date, list=list, run=run
 
   ; establish list of files to process
 
-  mg_log, 'start dir : %s', start_dir, name='kcor/eod', /debug
-  mg_log, 'L0 dir    : %s', l0_dir, name='kcor/eod', /debug
-  mg_log, 'plots dir : %s', plots_dir, name='kcor/eod', /debug
-
   ; determine the number of files to process
   nimg = n_elements(list)
-  mg_log, 'nimg: %d', nimg, name='kcor/eod', /debug
+  mg_log, '%d images to plot', nimg, name='kcor/eod', /debug
 
   ; declare storage for plot arrays
 
@@ -157,8 +153,9 @@ pro kcor_plotparams, date, list=list, run=run
     platescale = run.plate_scale   ; arsec/pixel.
     radius_guess = occulter / platescale   ; occulter size [pixels]
 
-    mg_log, '%27s %4d %11s %7.3f %7.3f %9.3f', $
-            file_basename(l0_file), i + 1, datatype, modltrt, sgsdimv, sgsscint, $
+    mg_log, '%4d/%d: %s %s %7.3f %7.3f %7.3f', $
+            i + 1, n_elements(list), file_basename(l0_file), $
+            strmid(datatype, 0, 3), modltrt, sgsdimv, sgsscint, $
             name='kcor/eod', /debug
     mg_log, '%7.3f %7.3f %9.3f', $
             tcamfocs, rcamfocs, o1focs, $
