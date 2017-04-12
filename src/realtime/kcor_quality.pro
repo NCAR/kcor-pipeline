@@ -279,8 +279,7 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     if (occulter eq '1018.') then occulter = 1018.9
     if (occulter eq '1006.') then occulter = 1006.9
 
-    platescale = 5.643   ; arsec/pixel
-    radius_guess = occulter / platescale   ; occulter size [pixels]
+    radius_guess = occulter / run.plate_scale   ; occulter size [pixels]
 
     ; define variables for azimuthal angle "scans"
     nray  = 36
@@ -767,8 +766,8 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
 
     ; print, '!d.n_colors: ', !d.n_colors
 
-    rsunpix = rsun / platescale     ; 1.0 rsun [pixels]
-    irsunpix = fix(rsunpix + 0.5)   ; 1.0 rsun [integer pixels]
+    rsunpix = rsun / run.plate_scale   ; 1.0 rsun [pixels]
+    irsunpix = fix(rsunpix + 0.5)      ; 1.0 rsun [integer pixels]
 
     ; print, 'rdisc_pix, rsunpix: ', rdisc_pix, rsunpix
 

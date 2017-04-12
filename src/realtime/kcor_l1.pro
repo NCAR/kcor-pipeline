@@ -587,22 +587,6 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     sol_ra = sol_ra * 15.0   ; convert from hours to degrees
     carrington_rotnum = fix(carrington)
 
-    ; julian_date = julday(omonth, oday, oyear, ohour, ominute, osecond)
-
-    ;  Platescale
-    ; -----------
-    ; Made PRELIMARY measurements of 3 occulter diameters to compute 
-    ; first estimate of platescale.
-    ; Largest occulter: radius = 1018.9" is 361 pixels in diameter,
-    ; giving platescale = 5.64488" / pixel
-    ; Medium occulter: radius = 1006.9" is 356.5 pixels in diameter,
-    ; giving platescale = 5.64881" / pixel
-    ; Smallest occulter: radius = 991.6" is 352 pixels in diameter,
-    ; giving platescale = 5.63409" / pixel
-    ; Avg value = 5.643 +/- 0.008" / pixel
-
-    platescale = 5.643   ; arcsec/pixel
-
     ; find size of occulter
     ;   - one occulter has 4 digits; other two have 5
     ;   - only read in 4 digits to avoid confusion
@@ -613,7 +597,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     if (occulter eq 1018.0) then occulter = 1018.9
     if (occulter eq 1006.0) then occulter = 1006.9
 
-    radius_guess = occulter / platescale   ; pixels
+    radius_guess = occulter / run.plate_scale   ; pixels
 
     ; find image centers & radii of raw images
 
@@ -1003,8 +987,8 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
       radius_beg = r_in
       radius_end = r_out
 
-      r_in  *= radsun / platescale
-      r_out *= radsun / platescale
+      r_in  *= radsun / run.plate_scale
+      r_out *= radsun / run.plate_scale
       radscan[ii] = (r_in + r_out) / 2.0
 
       ; extract annulus and average all heights at 'stepdeg' increments around
@@ -1078,10 +1062,10 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     ; bias_image = interpol(biasfit, radscan, rr1, /quadratic)
 
     if (doplot eq 1) then begin
-      plot, rr1[*, 500] * platescale / radsun, radial_amplitude1[*, 500], $
+      plot, rr1[*, 500] * run.plate_scale / radsun, radial_amplitude1[*, 500], $
             xtitle='distance (solar radii)', $
             ytitle='amplitude', title='CAMERA 1'
-      oplot, radscan * platescale / (radsun), amplitude1, psym=2
+      oplot, radscan * run.plate_scale / (radsun), amplitude1, psym=2
       wait, 1
     endif
 
@@ -1132,10 +1116,10 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     corona = sqrt(qmk4_new ^ 2)
 
     ; use mask to build final image
-    r_in  = fix(occulter / platescale) + 5.0
+    r_in  = fix(occulter / run.plate_scale) + 5.0
     r_out = 504.0
 
-    mask = where(rad1 LT r_in OR rad1 GE r_out) ; pixels beyond field of view.
+    mask = where(rad1 lt r_in or rad1 ge r_out) ; pixels beyond field of view.
     corona[mask] = 0
     corona2[mask] = 0
     corona0[mask] = 0
@@ -1172,7 +1156,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     ;                      divided by platescale [arcseconds / pixel]
     ;                    * radius of occulter [pixels] :
 
-    r_photo = radsun / platescale
+    r_photo = radsun / run.plate_scale
 
     ; print,        'Radius of photosphere [pixels] : ', r_photo
     ; printf, ULOG, 'Radius of photosphere [pixels] : ', r_photo
@@ -1409,7 +1393,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
                          format='(f9.2)'
     fxaddpar, newheader, 'CRVAL1',   0.00, ' [arcsec] solar X sun center', $
                          format='(f9.2)'
-    fxaddpar, newheader, 'CDELT1',   platescale, $
+    fxaddpar, newheader, 'CDELT1',   run.plate_scale, $
                          ' [arcsec/pix] solar X increment = platescale', $
                          format='(f9.4)'
     fxaddpar, newheader, 'CUNIT1',   'arcsec'
@@ -1420,7 +1404,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
                          format='(f9.2)'
     fxaddpar, newheader, 'CRVAL2',   0.00, ' [arcsec] solar Y sun center', $
                          format='(f9.2)'
-    fxaddpar, newheader, 'CDELT2',   platescale, $
+    fxaddpar, newheader, 'CDELT2',   run.plate_scale, $
                          ' [arcsec/pix] solar Y increment = platescale', $
                          format='(f9.4)'
     fxaddpar, newheader, 'CUNIT2',   'arcsec'
