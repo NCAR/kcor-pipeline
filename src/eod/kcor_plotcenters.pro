@@ -35,9 +35,9 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
   endif
 
   ; date for plots
-  pyear  = strmid (date, 0, 4)
-  pmonth = strmid (date, 4, 2)
-  pday   = strmid (date, 6, 2)
+  pyear  = strmid(date, 0, 4)
+  pmonth = strmid(date, 4, 2)
+  pday   = strmid(date, 6, 2)
   pdate = string(pyear, pmonth, pday, format='(%"%s-%s-%s")')
 
   ;-----------------------------------------
@@ -69,7 +69,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
   endif
 
   ; create p sub-directory, if needed
-  if (~file_test (plots_dir, /directory)) then file_mkdir, plots_dir
+  if (~file_test(plots_dir, /directory)) then file_mkdir, plots_dir
 
   ; move to 'L0' directory
   cd, current=start_dir   ; save current directory.

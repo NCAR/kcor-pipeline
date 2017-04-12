@@ -96,6 +96,18 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     mg_log, 'no zipped L0 files to unzip', name='kcor/eod', /info
   endelse
 
+  nrgf_list = filepath('oknrgf.ls', $
+                       subdir=[date, 'level1'], $
+                       root=run.raw_basedir)
+  n_nrgf_files = file_lines(nrgf_list)
+  if (n_nrgf_files gt 0L) then begin
+    nrgf_files = strarr(n_nrgf_files)
+    openr, lun, nrgf_list, /get_lun
+    readf, lun, nrgf_files
+    free_lun, lun
+    kcor_plotraw, date, list=nrgf_files, run=run
+  endif
+
   n_missing = 0L
   n_wrongsize = 0L
   n_l0_files = 0L
@@ -122,10 +134,10 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   mg_log, 't1.log: # L0 files: %d', n_l0_files, name='kcor/eod', /info
   if (n_missing gt 0L) then begin
-    mg_log, 't1.log: # missing files: %d', n_missing, name='kcor/eod', /info
+    mg_log, 't1.log: # missing files: %d', n_missing, name='kcor/eod', /warn
   endif
   if (n_wrongsize gt 0L) then begin
-    mg_log, 't1.log: # wrong size files: %d', n_wrongsize, name='kcor/eod', /info
+    mg_log, 't1.log: # wrong size files: %d', n_wrongsize, name='kcor/eod', /warn
   endif
 
   if (n_missing eq 0L && n_wrongsize eq 0L) then begin

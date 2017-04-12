@@ -122,12 +122,16 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     openw, okcgif_lun, 'okcgif.ls', /append, /get_lun
     openw, okfgif_lun, 'okfgif.ls', /append, /get_lun
     openw, okl1gz_lun, 'okl1gz.ls', /append, /get_lun
+    openw, ok_rg_lun, 'oknrgf.ls', /append, /get_lun
 
     for f = 0L, n_elements(ok_files) - 1L do begin
       base = file_basename(ok_files[f], '.fts')
       printf, okcgif_lun, base + '_cropped.gif'
       printf, okfgif_lun, base + '.gif'
       printf, okl1gz_lun, base + '_l1.fts.gz'
+
+      nrgf_filename = base + '_l1_nrgf.fts.gz'
+      if (file_test(nrgf_filename)) then printf, ok_rg_lun, nrgf_filename
 
       file_copy, base + '_cropped.gif', croppedgif_dir, /overwrite
       file_copy, base + '.gif', fullres_dir, /overwrite
@@ -137,12 +141,12 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     free_lun, okcgif_lun
     free_lun, okfgif_lun
     free_lun, okl1gz_lun
+    free_lun, ok_rg_lun
 
     ; find the NRGF files now, will move them after updating database
     rg_dir = filepath('', subdir=date_parts, root=run.nrgf_basedir)
     if (~file_test(rg_dir, /directory)) then file_mkdir, rg_dir
 
-    rg_files = file_search('*nrgf.fts*', count=n_rg_files)
     rg_gifs = file_search('*nrgf.gif', count=n_rg_gifs)
     cropped_rg_gifs = file_search('*nrgf_cropped.gif', count=n_cropped_rg_gifs)
 
@@ -151,7 +155,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
         mg_log, 'transferring %d NRGF GIFs to remote server', n_rg_gifs, $
                 name='kcor/rt', /debug
         spawn_cmd = string(run.nrgf_remote_server, run.nrgf_remote_dir, $
-                           format='(%"scp -B -r -p *rg*.gif %s:%s")')
+                           format='(%"scp -B -r -p *nrgf.gif %s:%s")')
         spawn, spawn_cmd, result, error_result, exit_status=status
         if (status ne 0L) then begin
           mg_log, 'problem scp-ing NRGF files with command: %s', spawn_cmd, $
