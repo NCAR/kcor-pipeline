@@ -105,8 +105,16 @@ $command = "CREATE TABLE kcor_eng
   tcamxcen		FLOAT(9, 3),
   tcamycen		FLOAT(9, 3),
   rcam_rad		FLOAT(9, 3),
-  tcam_rad		FLOAT(9, 3),
-  mean_phase1	FLOAT (7, 4),
+  tcam_rad              FLOAT(9, 3),
+  mean_phase1           FLOAT (7, 4),
+  l0inthorizmeancam0    FLOAT (9, 3),
+  l0inthorizmeancam1    FLOAT (9, 3),
+  l0inthorizmediancam0  FLOAT (9, 3),
+  l0inthorizmediancam1  FLOAT (9, 3),
+  l0intradialmeancam0   FLOAT (9, 3),
+  l0intradialmeancam1   FLOAT (9, 3),
+  l0intradialmediancam0 FLOAT (9, 3),
+  l0intradialmediancam1 FLOAT (9, 3),
   cover			CHAR (3),
   darkshut		CHAR (3),
   diffuser		CHAR (3),
@@ -117,7 +125,7 @@ $command = "CREATE TABLE kcor_eng
   FOREIGN KEY (level) REFERENCES kcor_level(level_id),
   FOREIGN KEY (kcor_sw_id) REFERENCES kcor_sw(sw_id),
   FOREIGN KEY (obs_day) REFERENCES mlso_numfiles(day_id)
-  )" ;  # TODO: remove _test when in production
+  )" ;
 
 $sth = $dbh->prepare ($command) ;
 $sth->execute () ;
