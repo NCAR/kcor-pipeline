@@ -31,13 +31,6 @@
 ;   radial_medians : out, optional, type="fltarr(2, n_files)"
 ;     set to a named variable to retrieve the median of the pixel values of the
 ;     corresponding camera/raw file at a fixed solar radius
-;
-; :Examples:
-;   For example::
-;
-;     date = '20170204'
-;     filelist = ['20170204_205610_kcor_l1_nrgf.fts.gz', '20170204_205625_kcor_l1.fts.gz']
-;     kcor_eng_insert, date, filelist, run=run, obsday_index=obsday_index
 ;-
 pro kcor_eng_update, date, nrgf_files, $
                      line_means=line_means, line_medians=line_medians, $
@@ -68,7 +61,23 @@ pro kcor_eng_update, date, nrgf_files, $
   month   = strmid(date, 4, 2)   ; MM
   day     = strmid(date, 6, 2)   ; DD
 
-  ; TODO: find corresponding L1 files and add means/medians
+  for f = 0L, n_elements(nrgf_files) - 1L do begin
+    l1_filename = strmid(nrgf_files[f], 0, 20) + '_l1.fts'
+    db->execute, 'UPDATE kcor_eng SET l0inthorizmeancam0=''%d'',l0inthorizmeancam1=''%d'', l0inthorizmediancam0=''%d'', l0inthorizmediancam1=''%d'', l0intradialmeancam0=''%d'',l0intradialmeancam1=''%d'', l0intradialmediancam0=''%d'', l0intradialmediancam1=''%d'' WHERE filename=''%s''', $
+                 line_means[0, f], line_means[1, f], $
+                 line_medians[0, f], line_medians[1, f], $
+                 radial_means[0, f], radial_means[1, f], $
+                 radial_medians[0, f], radial_medians[1, f], $
+                 l1_filename, $
+                 status=status, error_message=error_message, sql_statement=sql_cmd
+    if (status ne 0L) then begin
+      mg_log, 'error zeroing values in mlso_numfiles table for obsday index %d', $
+              obsday_index, name=log_name, /error
+      mg_log, 'status: %d, error message: %s', status, error_message, $
+              name=log_name, /error
+      mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
+    endif
+  endfor
 
   done:
   if (~obj_valid(database)) then obj_destroy, db
