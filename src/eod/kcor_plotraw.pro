@@ -117,9 +117,13 @@ pro kcor_plotraw, date, list=list, run=run, $
 
       x_0 = info_raw[0]
       y_0 = info_raw[1]
+
       x = radius * sun_pixels * cos(theta) + x_0
       y = radius * sun_pixels * sin(theta) + y_0
-      radial_profile = reform(im[x, y, 0, c])
+
+      ; need to get to a 2-dimensional array to index correctly
+      spatial_im = reform(im[*, *, 0, c])
+      radial_profile = reform(spatial_im[x, y])
 
       radial_means[c, f] = mean(radial_profile)
       radial_medians[c, f] = median(radial_profile)
