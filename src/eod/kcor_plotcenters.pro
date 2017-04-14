@@ -102,8 +102,10 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
   ; determine the number of files to process
   nimg = n_elements(list)
-  mg_log, 'nimg: %s', nimg, name='kcor/eod', /debug
-  mg_log, 'file name                datatype    exp  cov drk  dif pol angle  qual', $
+  mg_log, '%d images to process', nimg, name='kcor/eod', /debug
+  mg_log, 'file name                datatype', $
+          name='kcor/eod', /debug
+  mg_log, '    exp  cov drk  dif pol angle  qual', $
           name='kcor/eod', /debug
 
   ; declare storage for occulting centers
@@ -331,8 +333,11 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     qual_str     = string(format='(a4)', qual)
 
     ; print image summary
-    mg_log, '%s%s%s%s%s%s%s%s%s', $
-            file_basename(img_file), datatype_str, exptime_str, cover_str, dshutter_str, $
+    mg_log, '%s%s', $
+            file_basename(img_file), datatype_str, $
+            name='kcor/eod', /info
+    mg_log, '%s%s%s%s%s%s%s', $
+            exptime_str, cover_str, dshutter_str, $
             diffuser_str, calpol_str, calpang_str, qual_str, $
             name='kcor/eod', /info
   endfor

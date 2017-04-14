@@ -16,8 +16,8 @@
 ;     structure with angles, idiff, vdimref, date, file_list, and file_types
 ;     fields
 ;-
-pro kcor_reduce_calibration_read_data, file_list, basedir, $
-                                       data=data, metadata=metadata
+pro kcor_reduce_calibration_read, file_list, basedir, $
+                                  data=data, metadata=metadata
   compile_opt strictarr
 
   filenames = filepath(file_list, root=basedir)
@@ -70,7 +70,7 @@ pro kcor_reduce_calibration_read_data, file_list, basedir, $
         angles[gotcal] = calpang
         gotcal++
         file_types[f] = 'calibration'
-        mg_log, 'calibration @ angle %0.1f: %s', $
+        mg_log, 'cal@%0.1f: %s', $
                 calpang, file_list[f], name='kcor/cal', /debug
       endelse
     endif

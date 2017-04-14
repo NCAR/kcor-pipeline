@@ -76,6 +76,9 @@ pro kcor_plotparams, date, list=list, run=run
   rcam_focus = fltarr(nimg)
   o1_focus   = fltarr(nimg)
 
+  ; used for log messages
+  indent = strjoin(strarr(4 + 2 + ceil(alog10(n_elements(list) + 1))) + ' ')
+
   ; image file loop
   for i = 0L, n_elements(list) - 1L do begin
     l0_file = list[i]
@@ -153,12 +156,15 @@ pro kcor_plotparams, date, list=list, run=run
     platescale = run.plate_scale   ; arsec/pixel.
     radius_guess = occulter / platescale   ; occulter size [pixels]
 
-    mg_log, '%4d/%d: %s %s %7.3f %7.3f %7.3f', $
+    mg_log, '%4d/%d: %s %s', $
             i + 1, n_elements(list), file_basename(l0_file), $
-            strmid(datatype, 0, 3), modltrt, sgsdimv, sgsscint, $
+            strmid(datatype, 0, 3), $
             name='kcor/eod', /debug
-    mg_log, '%7.3f %7.3f %9.3f', $
-            tcamfocs, rcamfocs, o1focs, $
+    mg_log, '%s%7.3f %7.3f %7.3f', $
+            indent, modltrt, sgsdimv, sgsscint, $
+            name='kcor/eod', /debug
+    mg_log, '%s%7.3f %7.3f %9.3f', $
+            indent, tcamfocs, rcamfocs, o1focs, $
             name='kcor/eod', /debug
 
     ; define array dimensions

@@ -1,7 +1,7 @@
 ; docformat = 'rst'
 
 ;+
-; Plot parameters from raw KCor files.
+; Plot parameters from raw KCor files corresponding to NRGFs.
 ;
 ; :Params:
 ;   date : in, required, type=string
@@ -30,8 +30,7 @@ pro kcor_plotraw, date, list=list, run=run, $
                   radial_means=radial_means, radial_medians=radial_medians
   compile_opt strictarr
 
-  mg_log, 'plotting values for raw images corresponding to NRGFs', $
-          name='kcor/eod', /info
+  mg_log, 'starting', name='kcor/eod', /info
 
   ; get raw filenames
   raw_nrgf_files = strmid(list, 0, 20) + '.fts'

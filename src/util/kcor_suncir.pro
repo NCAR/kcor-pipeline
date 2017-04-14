@@ -28,9 +28,11 @@
 pro kcor_suncir, xdim, ydim, xcen, ycen, xb, yb, pixrs, roll
   compile_opt strictarr
 
-
-  mg_log, 'xdim=%f, ydim=%f, xcen=%f, ycen=%f, xb=%d, yb=%d, pixrs=%f, roll=%f', $
-          xdim, ydim, xcen, ycen, xb, yb, pixrs, roll, $
+  mg_log, 'dims=[%d, %d], center=[%0.2f, %0.2f]', $
+          xdim, ydim, xcen, ycen, $
+          name='kcor/rt', /debug
+  mg_log, 'xb=%d, yb=%d, pixels/R_sun=%0.2f, roll=%0.2f', $
+          xb, yb, pixrs, roll, $
           name='kcor/rt', /debug
 
   white  = 255

@@ -4,9 +4,9 @@
 ; Main calibration routine.
 ;
 ; :Uses:
-;   kcor_read_calibration_text, kcor_reduce_calibration_read_data,
+;   kcor_read_calibration_text, kcor_reduce_calibration_read,
 ;   kcor_reduce_calibration_setup_lm, kcor_reduce_calibration_model,
-;   kcor_reduce_calibration_write_data
+;   kcor_reduce_calibration_write
 ;
 ; :Params:
 ;   date : in, required, type=date
@@ -45,11 +45,11 @@ pro kcor_reduce_calibration, date, config_filename=config_filename, run=run
 
   ; read the data
   mg_log, 'reading data...', name='kcor/cal', /info
-  kcor_reduce_calibration_read_data, file_list, $
-                                     filepath('level0', $
-                                              subdir=date, $
-                                              root=run.raw_basedir), $
-                                     data=data, metadata=metadata
+  kcor_reduce_calibration_read, file_list, $
+                                filepath('level0', $
+                                         subdir=date, $
+                                         root=run.raw_basedir), $
+                                data=data, metadata=metadata
   sz = size(data.gain, /dimensions)
   mg_log, 'done reading data', name='kcor/cal', /info
 
@@ -87,10 +87,6 @@ pro kcor_reduce_calibration, date, config_filename=config_filename, run=run
                          functargs=functargs, status=status, errmsg=errmsg, $
                          niter=niter, npegged=npegged, perror=fiterror, /quiet)
       fiterrors[*, i] = fiterror
-
-      if i ne 0 and i mod (npick / 10) eq 0 then begin
-        mg_log, '%d%% complete', 100L * i / npick, name='kcor/cal', /debug
-      endif
     endfor
 
     ; Parameters 8-12 may have gone to equivalent solutions due to periodicity
@@ -135,7 +131,7 @@ pro kcor_reduce_calibration, date, config_filename=config_filename, run=run
     mg_log, 'done fitting 4th order polynomials', name='kcor/cal', /info
 
     ; populate the modulation matrix
-    mg_log,  'calculating modulation/demodulation matrices... ', $
+    mg_log,  'calculating mod/demod matrices... ', $
              name='kcor/cal', /info
     mmat[*, *, beam, 0, *] = fitimgs[*, *, 0:3]
     mmat[*, *, beam, 1, *] = fitimgs[*, *, 0:3] $
@@ -150,7 +146,7 @@ pro kcor_reduce_calibration, date, config_filename=config_filename, run=run
       txymmat = transpose(xymmat)
       dmat[x, y, beam, *, *] = la_invert(txymmat ## xymmat) ## txymmat
     endfor
-    mg_log, 'done calculating moduluation/demodulation matrices', $
+    mg_log, 'done calculating mod/demod matrices', $
             name='kcor/cal', /info
 
     ; save pixels, fits, fiterrors
@@ -174,11 +170,11 @@ pro kcor_reduce_calibration, date, config_filename=config_filename, run=run
 
   if (~file_test(run.cal_out_dir, /directory)) then file_mkdir, run.cal_out_dir
 
-  mg_log, 'writing output to %s', outfile, name='kcor/cal', /info
-  kcor_reduce_calibration_write_data, data, metadata, $
-                                      mmat, dmat, outfile, $
-                                      pixels0, fits0, fiterrors0, $
-                                      pixels1, fits1, fiterrors1
+  mg_log, 'writing %s', file_basename(outfile), name='kcor/cal', /info
+  kcor_reduce_calibration_write, data, metadata, $
+                                 mmat, dmat, outfile, $
+                                 pixels0, fits0, fiterrors0, $
+                                 pixels1, fits1, fiterrors1
   mg_log, 'done writing output', name='kcor/cal', /info
 
   mg_log, 'done', name='kcor/cal', /info

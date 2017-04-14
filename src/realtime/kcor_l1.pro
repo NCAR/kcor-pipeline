@@ -348,7 +348,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
 
   ; extract information from calibration file
   calpath = filepath(run.cal_file, root=run.cal_out_dir)
-  mg_log, 'calpath: %s', calpath, name='kcor/rt', /debug
+  mg_log, 'cal file: %s', file_basename(calpath), name='kcor/rt', /debug
 
   unit = ncdf_open(calpath)
   ncdf_varget, unit, 'Dark', dark_alfred
@@ -473,8 +473,8 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     type = ''
     type = fxpar(header, 'DATATYPE')
 
-    mg_log, 'processing %d/%d: %s, type: %s', $
-            fnum, nfiles, file_basename(l0_file), type, $
+    mg_log, 'processing %d/%d: %s %s', $
+            fnum, nfiles, file_basename(l0_file), strmid(type, 0, 3), $
             name='kcor/rt', /info
 
     ; read date of observation (needed to compute ephemeris info)
@@ -555,7 +555,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     date_hst = hst_year + '-' + hst_month  + '-' + hst_day + 'T' + $
                hst_hour + ':' + hst_minute + ':' + hst_second
 
-    mg_log, 'date_obs: %s, HST: %s', date_obs, date_hst, name='kcor/rt', /debug
+    mg_log, 'obs UT: %s, HST: %s', date_obs, date_hst, name='kcor/rt', /debug
 
     ; put the Level-0 FITS header into a structure
     struct = fitshead2struct(header, dash2underscore=dash2underscore)

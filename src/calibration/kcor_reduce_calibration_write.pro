@@ -6,10 +6,10 @@
 ; :Params:
 ;   data : in, required, type=structure
 ;     structure with dark and gain fields, as returned from
-;     `KCOR_REDUCE_CALIBRATION_READ_DATA` 
+;     `KCOR_REDUCE_CALIBRATION_READ` 
 ;   metadata : in, required, type=structure
 ;     structure with vdimref, date, file_list, and file_types fields, as
-;     returned from `KCOR_REDUCE_CALIBRATION_READ_DATA` 
+;     returned from `KCOR_REDUCE_CALIBRATION_READ`
 ;   mmat
 ;   dmat
 ;   outfile : in, required, type=string
@@ -21,10 +21,10 @@
 ;   fits1
 ;   fiterrors1
 ;-
-pro kcor_reduce_calibration_write_data, data, metadata, $
-                                        mmat, dmat, outfile, $
-                                        pixels0, fits0, fiterrors0, $
-                                        pixels1, fits1, fiterrors1
+pro kcor_reduce_calibration_write, data, metadata, $
+                                   mmat, dmat, outfile, $
+                                   pixels0, fits0, fiterrors0, $
+                                   pixels1, fits1, fiterrors1
   compile_opt strictarr
 
   dark = data.dark

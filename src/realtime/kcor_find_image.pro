@@ -154,7 +154,8 @@ function kcor_find_image, data, radius_guess, $
       xc = 511.5 - xcen_guess
       yc = 511.5 - ycen_guess
       r = radius_guess
-      mg_log, 'center not found', name=log_name, /warn
+      mg_log, 'center not found, using defaults', $
+              name=log_name, /warn
     endif
   endif
 

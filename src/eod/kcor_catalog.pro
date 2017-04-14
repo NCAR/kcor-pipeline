@@ -34,7 +34,7 @@ pro kcor_catalog, date, list=list, run=run
 
   for f = 0L, n_elements(list) - 1L do begin
     fits_file = list[f]
-    mg_log, '%d/%d: %s', f + 1, n_elements(list), file_basename(fits_file), $
+    mg_log, '%4d/%d: %s', f + 1, n_elements(list), file_basename(fits_file), $
             name='kcor/eod', /info
     kcor_catalog_file, fits_file, run=run
   endfor

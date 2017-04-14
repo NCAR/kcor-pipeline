@@ -142,7 +142,8 @@ pro kcor_nrgf, fits_file, cropped=cropped, run=run
     r0 *= scale
   endif
 
-  mg_log, 'starting NRGF', name='kcor/rt', /info
+  mg_log, 'starting NRGF %s', keyword_set(cropped) ? '(cropped)' : '', $
+          name='kcor/rt', /info
   mg_log, 'rsun     [arcsec]: %0.4f', rsun, name='kcor/rt', /debug
   mg_log, 'occulter [arcsec]: %0.4f', occulter, name='kcor/rt', /debug
   mg_log, 'r_photo  [pixels]: %0.2f', r_photo, name='kcor/rt', /debug
@@ -265,7 +266,7 @@ pro kcor_nrgf, fits_file, cropped=cropped, run=run
                     format='(%"%s_nrgf%s.gif")')
 
   write_gif, gif_file, save, red, green, blue
-  mg_log, 'wrote GIF file %s', gif_file, name='kcor/rt', /debug
+  mg_log, 'wrote GIF file %s', gif_file, name='kcor/rt', /info
 
   if (~keyword_set(cropped)) then begin
     ; create short integer image
@@ -299,7 +300,7 @@ pro kcor_nrgf, fits_file, cropped=cropped, run=run
     rfts_file = strmid(fits_file, 0, fts_loc) + '_nrgf.fts'
 
     writefits, rfts_file, simg, rhdu
-    mg_log, 'wrote NRGF FITS file %s', rfts_file, name='kcor/rt', /debug
+    mg_log, 'wrote FITS file %s', rfts_file, name='kcor/rt', /info
   endif
 end
 
