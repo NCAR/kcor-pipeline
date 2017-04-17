@@ -201,32 +201,35 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     cal_files = kcor_read_calibration_text(date, run.process_basedir, $
                                            exposures=exposures, $
                                            n_files=n_cal_files)
-    if (n_cal_files gt 0L) then begin
-      obsday_index = mlso_obsday_insert(date, $
-                                        run=run, $
-                                        database=db, $
-                                        status=db_status, $
-                                        log_name='kcor/eod')
-      if (db_status eq 0L) then begin
+
+    obsday_index = mlso_obsday_insert(date, $
+                                      run=run, $
+                                      database=db, $
+                                      status=db_status, $
+                                      log_name='kcor/eod')
+
+    if (db_status eq 0L) then begin
+      if (n_cal_files gt 0L) then begin
         kcor_cal_insert, date, cal_files, $
                          run=run, database=db, obsday_index=obsday_index
-
-        if (n_nrgf_files gt 0L) then begin
-          kcor_eng_update, date, nrgf_files, $
-                           line_means=line_means, line_medians=line_medians, $
-                           radial_means=radial_means, radial_medians=radial_medians, $
-                           run=run, database=db, obsday_index=obsday_index
-        endif else begin
-          mg_log, 'no NRGF files to add mean/median values for', name='kcor/eod', /warn
-        endelse
       endif else begin
-        mg_log, 'skipping database inserts', name='kcor/eod', /warn
+        mg_log, 'no cal files for kcor_cal table', name='kcor/eod', /info
       endelse
 
-      obj_destroy, db
+      if (n_nrgf_files gt 0L) then begin
+        kcor_eng_update, date, nrgf_files, $
+                         line_means=line_means, line_medians=line_medians, $
+                         radial_means=radial_means, radial_medians=radial_medians, $
+                         run=run, database=db, obsday_index=obsday_index
+      endif else begin
+        mg_log, 'no NRGF files to add mean/median values for', name='kcor/eod', /warn
+      endelse
+
     endif else begin
-      mg_log, 'no cal files for kcor_cal table', name='kcor/eod', /info
+      mg_log, 'error connecting to database', name='kcor/eod', /warn
     endelse
+
+    obj_destroy, db
   endif else begin
     mg_log, 'skipping updating database', name='kcor/eod', /info
   endelse

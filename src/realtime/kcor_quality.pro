@@ -163,7 +163,7 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
   endelse
 
   ; print information
-  mg_log, 'starting quality for %s', date, name='kcor/rt', /info
+  mg_log, 'checking quality for %s', date, name='kcor/rt', /info
 
   if (keyword_set(gif)) then begin
     mg_log, 'q_dir_ok: %s', q_dir_ok, name='kcor/rt', /debug
@@ -206,13 +206,7 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
           set_colors=256, $
           z_buffering=0
 
-  ;lct, '/hao/acos/sw/idl/color/quallab_ver2.lut'   ; color table.
-  ;lct, '/hao/acos/sw/idl/color/art.lut'            ; color table.
-  ;lct, '/hao/acos/sw/idl/color/bwyvid.lut'         ; color table.
-  ;lct, '/hao/acos/sw/idl/color/artvid.lut'         ; color table.
-
-  lct, '/hao/acos/sw/idl/color/bwy5.lut'   ; color table.
-
+  lct, filepath('bwy5.lut', root=run.resources_dir)   ; color table
   tvlct, rlut, glut, blut, /get
 
   ; define color levels for annotation

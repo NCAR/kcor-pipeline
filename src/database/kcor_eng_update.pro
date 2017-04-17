@@ -47,14 +47,14 @@ pro kcor_eng_update, date, nrgf_files, $
     db = database
 
     db->getProperty, host_name=host
-    mg_log, 'already connected to %s...', host, name='kcor/rt', /info
+    mg_log, 'already connected to %s...', host, name='kcor/eod', /info
   endif else begin
     db = mgdbmysql()
     db->connect, config_filename=run.database_config_filename, $
                  config_section=run.database_config_section
 
     db->getProperty, host_name=host
-    mg_log, 'connected to %s...', host, name='kcor/rt', /info
+    mg_log, 'connected to %s...', host, name='kcor/eod', /info
   endelse
 
   year    = strmid(date, 0, 4)   ; YYYY
@@ -63,7 +63,7 @@ pro kcor_eng_update, date, nrgf_files, $
 
   for f = 0L, n_elements(nrgf_files) - 1L do begin
     l1_filename = strmid(nrgf_files[f], 0, 20) + '_l1.fts'
-    db->execute, 'UPDATE kcor_eng SET l0inthorizmeancam0=''%d'',l0inthorizmeancam1=''%d'', l0inthorizmediancam0=''%d'', l0inthorizmediancam1=''%d'', l0intradialmeancam0=''%d'',l0intradialmeancam1=''%d'', l0intradialmediancam0=''%d'', l0intradialmediancam1=''%d'' WHERE filename=''%s''', $
+    db->execute, 'UPDATE kcor_eng SET l0inthorizmeancam0=''%d'',l0inthorizmeancam1=''%d'', l0inthorizmediancam0=''%d'', l0inthorizmediancam1=''%d'', l0intradialmeancam0=''%d'',l0intradialmeancam1=''%d'', l0intradialmediancam0=''%d'', l0intradialmediancam1=''%d'' WHERE file_name=''%s''', $
                  line_means[0, f], line_means[1, f], $
                  line_medians[0, f], line_medians[1, f], $
                  radial_means[0, f], radial_means[1, f], $
@@ -71,11 +71,11 @@ pro kcor_eng_update, date, nrgf_files, $
                  l1_filename, $
                  status=status, error_message=error_message, sql_statement=sql_cmd
     if (status ne 0L) then begin
-      mg_log, 'error zeroing values in mlso_numfiles table for obsday index %d', $
-              obsday_index, name=log_name, /error
+      mg_log, 'error updating values in kcor_eng table for obsday index %d', $
+              obsday_index, name='kcor/eod', /error
       mg_log, 'status: %d, error message: %s', status, error_message, $
               name=log_name, /error
-      mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
+      mg_log, 'SQL command: %s', sql_cmd, name='kcor/eod', /error
     endif
   endfor
 

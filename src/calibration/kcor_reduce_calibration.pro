@@ -31,7 +31,7 @@ pro kcor_reduce_calibration, date, config_filename=config_filename, run=run
                                          n_files=n_files)
 
   if (n_files lt 1L) then begin
-    mg_log, 'missing or empty calibration_files.txt file', name='kcor/cal', /error
+    mg_log, 'missing or empty calibration_files.txt', name='kcor/cal', /warn
     goto, done
   endif
 

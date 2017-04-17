@@ -195,7 +195,7 @@ pro kcor_rg2m, fits_list, fits=fits
     ;window, xsize=xdim, ysize=ydim, retain=2
 
     ; load color table
-    lct,   '/hao/acos/sw/idl/color/quallab.lut'
+    lct, filepath('quallab.lut', root=run.resources_dir)   ; color table
     tvlct, red, green, blue, /get
 
     ; display image and annotate

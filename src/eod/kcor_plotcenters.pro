@@ -79,11 +79,6 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
   set_plot, 'Z'
 
-  ;lct,'/hao/acos/sw/idl/color/quallab_ver2.lut' ; color table.
-  ;lct,'/hao/acos/sw/idl/color/art.lut' ; color table.
-  ;lct,'/hao/acos/sw/idl/color/bwyvid.lut' ; color table.
-  ;lct,'/hao/acos/sw/idl/color/artvid.lut' ; color table.
-
   lct, filepath('bwy5.lut', root=run.resources_dir)   ; color table
   tvlct, rlut, glut, blut, /get
 
