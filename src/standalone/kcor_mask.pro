@@ -3,13 +3,17 @@
 ;+
 ; Create FOV mask for MLSO/COSMO K-coronagraph.
 ;
+; :Keywords:
+;   run : in, required, type=object
+;     `kcor_run` object
+;
 ; :Author:
 ;   Andrew Stanger
 ;
 ; :History:
 ;   29 October 2014
 ;-
-pro kcor_mask
+pro kcor_mask, run=run
   compile_opt strictarr
 
   ; mask file name
@@ -24,9 +28,8 @@ pro kcor_mask
   ycen = ydim * 0.5 - 0.5
 
   ; FOV limits
-  platescale = 5.643
   occulter_size = 991.6   ; use smallest occulter.
-  rmin = occulter_size / platescale + 5.0
+  rmin = occulter_size / run.plate_scale + 5.0
   rmax = 504.0
 
   mask = fltarr(xdim, ydim) + 1.0

@@ -88,7 +88,7 @@ if (datatype EQ 'DATA') then $
 if (datatype EQ 'DARK') then $
   datalabel = 'dark'
 if (datatype EQ 'FLAT') then $
-  datalabel = "diffuser'
+  datalabel = 'diffuser'
 
 print, 'datatype:  ', datatype
 print, 'datalabel: ', datalabel

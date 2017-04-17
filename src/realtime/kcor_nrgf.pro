@@ -39,6 +39,7 @@ pro kcor_nrgf_annotations, year, name_month, day, hour, minute, second, doy, $
           color=annotation_color, charsize=charsize, /device, alignment=1.0
 end
 
+
 ;+
 ; Apply NRG (normalized, radially-graded) filter to a KCor image. Creates FITS
 ; and GIF files.
