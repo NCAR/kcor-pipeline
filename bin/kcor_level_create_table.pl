@@ -3,9 +3,9 @@
 use DBI;
 
 # ------------------------------------------------------------------------------
-# mlso_numfiles_create_table.pl
+# mlso_filetype_create_table.pl
 # ------------------------------------------------------------------------------
-# Create MLSO db table: mlso_numfiles (mysql).
+# Create MLSO db table: kcor_level (mysql).
 # ------------------------------------------------------------------------------
 # Don Kolinski April 2017
 #	Added new argument containing path/configfile:
@@ -24,7 +24,7 @@ if ($#ARGV != 0 ) {
 }
 
 # Warn user of database drop
-print "WARNING!!!! This script will drop the table mlso_numfiles!\nDo you wish to continue? ";
+print "WARNING!!!! This script will drop the table kcor_level!\nDo you wish to continue? ";
 print "Press <Enter> to continue, or 'q' to quit: ";
 my $input = <STDIN>;
 exit if $input eq "q\n";
@@ -63,10 +63,10 @@ else
   }
 
 #-------------------------------
-# Create new mlso_numfiles table.
+# Create new kcor_level table.
 #-------------------------------
 
-$command = "DROP TABLE IF EXISTS mlso_numfiles" ;
+$command = "DROP TABLE IF EXISTS kcor_level" ;
 $sth     = $dbh->prepare ($command) ;
 
 $sth->execute () ;
@@ -78,17 +78,11 @@ if (! $sth)
   }
 
 # Define fields
-$command = "CREATE TABLE mlso_numfiles
+$command = "CREATE TABLE kcor_level
   (
-  day_id                   MEDIUMINT (5) AUTO_INCREMENT PRIMARY KEY,
-  obs_day                  DATE NOT NULL,
-  num_kcor_pb_fits         INT(10),
-  num_kcor_nrgf_fits       INT(10),
-  num_kcor_pb_lowresgif    INT(10),
-  num_kcor_pb_fullresgif   INT(10),
-  num_kcor_nrgf_lowresgif  INT(10),
-  num_kcor_nrgf_fullresgif INT(10),
-  index(obs_day)
+  level_id              TINYINT (2) AUTO_INCREMENT PRIMARY KEY,
+  level                 CHAR (5) NOT NULL,
+  description           VARCHAR (512)
   )" ; 
 
 $sth = $dbh->prepare ($command) ;
@@ -99,6 +93,27 @@ if (! $sth)
   print "mysql error: $dbh->errstr\n" ;
   die () ;
   }
+
+# populate
+$command = "INSERT INTO kcor_level (level, description) VALUES ('L1', '')";
+$sth = $dbh->prepare ($command) ;
+$sth->execute () ;
+
+$command = "INSERT INTO kcor_level (level, description) VALUES ('L1.5', '')";
+$sth = $dbh->prepare ($command) ;
+$sth->execute () ;
+
+$command = "INSERT INTO kcor_level (level, description) VALUES ('L2', '')";
+$sth = $dbh->prepare ($command) ;
+$sth->execute () ;
+
+$command = "INSERT INTO kcor_level (level, description) VALUES ('L0', '')";
+$sth = $dbh->prepare ($command) ;
+$sth->execute () ;
+
+$command = "INSERT INTO kcor_level (level, description) VALUES ('unk', 'Value entered was no in this table; Check for error.')";
+$sth = $dbh->prepare ($command) ;
+$sth->execute () ;
 
 #----------------------------------------
 # Terminate connection to mysql database.
