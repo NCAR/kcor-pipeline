@@ -110,6 +110,11 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
                   radial_means=radial_means, radial_medians=radial_medians
   endif
 
+  ok_list = filepath('okfgif.ls', $
+                     subdir=[date, 'level1'], $
+                     root=run.raw_basedir)
+  n_ok_files = file_lines(ok_list)
+
   n_missing = 0L
   n_wrongsize = 0L
   n_l0_files = 0L
@@ -142,27 +147,13 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     mg_log, 't1.log: # wrong size files: %d', n_wrongsize, name='kcor/eod', /warn
   endif
 
-  if (n_missing eq 0L && n_wrongsize eq 0L) then begin
+  success = n_missing eq 0L && n_wrongsize eq 0L
+  if (success) then begin
     files = file_search(filepath('*kcor.fts*', root=l0_dir), count=n_files)
 
     kcor_plotparams, date, list=files, run=run
     kcor_plotcenters, date, list=files, run=run
     kcor_catalog, date, list=files, run=run
-
-    if (run.send_notifications && run.notification_email ne '') then begin
-      kcor_send_mail, run.notification_email, $
-                      string(date, format='(%"KCor end-of-day processing for %s : success")'), $
-                      [string(date, $
-                             format='(%"KCor end-of-day processing for %s")'), $
-                       '', $
-                       string(n_l0_files, $
-                              format='(%"number of raw files: %d")'), $
-                       '', '', $
-                       run.config_content], $
-                      logger_name='kcor/eod'
-    endif else begin
-      mg_log, 'not sending notification email', name='kcor/eod', /warn
-    endelse
 
     if (~keyword_set(reprocess) && run.send_to_hpss) then begin
       kcor_archive, run=run, reprocess=reprocess
@@ -178,25 +169,10 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     file_delete, filepath(date + '.kcor.t1.log', root=l0_dir), $
                  filepath(date + '.kcor.t2.log', root=l0_dir), $
                  /allow_nonexistent
-    if (run.send_notifications && run.notification_email ne '') then begin
-      kcor_send_mail, run.notification_email, $
-                      string(date, format='(%"KCor end-of-day processing for %s : error")'), $
-                      [string(date, $
-                              format='(%"KCor end-of-day processing for %s)")'), $
-                       '', $
-                       string(n_l0_files, $
-                              format='(%"number of error files: %d")'), $
-                       '', '', $
-                       run.config_content], $
-                      logger_name='kcor/eod'
-    endif else begin
-      mg_log, 'not sending notification email', name='kcor/eod', /warn
-    endelse
-    goto, done
   endelse
 
   ; update databases
-  if (run.update_database) then begin
+  if (run.update_database && success) then begin
     mg_log, 'updating database', name='kcor/eod', /info
     cal_files = kcor_read_calibration_text(date, run.process_basedir, $
                                            exposures=exposures, $
@@ -247,6 +223,38 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   cd, filepath('', root=date_dir)
   file_delete, 'list_okf', /allow_nonexistent
+
+  if (run.send_notifications && run.notification_email ne '') then begin
+    msg = [string(date, $
+                  format='(%"KCor end-of-day processing for %s")'), $
+           '', $
+           string(n_l0_files, $
+                  format='(%"number of raw files: %d")'), $
+           string(n_ok_files, $
+                  format='(%"number of OK FITS files: %d")'), $
+           string(n_nrgf_files, $
+                  format='(%"number of NRGFs: %d")')]
+
+    if (~success) then begin
+      msg = [msg, $
+             string(n_missing, $
+                    format='(%"number of missing files: %d")'), $
+             string(n_wrongsize, $
+                    format='(%"number of wrong sized files: %d")')]
+             
+    endif
+
+    msg = [msg, '', '', run.config_content]
+
+    kcor_send_mail, run.notification_email, $
+                    string(date, success ? 'success' : error, $
+                           format='(%"KCor end-of-day processing for %s : %s")'), $
+                    msg, $
+                    logger_name='kcor/eod'
+  endif else begin
+    mg_log, 'not sending notification email', name='kcor/eod', /warn
+  endelse
+
 
   done:
   mg_log, 'done', name='kcor/eod', /info
