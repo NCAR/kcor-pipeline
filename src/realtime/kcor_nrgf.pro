@@ -46,7 +46,7 @@ end
 ;
 ; :Params:
 ;   fits_file : in, required, type=string
-;     KCor L1 fits file
+;     KCor L1 FITS file
 ;
 ; :Keywords:
 ;   cropped : in, optional, type=boolean
