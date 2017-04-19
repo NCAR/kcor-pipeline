@@ -56,7 +56,7 @@ pro kcor_cal_insert, date, fits_list, $
   if (obj_valid(database)) then begin
     db = database
 
-    db->getProperty, host_name=hos
+    db->getProperty, host_name=host
     mg_log, 'using connection to %s', host, name='kcor/eod', /debug
   endif else begin
     db = mgdbmysql()
