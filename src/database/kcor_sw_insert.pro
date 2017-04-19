@@ -59,7 +59,7 @@ db->connect, config_filename=run.database_config_filename, $
 		   config_section=run.database_config_section
 
 db->getProperty, host_name=host
-mg_log, 'connected to %s...', host, name='kcor', /info
+mg_log, 'connected to %s', host, name='kcor', /info
 
 db->setProperty, database='MLSO'
 

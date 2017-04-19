@@ -62,14 +62,14 @@ pro kcor_hw_insert, date, fits_list, $
     db = database
 
     db->getProperty, host_name=host
-    mg_log, 'using connection to %s...', host, name='kcor/rt', /debug
+    mg_log, 'using connection to %s', host, name='kcor/rt', /debug
   endif else begin
     db = mgdbmysql()
     db->connect, config_filename=run.database_config_filename, $
                  config_section=run.database_config_section
 
     db->getProperty, host_name=host
-    mg_log, 'connected to %s...', host, name='kcor/rt', /info
+    mg_log, 'connected to %s', host, name='kcor/rt', /info
   endelse
 
   year    = strmid(date, 0, 4)   ; yyyy

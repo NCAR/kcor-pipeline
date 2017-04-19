@@ -57,14 +57,14 @@ pro kcor_cal_insert, date, fits_list, $
     db = database
 
     db->getProperty, host_name=hos
-    mg_log, 'using connection to %s...', host, name='kcor/eod', /debug
+    mg_log, 'using connection to %s', host, name='kcor/eod', /debug
   endif else begin
     db = mgdbmysql()
     db->connect, config_filename=run.database_config_filename, $
                  config_section=run.database_config_section
 
     db->getProperty, host_name=host
-    mg_log, 'connected to %s...', host, name='kcor/eod', /info
+    mg_log, 'connected to %s', host, name='kcor/eod', /info
   endelse
 
   l0_dir = filepath('level0', subdir=date, root=run.raw_basedir)

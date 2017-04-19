@@ -670,7 +670,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
 
     ; camera 1
     replace = where(rr1 gt radius_1 -4. and grr1 le info_gain1[2] + 4.0, nrep)
-    if (nrep GT 0) then begin
+    if (nrep gt 0) then begin
       gain_temp = gain_alfred[*, *, 1]
       gain_replace = shift(gain_alfred[*, *, 1], $
                            xcen1 - info_gain1[0], $
@@ -731,7 +731,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     demod_time = toc(dclock)
 
     mg_log, 'elapsed time for demod_matrix: %0.1f sec', demod_time, $
-            name='kcor/rt', /info
+            name='kcor/rt', /debug
 
     ; apply distortion correction for raw images
     img0 = reform(img[*, *, 0, 0])    ; camera 0 [reflected]
@@ -1688,7 +1688,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     cd, l0_dir
 
     loop_time = toc(lclock)   ; save loop time.
-    mg_log, 'loop duration: %0.1f sec', loop_time, name='kcor/rt', /info
+    mg_log, '%0.1f sec to process %s', loop_time, l0_file, name='kcor/rt', /info
   endforeach   ; end file loop
 
   ; get system time & compute elapsed time since "TIC" command
@@ -1701,7 +1701,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     image_time = 0.0
   endelse
 
-  mg_log, 'duration: %0.1f sec, number of images: %d', total_time, nfiles, $
+  mg_log, 'processed %d images in %0.1f sec', nfiles, total_time, $
           name='kcor/rt', /info
   mg_log, 'time/image: %0.1f sec', image_time, name='kcor/rt', /info
 end
