@@ -1,5 +1,28 @@
 ; docformat = 'rst'
 
+
+;+
+; Helper function to format y-axis tick marks. Formats them as integers and sets
+; every other to an empty string.
+;
+; :Returns:
+;   string
+;
+; :Params:
+;   axis : in, required, type=integer
+;     axis number, 0 for x, 1 for y
+;   index : in, required, type=integer
+;     index of tick mark, i.e, 0, 1, ... yticks
+;   value : in, required, type=double
+;     value of tick mark
+;-
+function kcor_plotraw_ytickformat, axis, index, value
+  compile_opt strictarr
+
+  return, index mod 2 eq 0 ? string(value, format='(I)') : ''
+end
+
+
 ;+
 ; Plot parameters from raw KCor files corresponding to NRGFs.
 ;
@@ -105,9 +128,11 @@ pro kcor_plotraw, date, list=list, run=run, $
             title=string(y_profile_value, c, $
                          format='(%"Line profile of intensity at y=%d for camera %d")'), $
             charsize=2.0, $
-            xticks=8, xstyle=1, xtickformat='(I)', xtitle='Raw image x-coordinate', $
-            ytickformat='(I)', ytitle='Raw pixel value', yrange=[0, 40000], $
-            yticks=4, yminor=1, yticklen=1.0, ygridstyle=1
+            xticks=8, xtickv=findgen(9) * 128.0, $
+            xstyle=1, xtickformat='(I)', xtitle='Raw image x-coordinate', $
+            ytickformat='kcor_plotraw_ytickformat', $
+            ytitle='Raw pixel value', yrange=[0, 40000], $
+            yticks=8, yminor=1, yticklen=1.0, ygridstyle=1
     endfor
 
     for c = 0, 1 do begin
@@ -131,9 +156,11 @@ pro kcor_plotraw, date, list=list, run=run, $
             title=string(radius, c, $
                          format='(%"Radial profile of intensity at r=%0.1f solar radius for camera %d")'), $
             charsize=2.0, $
-            xticks=8, xstyle=1, xtickformat='(I)', xtitle='Angle (degrees)', $
-            ytickformat='(I)', yrange=[0, 40000], ytitle='Raw pixel value', $
-            yticks=4, yminor=1, yticklen=1.0, ygridstyle=1
+            xticks=8, xtickv=findgen(9) * 45.0, $
+            xstyle=1, xtickformat='(I)', xtitle='Angle (degrees)', $
+            ytickformat='kcor_plotraw_ytickformat', $
+            yrange=[0, 40000], ytitle='Raw pixel value', $
+            yticks=8, yminor=1, yticklen=1.0, ygridstyle=1
     endfor
 
     plot_image = tvrd()
