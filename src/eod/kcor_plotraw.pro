@@ -94,6 +94,9 @@ pro kcor_plotraw, date, list=list, run=run, $
   theta = theta_degrees * !dtor
 
   for f = 0L, n_nrgf_files - 1L do begin
+    mg_log, '%4d/%d: %s', $
+            f + 1, n_nrgf_files, file_basename(raw_nrgf_files[f]), $
+            name='kcor/eod', /info
     im = readfits(raw_nrgf_files[f], header, /silent)
 
     ; find pixels / solar radius
@@ -123,7 +126,9 @@ pro kcor_plotraw, date, list=list, run=run, $
     for c = 0, 1 do begin
       line_means[c, f] = mean((im[*, y_profile_value, 0, c])[10:300])
       line_medians[c, f] = median((im[*, y_profile_value, 0, c])[10:300])
-
+      mg_log, 'camera %d: line mean: %0.1f, median: %0.1f', $
+              c, line_means[c, f], line_medians[c, f], $
+              name='kcor/eod', /debug
       plot, reform(im[*, y_profile_value, 0, c]), $
             title=string(y_profile_value, c, $
                          format='(%"Line profile of intensity at y=%d for camera %d")'), $
@@ -151,6 +156,10 @@ pro kcor_plotraw, date, list=list, run=run, $
 
       radial_means[c, f] = mean(radial_profile)
       radial_medians[c, f] = median(radial_profile)
+
+      mg_log, 'camera %d: radial mean: %0.1f, median: %0.1f', $
+              c, radial_means[c, f], radial_medians[c, f], $
+              name='kcor/eod', /debug
 
       plot, theta_degrees, radial_profile, $
             title=string(radius, c, $

@@ -70,7 +70,7 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
         angles[gotcal] = calpang
         gotcal++
         file_types[f] = 'calibration'
-        mg_log, 'cal@%0.1f: %s', $
+        mg_log, 'cal@%5.1f: %s', $
                 calpang, file_list[f], name='kcor/cal', /debug
       endelse
     endif

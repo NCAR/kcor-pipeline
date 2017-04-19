@@ -62,7 +62,7 @@ pro kcor_img_insert, date, fits_list, $
     db = database
 
     db->getProperty, host_name=host
-    mg_log, 'already connected to %s...', host, name='kcor/rt', /info
+    mg_log, 'using connection to %s...', host, name='kcor/rt', /debug
   endif else begin
     db = mgdbmysql()
     db->connect, config_filename=run.database_config_filename, $

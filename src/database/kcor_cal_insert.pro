@@ -56,8 +56,8 @@ pro kcor_cal_insert, date, fits_list, $
   if (obj_valid(database)) then begin
     db = database
 
-    db->getProperty, host_name=host
-    mg_log, 'already connected to %s...', host, name='kcor/eod', /info
+    db->getProperty, host_name=hos
+    mg_log, 'using connection to %s...', host, name='kcor/eod', /debug
   endif else begin
     db = mgdbmysql()
     db->connect, config_filename=run.database_config_filename, $
@@ -87,7 +87,7 @@ pro kcor_cal_insert, date, fits_list, $
       mg_log, '%s not found', fts_file, name='kcor/eod', /warn
       continue
     endif else begin
-      mg_log, 'ingesting %s', fts_file, name='kcor/eod', /info
+      mg_log, 'db inserting %s', fts_file, name='kcor/eod', /info
     endelse
 
     hdu = headfits(fts_file, /silent)   ; read FITS header

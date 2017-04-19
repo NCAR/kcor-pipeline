@@ -26,7 +26,7 @@ pro kcor_db_clearday, run=run, $
     db = database
 
     db->getProperty, host_name=host
-    mg_log, 'already connected to %s...', host, name=log_name, /info
+    mg_log, 'using connection to %s...', host, name='kcor/eod', /debug
   endif else begin
     db = mgdbmysql()
     db->connect, config_filename=run.database_config_filename, $

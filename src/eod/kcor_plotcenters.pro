@@ -96,27 +96,28 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
   dev = 0
 
   ; determine the number of files to process
-  nimg = n_elements(list)
-  mg_log, '%d images to process', nimg, name='kcor/eod', /debug
-  mg_log, 'file name                datatype', $
-          name='kcor/eod', /debug
-  mg_log, '    exp  cov drk  dif pol angle  qual', $
+  n_images = n_elements(list)
+  mg_log, '%d images to process', n_images, name='kcor/eod', /debug
+
+  ; header for row of values
+  mg_log, '   %5s %3s %4s %4s %4s %7s %4s', $
+          'exp', 'cov', 'drk', 'dif', 'pol', 'angle', 'qual', $
           name='kcor/eod', /debug
 
   ; declare storage for occulting centers
 
-  hours  = fltarr(nimg)
+  hours  = fltarr(n_images)
 
-  fxcen0 = fltarr(nimg)
-  fycen0 = fltarr(nimg)
-  frocc0 = fltarr(nimg)
+  fxcen0 = fltarr(n_images)
+  fycen0 = fltarr(n_images)
+  frocc0 = fltarr(n_images)
 
-  fxcen1 = fltarr(nimg)
-  fycen1 = fltarr(nimg)
-  frocc1 = fltarr(nimg)
+  fxcen1 = fltarr(n_images)
+  fycen1 = fltarr(n_images)
+  frocc1 = fltarr(n_images)
 
   ; image file loop
-  for i = 0L, n_elements(list) - 1L do begin
+  for i = 0L, n_images - 1L do begin
     l0_file = list[i]
     img = readfits (l0_file, hdu, /silent)   ; read fits image & header
 
@@ -291,11 +292,6 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     fycen1[i] = ycen1
     frocc1[i] = rocc1
 
-    mg_log, 'xcen0, ycen0, rocc0: %0.2f, %0.2f, %0.2f', xcen0, ycen0, rocc0, $
-            name='kcor/eod', /debug
-    mg_log, 'xcen1, ycen1, rocc1: %0.2f, %0.2f, %0.2f', xcen0, ycen0, rocc0, $
-            name='kcor/eod', /debug
-
     ; determine type of image
 
     fitsloc  = strpos(l0_file, '.fts')
@@ -318,30 +314,30 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     istring     = string(format='(i5)',   i)
     exptime_str = string(format='(f5.2)', exptime)
 
-    datatype_str = string(format='(a12)', datatype)
-    darkshut_str = string(format='(a4)', darkshut)
-    dshutter_str = string(format='(a5)', dshutter)
-    cover_str    = string(format='(a4)', cover)
-    diffuser_str = string(format='(a4)', diffuser)
-    calpol_str   = string(format='(a4)', calpol)
+    datatype_str = strtrim(datatype, 2)
+    darkshut_str = strtrim(darkshut, 2)
+    dshutter_str = strtrim(dshutter, 2)
+    cover_str    = strtrim(cover, 2)
+    diffuser_str = strtrim(diffuser, 2)
+    calpol_str   = strtrim(calpol, 2)
     calpang_str  = string(format='(f7.2)', calpang)
-    qual_str     = string(format='(a4)', qual)
+    qual_str     = strtrim(qual, 2)
 
     ; print image summary
-    mg_log, '%s%s', $
-            file_basename(img_file), datatype_str, $
+    mg_log, '%4d/%d: %s %s', $
+            i + 1, n_elements(list), file_basename(img_file), datatype_str, $
             name='kcor/eod', /info
-    mg_log, '%s%s%s%s%s%s%s', $
+    mg_log, '   %5s %3s %4s %4s %4s %7s %4s', $
             exptime_str, cover_str, dshutter_str, $
             diffuser_str, calpol_str, calpang_str, qual_str, $
-            name='kcor/eod', /info
+            name='kcor/eod', /debug
+    mg_log, '   xcen0, ycen0, rocc0: %0.2f, %0.2f, %0.2f', xcen0, ycen0, rocc0, $
+            name='kcor/eod', /debug
+    mg_log, '   xcen1, ycen1, rocc1: %0.2f, %0.2f, %0.2f', xcen0, ycen0, rocc0, $
+            name='kcor/eod', /debug
   endfor
 
-  num_img = i + 1
-
   cd, plots_dir
-
-  mg_log, 'nimg: %d', num_img, name='kcor/eod', /debug
 
   ; plot occulting disc center
 
@@ -405,8 +401,10 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
   cd, start_dir
   set_plot, 'X'
 
-  ; get system time & compute elapsed time since TIC command
+  ; get elapsed time since TIC
   qtime = toc()
-  mg_log, 'elapsed_time: %0.1f sec', qtime, name='kcor/eod', /info
-  mg_log, '%0.1f sec/image', qtime / num_img, name='kcor/eod', /info
+
+  mg_log, '%d images plotted in %0.1f sec', n_images, qtime, $
+          name='kcor/eod', /info
+  mg_log, '%0.1f sec/image', qtime / n_images, name='kcor/eod', /info
 end

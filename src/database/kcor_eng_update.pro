@@ -47,7 +47,7 @@ pro kcor_eng_update, date, nrgf_files, $
     db = database
 
     db->getProperty, host_name=host
-    mg_log, 'already connected to %s...', host, name='kcor/eod', /info
+    mg_log, 'using connection to %s...', host, name='kcor/eod', /debug
   endif else begin
     db = mgdbmysql()
     db->connect, config_filename=run.database_config_filename, $
@@ -63,6 +63,7 @@ pro kcor_eng_update, date, nrgf_files, $
 
   for f = 0L, n_elements(nrgf_files) - 1L do begin
     l1_filename = strmid(nrgf_files[f], 0, 20) + '_l1.fts'
+    mg_log, 'updating db for %s', l1_filename, name='kcor/eod', /info
     db->execute, 'UPDATE kcor_eng SET l0inthorizmeancam0=''%d'',l0inthorizmeancam1=''%d'', l0inthorizmediancam0=''%d'', l0inthorizmediancam1=''%d'', l0intradialmeancam0=''%d'',l0intradialmeancam1=''%d'', l0intradialmediancam0=''%d'', l0intradialmediancam1=''%d'' WHERE file_name=''%s''', $
                  line_means[0, f], line_means[1, f], $
                  line_medians[0, f], line_medians[1, f], $

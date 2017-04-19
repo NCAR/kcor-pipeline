@@ -37,9 +37,6 @@ pro kcor_archive, run=run, reprocess=reprocess
   tarlist  = string(date, format='(%"%s_kcor_l0.tarlist")')
   hpssinfo = string(date, format='(%"%s_kcor_l0_tar.ls")')
 
-  mg_log, 'tarfile: %s', tarfile, name='kcor/eod', /info
-  mg_log, 'tarlist: %s', tarlist, name='kcor/eod', /info
-
   if (~file_test(l0_dir, /directory)) then begin
     file_mkdir, l0_dir
     file_chmod, l0_dir, /a_read, /a_execute, /u_write
@@ -57,7 +54,7 @@ pro kcor_archive, run=run, reprocess=reprocess
   endif
 
   zip_cmd = string(run.gzip, format='(%"%s *kcor.fts")')
-  mg_log, 'zipping L0 files...', name='kcor/eod', /info
+  mg_log, 'zipping %d L0 files...', n_l0_fits_files, name='kcor/eod', /info
   spawn, zip_cmd, result, error_result, exit_status=status
   if (status ne 0L) then begin
     mg_log, 'problem zipping files with command: %s', zip_cmd, $
@@ -79,7 +76,7 @@ pro kcor_archive, run=run, reprocess=reprocess
 
   tar_cmd = string(tarfile, $
                    format='(%"tar cf %s *_kcor.fts.gz *t1.log *t2.log")')
-  mg_log, 'creating tarfile...', name='kcor/eod', /info
+  mg_log, 'creating tarfile %s...', tarfile, name='kcor/eod', /info
   spawn, tar_cmd, result, error_result, exit_status=status
   if (status ne 0L) then begin
     mg_log, 'problem tarring files with command: %s', tar_cmd, $
@@ -91,7 +88,7 @@ pro kcor_archive, run=run, reprocess=reprocess
 
   tarlist_cmd = string(tarfile, tarlist, $
                        format='(%"tar tfv %s > %s")')
-  mg_log, 'creating tarlist...', name='kcor/eod', /info
+  mg_log, 'creating tarlist %s...', tarlist, name='kcor/eod', /info
   spawn, tarlist_cmd, result, error_result, exit_status=status
   if (status ne 0L) then begin
     mg_log, 'problem create tarlist file with command: %s', tarlist_cmd, $

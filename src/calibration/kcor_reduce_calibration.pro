@@ -170,12 +170,11 @@ pro kcor_reduce_calibration, date, config_filename=config_filename, run=run
 
   if (~file_test(run.cal_out_dir, /directory)) then file_mkdir, run.cal_out_dir
 
-  mg_log, 'writing %s', file_basename(outfile), name='kcor/cal', /info
   kcor_reduce_calibration_write, data, metadata, $
                                  mmat, dmat, outfile, $
                                  pixels0, fits0, fiterrors0, $
                                  pixels1, fits1, fiterrors1
-  mg_log, 'done writing output', name='kcor/cal', /info
+  mg_log, 'wrote %s', file_basename(outfile), name='kcor/cal', /info
 
   mg_log, 'done', name='kcor/cal', /info
 

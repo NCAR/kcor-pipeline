@@ -207,8 +207,8 @@ pro kcor_plotparams, date, list=list, run=run
   eng_gif_filename  = filepath(date + '.sgs.eng.gif', root=plots_dir)
   foc_gif_filename  = filepath(date + '.kcor.eng.gif', root=plots_dir)
 
-  mg_log, 'eng gif: %s', eng_gif_filename, name='kcor/eod', /debug
-  mg_log, 'foc gif: %s', foc_gif_filename, name='kcor/eod', /debug
+  mg_log, 'eng gif: %s', file_basename(eng_gif_filename), name='kcor/eod', /debug
+  mg_log, 'foc gif: %s', file_basename(foc_gif_filename), name='kcor/eod', /debug
 
   ; set up graphics window & color table for sgs.eng.gif
   set_plot, 'Z'

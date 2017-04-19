@@ -44,12 +44,13 @@ function mlso_obsday_insert, date, $
                config_section=run.database_config_section, $
                status=status, error_message=error_message
   if (status ne 0L) then begin
+    mg_log, 'failed to connect to database', name=log_name, /error
     mg_log, '%s', error_message, name=log_name, /error
     return, !null
   endif
 
   db->getProperty, host_name=host
-  mg_log, 'connected to %s...', host, name=log_name, /info
+  mg_log, 'connected to %s', host, name=log_name, /info
 
   obs_day = strmid(date, 0, 4) + '-' + strmid(date, 4, 2) + '-' + strmid(date, 6, 2)
   obs_day_index = 0
