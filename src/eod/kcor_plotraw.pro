@@ -41,16 +41,16 @@ end
 ;   line_medians : out, optional, type="fltarr(2, n_files)"
 ;     set to a named variable to retrieve the median of the pixel values of the
 ;     corresponding camera/raw file at `im[10:300, 512]`
-;   radial_means : out, optional, type="fltarr(2, n_files)"
+;   azi_means : out, optional, type="fltarr(2, n_files)"
 ;     set to a named variable to retrieve the mean of the pixel values of the
 ;     corresponding camera/raw file at a fixed solar radius 
-;   radial_medians : out, optional, type="fltarr(2, n_files)"
+;   azi_medians : out, optional, type="fltarr(2, n_files)"
 ;     set to a named variable to retrieve the median of the pixel values of the
 ;     corresponding camera/raw file at a fixed solar radius
 ;-
 pro kcor_plotraw, date, list=list, run=run, $
                   line_means=line_means, line_medians=line_medians, $
-                  radial_means=radial_means, radial_medians=radial_medians
+                  azi_means=azi_means, azi_medians=azi_medians
   compile_opt strictarr
 
   mg_log, 'starting', name='kcor/eod', /info
@@ -67,8 +67,8 @@ pro kcor_plotraw, date, list=list, run=run, $
   line_means    = fltarr(2, n_nrgf_files)
   line_medians  = fltarr(2, n_nrgf_files)
 
-  radial_means    = fltarr(2, n_nrgf_files)
-  radial_medians  = fltarr(2, n_nrgf_files)
+  azi_means    = fltarr(2, n_nrgf_files)
+  azi_medians  = fltarr(2, n_nrgf_files)
 
   l0_dir   = filepath('level0', subdir=date, root=run.raw_basedir)
   plot_dir = filepath('p', subdir=date, root=run.raw_basedir)
@@ -152,18 +152,18 @@ pro kcor_plotraw, date, list=list, run=run, $
 
       ; need to get to a 2-dimensional array to index correctly
       spatial_im = reform(im[*, *, 0, c])
-      radial_profile = reform(spatial_im[x, y])
+      azi_profile = reform(spatial_im[x, y])
 
-      radial_means[c, f] = mean(radial_profile)
-      radial_medians[c, f] = median(radial_profile)
+      azi_means[c, f] = mean(azi_profile)
+      azi_medians[c, f] = median(azi_profile)
 
-      mg_log, 'camera %d: radial mean: %0.1f, median: %0.1f', $
-              c, radial_means[c, f], radial_medians[c, f], $
+      mg_log, 'camera %d: azimuthal mean: %0.1f, median: %0.1f', $
+              c, azi_means[c, f], azi_medians[c, f], $
               name='kcor/eod', /debug
 
-      plot, theta_degrees, radial_profile, $
+      plot, theta_degrees, azi_profile, $
             title=string(radius, c, $
-                         format='(%"Radial profile of intensity at r=%0.1f solar radius for camera %d")'), $
+                         format='(%"Azimuthal profile of intensity at r=%0.1f solar radius for camera %d")'), $
             charsize=2.0, $
             xticks=8, xtickv=findgen(9) * 45.0, $
             xstyle=1, xtickformat='(I)', xtitle='Angle (degrees)', $

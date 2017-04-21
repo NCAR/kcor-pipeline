@@ -25,16 +25,16 @@
 ;   line_medians : out, optional, type="fltarr(2, n_files)"
 ;     set to a named variable to retrieve the median of the pixel values of the
 ;     corresponding camera/raw file at `im[10:300, 512]`
-;   radial_means : out, optional, type="fltarr(2, n_files)"
+;   azi_means : out, optional, type="fltarr(2, n_files)"
 ;     set to a named variable to retrieve the mean of the pixel values of the
 ;     corresponding camera/raw file at a fixed solar radius 
-;   radial_medians : out, optional, type="fltarr(2, n_files)"
+;   azi_medians : out, optional, type="fltarr(2, n_files)"
 ;     set to a named variable to retrieve the median of the pixel values of the
 ;     corresponding camera/raw file at a fixed solar radius
 ;-
 pro kcor_eng_update, date, nrgf_files, $
                      line_means=line_means, line_medians=line_medians, $
-                     radial_means=radial_means, radial_medians=radial_medians, $
+                     azi_means=azi_means, azi_medians=azi_medians, $
                      run=run, database=db, obsday_index=obsday_index
   compile_opt strictarr
 
@@ -64,11 +64,11 @@ pro kcor_eng_update, date, nrgf_files, $
   for f = 0L, n_elements(nrgf_files) - 1L do begin
     l1_filename = strmid(nrgf_files[f], 0, 20) + '_l1.fts'
     mg_log, 'updating db for %s', l1_filename, name='kcor/eod', /info
-    db->execute, 'UPDATE kcor_eng SET l0inthorizmeancam0=''%d'',l0inthorizmeancam1=''%d'', l0inthorizmediancam0=''%d'', l0inthorizmediancam1=''%d'', l0intradialmeancam0=''%d'',l0intradialmeancam1=''%d'', l0intradialmediancam0=''%d'', l0intradialmediancam1=''%d'' WHERE file_name=''%s''', $
+    db->execute, 'UPDATE kcor_eng SET l0inthorizmeancam0=''%d'',l0inthorizmeancam1=''%d'', l0inthorizmediancam0=''%d'', l0inthorizmediancam1=''%d'', l0intazimeancam0=''%d'',l0intazimeancam1=''%d'', l0intazimediancam0=''%d'', l0intrazimediancam1=''%d'' WHERE file_name=''%s''', $
                  line_means[0, f], line_means[1, f], $
                  line_medians[0, f], line_medians[1, f], $
-                 radial_means[0, f], radial_means[1, f], $
-                 radial_medians[0, f], radial_medians[1, f], $
+                 azi_means[0, f], azi_means[1, f], $
+                 azi_medians[0, f], azi_medians[1, f], $
                  l1_filename, $
                  status=status, error_message=error_message, sql_statement=sql_cmd
     if (status ne 0L) then begin

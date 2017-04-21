@@ -9,13 +9,13 @@ use DBI;
 # ------------------------------------------------------------------------------
 # Andrew Stanger   MLSO/HAO/NCAR   08 Dec 2015
 # New edits by Don Kolinski Jan 2017
-#	Added new argument containing path/configfile:
-#		config file format:
-#		username = <value>
-#		password = <value>
-#		host = <value>
-#		dbname = <value>
-#	Added/edited database fields
+# Added new argument containing path/configfile:
+#   config file format:
+#   username = <value>
+#   password = <value>
+#   host = <value>
+#   dbname = <value>
+# Added/edited database fields
 # ------------------------------------------------------------------------------
 
 # Check the arguments for existence of config file
@@ -79,46 +79,46 @@ if (! $sth)
   }
 
 # Define fields
-#	Notes:
-#	Removed sgs fields and moved them to new table, kcor_sgs
+# Notes:
+# Removed sgs fields and moved them to new table, kcor_sgs
 #   Added back sgsdimv and sgsdims
-#	Removed calpang and datatype
-#	kcor_sw_id is the id number of the entry in the kcor_sw table relevant to this entry
+# Removed calpang and datatype
+# kcor_sw_id is the id number of the entry in the kcor_sw table relevant to this entry
 $command = "CREATE TABLE kcor_eng
   (
-  eng_id		INT (10) AUTO_INCREMENT PRIMARY KEY,
-  file_name		CHAR (32) NOT NULL,
-  date_obs		DATETIME NOT NULL,
-  obs_day		MEDIUMINT (5) NOT NULL,
-  rcamfocs		FLOAT (6, 2),
-  tcamfocs		FLOAT (6, 2),
-  modltrt		FLOAT (6, 2),
-  o1focs		FLOAT (8, 3),
-  kcor_sgsdimv	FLOAT (7, 4),
-  kcor_sgsdims	FLOAT (8, 5),
-  level			TINYINT (2),
-  bunit			VARCHAR (15),
-  bzero			INT (10),
-  bscale		FLOAT (5, 4),
-  rcamxcen		FLOAT(9, 3),
-  rcamycen		FLOAT(9, 3),
-  tcamxcen		FLOAT(9, 3),
-  tcamycen		FLOAT(9, 3),
-  rcam_rad		FLOAT(9, 3),
+  eng_id    INT (10) AUTO_INCREMENT PRIMARY KEY,
+  file_name   CHAR (32) NOT NULL,
+  date_obs    DATETIME NOT NULL,
+  obs_day   MEDIUMINT (5) NOT NULL,
+  rcamfocs    FLOAT (6, 2),
+  tcamfocs    FLOAT (6, 2),
+  modltrt   FLOAT (6, 2),
+  o1focs    FLOAT (8, 3),
+  kcor_sgsdimv  FLOAT (7, 4),
+  kcor_sgsdims  FLOAT (8, 5),
+  level     TINYINT (2),
+  bunit     VARCHAR (15),
+  bzero     INT (10),
+  bscale    FLOAT (5, 4),
+  rcamxcen    FLOAT(9, 3),
+  rcamycen    FLOAT(9, 3),
+  tcamxcen    FLOAT(9, 3),
+  tcamycen    FLOAT(9, 3),
+  rcam_rad    FLOAT(9, 3),
   tcam_rad              FLOAT(9, 3),
   mean_phase1           FLOAT (7, 4),
   l0inthorizmeancam0    FLOAT (9, 3),
   l0inthorizmeancam1    FLOAT (9, 3),
   l0inthorizmediancam0  FLOAT (9, 3),
   l0inthorizmediancam1  FLOAT (9, 3),
-  l0intradialmeancam0   FLOAT (9, 3),
-  l0intradialmeancam1   FLOAT (9, 3),
-  l0intradialmediancam0 FLOAT (9, 3),
-  l0intradialmediancam1 FLOAT (9, 3),
-  cover			CHAR (3),
-  darkshut		CHAR (3),
-  diffuser		CHAR (3),
-  calpol		CHAR (3),
+  l0intazimeancam0      FLOAT (9, 3),
+  l0intazimeancam1      FLOAT (9, 3),
+  l0intazimediancam0    FLOAT (9, 3),
+  l0intazimediancam1    FLOAT (9, 3),
+  cover     CHAR (3),
+  darkshut    CHAR (3),
+  diffuser    CHAR (3),
+  calpol    CHAR (3),
   kcor_sw_id    INT (10),
   UNIQUE (file_name),
   INDEX (date_obs),

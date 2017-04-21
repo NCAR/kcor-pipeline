@@ -107,7 +107,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     free_lun, lun
     kcor_plotraw, date, list=nrgf_files, run=run, $
                   line_means=line_means, line_medians=line_medians, $
-                  radial_means=radial_means, radial_medians=radial_medians
+                  azi_means=azi_means, azi_medians=azi_medians
   endif
 
   ok_list = filepath('okfgif.ls', $
@@ -195,7 +195,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
       if (n_nrgf_files gt 0L) then begin
         kcor_eng_update, date, nrgf_files, $
                          line_means=line_means, line_medians=line_medians, $
-                         radial_means=radial_means, radial_medians=radial_medians, $
+                         azi_means=azi_means, azi_medians=azi_medians, $
                          run=run, database=db, obsday_index=obsday_index
       endif else begin
         mg_log, 'no NRGF files to add mean/median values for', name='kcor/eod', /warn
