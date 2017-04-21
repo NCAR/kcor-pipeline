@@ -244,7 +244,10 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
              
     endif
 
-    msg = [msg, '', '', run.config_content]
+    msg = [msg, '', '', run.config_content, '', '', $
+           string(mg_src_root(/filename), $
+                  getenv('USER'), getenv('HOSTNAME'), $
+                  format='(%"Sent from %s (%s@%s")')]
 
     kcor_send_mail, run.notification_email, $
                     string(date, success ? 'success' : error, $
