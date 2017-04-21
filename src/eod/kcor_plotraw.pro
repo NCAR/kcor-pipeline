@@ -101,17 +101,15 @@ pro kcor_plotraw, date, list=list, run=run, $
 
     ; find pixels / solar radius
     date_obs = sxpar(header, 'DATE-OBS', count=qdate_obs)
-    year   = strmid(date_obs,  0, 4)
-    month  = strmid(date_obs,  5, 2)
-    day    = strmid(date_obs,  8, 2)
-    hour   = strmid(date_obs, 11, 2)
-    minute = strmid(date_obs, 14, 2)
-    second = strmid(date_obs, 17, 2)
+    year   = long(strmid(date_obs,  0, 4))
+    month  = long(strmid(date_obs,  5, 2))
+    day    = long(strmid(date_obs,  8, 2))
+    hour   = long(strmid(date_obs, 11, 2))
+    minute = long(strmid(date_obs, 14, 2))
+    second = long(strmid(date_obs, 17, 2))
 
-    ephem = pb0r(date_str, /arcsec)
-    pangle = ephem[0]   ; degrees
-    bangle = ephem[1]   ; degrees
-    rsun   = ephem[2]   ; solar radius (arcsec)
+    fhour = hour + minute / 60.0 + second / 60.0 / 60.0
+    sun, year, month, day, fhour, sd=rsun, pa=pangle, la=bangle
 
     sun_pixels = rsun / run.plate_scale
 
