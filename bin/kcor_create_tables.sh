@@ -8,6 +8,7 @@ kcor_drop_table.pl $DB_FILE kcor_img
 kcor_drop_table.pl $DB_FILE kcor_hw
 kcor_drop_table.pl $DB_FILE kcor_eng
 kcor_drop_table.pl $DB_FILE kcor_cal
+kcor_drop_table.pl $DB_FILE kcor_sci
 
 kcor_drop_table.pl $DB_FILE kcor_sw
 kcor_drop_table.pl $DB_FILE kcor_level
@@ -29,3 +30,4 @@ kcor_hw_create_table.pl $DB_FILE
 kcor_img_create_table.pl $DB_FILE
 kcor_mission_create_table.pl $DB_FILE
 kcor_eng_create_table.pl $DB_FILE
+kcor_sci_create_table.pl $DB_FILE
