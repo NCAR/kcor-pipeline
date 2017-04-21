@@ -152,7 +152,7 @@ pro kcor_plotraw, date, list=list, run=run, $
 
       ; need to get to a 2-dimensional array to index correctly
       spatial_im = reform(im[*, *, 0, c])
-      azi_profile = reform(spatial_im[x, y])
+      azi_profile = reform(spatial_im[round(x), round(y)])
 
       azi_means[c, f] = mean(azi_profile)
       azi_medians[c, f] = median(azi_profile)
