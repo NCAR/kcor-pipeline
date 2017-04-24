@@ -80,11 +80,12 @@ if (! $sth)
 
 $command = "CREATE TABLE kcor_sci
   (
-  sci_id    INT (10) AUTO_INCREMENT PRIMARY KEY,
-  obs_day   MEDIUMINT (5) NOT NULL,
-  intensity BLOB,
-  r13 BLOB,
-  r18 BLOB,
+  sci_id       INT (10) AUTO_INCREMENT PRIMARY KEY,
+  file_name    CHAR (40) NOT NULL,
+  obs_day      MEDIUMINT (5) NOT NULL,
+  intensity    BLOB,
+  r13          BLOB,
+  r18          BLOB,
   FOREIGN KEY (obs_day) REFERENCES mlso_numfiles(day_id)
   )" ;
 
