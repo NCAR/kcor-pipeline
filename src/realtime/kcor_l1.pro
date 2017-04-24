@@ -835,10 +835,10 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
     endif
 
     ; polar coordinate images (mk4 scheme)
-    umk4 = - cal_data_combined[*, *, 1] * sin(2.0 * theta1 ) $
+    qmk4 = - cal_data_combined[*, *, 1] * sin(2.0 * theta1 ) $
              + cal_data_combined[*, *, 2] * cos(2.0 * theta1 )
 
-    qmk4 = cal_data_combined[*, *, 1] * cos(2.0 * theta1 ) $
+    umk4 = cal_data_combined[*, *, 1] * cos(2.0 * theta1 ) $
              + cal_data_combined[*, *, 2] * sin(2.0 * theta1 )
 
     intensity = cal_data_combined[*, *, 0]
@@ -906,10 +906,10 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
       endif
 
       ; polar coordinates
-      umk4 = - cal_data_combined_center[*, *, 1] * sin(2.0 * theta1 ) $
+      qmk4 = - cal_data_combined_center[*, *, 1] * sin(2.0 * theta1 ) $
              + cal_data_combined_center[*, *, 2] * cos(2.0 * theta1 )
 
-      qmk4 =   cal_data_combined_center[*, *, 1] * cos(2.0 * theta1 ) $
+      umk4 =   cal_data_combined_center[*, *, 1] * cos(2.0 * theta1 ) $
              + cal_data_combined_center[*, *, 2] * sin(2.0 * theta1 )
 
       intensity = cal_data_combined_center[*, *, 0]
@@ -925,8 +925,19 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
       endif
     endif
 
+    ;
     ; sky polarization removal on coordinate-transformed data
     ; print, 'Remove sky polarization.'
+    ; **************************************************************
+    ; I AM JUMPING OVER THE SINE 2 THETA APPROACH AND DOING A STRAIGHT 
+    ; FORWARD SUBTRACTION OF THE BACKGROUND IMAGE FROM THE CORONAL IMAGE
+    ; THE BACKGROUND NEEDS TO BE ROTATED
+    ; I AM ADDING A BIAS TO THE CORONAL IMAGE SINCE THE BACKGROUND
+    ; IS HIGHER IN INTENSITY THAN THE CORONAL IMAGE (CROSS-TALK PROBLEM?)
+    ; **************************************************************
+;     JUMP OVER THE SINE 2 THETA SKY POLARIZATION 
+
+    GOTO, jump1
 
     r_init = 1.8
     rnum   = 11
@@ -1128,6 +1139,14 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
       endfor
     endif
 
+    jump1: print,'Skipped sine 2 theta sky polarization and do straight background subtraction with bias'
+;   SKY COMMENTING OUT OF SINE 2 THETA SKY POLARIZATION REMOVAL
+;   *******************************************************************************
+
+    bias = 0.004
+
+    umk4_new = float(umk4) - float(rot(qmk4,45.)) + bias   ; umk4 contains the corona
+
     ; print, 'Finished sky polarization removal.'
 
     ; add beams Q and U - withOUT sky polarization correction = linear pol
@@ -1136,8 +1155,8 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
     ; add beams Q and U - WITH sky polarization correction = linear pol
     corona2 = sqrt(qmk4_new ^ 2 + umk4_new ^ 2)
 
-    ; add beams only Q - with sky polarization correction = pB
-    corona = sqrt(qmk4_new ^ 2)
+    ; use only corona minus sky polarization background
+    corona = sqrt(umk4_new ^ 2)
 
     ; use mask to build final image
     r_in  = fix(occulter / platescale) + 5.0
@@ -1148,13 +1167,12 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
     corona2[mask] = 0
     corona0[mask] = 0
 
-    cbias = 0.02
-    corona_bias = corona + cbias
+    corona_bias = corona
     corona_bias[mask] = 0
 
     if (doplot eq 1) then begin
       wset, 0
-      tv, bytscl(sqrt(corona), 0.0, 1.5)
+      tv, bytscl(sqrt(corona), 0.0, 1.2)
       pause
     endif
 
@@ -1189,17 +1207,6 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
     tvlct, red, green, blue, /get
 
     ; display image, annotate, and save as a full resolution GIF file
-    ; mini = -.02 ; USED FOR MARCH 10, 2014
-    ; maxi =  0.5 ; USED FOR MARCH 10, 2014
-    ; maxi =  1.2 ; maximum intensity scaling value.  Used < 28 jan 2015.
-
-    ; mini =  0.0 ; minimum intensity scaling value.  Used <  11 Mar 2015.
-    ; maxi =  1.8 ; maximum intensity scaling value.  Used 28 Jan - 10 Mar 2015.
-    ; exp  =  0.8 ; scaling exponent.                 Used 28 Jan - 10 Mar 2015.
-
-    mini = 0.1    ; minimum intensity scaling value.  Used >= 11 Mar 2015.
-    maxi = 1.4    ; maximum intensity scaling value.  Used >= 11 Mar 2015.
-    exp  = 0.7    ; scaling exponent.                 Used >= 11 Mar 2015.
 
     mini  = 0.0   ; minimum intensity scaling value.  Used >= 09 Apr 2015.
     maxi  = 1.2   ; maximum intensity scaling value.  Used >= 09 Apr 2015.
