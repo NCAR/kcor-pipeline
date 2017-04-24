@@ -30,7 +30,7 @@
 ; :Author:
 ;   mgalloy
 ;-
-pro kcor_sci_insert, date, fits_list, $
+pro kcor_sci_insert, date, files, $
                      run=run, $
                      database=database, $
                      obsday_index=obsday_index
@@ -77,8 +77,8 @@ pro kcor_sci_insert, date, fits_list, $
     endelse
 
     image = readfits(files[f], header, /silent)
-    cx = sxpad(header, 'CRPIX1') - 1.0   ; convert from FITS convention to
-    cy = sxpad(header, 'CRPIX2') - 1.0   ; IDL convention
+    cx = sxpar(header, 'CRPIX1') - 1.0   ; convert from FITS convention to
+    cy = sxpar(header, 'CRPIX2') - 1.0   ; IDL convention
 
     date_obs = sxpar(header, 'DATE-OBS', count=qdate_obs)
     year   = long(strmid(date_obs,  0, 4))
@@ -108,7 +108,8 @@ pro kcor_sci_insert, date, fits_list, $
     r18 = kcor_annulus_gridmeans(image, 1.8, sun_pixels)
 
     db->execute, 'INSERT INTO kcor_sci (file_name, obs_day, intensity, r13, r18) VALUES (''%s'', %d, ''%s'', ''%s'', ''%s'')', $
-                 files[f], obsday_index, $
+                 file_basename(files[f], '.gz'), $
+                 obsday_index, $
                  db->escape_string(intensity), $
                  db->escape_string(r13), $
                  db->escape_string(r18), $
@@ -133,7 +134,7 @@ end
 
 ; main-level example program
 
-date = '20170318'
+date = '20161127'
 run = kcor_run(date, $
                config_filename=filepath('kcor.mgalloy.mahi.latest.cfg', $
                                         subdir=['..', '..', 'config'], $
@@ -143,5 +144,12 @@ obsday_index = mlso_obsday_insert(date, run=run, database=db)
 
 files = ['20170318_205523_kcor_l1.fts.gz']
 kcor_sci_insert, date, files, run=run, database=db, obsday_index=obsday_index
+
+results = db->query('select * from kcor_sci', sql_statement=cmd, error=error, fields=fields)
+help, error
+
+;heap_free, results
+
+obj_destroy, db
 
 end

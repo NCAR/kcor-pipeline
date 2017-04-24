@@ -1,5 +1,42 @@
 ; docformat = 'rst'
 
+
+;+
+; Helper routine to clear a table for a given day.
+;
+; :Params:
+;   table : in, required, type=string
+;     table to clear, i.e., kcor_img, kcor_eng, etc.
+;
+; :Keywords:
+;   run : in, required, type=object
+;     `kcor_run` object
+;   obsday_index : in, required, type=integer
+;     index into mlso_numfiles database table
+;   database : in, optional, type=MGdbMySql object
+;     database connection to use
+;   log_name : in, required, type=string
+;     name of log to send log messages to
+;-
+pro kcor_db_clearday_cleartable, table, $
+                                 obsday_index=obsday_index, $
+                                 database=db, $
+                                 log_name=log_name
+  compile_opt strictarr
+
+  mg_log, 'clearing kcor_%s table', table, name=log_name, /info
+  db->execute, 'DELETE FROM %s WHERE obs_day=''%s''', $
+               table, obsday_index, $
+               status=status, error_message=error_message, sql_statement=sql_cmd
+  if (status ne 0L) then begin
+    mg_log, 'error clearing %s table', table, name=log_name, /error
+    mg_log, 'status: %d, error message: %s', status, error_message, $
+            name=log_name, /error
+    mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
+  endif
+end
+
+
 ;+
 ; Delete entries for a day, e.g., before reprocessing that day.
 ;
@@ -51,28 +88,6 @@ pro kcor_db_clearday, run=run, $
     mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
   endif
 
-  ; kcor_img
-  mg_log, 'clearing kcor_img table', name=log_name, /info
-  db->execute, 'DELETE FROM kcor_img WHERE obs_day=''%s''', obsday_index, $
-               status=status, error_message=error_message, sql_statement=sql_cmd
-  if (status ne 0L) then begin
-    mg_log, 'error clearing kcor_im table', name=log_name, /error
-    mg_log, 'status: %d, error message: %s', status, error_message, $
-            name=log_name, /error
-    mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
-  endif
-
-  ; kcor_eng
-  mg_log, 'clearing kcor_eng table', name=log_name, /info
-  db->execute, 'DELETE FROM kcor_eng WHERE obs_day=''%s''', obsday_index, $
-               status=status, error_message=error_message, sql_statement=sql_cmd
-  if (status ne 0L) then begin
-    mg_log, 'error clearing kcor_eng table', name=log_name, /error
-    mg_log, 'status: %d, error message: %s', status, error_message, $
-            name=log_name, /error
-    mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
-  endif
-
   ; mlso_sgs
   mg_log, 'clearing mlso_sgs table', name=log_name, /info
   db->execute, 'DELETE FROM mlso_sgs WHERE obs_day=''%s'' AND source=''k''', $
@@ -85,17 +100,22 @@ pro kcor_db_clearday, run=run, $
     mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
   endif
 
-  ; kcor_cal
-  mg_log, 'clearing kcor_cal table', name=log_name, /info
-  db->execute, 'DELETE FROM kcor_cal WHERE obs_day=''%s''', $
-               obsday_index, $
-               status=status, error_message=error_message, sql_statement=sql_cmd
-  if (status ne 0L) then begin
-    mg_log, 'error clearing kcor_cal table', name=log_name, /error
-    mg_log, 'status: %d, error message: %s', status, error_message, $
-            name=log_name, /error
-    mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
-  endif
+  kcor_db_clearday_cleartable, 'kcor_img', $
+                               obsday_index=obsday_index, $
+                               database=db, $
+                               log_name=log_name
+  kcor_db_clearday_cleartable, 'kcor_eng', $
+                               obsday_index=obsday_index, $
+                               database=db, $
+                               log_name=log_name
+  kcor_db_clearday_cleartable, 'kcor_cal', $
+                               obsday_index=obsday_index, $
+                               database=db, $
+                               log_name=log_name
+  kcor_db_clearday_cleartable, 'kcor_sci', $
+                               obsday_index=obsday_index, $
+                               database=db, $
+                               log_name=log_name
 
   done:
   if (~obj_valid(database)) then obj_destroy, db

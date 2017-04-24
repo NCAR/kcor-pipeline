@@ -96,6 +96,18 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     mg_log, 'no zipped L0 files to unzip', name='kcor/eod', /info
   endelse
 
+  l1_dir = filepath('level1', root=date_dir)
+  if (~file_test(l0_dir, /directory)) then begin
+    mg_log, '%s does not exist', l0_dir, name='kcor/eod', /error
+    n_l1_zipped_files = 0L
+  endif else begin
+    cd, l1_dir
+    l1_zipped_fits_glob = '*_l1.fts.gz'
+    l1_zipped_files = file_search(l1_zipped_fits_glob, count=n_l1_zipped_files)
+    cd, l0_dir
+  endelse
+
+
   nrgf_list = filepath('oknrgf.ls', $
                        subdir=[date, 'level1'], $
                        root=run.raw_basedir)
@@ -201,6 +213,15 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
         mg_log, 'no NRGF files to add mean/median values for', name='kcor/eod', /warn
       endelse
 
+      if (n_l1_zipped_files gt 0L) then begin
+        daily_science_file = l1_zipped_files[n_l1_zipped_files ge 20 ? 20 : 0]
+        kcor_sci_insert, date, daily_science_file, $
+                         run=run, $
+                         database=db, $
+                         obsday_index=obsday_index
+      endif else begin
+        mg_log, 'no L1 files for daily science', name='kcor/eod', /warn
+      endelse
     endif else begin
       mg_log, 'error connecting to database', name='kcor/eod', /warn
     endelse
