@@ -1145,6 +1145,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
 
     bias = 0.004
 
+    qmk4_new = float(qmk4)
     umk4_new = float(umk4) - float(rot(qmk4,45.)) + bias   ; umk4 contains the corona
 
     ; print, 'Finished sky polarization removal.'
@@ -1208,9 +1209,9 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
 
     ; display image, annotate, and save as a full resolution GIF file
 
-    mini  = 0.0   ; minimum intensity scaling value.  Used >= 09 Apr 2015.
-    maxi  = 1.2   ; maximum intensity scaling value.  Used >= 09 Apr 2015.
-    exp   = 0.7   ; scaling exponent.                 Used >= 09 Apr 2015.
+    mini  = -0.15  ; minimum intensity scaling value.  Used >= Nov 2016 with April 2017 calibration
+    maxi  = .6     ; maximum intensity scaling value.  Used >= Nov 2016 with April 2017 calibration
+    exp   = 0.5   ; scaling exponent.                 Used >= Nov 2016 with April 2017 calibration
 
     ; cbias = 0.03
     ; tv, bytscl((corona + cbias)^exp, min=mini, max=maxi)
