@@ -1169,7 +1169,6 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
     corona0[mask] = 0
 
     corona_bias = corona
-    corona_bias[mask] = 0
 
     if (doplot eq 1) then begin
       wset, 0
@@ -1209,9 +1208,11 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
 
     ; display image, annotate, and save as a full resolution GIF file
 
-    mini  = -0.15  ; minimum intensity scaling value.  Used >= Nov 2016 with April 2017 calibration
-    maxi  = .6     ; maximum intensity scaling value.  Used >= Nov 2016 with April 2017 calibration
-    exp   = 0.5   ; scaling exponent.                 Used >= Nov 2016 with April 2017 calibration
+    mini  = -0.05  ; minimum intensity scaling value.  Used >= Nov 2016 with April 2017 calibration
+    maxi  = .6    ; maximum intensity scaling value.  Used >= Nov 2016 with April 2017 calibration
+    exp   = 0.65   ; scaling exponent.                 Used >= Nov 2016 with April 2017 calibration
+
+    corona_bias[mask] = mini
 
     ; cbias = 0.03
     ; tv, bytscl((corona + cbias)^exp, min=mini, max=maxi)
@@ -1274,7 +1275,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
     xyouts, 1012, 512, 'West', color=255, charsize=1.2, alignment=0.5, $
             orientation=90., /device
     xyouts, 4, 46, 'Level 1 data', color=255, charsize=1.2, /device
-    xyouts, 4, 26, 'min/max: ' + string(format='(f3.1)', mini) + ', ' + $
+    xyouts, 4, 26, 'min/max: ' + string(format='(f4.1)', mini) + ', ' + $
             string(format='(f3.1)', maxi), $
             color=255, charsize=1.2, /device
     xyouts, 4, 6, 'scaling: Intensity ^ ' + string(format='(f3.1)', exp), $
@@ -1698,7 +1699,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
     xyouts, 507, 256, 'West', color=255, $
                       charsize=1.0, alignment=0.5, orientation=90., /device
     xyouts, 4, 34, 'Level 1 data', color=255, charsize=1.0, /device
-    xyouts, 4, 20, 'min/max: ' + string(format='(f3.1)', mini) + ', ' $
+    xyouts, 4, 20, 'min/max: ' + string(format='(f4.1)', mini) + ', ' $
                      + string(format='(f3.1)', maxi), $
                    color=255, charsize=1.0, /device
     xyouts, 4, 6, 'scaling: Intensity ^ ' + string(format='(f3.1)', exp), $
