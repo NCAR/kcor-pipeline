@@ -98,7 +98,7 @@ pro kcor_sci_insert, date, files, $
     radius_step = 0.02
     radii = radius_step * findgen(n_radii) + start_radius
     intensity = fltarr(n_radii)
-    intensity_stdev = fltarr(n_radii)
+    intensity_stddev = fltarr(n_radii)
     for r = 0L, n_radii - 1L do begin
       x = sun_pixels * radii[r] * cos(theta) + cx
       y = sun_pixels * radii[r] * sin(theta) + cy
@@ -110,7 +110,7 @@ pro kcor_sci_insert, date, files, $
     r13 = kcor_annulus_gridmeans(image, 1.3, sun_pixels)
     r18 = kcor_annulus_gridmeans(image, 1.8, sun_pixels)
 
-    db->execute, 'INSERT INTO kcor_sci (file_name, obs_day, intensity, intensity_stddev, r108, r13, r18) VALUES (''%s'', %d, ''%s'', ''%s'', ''%s'')', $
+    db->execute, 'INSERT INTO kcor_sci (file_name, obs_day, intensity, intensity_stddev, r108, r13, r18) VALUES (''%s'', %d, ''%s'', ''%s'', ''%s'', ''%s'', ''%s'')', $
                  file_basename(files[f], '.gz'), $
                  obsday_index, $
                  db->escape_string(intensity), $
