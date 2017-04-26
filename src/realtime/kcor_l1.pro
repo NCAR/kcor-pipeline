@@ -348,7 +348,13 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
 
   ; extract information from calibration file
   calpath = filepath(run.cal_file, root=run.cal_out_dir)
-  mg_log, 'cal file: %s', file_basename(calpath), name='kcor/rt', /debug
+  if (file_test(calpath)) then begin
+    mg_log, 'cal file: %s', file_basename(calpath), name='kcor/rt', /debug
+  endif else begin
+    mg_log, 'cal file does not exist', name='kcor/rt', /error
+    mg_log, 'cal file: %s', file_basename(calpath), name='kcor/rt', /error
+    goto, done
+  endelse
 
   unit = ncdf_open(calpath)
   ncdf_varget, unit, 'Dark', dark_alfred
