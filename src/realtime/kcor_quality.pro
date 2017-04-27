@@ -261,6 +261,7 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     bzero    = sxpar(hdu, 'BZERO',    count=qbzero)
     bbscale  = sxpar(hdu, 'BSCALE',   count=qbbscale)
     bitpix   = sxpar(hdu, 'BITPIX')
+    bitpix   = fix(bitpix)
 
     datatype = sxpar(hdu, 'DATATYPE', count=qdatatype)
 
