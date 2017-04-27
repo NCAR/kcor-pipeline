@@ -1275,7 +1275,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
     xyouts, 1012, 512, 'West', color=255, charsize=1.2, alignment=0.5, $
             orientation=90., /device
     xyouts, 4, 46, 'Level 1 data', color=255, charsize=1.2, /device
-    xyouts, 4, 26, 'min/max: ' + string(format='(f4.1)', mini) + ', ' + $
+    xyouts, 4, 26, 'min/max: ' + string(format='(f5.2)', mini) + ', ' + $
             string(format='(f3.1)', maxi), $
             color=255, charsize=1.2, /device
     xyouts, 4, 6, 'scaling: Intensity ^ ' + string(format='(f3.1)', exp), $
@@ -1699,7 +1699,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
     xyouts, 507, 256, 'West', color=255, $
                       charsize=1.0, alignment=0.5, orientation=90., /device
     xyouts, 4, 34, 'Level 1 data', color=255, charsize=1.0, /device
-    xyouts, 4, 20, 'min/max: ' + string(format='(f4.1)', mini) + ', ' $
+    xyouts, 4, 20, 'min/max: ' + string(format='(f5.2)', mini) + ', ' $
                      + string(format='(f3.1)', maxi), $
                    color=255, charsize=1.0, /device
     xyouts, 4, 6, 'scaling: Intensity ^ ' + string(format='(f3.1)', exp), $
