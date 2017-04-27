@@ -667,7 +667,9 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
       ; noise_diff_limit =  15.0
       ; noise_diff_limit =  50.0   ; difference threshold
 
-      noise_diff_limit =  70.0   ; difference threshold
+     if (bitpix eq 16) then noise_diff_limit = 70.0     ; difference threshold
+     if (bitpix eq 32) then noise_diff_limit = 3.e05     ; brightness threshold
+
       total_bad_limit  =  80     ; total # bad pixel differences
 
       ; print,        'noise_diff_limit, total_bad_limit: ', $
@@ -742,7 +744,7 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
               nx, ny, xdim, ydim, name='kcor/rt', /warn
       pb0m = pb0rot 
     endif else begin
-      pb0m = pb0rot * mask 
+i     pb0m = pb0rot * mask 
     endelse
 
     ; intensity scaling
