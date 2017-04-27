@@ -744,7 +744,7 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
               nx, ny, xdim, ydim, name='kcor/rt', /warn
       pb0m = pb0rot 
     endif else begin
-i     pb0m = pb0rot * mask 
+    pb0m = pb0rot * mask 
     endelse
 
     ; intensity scaling
