@@ -260,6 +260,7 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
 
     bzero    = sxpar(hdu, 'BZERO',    count=qbzero)
     bbscale  = sxpar(hdu, 'BSCALE',   count=qbbscale)
+    bitpix   = sxpar(hdu, 'BITPIX')
 
     datatype = sxpar(hdu, 'DATATYPE', count=qdatatype)
 
@@ -498,7 +499,9 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
       ; bmax  = 220.0   ; brightness threshold
       ; bmax  = 250.0   ; brightness threshold
 
-      bmax  = 300.0     ; brightness threshold
+    if (bitpix eq 16) then bmax  = 300.0     ; brightness threshold
+    if (bitpix eq 32) then bmax  = 2.e06     ; brightness threshold
+    if (bitpix ne 16) and (bitpix ne 32) then print,'UNEXPECTED BITPIX!!!!'
       rpixb = 450       ; circle radius [pixels]
       dpx   = fix(cos(dp) * rpixb + axcen + 0.5005)
       dpy   = fix(sin(dp) * rpixb + aycen + 0.5005)
@@ -540,7 +543,10 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     chksat = 1
     if (chksat gt 0) then begin
       ; print, '~ ~ ~ saturation check ~ ~ ~'
-      smax  = 1000.0   ; brightness threshold.
+
+    if (bitpix eq 16) then smax  = 1000.0     ; brightness threshold
+    if (bitpix eq 32) then smax  = 1.e07      ; brightness threshold
+
       rpixt = 215      ; circle radius [pixels].
       dpx   = fix(cos(dp) * rpixt + axcen + 0.5005)
       dpy   = fix(sin(dp) * rpixt + aycen + 0.5005)
@@ -581,8 +587,8 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     cloud    = 0
     if (chkcloud gt 0) then begin
       ; print, '~ ~ ~ cloud check ~ ~ ~'
-      cmax =  150.0
-      cmax = 2200.0   ; upper brightness threshold
+    if (bitpix eq 16) then cmax  = 2200.0     ; upper brightness threshold
+    if (bitpix eq 32) then cmax  = 5.e07      ; upper brightness threshold
       cmin =  200.0   ; lower brightness threshold
       rpixc = 190     ; circle radius [pixels]
       dpx  = fix(cos(dp) * rpixc + axcen + 0.5005)
