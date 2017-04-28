@@ -1306,18 +1306,29 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
     ;----------------------------------------------------------------------------
     ; Issues of interest:
     ;----------------------------------------------------------------------------
-    ; 1. 01ID objective lens id added on June 18, 2014 
-    ; 2. On June 17, 2014 19:30 Allen reports the Optimax 01 was installed. 
+    ; 1. SGSRAZR and SGSDECZR keywords added Oct 22, 2013 00:13:58 image
+    ; 2. 01ID objective lens id keyword added on June 18, 2014 22:29:48
+    ; 3. On June 17, 2014 19:30 Allen reports the Optimax 01 was installed. 
     ;    Prior to that date the 01 was from Jenoptik
     ;    NEED TO CHECK THE EXACT TIME NEW OBJECTIVE WENT IN BY OBSERVING 
     ;    CHANGES IN ARTIFACTS.  IT MAY HAVE BEEN INSTALLED EARLIER IN DAY.
-    ; 3. IDL stuctures turn boolean 'T' and 'F' into integers (1, 0); 
+    ; 4. IDL stuctures turn boolean 'T' and 'F' into integers (1, 0); 
     ;    Need to turn back to boolean to meet FITS headers standards.
-    ; 4. Structures don't accept dashes ('-') in keywords which are FITS header 
+    ; 5. Structures don't accept dashes ('-') in keywords which are FITS header 
     ;    standards (e.g. date-obs). 
     ;    use /DASH2UNDERSCORE  
-    ; 5. Structures don't save comments. Need to type them back in.
+    ; 6. Structures don't save comments. Need to type them back in.
+    ; 7. LYOTSTOP key word added on Oct 17, 2016. (to reflect previous insertion 
+    ;    of 2nd lyot stop)
     ;----------------------------------------------------------------------------
+
+;   To date (April 28, 2017) 4 new keywords have been added to the level 0 headers
+;   Check to see if the day being processed has these keywords in the level 0 header
+
+    check_sgsrazr=tag_exist(struct,'SGSRAZR')
+    check_sgsdeczr=tag_exist(struct,'SGSDECZR')
+    check_01id=tag_exist(struct,'01ID')
+    check_lyotstop=tag_exist(struct,'LYOTSTOP')
 
     bscale = 0.001   ; pB * 1000 is stored in FITS image.
     bunit  = 'quasi-pB'
@@ -1534,14 +1545,14 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
     fxaddpar, newheader, 'SGSRAS',   struct.sgsras, $
                          ' [V] mean SGS RA error standard deviation', $
                          format='(e11.3)'
-    fxaddpar, newheader, 'SGSRAZR',  struct.sgsrazr, $
+    if (check_sgsrazr ne 0) then fxaddpar, newheader, 'SGSRAZR',  struct.sgsrazr, $
                          ' [arcsec] SGS RA zeropoint offset', format = '(f9.4)'
     fxaddpar, newheader, 'SGSDECV',  struct.sgsdecv, $
                          ' [V] mean SGS DEC error signal',    format = '(e11.3)'
     fxaddpar, newheader, 'SGSDECS',  struct.sgsdecs, $
                          ' [V] mean SGS DEC error standard deviation', $
                          format='(e11.3)'
-    fxaddpar, newheader, 'SGSDECZR', struct.sgsdeczr, $ 
+    if (check_sgsdeczr ne 0) then fxaddpar, newheader, 'SGSDECZR', struct.sgsdeczr, $ 
                          ' [arcsec] SGS DEC zeropoint offset', format = '(f9.4)'
     fxaddpar, newheader, 'SGSSCINT', struct.sgsscint, $
                          ' [arcsec] SGS scintillation seeing estimate', $
@@ -1559,12 +1570,10 @@ pro kcor_l1, date_str, ok_files, append=append, run=run
     fxaddpar, newheader, 'FILTERID', struct.filterid, $
                          ' ID bandpass filter'
 
-    ; Ben Berkey added keyword 'O1ID' (objective lens id) on 18 June 2014 
-    ; to accommodate installation of Optimax objective lens.
-    if (oyear lt 2014) then begin
-      fxaddpar, newheader, 'O1ID',     'Jenoptik', $
+    if (check_01id ne 0) then fxaddpar, newheader, 'O1ID',     'Jenoptik', $
                            ' ID objective (01) lens'
-    endif
+    if (check_lyotstop ne 0) then fxaddpar, newheader, 'LYOTSTOP', struct.lyotstop, $ 
+    			 ' Specifies if the 2nd lyot stop is in the beam'
 
     if (oyear eq 2014) then begin
       if (month lt 6) then $
