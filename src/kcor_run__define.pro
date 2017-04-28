@@ -14,7 +14,7 @@
 ;   filename : in, optional, type=string, default=stdout
 ;     filename to write epoch values to, default is to print to stdout
 ;-
-pro kcor_run::write_epochs, filename
+pro kcor_run::write_epochs, filename, time=time
   compile_opt strictarr
 
   if (n_elements(filename) gt 0L) then begin
@@ -23,14 +23,49 @@ pro kcor_run::write_epochs, filename
     lun = -1   ; stdout
   endelse
 
-  self->getProperty, plate_scale=plate_scale, $
+  self->getProperty, time=time, $
+                     plate_scale=plate_scale, $
                      use_default_dark=use_default_darks, $
-                     gbuparams_filename=gbuparams_filename
-  printf, lun, 'plate_scale', plate_scale, format='(%"%-20s : %0.3f")'
-  printf, lun, 'use_default_darks', use_default_darks ? 'YES' : 'NO', $
-               format='(%"%-20s : %s")'
-  printf, lun, 'gbuparams_filename', gbuparams_filename, $
-               format='(%"%-20s : %s")'
+                     phase=phase, bias_term=bias, sky_factor=sky_factor, $
+;                     bopal=bopal, $
+                     gbuparams_filename=gbuparams_filename, $
+                     distortion_correction_filename=distortion_correction_filename, $
+                     cal_file=cal_file, mlso_url=mlso_url, doi_url=doi_url
+
+  printf, lun, $
+          'plate_scale', self->epoch('plate_scale', time=time), $
+          format='(%"%-30s : %0.3f")'
+  printf, lun, $
+          'use_default_darks', $
+          self->epoch('use_default_darks', time=time) ? 'YES' : 'NO', $
+          format='(%"%-30s : %s")'
+  printf, lun, $
+          'phase', self->epoch('phase', time=time), $
+          format='(%"%-30s : %f")'
+  printf, lun, $
+          'bias', self->epoch('bias', time=time), $
+          format='(%"%-30s : %f")'
+  printf, lun, $
+          'sky_factor', self->epoch('sky_factor', time=time), $
+          format='(%"%-30s : %f")'
+;  printf, lun, 'bopal', bopal, format='(%"%-30s : %f")'
+  printf, lun, $
+          'gbuparams_filename', $
+          self->epoch('gbuparams_filename', time=time), $
+          format='(%"%-30s : %s")'
+  printf, lun, $
+          'distortion_correction_filename', $
+          self->epoch('distortion_correction_filename', time=time), $
+          format='(%"%-30s : %s")'
+  printf, lun, $
+          'cal_file', self->epoch('cal_file', time=time), $
+          format='(%"%-30s : %s")'
+  printf, lun, $
+          'mlso_url', self->epoch('mlso_url', time=time), $
+          format='(%"%-30s : %s")'
+  printf, lun, $
+          'doi_url', self->epoch('doi_url', time=time), $
+          format='(%"%-30s : %s")'
 
   if (n_elements(filename) gt 0L) then free_lun, lun
 end
@@ -53,6 +88,8 @@ end
 ;     option name
 ;   date : in, required, type=string
 ;     date on which to check for the value in the form "YYYYMMDD"
+;   time : in, required, type=string
+;     time on which to check for the value in the form "HHMMSS"
 ;
 ; :Keywords:
 ;   found : out, optional, type=boolean
@@ -62,7 +99,7 @@ end
 ;   _extra : in, optional, type=keywords
 ;     keywords to `MGffOptions::get` such as `BOOLEAN` and `EXTRACT`
 ;-
-function kcor_run::_readepoch, option, date, $
+function kcor_run::_readepoch, option, date, time, $
                                found=found, $
                                type=type, $
                                _extra=e
@@ -71,7 +108,8 @@ function kcor_run::_readepoch, option, date, $
   found = 1B
   dates = self.epochs->sections()
   dates = dates[sort(dates)]
-  date_index = value_locate(dates, date)
+  date_index = value_locate(dates, date + '.' + time)
+
   for d = date_index, 0L, -1L do begin
     option_value = self.epochs->get(option, section=dates[d], $
                                     found=option_found, type=type, _extra=e)
@@ -138,6 +176,32 @@ end
 ;= property access
 
 ;+
+; Set properties.
+;-
+pro kcor_run::setProperty, time=time, mode=mode
+  compile_opt strictarr
+
+  if (n_elements(time) gt 0L) then begin
+    if (strlen(time) eq 6) then begin
+      self.time = time
+    endif else begin
+      hour   = strmid(time, 11, 2)
+      minute = strmid(time, 14, 2)
+      second = strmid(time, 17, 2)
+      self.time = hour + minute + second
+    endelse
+    log_name = self.mode eq 'realtime' ? 'kcor/rt' : 'kcor/eod'
+    mg_log, 'advanced time to %s (%s)', self.time, log_name, $
+            name=log_name, /debug
+  endif
+
+  if (n_elements(mode) gt 0L) then begin
+    self.mode = mode
+  endif
+end
+
+
+;+
 ; Get properties.
 ;-
 pro kcor_run::getProperty, config_contents=config_contents, $
@@ -174,15 +238,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            update_database=update_database, $
                            update_remote_server=update_remote_server, $
                            reduce_calibration=reduce_calibration, $
-                           send_to_hpss=send_to_hpss, $
-                           plate_scale=plate_scale, $
-                           use_default_darks=use_default_darks, $
-                           bias_term=bias_term, $
-                           sky_factor=sky_factor, $
-                           gbuparams_filename=gbuparams_filename, $
-                           cal_file=cal_file, $
-                           distortion_correction_filename=distortion_correction_filename, $
-                           phase=phase
+                           send_to_hpss=send_to_hpss
   compile_opt strictarr
 
   if (arg_present(config_contents)) then begin
@@ -272,6 +328,10 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   endif
 
   ; database
+  if (arg_present(update_database)) then begin
+    update_database = self.options->get('update_database', section='database', $
+                                        /boolean, default=1B)
+  endif
   if (arg_present(database_config_filename)) then begin
     database_config_filename = self.options->get('config_filename', section='database')
   endif
@@ -289,10 +349,6 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   endif
 
   ; realtime
-  if (arg_present(update_database)) then begin
-    update_database = self.options->get('update_database', section='realtime', $
-                                        /boolean, default=1B)
-  endif
   if (arg_present(update_remote_server)) then begin
     update_remote_server = self.options->get('update_remote_server', section='realtime', $
                                              /boolean, default=1B)
@@ -307,42 +363,49 @@ pro kcor_run::getProperty, config_contents=config_contents, $
     send_to_hpss = self.options->get('send_to_hpss', section='eod', $
                                      /boolean, default=1B)
   endif
+end
 
-  ; epochs file
 
-  ; mission
-  if (arg_present(mlso_url)) then begin
-    mlso_url = self->_readepoch('mlso_url', self.date, type=7)
-  endif
-  if (arg_present(doi_url)) then begin
-    doi_url = self->_readepoch('doi_url', self.date, type=7)
-  endif
+;+
+; Get epoch value.
+;
+; :Params:
+;   name : in, required, type=string
+;     name of epoch entity to query for
+;
+; :Keywords:
+;   time : in, required, type=string
+;     time at which epoch value is requested as UT time in the form "HHMMSS"
+;-
+function kcor_run::epoch, name, time=time
+  compile_opt strictarr
 
-  if (arg_present(plate_scale)) then begin
-    plate_scale = self->_readepoch('plate_scale', self.date, type=4)
-  endif
-  if (arg_present(use_default_darks)) then begin
-    use_default_darks = self->_readepoch('use_default_darks', self.date, /boolean)
-  endif
-  if (arg_present(gbuparams_filename)) then begin
-    gbuparams_filename = self->_readepoch('gbuparams_filename', self.date, type=7)
-  endif
-  if (arg_present(bias_term)) then begin
-    bias_term = self->_readepoch('bias', self.date, type=4)
-  endif
-  if (arg_present(sky_factor)) then begin
-    sky_factor = self->_readepoch('sky_factor', self.date, type=4)
-  endif
-  if (arg_present(distortion_correction_filename)) then begin
-    distortion_correction_filename = self->_readepoch('distortion_correction_filename', $
-                                                      self.date, type=7)
-  endif
-  if (arg_present(cal_file)) then begin
-    cal_file = self->_readepoch('cal_file', self.date, type=7)
-  endif
-  if (arg_present(phase)) then begin
-    phase = self->_readepoch('phase', self.date, type=4)
-  endif
+  ; times in the epoch file are in HST (observing days)
+  if (n_elements(time) eq 0L) then begin
+    hst_time = self.time eq '' ? '000000' : self.time
+  endif else begin
+    hst_time = kcor_ut2hst(time)
+  endelse
+
+  case name of
+    'mlso_url': return, self->_readepoch('mlso_url', self.date, hst_time, type=7) 
+    'doi_url': return, self->_readepoch('doi_url', self.date, hst_time, type=7)
+    'plate_scale': return, self->_readepoch('plate_scale', self.date, hst_time, type=4)
+    'use_default_darks': begin
+        return, self->_readepoch('use_default_darks', self.date, hst_time, /boolean)
+      end
+    'gpuparams_filename': begin
+        return, self->_readepoch('gbuparams_filename', self.date, hst_time, type=7)
+      end
+    'bias': return, self->_readepoch('bias', self.date, hst_time, type=4)
+    'sky_factor': return, self->_readepoch('sky_factor', self.date, hst_time, type=4) 
+    'distortion_correction_filename': begin
+        return, self->_readepoch('distortion_correction_filename', $
+                                 self.date, hst_time, type=7)
+      end
+    'cal_file': return, self->_readepoch('cal_file', self.date, hst_time, type=7)
+    'phase': return, self->_readepoch('phase', self.date, hst_time, type=4) 
+  endcase
 end
 
 
@@ -393,6 +456,8 @@ pro kcor_run__define
 
   !null = {kcor_run, inherits IDL_Object, $
            date: '', $
+           time: '', $   ; UT time
+           mode: '', $   ; realtime or eod
            pipe_dir: '', $
            options: obj_new(), $
            epochs: obj_new()}

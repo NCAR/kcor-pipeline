@@ -96,7 +96,7 @@ pro kcor_rg2m, fits_list, fits=fits
     xc   = img_info[0]
     yc   = img_info[1]
     r    = img_info[2]
-    arcpix = run.plate_scale   ; arcsec / pixel = platescale
+    arcpix = run->epoch('plate_scale')   ; arcsec / pixel = platescale
 
     rocc    = occulter / arcpix   ; occulter radius [pixels]
     r_photo = rsun / arcpix       ; photosphere radius [pixels]

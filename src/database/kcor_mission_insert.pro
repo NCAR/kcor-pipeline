@@ -179,7 +179,9 @@ pro kcor_mission_insert, date, run=run
 ;--- DB insert command.
 
   db->execute, 'INSERT INTO kcor_mission (date, mlso_url, doi_url, telescope, instrument, location, origin, object, wavelength, wavefwhm, resolution, fov_min, fov_max, bitpix, xdim, ydim) VALUES (''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, %f, %f, %f, %d, %d, %d) ', $
-               date_mission, run.mlso_url, run.doi_url, telescop, instrume, location, $
+               date_mission, $
+               run->epoch('mlso_url'), $
+               run->epoch('doi_url'), telescop, instrume, location, $
                origin, object, wavelnth, wavefwhm, resolution, $
                fov_min, fov_max, bitpix, naxis1, naxis2, $
                status=status, error_message=error_message, sql_statement=sql_cmd

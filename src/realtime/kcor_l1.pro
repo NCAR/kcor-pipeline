@@ -324,8 +324,6 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
   l1_dir  = filepath('level1', subdir=date_str, root=run.raw_basedir)
   l0_file = ''
 
-  dc_path = filepath(run.distortion_correction_filename, root=run.resources_dir)
-
   if (~file_test(l1_dir, /directory)) then file_mkdir, l1_dir
 
   ; move to the processing directory
@@ -344,98 +342,21 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     goto, done
   endif
 
-  mean_phase1 = fltarr(nfiles)
-
-  ; extract information from calibration file
-  calpath = filepath(run.cal_file, root=run.cal_out_dir)
-  mg_log, 'cal file: %s', file_basename(calpath), name='kcor/rt', /debug
-
-  unit = ncdf_open(calpath)
-  ncdf_varget, unit, 'Dark', dark_alfred
-  ncdf_varget, unit, 'Gain', gain_alfred
-  ncdf_varget, unit, 'Modulation Matrix', mmat
-  ncdf_varget, unit, 'Demodulation Matrix', dmat
-  ncdf_close, unit
-
-  ; FUTURE: Check matrix for any elements > 1.0
-  ; I am only printing matrix for one pixel.
-
-  ;print, 'Mod Matrix = camera 0'
-  ;print, reform(mmat[100, 100, 0, *, *])
-  ;print, 'Mod Matrix = camera 1'
-  ;print, reform(mmat[100, 100, 1, *, *])
-
-  ;printf, ulog, 'Mod Matrix = camera 0'
-  ;printf, ulog, reform(mmat[100, 100, 0, *, *])
-  ;printf, ulog, 'Mod Matrix = camera 1'
-  ;printf, ulog, reform(mmat[100, 100, 1, *, *])
-
   ; set image dimensions
   xsize = 1024L
   ysize = 1024L
 
-  ; modify gain images
-  ;   - set zero and negative values in gain to value stored in 'gain_negative'
-
-  ; GdT: changed gain correction and moved it up (not inside the loop)
-  ; this will change when we read the daily gain instead of a fixed one
-  gain_negative = -10
-  gain_alfred[WHERE (gain_alfred le 0, /null)] = gain_negative
-
-  ; replace zero and negative values with mean of 5x5 neighbour pixels
-  for b = 0, 1 do begin
-    gain_temp = double(reform(gain_alfred[*, *, b]))
-    filter = mean_filter(gain_temp, 5, 5, invalid=gain_negative, missing=1)
-    bad = where(gain_temp eq gain_negative, nbad)
-
-    if (nbad gt 0) then begin
-      gain_temp[bad] = filter[bad]
-      gain_alfred[*, *, b] = gain_temp
-    endif
-  endfor
-  gain_temp = 0
-
-  ; find center and radius for gain images
-
   ; set guess for radius - needed to find center
   radius_guess = 178   ; average radius for occulter
 
-  ;printf, ULOG, 'radius_guess ', radius_guess
-  info_gain0 = kcor_find_image(gain_alfred[*, *, 0], radius_guess, log_name='kcor/rt')
-  info_gain1 = kcor_find_image(gain_alfred[*, *, 1], radius_guess, log_name='kcor/rt')
-
-  ; define coordinate arrays for gain images
-  gxx0 = findgen(xsize, ysize) mod xsize - info_gain0[0]
-  gyy0 = transpose(findgen(ysize, xsize) mod ysize) - info_gain0[1]
-
-  gxx0 = double(gxx0)
-  gyy0 = double(gyy0)
-  grr0 = sqrt(gxx0 ^ 2.0 + gyy0 ^ 2.0)
-
-  gxx1 = findgen(xsize, ysize) mod xsize - info_gain1[0]
-  gyy1 = transpose(findgen(ysize, xsize) mod ysize) - info_gain1[1]
-
-  gxx1 = double(gxx1)
-  gyy1 = double(gyy1)
-  grr1 = sqrt(gxx1 ^ 2.0 + gyy1 ^ 2.0)
-
-  mg_log, 'gain 0 center: %0.1f, %0.1f and radius: %0.1f', $
-          info_gain0, name='kcor/rt', /debug
-  mg_log, 'gain 1 center: %0.1f, %0.1f and radius: %0.1f', $
-          info_gain1, name='kcor/rt', /debug
+  mean_phase1 = fltarr(nfiles)
 
   ; initialize variables
-  cal_data     = dblarr(xsize, ysize, 2, 3)
   cal_data_new = dblarr(xsize, ysize, 2, 3)
   gain_shift   = dblarr(xsize, ysize, 2)
 
   set_plot, 'Z'
   doplot = 0   ; flag to do diagnostic plots & images
-
-  ;set_plot, 'X'
-  ;device, set_resolution=[768, 768], decomposed=0, set_colors=256, $
-  ;        z_buffering=0
-  ;erase
 
   ; load color table
   lct, filepath('quallab_ver2.lut', root=run.resources_dir)
@@ -446,6 +367,63 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
   foreach l0_file, ok_files do begin
     fnum += 1
     lclock = tic('Loop_' + strtrim(fnum, 2))
+
+    ; extract information from calibration file
+    calpath = filepath(run->epoch('cal_file'), root=run.cal_out_dir)
+    mg_log, 'cal file: %s', file_basename(calpath), name='kcor/rt', /debug
+
+    unit = ncdf_open(calpath)
+    ncdf_varget, unit, 'Dark', dark_alfred
+    ncdf_varget, unit, 'Gain', gain_alfred
+    ncdf_varget, unit, 'Modulation Matrix', mmat
+    ncdf_varget, unit, 'Demodulation Matrix', dmat
+    ncdf_close, unit
+
+    ; modify gain images
+    ;   - set zero and negative values in gain to value stored in 'gain_negative'
+
+    ; GdT: changed gain correction and moved it up (not inside the loop)
+    ; this will change when we read the daily gain instead of a fixed one
+    gain_negative = -10
+    gain_alfred[where(gain_alfred le 0, /null)] = gain_negative
+
+    ; replace zero and negative values with mean of 5x5 neighbour pixels
+    for b = 0, 1 do begin
+      gain_temp = double(reform(gain_alfred[*, *, b]))
+      filter = mean_filter(gain_temp, 5, 5, invalid=gain_negative, missing=1)
+      bad = where(gain_temp eq gain_negative, nbad)
+
+      if (nbad gt 0) then begin
+        gain_temp[bad] = filter[bad]
+        gain_alfred[*, *, b] = gain_temp
+      endif
+    endfor
+    gain_temp = 0
+
+    ; find center and radius for gain images
+
+    info_gain0 = kcor_find_image(gain_alfred[*, *, 0], radius_guess, log_name='kcor/rt')
+    info_gain1 = kcor_find_image(gain_alfred[*, *, 1], radius_guess, log_name='kcor/rt')
+
+    ; define coordinate arrays for gain images
+    gxx0 = findgen(xsize, ysize) mod xsize - info_gain0[0]
+    gyy0 = transpose(findgen(ysize, xsize) mod ysize) - info_gain0[1]
+
+    gxx0 = double(gxx0)
+    gyy0 = double(gyy0)
+    grr0 = sqrt(gxx0 ^ 2.0 + gyy0 ^ 2.0)
+
+    gxx1 = findgen(xsize, ysize) mod xsize - info_gain1[0]
+    gyy1 = transpose(findgen(ysize, xsize) mod ysize) - info_gain1[1]
+
+    gxx1 = double(gxx1)
+    gyy1 = double(gyy1)
+    grr1 = sqrt(gxx1 ^ 2.0 + gyy1 ^ 2.0)
+
+    mg_log, 'gain 0 center: %0.1f, %0.1f and radius: %0.1f', $
+            info_gain0, name='kcor/rt', /debug
+    mg_log, 'gain 1 center: %0.1f, %0.1f and radius: %0.1f', $
+            info_gain1, name='kcor/rt', /debug
 
     ; get current date & time
     current_time = systime(/utc)
@@ -479,6 +457,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
 
     ; read date of observation (needed to compute ephemeris info)
     date_obs = sxpar(header, 'DATE-OBS')   ; yyyy-mm-ddThh:mm:ss
+    run.time = date_obs
     date     = strmid(date_obs, 0, 10)     ; yyyy-mm-dd
 
     ; create string data for annotating image
@@ -597,7 +576,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     if (occulter eq 1018.0) then occulter = 1018.9
     if (occulter eq 1006.0) then occulter = 1006.9
 
-    radius_guess = occulter / run.plate_scale   ; pixels
+    radius_guess = occulter / run->epoch('plate_scale')   ; pixels
 
     ; find image centers & radii of raw images
 
@@ -737,7 +716,10 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     img0 = reform(img[*, *, 0, 0])    ; camera 0 [reflected]
     img0 = reverse(img0, 2)           ; y-axis inversion
     img1 = reform(img[*, *, 0, 1])    ; camera 1 [transmitted]
-
+    
+    ; epoch values like distortion correction filename can change during the day
+    dc_path = filepath(run->epoch('distortion_correction_filename'), $
+                       root=run.resources_dir)
     restore, dc_path   ; distortion correction file
 
     dat1 = img0
@@ -828,12 +810,12 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     endif
 
     ; polar coordinate images (mk4 scheme)
-    qmk4 = - cal_data_combined[*, *, 1] * sin(2.0 * theta1 + run.phase) $
-             + cal_data_combined[*, *, 2] * cos(2.0 * theta1 + run.phase)
+    qmk4 = - cal_data_combined[*, *, 1] * sin(2.0 * theta1 + run->epoch('phase')) $
+             + cal_data_combined[*, *, 2] * cos(2.0 * theta1 + run->epoch('phase'))
     ; qmk4 = -1.0 * qmk4
 
-    umk4 = cal_data_combined[*, *, 1] * cos(2.0 * theta1 + run.phase) $
-             + cal_data_combined[*, *, 2] * sin(2.0 * theta1 + run.phase)
+    umk4 = cal_data_combined[*, *, 1] * cos(2.0 * theta1 + run->epoch('phase')) $
+             + cal_data_combined[*, *, 2] * sin(2.0 * theta1 + run->epoch('phase'))
 
     intensity = cal_data_combined[*, *, 0]
 
@@ -841,8 +823,6 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
       tv, bytscl(umk4, -0.5, 0.5)
       wait, 1
     endif
-
-    ; print, 'finished combining beams.'
 
     ; shift images to center of array & orient north up
     xcen = 511.5 + 1     ; X Center of FITS array equals one plus IDL center.
@@ -899,12 +879,12 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
       endif
 
       ; polar coordinates
-      qmk4 = - cal_data_combined_center[*, *, 1] * sin(2.0 * theta1 + run.phase) $
-             + cal_data_combined_center[*, *, 2] * cos(2.0 * theta1 + run.phase)
+      qmk4 = - cal_data_combined_center[*, *, 1] * sin(2.0 * theta1 + run->epoch('phase')) $
+             + cal_data_combined_center[*, *, 2] * cos(2.0 * theta1 + run->epoch('phase'))
       ; qmk4 = -1.0 * qmk4
 
-      umk4 =   cal_data_combined_center[*, *, 1] * cos(2.0 * theta1 + run.phase) $
-             + cal_data_combined_center[*, *, 2] * sin(2.0 * theta1 + run.phase)
+      umk4 =   cal_data_combined_center[*, *, 1] * cos(2.0 * theta1 + run->epoch('phase')) $
+             + cal_data_combined_center[*, *, 2] * sin(2.0 * theta1 + run->epoch('phase'))
 
       intensity = cal_data_combined_center[*, *, 0]
 
@@ -987,8 +967,8 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
       radius_beg = r_in
       radius_end = r_out
 
-      r_in  *= radsun / run.plate_scale
-      r_out *= radsun / run.plate_scale
+      r_in  *= radsun / run->epoch('plate_scale')
+      r_out *= radsun / run->epoch('plate_scale')
       radscan[ii] = (r_in + r_out) / 2.0
 
       ; extract annulus and average all heights at 'stepdeg' increments around
@@ -1041,7 +1021,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
         plot,  degrees * !radeg, angle_ave_q, thick=2, title='Q', ystyle=1
         oplot, degrees * !radeg, a[0] * sin(2.0 * degrees + 90.0 / !radeg + a[1]), $
                color=100, thick=5
-        oplot, degrees * !radeg, a[0] * factor * sin(2.0 * degrees + 90.0 / !radeg + a[1]) + run.bias, $
+        oplot, degrees * !radeg, a[0] * factor * sin(2.0 * degrees + 90.0 / !radeg + a[1]) + run->epoch('bias'), $
                linestyle=2, color=50, thick=5
          wait, 0.4
          loadct, 0
@@ -1062,10 +1042,10 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     ; bias_image = interpol(biasfit, radscan, rr1, /quadratic)
 
     if (doplot eq 1) then begin
-      plot, rr1[*, 500] * run.plate_scale / radsun, radial_amplitude1[*, 500], $
+      plot, rr1[*, 500] * run->epoch('plate_scale') / radsun, radial_amplitude1[*, 500], $
             xtitle='distance (solar radii)', $
             ytitle='amplitude', title='CAMERA 1'
-      oplot, radscan * run.plate_scale / (radsun), amplitude1, psym=2
+      oplot, radscan * run->epoch('plate_scale') / (radsun), amplitude1, psym=2
       wait, 1
     endif
 
@@ -1083,7 +1063,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
 
     sky_polar_u1 = radial_amplitude1 * sin(2.0 * theta1 + mean_phase1[fnum - 1])
     sky_polar_q1 = radial_amplitude1 * sin(2.0 * theta1 + 90.0 / !radeg $
-                                             + mean_phase1[fnum - 1]) + run.bias_term
+                                             + mean_phase1[fnum - 1]) + run->epoch('bias')
 
     ;   sky_polar_q1 = radial_amplitude1 * sin (2.0 * theta1 + 90.0 / !radeg $
     ;                                           + mean_phase1[fnum - 1]) + bias_image
@@ -1116,7 +1096,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     corona = sqrt(qmk4_new ^ 2)
 
     ; use mask to build final image
-    r_in  = fix(occulter / run.plate_scale) + 5.0
+    r_in  = fix(occulter / run->epoch('plate_scale')) + 5.0
     r_out = 504.0
 
     mask = where(rad1 lt r_in or rad1 ge r_out) ; pixels beyond field of view.
@@ -1156,7 +1136,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     ;                      divided by platescale [arcseconds / pixel]
     ;                    * radius of occulter [pixels] :
 
-    r_photo = radsun / run.plate_scale
+    r_photo = radsun / run->epoch('plate_scale')
 
     ; print,        'Radius of photosphere [pixels] : ', r_photo
     ; printf, ULOG, 'Radius of photosphere [pixels] : ', r_photo
@@ -1354,10 +1334,10 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     fxaddpar, newheader, 'DPSWID',  'kcorl1.pro 14dec2015', $
                          ' L1 data processing software'
 
-    fxaddpar, newheader, 'CALFILE', run.cal_file, $
+    fxaddpar, newheader, 'CALFILE', run->epoch('cal_file'), $
                          ' calibration file'
     ;                        ' calibration file:dark, opal, 4 pol.states'
-    fxaddpar, newheader, 'DISTORT', run.distortion_correction_filename, $
+    fxaddpar, newheader, 'DISTORT', run->epoch('distortion_correction_filename'), $
                          ' distortion file'
     fxaddpar, newheader, 'DMODSWID', '18 Aug 2014', $
                          ' date of demodulation software'
@@ -1393,7 +1373,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
                          format='(f9.2)'
     fxaddpar, newheader, 'CRVAL1',   0.00, ' [arcsec] solar X sun center', $
                          format='(f9.2)'
-    fxaddpar, newheader, 'CDELT1',   run.plate_scale, $
+    fxaddpar, newheader, 'CDELT1',   run->epoch('plate_scale'), $
                          ' [arcsec/pix] solar X increment = platescale', $
                          format='(f9.4)'
     fxaddpar, newheader, 'CUNIT1',   'arcsec'
@@ -1404,7 +1384,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
                          format='(f9.2)'
     fxaddpar, newheader, 'CRVAL2',   0.00, ' [arcsec] solar Y sun center', $
                          format='(f9.2)'
-    fxaddpar, newheader, 'CDELT2',   run.plate_scale, $
+    fxaddpar, newheader, 'CDELT2',   run->epoch('plate_scale'), $
                          ' [arcsec/pix] solar Y increment = platescale', $
                          format='(f9.4)'
     fxaddpar, newheader, 'CUNIT2',   'arcsec'

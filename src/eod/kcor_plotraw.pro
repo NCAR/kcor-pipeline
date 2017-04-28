@@ -111,7 +111,8 @@ pro kcor_plotraw, date, list=list, run=run, $
     fhour = hour + minute / 60.0 + second / 60.0 / 60.0
     sun, year, month, day, fhour, sd=rsun, pa=pangle, la=bangle
 
-    sun_pixels = rsun / run.plate_scale
+    run.time = date_obs
+    sun_pixels = rsun / run->epoch('plate_scale')
 
     occulter_id = fxpar(header, 'OCCLTRID')
     occulter = strmid(occulter_id, 3, 5)
@@ -119,7 +120,7 @@ pro kcor_plotraw, date, list=list, run=run, $
     if (occulter eq 1018.0) then occulter = 1018.9
     if (occulter eq 1006.0) then occulter = 1006.9
 
-    radius_guess = occulter / run.plate_scale   ; pixels
+    radius_guess = occulter / run->epoch('plate_scale')   ; pixels
 
     for c = 0, 1 do begin
       line_means[c, f] = mean((im[*, y_profile_value, 0, c])[10:300])

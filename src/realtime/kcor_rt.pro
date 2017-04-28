@@ -28,6 +28,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
   endif
 
   run = kcor_run(date, config_filename=config_filename)
+  run.mode = 'realtime'
 
   mg_log, '------------------------------', name='kcor/rt', /info
 

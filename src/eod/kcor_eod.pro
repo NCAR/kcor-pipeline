@@ -26,6 +26,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   endif
 
   run = kcor_run(date, config_filename=config_filename)
+  run.mode = 'eod'
 
   mg_log, '------------------------------', name='kcor/eod', /info
 

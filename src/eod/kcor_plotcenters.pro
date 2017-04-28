@@ -155,6 +155,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     np       = naxis1 * naxis2 * naxis3 * naxis4 
 
     date_obs = sxpar(hdu, 'DATE-OBS', count=qdate_obs)
+    run.time = date_obs
     level    = sxpar(hdu, 'LEVEL',    count=qlevel)
 
     bzero    = sxpar(hdu, 'BZERO',    count=qbzero)
@@ -181,8 +182,8 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     if (occulter eq '1006.') then occulter = 1006.9
     if (occulter eq '1018.') then occulter = 1018.9
 
-    platescale = run.plate_scale           ; arsec/pixel
-    radius_guess = occulter / platescale   ; occulter size [pixels].
+    platescale = run->epoch('plate_scale')   ; arsec/pixel
+    radius_guess = occulter / platescale     ; occulter size [pixels].
 
     ; get FITS image size from image array
 

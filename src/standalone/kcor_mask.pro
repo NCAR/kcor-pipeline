@@ -29,7 +29,7 @@ pro kcor_mask, run=run
 
   ; FOV limits
   occulter_size = 991.6   ; use smallest occulter.
-  rmin = occulter_size / run.plate_scale + 5.0
+  rmin = occulter_size / run->epoch('plate_scale') + 5.0
   rmax = 504.0
 
   mask = fltarr(xdim, ydim) + 1.0

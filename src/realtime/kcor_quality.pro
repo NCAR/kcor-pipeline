@@ -250,6 +250,7 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     np       = naxis1 * naxis2 * naxis3 * naxis4 
 
     date_obs = sxpar(hdu, 'DATE-OBS', count=qdate_obs)
+    run.time = date_obs
     level    = sxpar(hdu, 'LEVEL',    count=qlevel)
 
     bzero    = sxpar(hdu, 'BZERO',    count=qbzero)
@@ -273,7 +274,7 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     if (occulter eq '1018.') then occulter = 1018.9
     if (occulter eq '1006.') then occulter = 1006.9
 
-    radius_guess = occulter / run.plate_scale   ; occulter size [pixels]
+    radius_guess = occulter / run->epoch('plate_scale')   ; occulter size [pixels]
 
     ; define variables for azimuthal angle "scans"
     nray  = 36
@@ -760,7 +761,7 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
 
     ; print, '!d.n_colors: ', !d.n_colors
 
-    rsunpix = rsun / run.plate_scale   ; 1.0 rsun [pixels]
+    rsunpix = rsun / run->epoch('plate_scale')   ; 1.0 rsun [pixels]
     irsunpix = fix(rsunpix + 0.5)      ; 1.0 rsun [integer pixels]
 
     ; print, 'rdisc_pix, rsunpix: ', rdisc_pix, rsunpix

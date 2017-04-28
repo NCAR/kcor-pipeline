@@ -91,7 +91,8 @@ pro kcor_sci_insert, date, files, $
     fhour = hour + minute / 60.0 + second / 60.0 / 60.0
     sun, year, month, day, fhour, sd=rsun, pa=pangle, la=bangle
 
-    sun_pixels = rsun / run.plate_scale
+    run.time = date_obs
+    sun_pixels = rsun / run->epoch('plate_scale')
 
     n_radii = 90
     start_radius = 1.05
