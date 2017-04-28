@@ -652,8 +652,13 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
       cloud = clo + chi
     endif
 
-    ; do noise (sobel) test for "good" images
-    chknoise = 1
+    ; do noise (sobel) test for "good" images for 16 bit data. 
+    ; Need to find noise limits that work for 32 bit (float and long) data
+    ; For now, skip noise check for 32 bit data
+
+    if (bitpix eq 16) then chknoise = 1
+    if (bitpix eq 32) then chknoise = 0
+
     noise    = 0
     bad = bright + sat + clo + chi
     if ((chknoise gt 0) and (bad eq 0)) then begin
