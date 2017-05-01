@@ -23,15 +23,6 @@ pro kcor_run::write_epochs, filename, time=time
     lun = -1   ; stdout
   endelse
 
-  self->getProperty, time=time, $
-                     plate_scale=plate_scale, $
-                     use_default_dark=use_default_darks, $
-                     phase=phase, bias_term=bias, sky_factor=sky_factor, $
-;                     bopal=bopal, $
-                     gbuparams_filename=gbuparams_filename, $
-                     distortion_correction_filename=distortion_correction_filename, $
-                     cal_file=cal_file, mlso_url=mlso_url, doi_url=doi_url
-
   printf, lun, $
           'plate_scale', self->epoch('plate_scale', time=time), $
           format='(%"%-30s : %0.3f")'
@@ -208,8 +199,6 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            date=date, $
                            pipe_dir=pipe_dir, $
                            resources_dir=resources_dir, $
-                           mlso_url=mlso_url, $
-                           doi_url=doi_url, $
                            gzip=gzip, $
                            gunzip=gunzip, $
                            npick=npick, $
