@@ -69,7 +69,7 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
   cld_list  = 'cld.ls'
   nsy_list  = 'nsy.ls'
   sat_list  = 'sat.ls'
-  oka_list  = 'oka.ls'   ; ok files: all or cumulative.
+  oka_list  = 'oka.ls'   ; ok files: all or cumulative
 
   cal_qpath = filepath(cal_list, root=q_dir)
   dev_qpath = filepath(dev_list, root=q_dir)
@@ -80,8 +80,8 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
   sat_qpath = filepath(sat_list, root=q_dir)
   oka_qpath = filepath(oka_list, root=q_dir)
 
-  okf_list  = 'list_okf'			; ok files for one invocation
-  okf_qpath = filepath(okf_list, root=q_dir)    ; ok fits file list in q    directory
+  okf_list  = 'list_okf'                        ; ok files for one invocation
+  okf_qpath = filepath(okf_list, root=q_dir)    ; ok fits file list in q directory
   okf_dpath = filepath(okf_list, root=date_dir) ; ok fits file list in date directory
 
   ; sub-directory names
@@ -255,6 +255,8 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
 
     bzero    = sxpar(hdu, 'BZERO',    count=qbzero)
     bbscale  = sxpar(hdu, 'BSCALE',   count=qbbscale)
+    bitpix   = sxpar(hdu, 'BITPIX')
+    bitpix   = fix(bitpix)
 
     datatype = sxpar(hdu, 'DATATYPE', count=qdatatype)
 
@@ -289,14 +291,14 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     n2 = 1
     n3 = 1
     n4 = 1
-    imgsize = size(img)            ; get size of img array
-    ndim    = imgsize [0]          ; # dimensions
-    n1      = imgsize [1]          ; dimension #1 size X: 1024
-    n2      = imgsize [2]          ; dimension #2 size Y: 1024
-    n3      = imgsize [3]          ; dimension #3 size pol state: 4
-    n4      = imgsize [4]          ; dimension #4 size camera: 2
-    dtype   = imgsize [ndim + 1]   ; data type
-    npix    = imgsize [ndim + 2]   ; # pixels
+    imgsize = size(img)           ; get size of img array
+    ndim    = imgsize[0]          ; # dimensions
+    n1      = imgsize[1]          ; dimension #1 size X: 1024
+    n2      = imgsize[2]          ; dimension #2 size Y: 1024
+    n3      = imgsize[3]          ; dimension #3 size pol state: 4
+    n4      = imgsize[4]          ; dimension #4 size camera: 2
+    dtype   = imgsize[ndim + 1]   ; data type
+    npix    = imgsize[ndim + 2]   ; # pixels
     nelem   = 1
     for j = 1, ndim do nelem *= imgsize[j]   ; compute # elements in array
     if (ndim eq 4) then nelem = n1 * n2 * n3 * n4
@@ -365,57 +367,27 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     ; check mechanism positions
 
     ; check diffuser position
-
     if (diffuser ne 'out') then begin
       dev  += 1
       diff += 1
-    endif
-
-    if (qdiffuser ne 1) then begin
-      ; print,        'qdiffuser: ', qdiffuser
-      ; printf, ulog, 'qdiffuser: ', qdiffuser
     endif
 
     ; check calpol position
     if (calpol  ne 'out') then begin
       dev  += 1
       calp += 1
-      ; calpang_str = string (format='(f7.2)', calpang)
-      ; PRINT,        '+ + + ', l0_file, '                     calpol:   ', $
-      ; calpol, calpang_str
-      ; PRINTF, ULOG, '+ + + ', l0_file, '                     calpol:   ', $
-      ; calpol, calpang_str
-    endif
-
-    if (qcalpol  ne 1) then begin
-      ; print,        'qcalpol:   ', qcalpol
-      ; printf, ulog, 'qcalpol:   ', qcalpol
     endif
 
     ; check dark shutter position
     if (darkshut ne 'out') then begin
       dev  += 1
       drks += 1
-      ; print,        '+ + + ', l0_file, '                     darkshut: ', darkshut
-      ; printf, ulog, '+ + + ', l0_file, '                     darkshut: ', darkshut
-    endif
-
-    if (qdarkshut ne 1) then begin
-      ; print,        'qdarkshut: ', qdarkshut
-      ; printf, ulog, 'qdarkshut: ', qdarkshut
     endif
 
     ; check cover position
     if (cover    ne 'out') then begin
       dev += 1
       cov += 1
-      ; print,        '+ + + ', l0_file, '                     cover:    ', cover
-      ; printf, ulog, '+ + + ', l0_file, '                     cover:    ', cover
-    endif
-
-    if (qcover    ne 1) then begin
-      ; print,        'qcover:    ', qcover
-      ; printf, ulog, 'qcover:    ', qcover
     endif
 
     ; create "raw" pB image
@@ -441,7 +413,7 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     ;   cloudy += 1
     ;   printf, ulog, 'cloudave: ', cloudave, ' cloudy: ', cloudy
     ;   print,        'cloudave: ', cloudave, ' cloudy: ', cloudy
-    ; end
+    ; endif
 
     ; find disc center
     rdisc_pix = 0.0
@@ -455,24 +427,14 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
       xcen = center_info[0]        ; x offset
       ycen = center_info[1]        ; y offset
       rdisc_pix = center_info[2]   ; radius of occulter [pixels]
-      ; printf, ulog, 'center_info: ', center_info
-      ; print,        'center_info: ', center_info
     endelse
 
-    ; printf, ulog, 'xcen,ycen,rpix:      ', xcen, ycen, rdisc_pix
-    ; print,        'xcen,ycen,rpix:      ', xcen, ycen, rdisc_pix
-
     ; integer coordinates for disc center
-
     ixcen = fix(xcen + 0.5)
     iycen = fix(ycen + 0.5)
 
-    ; printf, ulog, 'ixcen,iycen: ', ixcen, iycen
-    ; print,        'ixcen,iycen: ', ixcen, iycen
-
     ; rotate image by P-angle
     ; (No rotation for calibration or device-obscured images.)
-
     if (cal gt 0 or dev gt 0) then begin
       pb0rot = pb0
       goto, next
@@ -483,8 +445,6 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     ; bright sky check
     dobright = 1
     if (dobright gt 0) then begin
-      ; print,        '~ ~ ~ bright sky check ~ ~ ~'
-      ; printf, ulog, '~ ~ ~ bright sky check ~ ~ ~'
       ; bmax  = 77.0
       ; rpixb = 296.0
 
@@ -492,7 +452,13 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
       ; bmax  = 220.0   ; brightness threshold
       ; bmax  = 250.0   ; brightness threshold
 
-      bmax  = 300.0     ; brightness threshold
+      ; TODO: add values to epochs file
+      if (bitpix eq 16) then bmax  = 300.0    ; brightness threshold
+      if (bitpix eq 32) then bmax  = 2.0e06   ; brightness threshold
+      if ((bitpix ne 16) and (bitpix ne 32)) then begin
+        mg_log, 'unexpected BITPIX: %d', bitpix, name='kcor/rt', /error
+        goto, next
+      endif
       rpixb = 450       ; circle radius [pixels]
       dpx   = fix(cos(dp) * rpixb + axcen + 0.5005)
       dpy   = fix(sin(dp) * rpixb + aycen + 0.5005)
@@ -502,30 +468,11 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
       nelem = n_elements(brightpix)
 
       ; if too many pixels in circle exceed threshold, set bright = 1
-
       bright = 0
-      if (brightpix[0] ne -1) THEN BEGIN
-        ; print, 'cloud check brightpix: ', brightpix
-        ; print, 'cloud check bsize:     ', bsize
+      if (brightpix[0] ne -1) then begin
         bsize = size(brightpix)
         if (bsize[1] ge (nray / 5)) then begin
           bright = 1
-          ; print,        'sky brightness radius, limit:', rpixb, bmax
-          ; print,        'sky brightness image info: '
-          ; print,        pb0rot[dpx, dpy]
-          ; print,        'sky brightness brightpix: '
-          ; print,        brightpix
-          ; print,        'sky brightness average:    ', brightave
-          ;
-          ; printf, ulog, 'sky brightness radius, limit: ', rpixb, bmax
-          ; printf, ulog, 'sky brightness image info: '
-          ; printf, ulog, pb0rot[dpx, dpy]
-          ; printf, ulog, 'sky brightness brightpix: '
-          ; printf, ulog, brightpix
-          ; printf, ulog, 'sky brightness average:    ', brightave
-
-          ; print,        '* * * ', l0_file, '  ', rpixb, ' ring bright:   ', nelem
-          ; printf, ulog, '* * * ', l0_file, '  ', rpixb, ' ring bright:   ', nelem
         endif
       endif
     endif
@@ -533,8 +480,9 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     ; saturation check
     chksat = 1
     if (chksat gt 0) then begin
-      ; print, '~ ~ ~ saturation check ~ ~ ~'
-      smax  = 1000.0   ; brightness threshold.
+      if (bitpix eq 16) then smax  = 1000.0   ; brightness threshold
+      if (bitpix eq 32) then smax  = 1.e07    ; brightness threshold
+
       rpixt = 215      ; circle radius [pixels].
       dpx   = fix(cos(dp) * rpixt + axcen + 0.5005)
       dpy   = fix(sin(dp) * rpixt + aycen + 0.5005)
@@ -543,27 +491,13 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
       satpix = where(pb0rot[dpx, dpy] ge smax)
       nelem  = n_elements(satpix)
 
-      ;--- if too many pixels are saturated, set sat = 1.
+      ; if too many pixels are saturated, set sat = 1
 
       sat = 0
       if (satpix[0] ne -1) then begin
-        ; print, 'saturation check satpix: ', satpix
-        ; print, 'saturation check ssize:  ', ssize
         ssize = size(satpix)
         if (ssize[1] ge (nray / 5)) then begin
           sat = 1
-          ; print,        'saturation radius, limit: ', rpixt, smax
-          ; print,        'saturation image info: '
-          ; print,        pb0rot[dpx, dpy]
-          ; print,        'saturation average:   ', satave
-          ;
-          ; printf, ulog, 'saturation radius, limit: ', rpixt, smax
-          ; printf, ulog, 'saturation image info: '
-          ; printf, ulog, pb0rot[dpx, dpy]
-          ; printf, ulog, 'saturation average:   ', satave
-
-          ; PRINT,        '* * * ', l0_file, '  ', rpixt, ' ring saturated:', nelem
-          ; PRINTF, ULOG, '* * * ', l0_file, '  ', rpixt, ' ring saturated:', nelem
         endif
       endif
     endif
@@ -574,9 +508,8 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     chi      = 0
     cloud    = 0
     if (chkcloud gt 0) then begin
-      ; print, '~ ~ ~ cloud check ~ ~ ~'
-      cmax =  150.0
-      cmax = 2200.0   ; upper brightness threshold
+      if (bitpix eq 16) then cmax  = 2200.0   ; upper brightness threshold
+      if (bitpix eq 32) then cmax  = 5.e07    ; upper brightness threshold
       cmin =  200.0   ; lower brightness threshold
       rpixc = 190     ; circle radius [pixels]
       dpx  = fix(cos(dp) * rpixc + axcen + 0.5005)
@@ -594,59 +527,32 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
 
         if (closize[1] ge (nray / 5)) then begin
           clo = 1
-          ; print,        'cloud cmin, cmax, radius: ', cmin, cmax, rpixc
-          ; print,        'cloud image info: '
-          ; print,        pb0rot[dpx, dpy]
-          ; print,        'cloud cloudpixlo: '
-          ; print,        cloudpixlo
-          ; print,        'cloud closize:    ', closize
-          ;
-          ; printf, ulog, 'cloud cmin, cmaxm radius: ', cmin, cmax, rpixc
-          ; printf, ulog, 'cloud image info: '
-          ; printf, ulog, pb0rot[dpx, dpy]
-          ; printf, ulog, 'cloud cloudpixlo: '
-          ; printf, ulog, cloudpixlo
-          ; printf, ulog, 'cloud closize:    ', closize
-
-          ; print,        '* * * ', l0_file, '  ', rpixc, ' ring dim:     ', nelemlo
-          ; printf, ulog, '* * * ', l0_file, '  ', rpixc, ' ring dim:     ', nelemlo
         endif
       endif
 
       if (cloudpixhi[0] ne -1) then begin
         chisize = size(cloudpixhi)
-        ; if (chisize[1] ge (nray / 5) then $
 
         if (cave ge cmax) then begin
           chi = 1
-          ; print,        'cloud image info: '
-          ; print,        pb0rot (dpx, dpy)
-          ; print,        'cloud check cloudpixhi: '
-          ; print,        cloudpixhi
-          ; print,        'cloud check chisize:    ', chisize
-          ;
-          ; printf, ulog, 'cloud image info: '
-          ; printf, ulog, pb0rot[dpx, dpy]
-          ; printf, ulog, 'cloud check cloudpixhi: '
-          ; printf, ulog, cloudpixhi
-          ; printf, ulog, 'cloud check chisize:    ', chisize
-
-          ; print,        '* * * ', l0_file, '  ', rpixb, ' ring bright:   ', nelemhi
-          ; printf, ulog, '* * * ', l0_file, '  ', rpixb, ' ring bright:   ', nelemhi
         endif
       endif
 
       cloud = clo + chi
     endif
 
-    ; do noise (sobel) test for "good" images
-    chknoise = 1
+    ; do noise (sobel) test for "good" images for 16 bit data.
+    ; Need to find noise limits that work for 32 bit (float and long) data
+    ; For now, skip noise check for 32 bit data
+
+    if (bitpix eq 16) then chknoise = 1
+    if (bitpix eq 32) then chknoise = 0
+
     noise    = 0
     bad = bright + sat + clo + chi
     if ((chknoise gt 0) and (bad eq 0)) then begin
-      ; print, '~ ~ ~ Sobel check ~ ~ ~'
       nray  = 480
-      acirc = !PI * 2.0 / float (nray)
+      acirc = !pi * 2.0 / float (nray)
       dp    = findgen(nray) * acirc
       dpx   = intarr(nray)
       dpy   = intarr(nray)
@@ -654,13 +560,10 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
       ; noise_diff_limit =  15.0
       ; noise_diff_limit =  50.0   ; difference threshold
 
-      noise_diff_limit =  70.0   ; difference threshold
-      total_bad_limit  =  80     ; total # bad pixel differences
+      if (bitpix eq 16) then noise_diff_limit = 70.0    ; difference threshold
+      if (bitpix eq 32) then noise_diff_limit = 3.e05   ; brightness threshold
 
-      ; print,        'noise_diff_limit, total_bad_limit: ', $
-      ;                noise_diff_limit, total_bad_limit
-      ; printf, ulog, 'noise_diff_limit, total_bad_limit: ', $
-      ;                noise_diff_limit, total_bad_limit
+      total_bad_limit  =  80     ; total # bad pixel differences
 
       ; radius loop
       total_bad = 0
@@ -690,31 +593,12 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
         if (badpix[0] ne -1) then begin
           numbad     = n_elements(badpix)
           total_bad += numbad
-
-          ; print,        'rpixn: ', rpixn, ' noise diff:'
-          ; print,        fix(kdiff[badpix])
-          ; print,        'noise diff numbad: ', numbad
-          ;
-          ; printf, ulog, 'rpixn: ', rpixn, ' noise diff: '
-          ; printf, ulog, fix(kdiff[badpix])
-          ; printf, ulog, 'noise diff numbad: ', numbad
-
         endif
       endfor
 
-      ; print,        'noise total bad: ', total_bad
-      ; printf, ulog, 'noise total bad: ', total_bad
-      ; print,        'noise bad limit: ', total_bad_limit
-      ; printf, ulog, 'noise bad limit: ', total_bad_limit
-
       ; if noise limit is exceeded, set bad = 1
-
       if (total_bad ge total_bad_limit) then begin
         noise = 1
-        ; print,        '* * * ', l0_file, $
-        ;               '       noise limit exceeded:', total_bad_limit
-        ; printf, ulog, '* * * ', l0_file, $
-        ;               '       noise limit exceeded:',  total_bad_limit
       endif
     endif
 
@@ -729,7 +613,7 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
               nx, ny, xdim, ydim, name='kcor/rt', /warn
       pb0m = pb0rot 
     endif else begin
-      pb0m = pb0rot * mask 
+    pb0m = pb0rot * mask 
     endelse
 
     ; intensity scaling
@@ -759,15 +643,13 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     ; display image
     tv, pb0sb
 
-    ; print, '!d.n_colors: ', !d.n_colors
-
     rsunpix = rsun / run->epoch('plate_scale')   ; 1.0 rsun [pixels]
     irsunpix = fix(rsunpix + 0.5)      ; 1.0 rsun [integer pixels]
 
     ; print, 'rdisc_pix, rsunpix: ', rdisc_pix, rsunpix
 
-    ; Annotate image.
-    ; Skip annotation (except file name) for calibration images.
+    ; Annotate image
+    ; Skip annotation (except file name) for calibration images
 
     if (cal eq 0 and dev eq 0) then begin
       ; draw circle at 1.0 Rsun
@@ -872,10 +754,6 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
 
     istring     = string(format='(i5)',   num_img)
     exptime_str = string(format='(f5.2)', exptime)
-    ; print,        '>>>>> ', l0_file, istring, ' exptime:', exptime_str, '  ', $
-    ;               datatype, ' <<<<< ', qual
-    ; printf, ulog, '>>>>> ', l0_file, istring, ' exptime:', exptime_str, '  ', $
-    ;               datatype, ' <<<<< ', qual
 
     datatype_str = string(format='(a12)', datatype)
     darkshut_str = string(format='(a4)', darkshut)

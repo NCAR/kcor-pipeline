@@ -397,14 +397,14 @@ function kcor_run::epoch, name, time=time
     'gpuparams_filename': begin
         return, self->_readepoch('gbuparams_filename', self.date, hst_time, type=7)
       end
-    'bias': return, self->_readepoch('bias', self.date, hst_time, type=4)
+    'skypol_bias': return, self->_readepoch('skypol_bias', self.date, hst_time, type=4)
     'sky_factor': return, self->_readepoch('sky_factor', self.date, hst_time, type=4) 
     'distortion_correction_filename': begin
         return, self->_readepoch('distortion_correction_filename', $
                                  self.date, hst_time, type=7)
       end
     'cal_file': return, self->_readepoch('cal_file', self.date, hst_time, type=7)
-    'phase': return, self->_readepoch('phase', self.date, hst_time, type=4) 
+    '01id': return, self->_readepoch('01id', self.date, hst_time, type=7)
   endcase
 end
 
