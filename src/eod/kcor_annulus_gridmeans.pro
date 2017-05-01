@@ -24,7 +24,7 @@ function kcor_annulus_gridmeans, image, radius, sun_pixels, nbins=nbins
   _nbins = n_elements(nbins) eq 0L ? 720L : nbins
   gridmeans = fltarr(_nbins)
 
-  width = 0.1
+  width = 0.02
 
   dims = size(image, /dimensions)
   n = dims[0]
