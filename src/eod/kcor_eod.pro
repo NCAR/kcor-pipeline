@@ -148,7 +148,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
       endif
     endif else begin
       n_missing += 1
-      mg_log, '%s not found in level0/', t1_file, name='kcor/eod', /warn
+      mg_log, '%s in t1, but not in level0/', t1_file, name='kcor/eod', /warn
     endelse
   endwhile
 
@@ -272,7 +272,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
                   format='(%"Sent from %s (%s@%s")')]
 
     kcor_send_mail, run.notification_email, $
-                    string(date, success ? 'success' : error, $
+                    string(date, success ? 'success' : 'problems', $
                            format='(%"KCor end-of-day processing for %s : %s")'), $
                     msg, $
                     logger_name='kcor/eod'

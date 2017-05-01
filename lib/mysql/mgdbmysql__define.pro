@@ -464,6 +464,7 @@ pro mgdbmysql::execute, sql_query, $
                         error_message=error_message
   compile_opt strictarr
   on_error, 2
+  on_ioerror, bad_fmt
 
   sql_query_fmt = '(%"' + sql_query + '")'
   case n_params() of
@@ -713,6 +714,11 @@ pro mgdbmysql::execute, sql_query, $
                             format=sql_query_fmt)
   endcase
 
+  goto, good_fmt
+  bad_fmt: fmt_message = !error_state.msg
+
+  good_fmt:
+
   status = mg_mysql_query(self.connection, _sql_query)
   if (status ne 0) then begin
     error_message = self->last_error_message()
@@ -721,7 +727,13 @@ pro mgdbmysql::execute, sql_query, $
     endif else begin
       message, error_message
     endelse
-  endif else error_message = 'Success'
+  endif else begin
+    if (n_elements(fmt_message) gt 0L) then begin
+      error_message = string(fmt_message, format='(%"Success (%s)")'
+    endif else begin
+      error_message = 'Success'
+    endelse
+  endif
 end
 
 

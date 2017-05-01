@@ -172,22 +172,20 @@ end
 pro kcor_run::setProperty, time=time, mode=mode
   compile_opt strictarr
 
+  if (n_elements(mode) gt 0L) then begin
+    self.mode = mode
+  endif
+
   if (n_elements(time) gt 0L) then begin
     if (strlen(time) eq 6) then begin
-      self.time = time
+      self.time = kcor_ut2hst(time)
     endif else begin
       hour   = strmid(time, 11, 2)
       minute = strmid(time, 14, 2)
       second = strmid(time, 17, 2)
-      self.time = hour + minute + second
+      self.time = kcor_ut2hst(hour + minute + second)
     endelse
     log_name = self.mode eq 'realtime' ? 'kcor/rt' : 'kcor/eod'
-    mg_log, 'advanced time to %s (%s)', self.time, log_name, $
-            name=log_name, /debug
-  endif
-
-  if (n_elements(mode) gt 0L) then begin
-    self.mode = mode
   endif
 end
 

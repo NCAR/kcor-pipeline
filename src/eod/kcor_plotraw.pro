@@ -156,7 +156,7 @@ pro kcor_plotraw, date, list=list, run=run, $
       azi_means[c, f] = mean(azi_profile)
       azi_medians[c, f] = median(azi_profile)
 
-      mg_log, 'camera %d: azimuthal mean: %0.1f, median: %0.1f', $
+      mg_log, 'camera %d: azi mean: %0.1f, median: %0.1f', $
               c, azi_means[c, f], azi_medians[c, f], $
               name='kcor/eod', /debug
 
