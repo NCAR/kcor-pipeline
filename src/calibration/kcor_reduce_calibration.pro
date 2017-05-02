@@ -50,6 +50,12 @@ pro kcor_reduce_calibration, date, config_filename=config_filename, run=run
                                          subdir=date, $
                                          root=run.raw_basedir), $
                                 data=data, metadata=metadata
+
+  if (n_elements(data) eq 0L) then begin
+    mg_log, 'incomplete cal data, exiting', name='kcor/cal', /info
+    goto, done
+  endif
+
   sz = size(data.gain, /dimensions)
   mg_log, 'done reading data', name='kcor/cal', /info
 
