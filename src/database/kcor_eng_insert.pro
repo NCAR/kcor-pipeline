@@ -46,7 +46,6 @@ pro kcor_eng_insert, date, fits_list, $
                      obsday_index=obsday_index, $
                      mean_phase1=mean_phase1
   compile_opt strictarr
-  on_error, 2
 
   if (n_params() ne 2) then begin
     mg_log, 'missing date or filelist parameters', name='kcor/rt', /error
@@ -171,7 +170,6 @@ pro kcor_eng_insert, date, fits_list, $
                  bscale, rcamxcen, rcamycen, tcamxcen, tcamycen, rcam_rad, $
                  tcam_rad, mean_phase1[i - n_nrgf], cover, darkshut, diffuser, calpol, $
                  status=status, error_message=error_message, sql_statement=sql_cmd
-
     if (status ne 0L) then begin
       mg_log, 'error inserting into kcor_eng table', name='kcor/rt', /error
       mg_log, 'status: %d, error message: %s', status, error_message, $
@@ -190,12 +188,19 @@ end
 
 ; main-level example program
 
-date = '20170204'
-filelist = ['20170204_205610_kcor_l1_nrgf.fts.gz','20170204_205625_kcor_l1.fts.gz','20170204_205640_kcor_l1.fts.gz','20170204_205656_kcor_l1.fts.gz','20170204_205711_kcor_l1.fts.gz']
+;date = '20170204'
+date = '20130930'
+;filelist = ['20170204_205610_kcor_l1_nrgf.fts.gz','20170204_205625_kcor_l1.fts.gz','20170204_205640_kcor_l1.fts.gz','20170204_205656_kcor_l1.fts.gz','20170204_205711_kcor_l1.fts.gz']
+filelist = ['20130930_202422_kcor_l1.fts']
 run = kcor_run(date, $
-               config_filename=filepath('kcor.kolinski.mahi.latest.cfg', $
+               config_filename=filepath('kcor.mgalloy.mahi.latest.cfg', $
                                         subdir=['..', '..', 'config'], $
                                         root=mg_src_root()))
-kcor_eng_insert, date, filelist, run=run
+
+obsday_index = mlso_obsday_insert(date, run=run, database=db)
+
+kcor_eng_insert, date, filelist, run=run, database=db, mean_phase1=[1.0], obsday_index=obsday_index
+
+obj_destroy, db
 
 end
