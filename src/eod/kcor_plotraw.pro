@@ -97,7 +97,14 @@ pro kcor_plotraw, date, list=list, run=run, $
     mg_log, '%4d/%d: %s', $
             f + 1, n_nrgf_files, file_basename(raw_nrgf_files[f]), $
             name='kcor/eod', /info
+
     im = readfits(raw_nrgf_files[f], header, /silent)
+
+    bitpix   = fix(sxpar(header, 'BITPIX'))
+    if (bitpix gt 16) then begin
+      mg_log, 'skipping %d-bit raw image', bitpix, name='kcor/eod', /warn
+      continue
+    endif
 
     ; find pixels / solar radius
     date_obs = sxpar(header, 'DATE-OBS', count=qdate_obs)
