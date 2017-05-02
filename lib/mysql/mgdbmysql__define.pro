@@ -714,11 +714,6 @@ pro mgdbmysql::execute, sql_query, $
                             format=sql_query_fmt)
   endcase
 
-  goto, good_fmt
-  bad_fmt: fmt_message = !error_state.msg
-
-  good_fmt:
-
   status = mg_mysql_query(self.connection, _sql_query)
   if (status ne 0) then begin
     error_message = self->last_error_message()
@@ -728,12 +723,15 @@ pro mgdbmysql::execute, sql_query, $
       message, error_message
     endelse
   endif else begin
-    if (n_elements(fmt_message) gt 0L) then begin
-      error_message = string(fmt_message, format='(%"Success (%s)")'
-    endif else begin
-      error_message = 'Success'
-    endelse
-  endif
+    error_message = 'Success'
+  endelse
+
+  return
+
+  bad_fmt:
+  status = 1
+  error_message = !error_state.msg
+  _sql_query = '<undefined>'
 end
 
 
