@@ -73,7 +73,17 @@ pro kcor_db_clearday, run=run, $
     mg_log, 'connected to %s...', host, name=log_name, /info
   endelse
 
-  mg_log, 'clearing entries for obsday index %d', obsday_index, $
+  day = db->query('select * from mlso_numfiles where day_id=%d', obsday_index, $
+                  status=status, error_message=error_message, sql_statement=sql_cmd)
+  if (status ne 0L) then begin
+    mg_log, 'error querying mlso_numfiles table', name=log_name, /error
+    mg_log, 'status: %d, error message: %s', status, error_message, $
+            name=log_name, /error
+    mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
+  endif
+
+  mg_log, 'clearing entries for obsday index %d (%s)', $
+          obsday_index, day[0].obs_day, $
           name=log_name, /info
 
   ; zero num_kcor_pb and num_kcor_nrgf in mlso_numfiles
@@ -126,7 +136,7 @@ end
 
 ; main-level example
 
-date = '20161127'
+date = '20130930'
 
 run = kcor_run(date, $
                config_filename=filepath('kcor.mgalloy.mahi.latest.cfg', $
