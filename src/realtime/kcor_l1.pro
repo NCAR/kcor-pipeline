@@ -636,6 +636,19 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     mg_log, 'camera 1 center: %0.1f, %0.1f and radius: %0.1f', $
             xcen1, ycen1, radius_1, name='kcor/rt', /debug
 
+    if (xcen0 lt 512 - 100 || xcen0 gt 512 + 100) then begin
+      mg_log, 'camera 0 x-coordinate center out of bounds', name='kcor/rt', /warn
+    endif
+    if (ycen0 lt 512 - 100 || ycen0 gt 512 + 100) then begin
+      mg_log, 'camera 0 y-coordinate center out of bounds', name='kcor/rt', /warn
+    endif
+    if (xcen1 lt 512 - 100 || xcen1 gt 512 + 100) then begin
+      mg_log, 'camera 1 x-coordinate center out of bounds', name='kcor/rt', /warn
+    endif
+    if (ycen1 lt 512 - 100 || ycen1 gt 512 + 100) then begin
+      mg_log, 'camera 1 y-coordinate center out of bounds', name='kcor/rt', /warn
+    endif
+
     ; create new gain to account for image shift
     ;   Region of missing data is set to a constant for now.
     ;   It should be replaced with the values from the gain we took without
@@ -885,19 +898,13 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
       endif
 
       ; polar coordinates
-      qmk4 = - cal_data_combined_center[*, *, 1] * sin(2.0 * theta1 ) $
-             + cal_data_combined_center[*, *, 2] * cos(2.0 * theta1 )
+      qmk4 = - cal_data_combined_center[*, *, 1] * sin(2.0 * theta1) $
+             + cal_data_combined_center[*, *, 2] * cos(2.0 * theta1)
 
-      umk4 =   cal_data_combined_center[*, *, 1] * cos(2.0 * theta1 ) $
-             + cal_data_combined_center[*, *, 2] * sin(2.0 * theta1 )
+      umk4 =   cal_data_combined_center[*, *, 1] * cos(2.0 * theta1) $
+             + cal_data_combined_center[*, *, 2] * sin(2.0 * theta1)
 
       intensity = cal_data_combined_center[*, *, 0]
-
-      cfts_file = '' 
-      cfts_file = strmid(l0_file, 0, 20) + '_qmk4.fts'
-      writefits,cfts_file,qmk4
-      cfts_file = strmid(l0_file, 0, 20) + '_umk4.fts'
-      writefits,cfts_file,umk4
 
       if (doplot eq 1) then begin
         tv, bytscl(umk4, -0.5, 0.5)
@@ -1316,6 +1323,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
                          ' ID bandpass filter'
 
     id01 = check_01id eq 0 ? run->epoch('01id') : struct.o1id
+    if (id01 eq '01-2') then id01 = 'Optimax'
     fxaddpar, newheader, 'O1ID', id01, $
                          ' ID objective (01) lens' 
 
