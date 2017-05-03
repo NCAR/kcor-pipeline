@@ -160,7 +160,12 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     mg_log, 't1.log: # wrong size files: %d', n_wrongsize, name='kcor/eod', /warn
   endif
 
-  success = n_missing eq 0L && n_wrongsize eq 0L
+  if (run->epoch('header_changes')) then begin
+    success = n_missing eq 0L
+  endif else begin
+    success = n_missing eq 0L && n_wrongsize eq 0L
+  endelse
+
   if (success) then begin
     files = file_search(filepath('*kcor.fts*', root=l0_dir), count=n_files)
 
@@ -257,10 +262,13 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
            string(n_nrgf_files, $
                   format='(%"number of NRGFs: %d")')]
 
-    if (~success) then begin
+    if (n_missing gt 0L) then begin
       msg = [msg, $
              string(n_missing, $
-                    format='(%"number of missing files: %d")'), $
+                    format='(%"number of missing files: %d")')]
+    endif
+    if (n_wrongsize gt 0L) then begin
+      msg = [msg, $
              string(n_wrongsize, $
                     format='(%"number of wrong sized files: %d")')]
              
@@ -269,7 +277,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     msg = [msg, '', '', run.config_content, '', '', $
            string(mg_src_root(/filename), $
                   getenv('USER'), getenv('HOSTNAME'), $
-                  format='(%"Sent from %s (%s@%s")')]
+                  format='(%"Sent from %s (%s@%s)")')]
 
     kcor_send_mail, run.notification_email, $
                     string(date, success ? 'success' : 'problems', $

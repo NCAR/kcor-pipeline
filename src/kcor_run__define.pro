@@ -392,6 +392,12 @@ function kcor_run::epoch, name, time=time
       end
     'cal_file': return, self->_readepoch('cal_file', self.date, hst_time, type=7)
     '01id': return, self->_readepoch('01id', self.date, hst_time, type=7)
+    'default_occulter_size' : return, self->_readepoch('default_occulter_size', $
+                                                       self.date, hst_time, type=4)
+    'use_default_occulter_size': return, self->_readepoch('use_default_occulter_size', $
+                                                          self.date, hst_time, /boolean)
+    'header_changes': return, self->_readepoch('header_changes', $
+                                               self.date, hst_time, /boolean)
   endcase
 end
 

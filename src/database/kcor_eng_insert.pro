@@ -147,6 +147,10 @@ pro kcor_eng_insert, date, fits_list, $
     diffuser   = strtrim(sxpar(hdu, 'DIFFUSER', count=qdarkshut), 2)
     calpol     = strtrim(sxpar(hdu, 'CALPOL',   count=qcalpol), 2)
 
+    ; check for out of bounds values
+    if (strpos(tcamxcen, '*') ne -1) then tcamxcen = 'NULL'
+    if (strpos(tcamycen, '*') ne -1) then tcamycen = 'NULL'
+
     fits_file = file_basename(fts_file, '.gz') ; remove '.gz' from file name.
 		
     ; get IDs from relational tables
