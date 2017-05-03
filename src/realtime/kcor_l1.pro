@@ -575,12 +575,15 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     ; find size of occulter
     ;   - one occulter has 4 digits; other two have 5
     ;   - only read in 4 digits to avoid confusion
-    occulter_id = ''
-    occulter_id = fxpar(header, 'OCCLTRID')
-    occulter = strmid(occulter_id, 3, 5)
-    occulter = float(occulter)
-    if (occulter eq 1018.0) then occulter = 1018.9
-    if (occulter eq 1006.0) then occulter = 1006.9
+    if (run->epoch('use_default_occulter_size')) then begin
+      occulter = run->epoch('default_occulter_size')
+    endif else begin
+      occulter_id = fxpar(header, 'OCCLTRID')
+      occulter = strmid(occulter_id, 3, 5)
+      occulter = float(occulter)
+      if (occulter eq 1018.0) then occulter = 1018.9
+      if (occulter eq 1006.0) then occulter = 1006.9
+    endelse
 
     radius_guess = occulter / run->epoch('plate_scale')   ; pixels
 
