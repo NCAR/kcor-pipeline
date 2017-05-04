@@ -86,6 +86,11 @@ pro kcor_reprocess, date, config_filename=config_filename
     mg_log, 'no level 1 files to delete', name='kcor/reprocess', /info
   endelse
 
+  p_dir = filepath('p', subdir=date, root=run.raw_basedir)
+  if (file_test(p_dir, /directory)) then file_delete, p_dir, /recursive
+  q_dir = filepath('q', subdir=date, root=run.raw_basedir)
+  if (file_test(q_dir, /directory)) then file_delete, q_dir, /recursive
+
   ; clear database for the day
   if (run.update_database) then begin
     mg_log, 'clear database for the day', name='kcor/reprocess', /info
