@@ -109,22 +109,22 @@ pro kcor_eng_insert, date, fits_list, $
     ; extract desired items from header
     hdu = headfits(fts_file, /silent)
 
-    date_obs   = sxpar(hdu, 'DATE-OBS', count=qdate_obs)
+    date_obs     = sxpar(hdu, 'DATE-OBS', count=qdate_obs)
 		
-    rcamfocs   = sxpar(hdu, 'RCAMFOCS', count=qrcamfocs)
+    rcamfocs     = sxpar(hdu, 'RCAMFOCS', count=qrcamfocs)
     rcamfocs_str = strtrim(rcamfocs, 2)
     if (rcamfocs_str eq 'NaN') then rcamfocs = -99.99
 		
-    tcamfocs   = sxpar(hdu, 'TCAMFOCS', count=qtcamfocs)
+    tcamfocs     = sxpar(hdu, 'TCAMFOCS', count=qtcamfocs)
     tcamfocs_str = strtrim(tcamfocs, 2)
     if (tcamfocs_str eq 'NaN') then tcamfocs = -99.99
 		
-    modltrt    = sxpar(hdu, 'MODLTRT', count=qmodltrt)
-    o1focs     = sxpar(hdu, 'O1FOCS', count=q01focs)
-    sgsdimv    = sxpar(hdu, 'SGSDIMV', count=qsgsdimv)
-    sgsdims    = sxpar(hdu, 'SGSDIMS', count=qsgsdims)
+    modltrt     = sxpar(hdu, 'MODLTRT', count=qmodltrt)
+    o1focs      = sxpar(hdu, 'O1FOCS', count=q01focs)
+    sgsdimv_str = kcor_getsgs(hdu, 'SGSDIMV')
+    sgsdims_str = kcor_getsgs(hdu, 'SGSDIMS')
 		
-    level      = strtrim(sxpar(hdu, 'LEVEL', count=qlevel),2)
+    level       = strtrim(sxpar(hdu, 'LEVEL', count=qlevel), 2)
 
     ; TODO: Older NRGF headers have 'NRGF' appended to level string, but newer headers
     ;  will have another keyword added to header for producttype
@@ -168,9 +168,9 @@ pro kcor_eng_insert, date, fits_list, $
     level_num = level_results.level_id	
 		
     ; DB insert command
-    db->execute, 'INSERT INTO kcor_eng (file_name, date_obs, obs_day, rcamfocs, tcamfocs, modltrt, o1focs, kcor_sgsdimv, kcor_sgsdims, level, bunit, bzero, bscale, rcamxcen, rcamycen, tcamxcen, tcamycen, rcam_rad, tcam_rad, mean_phase1, cover, darkshut, diffuser, calpol) VALUES (''%s'', ''%s'', %d, %f, %f, %f, %f, %f, %f, %d, ''%s'', %d, %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', ''%s'', ''%s'', ''%s'') ', $
+    db->execute, 'INSERT INTO kcor_eng (file_name, date_obs, obs_day, rcamfocs, tcamfocs, modltrt, o1focs, kcor_sgsdimv, kcor_sgsdims, level, bunit, bzero, bscale, rcamxcen, rcamycen, tcamxcen, tcamycen, rcam_rad, tcam_rad, mean_phase1, cover, darkshut, diffuser, calpol) VALUES (''%s'', ''%s'', %d, %f, %f, %f, %f, %s, %s, %d, ''%s'', %d, %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', ''%s'', ''%s'', ''%s'') ', $
                  fits_file, date_obs, obsday_index, rcamfocs, tcamfocs, $
-                 modltrt, o1focs, sgsdimv, sgsdims, level_num, bunit, bzero, $
+                 modltrt, o1focs, sgsdimv_str, sgsdims_str, level_num, bunit, bzero, $
                  bscale, rcamxcen, rcamycen, tcamxcen, tcamycen, rcam_rad, $
                  tcam_rad, mean_phase1[i - n_nrgf], cover, darkshut, diffuser, calpol, $
                  status=status, error_message=error_message, sql_statement=sql_cmd

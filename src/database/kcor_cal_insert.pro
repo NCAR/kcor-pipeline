@@ -142,8 +142,8 @@ pro kcor_cal_insert, date, fits_list, $
     calpolid    = strtrim(sxpar(hdu, 'CALPOLID', count=qcalpolid), 2)
     diffsrid    = strtrim(sxpar(hdu, 'DIFFSRID', count=qdiffsrid), 2)
     filterid    = strtrim(sxpar(hdu, 'FILTERID', count=qfilterid), 2)
-    sgsdimv     =         sxpar(hdu, 'SGSDIMV',  count=qkcor_sgsdimv)
-    sgsdims     =         sxpar(hdu, 'SGSDIMS',  count=qkcor_sgsdims)
+    sgsdimv_str = kcor_getsgs(hdu, 'SGSDIMV')
+    sgsdims_str = kcor_getsgs(hdu, 'SGSDIMS')
 
     fits_file = file_basename(fts_file, '.gz') ; remove '.gz' from file name
 	
@@ -159,14 +159,14 @@ pro kcor_cal_insert, date, fits_list, $
                               level, fields=fields)
     level_num = level_results.level_id	
     
-    db->execute, 'INSERT INTO kcor_cal (file_name, date_obs, date_end, obs_day, level, numsum, exptime, cover, darkshut, diffuser, calpol, calpang, mean_int_img0, mean_int_img1, mean_int_img2, mean_int_img3, mean_int_img4, mean_int_img5, mean_int_img6, mean_int_img7, rcamid, tcamid, rcamlut, tcamlut, rcamfocs, tcamfocs, modltrid, modltrt, occltrid, o1id, o1focs, calpolid, diffsrid, filterid, kcor_sgsdimv, kcor_sgsdims) VALUES (''%s'', ''%s'', ''%s'', %d, %d, %d, %f, ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, ''%s'', %f, ''%s'', ''%s'', %f, ''%s'', ''%s'', ''%s'', %f, %f) ', $
+    db->execute, 'INSERT INTO kcor_cal (file_name, date_obs, date_end, obs_day, level, numsum, exptime, cover, darkshut, diffuser, calpol, calpang, mean_int_img0, mean_int_img1, mean_int_img2, mean_int_img3, mean_int_img4, mean_int_img5, mean_int_img6, mean_int_img7, rcamid, tcamid, rcamlut, tcamlut, rcamfocs, tcamfocs, modltrid, modltrt, occltrid, o1id, o1focs, calpolid, diffsrid, filterid, kcor_sgsdimv, kcor_sgsdims) VALUES (''%s'', ''%s'', ''%s'', %d, %d, %d, %f, ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, ''%s'', %f, ''%s'', ''%s'', %f, ''%s'', ''%s'', ''%s'', %s, %s) ', $
                  fits_file, date_obs, date_end, obsday_index, level_num, $
                  numsum, exptime, cover, darkshut, diffuser, calpol, calpang, $
                  mean_int_img0, mean_int_img1, mean_int_img2, mean_int_img3, $
                  mean_int_img4, mean_int_img5, mean_int_img6, mean_int_img7, $
                  rcamid, tcamid, rcamlut, tcamlut, rcamfocs, tcamfocs, $
                  modltrid, modltrt, occltrid, o1id, o1focs, calpolid, $
-                 diffsrid, filterid, sgsdimv, sgsdims, $
+                 diffsrid, filterid, sgsdimv_str, sgsdims_str, $
                  status=status, $
                  error_message=error_message, $
                  sql_statement=sql_cmd

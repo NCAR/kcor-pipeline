@@ -108,27 +108,28 @@ pro mlso_sgs_insert, date, fits_list, $
     hdu = headfits(fts_file, /silent)   ; read FITS header
 
     date_obs  = sxpar(hdu, 'DATE-OBS', count=qdate_obs)
-    sgsdimv   = sxpar(hdu, 'SGSDIMV', count=qsgsdimv)
-    sgsdims   = sxpar(hdu, 'SGSDIMS', count=qsgsdims)
-    sgssumv   = sxpar(hdu, 'SGSSUMV', count=qsgssumv)
-    sgsrav    = sxpar(hdu, 'SGSRAV', count=qsgsrav)
-    sgsras    = sxpar(hdu, 'SGSRAS', count=qsgsras)
-    sgsrazr   = sxpar(hdu, 'SGSRAZR', count=qsgsrazr)
-    sgsrazr_str = qsgsrazr eq 0L ? 'NULL' : string(sgsrazr, format='(%"%f")')
-    sgsdecv   = sxpar(hdu, 'SGSDECV', count=qsgsdecv)
-    sgsdecs   = sxpar(hdu, 'SGSDECS', count=qsgsdecs)
-    sgsdeczr  = sxpar(hdu, 'SGSDECZR', count=qsgsdeczr)
-    sgsdeczr_str = qsgsdeczr eq 0L ? 'NULL' : string(sgsdeczr, format='(%"%f")')
-    sgsscint  = sxpar(hdu, 'SGSSCINT', count=qsgsscint)
-    sgssums   = sxpar(hdu, 'SGSSUMS', count=qsgssums)
+
+
+    sgsdimv_str  = kcor_getsgs(hdu, 'SGSDIMV')
+    sgsdims_str  = kcor_getsgs(hdu, 'SGSDIMS')
+    sgssumv_str  = kcor_getsgs(hdu, 'SGSSUMV')
+    sgsrav_str   = kcor_getsgs(hdu, 'SGSRAV')
+    sgsras_str   = kcor_getsgs(hdu, 'SGSRAS')
+    sgsrazr_str  = kcor_getsgs(hdu, 'SGSRAZR')
+    sgsdecv_str  = kcor_getsgs(hdu, 'SGSDECV')
+    sgsdecs_str  = kcor_getsgs(hdu, 'SGSDECS')
+    sgsdeczr_str = kcor_getsgs(hdu, 'SGSDECZR')
+    sgsscint_str = kcor_getsgs(hdu, 'SGSSCINT')
+    sgssums_str  = kcor_getsgs(hdu, 'SGSSUMS')
+
     sgsloop   = sxpar(hdu, 'SGSLOOP', count=qsgsloop)
 		
     ;fits_file = file_basename(fts_file, '.gz') ; remove '.gz' from file name.
     ; DB insert command
-    db->execute, 'INSERT INTO mlso_sgs (date_obs, obs_day, source, sgsdimv, sgsdims, sgssumv, sgsrav, sgsras, sgsrazr, sgsdecv, sgsdecs, sgsdeczr, sgsscint, sgssums, sgsloop) VALUES (''%s'', %d, ''%s'', %f, %f, %f, %f, %f, %s, %f, %f, %s, %f, %f, %d) ', $
-                 date_obs, obsday_index, sgs_source, sgsdimv, sgsdims, $
-                 sgssumv, sgsrav, sgsras, sgsrazr_str, sgsdecv, sgsdecs, $
-                 sgsdeczr_str, sgsscint, sgssums, sgsloop, $
+    db->execute, 'INSERT INTO mlso_sgs (date_obs, obs_day, source, sgsdimv, sgsdims, sgssumv, sgsrav, sgsras, sgsrazr, sgsdecv, sgsdecs, sgsdeczr, sgsscint, sgssums, sgsloop) VALUES (''%s'', %d, ''%s'', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d) ', $
+                 date_obs, obsday_index, sgs_source, sgsdimv_str, sgsdims_str, $
+                 sgssumv_str, sgsrav_str, sgsras_str, sgsrazr_str, sgsdecv_str, $
+                 sgsdecs_str, sgsdeczr_str, sgsscint_str, sgssums_str, sgsloop, $
                  status=status, error_message=error_message, sql_statement=sql_cmd
     if (status ne 0L) then begin
       mg_log, 'error inserting to mlso_sgs table', name='kcor/rt', /error

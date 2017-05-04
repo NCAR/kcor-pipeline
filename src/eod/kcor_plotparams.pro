@@ -124,25 +124,16 @@ pro kcor_plotparams, date, list=list, run=run
 
     modltrt  = sxpar(hdu, 'MODLTRT',  count=qmodltrt)
 
-    sgsdimv  = sxpar(hdu, 'SGSDIMV',  count=qsgsdimv)
-    sgsscint = sxpar(hdu, 'SGSSCINT', count=qsgsscint)
-    sgsrav   = sxpar(hdu, 'SGSRAV',   count=qsgsrav)
-    sgsras   = sxpar(hdu, 'SGSRAS',   count=qsgsras)
-    sgsdecv  = sxpar(hdu, 'SGSDECV',  count=qsgsdecv)
-    sgsdecs  = sxpar(hdu, 'SGSDECS',  count=qsgsdecs)
-    sgsrazr  = sxpar(hdu, 'SGSRAZR',  count=qsgsrazr)
-    sgsdeczr = sxpar(hdu, 'SGSDECZR', count=qsgsdeczr)
-
     mod_temp[i] = modltrt
 
-    sgs_dimv[i]  = sgsdimv
-    sgs_scin[i]  = sgsscint
-    sgs_rav[i]   = sgsrav
-    sgs_ras[i]   = sgsras
-    sgs_decv[i]  = sgsdecv
-    sgs_decs[i]  = sgsdecs
-    sgs_razr[i]  = sgsrazr
-    sgs_deczr[i] = sgsdeczr
+    sgs_dimv[i]  = kcor_getsgs(hdu, 'SGSDIMV', /float)
+    sgs_scin[i]  = kcor_getsgs(hdu, 'SGSSCINT', /float)
+    sgs_rav[i]   = kcor_getsgs(hdu, 'SGSRAV', /float)
+    sgs_ras[i]   = kcor_getsgs(hdu, 'SGSRAS', /float)
+    sgs_decv[i]  = kcor_getsgs(hdu, 'SGSDECV', /float)
+    sgs_decs[i]  = kcor_getsgs(hdu, 'SGSDECS', /float)
+    sgs_razr[i]  = kcor_getsgs(hdu, 'SGSRAZR', /float)
+    sgs_deczr[i] = kcor_getsgs(hdu, 'SGSDECZR', /float)
 
     tcam_focus[i] = tcamfocs
     rcam_focus[i] = rcamfocs
@@ -161,7 +152,7 @@ pro kcor_plotparams, date, list=list, run=run
             strmid(datatype, 0, 3), $
             name='kcor/eod', /debug
     mg_log, '%s%7.3f %7.3f %7.3f', $
-            indent, modltrt, sgsdimv, sgsscint, $
+            indent, modltrt, sgs_dimv[i], sgs_scin[i], $
             name='kcor/eod', /debug
     mg_log, '%s%7.3f %7.3f %9.3f', $
             indent, tcamfocs, rcamfocs, o1focs, $
@@ -227,8 +218,8 @@ pro kcor_plotparams, date, list=list, run=run
         xrange=[16.0, 28.0], yrange=[0.0, 20.0], $
         background=255, color=0, charsize=2.0 
 
-  rav_min = min(sgs_rav - sgs_ras)
-  rav_max = max(sgs_rav + sgs_ras)
+  rav_min = min(sgs_rav - sgs_ras, /nan)
+  rav_max = max(sgs_rav + sgs_ras, /nan)
   gap = (rav_max - rav_min) * 0.05
   plot, hours, sgs_rav, title=pdate + ' KCor SGS RA', $
         xtitle='Hours [UT]', ytitle='volts', $
@@ -241,8 +232,8 @@ pro kcor_plotparams, date, list=list, run=run
             color=200
   oplot, hours, sgs_rav, color=0
 
-  decv_min = min(sgs_decv - sgs_decs)
-  decv_max = max(sgs_decv + sgs_decs)
+  decv_min = min(sgs_decv - sgs_decs, /nan)
+  decv_max = max(sgs_decv + sgs_decs, /nan)
   gap = (decv_max - decv_min) * 0.05
   plot, hours, sgs_decv, title=pdate + ' KCor SGS Dec', $
         xtitle='Hours [UT]', ytitle='volts', $
@@ -255,14 +246,14 @@ pro kcor_plotparams, date, list=list, run=run
             color=200
   oplot, hours, sgs_decv, color=0
 
-  razr_min = min(sgs_razr, max=razr_max)
+  razr_min = min(sgs_razr, max=razr_max, /nan)
   gap = (razr_max - razr_min) * 0.04
   plot, hours, sgs_razr, title=pdate + ' KCor SGS RA zeropoint offset', $
         xtitle='Hours [UT]', ytitle='arcsec', $
         xrange=[16.0, 28.0], yrange=[razr_min - gap, razr_max + gap], $
         background=255, color=0, charsize=2.0 
 
-  deczr_min = min(sgs_deczr, max=deczr_max)
+  deczr_min = min(sgs_deczr, max=deczr_max, /nan)
   gap = (deczr_max - deczr_min) * 0.04
   plot, hours, sgs_deczr, title=pdate + ' KCor SGS Dec zeropoint offset', $
         xtitle='Hours [UT]', ytitle='arcsec', $
@@ -308,7 +299,7 @@ end
 
 ; main-level example program
 
-date = '20161127'
+date = '20130930'
 run = kcor_run(date, $
                config_filename=filepath('kcor.mgalloy.mahi.latest.cfg', $
                                         subdir=['..', '..', 'config'], $
