@@ -1083,6 +1083,24 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     check_01id     = tag_exist(struct, '01ID')
     check_lyotstop = tag_exist(struct, 'LYOTSTOP')
 
+    ; clean bad SGS information
+    bad_dimv = struct.sgsdimv lt 1.0 or struct.sgsdimv gt 10.0
+    bad_scint = struct.sgsscint lt 0.0 or struct.sgsscint gt 20.0
+    if (bad_dimv) then struct.sgsdimv = !values.f_nan
+    if (bad_scint) then struct.sgsscint = !values.f_nan
+    if (bad_dimv || bad_scint) then begin
+      struct.sgsdims = !values.f_nan
+      struct.sgssumv = !values.f_nan
+      struct.sgssums = !values.f_nan
+      struct.sgsrav  = !values.f_nan
+      struct.sgsras  = !values.f_nan
+      struct.sgsdecv = !values.f_nan
+      struct.sgsdecs = !values.f_nan
+      if (check_sgsrazr) then struct.sgsrazr = !values_f_nan
+      if (check_sgsdeczr) then struct.sgsdeczr = !values_f_nan
+    endif
+    struct.sgsloop = 1   ; SGSLOOP is 1 if image passed quality check
+
     bscale = 0.001   ; pB * 1000 is stored in FITS image.
     bunit  = 'quasi-pB'
     img_quality = 'ok'
@@ -1104,7 +1122,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     fxaddpar, newheader, 'DATE-END', struct.date_d$end, ' UTC observation end'
     fxaddpar, newheader, 'TIMESYS',  'UTC', $
                          ' date/time system: Coordinated Universal Time'
-    fxaddpar, newheader, 'DATE_HST', date_hst, ' MLSO observation date [HST]
+    fxaddpar, newheader, 'DATE_HST', date_hst, ' MLSO observation date [HST]'
     fxaddpar, newheader, 'LOCATION', 'MLSO', $
                          ' Mauna Loa Solar Observatory, Hawaii'
     fxaddpar, newheader, 'ORIGIN',   struct.origin, $
@@ -1283,37 +1301,38 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
                          ' [mm] camera 1 focus position', format='(f9.3)'
     fxaddpar, newheader, 'MODLTRT',  struct.modltrt, $
                          ' [deg C] modulator temperature', format = '(f8.3)'
-    fxaddpar, newheader, 'SGSDIMV',  struct.sgsdimv, $
+
+    fxaddpar, newheader, 'SGSDIMV', finite(struct.sgsdimv) ? struct.sgsdimv : 'NaN', $
                          ' [V] mean Spar Guider Sys. (SGS) DIM signal', $
                          format='(f9.4)'
-    fxaddpar, newheader, 'SGSDIMS',  struct.sgsdims, $
+    fxaddpar, newheader, 'SGSDIMS', finite(struct.sgsdims) ? struct.sgsdims : 'NaN', $
                          ' [V] SGS DIM signal standard deviation', $
                          format='(e11.3)'
-    fxaddpar, newheader, 'SGSSUMV',  struct.sgssumv, $
-                         ' [V] mean SGS sum signal',          format = '(f9.4)'
-    fxaddpar, newheader, 'SGSRAV',   struct.sgsrav, $
-                         ' [V] mean SGS RA error signal',     format = '(e11.3)'
-    fxaddpar, newheader, 'SGSRAS',   struct.sgsras, $
+    fxaddpar, newheader, 'SGSSUMV', finite(struct.sgssumv) ? struct.sgssumv : 'NaN', $
+                         ' [V] mean SGS sum signal', format = '(f9.4)'
+    fxaddpar, newheader, 'SGSRAV', finite(struct.sgsrav) ? struct.sgsrav : 'NaN', $
+                         ' [V] mean SGS RA error signal', format = '(e11.3)'
+    fxaddpar, newheader, 'SGSRAS', finite(struct.sgsras) ? struct.sgsras : 'NaN', $
                          ' [V] mean SGS RA error standard deviation', $
                          format='(e11.3)'
     if (check_sgsrazr ne 0) then begin
-      fxaddpar, newheader, 'SGSRAZR', struct.sgsrazr, $
-                           ' [arcsec] SGS RA zeropoint offset', format = '(f9.4)'
+      fxaddpar, newheader, 'SGSRAZR', finite(struct.sgsrazr) ? struct.sgsrazr : 'NaN', $
+                           ' [arcsec] SGS RA zeropoint offset', format='(f9.4)'
     endif
-    fxaddpar, newheader, 'SGSDECV',  struct.sgsdecv, $
-                         ' [V] mean SGS DEC error signal',    format = '(e11.3)'
-    fxaddpar, newheader, 'SGSDECS',  struct.sgsdecs, $
+    fxaddpar, newheader, 'SGSDECV', finite(struct.sgsdecv) ? struct.sgsdecv : 'NaN', $
+                         ' [V] mean SGS DEC error signal', format='(e11.3)'
+    fxaddpar, newheader, 'SGSDECS',  finite(struct.sgsdecs) ? struct.sgsdecs : 'NaN', $
                          ' [V] mean SGS DEC error standard deviation', $
                          format='(e11.3)'
     if (check_sgsdeczr ne 0) then begin
-      fxaddpar, newheader, 'SGSDECZR', struct.sgsdeczr, $ 
+      fxaddpar, newheader, 'SGSDECZR', finite(struct.sgsdeczr) ? struct.sgsdeczr : 'NaN', $
                            ' [arcsec] SGS DEC zeropoint offset', format = '(f9.4)'
     endif
-    fxaddpar, newheader, 'SGSSCINT', struct.sgsscint, $
+    fxaddpar, newheader, 'SGSSCINT', finite(struct.sgsscint) ? struct.sgsscint : 'NaN', $
                          ' [arcsec] SGS scintillation seeing estimate', $
                          format='(f9.4)'
     fxaddpar, newheader, 'SGSLOOP',  struct.sgsloop, ' SGS loop closed fraction'
-    fxaddpar, newheader, 'SGSSUMS',  struct.sgssums, $
+    fxaddpar, newheader, 'SGSSUMS',  finite(struct.sgssums) ? struct.sgssums : 'NaN', $
                          ' [V] SGS sum signal standard deviation', $
                          format='(e11.3)'
 
@@ -1337,10 +1356,8 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
 
     fxaddpar, newheader, 'OCCLTRID', struct.occltrid, $
                          ' ID occulter'
-
     fxaddpar, newheader, 'MODLTRID', struct.modltrid, $
                          ' ID modulator'
-
     fxaddpar, newheader, 'RCAMID',   'MV-D1024E-CL-11461', $
                          ' ID camera 0 (reflected)'
     fxaddpar, newheader, 'TCAMID',   'MV-D1024E-CL-13889', $
