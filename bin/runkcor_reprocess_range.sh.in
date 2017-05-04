@@ -23,9 +23,6 @@ printhelp() {
   echo "note: start_date is inclusive, but end_date is not"
 }
 
-# u=rwx,g=rwx,o=rx
-umask 0002
-
 # find locations relative to this script
 SCRIPT_LOC=$(canonicalpath $0)
 BIN_DIR=$(dirname ${SCRIPT_LOC})
