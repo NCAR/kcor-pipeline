@@ -108,11 +108,10 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     cd, l0_dir
   endelse
 
-
   nrgf_list = filepath('oknrgf.ls', $
                        subdir=[date, 'level1'], $
                        root=run.raw_basedir)
-  n_nrgf_files = file_lines(nrgf_list)
+  n_nrgf_files = file_test(nrgf_list) ? file_lines(nrgf_list) : 0L
   if (n_nrgf_files gt 0L) then begin
     nrgf_files = strarr(n_nrgf_files)
     openr, lun, nrgf_list, /get_lun
@@ -126,7 +125,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   ok_list = filepath('okfgif.ls', $
                      subdir=[date, 'level1'], $
                      root=run.raw_basedir)
-  n_ok_files = file_lines(ok_list)
+  n_ok_files = file_test(ok_list) ? file_lines(ok_list) : 0L
 
   n_missing = 0L
   n_wrongsize = 0L
