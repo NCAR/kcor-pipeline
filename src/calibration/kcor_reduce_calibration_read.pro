@@ -24,9 +24,6 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
 
   ; this procedure reads in the data for the calibration data reduction
 
-  ; get diffuser intensity from somewhere in 1E-6 B_sun
-  idiff = 13.8 ; from Elmore et al, SPIE, 'Polarimetry in Astronomy', V 4843, pp 66-75
-
   ; read header of the first file to determine image size etc.
   if (~file_test(filenames[0], /regular)) then filenames[0] += '.gz'
   header = fitshead2struct(headfits(filenames[0]))
@@ -35,6 +32,12 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
   clear = fltarr(header.naxis1, header.naxis2, 2)
   calibration = fltarr(header.naxis1, header.naxis2, 4, 2, n_elements(file_list))
   angles = fltarr(n_elements(file_list))
+
+  case header.diffsrid of
+    ; from Elmore et al, SPIE, 'Polarimetry in Astronomy', V 4843, pp 66-75
+    'mk4-opal': idiff = 13.8          ; in 10e-6
+    'POC-L10P6-10-1': idiff = 200.0   ; in 10e-6
+  endcase
 
   ; read files and populate data structure
   gotdark = 0
@@ -53,6 +56,8 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
     calpang = sxpar(header, 'CALPANG', count=n_calpang)
     sgsdimv = sxpar(header, 'SGSDIMV', count=n_sgsdimv)
 
+    ; get diffuser intensity from somewhere in 1E-6 B_sun
+    
     if strmatch(darkshut, '*in*', /fold_case) then begin
       dark += mean(thisdata, dimension=3)
       gotdark++
