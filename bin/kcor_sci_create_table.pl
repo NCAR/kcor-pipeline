@@ -82,6 +82,7 @@ $command = "CREATE TABLE kcor_sci
   (
   sci_id              INT (10) AUTO_INCREMENT PRIMARY KEY,
   file_name           CHAR (40) NOT NULL,
+  date_obs            DATETIME NOT NULL,
   obs_day             MEDIUMINT (5) NOT NULL,
   intensity           BLOB,
   intensity_stddev    BLOB,
