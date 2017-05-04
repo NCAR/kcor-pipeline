@@ -220,6 +220,7 @@ pro kcor_plotparams, date, list=list, run=run
 
   rav_min = min(sgs_rav - sgs_ras, /nan)
   rav_max = max(sgs_rav + sgs_ras, /nan)
+  mg_log, 'SGSRAV min=%f, max=%f', rav_min, rav_max, name='kcor/eod', /debug
   gap = (rav_max - rav_min) * 0.05
   plot, hours, sgs_rav, title=pdate + ' KCor SGS RA', $
         xtitle='Hours [UT]', ytitle='volts', $
@@ -234,6 +235,7 @@ pro kcor_plotparams, date, list=list, run=run
 
   decv_min = min(sgs_decv - sgs_decs, /nan)
   decv_max = max(sgs_decv + sgs_decs, /nan)
+  mg_log, 'SGSDECV min=%f, max=%f', decv_min, decv_max, name='kcor/eod', /debug
   gap = (decv_max - decv_min) * 0.05
   plot, hours, sgs_decv, title=pdate + ' KCor SGS Dec', $
         xtitle='Hours [UT]', ytitle='volts', $
@@ -247,6 +249,11 @@ pro kcor_plotparams, date, list=list, run=run
   oplot, hours, sgs_decv, color=0
 
   razr_min = min(sgs_razr, max=razr_max, /nan)
+  if (~finite(razr_min)) then begin
+    razr_min = -20.0
+    razr_max =  20.0
+  endif
+  mg_log, 'SGSRAZR min=%f, max=%f', razr_min, razr_max, name='kcor/eod', /debug
   gap = (razr_max - razr_min) * 0.04
   plot, hours, sgs_razr, title=pdate + ' KCor SGS RA zeropoint offset', $
         xtitle='Hours [UT]', ytitle='arcsec', $
@@ -254,6 +261,11 @@ pro kcor_plotparams, date, list=list, run=run
         background=255, color=0, charsize=2.0 
 
   deczr_min = min(sgs_deczr, max=deczr_max, /nan)
+  if (~finite(deczr_min)) then begin
+    deczr_min =  40.0
+    deczr_max = 100.0
+  endif
+  mg_log, 'SGSDECZR min=%f, max=%f', deczr_min, deczr_max, name='kcor/eod', /debug
   gap = (deczr_max - deczr_min) * 0.04
   plot, hours, sgs_deczr, title=pdate + ' KCor SGS Dec zeropoint offset', $
         xtitle='Hours [UT]', ytitle='arcsec', $
