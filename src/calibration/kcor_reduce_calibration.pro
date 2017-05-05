@@ -13,12 +13,15 @@
 ;     date in the form 'YYYYMMDD' to produce calibration for
 ;
 ; :Keywords:
+;   filelist : in, optional, type=strarr
+;     list of L0 FITS files to use for the calibration if present, otherwise
+;     reads the `calibration_files.txt` file in the process directory
 ;   config_filename : in, optional, type=string
 ;     filename of configuration file; `config_filename` or `run` is required
 ;   run : in, optional, type=object
 ;     `kcor_run` object; `config_filename` or `run` is required
 ;-
-pro kcor_reduce_calibration, date, config_filename=config_filename, run=run
+pro kcor_reduce_calibration, date, filelist=filelist, config_filename=config_filename, run=run
   common kcor_random, seed
 
   run_created = ~obj_valid(run)
@@ -26,9 +29,25 @@ pro kcor_reduce_calibration, date, config_filename=config_filename, run=run
     run = kcor_run(date, config_filename=config_filename)
   endif
 
-  file_list = kcor_read_calibration_text(date, run.process_basedir, $
-                                         exposures=exposures, $
-                                         n_files=n_files)
+  if (n_elements(filelist) gt 0L) then begin
+    n_files = n_elements(filelist)
+    file_list = filelist
+    exposures = strarr(n_files)
+
+    ; extract exposures from files
+    for f = 0L, n_files - 1L do begin
+      header = headfits(filelist[f])
+
+      exposure = sxpar(header, 'EXPTIME', count=nrecords)
+      if (nrecords eq 0) then exposure = sxpar(header, 'EXPOSURE')
+
+      exposures[f] = string(exposure, format='(f10.4)')
+    endfor
+  endif else begin
+    file_list = kcor_read_calibration_text(date, run.process_basedir, $
+                                           exposures=exposures, $
+                                           n_files=n_files)
+  endelse
 
   if (n_files lt 1L) then begin
     mg_log, 'missing or empty calibration_files.txt', name='kcor/cal', /warn
