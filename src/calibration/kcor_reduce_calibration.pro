@@ -34,6 +34,9 @@ pro kcor_reduce_calibration, date, filelist=filelist, config_filename=config_fil
     file_list = filelist
     exposures = strarr(n_files)
 
+    cd, current=current_dir
+    cd, filepath('level0', subdir=date, root=raw.basedir)
+
     ; extract exposures from files
     for f = 0L, n_files - 1L do begin
       header = headfits(filelist[f])
@@ -43,6 +46,8 @@ pro kcor_reduce_calibration, date, filelist=filelist, config_filename=config_fil
 
       exposures[f] = string(exposure, format='(f10.4)')
     endfor
+
+    cd, current_dir
   endif else begin
     file_list = kcor_read_calibration_text(date, run.process_basedir, $
                                            exposures=exposures, $
