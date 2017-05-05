@@ -215,12 +215,16 @@ end
 
 ; main-level example program
 
-; change these variables
-date = '20131016'
-callist_filename = '/hao/mahidata1/Data/KCor/raw/2013/20131016/callist'
-
+; set date via command line and .run kcor_reduce_calibration
+if (n_elements(date) eq 0L) then date = '20161127'
 
 if (file_test(callist_filename)) then begin
+  config_filename = filepath('kcor.iguana.mahi.calibration.cfg', $
+                             subdir=['..', '..', 'config'], $
+                             root=mg_src_root())
+  run = kcor_run(date, config_filename=config_filename)
+
+  callist_filename = filepath('callist', subdir=date, root=run.raw_basedir)
   n_files = file_lines(callist_filename)
   filelist = strarr(n_files)
   calfile = ''
@@ -230,11 +234,6 @@ if (file_test(callist_filename)) then begin
     filelist[f] = calfile
   endfor
   free_lun, lun
-
-  config_filename = filepath('kcor.iguana.mahi.calibration.cfg', $
-                             subdir=['..', '..', 'config'], $
-                             root=mg_src_root())
-  run = kcor_run(date, config_filename=config_filename)
 
   kcor_reduce_calibration, date, run=run, filelist=filelist
   obj_destroy, run
