@@ -210,10 +210,31 @@ end
 
 ; main-level example program
 
-config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
-                           subdir=['..', '..', 'config'], $
-                           root=mg_src_root())
+; change these variables
+date = '20161127'
+callist_filename = '/path/to/callist'
 
-kcor_reduce_calibration, '20161127', config_filename=config_filename
+
+if (file_test(callist_filename)) then begin
+  n_files = file_lines(callist_filename)
+  filelist = strarr(n_files)
+  calfile = ''
+  openr, lun, callist_filename, /get_lun
+  for f = 0L, n_files - 1L do begin
+    readf, lun, calfile
+    filelist[f] = calfile
+  endfor
+  free_lun, lun
+
+  config_filename = filepath('kcor.iguana.mahi.calibration.cfg', $
+                             subdir=['..', '..', 'config'], $
+                             root=mg_src_root())
+  run = kcor_run(date, config_filename=config_filename)
+
+  kcor_reduce_calibration, date, run=run, filelist=filelist
+  obj_destroy, run
+endif else begin
+  mg_log, 'can''t find callist: %s', callist_filename, /error
+endelse
 
 end
