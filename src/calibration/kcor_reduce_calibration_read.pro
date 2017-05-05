@@ -33,11 +33,7 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
   calibration = fltarr(header.naxis1, header.naxis2, 4, 2, n_elements(file_list))
   angles = fltarr(n_elements(file_list))
 
-  case header.diffsrid of
-    ; from Elmore et al, SPIE, 'Polarimetry in Astronomy', V 4843, pp 66-75
-    'mk4-opal': idiff = 13.8          ; in 10e-6
-    'POC-L10P6-10-1': idiff = 200.0   ; in 10e-6
-  endcase
+  idiff = run->epoch('header.diffsrid')
 
   ; read files and populate data structure
   gotdark = 0
