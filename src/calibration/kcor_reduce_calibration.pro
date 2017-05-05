@@ -194,8 +194,11 @@ pro kcor_reduce_calibration, date, filelist=filelist, config_filename=config_fil
   ; write the calibration data
   tokens = strsplit(file_list[0], '_', /extract)
   first_time = tokens[1]
-  outfile_basename = string(date, first_time, float(exposures[0]), $
-                            format='(%"%s_%s_kcor_cal_%0.1fms.ncdf")')
+  outfile_basename = string(date, $
+                            first_time, $
+                            run->epoch('calversion'), $
+                            float(exposures[0]), $
+                            format='(%"%s_%s_kcor_cal_v%s_%0.1fms.ncdf")')
   outfile = filepath(outfile_basename, root=run.cal_out_dir)
 
   if (~file_test(run.cal_out_dir, /directory)) then file_mkdir, run.cal_out_dir

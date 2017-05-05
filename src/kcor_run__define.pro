@@ -400,6 +400,7 @@ function kcor_run::epoch, name, time=time
                                                self.date, hst_time, /boolean)
     'mk4-opal': return, self->_readepoch('mk4-opal', self.date, hst_time, type=4) 
     'POC-L10P6-10-1': return, self->_readepoch('POC-L10P6-10-1', self.date, hst_time, type=4) 
+    'calversion': return, self->_readepoch('calversion', self.date, hst_time, type=7)
   endcase
 end
 
