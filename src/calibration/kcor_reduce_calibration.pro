@@ -35,7 +35,7 @@ pro kcor_reduce_calibration, date, filelist=filelist, config_filename=config_fil
     exposures = strarr(n_files)
 
     cd, current=current_dir
-    cd, filepath('level0', subdir=date, root=raw.basedir)
+    cd, filepath('level0', subdir=date, root=run.raw_basedir)
 
     ; extract exposures from files
     for f = 0L, n_files - 1L do begin
@@ -216,8 +216,8 @@ end
 ; main-level example program
 
 ; change these variables
-date = '20161127'
-callist_filename = '/path/to/callist'
+date = '20131016'
+callist_filename = '/hao/mahidata1/Data/KCor/raw/2013/20131016/callist'
 
 
 if (file_test(callist_filename)) then begin
