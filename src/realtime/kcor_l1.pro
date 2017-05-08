@@ -545,10 +545,14 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     ; put the Level-0 FITS header into a structure
     struct = fitshead2struct(header, dash2underscore=dash2underscore)
 
+    ; all files that have passed KCOR_QUALITY are science type even though,
+    ; they may have been engineering in the L0
+    struct.datatype = 'science'
+
     ; window, 0, xsize=1024, ysize=1024, retain=2
     ; window, 0, xsize=1024, ysize=1024, retain=2, xpos=512, ypos=512
 
-    device, set_resolution=[1024,1024], decomposed=0, set_colors=256, $
+    device, set_resolution=[1024, 1024], decomposed=0, set_colors=256, $
             z_buffering=0
     erase
 
