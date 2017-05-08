@@ -957,17 +957,6 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     lct, filepath('quallab_ver2.lut', root=run.resources_dir)
     tvlct, red, green, blue, /get
 
-    mini = 0.00
-    maxi = 1.20
-
-    test = (corona + 0.03) ^ 0.8
-    test[mask] = 0
-
-    if (doplot eq 1) then begin
-      tv, bytscl(test, min=mini, max=maxi)
-      pause
-    endif
-
     ; end of new beam combination modifications
 
     ; photosphere height = apparent diameter of sun [arcseconds] 
@@ -984,13 +973,10 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
 
     ; display image, annotate, and save as a full resolution GIF file
 
-    mini  = -0.05  ; minimum intensity scaling value.  Used >= Nov 2016 with April 2017 calibration
-    maxi  = .6    ; maximum intensity scaling value.  Used >= Nov 2016 with April 2017 calibration
-    exp   = 0.65   ; scaling exponent.                 Used >= Nov 2016 with April 2017 calibration
+    corona[mask] = run->epoch('display_min')
 
-    corona[mask] = mini
-
-    tv, bytscl(corona ^ exp, min=mini, max=maxi)
+    tv, bytscl(corona ^ run->epoch('display_exp'), $
+               min=run->epoch('display_min'), max=run->epoch('display_max'))
 
     corona_int = intarr(1024, 1024)
     corona_int = fix(1000 * corona)   ; multiply by 1000 to store as integer
@@ -1005,9 +991,9 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
 
     datamin = icorona_min
     datamax = icorona_max
-    dispmin = mini
-    dispmax = maxi
-    dispexp = exp
+    dispmin = run->epoch('display_min')
+    dispmax = run->epoch('display_max')
+    dispexp = run->epoch('display_exp')
 
     xyouts, 4, 990, 'MLSO/HAO/KCOR', color=255, charsize=1.5, /device
     xyouts, 4, 970, 'K-Coronagraph', color=255, charsize=1.5, /device
@@ -1030,10 +1016,13 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     xyouts, 1012, 512, 'West', color=255, charsize=1.2, alignment=0.5, $
             orientation=90., /device
     xyouts, 4, 46, 'Level 1 data', color=255, charsize=1.2, /device
-    xyouts, 4, 26, 'min/max: ' + string(format='(f5.2)', mini) + ', ' + $
-            string(format='(f3.1)', maxi), $
+    xyouts, 4, 26, string(run->epoch('display_min'), $
+                          run->epoch('display_max'), $
+                          format='("min/max: ", f5.2, ", ", f3.1)'), $
             color=255, charsize=1.2, /device
-    xyouts, 4, 6, 'scaling: Intensity ^ ' + string(format='(f3.1)', exp), $
+    xyouts, 4, 6, $
+            string(run->epoch('display_exp'), $
+            format='("scaling: Intensity ^ ", f3.1)'), $
             color=255, charsize=1.2, /device
     xyouts, 1018, 6, 'Circle = photosphere.', $
             color=255, charsize=1.2, /device, alignment=1.0
@@ -1101,8 +1090,8 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
       struct.sgsras  = !values.f_nan
       struct.sgsdecv = !values.f_nan
       struct.sgsdecs = !values.f_nan
-      if (check_sgsrazr) then struct.sgsrazr = !values_f_nan
-      if (check_sgsdeczr) then struct.sgsdeczr = !values_f_nan
+      if (check_sgsrazr) then struct.sgsrazr = !values.f_nan
+      if (check_sgsdeczr) then struct.sgsdeczr = !values.f_nan
     endif
     struct.sgsloop = 1   ; SGSLOOP is 1 if image passed quality check
 
@@ -1445,7 +1434,8 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     device, set_resolution=[512,512], decomposed=0, set_colors=256, $
             z_buffering=0
     erase
-    tv, bytscl(crop_img ^ exp, min=mini, max=maxi)
+    tv, bytscl(crop_img ^ run->epoch('display_exp'), $
+               min=run->epoch('display_min'), max=run->epoch('display_max'))
 
     xyouts, 4, 495, 'MLSO/HAO/KCOR', color=255, charsize=1.2, /device
     xyouts, 4, 480, 'K-Coronagraph', color=255, charsize=1.2, /device
@@ -1464,14 +1454,15 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
                       /device, alignment=1.0, $
                       charsize=1.0, color=255
     xyouts, 12, 256, 'East', color=255, $
-                     charsize=1.0, alignment=0.5, orientation=90., /device
+                     charsize=1.0, alignment=0.5, orientation=90.0, /device
     xyouts, 507, 256, 'West', color=255, $
-                      charsize=1.0, alignment=0.5, orientation=90., /device
+                      charsize=1.0, alignment=0.5, orientation=90.0, /device
     xyouts, 4, 34, 'Level 1 data', color=255, charsize=1.0, /device
-    xyouts, 4, 20, 'min/max: ' + string(format='(f5.2)', mini) + ', ' $
-                     + string(format='(f3.1)', maxi), $
-                   color=255, charsize=1.0, /device
-    xyouts, 4, 6, 'scaling: Intensity ^ ' + string(format='(f3.1)', exp), $
+    xyouts, 4, 20, string(run->epoch('display_min'), run->epoch('display_max'), $
+                          format='("min/max: ", f5.2, f3.1)'), $
+            color=255, charsize=1.0, /device
+    xyouts, 4, 6, string(run->epoch('display_exp'), $
+                         format='("scaling: Intensity ^ ", f3.1)'), $
                   color=255, charsize=1.0, /device
     xyouts, 508, 6, 'Circle = photosphere', color=255, $
                     charsize=1.0, /device, alignment=1.0

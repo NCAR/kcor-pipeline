@@ -401,6 +401,9 @@ function kcor_run::epoch, name, time=time
     'mk4-opal': return, self->_readepoch('mk4-opal', self.date, hst_time, type=4) 
     'POC-L10P6-10-1': return, self->_readepoch('POC-L10P6-10-1', self.date, hst_time, type=4) 
     'calversion': return, self->_readepoch('calversion', self.date, hst_time, type=7)
+    'display_min': return, self->_readepoch('display_min', self.date, hst_time, type=4)
+    'display_max': return, self->_readepoch('display_max', self.date, hst_time, type=4)
+    'display_exp': return, self->_readepoch('display_exp', self.date, hst_time, type=4)
   endcase
 end
 
