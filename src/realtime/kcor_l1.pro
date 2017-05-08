@@ -1087,6 +1087,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     check_01id     = tag_exist(struct, '01ID')
     check_lyotstop = tag_exist(struct, 'LYOTSTOP')
 
+    ; TODO: use this in MLSO_SGS_INSERT
     ; clean bad SGS information
     bad_dimv = struct.sgsdimv lt 1.0 or struct.sgsdimv gt 10.0
     bad_scint = struct.sgsscint lt 0.0 or struct.sgsscint gt 20.0
