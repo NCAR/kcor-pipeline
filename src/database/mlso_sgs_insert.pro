@@ -66,9 +66,9 @@ pro mlso_sgs_insert, date, fits_list, $
     mg_log, 'connected to %s', host, name='kcor/rt', /info
   endelse
 
-  year    = strmid (date, 0, 4)             ; yyyy
-  month   = strmid (date, 4, 2)             ; mm
-  day     = strmid (date, 6, 2)             ; dd
+  year    = strmid(date, 0, 4)             ; yyyy
+  month   = strmid(date, 4, 2)             ; mm
+  day     = strmid(date, 6, 2)             ; dd
 
   sgs_source = ''                           ; 'k' or 's'  (kcor or sgs)
   
