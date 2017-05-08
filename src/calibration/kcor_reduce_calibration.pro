@@ -216,8 +216,8 @@ end
 ; main-level example program
 
 ; change these variables
-date = '20131016'
-callist_filename = '/hao/mahidata1/Data/KCor/raw/2013/20131016/callist'
+date = '20131111'
+callist_filename = '/hao/mahidata1/Data/KCor/raw/2013/20131111/callist'
 
 
 if (file_test(callist_filename)) then begin
