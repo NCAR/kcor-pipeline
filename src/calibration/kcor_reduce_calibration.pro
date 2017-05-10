@@ -73,7 +73,8 @@ pro kcor_reduce_calibration, date, filelist=filelist, config_filename=config_fil
                                 filepath('level0', $
                                          subdir=date, $
                                          root=run.raw_basedir), $
-                                data=data, metadata=metadata
+                                data=data, metadata=metadata, $
+                                run=run
 
   if (n_elements(data) eq 0L) then begin
     mg_log, 'incomplete cal data, exiting', name='kcor/cal', /info
