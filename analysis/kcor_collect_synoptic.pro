@@ -1,10 +1,10 @@
 ; docformat = 'rst'
 
-function kcor_collect_synoptic, start_date, end_date, times=times, run=run
+function kcor_collect_synoptic, start_date, end_date, radius=radius, times=times, run=run
   compile_opt strictarr
 
   n_bins = 720
-  radius = 1.8   ; TODO: what does do they want?
+  _radius = n_elements(radius) eq 0L ? 1.8 : radius
 
   jd_start = julday(strmid(start_date, 4, 2), $
                     strmid(start_date, 6, 2), $
@@ -54,7 +54,7 @@ function kcor_collect_synoptic, start_date, end_date, times=times, run=run
 
     image = readfits(filename, header, /silent)
 
-    map[d, *] = kcor_annulus_gridmeans(image, radius, sun_pixels, nbins=n_bins)
+    map[d, *] = kcor_annulus_gridmeans(image, _radius, sun_pixels, nbins=n_bins)
   endfor
 
   return, map
@@ -66,6 +66,7 @@ end
 
 start_date = '20140427'
 end_date = '20170509'
+radius = '1.08'
 
 config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
                            subdir=['..', 'config'], $
@@ -73,7 +74,9 @@ config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
 
 run = kcor_run(start_date, config_filename=config_filename)
 
-map = kcor_collect_synoptic(start_date, end_date, times=times, run=run)
-save, map, times, filename='synoptic-map-1.8R.sav'
+map = kcor_collect_synoptic(start_date, end_date, radius=float(radius), times=times, run=run)
+output_filename = string(radius, format='(%"synoptic-map-%sR.sav")')
+save, map, times, filename=output_filename
+mg_log, 'output in %s', output_filename, /info
 
 end
