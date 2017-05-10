@@ -26,11 +26,16 @@ function kcor_collect_synoptic, start_date, end_date, radius=radius, times=times
 
     mg_log, 'checking %04d%02d%02d', year, month, day, /info
 
+    times[d, 0] = year
+    times[d, 1] = month
+    times[d, 2] = day
+
     l1_files = file_search(filepath('*_*_kcor_l1.fts.gz', $
                                     subdir=string(year, month, day, $
                                                   format='(%"%04d/%02d/%02d")'), $
                                     root='/hao/acos'), $
                            count=n_l1_files)
+
     if (n_l1_files lt 20) then continue
 
     filename = l1_files[19]
@@ -40,9 +45,6 @@ function kcor_collect_synoptic, start_date, end_date, radius=radius, times=times
     min   = long(strmid(basename, 11, 2))
     sec   = long(strmid(basename, 13, 2))
 
-    times[d, 0] = year
-    times[d, 1] = month
-    times[d, 2] = day
     times[d, 3] = hour
     times[d, 4] = min
     times[d, 5] = sec
@@ -55,6 +57,9 @@ function kcor_collect_synoptic, start_date, end_date, radius=radius, times=times
     image = readfits(filename, header, /silent)
 
     map[d, *] = kcor_annulus_gridmeans(image, _radius, sun_pixels, nbins=n_bins)
+
+    ; correct for bad BSACLE for dates before July 16, 2015
+    if (d lt 444) then map[d, *] /= 1000.0
   endfor
 
   return, map
@@ -66,7 +71,7 @@ end
 
 start_date = '20140427'
 end_date = '20170509'
-radius = '1.08'
+radii = ['1.08', '1.3', '1.8']
 
 config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
                            subdir=['..', 'config'], $
@@ -74,9 +79,17 @@ config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
 
 run = kcor_run(start_date, config_filename=config_filename)
 
-map = kcor_collect_synoptic(start_date, end_date, radius=float(radius), times=times, run=run)
-output_filename = string(radius, format='(%"synoptic-map-%sR.sav")')
-save, map, times, filename=output_filename
-mg_log, 'output in %s', output_filename, /info
+for r = 0L, n_elements(radii) - 1L do begin
+  mg_log, 'starting for radius %sR', radii[r], /info
+  map = kcor_collect_synoptic(start_date, end_date, $
+                              radius=float(radii[r]), $
+                              times=times, $
+                              run=run)
+  output_filename = string(radii[r], format='(%"synoptic-map-%sR.sav")')
+  save, map, times, filename=output_filename
+  mg_log, 'output in %s', output_filename, /info
+endfor
+
+obj_destroy, run
 
 end
