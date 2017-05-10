@@ -202,14 +202,10 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            npick=npick, $
                            cal_basedir=cal_basedir, $
                            cal_out_dir=cal_out_dir, $
-                           bias_dir=bias_dir, $
-                           flat_dir=flat_dir, $
-                           mask_dir=mask_dir, $
                            raw_basedir=raw_basedir, $
                            process_basedir=process_basedir, $
                            lock_raw=lock_raw, $
                            archive_basedir=archive_basedir, $
-                           movie_dir=movie_basedir, $
                            fullres_basedir=fullres_basedir, $
                            croppedgif_basedir=croppedgif_basedir, $
                            nrgf_basedir=nrgf_basedir, $
@@ -257,15 +253,6 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   if (arg_present(cal_out_dir)) then begin
     cal_out_dir = self.options->get('out_dir', section='calibration')
   endif
-  if (arg_present(bias_dir)) then begin
-    bias_dir = self.options->get('bias_dir', section='calibration')
-  endif
-  if (arg_present(flat_dir)) then begin
-    flat_dir = self.options->get('flat_dir', section='calibration')
-  endif
-  if (arg_present(mask_dir)) then begin
-    mask_dir = self.options->get('mask_dir', section='calibration')
-  endif
 
   ; processing
   if (arg_present(raw_basedir)) then begin
@@ -282,9 +269,6 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   ; results
   if (arg_present(archive_basedir)) then begin
     archive_basedir = self.options->get('archive_basedir', section='results')
-  endif
-  if (arg_present(movie_basedir)) then begin
-    movie_basedir = self.options->get('movie_basedir', section='results')
   endif
   if (arg_present(fullres_basedir)) then begin
     fullres_basedir = self.options->get('fullres_basedir', section='results')
