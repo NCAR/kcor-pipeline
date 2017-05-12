@@ -7,3 +7,5 @@
   look for mlso_sgs_insert files in level0/ directory
 1.0.2 minor fix
   typo in ssh_key usage
+1.0.3 minor fix
+  send relative paths to MLSO_SGS_INSERT
