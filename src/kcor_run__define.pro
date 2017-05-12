@@ -392,6 +392,11 @@ function kcor_run::epoch, name, time=time
     'display_min': return, self->_readepoch('display_min', self.date, hst_time, type=4)
     'display_max': return, self->_readepoch('display_max', self.date, hst_time, type=4)
     'display_exp': return, self->_readepoch('display_exp', self.date, hst_time, type=4)
+    'remove_horizontal_artifact': return, self->_readepoch('remove_horizontal_artifact', $
+                                                           self.date, hst_time, /boolean)
+    'horizontal_artifact_lines': return, self->_readepoch('horizontal_artifact_lines', $
+                                                          self.date, hst_time, $
+                                                          /extract, type=3)
   endcase
 end
 

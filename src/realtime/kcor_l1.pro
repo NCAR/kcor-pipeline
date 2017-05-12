@@ -456,6 +456,14 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
 
     img  = readfits(l0_file, header, /silent)
     img  = float(img)
+
+    if (run->epoch('remove_horizontal_artifact')) then begin
+      mg_log, 'correcting horizontal artifacts are lines: %s', $
+              strjoin(strtrim(run.horizontal_artifact_lines, 2), ', '), $
+              name='kcor/rt', /debug
+      kcor_correct_horizontal_artifact, img, run.horizontal_artifact_lines
+    endif
+
     img0 = reform(img[*, *, 0, 0])   ; camera 0 [reflected]
     img1 = reform(img[*, *, 0, 1])   ; camera 1 [transmitted]
     type = ''
