@@ -71,7 +71,8 @@ end
 
 start_date = '20140427'
 end_date = '20170509'
-radii = ['1.08', '1.3', '1.8']
+;radii = ['1.1', '1.3', '1.8']
+radii = ['1.12', '1.15']
 
 config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
                            subdir=['..', 'config'], $
