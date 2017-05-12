@@ -192,7 +192,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
                            database=db, $
                            obsday_index=obsday_index
           ; should use ALL (cal, eng, sci, and bad ones) raw files
-          mlso_sgs_insert, date, l0_fits_files, $
+          mlso_sgs_insert, date, file_basename(l0_fits_files), $
                            run=run, $
                            database=db, $
                            obsday_index=obsday_index
