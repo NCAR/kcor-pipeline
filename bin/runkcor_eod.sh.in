@@ -32,8 +32,8 @@ fi
 
 MACHINE=$(hostname | sed -e 's/\..*$//')
 if [[ $# -lt 2 ]]; then
-  #CONFIG=${PIPE_DIR}/config/kcor.${USER}.${MACHINE}.production.cfg
-  CONFIG=${PIPE_DIR}/config/kcor.${USER}.${MACHINE}.latest.cfg
+  CONFIG=${PIPE_DIR}/config/kcor.${USER}.${MACHINE}.production.cfg
+  #CONFIG=${PIPE_DIR}/config/kcor.${USER}.${MACHINE}.latest.cfg
 else
   CONFIG=${PIPE_DIR}/config/kcor.${USER}.${MACHINE}.${2}.cfg
 fi

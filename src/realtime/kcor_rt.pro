@@ -155,8 +155,9 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       if (n_rg_gifs gt 0L) then begin
         mg_log, 'transferring %d NRGF GIFs to remote server', n_rg_gifs, $
                 name='kcor/rt', /info
-        spawn_cmd = string(run.nrgf_remote_server, run.nrgf_remote_dir, $
-                           format='(%"scp -B -r -p *nrgf.gif %s:%s")')
+        ssh_key_str = run.ssh_key eq '' ? '' : string(run.ssh_key, format='(%"-i %s")')
+        spawn_cmd = string(ssh_key_str, run.nrgf_remote_server, run.nrgf_remote_dir, $
+                           format='(%"scp -i %s -B -r -p *nrgf.gif %s:%s")')
         spawn, spawn_cmd, result, error_result, exit_status=status
         if (status ne 0L) then begin
           mg_log, 'problem scp-ing NRGF files with command: %s', spawn_cmd, $

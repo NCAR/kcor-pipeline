@@ -449,7 +449,11 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     date_dp = cyear + '-' + cmonth + '-' + cday + 'T' $
                 + chour + ':' + cminute + ':' + csecond
 
-    ;   print, 'l0_file: ', l0_file
+
+    mg_log, 'processing %d/%d: %s', $
+            fnum, nfiles, file_basename(l0_file), $
+            name='kcor/rt', /info
+
     img  = readfits(l0_file, header, /silent)
     img  = float(img)
     img0 = reform(img[*, *, 0, 0])   ; camera 0 [reflected]
@@ -457,8 +461,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     type = ''
     type = fxpar(header, 'DATATYPE')
 
-    mg_log, 'processing %d/%d: %s %s', $
-            fnum, nfiles, file_basename(l0_file), strmid(type, 0, 3), $
+    mg_log, 'type: %s', strmid(type, 0, 3), $
             name='kcor/rt', /info
 
     ; read date of observation (needed to compute ephemeris info)

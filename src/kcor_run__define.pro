@@ -211,6 +211,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            nrgf_basedir=nrgf_basedir, $
                            nrgf_remote_dir=nrgf_remote_dir, $
                            nrgf_remote_server=nrgf_remote_server, $
+                           ssh_key=ssh_key, $
                            hpss_gateway=hpss_gateway, $
                            log_dir=log_dir, $
                            log_level=log_level, $
@@ -284,6 +285,9 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   endif
   if (arg_present(nrgf_remote_server)) then begin
     nrgf_remote_server = self.options->get('nrgf_remote_server', section='results')
+  endif
+  if (arg_present(ssh_key)) then begin
+    ssh_key = self.options->get('ssh_key', section='results', default='')
   endif
   if (arg_present(hpss_gateway)) then begin
     hpss_gateway = self.options->get('hpss_gateway', section='results')
