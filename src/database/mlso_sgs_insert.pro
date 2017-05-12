@@ -88,8 +88,6 @@ pro mlso_sgs_insert, date, fits_list, $
   while (++i lt nfiles) do begin
     fts_file = fits_list[i]
 
-    fts_file += '.gz'
-
     if (~file_test(fts_file)) then begin
       mg_log, '%s not found', fts_file, name='kcor/rt', /warn
       continue
