@@ -93,7 +93,11 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     ok_files = kcor_quality(date, l0_fits_files, /append, run=run)
     mg_log, '%d OK L0 files', n_elements(ok_files), name='kcor/rt', /info
 
-    kcor_l1, date, ok_files, /append, run=run, mean_phase1=mean_phase1
+    kcor_l1, date, ok_files, /append, run=run, mean_phase1=mean_phase1, error=error
+    if (error ne 0L) then begin
+      mg_log, 'L1 processing failed, quitting', name='kcor/rt', /error
+      goto, done
+    endif
 
     mg_log, 'moving processed files to l0_dir', name='kcor/rt', /info
     file_move, l0_fits_files, l0_dir, /overwrite
@@ -208,9 +212,9 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     endelse
 
     ; now move NRGF files
-    if (n_rg_gifs gt 0L) then file_move, rg_gifs, rg_dir, /overwrite
+    if (n_rg_gifs gt 0L) then file_copy, rg_gifs, rg_dir, /overwrite
     if (n_cropped_rg_gifs gt 0L) then begin
-      file_move, cropped_rg_gifs, croppedgif_dir, /overwrite
+      file_copy, cropped_rg_gifs, croppedgif_dir, /overwrite
     endif
   endif else begin
     mg_log, 'raw directory locked, quitting', name='kcor/rt', /info

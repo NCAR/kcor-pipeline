@@ -288,6 +288,8 @@
 ;     `kcor_run` object
 ;   mean_phase1 : out, optional, type=fltarr
 ;     mean_phase1 for each file in `ok_files`
+;   error : out, optional, type=long
+;     set to a named variable to retrieve the error status of the call
 ;
 ; :Examples:
 ;   Try::
@@ -313,10 +315,12 @@
 ; All Level 1 files (fits & gif) will be stored in the sub-directory 'level1',
 ; under the date directory.
 ;-
-pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
+pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1, error=error
   compile_opt strictarr
 
   tic
+
+  error = 0L
 
   l0_dir  = filepath(date_str, root=run.raw_basedir)
   l1_dir  = filepath('level1', subdir=date_str, root=run.raw_basedir)
@@ -375,6 +379,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     endif else begin
       mg_log, 'cal file does not exist', name='kcor/rt', /error
       mg_log, 'cal file: %s', file_basename(calpath), name='kcor/rt', /error
+      error = 1L
       goto, done
     endelse
 
@@ -459,9 +464,9 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
 
     if (run->epoch('remove_horizontal_artifact')) then begin
       mg_log, 'correcting horizontal artifacts are lines: %s', $
-              strjoin(strtrim(run.horizontal_artifact_lines, 2), ', '), $
+              strjoin(strtrim(run->epoch('horizontal_artifact_lines'), 2), ', '), $
               name='kcor/rt', /debug
-      kcor_correct_horizontal_artifact, img, run.horizontal_artifact_lines
+      kcor_correct_horizontal_artifact, img, run->epoch('horizontal_artifact_lines')
     endif
 
     img0 = reform(img[*, *, 0, 0])   ; camera 0 [reflected]
