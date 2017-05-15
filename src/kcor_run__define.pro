@@ -221,8 +221,12 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            send_notifications=send_notifications, $
                            update_database=update_database, $
                            update_remote_server=update_remote_server, $
+                           process_l1=process_l1, $
                            reduce_calibration=reduce_calibration, $
-                           send_to_hpss=send_to_hpss
+                           send_to_hpss=send_to_hpss, $
+                           validate_t1=validate_t1, $
+                           produce_plots=produce_plots, $
+                           catalog_files=catalog_files
   compile_opt strictarr
 
   if (arg_present(config_contents)) then begin
@@ -328,6 +332,10 @@ pro kcor_run::getProperty, config_contents=config_contents, $
     update_remote_server = self.options->get('update_remote_server', section='realtime', $
                                              /boolean, default=1B)
   endif
+  if (arg_present(process_l1)) then begin
+    process_l1 = self.options->get('process_l1', section='realtime', $
+                                   /boolean, default=1B)
+  endif
 
   ; end-of-day
   if (arg_present(reduce_calibration)) then begin
@@ -337,6 +345,18 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   if (arg_present(send_to_hpss)) then begin
     send_to_hpss = self.options->get('send_to_hpss', section='eod', $
                                      /boolean, default=1B)
+  endif
+  if (arg_present(validate_t1)) then begin
+    validates_t1 = self.options->get('validate_t1', section='eod', $
+                                     /boolean, default=1B)
+  endif
+  if (arg_present(produce_plots)) then begin
+    produce_plots = self.options->get('produce_plots', section='eod', $
+                                      /boolean, default=1B)
+  endif
+  if (arg_present(catalog_files)) then begin
+    catalog_files = self.options->get('catalog_files', section='eod', $
+                                      /boolean, default=1B)
   endif
 end
 
@@ -392,6 +412,11 @@ function kcor_run::epoch, name, time=time
     'display_min': return, self->_readepoch('display_min', self.date, hst_time, type=4)
     'display_max': return, self->_readepoch('display_max', self.date, hst_time, type=4)
     'display_exp': return, self->_readepoch('display_exp', self.date, hst_time, type=4)
+    'remove_horizontal_artifact': return, self->_readepoch('remove_horizontal_artifact', $
+                                                           self.date, hst_time, /boolean)
+    'horizontal_artifact_lines': return, self->_readepoch('horizontal_artifact_lines', $
+                                                          self.date, hst_time, $
+                                                          /extract, type=3)
   endcase
 end
 

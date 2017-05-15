@@ -93,7 +93,11 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     ok_files = kcor_quality(date, l0_fits_files, /append, run=run)
     mg_log, '%d OK L0 files', n_elements(ok_files), name='kcor/rt', /info
 
-    kcor_l1, date, ok_files, /append, run=run, mean_phase1=mean_phase1
+    kcor_l1, date, ok_files, /append, run=run, mean_phase1=mean_phase1, error=error
+    if (error ne 0L) then begin
+      mg_log, 'L1 processing failed, quitting', name='kcor/rt', /error
+      goto, done
+    endif
 
     mg_log, 'moving processed files to l0_dir', name='kcor/rt', /info
     file_move, l0_fits_files, l0_dir, /overwrite
@@ -157,7 +161,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
                 name='kcor/rt', /info
         ssh_key_str = run.ssh_key eq '' ? '' : string(run.ssh_key, format='(%"-i %s")')
         spawn_cmd = string(ssh_key_str, run.nrgf_remote_server, run.nrgf_remote_dir, $
-                           format='(%"scp -i %s -B -r -p *nrgf.gif %s:%s")')
+                           format='(%"scp %s -B -r -p *nrgf.gif %s:%s")')
         spawn, spawn_cmd, result, error_result, exit_status=status
         if (status ne 0L) then begin
           mg_log, 'problem scp-ing NRGF files with command: %s', spawn_cmd, $
@@ -192,7 +196,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
                            database=db, $
                            obsday_index=obsday_index
           ; should use ALL (cal, eng, sci, and bad ones) raw files
-          mlso_sgs_insert, date, l0_fits_files, $
+          mlso_sgs_insert, date, file_basename(l0_fits_files), $
                            run=run, $
                            database=db, $
                            obsday_index=obsday_index
@@ -208,9 +212,9 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     endelse
 
     ; now move NRGF files
-    if (n_rg_gifs gt 0L) then file_move, rg_gifs, rg_dir, /overwrite
+    if (n_rg_gifs gt 0L) then file_copy, rg_gifs, rg_dir, /overwrite
     if (n_cropped_rg_gifs gt 0L) then begin
-      file_move, cropped_rg_gifs, croppedgif_dir, /overwrite
+      file_copy, cropped_rg_gifs, croppedgif_dir, /overwrite
     endif
   endif else begin
     mg_log, 'raw directory locked, quitting', name='kcor/rt', /info
