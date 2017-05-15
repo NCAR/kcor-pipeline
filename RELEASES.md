@@ -11,3 +11,7 @@
   send relative paths to MLSO_SGS_INSERT
 1.0.4 minor fix
   raw files are not zipped when dealt with my MLSO_SGS_INSERT
+1.1.0
+  fix horizontal artifacts in raw files
+  better transmission value for opal
+  add options for end-of-day actions
