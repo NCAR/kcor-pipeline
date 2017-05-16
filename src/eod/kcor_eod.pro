@@ -182,9 +182,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     endif
     if (run.catalog_files) then kcor_catalog, date, list=files, run=run
 
-    if (~keyword_set(reprocess) && run.send_to_hpss) then begin
-      kcor_archive, run=run, reprocess=reprocess
-    endif
+    kcor_archive, run=run
 
     ; produce calibration for tomorrow
     if (run.reduce_calibration && run->epoch('produce_calibration')) then begin
