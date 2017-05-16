@@ -24,6 +24,13 @@ pro kcor_run::write_epochs, filename, time=time
   endelse
 
   printf, lun, $
+          'mlso_url', self->epoch('mlso_url', time=time), $
+          format='(%"%-30s : %s")'
+  printf, lun, $
+          'doi_url', self->epoch('doi_url', time=time), $
+          format='(%"%-30s : %s")'
+
+  printf, lun, $
           'plate_scale', self->epoch('plate_scale', time=time), $
           format='(%"%-30s : %0.3f")'
   printf, lun, $
@@ -31,19 +38,15 @@ pro kcor_run::write_epochs, filename, time=time
           self->epoch('use_default_darks', time=time) ? 'YES' : 'NO', $
           format='(%"%-30s : %s")'
   printf, lun, $
-          'phase', self->epoch('phase', time=time), $
-          format='(%"%-30s : %f")'
+          'gbuparams_filename', $
+          self->epoch('gbuparams_filename', time=time), $
+          format='(%"%-30s : %s")'
   printf, lun, $
-          'bias', self->epoch('bias', time=time), $
+          'skypol_bias', self->epoch('skypol_bias', time=time), $
           format='(%"%-30s : %f")'
   printf, lun, $
           'sky_factor', self->epoch('sky_factor', time=time), $
           format='(%"%-30s : %f")'
-;  printf, lun, 'bopal', bopal, format='(%"%-30s : %f")'
-  printf, lun, $
-          'gbuparams_filename', $
-          self->epoch('gbuparams_filename', time=time), $
-          format='(%"%-30s : %s")'
   printf, lun, $
           'distortion_correction_filename', $
           self->epoch('distortion_correction_filename', time=time), $
@@ -52,10 +55,45 @@ pro kcor_run::write_epochs, filename, time=time
           'cal_file', self->epoch('cal_file', time=time), $
           format='(%"%-30s : %s")'
   printf, lun, $
-          'mlso_url', self->epoch('mlso_url', time=time), $
+          '01id', self->epoch('01id', time=time), $
           format='(%"%-30s : %s")'
   printf, lun, $
-          'doi_url', self->epoch('doi_url', time=time), $
+          'mk4-opal', self->epoch('mk4-opal', time=time), $
+          format='(%"%-30s : %f")'
+  printf, lun, $
+          'POC-L10P6-10-1', self->epoch('POC-L10P6-10-1', time=time), $
+          format='(%"%-30s : %f")'
+
+  printf, lun, $
+          'calversion', self->epoch('calversion', time=time), $
+          format='(%"%-30s : %s")'
+  printf, lun, $
+          'display_min', self->epoch('display_min', time=time), $
+          format='(%"%-30s : %f")'
+  printf, lun, $
+          'display_max', self->epoch('display_max', time=time), $
+          format='(%"%-30s : %f")'
+  printf, lun, $
+          'display_exp', self->epoch('display_exp', time=time), $
+          format='(%"%-30s : %f")'
+
+  printf, lun, $
+          'remove_horizontal_artifact', $
+          self->epoch('remove_horizontal_artifact', time=time) ? 'YES' : 'NO', $
+          format='(%"%-30s : %s")'
+  if (self->epoch('remove_horizontal_artifact', time=time)) then begin
+    printf, lun, $
+            'horizontal_artifact_lines', $
+            strjoin(strtrim(self->epoch('horizontal_artifact_lines', $
+                                        time=time), $
+                            2), $
+                    ', '), $
+            format='(%"%-30s : [%s]")'
+  endif
+
+  printf, lun, $
+          'produce_calibration', $
+          self->epoch('produce_calibration', time=time) ? 'YES' : 'NO', $
           format='(%"%-30s : %s")'
 
   if (n_elements(filename) gt 0L) then free_lun, lun
@@ -202,19 +240,16 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            npick=npick, $
                            cal_basedir=cal_basedir, $
                            cal_out_dir=cal_out_dir, $
-                           bias_dir=bias_dir, $
-                           flat_dir=flat_dir, $
-                           mask_dir=mask_dir, $
                            raw_basedir=raw_basedir, $
                            process_basedir=process_basedir, $
                            lock_raw=lock_raw, $
                            archive_basedir=archive_basedir, $
-                           movie_dir=movie_basedir, $
                            fullres_basedir=fullres_basedir, $
                            croppedgif_basedir=croppedgif_basedir, $
                            nrgf_basedir=nrgf_basedir, $
                            nrgf_remote_dir=nrgf_remote_dir, $
                            nrgf_remote_server=nrgf_remote_server, $
+                           ssh_key=ssh_key, $
                            hpss_gateway=hpss_gateway, $
                            log_dir=log_dir, $
                            log_level=log_level, $
@@ -224,8 +259,12 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            send_notifications=send_notifications, $
                            update_database=update_database, $
                            update_remote_server=update_remote_server, $
+                           process_l1=process_l1, $
                            reduce_calibration=reduce_calibration, $
-                           send_to_hpss=send_to_hpss
+                           send_to_hpss=send_to_hpss, $
+                           validate_t1=validate_t1, $
+                           produce_plots=produce_plots, $
+                           catalog_files=catalog_files
   compile_opt strictarr
 
   if (arg_present(config_contents)) then begin
@@ -257,15 +296,6 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   if (arg_present(cal_out_dir)) then begin
     cal_out_dir = self.options->get('out_dir', section='calibration')
   endif
-  if (arg_present(bias_dir)) then begin
-    bias_dir = self.options->get('bias_dir', section='calibration')
-  endif
-  if (arg_present(flat_dir)) then begin
-    flat_dir = self.options->get('flat_dir', section='calibration')
-  endif
-  if (arg_present(mask_dir)) then begin
-    mask_dir = self.options->get('mask_dir', section='calibration')
-  endif
 
   ; processing
   if (arg_present(raw_basedir)) then begin
@@ -283,9 +313,6 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   if (arg_present(archive_basedir)) then begin
     archive_basedir = self.options->get('archive_basedir', section='results')
   endif
-  if (arg_present(movie_basedir)) then begin
-    movie_basedir = self.options->get('movie_basedir', section='results')
-  endif
   if (arg_present(fullres_basedir)) then begin
     fullres_basedir = self.options->get('fullres_basedir', section='results')
   endif
@@ -300,6 +327,9 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   endif
   if (arg_present(nrgf_remote_server)) then begin
     nrgf_remote_server = self.options->get('nrgf_remote_server', section='results')
+  endif
+  if (arg_present(ssh_key)) then begin
+    ssh_key = self.options->get('ssh_key', section='results', default='')
   endif
   if (arg_present(hpss_gateway)) then begin
     hpss_gateway = self.options->get('hpss_gateway', section='results')
@@ -340,6 +370,10 @@ pro kcor_run::getProperty, config_contents=config_contents, $
     update_remote_server = self.options->get('update_remote_server', section='realtime', $
                                              /boolean, default=1B)
   endif
+  if (arg_present(process_l1)) then begin
+    process_l1 = self.options->get('process_l1', section='realtime', $
+                                   /boolean, default=1B)
+  endif
 
   ; end-of-day
   if (arg_present(reduce_calibration)) then begin
@@ -349,6 +383,18 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   if (arg_present(send_to_hpss)) then begin
     send_to_hpss = self.options->get('send_to_hpss', section='eod', $
                                      /boolean, default=1B)
+  endif
+  if (arg_present(validate_t1)) then begin
+    validate_t1 = self.options->get('validate_t1', section='eod', $
+                                     /boolean, default=1B)
+  endif
+  if (arg_present(produce_plots)) then begin
+    produce_plots = self.options->get('produce_plots', section='eod', $
+                                      /boolean, default=1B)
+  endif
+  if (arg_present(catalog_files)) then begin
+    catalog_files = self.options->get('catalog_files', section='eod', $
+                                      /boolean, default=1B)
   endif
 end
 
@@ -381,7 +427,7 @@ function kcor_run::epoch, name, time=time
     'use_default_darks': begin
         return, self->_readepoch('use_default_darks', self.date, hst_time, /boolean)
       end
-    'gpuparams_filename': begin
+    'gbuparams_filename': begin
         return, self->_readepoch('gbuparams_filename', self.date, hst_time, type=7)
       end
     'skypol_bias': return, self->_readepoch('skypol_bias', self.date, hst_time, type=4)
@@ -398,6 +444,19 @@ function kcor_run::epoch, name, time=time
                                                           self.date, hst_time, /boolean)
     'header_changes': return, self->_readepoch('header_changes', $
                                                self.date, hst_time, /boolean)
+    'mk4-opal': return, self->_readepoch('mk4-opal', self.date, hst_time, type=4) 
+    'POC-L10P6-10-1': return, self->_readepoch('POC-L10P6-10-1', self.date, hst_time, type=4) 
+    'calversion': return, self->_readepoch('calversion', self.date, hst_time, type=7)
+    'display_min': return, self->_readepoch('display_min', self.date, hst_time, type=4)
+    'display_max': return, self->_readepoch('display_max', self.date, hst_time, type=4)
+    'display_exp': return, self->_readepoch('display_exp', self.date, hst_time, type=4)
+    'remove_horizontal_artifact': return, self->_readepoch('remove_horizontal_artifact', $
+                                                           self.date, hst_time, /boolean)
+    'horizontal_artifact_lines': return, self->_readepoch('horizontal_artifact_lines', $
+                                                          self.date, hst_time, $
+                                                          /extract, type=3)
+    'produce_calibration': return, self->_readepoch('produce_calibration', $
+                                                    self.date, hst_time, /boolean)
   endcase
 end
 

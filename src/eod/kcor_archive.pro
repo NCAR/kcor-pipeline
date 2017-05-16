@@ -6,11 +6,8 @@
 ; :Keywords:
 ;   run : in, required, type=object
 ;     `kcor_run` object
-;   reprocess : in, optional, type=boolean
-;     set to indicate a reprocessing; level 0 files are not distributed in a
-;     reprocessing
 ;-
-pro kcor_archive, run=run, reprocess=reprocess
+pro kcor_archive, run=run
   compile_opt strictarr
 
   cd, current=cwd
@@ -98,21 +95,25 @@ pro kcor_archive, run=run, reprocess=reprocess
   endif
   file_chmod, tarlist, /a_read, /g_write
 
-  ; create HPSS gateway directory if needed
-  if (~file_test(run.hpss_gateway, /directory)) then begin
-    file_mkdir, run.hpss_gateway
-    file_chmod, run.hpss_gateway, /a_read, /a_execute, /u_write, /g_write
-  endif
+  if (run.send_to_hpss) then begin
+    ; create HPSS gateway directory if needed
+    if (~file_test(run.hpss_gateway, /directory)) then begin
+      file_mkdir, run.hpss_gateway
+      file_chmod, run.hpss_gateway, /a_read, /a_execute, /u_write, /g_write
+    endif
 
-  ; remove old links to tarballs
-  dst_tarfile = filepath(tarfile, root=run.hpss_gateway)
-  if (file_test(dst_tarfile)) then begin
-    mg_log, 'removing link to tarball in HPSS gateway', name='kcor/eod', /warn
-    file_delete, dst_tarfile
-  endif
+    ; remove old links to tarballs
+    dst_tarfile = filepath(tarfile, root=run.hpss_gateway)
+    if (file_test(dst_tarfile)) then begin
+      mg_log, 'removing link to tarball in HPSS gateway', name='kcor/eod', /warn
+      file_delete, dst_tarfile
+    endif
 
-  file_link, filepath(tarfile, root=l0_dir), $
-             filepath(tarfile, root=run.hpss_gateway)
+    file_link, filepath(tarfile, root=l0_dir), $
+               filepath(tarfile, root=run.hpss_gateway)
+  endif else begin
+    mg_log, 'not sending to HPSS', name='kcor/eod', /info
+  endelse
 
   done:
   cd, cwd

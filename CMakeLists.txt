@@ -1,7 +1,7 @@
 project(kcor-pipeline)
-set(VERSION_MAJOR "0")
+set(VERSION_MAJOR "1")
 set(VERSION_MINOR "1")
-set(VERSION_PATCH "0")
+set(VERSION_PATCH "1")
 set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 # required version of CMake
@@ -85,8 +85,11 @@ set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${KCOR_PIPELINE_PACKAGE_VERSI
 
 include(CPack)
 
+
+configure_file(INSTALLATION.in INSTALLATION @ONLY)
 install(FILES
           README.md
+          ${CMAKE_CURRENT_BINARY_DIR}/INSTALLATION
         DESTINATION .)
 
 if (IDLdoc_FOUND)
