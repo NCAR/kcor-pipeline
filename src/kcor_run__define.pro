@@ -260,6 +260,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            update_database=update_database, $
                            update_remote_server=update_remote_server, $
                            process_l1=process_l1, $
+                           distribute=distribute, $
                            reduce_calibration=reduce_calibration, $
                            send_to_hpss=send_to_hpss, $
                            validate_t1=validate_t1, $
@@ -372,6 +373,10 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   endif
   if (arg_present(process_l1)) then begin
     process_l1 = self.options->get('process_l1', section='realtime', $
+                                   /boolean, default=1B)
+  endif
+  if (arg_present(distribute)) then begin
+    distribute = self.options->get('distribute', section='realtime', $
                                    /boolean, default=1B)
   endif
 

@@ -58,9 +58,11 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
   fullres_dir = filepath('', subdir=date_parts, root=run.fullres_basedir)
   archive_dir = filepath('', subdir=date_parts, root=run.archive_basedir)
 
-  if (~file_test(croppedgif_dir, /directory)) then file_mkdir, croppedgif_dir
-  if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
-  if (~file_test(archive_dir, /directory)) then file_mkdir, archive_dir
+  if (run.distribute) then begin
+    if (~file_test(croppedgif_dir, /directory)) then file_mkdir, croppedgif_dir
+    if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
+    if (~file_test(archive_dir, /directory)) then file_mkdir, archive_dir
+  endif
 
   cd, raw_dir
 
@@ -143,9 +145,11 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
         nrgf_basenames->append, base
       endif
 
-      file_copy, base + '_cropped.gif', croppedgif_dir, /overwrite
-      file_copy, base + '.gif', fullres_dir, /overwrite
-      file_copy, base + '_l1.fts.gz', archive_dir, /overwrite
+      if (run.distribute) then begin
+        file_copy, base + '_cropped.gif', croppedgif_dir, /overwrite
+        file_copy, base + '.gif', fullres_dir, /overwrite
+        file_copy, base + '_l1.fts.gz', archive_dir, /overwrite
+      endif
     endfor
 
     free_lun, okcgif_lun
@@ -154,13 +158,18 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     free_lun, ok_rg_lun
 
     ; find the NRGF files now, will copy them after updating database
-    nrgf_dir = filepath('', subdir=date_parts, root=run.nrgf_basedir)
-    if (~file_test(nrgf_dir, /directory)) then file_mkdir, nrgf_dir
+    if (run.distribute) then begin
+      nrgf_dir = filepath('', subdir=date_parts, root=run.nrgf_basedir)
+      if (~file_test(nrgf_dir, /directory)) then file_mkdir, nrgf_dir
+    endif
 
     n_nrgf_gifs = nrgf_basenames->count()
-    nrgf_gif_basenames = nrgf_basenames->toArray()
-    nrgf_gifs = nrgf_gif_basenames + '_l1_nrgf.gif'
-    cropped_nrgf_gifs = nrgf_gif_basenames + '_l1_nrgf_cropped.gif'
+    if (n_nrgf_gifs gt 0L) then begin
+      nrgf_gif_basenames = nrgf_basenames->toArray()
+      nrgf_gifs = nrgf_gif_basenames + '_l1_nrgf.gif'
+      cropped_nrgf_gifs = nrgf_gif_basenames + '_l1_nrgf_cropped.gif'
+    endif
+
     obj_destroy, nrgf_basenames
 
     if (run.update_remote_server && ~keyword_set(reprocess)) then begin
@@ -220,8 +229,8 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     endelse
 
     ; now move NRGF files
-    if (n_nrgf_gifs gt 0L) then file_copy, nrgf_gifs, nrgf_dir, /overwrite
-    if (n_cropped_nrgf_gifs gt 0L) then begin
+    if (n_nrgf_gifs gt 0L && run.distribute) then begin
+      file_copy, nrgf_gifs, nrgf_dir, /overwrite
       file_copy, cropped_nrgf_gifs, croppedgif_dir, /overwrite
     endif
   endif else begin
