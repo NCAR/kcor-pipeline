@@ -347,7 +347,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                                      /boolean, default=1B)
   endif
   if (arg_present(validate_t1)) then begin
-    validates_t1 = self.options->get('validate_t1', section='eod', $
+    validate_t1 = self.options->get('validate_t1', section='eod', $
                                      /boolean, default=1B)
   endif
   if (arg_present(produce_plots)) then begin
