@@ -24,6 +24,13 @@ pro kcor_run::write_epochs, filename, time=time
   endelse
 
   printf, lun, $
+          'mlso_url', self->epoch('mlso_url', time=time), $
+          format='(%"%-30s : %s")'
+  printf, lun, $
+          'doi_url', self->epoch('doi_url', time=time), $
+          format='(%"%-30s : %s")'
+
+  printf, lun, $
           'plate_scale', self->epoch('plate_scale', time=time), $
           format='(%"%-30s : %0.3f")'
   printf, lun, $
@@ -31,19 +38,15 @@ pro kcor_run::write_epochs, filename, time=time
           self->epoch('use_default_darks', time=time) ? 'YES' : 'NO', $
           format='(%"%-30s : %s")'
   printf, lun, $
-          'phase', self->epoch('phase', time=time), $
-          format='(%"%-30s : %f")'
+          'gbuparams_filename', $
+          self->epoch('gbuparams_filename', time=time), $
+          format='(%"%-30s : %s")'
   printf, lun, $
-          'bias', self->epoch('bias', time=time), $
+          'skypol_bias', self->epoch('skypol_bias', time=time), $
           format='(%"%-30s : %f")'
   printf, lun, $
           'sky_factor', self->epoch('sky_factor', time=time), $
           format='(%"%-30s : %f")'
-;  printf, lun, 'bopal', bopal, format='(%"%-30s : %f")'
-  printf, lun, $
-          'gbuparams_filename', $
-          self->epoch('gbuparams_filename', time=time), $
-          format='(%"%-30s : %s")'
   printf, lun, $
           'distortion_correction_filename', $
           self->epoch('distortion_correction_filename', time=time), $
@@ -52,10 +55,45 @@ pro kcor_run::write_epochs, filename, time=time
           'cal_file', self->epoch('cal_file', time=time), $
           format='(%"%-30s : %s")'
   printf, lun, $
-          'mlso_url', self->epoch('mlso_url', time=time), $
+          '01id', self->epoch('01id', time=time), $
           format='(%"%-30s : %s")'
   printf, lun, $
-          'doi_url', self->epoch('doi_url', time=time), $
+          'mk4-opal', self->epoch('mk4-opal', time=time), $
+          format='(%"%-30s : %f")'
+  printf, lun, $
+          'POC-L10P6-10-1', self->epoch('POC-L10P6-10-1', time=time), $
+          format='(%"%-30s : %f")'
+
+  printf, lun, $
+          'calversion', self->epoch('calversion', time=time), $
+          format='(%"%-30s : %s")'
+  printf, lun, $
+          'display_min', self->epoch('display_min', time=time), $
+          format='(%"%-30s : %f")'
+  printf, lun, $
+          'display_max', self->epoch('display_max', time=time), $
+          format='(%"%-30s : %f")'
+  printf, lun, $
+          'display_exp', self->epoch('display_exp', time=time), $
+          format='(%"%-30s : %f")'
+
+  printf, lun, $
+          'remove_horizontal_artifact', $
+          self->epoch('remove_horizontal_artifact', time=time) ? 'YES' : 'NO', $
+          format='(%"%-30s : %s")'
+  if (self->epoch('remove_horizontal_artifact', time=time)) then begin
+    printf, lun, $
+            'horizontal_artifact_lines', $
+            strjoin(strtrim(self->epoch('horizontal_artifact_lines', $
+                                        time=time), $
+                            2), $
+                    ', '), $
+            format='(%"%-30s : [%s]")'
+  endif
+
+  printf, lun, $
+          'produce_calibration', $
+          self->epoch('produce_calibration', time=time) ? 'YES' : 'NO', $
           format='(%"%-30s : %s")'
 
   if (n_elements(filename) gt 0L) then free_lun, lun
@@ -389,7 +427,7 @@ function kcor_run::epoch, name, time=time
     'use_default_darks': begin
         return, self->_readepoch('use_default_darks', self.date, hst_time, /boolean)
       end
-    'gpuparams_filename': begin
+    'gbuparams_filename': begin
         return, self->_readepoch('gbuparams_filename', self.date, hst_time, type=7)
       end
     'skypol_bias': return, self->_readepoch('skypol_bias', self.date, hst_time, type=4)
@@ -417,6 +455,8 @@ function kcor_run::epoch, name, time=time
     'horizontal_artifact_lines': return, self->_readepoch('horizontal_artifact_lines', $
                                                           self.date, hst_time, $
                                                           /extract, type=3)
+    'produce_calibration': return, self->_readepoch('produce_calibration', $
+                                                    self.date, hst_time, /boolean)
   endcase
 end
 
