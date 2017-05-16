@@ -15,3 +15,5 @@
   fix horizontal artifacts in raw files
   better transmission value for opal
   add options for end-of-day actions
+1.1.1 minor fix
+  type in end-of-day processing
