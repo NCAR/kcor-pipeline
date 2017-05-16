@@ -1,0 +1,45 @@
+#!/bin/sh
+
+# This script launches the runkcor_reprocess.sh script for a series of days.
+
+# u=rwx,g=rwx,o=rx
+umask 0002
+
+canonicalpath() {
+  if [ -d $1 ]; then
+    pushd $1 > /dev/null 2>&1
+    echo $PWD
+  elif [ -f $1 ]; then
+    pushd $(dirname $1) > /dev/null 2>&1
+    echo $PWD/$(basename $1)
+  else
+    echo "Invalid path $1"
+  fi
+  popd > /dev/null 2>&1
+}
+
+printhelp() {
+  echo "syntax: runkcor_reprocess_list.sh config_flag date1 date2..."
+}
+
+# find locations relative to this script
+SCRIPT_LOC=$(canonicalpath $0)
+BIN_DIR=$(dirname ${SCRIPT_LOC})
+REPROCESS_SCRIPT=$BIN_DIR/runkcor_reprocess.sh
+
+if [[ $# -lt 2 ]]; then
+  echo "required arguments not present"
+  printhelp
+  exit
+fi
+
+CONFIG_FLAG=$1
+shift
+
+while [ $# -gt 0 ]; do
+  d=$1
+  cmd="$REPROCESS_SCRIPT $d $CONFIG_FLAG"
+  echo "$cmd"
+  $cmd
+  shift
+done
