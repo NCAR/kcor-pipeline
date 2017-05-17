@@ -260,6 +260,9 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   file_delete, 'list_okf', /allow_nonexistent
 
   if (run.send_notifications && run.notification_email ne '') then begin
+    l0_fits_files = file_search(filepath('*kcor.fts*', root=l0_dir), $
+                                count=n_l0_fits_files)
+
     msg = [string(date, $
                   format='(%"KCor end-of-day processing for %s")'), $
            '', $
