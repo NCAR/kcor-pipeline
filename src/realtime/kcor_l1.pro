@@ -459,8 +459,8 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
             fnum, nfiles, file_basename(l0_file), $
             name='kcor/rt', /info
 
-    img  = readfits(l0_file, header, /silent)
-    img  = float(img)
+    img = readfits(l0_file, header, /silent)
+    img = kcor_correct_camera(img, header, run=run)
 
     type = ''
     type = fxpar(header, 'DATATYPE')

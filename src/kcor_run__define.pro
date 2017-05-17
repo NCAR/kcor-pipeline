@@ -68,6 +68,9 @@ pro kcor_run::write_epochs, filename, time=time
           'calversion', self->epoch('calversion', time=time), $
           format='(%"%-30s : %s")'
   printf, lun, $
+          'camera_id_prefix', self->epoch('camera_id_prefix', time=time), $
+          format='(%"%-30s : %s")'
+  printf, lun, $
           'display_min', self->epoch('display_min', time=time), $
           format='(%"%-30s : %f")'
   printf, lun, $
