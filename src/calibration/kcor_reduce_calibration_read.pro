@@ -48,6 +48,14 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
     if (~file_test(filenames[f], /regular)) then filenames[f] += '.gz'
 
     thisdata = readfits(filenames[f], header, /silent)
+
+    if (run->epoch('remove_horizontal_artifact')) then begin
+      mg_log, 'correcting horizontal artifacts are lines: %s', $
+              strjoin(strtrim(run->epoch('horizontal_artifact_lines'), 2), ', '), $
+              name='kcor/cal', /debug
+      kcor_correct_horizontal_artifact, thisdata, run->epoch('horizontal_artifact_lines')
+    endif
+
     darkshut = sxpar(header, 'DARKSHUT', count=n_darkshut)
     diffuser = sxpar(header, 'DIFFUSER', count=n_diffuser)
     calpol = sxpar(header, 'CALPOL', count=n_calpol)

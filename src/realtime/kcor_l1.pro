@@ -462,15 +462,6 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     img  = readfits(l0_file, header, /silent)
     img  = float(img)
 
-    if (run->epoch('remove_horizontal_artifact')) then begin
-      mg_log, 'correcting horizontal artifacts are lines: %s', $
-              strjoin(strtrim(run->epoch('horizontal_artifact_lines'), 2), ', '), $
-              name='kcor/rt', /debug
-      kcor_correct_horizontal_artifact, img, run->epoch('horizontal_artifact_lines')
-    endif
-
-    img0 = reform(img[*, *, 0, 0])   ; camera 0 [reflected]
-    img1 = reform(img[*, *, 0, 1])   ; camera 1 [transmitted]
     type = ''
     type = fxpar(header, 'DATATYPE')
 
@@ -491,9 +482,6 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     shour   = strmid(date_obs, 11, 2)
     sminute = strmid(date_obs, 14, 2)
     ssecond = strmid(date_obs, 17, 2)
-
-    ; print,         'date_obs: ', date_obs
-    ; printf, ulog,  'date_obs: ', date_obs
 
     ; convert month from integer to name of month
     name_month = (['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', $
@@ -571,18 +559,6 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     device, set_resolution=[1024, 1024], decomposed=0, set_colors=256, $
             z_buffering=0
     erase
-
-    ; print,        'year, month, day, hour, minute, second: ', $
-    ;               syear, ' ', smonth, ' ', sday, ' ', shour, ' ', sminute, ' ', second
-    ; printf, ulog, 'year, month, day, hour, minute, second: ', $
-    ;               syear, ' ', smonth, ' ', sday, ' ', shour, ' ', sminute, ' ', ssecond
-
-    ; solar radius, P and B angle
-
-    ;ephem  = pb0r(date_obs, /earth)
-    ;pangle = ephem[0]
-    ;bangle = ephem[1]
-    ;radsun = ephem[2]    ; arcmin
 
     ; ephemeris data
     sun, oyear, omonth, oday, ehour, sd=radsun, pa=pangle, lat0=bangle, $
@@ -753,6 +729,13 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
 
     mg_log, 'elapsed time for demod_matrix: %0.1f sec', demod_time, $
             name='kcor/rt', /debug
+
+    if (run->epoch('remove_horizontal_artifact')) then begin
+      mg_log, 'correcting horizontal artifacts are lines: %s', $
+              strjoin(strtrim(run->epoch('horizontal_artifact_lines'), 2), ', '), $
+              name='kcor/rt', /debug
+      kcor_correct_horizontal_artifact, img, run->epoch('horizontal_artifact_lines')
+    endif
 
     ; apply distortion correction for raw images
     img0 = reform(img[*, *, 0, 0])    ; camera 0 [reflected]
