@@ -222,15 +222,16 @@ end
 
 
 ; set date via command line and .run kcor_reduce_calibration
-if (n_elements(date) eq 0L) then date = '20161127'
+if (n_elements(date) eq 0L) then date = '20131204'
+
+config_filename = filepath('kcor.iguana.mahi.calibration.cfg', $
+                           subdir=['..', '..', 'config'], $
+                           root=mg_src_root())
+run = kcor_run(date, config_filename=config_filename)
+
+callist_filename = filepath('callist', subdir=date, root=run.raw_basedir)
 
 if (file_test(callist_filename)) then begin
-  config_filename = filepath('kcor.iguana.mahi.calibration.cfg', $
-                             subdir=['..', '..', 'config'], $
-                             root=mg_src_root())
-  run = kcor_run(date, config_filename=config_filename)
-
-  callist_filename = filepath('callist', subdir=date, root=run.raw_basedir)
   n_files = file_lines(callist_filename)
   filelist = strarr(n_files)
   calfile = ''
