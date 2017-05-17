@@ -140,10 +140,8 @@ pro kcor_plotparams, date, list=list, run=run
     o1_focus[i]   = o1focs
 
     ; determine occulter size in pixels
-    occulter = strmid (occltrid, 3, 5)   ; extract 5 characters from occltrid
-    if (occulter eq '991.6') then occulter =  991.6
-    if (occulter eq '1018.') then occulter = 1018.9
-    if (occulter eq '1006.') then occulter = 1006.9
+    occulter = strmid(occltrid, 0, 8)
+    occulter = run->epoch(occulter)
 
     radius_guess = occulter / run->epoch('plate_scale')   ; occulter size [pixels]
 

@@ -272,11 +272,8 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     occltrid = sxpar(hdu, 'OCCLTRID', count=qoccltrid)
 
     ; determine occulter size in pixels
-
-    occulter = strmid(occltrid, 3, 5)   ; extract 5 characters from occltrid
-    if (occulter eq '991.6') then occulter =  991.6
-    if (occulter eq '1018.') then occulter = 1018.9
-    if (occulter eq '1006.') then occulter = 1006.9
+    occulter = strmid(occltrid, 0, 8)
+    occulter = epoch->epoch(occulter)
 
     radius_guess = occulter / run->epoch('plate_scale')   ; occulter size [pixels]
 
@@ -288,11 +285,6 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     dpy   = intarr(nray)
 
     ; get FITS image size from image array
-
-    n1 = 1
-    n2 = 1
-    n3 = 1
-    n4 = 1
     imgsize = size(img)           ; get size of img array
     ndim    = imgsize[0]          ; # dimensions
     n1      = imgsize[1]          ; dimension #1 size X: 1024
@@ -435,8 +427,8 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     ixcen = fix(xcen + 0.5)
     iycen = fix(ycen + 0.5)
 
-    ; rotate image by P-angle
-    ; (No rotation for calibration or device-obscured images.)
+    ; rotate image by P-angle, no rotation for calibration or device-obscured
+    ; images
     if (cal gt 0 or dev gt 0) then begin
       pb0rot = pb0
       goto, next
@@ -447,21 +439,12 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     ; bright sky check
     dobright = 1
     if (dobright gt 0) then begin
-      ; bmax  = 77.0
-      ; rpixb = 296.0
-
-      ; bmax  = 175.0   ; brightness threshold
-      ; bmax  = 220.0   ; brightness threshold
-      ; bmax  = 250.0   ; brightness threshold
-
-      ; TODO: add values to epochs file
-      if (bitpix eq 16) then bmax  = 300.0    ; brightness threshold
-      if (bitpix eq 32) then bmax  = 2.0e06   ; brightness threshold
+      bmax = run->epoch('bmax' + strtrim(bitpix, 2))
       if ((bitpix ne 16) and (bitpix ne 32)) then begin
         mg_log, 'unexpected BITPIX: %d', bitpix, name='kcor/rt', /error
         goto, next
       endif
-      rpixb = 450       ; circle radius [pixels]
+      rpixb = run->epoch('rpixb')   ; circle radius [pixels]
       dpx   = fix(cos(dp) * rpixb + axcen + 0.5005)
       dpy   = fix(sin(dp) * rpixb + aycen + 0.5005)
 
@@ -482,10 +465,9 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     ; saturation check
     chksat = 1
     if (chksat gt 0) then begin
-      if (bitpix eq 16) then smax  = 1000.0   ; brightness threshold
-      if (bitpix eq 32) then smax  = 1.e07    ; brightness threshold
+      smax = run->epoch('smax' + strtrim(bitpix, 2))     ; brightness threshold
+      rpixt = run->epoch('rpixt')   ; circle radius [pixels]
 
-      rpixt = 215      ; circle radius [pixels].
       dpx   = fix(cos(dp) * rpixt + axcen + 0.5005)
       dpy   = fix(sin(dp) * rpixt + aycen + 0.5005)
 
@@ -494,7 +476,6 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
       nelem  = n_elements(satpix)
 
       ; if too many pixels are saturated, set sat = 1
-
       sat = 0
       if (satpix[0] ne -1) then begin
         ssize = size(satpix)
@@ -510,11 +491,11 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     chi      = 0
     cloud    = 0
     if (chkcloud gt 0) then begin
-      if (bitpix eq 16) then cmax  = 2200.0   ; upper brightness threshold
-      if (bitpix eq 32) then cmax  = 5.e07    ; upper brightness threshold
-      if (exposure lt 1.) then cmin =  20.0   ; lower brightness threshold
-      if (exposure ge 1.) then cmin =  200.0   ; lower brightness threshold
-      rpixc = 190     ; circle radius [pixels]
+      ; upper brightness threshold
+      cmax = run->epoch('cmax' + strtrim(bitpix, 2))
+      ; lower brightness threshold
+      cmin = run->epoch(exposure lt 1.0 ? 'cmin_lt1' : 'cmin_ge1')
+      rpixc = run->epoch('rpixc') ; circle radius [pixels]
       dpx  = fix(cos(dp) * rpixc + axcen + 0.5005)
       dpy  = fix(sin(dp) * rpixc + aycen + 0.5005)
 
@@ -656,13 +637,9 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
 
     if (cal eq 0 and dev eq 0) then begin
       ; draw circle at 1.0 Rsun
-
-      ; tvcircle, rsunpix, axcen, aycen,     0, /device, /fill ; 1.0 Rsun circle
-      ; tvcircle, rdisc_pix, axcen, aycen, red, /device        ; occulter edge
-
-      tvcircle, rdisc_pix, axcen, aycen, grey, /device, /fill ; occulter disc 
-      tvcircle, rsunpix, axcen, aycen, yellow, /device        ; 1.0 Rsun circle
-      tvcircle, rsunpix*3.0, axcen, aycen, grey, /device      ; 3.0 Rsun circle
+      tvcircle, rdisc_pix, axcen, aycen, grey, /device, /fill  ; occulter disc 
+      tvcircle, rsunpix, axcen, aycen, yellow, /device         ; 1.0 Rsun circle
+      tvcircle, 3.0 * rsunpix, axcen, aycen, grey, /device     ; 3.0 Rsun circle
 
       ; draw "+" at sun center
       plots, [ixcen - 5, ixcen + 5], [iycen, iycen], color=yellow, /device

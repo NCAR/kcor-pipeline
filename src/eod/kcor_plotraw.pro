@@ -122,10 +122,8 @@ pro kcor_plotraw, date, list=list, run=run, $
     sun_pixels = rsun / run->epoch('plate_scale')
 
     occulter_id = fxpar(header, 'OCCLTRID')
-    occulter = strmid(occulter_id, 3, 5)
-    occulter = float(occulter)
-    if (occulter eq 1018.0) then occulter = 1018.9
-    if (occulter eq 1006.0) then occulter = 1006.9
+    occulter = strmid(occulter_id, 0, 8)
+    occulter = run->epoch(occulter)
 
     radius_guess = occulter / run->epoch('plate_scale')   ; pixels
 

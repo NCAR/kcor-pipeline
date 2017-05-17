@@ -96,6 +96,31 @@ pro kcor_run::write_epochs, filename, time=time
           self->epoch('produce_calibration', time=time) ? 'YES' : 'NO', $
           format='(%"%-30s : %s")'
 
+  printf, lun, 'bmax16', self->epoch('bmax16', time=time), $
+          format='(%"%-30s : %f")'
+  printf, lun, 'smax16', self->epoch('smax16', time=time), $
+          format='(%"%-30s : %f")'
+  printf, lun, 'cmax16', self->epoch('cmax16', time=time), $
+          format='(%"%-30s : %f")'
+  printf, lun, 'bmax32', self->epoch('bmax32', time=time), $
+          format='(%"%-30s : %f")'
+  printf, lun, 'smax32', self->epoch('smax32', time=time), $
+          format='(%"%-30s : %f")'
+  printf, lun, 'cmax32', self->epoch('cmax32', time=time), $
+          format='(%"%-30s : %f")'
+
+  printf, lun, 'cmin_lt1', self->epoch('cmin_lt1', time=time), $
+          format='(%"%-30s : %f")'
+  printf, lun, 'cmin_ge1', self->epoch('cmin_ge1', time=time), $
+          format='(%"%-30s : %f")'
+
+  printf, lun, 'rpixb', self->epoch('rpixb', time=time), $
+          format='(%"%-30s : %d")'
+  printf, lun, 'rpixt', self->epoch('rpixt', time=time), $
+          format='(%"%-30s : %d")'
+  printf, lun, 'rpixc', self->epoch('rpixc', time=time), $
+          format='(%"%-30s : %d")'
+
   if (n_elements(filename) gt 0L) then free_lun, lun
 end
 
@@ -462,6 +487,17 @@ function kcor_run::epoch, name, time=time
                                                           /extract, type=3)
     'produce_calibration': return, self->_readepoch('produce_calibration', $
                                                     self.date, hst_time, /boolean)
+    'OC-991.6': return, self->_readepoch('OC-991.6', self.date, hst_time, type=4)
+    'OC-1006.': return, self->_readepoch('OC-1006.9', self.date, hst_time, type=4)
+    'OC-1018.': return, self->_readepoch('OC-1018.9', self.date, hst_time, type=4)
+    'bmax': return, self->_readepoch('bmax', self.date, hst_time, type=4)
+    'smax': return, self->_readepoch('smax', self.date, hst_time, type=4)
+    'cmax': return, self->_readepoch('cmax', self.date, hst_time, type=4)
+    'cmin_lt1': return, self->_readepoch('cmin_lt1', self.date, hst_time, type=4)
+    'cmin_ge1': return, self->_readepoch('cmin_ge1', self.date, hst_time, type=4)
+    'rpixb': return, self->_readepoch('rpixb', self.date, hst_time, type=3)
+    'rpixt': return, self->_readepoch('rpixt', self.date, hst_time, type=3)
+    'rpixc': return, self->_readepoch('rpixc', self.date, hst_time, type=3)
   endcase
 end
 
