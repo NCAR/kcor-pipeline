@@ -253,6 +253,8 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     run.time = date_obs
     level    = sxpar(hdu, 'LEVEL',    count=qlevel)
 
+    exposure = sxpar(hdu, 'EXPTIME')
+    exposure = float(exposure)
     bzero    = sxpar(hdu, 'BZERO',    count=qbzero)
     bbscale  = sxpar(hdu, 'BSCALE',   count=qbbscale)
     bitpix   = sxpar(hdu, 'BITPIX')
@@ -510,7 +512,8 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     if (chkcloud gt 0) then begin
       if (bitpix eq 16) then cmax  = 2200.0   ; upper brightness threshold
       if (bitpix eq 32) then cmax  = 5.e07    ; upper brightness threshold
-      cmin =  200.0   ; lower brightness threshold
+      if (exposure lt 1.) then cmin =  20.0   ; lower brightness threshold
+      if (exposure ge 1.) then cmin =  200.0   ; lower brightness threshold
       rpixc = 190     ; circle radius [pixels]
       dpx  = fix(cos(dp) * rpixc + axcen + 0.5005)
       dpy  = fix(sin(dp) * rpixc + aycen + 0.5005)
