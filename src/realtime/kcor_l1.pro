@@ -460,7 +460,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
             name='kcor/rt', /info
 
     img = readfits(l0_file, header, /silent)
-    img = kcor_correct_camera(img, header, run=run)
+    if (run.correct_camera) then kcor_correct_camera, img, header, run=run
 
     type = ''
     type = fxpar(header, 'DATATYPE')
@@ -629,7 +629,6 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     ; mask_occulter1[*] = 0
     ; mask_occulter1[pick1] = 1.0
 
-    ; printf, ulog, 'CAMERA CENTER INFO FOR RAW IMAGES'
     mg_log, 'camera 0 center: %0.1f, %0.1f and radius: %0.1f', $
             xcen0, ycen0, radius_0, name='kcor/rt', /debug
     mg_log, 'camera 1 center: %0.1f, %0.1f and radius: %0.1f', $
@@ -654,7 +653,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     ;   occulter in.
 
     ; camera 0
-    replace = where(rr0 gt radius_0 -4. and grr0 le info_gain0[2] + 4.0, nrep)
+    replace = where(rr0 gt radius_0 - 4.0 and grr0 le info_gain0[2] + 4.0, nrep)
     if (nrep gt 0) then begin
       gain_temp = gain_alfred[*, *, 0]
       gain_replace = shift(gain_alfred[*, *, 0], $

@@ -229,6 +229,13 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
   foreach l0_file, l0_fits_files do begin
     num_img += 1
     img = readfits(l0_file, hdu, /silent)   ; read fits image & header
+    if (run.correct_camera) then kcor_correct_camera, img, hdu, run=run
+    if (run->epoch('remove_horizontal_artifact')) then begin
+      mg_log, 'correcting horizontal artifacts are lines: %s', $
+              strjoin(strtrim(run->epoch('horizontal_artifact_lines'), 2), ', '), $
+              name='kcor/rt', /debug
+      kcor_correct_horizontal_artifact, img, run->epoch('horizontal_artifact_lines')
+    endif
 
     ; get FITS header size
 
@@ -273,7 +280,7 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
 
     ; determine occulter size in pixels
     occulter = strmid(occltrid, 0, 8)
-    occulter = epoch->epoch(occulter)
+    occulter = run->epoch(occulter)
 
     radius_guess = occulter / run->epoch('plate_scale')   ; occulter size [pixels]
 
@@ -439,7 +446,7 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     ; bright sky check
     dobright = 1
     if (dobright gt 0) then begin
-      bmax = run->epoch('bmax' + strtrim(bitpix, 2))
+      bmax = run->epoch('bmax')
       if ((bitpix ne 16) and (bitpix ne 32)) then begin
         mg_log, 'unexpected BITPIX: %d', bitpix, name='kcor/rt', /error
         goto, next
@@ -465,7 +472,7 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     ; saturation check
     chksat = 1
     if (chksat gt 0) then begin
-      smax = run->epoch('smax' + strtrim(bitpix, 2))     ; brightness threshold
+      smax = run->epoch('smax')     ; brightness threshold
       rpixt = run->epoch('rpixt')   ; circle radius [pixels]
 
       dpx   = fix(cos(dp) * rpixt + axcen + 0.5005)
@@ -492,9 +499,9 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     cloud    = 0
     if (chkcloud gt 0) then begin
       ; upper brightness threshold
-      cmax = run->epoch('cmax' + strtrim(bitpix, 2))
+      cmax = run->epoch('cmax')
       ; lower brightness threshold
-      cmin = run->epoch(exposure lt 1.0 ? 'cmin_lt1' : 'cmin_ge1')
+      cmin = run->epoch('cmin')
       rpixc = run->epoch('rpixc') ; circle radius [pixels]
       dpx  = fix(cos(dp) * rpixc + axcen + 0.5005)
       dpy  = fix(sin(dp) * rpixc + aycen + 0.5005)
@@ -529,8 +536,7 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     ; Need to find noise limits that work for 32 bit (float and long) data
     ; For now, skip noise check for 32 bit data
 
-    if (bitpix eq 16) then chknoise = 1
-    if (bitpix eq 32) then chknoise = 0
+    chknoise = run->epoch('check_noise')
 
     noise    = 0
     bad = bright + sat + clo + chi

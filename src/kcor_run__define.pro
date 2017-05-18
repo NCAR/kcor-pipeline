@@ -99,23 +99,18 @@ pro kcor_run::write_epochs, filename, time=time
           self->epoch('produce_calibration', time=time) ? 'YES' : 'NO', $
           format='(%"%-30s : %s")'
 
-  printf, lun, 'bmax16', self->epoch('bmax16', time=time), $
+  printf, lun, 'bmax', self->epoch('bmax', time=time), $
           format='(%"%-30s : %f")'
-  printf, lun, 'smax16', self->epoch('smax16', time=time), $
+  printf, lun, 'smax', self->epoch('smax', time=time), $
           format='(%"%-30s : %f")'
-  printf, lun, 'cmax16', self->epoch('cmax16', time=time), $
+  printf, lun, 'cmax', self->epoch('cmax', time=time), $
           format='(%"%-30s : %f")'
-  printf, lun, 'bmax32', self->epoch('bmax32', time=time), $
+  printf, lun, 'cmin', self->epoch('cmin', time=time), $
           format='(%"%-30s : %f")'
-  printf, lun, 'smax32', self->epoch('smax32', time=time), $
-          format='(%"%-30s : %f")'
-  printf, lun, 'cmax32', self->epoch('cmax32', time=time), $
-          format='(%"%-30s : %f")'
-
-  printf, lun, 'cmin_lt1', self->epoch('cmin_lt1', time=time), $
-          format='(%"%-30s : %f")'
-  printf, lun, 'cmin_ge1', self->epoch('cmin_ge1', time=time), $
-          format='(%"%-30s : %f")'
+  printf, lun, $
+          'check_noise', $
+          self->epoch('check_noise', time=time) ? 'YES' : 'NO', $
+          format='(%"%-30s : %s")'
 
   printf, lun, 'rpixb', self->epoch('rpixb', time=time), $
           format='(%"%-30s : %d")'
@@ -268,6 +263,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            npick=npick, $
                            cal_basedir=cal_basedir, $
                            cal_out_dir=cal_out_dir, $
+                           correct_camera=correct_camera, $
                            camera_correction_dir=camera_correction_dir, $
                            raw_basedir=raw_basedir, $
                            process_basedir=process_basedir, $
@@ -326,8 +322,13 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   if (arg_present(cal_out_dir)) then begin
     cal_out_dir = self.options->get('out_dir', section='calibration')
   endif
+  if (arg_present(correct_camera)) then begin
+    correct_camera = self.options->get('correct_camera', section='calibration', $
+                                       /boolean, default=1B)
+  endif
   if (arg_present(camera_correction_dir)) then begin
-    cal_out_dir = self.options->get('camera_correction_dir', section='calibration')
+    camera_correction_dir = self.options->get('camera_correction_dir', $
+                                              section='calibration')
   endif
 
   ; processing
@@ -497,16 +498,17 @@ function kcor_run::epoch, name, time=time
     'produce_calibration': return, self->_readepoch('produce_calibration', $
                                                     self.date, hst_time, /boolean)
     'OC-991.6': return, self->_readepoch('OC-991.6', self.date, hst_time, type=4)
-    'OC-1006.': return, self->_readepoch('OC-1006.9', self.date, hst_time, type=4)
-    'OC-1018.': return, self->_readepoch('OC-1018.9', self.date, hst_time, type=4)
+    'OC-1006.': return, self->_readepoch('OC-1006.', self.date, hst_time, type=4)
+    'OC-1018.': return, self->_readepoch('OC-1018.', self.date, hst_time, type=4)
     'bmax': return, self->_readepoch('bmax', self.date, hst_time, type=4)
     'smax': return, self->_readepoch('smax', self.date, hst_time, type=4)
     'cmax': return, self->_readepoch('cmax', self.date, hst_time, type=4)
-    'cmin_lt1': return, self->_readepoch('cmin_lt1', self.date, hst_time, type=4)
-    'cmin_ge1': return, self->_readepoch('cmin_ge1', self.date, hst_time, type=4)
+    'cmin': return, self->_readepoch('cmin', self.date, hst_time, type=4)
+    'check_noise': return, self->_readepoch('check_noise', self.date, hst_time, /boolean)
     'rpixb': return, self->_readepoch('rpixb', self.date, hst_time, type=3)
     'rpixt': return, self->_readepoch('rpixt', self.date, hst_time, type=3)
     'rpixc': return, self->_readepoch('rpixc', self.date, hst_time, type=3)
+    else: mg_log, 'epoch value %s not found', name, name=self.mode, /error
   endcase
 end
 
@@ -536,11 +538,12 @@ end
 ;-
 function kcor_run::init, date, config_filename=config_filename
   compile_opt strictarr
+  on_error, 2
 
   self.date = date
   self.pipe_dir = file_expand_path(filepath('..', root=mg_src_root()))
 
-  if (~file_test(config_filename)) then return, 0
+  if (~file_test(config_filename)) then message, config_filename + ' not found'
   self.options = mg_read_config(config_filename)
   self.epochs = mg_read_config(filepath('epochs.cfg', root=mg_src_root()))
 

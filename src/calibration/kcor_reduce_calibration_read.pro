@@ -48,7 +48,7 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
     if (~file_test(filenames[f], /regular)) then filenames[f] += '.gz'
 
     thisdata = readfits(filenames[f], header, /silent)
-    thisdata = kcor_correct_camera(thisdata, header, run=run)
+    if (run.correct_camera) then kcor_correct_camera, thisdata, header, run=run
 
     if (run->epoch('remove_horizontal_artifact')) then begin
       mg_log, 'correcting horizontal artifacts are lines: %s', $
