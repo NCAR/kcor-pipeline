@@ -142,7 +142,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       nrgf_filename = base + '_l1_nrgf.fts.gz'
       if (file_test(nrgf_filename)) then begin
         printf, ok_rg_lun, nrgf_filename
-        nrgf_basenames->append, base
+        nrgf_basenames->add, base
       endif
 
       if (run.distribute) then begin
