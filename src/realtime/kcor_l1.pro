@@ -730,7 +730,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
             name='kcor/rt', /debug
 
     if (run->epoch('remove_horizontal_artifact')) then begin
-      mg_log, 'correcting horizontal artifacts are lines: %s', $
+      mg_log, 'correcting horizontal artifacts at lines: %s', $
               strjoin(strtrim(run->epoch('horizontal_artifact_lines'), 2), ', '), $
               name='kcor/rt', /debug
       kcor_correct_horizontal_artifact, img, run->epoch('horizontal_artifact_lines')

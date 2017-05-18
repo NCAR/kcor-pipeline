@@ -51,7 +51,7 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
     if (run.correct_camera) then kcor_correct_camera, thisdata, header, run=run
 
     if (run->epoch('remove_horizontal_artifact')) then begin
-      mg_log, 'correcting horizontal artifacts are lines: %s', $
+      mg_log, 'correcting horizontal artifacts at lines: %s', $
               strjoin(strtrim(run->epoch('horizontal_artifact_lines'), 2), ', '), $
               name='kcor/cal', /debug
       kcor_correct_horizontal_artifact, thisdata, run->epoch('horizontal_artifact_lines')
