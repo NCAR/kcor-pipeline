@@ -68,6 +68,13 @@ pro kcor_run::write_epochs, filename, time=time
           'calversion', self->epoch('calversion', time=time), $
           format='(%"%-30s : %s")'
   printf, lun, $
+          'use_camera_pregix', $
+          self->epoch('use_camera_prefix', time=time) ? 'YES' : 'NO', $
+          format='(%"%-30s : %s")'
+  printf, lun, $
+          'camera_prefix', self->epoch('camera_prefix', time=time), $
+          format='(%"%-30s : %s")'
+  printf, lun, $
           'camera_lut_date', self->epoch('camera_lut_date', time=time), $
           format='(%"%-30s : %s")'
   printf, lun, $
@@ -485,6 +492,10 @@ function kcor_run::epoch, name, time=time
     'mk4-opal': return, self->_readepoch('mk4-opal', self.date, hst_time, type=4) 
     'POC-L10P6-10-1': return, self->_readepoch('POC-L10P6-10-1', self.date, hst_time, type=4) 
     'calversion': return, self->_readepoch('calversion', self.date, hst_time, type=7)
+    'use_camera_prefix': return, self->_readepoch('use_camera_prefix', $
+                                                  self.date, hst_time, /boolean)
+    'camera_prefix': return, self->_readepoch('camera_prefix', $
+                                                  self.date, hst_time, type=7)
     'camera_lut_date': return, self->_readepoch('camera_lut_date', $
                                                 self.date, hst_time, type=7)
     'display_min': return, self->_readepoch('display_min', self.date, hst_time, type=4)

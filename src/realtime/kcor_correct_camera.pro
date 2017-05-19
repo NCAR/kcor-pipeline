@@ -16,23 +16,28 @@
 pro kcor_correct_camera, im, header, run=run
   compile_opt strictarr
 
+  im = float(im)
+
+  if (~run.correct_camera) then return
+
   dims = size(im, /dimensions)
   n_polstates = dims[2]
   n_cameras = dims[3]
+
+  ; read the fit paramaters
+  fp = fltarr(1024, 1024, 5, n_cameras)
 
   exposure = sxpar(header, 'EXPTIME')
   tcamid = sxpar(header, 'TCAMID')
   rcamid = sxpar(header, 'RCAMID')
 
-  fp = fltarr(1024, 1024, 5, n_cameras)
+  ; camera calibration filename format
+  fmt = '(%"camera_calibration_%s%s_%07.4f_lut%s.ncdf")'
+  prefix = run->epoch('use_camera_prefix') ? run->epoch('camera_prefix') : ''
 
-  bitpix = sxpar(header, 'BITPIX')
-  numsum = sxpar(header, 'NUMSUM')
-
-  im = float(im) / (2^(bitpix - 9) * numsum - 1L)
-
-  rcam_cor_filename = filepath(string(rcamid, exposure, run->epoch('camera_lut_date'), $
-                                      format='(%"camera_calibration_%s_%07.4f_lut%s.ncdf")'), $
+  rcam_cor_filename = filepath(string(prefix, rcamid, exposure, $
+                                      run->epoch('camera_lut_date'), $
+                                      format=fmt), $
                                root=run.camera_correction_dir)
   if (~file_test(rcam_cor_filename)) then begin
     mg_log, '%s not found', rcam_cor_filename, name='kcor/rt', /error
@@ -40,14 +45,21 @@ pro kcor_correct_camera, im, header, run=run
   endif
   fp[*, *, *, 0] = kcor_read_camera_correction(rcam_cor_filename)
 
-  tcam_cor_filename = filepath(string(tcamid, exposure, run->epoch('camera_lut_date'), $
-                                      format='(%"camera_calibration_%s_%07.4f_lut%s.ncdf")'), $
+  tcam_cor_filename = filepath(string(prefix, tcamid, exposure, $
+                                      run->epoch('camera_lut_date'), $
+                                      format=fmt), $
                                root=run.camera_correction_dir)
   if (~file_test(tcam_cor_filename)) then begin
     mg_log, '%s not found', tcam_cor_filename, name='kcor/rt', /error
     return
   endif
   fp[*, *, *, 1] = kcor_read_camera_correction(tcam_cor_filename)
+
+  ; scale the data to 0..1
+  bitpix = sxpar(header, 'BITPIX')
+  numsum = sxpar(header, 'NUMSUM')
+  scale = 2^(bitpix - 9) * numsum - 1L
+  im /= scale
 
   for p = 0L, n_polstates - 1L do begin
     for c = 0L, n_cameras - 1L do begin
@@ -56,4 +68,7 @@ pro kcor_correct_camera, im, header, run=run
                          + fp[*, *, 3, c] * x^3 + fp[*, *, 4, c] * x^4
     endfor
   endfor
+
+  ; return to original scale
+  im *= scale
 end

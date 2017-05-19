@@ -229,7 +229,7 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
   foreach l0_file, l0_fits_files do begin
     num_img += 1
     img = readfits(l0_file, hdu, /silent)   ; read fits image & header
-    if (run.correct_camera) then kcor_correct_camera, img, hdu, run=run
+    kcor_correct_camera, img, hdu, run=run
     if (run->epoch('remove_horizontal_artifact')) then begin
       mg_log, 'correcting horizontal artifacts at lines: %s', $
               strjoin(strtrim(run->epoch('horizontal_artifact_lines'), 2), ', '), $
