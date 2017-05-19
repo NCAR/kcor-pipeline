@@ -508,7 +508,7 @@ function kcor_run::epoch, name, time=time
     'rpixb': return, self->_readepoch('rpixb', self.date, hst_time, type=3)
     'rpixt': return, self->_readepoch('rpixt', self.date, hst_time, type=3)
     'rpixc': return, self->_readepoch('rpixc', self.date, hst_time, type=3)
-    else: mg_log, 'epoch value %s not found', name, name=self.mode, /error
+    else: mg_log, 'epoch value %s not found', name, name='kcor/' + self.mode, /error
   endcase
 end
 

@@ -279,8 +279,15 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     occltrid = sxpar(hdu, 'OCCLTRID', count=qoccltrid)
 
     ; determine occulter size in pixels
-    occulter = strmid(occltrid, 0, 8)
-    occulter = run->epoch(occulter)
+    ; find size of occulter
+    ;   - one occulter has 4 digits; other two have 5
+    ;   - only read in 4 digits to avoid confusion
+    if (run->epoch('use_default_occulter_size')) then begin
+      occulter = run->epoch('default_occulter_size')
+    endif else begin
+      occulter = strmid(occltrid, 0, 8)
+      occulter = run->epoch(occulter)
+    endelse
 
     radius_guess = occulter / run->epoch('plate_scale')   ; occulter size [pixels]
 
