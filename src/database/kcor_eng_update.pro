@@ -62,7 +62,8 @@ pro kcor_eng_update, date, nrgf_files, $
   day     = strmid(date, 6, 2)   ; DD
 
   for f = 0L, n_elements(nrgf_files) - 1L do begin
-    l1_filename = strmid(nrgf_files[f], 0, 20) + '_l1.fts'
+    l1_filename = strmid(nrgf_files[f], 0, 20) + '_l1.fts.gz'
+
     mg_log, 'updating db for %s', l1_filename, name='kcor/eod', /info
     db->execute, 'UPDATE kcor_eng SET l0inthorizmeancam0=''%d'',l0inthorizmeancam1=''%d'', l0inthorizmediancam0=''%d'', l0inthorizmediancam1=''%d'', l0intazimeancam0=''%d'',l0intazimeancam1=''%d'', l0intazimediancam0=''%d'', l0intazimediancam1=''%d'' WHERE file_name=''%s''', $
                  line_means[0, f], line_means[1, f], $

@@ -69,6 +69,8 @@ pro kcor_sci_insert, date, files, $
   theta = findgen(360) * !dtor
 
   for f = 0L, n_elements(files) - 1L do begin
+    if (~file_test(files[f])) then files[f] += '.gz'
+
     if (~file_test(files[f])) then begin
       mg_log, '%s not found', files[f], name='kcor/eod', /warn
       continue
