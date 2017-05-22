@@ -40,12 +40,10 @@
 ; :Keywords:
 ;   append : in, optional, type=boolean
 ;     if set, append log information to existing log file
-;   gif : in, optional, type=boolean
-;     if set, produce raw GIF images
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;-
-function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
+function kcor_quality, date, l0_fits_files, append=append, run=run
   compile_opt strictarr
 
   ; store initial system time
@@ -114,22 +112,6 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
   file_mkdir, q_dir
   file_mkdir, cdate_dir
 
-  if (keyword_set(gif)) then begin
-    file_mkdir, q_dir_ok
-    file_mkdir, q_dir_bad
-    file_mkdir, q_dir_brt
-    file_mkdir, q_dir_cal
-    file_mkdir, q_dir_cld
-    file_mkdir, q_dir_dim
-    file_mkdir, q_dir_dev
-    file_mkdir, q_dir_nsy
-    file_mkdir, q_dir_sat
-
-    ;file_mkdir, q_dir_unk
-    ;file_mkdir, q_dir_eng
-    ;file_mkdir, q_dir_ugly
-  endif
-
   ; move to 'date' directory
   cd, current=start_dir   ; save current directory
   cd, date_dir            ; move to date directory
@@ -164,17 +146,6 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
 
   ; print information
   mg_log, 'checking quality for %s', date, name='kcor/rt', /info
-
-  if (keyword_set(gif)) then begin
-    mg_log, 'q_dir_ok: %s', q_dir_ok, name='kcor/rt', /debug
-    mg_log, 'q_dir_bad: %s', q_dir_bad, name='kcor/rt', /debug
-    mg_log, 'q_dir_brt: %s', q_dir_brt, name='kcor/rt', /debug
-    mg_log, 'q_dir_cal: %s', q_dir_cal, name='kcor/rt', /debug
-    mg_log, 'q_dir_cld: %s', q_dir_cld, name='kcor/rt', /debug
-    mg_log, 'q_dir_dim: %s', q_dir_dim, name='kcor/rt', /debug
-    mg_log, 'q_dir_nsy: %s', q_dir_nsy, name='kcor/rt', /debug
-    mg_log, 'q_dir_sat: %s', q_dir_sat, name='kcor/rt', /debug
-  endif
 
   ; initialize count variables
   nokf = 0
@@ -340,7 +311,7 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     pangle += 180.0   ; adjust orientation for Kcor telescope
 
     ; verify that image size agrees with FITS header information
-    if (nelem ne np)   then begin
+    if (nelem ne np) then begin
       mg_log, 'nelem: %d, ne np: %d', nelem, np, name='kcor/rt', /warn
       continue
     endif
@@ -429,7 +400,7 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
       xcen = axcen - 4
       ycen = aycen - 4
       rdisc_pix = radius_guess
-    end else begin   ; locate disc center
+    endif else begin   ; locate disc center
       center_info = kcor_find_image(img00, radius_guess, chisq=chisq, $
                                     /center_guess, log_name='kcor/rt')
       xcen = center_info[0]        ; x offset
@@ -605,12 +576,12 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
 
     if (cal gt 0 or dev gt 0) then begin
       pb0m = pb0rot
-    end else if (nx ne xdim or ny ne ydim) then begin
+    endif else if (nx ne xdim or ny ne ydim) then begin
       mg_log, 'image dimensions incompatible with mask: %d, %d, %d, %d', $
               nx, ny, xdim, ydim, name='kcor/rt', /warn
       pb0m = pb0rot 
     endif else begin
-    pb0m = pb0rot * mask 
+      pb0m = pb0rot * mask 
     endelse
 
     ; intensity scaling
@@ -624,9 +595,6 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
 
     ; imin = 10
     ; imax = 3000 ^ power
-
-    ; print,        'imin/imax: ', imin, imax
-    ; printf, ulog, 'imin/imax: ', imin, imax
 
     ; scale pixel intensities
 
@@ -643,8 +611,6 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     rsunpix = rsun / run->epoch('plate_scale')   ; 1.0 rsun [pixels]
     irsunpix = fix(rsunpix + 0.5)      ; 1.0 rsun [integer pixels]
 
-    ; print, 'rdisc_pix, rsunpix: ', rdisc_pix, rsunpix
-
     ; Annotate image
     ; Skip annotation (except file name) for calibration images
 
@@ -658,8 +624,9 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
       plots, [ixcen - 5, ixcen + 5], [iycen, iycen], color=yellow, /device
       plots, [ixcen, ixcen], [iycen - 5, iycen + 5], color=yellow, /device
 
-      if (dev eq 0) then $
+      if (dev eq 0) then begin
         xyouts, 490, 1010, 'NORTH', color=green, charsize=1.0, /device
+      endif
     endif
 
     ; create GIF file name, draw circle (as needed)
@@ -667,83 +634,65 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     gif_file = 'kcor.gif'   ; default gif file name
     qual     = 'unk'
 
-    ;  xyouts, 4, ydim-20, gif_file, color=red, charsize=1.5, /device
-    ;  save = tvrd()
-
     ; write GIF image
 
-    ; IF (eng GT 0) THEN begin   ; Engineering
-    ;    gif_file = strmid (l0_file, 0, fitsloc) + '_e.gif' 
-    ;    gif_path = q_dir_eng + gif_file
-    ; END ELSE $
-
-    if (cal gt 0) then begin   ; calibration
+    if (eng gt 0) then begin   ; engineering
+      gif_file = strmid(l0_file, 0, fitsloc) + '_e.gif' 
+    endif else if (cal gt 0) then begin   ; calibration
       gif_file = strmid(l0_file, 0, fitsloc) + '_c.gif' 
-      gif_path = q_dir_cal + gif_file
       qual = q_cal
       ncal += 1
       printf, ucal, l0_file
-      ; printf, ulog, l0_file, ' --> ', cdate_dir
       file_copy, l0_file, cdate_dir, /overwrite   ; copy l0 file to cdate_dir.
     endif else if (dev gt 0) then begin   ; device obscuration
       gif_file = strmid(l0_file, 0, fitsloc) + '_m.gif' 
-      gif_path = q_dir_dev + gif_file
       qual = q_dev
       ndev += 1
       printf, udev, l0_file
     endif else if (bright gt 0) then begin   ; bright image
       tvcircle, rpixb, axcen, aycen, red, /device   ; bright circle
       gif_file = strmid(l0_file, 0, fitsloc) + '_b.gif' 
-      gif_path = q_dir_brt + gif_file
       qual = q_brt
       nbrt += 1
       printf, ubrt, l0_file
-    endif else if (clo    gt 0) then begin   ; dim image
+    endif else if (clo gt 0) then begin   ; dim image
       tvcircle, rpixc, axcen, aycen, green,  /device   ; cloud circle
       gif_file = strmid(l0_file, 0, fitsloc) + '_d.gif'
-      gif_path = q_dir_dim + gif_file
       qual = q_dim
       ndim += 1
       printf, udim, l0_file
-    endif else if (chi    gt 0) then begin   ; cloudy image
+    endif else if (chi gt 0) then begin   ; cloudy image
       tvcircle, rpixc, axcen, aycen, green,  /device   ; cloud circle
       gif_file = strmid(l0_file, 0, fitsloc) + '_o.gif' 
-      gif_path = q_dir_cld + gif_file
       qual = q_cld
       ncld += 1
       printf, ucld, l0_file
-    endif else  if (sat    gt 0) then begin   ; saturation
+    endif else  if (sat gt 0) then begin   ; saturation
       tvcircle, rpixt, axcen, aycen, blue, /device   ; sat circle
       gif_file = strmid(l0_file, 0, fitsloc) + '_t.gif' 
-      gif_path = q_dir_sat + gif_file
       qual = q_sat
       nsat += 1
       printf, usat, l0_file
     endif else if (noise gt 0) then begin   ; noisy
       tvcircle, rpixn, axcen, aycen, yellow, /device   ; noise circle
       gif_file = strmid (l0_file, 0, fitsloc) + '_n.gif' 
-      gif_path = q_dir_nsy + gif_file
       qual = q_nsy
       nnsy += 1
       printf, unsy, l0_file
     endif else begin   ; good image
-      gif_file = strmid (l0_file, 0, fitsloc) + '_g.gif'
-      gif_path = q_dir_ok + gif_file
+      gif_file = strmid(l0_file, 0, fitsloc) + '_g.gif'
       qual = q_ok
       nokf += 1
       printf, uokf, file_basename(l0_file)
       printf, uoka, file_basename(l0_file)
     endelse
 
-    ; write GIF file
-    if (keyword_set(gif)) then begin
-      xyouts, 4, ydim-20, gif_file, color=red, charsize=1.5, /device
-      save = tvrd()
-      write_gif, gif_path, save, rlut, glut, blut
+    gif_path = filepath('quicklook', subdir='level0', root=date_dir)
 
-      ; print,        'gif_file: ', gif_file
-      ; printf, ulog, 'gif_file: ', gif_file
-    endif
+    ; write GIF file
+    xyouts, 4, ydim-20, gif_file, color=red, charsize=1.5, /device
+    save = tvrd()
+    write_gif, gif_path, save, rlut, glut, blut
 
     istring     = string(format='(i5)',   num_img)
     exptime_str = string(format='(f5.2)', exptime)
