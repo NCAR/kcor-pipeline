@@ -687,7 +687,7 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
       printf, uoka, file_basename(l0_file)
     endelse
 
-    gif_path = filepath('quicklook', subdir='level0', root=date_dir)
+    gif_path = filepath(gif_file, subdir=['level0', 'quicklook'], root=date_dir)
 
     ; write GIF file
     xyouts, 4, ydim-20, gif_file, color=red, charsize=1.5, /device
