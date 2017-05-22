@@ -168,11 +168,20 @@ pro kcor_eng_insert, date, fits_list, $
     level_num = level_results.level_id	
 		
     ; DB insert command
-    db->execute, 'INSERT INTO kcor_eng (file_name, date_obs, obs_day, rcamfocs, tcamfocs, modltrt, o1focs, kcor_sgsdimv, kcor_sgsdims, level, bunit, bzero, bscale, rcamxcen, rcamycen, tcamxcen, tcamycen, rcam_rad, tcam_rad, mean_phase1, cover, darkshut, diffuser, calpol) VALUES (''%s'', ''%s'', %d, %f, %f, %f, %f, %s, %s, %d, ''%s'', %d, %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', ''%s'', ''%s'', ''%s'') ', $
-                 fits_file, date_obs, obsday_index, rcamfocs, tcamfocs, $
-                 modltrt, o1focs, sgsdimv_str, sgsdims_str, level_num, bunit, bzero, $
-                 bscale, rcamxcen, rcamycen, tcamxcen, tcamycen, rcam_rad, $
-                 tcam_rad, mean_phase1[i - n_nrgf], cover, darkshut, diffuser, calpol, $
+    db->execute, 'INSERT INTO kcor_eng (file_name, date_obs, obs_day, rcamfocs, tcamfocs, modltrt, o1focs, kcor_sgsdimv, kcor_sgsdims, level, bunit, bzero, bscale, rcamxcen, rcamycen, tcamxcen, tcamycen, rcam_rad, tcam_rad, mean_phase1, cover, darkshut, diffuser, calpol) VALUES (''%s'', ''%s'', %d, %s, %s, %s, %s, %s, %s, %d, ''%s'', %d, %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', ''%s'', ''%s'', ''%s'') ', $
+                 fits_file, date_obs, obsday_index, kcor_fitsfloat2db(rcamfocs), $
+                 kcor_fitsfloat2db(tcamfocs), $
+                 kcor_fitsfloat2db(modltrt), kcor_fitsfloat2db(o1focs), $
+                 sgsdimv_str, sgsdims_str, level_num, bunit, bzero, $
+                 kcor_fitsfloat2db(bscale), $
+                 kcor_fitsfloat2db(rcamxcen), $
+                 kcor_fitsfloat2db(rcamycen), $
+                 kcor_fitsfloat2db(tcamxcen), $
+                 kcor_fitsfloat2db(tcamycen), $
+                 kcor_fitsfloat2db(rcam_rad), $
+                 kcor_fitsfloat2db(tcam_rad), $
+                 kcor_fitsfloat2db(mean_phase1[i - n_nrgf]), $
+                 cover, darkshut, diffuser, calpol, $
                  status=status, error_message=error_message, sql_statement=sql_cmd
     if (status ne 0L) then begin
       mg_log, 'error inserting into kcor_eng table', name='kcor/rt', /error
