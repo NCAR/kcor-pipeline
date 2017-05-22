@@ -639,58 +639,60 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
 
     ; write GIF image
 
+    l0_basename = file_basename(l0_file)
+
     if (eng gt 0) then begin   ; engineering
-      gif_file = strmid(l0_file, 0, fitsloc) + '_e.gif' 
+      gif_file = strmid(l0_basename, 0, fitsloc) + '_e.gif' 
     endif else if (cal gt 0) then begin   ; calibration
-      gif_file = strmid(l0_file, 0, fitsloc) + '_c.gif' 
+      gif_file = strmid(l0_basename, 0, fitsloc) + '_c.gif' 
       qual = q_cal
       ncal += 1
       printf, ucal, l0_file
-      file_copy, l0_file, cdate_dir, /overwrite   ; copy l0 file to cdate_dir.
+      file_copy, l0_file, cdate_dir, /overwrite   ; copy l0 file to cdate_dir
     endif else if (dev gt 0) then begin   ; device obscuration
-      gif_file = strmid(l0_file, 0, fitsloc) + '_m.gif' 
+      gif_file = strmid(l0_basename, 0, fitsloc) + '_m.gif' 
       qual = q_dev
       ndev += 1
       printf, udev, l0_file
     endif else if (bright gt 0) then begin   ; bright image
       tvcircle, rpixb, axcen, aycen, red, /device   ; bright circle
-      gif_file = strmid(l0_file, 0, fitsloc) + '_b.gif' 
+      gif_file = strmid(l0_basename, 0, fitsloc) + '_b.gif' 
       qual = q_brt
       nbrt += 1
       printf, ubrt, l0_file
     endif else if (clo gt 0) then begin   ; dim image
       tvcircle, rpixc, axcen, aycen, green,  /device   ; cloud circle
-      gif_file = strmid(l0_file, 0, fitsloc) + '_d.gif'
+      gif_file = strmid(l0_basename, 0, fitsloc) + '_d.gif'
       qual = q_dim
       ndim += 1
       printf, udim, l0_file
     endif else if (chi gt 0) then begin   ; cloudy image
       tvcircle, rpixc, axcen, aycen, green,  /device   ; cloud circle
-      gif_file = strmid(l0_file, 0, fitsloc) + '_o.gif' 
+      gif_file = strmid(l0_basename, 0, fitsloc) + '_o.gif' 
       qual = q_cld
       ncld += 1
       printf, ucld, l0_file
     endif else  if (sat gt 0) then begin   ; saturation
       tvcircle, rpixt, axcen, aycen, blue, /device   ; sat circle
-      gif_file = strmid(l0_file, 0, fitsloc) + '_t.gif' 
+      gif_file = strmid(l0_basename, 0, fitsloc) + '_t.gif' 
       qual = q_sat
       nsat += 1
       printf, usat, l0_file
     endif else if (noise gt 0) then begin   ; noisy
       tvcircle, rpixn, axcen, aycen, yellow, /device   ; noise circle
-      gif_file = strmid (l0_file, 0, fitsloc) + '_n.gif' 
+      gif_file = strmid (l0_basename, 0, fitsloc) + '_n.gif' 
       qual = q_nsy
       nnsy += 1
       printf, unsy, l0_file
     endif else begin   ; good image
-      gif_file = strmid(l0_file, 0, fitsloc) + '_g.gif'
+      gif_file = strmid(l0_basename, 0, fitsloc) + '_g.gif'
       qual = q_ok
       nokf += 1
       printf, uokf, file_basename(l0_file)
       printf, uoka, file_basename(l0_file)
     endelse
 
-    gif_path = filepath(gif_file, subdir=['level0', 'quicklook'], root=date_dir)
+    gif_path = filepath(gif_file, root=quicklook_dir)
 
     ; write GIF file
     xyouts, 4, ydim-20, gif_file, color=red, charsize=1.5, /device
