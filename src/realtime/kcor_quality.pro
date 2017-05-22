@@ -196,6 +196,9 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
   l0_file = ''
   num_img = 0
 
+  quicklook_dir = filepath('', subdir=['level0', 'quicklook'], root=date_dir)
+  if (~file_test(quicklook_dir, /directory)) then file_mkdir, quicklook_dir
+
   ; image file loop
   foreach l0_file, l0_fits_files do begin
     num_img += 1
