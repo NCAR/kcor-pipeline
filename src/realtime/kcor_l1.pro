@@ -369,6 +369,14 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
   ; image file loop
   fnum = 0
   foreach l0_file, ok_files do begin
+    catch, error_status
+    if (error_status ne 0L) then begin
+      mg_log, 'error processing %s, skipping', file_basename(l0_file), $
+              name='kcor/rt', /error
+      mg_log, /last_error, name='kcor/rt', /error
+      continue
+    endif
+
     fnum += 1
     lclock = tic('Loop_' + strtrim(fnum, 2))
 
