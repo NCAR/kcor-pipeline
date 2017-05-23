@@ -103,7 +103,6 @@ pro mlso_sgs_insert, date, fits_list, $
 
     date_obs  = sxpar(hdu, 'DATE-OBS', count=qdate_obs)
 
-
     sgsdimv_str  = kcor_getsgs(hdu, 'SGSDIMV')
     sgsdims_str  = kcor_getsgs(hdu, 'SGSDIMS')
     sgssumv_str  = kcor_getsgs(hdu, 'SGSSUMV')

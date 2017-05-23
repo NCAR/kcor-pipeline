@@ -203,13 +203,6 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
   foreach l0_file, l0_fits_files do begin
     num_img += 1
     img = readfits(l0_file, hdu, /silent)   ; read fits image & header
-    kcor_correct_camera, img, hdu, run=run
-    if (run->epoch('remove_horizontal_artifact')) then begin
-      mg_log, 'correcting horizontal artifacts at lines: %s', $
-              strjoin(strtrim(run->epoch('horizontal_artifact_lines'), 2), ', '), $
-              name='kcor/rt', /debug
-      kcor_correct_horizontal_artifact, img, run->epoch('horizontal_artifact_lines')
-    endif
 
     ; get FITS header size
 
@@ -264,6 +257,16 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
     endelse
 
     radius_guess = occulter / run->epoch('plate_scale')   ; occulter size [pixels]
+
+    kcor_correct_camera, img, hdu, run=run
+    if (run->epoch('remove_horizontal_artifact')) then begin
+      mg_log, 'correcting horizontal artifacts at lines: %s', $
+              strjoin(strtrim(run->epoch('horizontal_artifact_lines'), 2), ', '), $
+              name='kcor/rt', /debug
+      kcor_correct_horizontal_artifact, img, run->epoch('horizontal_artifact_lines')
+    endif
+
+; TODO: flat/dark correct
 
     ; define variables for azimuthal angle "scans"
     nray  = 36
@@ -355,7 +358,7 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
     endif
 
     ; check calpol position
-    if (calpol  ne 'out') then begin
+    if (calpol ne 'out') then begin
       dev  += 1
       calp += 1
     endif
@@ -367,7 +370,7 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
     endif
 
     ; check cover position
-    if (cover    ne 'out') then begin
+    if (cover ne 'out') then begin
       dev += 1
       cov += 1
     endif
@@ -588,25 +591,17 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
     endelse
 
     ; intensity scaling
-    power = 0.9
-    power = 0.8
     power = 0.5
     pb0s = pb0m ^ power   ; apply exponential power
 
     imin = min(pb0s)
     imax = max(pb0s)
 
-    ; imin = 10
-    ; imax = 3000 ^ power
+    ; imin = 0.0
+    ; imax = 40.0
 
     ; scale pixel intensities
-
-    ; if ((cal eq 0 and dev eq 0) or (imax gt 250.0)) then $
-    ;    pb0sb = bytscl(pb0s, min=imin, max=imax, top=250) $;linear scaling:0-250
-    ; else $
-    ;    pb0sb = byte(pb0s)
-
-    pb0sb = bytscl(pb0s, min=imin, max=imax, top=250)   ; linear scaling:0-250
+    pb0sb = bytscl(pb0s, min=imin, max=imax, top=250)   ; linear scaling: 0-250
 
     ; display image
     tv, pb0sb
@@ -695,7 +690,7 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
     gif_path = filepath(gif_file, root=quicklook_dir)
 
     ; write GIF file
-    xyouts, 4, ydim-20, gif_file, color=red, charsize=1.5, /device
+    xyouts, 6, ydim-20, gif_file, color=white, charsize=1.0, /device
     save = tvrd()
     write_gif, gif_path, save, rlut, glut, blut
 

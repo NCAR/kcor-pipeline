@@ -11,14 +11,15 @@
 ;     code repo revision value, such as '8207' or 'afc6d0'
 ;   branch : out, optional, type=string
 ;     current branch, such as 'master', 'production', etc.
-;   run : in, required, type=object
-;     `kcor_run` object
+;   date : out, optional, type=string
+;     date for last commit
 ;-
-function kcor_find_code_version, revision=revision, branch=branch, run=run
+function kcor_find_code_version, revision=revision, branch=branch, date=date
   compile_opt strictarr
 
   if (arg_present(revision)) then revision = '${GIT_REVISION}'
   if (arg_present(branch)) then branch = '${GIT_BRANCH}'
+  if (arg_present(date)) then date = '${GIT_SHORTDATE}'
 
   return, '${VERSION}'
 end

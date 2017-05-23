@@ -468,7 +468,6 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
             name='kcor/rt', /info
 
     img = readfits(l0_file, header, /silent)
-    kcor_correct_camera, img, header, run=run
 
     type = ''
     type = fxpar(header, 'DATATYPE')
@@ -579,6 +578,9 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     occulter = kcor_get_occulter_size(struct.occltrid, run=run)  ; arcsec
     radius_guess = occulter / run->epoch('plate_scale')          ; pixels
 
+    ; correct camera nonlinearity
+    kcor_correct_camera, img, header, run=run
+
     ; find image centers & radii of raw images
 
     ; camera 0 (reflected)
@@ -661,7 +663,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     endif
 
     ; camera 1
-    replace = where(rr1 gt radius_1 -4. and grr1 le info_gain1[2] + 4.0, nrep)
+    replace = where(rr1 gt radius_1 - 4.0 and grr1 le info_gain1[2] + 4.0, nrep)
     if (nrep gt 0) then begin
       gain_temp = gain_alfred[*, *, 1]
       gain_replace = shift(gain_alfred[*, *, 1], $
@@ -1070,7 +1072,6 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     check_01id     = tag_exist(struct, '01ID')
     check_lyotstop = tag_exist(struct, 'LYOTSTOP')
 
-    ; TODO: use this in MLSO_SGS_INSERT
     ; clean bad SGS information
     bad_dimv = struct.sgsdimv lt 1.0 or struct.sgsdimv gt 10.0
     bad_scint = struct.sgsscint lt 0.0 or struct.sgsscint gt 20.0
@@ -1090,7 +1091,6 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     struct.sgsloop = 1   ; SGSLOOP is 1 if image passed quality check
 
     bscale = 0.001   ; pB * 1000 is stored in FITS image.
-    bunit  = 'quasi-pB'
     img_quality = 'ok'
     newheader    = strarr(200)
     newheader[0] = header[0]         ; contains SIMPLE keyword
@@ -1152,21 +1152,31 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     ;                      ' Level 1 software'
 
     fxaddpar, newheader, 'DATE_DP', date_dp, ' L1 processing date (UTC)'
-    fxaddpar, newheader, 'DPSWID',  'kcorl1.pro 14dec2015', $
-                         ' L1 data processing software'
+    version = kcor_find_code_version(revision=revision, date=code_date)
+
+    fxaddpar, newheader, 'DPSWID',  $
+                         string(version, revision, $
+                                format='(%"%s [%s]")'), $
+                         string(code_date, $
+                                format='(%" L1 data processing software (%s)")')
 
     fxaddpar, newheader, 'CALFILE', run->epoch('cal_file'), $
                          ' calibration file'
     ;                        ' calibration file:dark, opal, 4 pol.states'
     fxaddpar, newheader, 'DISTORT', run->epoch('distortion_correction_filename'), $
                          ' distortion file'
-    fxaddpar, newheader, 'DMODSWID', '18 Aug 2014', $
+    fxaddpar, newheader, 'DMODSWID', '2016-05-26', $
                          ' date of demodulation software'
     fxaddpar, newheader, 'OBSSWID', struct.obsswid, $
                          ' version of the observing software'
 
-    fxaddpar, newheader, 'BUNIT', bunit, $
-                         ' note: Level-1 intensities are quasi-pB.'
+    fxaddpar, newheader, 'BUNIT', '10e-6 Bsun', $
+                         ' Brightness with respect to solar disc.'
+    fxaddpar, newheader, 'BOPAL', $
+                         string(run->epoch(struct.diffsrid), $
+                                format='(%"%se-6")'), $
+                         string(run->epoch(run->epoch(struct.diffsrid)), $
+                                format='(%" %s")')
 
     fxaddpar, newheader, 'BZERO', struct.bzero, $
                          ' offset for unsigned integer data'
@@ -1388,10 +1398,6 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     ;----------------------------------------------------------------------------
     ; For FULLY CALIBRATED DATA:  Add these when ready.
     ;----------------------------------------------------------------------------
-    ;  fxaddpar, newheader, 'BUNIT', '10^-6 Bsun', $
-    ;                       ' Brightness with respect to solar disc.'
-    ;  fxaddpar, newheader, 'BOPAL', '1.38e-05', $
-    ;                       ' Opal Transmission Calibration by Elmore at 775 nm'
     ; sxaddhist, $
     ; 'Level 2 processing performed: sky polarization removed, alignment to ', $
     ; newheader

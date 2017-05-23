@@ -48,6 +48,11 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
     if (~file_test(filenames[f], /regular)) then filenames[f] += '.gz'
 
     thisdata = readfits(filenames[f], header, /silent)
+
+    ; must set time before querying run object
+    date_obs = sxpar(header, 'DATE-OBS', count=qdate_obs)
+    run.time = date_obs
+
     kcor_correct_camera, thisdata, header, run=run
 
     if (run->epoch('remove_horizontal_artifact')) then begin
