@@ -29,7 +29,7 @@ if (GIT_FOUND)
     OUTPUT_VARIABLE GIT_BRANCH
   )
   execute_process(
-    COMMAND ${GIT_EXECUTABLE) log -1 --pretty=format:%ad --date=short
+    COMMAND ${GIT_EXECUTABLE} log -1 --pretty=format:%ad --date=short
     OUTPUT_STRIP_TRAILING_WHITESPACE
     OUTPUT_VARIABLE GIT_SHORTDATE
   )
