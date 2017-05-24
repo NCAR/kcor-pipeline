@@ -1171,7 +1171,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
                          ' version of the observing software'
 
     fxaddpar, newheader, 'BUNIT', '10e-6 Bsun', $
-                         ' Brightness with respect to solar disc.'
+                         ' Brightness with respect to solar disc'
     fxaddpar, newheader, 'BOPAL', $
                          string(run->epoch(struct.diffsrid), $
                                 format='(%"%se-6")'), $
@@ -1459,7 +1459,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
                       charsize=1.0, alignment=0.5, orientation=90.0, /device
     xyouts, 4, 34, 'Level 1 data', color=255, charsize=1.0, /device
     xyouts, 4, 20, string(run->epoch('display_min'), run->epoch('display_max'), $
-                          format='("min/max: ", f5.2, f3.1)'), $
+                          format='("min/max: ", f5.2, ", ", f3.1)'), $
             color=255, charsize=1.0, /device
     xyouts, 4, 6, string(run->epoch('display_exp'), $
                          format='("scaling: Intensity ^ ", f3.1)'), $
