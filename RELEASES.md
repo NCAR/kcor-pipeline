@@ -17,3 +17,5 @@
   add options for end-of-day actions
 1.1.1 minor fix
   type in end-of-day processing
+1.2.0 camera correction
+  turn off horizontal correction for epoch starting 20170522
