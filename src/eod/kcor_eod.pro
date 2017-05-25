@@ -266,6 +266,9 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     msg = [string(date, $
                   format='(%"KCor end-of-day processing for %s")'), $
            '', $
+           string(version, revision, branch, $
+                  format='(%"kcor-pipeline %s (%s) [%s]")'), $
+           '', $
            string(n_l0_fits_files, $
                   format='(%"number of raw files: %d")'), $
            string(n_ok_files, $
@@ -285,10 +288,16 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
              
     endif
 
+    spawn, 'echo $(whoami)@$(hostname)', who, error_result, exit_status=status
+    if (status eq 0L) then begin
+      who = who[0]
+    endif else begin
+      who = 'unknown'
+    endelse
+
     msg = [msg, '', '', run.config_content, '', '', $
-           string(mg_src_root(/filename), $
-                  getenv('USER'), getenv('HOSTNAME'), $
-                  format='(%"Sent from %s (%s@%s)")')]
+           string(mg_src_root(/filename), who, $
+                  format='(%"Sent from %s (%s)")')]
 
     kcor_send_mail, run.notification_email, $
                     string(date, success ? 'success' : 'problems', $
