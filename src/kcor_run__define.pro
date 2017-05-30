@@ -242,6 +242,7 @@ pro kcor_run::setProperty, time=time, mode=mode
 
   if (n_elements(mode) gt 0L) then begin
     self.mode = mode
+    self.log_name = self.mode eq 'realtime' ? 'kcor/rt' : 'kcor/eod'
   endif
 
   if (n_elements(time) gt 0L) then begin
@@ -253,7 +254,6 @@ pro kcor_run::setProperty, time=time, mode=mode
       second = strmid(time, 17, 2)
       self.time = kcor_ut2hst(hour + minute + second)
     endelse
-    log_name = self.mode eq 'realtime' ? 'kcor/rt' : 'kcor/eod'
   endif
 end
 
@@ -519,7 +519,7 @@ function kcor_run::epoch, name, time=time
     'rpixb': return, self->_readepoch('rpixb', self.date, hst_time, type=3)
     'rpixt': return, self->_readepoch('rpixt', self.date, hst_time, type=3)
     'rpixc': return, self->_readepoch('rpixc', self.date, hst_time, type=3)
-    else: mg_log, 'epoch value %s not found', name, name='kcor/' + self.mode, /error
+    else: mg_log, 'epoch value %s not found', name, name=self.log_name, /error
   endcase
 end
 
@@ -574,6 +574,7 @@ pro kcor_run__define
            date: '', $
            time: '', $   ; UT time
            mode: '', $   ; realtime or eod
+           log_name: '', $
            pipe_dir: '', $
            options: obj_new(), $
            epochs: obj_new()}
