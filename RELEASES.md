@@ -19,3 +19,7 @@
   type in end-of-day processing
 1.2.0 camera correction
   turn off horizontal correction for epoch starting 20170522
+1.2.1 several fixes
+  fix for horizontal correction not being applied
+  better headers
+  better email notications
