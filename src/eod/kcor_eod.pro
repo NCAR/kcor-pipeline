@@ -269,6 +269,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
            string(version, revision, branch, $
                   format='(%"kcor-pipeline %s (%s) [%s]")'), $
            '', $
+           '# Basic statistics', $
+           '', $
            string(n_l0_fits_files, $
                   format='(%"number of raw files: %d")'), $
            string(n_ok_files, $
@@ -295,7 +297,26 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
       who = 'unknown'
     endelse
 
-    msg = [msg, '', '', run.config_content, '', '', $
+    run->getProperty, log_dir=log_dir, date=date
+    eod_logfile = filepath(self.date + '.eod.log', root=log_dir)
+    realtime_logfile = filepath(self.date + '.realtime.log', root=log_dir)
+
+    rt_errors = kcor_filter_log(realtime_logfile, /error, n_messages=n_rt_errors)
+    eod_errors = kcor_filter_log(eod_logfile, /error, n_messages=n_eod_errors)
+
+    if (n_rt_errors gt 0L) then begin
+      msg = [msg, '', '# Realtime log errors', '', rt_errors]
+    endif else begin
+      msg = [msg, '', '# No realtime log errors']
+    endelse
+
+    if (n_eod_errors gt 0L) then begin
+      msg = [msg, '', '# End-of-day log errors', '', rt_errors]
+    endif else begin
+      msg = [msg, '', '# No end-of-day log errors']
+    endelse
+
+    msg = [msg, '', '', '# Config file', '', run.config_content, '', '', $
            string(mg_src_root(/filename), who, $
                   format='(%"Sent from %s (%s)")')]
 
