@@ -581,6 +581,13 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     ; correct camera nonlinearity
     kcor_correct_camera, img, header, run=run
 
+    if (run->epoch('remove_horizontal_artifact')) then begin
+      mg_log, 'correcting horizontal artifacts at lines: %s', $
+              strjoin(strtrim(run->epoch('horizontal_artifact_lines'), 2), ', '), $
+              name='kcor/rt', /debug
+      kcor_correct_horizontal_artifact, img, run->epoch('horizontal_artifact_lines')
+    endif
+
     ; find image centers & radii of raw images
 
     ; camera 0 (reflected)
@@ -726,13 +733,6 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
 
     mg_log, 'elapsed time for demod_matrix: %0.1f sec', demod_time, $
             name='kcor/rt', /debug
-
-    if (run->epoch('remove_horizontal_artifact')) then begin
-      mg_log, 'correcting horizontal artifacts at lines: %s', $
-              strjoin(strtrim(run->epoch('horizontal_artifact_lines'), 2), ', '), $
-              name='kcor/rt', /debug
-      kcor_correct_horizontal_artifact, img, run->epoch('horizontal_artifact_lines')
-    endif
 
     ; apply distortion correction for raw images
     img0 = reform(img[*, *, 0, 0])    ; camera 0 [reflected]
@@ -1173,9 +1173,8 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     fxaddpar, newheader, 'BUNIT', '10e-6 Bsun', $
                          ' Brightness with respect to solar disc'
     fxaddpar, newheader, 'BOPAL', $
-                         string(run->epoch(struct.diffsrid), $
-                                format='(%"%se-6")'), $
-                         string(run->epoch(run->epoch(struct.diffsrid)), $
+                         run->epoch(struct.diffsrid) * 1e-6, $
+                         string(run->epoch(struct.diffsrid + '_comment'), $
                                 format='(%" %s")')
 
     fxaddpar, newheader, 'BZERO', struct.bzero, $
