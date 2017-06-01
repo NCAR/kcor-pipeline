@@ -23,3 +23,5 @@
   fix for horizontal correction not being applied
   better headers
   better email notications
+1.2.2 minor fix
+  typo in end-of-day

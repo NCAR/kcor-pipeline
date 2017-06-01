@@ -298,8 +298,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     endelse
 
     run->getProperty, log_dir=log_dir, date=date
-    eod_logfile = filepath(self.date + '.eod.log', root=log_dir)
-    realtime_logfile = filepath(self.date + '.realtime.log', root=log_dir)
+    eod_logfile = filepath(run.date + '.eod.log', root=log_dir)
+    realtime_logfile = filepath(run.date + '.realtime.log', root=log_dir)
 
     rt_errors = kcor_filter_log(realtime_logfile, /error, n_messages=n_rt_errors)
     eod_errors = kcor_filter_log(eod_logfile, /error, n_messages=n_eod_errors)
