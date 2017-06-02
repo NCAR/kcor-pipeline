@@ -91,6 +91,16 @@ pro kcor_reprocess, date, config_filename=config_filename
   q_dir = filepath('q', subdir=date, root=run.raw_basedir)
   if (file_test(q_dir, /directory)) then file_delete, q_dir, /recursive
 
+  ; remove inventory files in process directory
+  inventory = ['science', 'calibration', 'engineering']
+  for i = 0L, n_elements(inventory) - 1L do begin
+    inventory_filename = filepath(inventory[i] + '_files.txt', subdir=run.date, $
+                                  root=run.process_basedir)
+    mg_log, 'removing inventory file %s', file_basename(inventory_filename), $
+            name='kcor/reprocess', /info
+    file_delete, inventory_filename, /allow_nonexistent
+  endfor
+
   ; clear database for the day
   if (run.update_database) then begin
     mg_log, 'clear database for the day', name='kcor/reprocess', /info
