@@ -16,7 +16,7 @@
   better transmission value for opal
   add options for end-of-day actions
 1.1.1 minor fix
-  type in end-of-day processing
+  typo in end-of-day processing
 1.2.0 camera correction
   turn off horizontal correction for epoch starting 20170522
 1.2.1 several fixes
@@ -24,4 +24,6 @@
   better headers
   better email notications
 1.2.2 minor fix
+  typo in end-of-day
+1.2.3 minor fix
   typo in end-of-day

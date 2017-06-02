@@ -36,7 +36,7 @@ function kcor_filter_log, logfile, $
   compile_opt strictarr
 
   n_messages = 0L
-  if (~file_test(log_file)) then return, !null
+  if (~file_test(logfile)) then return, !null
 
   case 1 of
     n_elements(level) gt 0L: _level = level
