@@ -109,14 +109,22 @@ pro kcor_sci_insert, date, files, $
       intensity_stddev[r] = stddev(image[round(x), round(y)])
     endfor
 
+    x = (rebin(reform(findgen(1024), 1024, 1), 1024, 1024) - cx) / sun_pixels
+    y = (rebin(reform(findgen(1024), 1, 1024), 1024, 1024) - cy) / sun_pixels
+    d = sqrt(x^2 + y^2)
+    annulus = where(d gt 1.1 and d lt 2.0, count)
+
+    total_pb = count eq 0L ? 0.0 : total(image[annulus], /preserve_type)
+
     r108 = kcor_annulus_gridmeans(image, 1.08, sun_pixels)
     r13 = kcor_annulus_gridmeans(image, 1.3, sun_pixels)
     r18 = kcor_annulus_gridmeans(image, 1.8, sun_pixels)
 
-    db->execute, 'INSERT INTO kcor_sci (file_name, date_obs, obs_day, intensity, intensity_stddev, r108, r13, r18) VALUES (''%s'', ''%s'', %d, ''%s'', ''%s'', ''%s'', ''%s'', ''%s'')', $
+    db->execute, 'INSERT INTO kcor_sci (file_name, date_obs, obs_day, totalpB, intensity, intensity_stddev, r108, r13, r18) VALUES (''%s'', ''%s'', %d, %f, ''%s'', ''%s'', ''%s'', ''%s'', ''%s'')', $
                  file_basename(files[f], '.gz'), $
                  date_obs, $
                  obsday_index, $
+                 total_pb, $
                  db->escape_string(intensity), $
                  db->escape_string(intensity_stddev), $
                  db->escape_string(r108), $

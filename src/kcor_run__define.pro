@@ -4,6 +4,55 @@
 ; Class representing a KCor processing run.
 ;-
 
+;+
+; Find a pipeline generated calibration file that is the closest, but not later
+; than given date/time.
+;
+; :Returns:
+;   string, base filename of calibration file or '' for not found
+;
+; :Params:
+;   date : in, required, type=string
+;     date to check for, in the form "YYYYMMDD"
+;   hst_time : in, required, type=string
+;     HST time to check for, in the form "HHMMSS"
+;-
+function kcor_run::_find_calfile, date, hst_time
+  compile_opt strictarr
+
+  re = '([[:digit:]]{8})_([[:digit:]]{6})_kcor_cal.*.\.ncdf'
+  self->getProperty, cal_out_dir=cal_out_dir
+
+  cal_search_spec = filepath('*.ncdf', root=cal_out_dir)
+  calfiles = file_basename(file_search(cal_search_spec, count=n_calfiles))
+
+  now_date = long(kcor_decompose_date(date))
+  now_time = long(kcor_decompose_time(hst_time))
+  ; remember to add 10 hours for HST to UT conversion
+  now = julday(now_date[1], now_date[2], now_date[0], $
+               now_time[0] + 10, now_time[1], now_time[2])
+
+  closest_file = ''
+  time_diff = 1000.0D   ; start with 1000 day old file
+
+  ; loop through files to find closest
+  for c = 0L, n_calfiles - 1L do begin
+    if (stregex(calfiles[c], re, /boolean)) then begin
+      tokens = stregex(calfiles[c], re, /subexpr, /extract)
+      cal_date = long(kcor_decompose_date(tokens[1]))
+      cal_time = long(kcor_decompose_time(tokens[2]))
+      jd = julday(cal_date[1], cal_date[2], cal_date[0], $
+                  cal_time[0], cal_time[1], cal_time[2])
+      if (abs(now - jd) lt time_diff) then begin
+        closest_file = calfiles[c]
+        time_diff = now - jd
+      endif
+    endif
+  endfor
+
+  return, closest_file
+end
+
 
 ;= API
 
@@ -55,6 +104,10 @@ pro kcor_run::write_epochs, filename, time=time
           'cal_file', self->epoch('cal_file', time=time), $
           format='(%"%-30s : %s")'
   printf, lun, $
+          'use_pipeline_calfiles', $
+          self->epoch('use_pipeline_calfiles', time=time) ? 'YES' : 'NO', $
+          format='(%"%-30s : %s")'
+  printf, lun, $
           '01id', self->epoch('01id', time=time), $
           format='(%"%-30s : %s")'
   printf, lun, $
@@ -68,7 +121,7 @@ pro kcor_run::write_epochs, filename, time=time
           'calversion', self->epoch('calversion', time=time), $
           format='(%"%-30s : %s")'
   printf, lun, $
-          'use_camera_pregix', $
+          'use_camera_prefix', $
           self->epoch('use_camera_prefix', time=time) ? 'YES' : 'NO', $
           format='(%"%-30s : %s")'
   printf, lun, $
@@ -481,7 +534,17 @@ function kcor_run::epoch, name, time=time
         return, self->_readepoch('distortion_correction_filename', $
                                  self.date, hst_time, type=7)
       end
-    'cal_file': return, self->_readepoch('cal_file', self.date, hst_time, type=7)
+    'cal_file': begin
+        if (self->_readepoch('use_pipeline_calfiles', self.date, hst_time, /boolean)) then begin
+          calfile = self->_find_calfile(self.date, hst_time)
+          return, calfile eq '' $
+                    ? self->_readepoch('cal_file', self.date, hst_time, type=7) $
+                    : calfile
+        endif else begin
+          return, self->_readepoch('cal_file', self.date, hst_time, type=7)
+        endelse
+      end
+    'use_pipeline_calfiles': return, self->_readepoch('use_pipeline_calfiles', self.date, hst_time, /boolean)
     '01id': return, self->_readepoch('01id', self.date, hst_time, type=7)
     'default_occulter_size' : return, self->_readepoch('default_occulter_size', $
                                                        self.date, hst_time, type=4)
