@@ -30,3 +30,7 @@
 1.2.4 minor fixes
   remove inventory files on reprocessing
   fix for errors listed in email notifications
+1.3.0 several features
+  after 20121204, use pipeline created calibraton files
+  use new distortion file for 20150619 and later
+  add totalpB to science database table
