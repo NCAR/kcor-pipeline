@@ -27,3 +27,6 @@
   typo in end-of-day
 1.2.3 minor fix
   typo in end-of-day
+1.2.4 minor fixes
+  remove inventory files on reprocessing
+  fix for errors listed in email notifications
