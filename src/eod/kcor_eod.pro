@@ -298,20 +298,25 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     endelse
 
     run->getProperty, log_dir=log_dir, date=date
-    eod_logfile = filepath(run.date + '.eod.log', root=log_dir)
+
     realtime_logfile = filepath(run.date + '.realtime.log', root=log_dir)
+    eod_logfile = filepath(run.date + '.eod.log', root=log_dir)
 
     rt_errors = kcor_filter_log(realtime_logfile, /error, n_messages=n_rt_errors)
     eod_errors = kcor_filter_log(eod_logfile, /error, n_messages=n_eod_errors)
 
     if (n_rt_errors gt 0L) then begin
-      msg = [msg, '', '# Realtime log errors', '', rt_errors]
+      msg = [msg, '', $
+             string(n_rt_errors, format='(%"# Realtime log errors (%d errors)")'), $
+             '', rt_errors]
     endif else begin
       msg = [msg, '', '# No realtime log errors']
     endelse
 
     if (n_eod_errors gt 0L) then begin
-      msg = [msg, '', '# End-of-day log errors', '', rt_errors]
+      msg = [msg, '', $
+             string(n_eod_errors, format='(%"# End-of-day log errors (%d errors)")'), $
+             '', eod_errors]
     endif else begin
       msg = [msg, '', '# No end-of-day log errors']
     endelse
@@ -322,7 +327,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
     kcor_send_mail, run.notification_email, $
                     string(date, success ? 'success' : 'problems', $
-                           format='(%"KCor end-of-day processing for %s : %s")'), $
+                           format='(%"KCor end-of-day processing for %s (%s)")'), $
                     msg, $
                     logger_name='kcor/eod'
   endif else begin
