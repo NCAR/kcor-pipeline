@@ -573,6 +573,7 @@ function kcor_run::epoch, name, time=time
                                                           /extract, type=3)
     'produce_calibration': return, self->_readepoch('produce_calibration', $
                                                     self.date, hst_time, /boolean)
+    'OC-1': return, self->_readepoch('OC-1', self.date, hst_time, type=4)
     'OC-991.6': return, self->_readepoch('OC-991.6', self.date, hst_time, type=4)
     'OC-1006.': return, self->_readepoch('OC-1006.', self.date, hst_time, type=4)
     'OC-1018.': return, self->_readepoch('OC-1018.', self.date, hst_time, type=4)

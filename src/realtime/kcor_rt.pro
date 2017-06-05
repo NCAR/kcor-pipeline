@@ -146,6 +146,10 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       endif
 
       if (run.distribute) then begin
+        if (file_test(nrgf_filename)) then begin
+          file_copy, nrgf_filename, archive_dir, /overwrite
+        endif
+
         file_copy, base + '_cropped.gif', croppedgif_dir, /overwrite
         file_copy, base + '.gif', fullres_dir, /overwrite
         file_copy, base + '_l1.fts.gz', archive_dir, /overwrite
