@@ -34,3 +34,6 @@
   after 20121204, use pipeline created calibraton files
   use new distortion file for 20150619 and later
   add totalpB to science database table
+1.3.1 minor fixes
+  fix for distributing NRGF FITS files
+  handle bad occulter IDs in FITS headers better
