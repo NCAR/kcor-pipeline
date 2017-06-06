@@ -335,7 +335,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
   ; get current date & time
   current_time = systime(/utc)
 
-  mg_log, '%s : %s', date_str, current_time, name='kcor/rt', /info
+  mg_log, 'processing %s', date_str, name='kcor/rt', /info
 
   ; check for empty list of OK files
   nfiles = n_elements(ok_files)
@@ -446,33 +446,14 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
 
     ; get current date & time
     current_time = systime(/utc)
-
     bdate   = bin_date(current_time)
-    cyear   = strtrim(string(bdate[0]), 2)
-    cmonth  = strtrim(string(bdate[1]), 2)
-    cday    = strtrim(string(bdate[2]), 2)
-    chour   = strtrim(string(bdate[3]), 2)
-    cminute = strtrim(string(bdate[4]), 2)
-    csecond = strtrim(string(bdate[5]), 2)
-    if (bdate[1] lt 10) then cmonth  = '0' + cmonth
-    if (bdate[2] lt 10) then cday    = '0' + cday
-    if (bdate[3] lt 10) then chour   = '0' + chour
-    if (bdate[4] lt 10) then cminute = '0' + cminute
-    if (bdate[5] lt 10) then csecond = '0' + csecond
-    date_dp = cyear + '-' + cmonth + '-' + cday + 'T' $
-                + chour + ':' + cminute + ':' + csecond
-
-
-    mg_log, 'processing %d/%d: %s', $
-            fnum, nfiles, file_basename(l0_file), $
-            name='kcor/rt', /info
+    date_cp = string(bdate, format='(%"%04d-%02d-%02dT%02d:%02d:%02d")')
 
     img = readfits(l0_file, header, /silent)
-
-    type = ''
     type = fxpar(header, 'DATATYPE')
 
-    mg_log, 'type: %s', strmid(type, 0, 3), $
+    mg_log, 'processing %d/%d: %s (%s)', $
+            fnum, nfiles, file_basename(l0_file), strmid(type, 0, 3), $
             name='kcor/rt', /info
 
     ; read date of observation (needed to compute ephemeris info)
