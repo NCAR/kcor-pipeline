@@ -37,3 +37,5 @@
 1.3.1 minor fixes
   fix for distributing NRGF FITS files
   handle bad occulter IDs in FITS headers better
+1.3.2 minor fix
+  full format for totalpB in kcor_sci
