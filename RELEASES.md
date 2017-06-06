@@ -39,3 +39,5 @@
   handle bad occulter IDs in FITS headers better
 1.3.2 minor fix
   full format for totalpB in kcor_sci
+1.3.3 minor fix
+  find occulter correctly in NRGF routine
