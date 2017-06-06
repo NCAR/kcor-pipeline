@@ -41,3 +41,5 @@
   full format for totalpB in kcor_sci
 1.3.3 minor fix
   find occulter correctly in NRGF routine
+1.3.4 minor fix
+  typo in KCOR_L1 date_dp
