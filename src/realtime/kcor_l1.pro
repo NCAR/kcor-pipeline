@@ -447,7 +447,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     ; get current date & time
     current_time = systime(/utc)
     bdate   = bin_date(current_time)
-    date_cp = string(bdate, format='(%"%04d-%02d-%02dT%02d:%02d:%02d")')
+    date_dp = string(bdate, format='(%"%04d-%02d-%02dT%02d:%02d:%02d")')
 
     img = readfits(l0_file, header, /silent)
     type = fxpar(header, 'DATATYPE')
