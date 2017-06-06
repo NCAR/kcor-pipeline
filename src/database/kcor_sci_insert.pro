@@ -120,7 +120,7 @@ pro kcor_sci_insert, date, files, $
     r13 = kcor_annulus_gridmeans(image, 1.3, sun_pixels)
     r18 = kcor_annulus_gridmeans(image, 1.8, sun_pixels)
 
-    db->execute, 'INSERT INTO kcor_sci (file_name, date_obs, obs_day, totalpB, intensity, intensity_stddev, r108, r13, r18) VALUES (''%s'', ''%s'', %d, %8.3f, ''%s'', ''%s'', ''%s'', ''%s'', ''%s'')', $
+    db->execute, 'INSERT INTO kcor_sci (file_name, date_obs, obs_day, totalpB, intensity, intensity_stddev, r108, r13, r18) VALUES (''%s'', ''%s'', %d, %9.3f, ''%s'', ''%s'', ''%s'', ''%s'', ''%s'')', $
                  file_basename(files[f], '.gz'), $
                  date_obs, $
                  obsday_index, $
