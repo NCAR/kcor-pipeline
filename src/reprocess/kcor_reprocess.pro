@@ -71,25 +71,26 @@ pro kcor_reprocess, date, config_filename=config_filename
     mg_log, 'no log files to move', name='kcor/reprocess', /info
   endelse
 
-  ; TODO: remove entire level1 directory
+  ; remove quicklook dir in level0 dir
+  quicklook_dir = filepath('quicklook', subdir=[date, 'level0'], $
+                           root=run.raw_basedir)
+  mg_log, 'removing level0/quicklook dir', name='kcor/reprocess', /info
+  file_delete, quicklook_dir, /recursive, /allow_nonexistent
+
+  ; remove quicklook dir in level0 dir
+  l1_dir = filepath('level1', subdir=[date], root=run.raw_basedir)
+  mg_log, 'removing level1 dir', name='kcor/reprocess', /info
+  file_delete, l1_dir, /recursive, /allow_nonexistent
+
   ; TODO: remove *kcor* files from archive, movie, fullres, croppedgif, rg dirs
 
-  ; remove level 1 files
-  l1_files = file_search(filepath('*', $
-                                  subdir=[date, 'level1'], $
-                                  root=run.raw_basedir), $
-                         count=n_l1_files)
-  if (n_l1_files gt 0L) then begin
-    mg_log, 'deleting %d level 1 files', n_l1_files, name='kcor/reprocess', /info
-    file_delete, l1_files
-  endif else begin
-    mg_log, 'no level 1 files to delete', name='kcor/reprocess', /info
-  endelse
-
   p_dir = filepath('p', subdir=date, root=run.raw_basedir)
-  if (file_test(p_dir, /directory)) then file_delete, p_dir, /recursive
+  mg_log, 'removing p dir', name='kcor/reprocess', /info
+  file_delete, p_dir, /recursive, /allow_nonexistent
+
   q_dir = filepath('q', subdir=date, root=run.raw_basedir)
-  if (file_test(q_dir, /directory)) then file_delete, q_dir, /recursive
+  mg_log, 'removing q dir', name='kcor/reprocess', /info
+  file_delete, q_dir, /recursive, /allow_nonexistent
 
   ; remove inventory files in process directory
   inventory = ['science', 'calibration', 'engineering']
