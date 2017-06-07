@@ -6,8 +6,11 @@
 ; :Keywords:
 ;   run : in, required, type=object
 ;     `kcor_run` object
+;   reprocess : in, optional, type=boolean
+;     set to indicate a reprocessing; level 0 files are not distributed in a
+;     reprocessing
 ;-
-pro kcor_archive, run=run
+pro kcor_archive, run=run, reprocess=reprocess
   compile_opt strictarr
 
   cd, current=cwd
@@ -95,7 +98,7 @@ pro kcor_archive, run=run
   endif
   file_chmod, tarlist, /a_read, /g_write
 
-  if (run.send_to_hpss) then begin
+  if (run.send_to_hpss && ~keyword_set(reprocess)) then begin
     ; create HPSS gateway directory if needed
     if (~file_test(run.hpss_gateway, /directory)) then begin
       file_mkdir, run.hpss_gateway
