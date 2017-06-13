@@ -12,6 +12,7 @@ install(PROGRAMS
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_reprocess_range.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_reprocess_list.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_env.sh
+	  kcor_log
           kcor_simulate
           kcor_simulate_data
           kcor_simulate_processing
