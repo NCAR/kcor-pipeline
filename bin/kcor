@@ -1,0 +1,44 @@
+#!/usr/bin/env python
+
+import argparse
+import os
+import subprocess
+
+
+if __name__ == '__main__':
+    name = 'Realtime KCor pipeline'
+    parser = argparse.ArgumentParser(description=name)
+
+    config_flags_help = '''FLAGS section of config filename'''
+    parser.add_argument('-f', '--flags', type=str, default='latest', help=config_flags_help)
+
+    date_help = '''dates to run on'''
+    parser.add_argument('dates', type=str, help=date_help)
+
+    #parser.add_argument('--no-eod',
+    #                    action='store_true',
+    #                    help='set to not launch end-of-day processing')
+
+    #parser.add_argument('--reprocess',
+    #                    action='store_true',
+    #                    help='set to reprocess')
+
+    args = parser.parse_args()
+
+    pipeline_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+
+    for d in args.dates.split(','):
+        if d.find('-') < 0:
+            cmd = [os.path.join(pipeline_dir, 'bin', 'runkcor_reprocess.sh'),
+                   d,
+                   args.flags]
+
+            print(' '.join(cmd))
+        else:
+            r = d.split('-')
+
+            cmd = [os.path.join(pipeline_dir, 'bin', 'runkcor_reprocess_range.sh'),
+                   r[0], r[1],
+                   args.flags]
+
+            print(' '.join(cmd))
