@@ -33,7 +33,7 @@ if __name__ == '__main__':
                    d,
                    args.flags]
 
-            print(' '.join(cmd))
+            pid = subprocess.Popen(cmd).pid
         else:
             r = d.split('-')
 
@@ -41,4 +41,4 @@ if __name__ == '__main__':
                    r[0], r[1],
                    args.flags]
 
-            print(' '.join(cmd))
+            pid = subprocess.Popen(cmd).pid
