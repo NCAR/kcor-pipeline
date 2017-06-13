@@ -5,6 +5,40 @@ import os
 import subprocess
 
 
+PIPELINE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+
+
+def calibrate_dates(filelist_filename, dates, flags):
+    cmd = [os.path.join(PIPELINE_DIR, 'bin', 'runkcor_calibrate.sh'),
+           filelist_filename,
+           dates,
+           flags]
+
+    print(' '.join(cmd))
+    #pid = subprocess.Popen(cmd).pid
+
+
+def reprocess_dates(dates, flags):
+    for d in dates.split(','):
+        if d.find('-') < 0:
+            cmd = [os.path.join(PIPELINE_DIR, 'bin', 'runkcor_reprocess.sh'),
+                   d,
+                   flags]
+
+            print(' '.join(cmd))
+            #pid = subprocess.Popen(cmd).pid
+        else:
+            r = d.split('-')
+
+            cmd = [os.path.join(PIPELINE_DIR, 'bin', 'runkcor_reprocess_range.sh'),
+                   r[0], r[1],
+                   flags]
+
+            print(' '.join(cmd))
+            #pid = subprocess.Popen(cmd).pid
+
+
+
 if __name__ == '__main__':
     name = 'Realtime KCor pipeline'
     parser = argparse.ArgumentParser(description=name)
@@ -14,6 +48,10 @@ if __name__ == '__main__':
 
     date_help = '''dates to run on'''
     parser.add_argument('dates', type=str, help=date_help)
+
+    parser.add_argument('--calibrate',
+                        type=str,
+                        help='set to filename of list of files to produce calibration')
 
     #parser.add_argument('--no-eod',
     #                    action='store_true',
@@ -25,20 +63,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    pipeline_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-
-    for d in args.dates.split(','):
-        if d.find('-') < 0:
-            cmd = [os.path.join(pipeline_dir, 'bin', 'runkcor_reprocess.sh'),
-                   d,
-                   args.flags]
-
-            pid = subprocess.Popen(cmd).pid
-        else:
-            r = d.split('-')
-
-            cmd = [os.path.join(pipeline_dir, 'bin', 'runkcor_reprocess_range.sh'),
-                   r[0], r[1],
-                   args.flags]
-
-            pid = subprocess.Popen(cmd).pid
+    if args.calibrate:
+        calibrate_dates(args.calibrate, args.dates, args.flags)
+    else:
+        reprocess_dates(args.dates, args.flags)
