@@ -346,6 +346,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            update_remote_server=update_remote_server, $
                            process_l1=process_l1, $
                            distribute=distribute, $
+                           diagnostics=diagnostics, $
                            reduce_calibration=reduce_calibration, $
                            send_to_hpss=send_to_hpss, $
                            validate_t1=validate_t1, $
@@ -471,6 +472,10 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   if (arg_present(distribute)) then begin
     distribute = self.options->get('distribute', section='realtime', $
                                    /boolean, default=1B)
+  endif
+  if (arg_present(diagnostics)) then begin
+    diagnostics = self.options->get('diagnostics', section='realtime', $
+                                    /boolean, default=0B)
   endif
 
   ; end-of-day
