@@ -258,7 +258,7 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
 
     radius_guess = occulter / run->epoch('plate_scale')   ; occulter size [pixels]
 
-    kcor_correct_camera, img, hdu, run=run
+    kcor_correct_camera, img, hdu, run=run, logger_name='kcor/rt'
     if (run->epoch('remove_horizontal_artifact')) then begin
       mg_log, 'correcting horizontal artifacts at lines: %s', $
               strjoin(strtrim(run->epoch('horizontal_artifact_lines'), 2), ', '), $

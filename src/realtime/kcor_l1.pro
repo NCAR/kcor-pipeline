@@ -560,7 +560,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     radius_guess = occulter / run->epoch('plate_scale')          ; pixels
 
     ; correct camera nonlinearity
-    kcor_correct_camera, img, header, run=run
+    kcor_correct_camera, img, header, run=run, logger_name='kcor/rt'
 
     if (run.diagnostics) then begin
       save, img, header, filename=strmid(l0_file, 0, 20) + '_cam.sav'
