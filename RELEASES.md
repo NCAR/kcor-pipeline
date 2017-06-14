@@ -43,3 +43,5 @@
   find occulter correctly in NRGF routine
 1.3.4 minor fix
   typo in KCOR_L1 date_dp
+1.3.5
+  add bias in camera correction
