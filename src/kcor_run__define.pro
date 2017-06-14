@@ -97,6 +97,9 @@ pro kcor_run::write_epochs, filename, time=time
           'sky_factor', self->epoch('sky_factor', time=time), $
           format='(%"%-30s : %f")'
   printf, lun, $
+          'bias', self->epoch('bias', time=time), $
+          format='(%"%-30s : %f")'
+  printf, lun, $
           'distortion_correction_filename', $
           self->epoch('distortion_correction_filename', time=time), $
           format='(%"%-30s : %s")'
@@ -535,6 +538,7 @@ function kcor_run::epoch, name, time=time
       end
     'skypol_bias': return, self->_readepoch('skypol_bias', self.date, hst_time, type=4)
     'sky_factor': return, self->_readepoch('sky_factor', self.date, hst_time, type=4) 
+    'bias': return, self->_readepoch('bias', self.date, hst_time, type=4) 
     'distortion_correction_filename': begin
         return, self->_readepoch('distortion_correction_filename', $
                                  self.date, hst_time, type=7)

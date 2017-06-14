@@ -65,7 +65,7 @@ pro kcor_correct_camera, im, header, run=run, logger_name=logger_name
   ; scale the data to 0..1
   bitpix = sxpar(header, 'BITPIX')
   numsum = sxpar(header, 'NUMSUM')
-  scale = 2^(bitpix - 9) * numsum - 1L
+  scale = 2L^(bitpix - 9L) * numsum - 1L
   im /= scale
 
   for p = 0L, n_polstates - 1L do begin
@@ -75,6 +75,8 @@ pro kcor_correct_camera, im, header, run=run, logger_name=logger_name
                          + fp[*, *, 3, c] * x^3 + fp[*, *, 4, c] * x^4
     endfor
   endfor
+
+  im += run->epoch('bias')
 
   ; return to original scale
   im *= scale
