@@ -537,7 +537,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     ; put the Level-0 FITS header into a structure
     struct = fitshead2struct(header, dash2underscore=dash2underscore)
 
-    ; all files that have passed KCOR_QUALITY are science type even though,
+    ; all files that have passed KCOR_QUALITY are science type even though
     ; they may have been engineering in the L0
     struct.datatype = 'science'
 

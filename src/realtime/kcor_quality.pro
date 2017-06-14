@@ -636,9 +636,7 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
 
     l0_basename = file_basename(l0_file)
 
-    if (eng gt 0) then begin   ; engineering
-      gif_file = strmid(l0_basename, 0, fitsloc) + '_e.gif' 
-    endif else if (cal gt 0) then begin   ; calibration
+    if (cal gt 0) then begin   ; calibration
       gif_file = strmid(l0_basename, 0, fitsloc) + '_c.gif' 
       qual = q_cal
       ncal += 1
@@ -680,7 +678,12 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
       nnsy += 1
       printf, unsy, l0_file
     endif else begin   ; good image
-      gif_file = strmid(l0_basename, 0, fitsloc) + '_g.gif'
+      if (eng gt 0) then begin   ; engineering
+        gif_file = strmid(l0_basename, 0, fitsloc) + '_e.gif' 
+      endif else begin
+        gif_file = strmid(l0_basename, 0, fitsloc) + '_g.gif'
+      endelse
+
       qual = q_ok
       nokf += 1
       printf, uokf, file_basename(l0_file)
