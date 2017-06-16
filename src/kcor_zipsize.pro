@@ -18,10 +18,10 @@
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;-
-function kcor_zipsize, filename, run=run
+function kcor_zipsize, filenames, run=run
   compile_opt strictarr
 
-  cmd = string(run.gunzip, filename, format='(%"%s -l %s")')
+  cmd = string(run.gunzip, strjoin(filenames, ' '), format='(%"%s -l %s")')
   spawn, cmd, result, error_result, exit_status=status
   if (status ne 0L) then begin
     logger_name = run.mode eq 'realtime' ? 'kcor/rt' : 'kcor/eod'
@@ -31,8 +31,16 @@ function kcor_zipsize, filename, run=run
     return, -1L
   endif
 
-  tokens = strsplit(result[1], /extract)
-  return, long(tokens[1])
+  n_files = n_elements(filenames)
+  sizes = lonarr(n_files)
+  for f = 0L, n_files - 1L do begin
+    matches = strmatch(result, '*' + file_basename(filenames[f], '.gz'))
+    ind = where(matches, count)
+    tokens = strsplit(result[ind[0]], /extract)
+    sizes[f] = long(tokens[1])
+  endfor
+
+  return, sizes
 end
 
 
@@ -47,10 +55,22 @@ files = file_search(filepath('*.fts.gz', $
                              root=run.raw_basedir), $
                     count=nfiles)
 
+tic
+individual_zsizes = lonarr(nfiles)
 for f = 0L, nfiles - 1L do begin
-  zsize = kcor_zipsize(files[f], run=run)
-  print, files[f], zsize, format='(%"%s: %d bytes")'
+  individual_zsizes[f] = kcor_zipsize(files[f], run=run)
 endfor
+toc
+
+tic
+zsizes = kcor_zipsize(files, run=run)
+toc
+
+for f = 0L, nfiles - 1L do begin
+  print, file_basename(files[f]), zsizes[f], format='(%"%s: %d bytes")'
+endfor
+
+print, array_equal(zsizes, individual_zsizes) ? 'equal' : 'not equal'
 
 obj_destroy, run
 
