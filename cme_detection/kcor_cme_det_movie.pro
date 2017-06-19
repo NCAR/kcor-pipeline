@@ -49,6 +49,7 @@
 ;-
 ;
 pro kcor_cme_det_movie
+compile_opt strictarr
 ;
 common kcor_cme_detection
 ;

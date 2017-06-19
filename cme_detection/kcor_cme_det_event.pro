@@ -47,6 +47,7 @@
 ;-
 ;
 pro kcor_cme_det_event, event
+compile_opt strictarr
 ;
 common kcor_cme_detection
 ;
