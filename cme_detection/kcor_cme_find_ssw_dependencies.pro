@@ -24,14 +24,15 @@ pro kcor_cme_find_ssw_dependencies, ssw_loc
 
   exceptions = ['utcommon']
 
-  skip_routines = ['CSPICE_BODVAR', 'CSPICE_CKCOV', 'CSPICE_CKGP', $
-                   'CSPICE_CKOBJ', 'CSPICE_CONICS', 'CSPICE_ET2UTC', $
-                   'CSPICE_FURNSH', 'CSPICE_KDATA', 'CSPICE_KTOTAL', $
-                   'CSPICE_M2EUL', 'CSPICE_OSCELT', 'CSPICE_PXFORM', $
-                   'CSPICE_RECGEO', 'CSPICE_RECLAT', 'CSPICE_SCE2C', $
-                   'CSPICE_SPKCOV', 'CSPICE_SPKEZR', 'CSPICE_SPKOBJ', $
-                   'CSPICE_STR2ET', 'CSPICE_SXFORM', 'CSPICE_UNLOAD', $
-                   'CSPICE_UTC2ET']
+  skip_routines = ['CSPICE_BODVAR', 'CSPICE_BODN2C', 'CSPICE_CKCOV', $
+                   'CSPICE_CKGP', 'CSPICE_CKOBJ', 'CSPICE_CONICS', $
+                   'CSPICE_ET2UTC', 'CSPICE_FURNSH', 'CSPICE_KDATA', $
+                   'CSPICE_KTOTAL', 'CSPICE_M2EUL', 'CSPICE_OSCELT', $
+                   'CSPICE_PXFORM', 'CSPICE_RECGEO', 'CSPICE_RECLAT', $
+                   'CSPICE_SCE2C', 'CSPICE_SPKCOV', 'CSPICE_SPKEZR', $
+                   'CSPICE_SPKOBJ', 'CSPICE_STR2ET', 'CSPICE_SXFORM', $
+                   'CSPICE_UNLOAD', 'CSPICE_UTC2ET', $
+                   'LOAD_SUNSPICE_SOLO', 'LOAD_SUNSPICE_SPP']
 
   print, 'Resolving SSW routines...'
   ssw_files = file_search(filepath('*.pro', root='.'), count=n_files)
