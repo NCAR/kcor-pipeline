@@ -94,7 +94,7 @@ pro kcor_run::write_epochs, filename, time=time
           'skypol_bias', self->epoch('skypol_bias', time=time), $
           format='(%"%-30s : %f")'
   printf, lun, $
-          'sky_factor', self->epoch('sky_factor', time=time), $
+          'skypol_factor', self->epoch('skypol_factor', time=time), $
           format='(%"%-30s : %f")'
   printf, lun, $
           'bias', self->epoch('bias', time=time), $
@@ -348,6 +348,8 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            update_database=update_database, $
                            update_remote_server=update_remote_server, $
                            process_l1=process_l1, $
+                           skypol_method=skypol_method, $
+                           sine2theta_nparams=sine2theta_nparams, $
                            distribute=distribute, $
                            diagnostics=diagnostics, $
                            reduce_calibration=reduce_calibration, $
@@ -472,6 +474,14 @@ pro kcor_run::getProperty, config_contents=config_contents, $
     process_l1 = self.options->get('process_l1', section='realtime', $
                                    /boolean, default=1B)
   endif
+  if (arg_present(skypol_method)) then begin
+    skypol_method = self.options->get('skypol_method', section='realtime', $
+                                      default='subtraction')
+  endif
+  if (arg_present(sine2theta_nparams)) then begin
+    sine2theta_nparams = self.options->get('sine2theta_nparams', section='realtime', $
+                                           type=3, default=2)
+  endif
   if (arg_present(distribute)) then begin
     distribute = self.options->get('distribute', section='realtime', $
                                    /boolean, default=1B)
@@ -537,7 +547,7 @@ function kcor_run::epoch, name, time=time
         return, self->_readepoch('gbuparams_filename', self.date, hst_time, type=7)
       end
     'skypol_bias': return, self->_readepoch('skypol_bias', self.date, hst_time, type=4)
-    'sky_factor': return, self->_readepoch('sky_factor', self.date, hst_time, type=4) 
+    'skypol_factor': return, self->_readepoch('skypol_factor', self.date, hst_time, type=4) 
     'bias': return, self->_readepoch('bias', self.date, hst_time, type=4) 
     'distortion_correction_filename': begin
         return, self->_readepoch('distortion_correction_filename', $
