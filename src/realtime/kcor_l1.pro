@@ -817,11 +817,11 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     endif
 
     ; polar coordinate images (mk4 scheme)
-    qmk4 = - cal_data_combined[*, *, 1] * sin(2.0 * theta1 ) $
-             + cal_data_combined[*, *, 2] * cos(2.0 * theta1 )
+    qmk4 = - cal_data_combined[*, *, 1] * sin(2.0 * theta1) $
+             + cal_data_combined[*, *, 2] * cos(2.0 * theta1)
 
-    umk4 = cal_data_combined[*, *, 1] * cos(2.0 * theta1 ) $
-             + cal_data_combined[*, *, 2] * sin(2.0 * theta1 )
+    umk4 = cal_data_combined[*, *, 1] * cos(2.0 * theta1) $
+             + cal_data_combined[*, *, 2] * sin(2.0 * theta1)
 
     intensity = cal_data_combined[*, *, 0]
 
@@ -896,22 +896,17 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     endif
 
     ; sky polarization removal on coordinate-transformed data
-
-    ; **************************************************************
-    ; I AM JUMPING OVER THE SINE 2 THETA APPROACH AND DOING A STRAIGHT 
-    ; FORWARD SUBTRACTION OF THE BACKGROUND IMAGE FROM THE CORONAL IMAGE
-    ; THE BACKGROUND NEEDS TO BE ROTATED
-    ; I AM ADDING A BIAS TO THE CORONAL IMAGE SINCE THE BACKGROUND
-    ; IS HIGHER IN INTENSITY THAN THE CORONAL IMAGE (CROSS-TALK PROBLEM?)
-    ; **************************************************************
-
     case strlowcase(run.skypol_method) of
       'subtraction': begin
+          mg_log, 'correcting sky polarization with subtraction method', $
+                  name='kcor/rt', /debug
           qmk4_new = float(qmk4)
           ; umk4 contains the corona
-          umk4_new = float(umk4) - float(rot(qmk4, 45.)) + run->epoch('skypol_bias')
+          umk4_new = float(umk4) - float(rot(qmk4, 45.0)) + run->epoch('skypol_bias')
         end
       'sine2theta': begin
+          mg_log, 'correcting sky polarization with sine2theta (%d params) method', $
+                  run->epoch('sine2theta_nparams'), name='kcor/rt', /debug
           kcor_sine2theta_method, umk4, qmk4, intensity, radsun, theta1, rr1, $
                                   q_new=qmk3_new, u_new=umk4_new, $
                                   run=run
