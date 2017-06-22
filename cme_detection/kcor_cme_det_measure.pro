@@ -42,6 +42,7 @@
 ;-
 ;
 pro kcor_cme_det_measure, rsun
+compile_opt strictarr
 ;
 common kcor_cme_detection
 ;

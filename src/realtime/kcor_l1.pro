@@ -807,7 +807,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     for s = 0, 2 do begin
       cal_data_combined[*, *, s] = $
         (kcor_fshift(cal_data[*, *, 0, s], deltax, deltay) $
-          + cal_data[*, *, 1, s]) * 0.5
+           + cal_data[*, *, 1, s]) * 0.5
     endfor
 
     if (doplot eq 1) then begin
@@ -817,11 +817,11 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     endif
 
     ; polar coordinate images (mk4 scheme)
-    qmk4 = - cal_data_combined[*, *, 1] * sin(2.0 * theta1 ) $
-             + cal_data_combined[*, *, 2] * cos(2.0 * theta1 )
+    qmk4 = - cal_data_combined[*, *, 1] * sin(2.0 * theta1) $
+             + cal_data_combined[*, *, 2] * cos(2.0 * theta1)
 
-    umk4 = cal_data_combined[*, *, 1] * cos(2.0 * theta1 ) $
-             + cal_data_combined[*, *, 2] * sin(2.0 * theta1 )
+    umk4 = cal_data_combined[*, *, 1] * cos(2.0 * theta1) $
+             + cal_data_combined[*, *, 2] * sin(2.0 * theta1)
 
     intensity = cal_data_combined[*, *, 0]
 
@@ -832,12 +832,8 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     endif
 
     ; shift images to center of array & orient north up
-    xcen = 511.5 + 1     ; X Center of FITS array equals one plus IDL center.
-    ycen = 511.5 + 1     ; Y Center of FITS array equals one plus IDL center.
-
-                         ; IDL starts at zero but FITS starts at one.
-                         ; See Bill Thompson Solar Soft Tutorial on
-                         ; basic World Coorindate System Fits header.
+    xcen = 511.5 + 1     ; x center of FITS array equals one plus IDL center
+    ycen = 511.5 + 1     ; y center of FITS array equals one plus IDL center
 
     shift_center = 0
     shift_center = 1
@@ -899,25 +895,24 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
       endif
     endif
 
-    ;
     ; sky polarization removal on coordinate-transformed data
-    ; print, 'Remove sky polarization.'
-    ; **************************************************************
-    ; I AM JUMPING OVER THE SINE 2 THETA APPROACH AND DOING A STRAIGHT 
-    ; FORWARD SUBTRACTION OF THE BACKGROUND IMAGE FROM THE CORONAL IMAGE
-    ; THE BACKGROUND NEEDS TO BE ROTATED
-    ; I AM ADDING A BIAS TO THE CORONAL IMAGE SINCE THE BACKGROUND
-    ; IS HIGHER IN INTENSITY THAN THE CORONAL IMAGE (CROSS-TALK PROBLEM?)
-    ; **************************************************************
-
-    ; replace sine2theta with straigh removal
-
-    ;   SKY COMMENTING OUT OF SINE 2 THETA SKY POLARIZATION REMOVAL
-    ;   *******************************************************************************
-
-    qmk4_new = float(qmk4)
-    ; umk4 contains the corona
-    umk4_new = float(umk4) - float(rot(qmk4, 45.)) + run->epoch('skypol_bias')
+    case strlowcase(run.skypol_method) of
+      'subtraction': begin
+          mg_log, 'correcting sky polarization with subtraction method', $
+                  name='kcor/rt', /debug
+          qmk4_new = float(qmk4)
+          ; umk4 contains the corona
+          umk4_new = float(umk4) - float(rot(qmk4, 45.0)) + run->epoch('skypol_bias')
+        end
+      'sine2theta': begin
+          mg_log, 'correcting sky polarization with sine2theta (%d params) method', $
+                  run->epoch('sine2theta_nparams'), name='kcor/rt', /debug
+          kcor_sine2theta_method, umk4, qmk4, intensity, radsun, theta1, rr1, $
+                                  q_new=qmk3_new, u_new=umk4_new, $
+                                  run=run
+        end
+      else:
+    endcase
 
     ; use only corona minus sky polarization background
     corona = sqrt(umk4_new ^ 2)
@@ -926,7 +921,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     r_in  = fix(occulter / run->epoch('plate_scale')) + 5.0
     r_out = 504.0
 
-    mask = where(rad1 lt r_in or rad1 ge r_out) ; pixels beyond field of view.
+    mask = where(rad1 lt r_in or rad1 ge r_out)   ; pixels beyond field of view
     corona[mask] = 0
 
     if (doplot eq 1) then begin

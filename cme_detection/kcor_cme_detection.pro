@@ -94,6 +94,7 @@
 ;
 pro kcor_cme_detection, date, store=k_store, timerange=k_timerange, $
                         group_leader=group_leader
+compile_opt strictarr
 ;
 ;  Check to see if the program is already running.
 ;

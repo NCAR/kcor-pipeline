@@ -47,6 +47,7 @@
 ;-
 ;
 pro kcor_cme_det_event, event
+compile_opt strictarr
 ;
 common kcor_cme_detection
 ;
@@ -218,7 +219,7 @@ stop_point:
 ;
                     if n_elements(leadingedge) gt nlead then begin
                         ilead = n_elements(leadingedge) - 1
-                        lead0 = leadingedge(ilead)
+                        lead0 = leadingedge[ilead]
                         date0 = date_diff[ilead].date_avg
                         if lead0 ge 0 then begin
                             wset, mapwin
