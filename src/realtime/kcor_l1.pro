@@ -450,6 +450,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     date_dp = string(bdate, format='(%"%04d-%02d-%02dT%02d:%02d:%02d")')
 
     img = readfits(l0_file, header, /silent)
+
     type = fxpar(header, 'DATATYPE')
 
     mg_log, 'processing %d/%d: %s (%s)', $

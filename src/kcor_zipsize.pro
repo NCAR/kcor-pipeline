@@ -40,7 +40,7 @@ function kcor_zipsize, filenames, run=run
     sizes[f] = long(tokens[1])
   endfor
 
-  return, sizes
+  return, n_files eq 1L ? sizes[0] : sizes
 end
 
 

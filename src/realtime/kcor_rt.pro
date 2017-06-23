@@ -69,23 +69,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
   available = kcor_state(/lock, run=run)
 
   if (available) then begin
-    l0_fits_glob = '*.fts.gz'
-    l0_fits_files = file_search(l0_fits_glob, count=n_l0_fits_files)
-    if (n_l0_fits_files gt 0L) then begin
-      mg_log, 'unzipping %d L0 FITS files', n_l0_fits_files, name='kcor/rt', /info
-      gunzip_cmd = string(run.gunzip, l0_fits_glob, format='(%"%s %s")')
-      spawn, gunzip_cmd, result, error_result, exit_status=status
-      if (status ne 0L) then begin
-        mg_log, 'problem unzipping files with command: %s', gunzip_cmd, $
-                name='kcor/rt', /error
-        mg_log, '%s', strjoin(error_result, ' '), name='kcor/rt', /error
-      endif
-    endif else begin
-      mg_log, 'no L0 FITS files to unzip', name='kcor/rt', /info
-    endelse
-
-    l0_fits_files = file_search(filepath('*_*kcor.fts', root=raw_dir), $
-                                count=n_l0_fits_files)
+    l0_fits_files = file_search('*_kcor.fts.gz', count=n_l0_fits_files)
     if (n_l0_fits_files eq 0L) then begin
       mg_log, 'no L0 files to process in %s', raw_dir, name='kcor/rt', /info
       goto, done
@@ -134,7 +118,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     nrgf_basenames = list()
 
     for f = 0L, n_elements(ok_files) - 1L do begin
-      base = file_basename(ok_files[f], '.fts')
+      base = file_basename(ok_files[f], '.fts.gz')
       printf, okcgif_lun, base + '_cropped.gif'
       printf, okfgif_lun, base + '.gif'
       printf, okl1gz_lun, base + '_l1.fts.gz'
@@ -199,14 +183,14 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     if (run.update_database) then begin
       mg_log, 'updating database', name='kcor/rt', /info
 
-      ; update databases that use L1 files
-      if (n_l1_fits_files gt 0L) then begin
-        obsday_index = mlso_obsday_insert(date, $
-                                          run=run, $
-                                          database=db, $
-                                          status=db_status, $
-                                          log_name='kcor/rt')
-        if (db_status eq 0L) then begin
+      obsday_index = mlso_obsday_insert(date, $
+                                        run=run, $
+                                        database=db, $
+                                        status=db_status, $
+                                        log_name='kcor/rt')
+      if (db_status eq 0L) then begin
+        ; update databases that use L1 files
+        if (n_l1_fits_files gt 0L) then begin
           kcor_img_insert, date, l1_fits_files, $
                            run=run, $
                            database=db, $
@@ -216,17 +200,23 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
                            run=run, $
                            database=db, $
                            obsday_index=obsday_index
+        endif else begin
+          mg_log, 'no L1 files for img, or eng tables', name='kcor/rt', /info
+        endelse
+
+        if (n_l0_fits_files gt 0L) then begin
           ; should use ALL (cal, eng, sci, and bad ones) raw files
           mlso_sgs_insert, date, file_basename(l0_fits_files), $
                            run=run, $
                            database=db, $
                            obsday_index=obsday_index
         endif else begin
-          mg_log, 'skipping database inserts', name='kcor/rt', /warn
+          mg_log, 'no L0 files for sgs table', name='kcor/rt', /info
         endelse
+
         obj_destroy, db
       endif else begin
-        mg_log, 'no L1 files for img, eng, or sgs tables', name='kcor/rt', /info
+          mg_log, 'skipping database because unable to connect', name='kcor/rt', /warn
       endelse
     endif else begin
       mg_log, 'skipping updating database', name='kcor/rt', /info

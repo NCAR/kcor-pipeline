@@ -40,10 +40,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
   pday   = strmid(date, 6, 2)
   pdate = string(pyear, pmonth, pday, format='(%"%s-%s-%s")')
 
-  ;-----------------------------------------
-  ; Define directory names.
-  ;-----------------------------------------
-
+  ; define directory names
   base_dir = run.raw_basedir
   date_dir = filepath(date, root=base_dir)
 
@@ -121,9 +118,10 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     l0_file = list[i]
     img = readfits (l0_file, hdu, /silent)   ; read fits image & header
 
-    fitsloc  = strpos(l0_file, '.fts')
-    gzloc    = strpos(l0_file, '.gz')
     img_file = l0_file
+
+    ; remove the .gz for some of the log messages and plot titles
+    gzloc    = strpos(l0_file, '.gz')
     if (gzloc ge 0) then img_file = strmid(l0_file, gzloc)
 
     img0 = reform(img[*, *, 0, 0])
@@ -140,12 +138,6 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     cov  = 0
 
     ; extract keyword parameters from FITS header
-
-    diffuser = ''
-    calpol   = ''
-    darkshut = ''
-    cover    = ''
-
     naxis    = sxpar(hdu, 'NAXIS',    count=qnaxis)
     naxis1   = sxpar(hdu, 'NAXIS1',   count=qnaxis1)
     naxis2   = sxpar(hdu, 'NAXIS2',   count=qnaxis2)
@@ -179,7 +171,6 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     radius_guess = occulter / run->epoch('plate_scale')  ; occulter size [pixels]
 
     ; get FITS image size from image array
-
     n1 = 1
     n2 = 1
     n3 = 1
@@ -193,11 +184,10 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     dtype   = imgsize[ndim + 1]   ; data type
     npix    = imgsize[ndim + 2]   ; # pixels
     nelem   = 1
-    for j = 1, ndim do nelem *= imgsize[j]   ; compute # elements in array.
+    for j = 1, ndim do nelem *= imgsize[j]   ; compute # elements in array
     if (ndim eq 4) then nelem = n1 * n2 * n3 * n4
 
     ; define array center coordinates
-
     xdim = naxis1
     ydim = naxis2
     axcen = (xdim / 2.0) - 0.5   ; x-axis array center.
@@ -288,7 +278,6 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
     ; determine type of image
 
-    fitsloc  = strpos(l0_file, '.fts')
     qual     = 'unk'
 
     if (eng gt 0) then begin              ; engineering

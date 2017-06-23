@@ -82,25 +82,6 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   cd, l0_dir
 
-  if (run.validate_t1 || run.send_to_hpss) then begin
-    l0_zipped_fits_glob = '*fts.gz'
-    l0_zipped_files = file_search(l0_zipped_fits_glob, count=n_l0_zipped_files)
-    if (n_l0_zipped_files gt 0L) then begin
-      cmd = string(run.gunzip, l0_zipped_fits_glob, format='(%"%s %s")')
-      mg_log, 'unzipping L0 FITS files...', name='kcor/eod', /info
-      spawn, cmd, result, error_result, exit_status=status
-      if (status ne 0L) then begin
-        mg_log, 'problem unzipping L0 FITS files with command: %s', cmd, $
-                name='kcor/eod', /error
-        mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
-      endif
-    endif else begin
-      mg_log, 'no zipped L0 files to unzip', name='kcor/eod', /info
-    endelse
-  endif else begin
-    mg_log, 'skipping unzipping L0 FITS files', name='kcor/eod', /info
-  endelse
-
   l1_dir = filepath('level1', root=date_dir)
   if (~file_test(l0_dir, /directory)) then begin
     mg_log, '%s does not exist', l0_dir, name='kcor/eod', /error
@@ -133,30 +114,33 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   n_missing = 0L
   n_wrongsize = 0L
-  n_l0_files = 0L
 
   if (run.validate_t1) then begin
+    n_lines = file_lines(t1_log_file)
+    lines = strarr(n_l0_fits_files)
     openr, lun, t1_log_file, /get_lun
-    row = ''
-    while (~eof(lun)) do begin
-      n_l0_files += 1
-      readf, lun, row
-      fields = strsplit(row, /extract)
-      t1_file = fields[0]
-      t1_size = long(fields[1])
+    readf, lun, lines
+    free_lun, lun
+
+    for i = 0L, n_l0_fits_files - 1L do begin
+      tokens = strsplit(lines[i], /extract)
+      t1_file = tokens[0] + '.gz'
+      t1_size = long(tokens[1])
+
       if (file_test(t1_file, /regular)) then begin
-        if (t1_size ne mg_filesize(t1_file)) then begin
+        if (t1_size ne mg_zipsize(t1_file, run=run)) then begin
           n_wrongsize += 1
-          mg_log, '%s file size: %d != %d', t1_file, t1_size, mg_filesize(t1_file), $
+          mg_log, '%s file size: %d != %d', $
+                  t1_file, t1_size, mg_zipsize(t1_file, run=run), $
                   name='kcor/eod', /warn
         endif
       endif else begin
         n_missing += 1
         mg_log, '%s in t1, but not in level0/', t1_file, name='kcor/eod', /warn
       endelse
-    endwhile
+    endfor
 
-    mg_log, 't1.log: # L0 files: %d', n_l0_files, name='kcor/eod', /info
+    mg_log, 't1.log: # L0 files: %d', n_l0_fits_files, name='kcor/eod', /info
     if (n_missing gt 0L) then begin
       mg_log, 't1.log: # missing files: %d', n_missing, name='kcor/eod', /warn
     endif
@@ -174,7 +158,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   endelse
 
   if (success) then begin
-    files = file_search(filepath('*kcor.fts*', root=l0_dir), count=n_files)
+    files = file_search(filepath('*_kcor.fts.gz', root=l0_dir), count=n_files)
 
     if (run.produce_plots) then begin
       kcor_plotparams, date, list=files, run=run
@@ -260,7 +244,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   file_delete, 'list_okf', /allow_nonexistent
 
   if (run.send_notifications && run.notification_email ne '') then begin
-    l0_fits_files = file_search(filepath('*kcor.fts*', root=l0_dir), $
+    l0_fits_files = file_search(filepath('*_kcor.fts.gz', root=l0_dir), $
                                 count=n_l0_fits_files)
 
     msg = [string(date, $

@@ -47,27 +47,9 @@ pro kcor_archive, run=run, reprocess=reprocess
     goto, done
   endif
 
-  l0_fits_files = file_search('*kcor.fts', count=n_l0_fits_files)
+  l0_fits_files = file_search('*_kcor.fts.gz', count=n_l0_fits_files)
   if (n_l0_fits_files eq 0L) then begin
     mg_log, 'no L0 FITS files to archive to HPSS', name='kcor/eod', /warn
-    goto, done
-  endif
-
-  zip_cmd = string(run.gzip, format='(%"%s *kcor.fts")')
-  mg_log, 'zipping %d L0 files...', n_l0_fits_files, name='kcor/eod', /info
-  spawn, zip_cmd, result, error_result, exit_status=status
-  if (status ne 0L) then begin
-    mg_log, 'problem zipping files with command: %s', zip_cmd, $
-            name='kcor/eod', /error
-    mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
-    goto, done
-  endif
-
-  ; verify there are some compressed L0 FITS files in L0 directory
-  gz_fits_files = file_search('*kcor.fts.gz', count=n_gz_fits_files)
-  if (n_gz_fits_files eq 0L) then begin
-    mg_log, 'no L0 compressed files exist in L0 dir: %s', l0_dir, $
-            name='kcor/eod', /error
     goto, done
   endif else begin
     mg_log, '%d compressed files exist in L0 dir', n_gz_fits_files, $
