@@ -52,7 +52,7 @@ pro kcor_archive, run=run, reprocess=reprocess
     mg_log, 'no L0 FITS files to archive to HPSS', name='kcor/eod', /warn
     goto, done
   endif else begin
-    mg_log, '%d compressed files exist in L0 dir', n_gz_fits_files, $
+    mg_log, '%d compressed files exist in L0 dir', n_l0_fits_files, $
             name='kcor/eod', /info
   endelse
 

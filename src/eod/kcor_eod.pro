@@ -49,13 +49,18 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     goto, done
   endif
 
-  l0_fits_files = file_search(filepath('*kcor.fts*', root=date_dir), $
+  ; level 0 files still in root
+  l0_fits_files = file_search(filepath('*_kcor.fts.gz', root=date_dir), $
                               count=n_l0_fits_files)
   if (n_l0_fits_files gt 0L) then begin
     mg_log, 'L0 FITS files exist in %s', date_dir, name='kcor/eod', /info
     mg_log, 'L1 processing incomplete', name='kcor/eod', /info
     goto, done
   endif
+
+  ; level 0 files in the level0/ directory
+  l0_fits_files = file_search(filepath('*_kcor.fts.gz', root=l0_dir), $
+                              count=n_l0_fits_files)
 
   t1_log_file = filepath(date + '.kcor.t1.log', root=l0_dir)
   if (file_test(t1_log_file, /regular)) then begin
@@ -117,21 +122,21 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   if (run.validate_t1) then begin
     n_lines = file_lines(t1_log_file)
-    lines = strarr(n_l0_fits_files)
+    lines = strarr(n_lines)
     openr, lun, t1_log_file, /get_lun
     readf, lun, lines
     free_lun, lun
 
-    for i = 0L, n_l0_fits_files - 1L do begin
+    for i = 0L, n_lines - 1L do begin
       tokens = strsplit(lines[i], /extract)
       t1_file = tokens[0] + '.gz'
       t1_size = long(tokens[1])
 
       if (file_test(t1_file, /regular)) then begin
-        if (t1_size ne mg_zipsize(t1_file, run=run)) then begin
+        if (t1_size ne kcor_zipsize(t1_file, run=run)) then begin
           n_wrongsize += 1
           mg_log, '%s file size: %d != %d', $
-                  t1_file, t1_size, mg_zipsize(t1_file, run=run), $
+                  t1_file, t1_size, kcor_zipsize(t1_file, run=run), $
                   name='kcor/eod', /warn
         endif
       endif else begin
@@ -244,9 +249,6 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   file_delete, 'list_okf', /allow_nonexistent
 
   if (run.send_notifications && run.notification_email ne '') then begin
-    l0_fits_files = file_search(filepath('*_kcor.fts.gz', root=l0_dir), $
-                                count=n_l0_fits_files)
-
     msg = [string(date, $
                   format='(%"KCor end-of-day processing for %s")'), $
            '', $
