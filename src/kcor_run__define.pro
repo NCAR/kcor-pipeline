@@ -142,6 +142,9 @@ pro kcor_run::write_epochs, filename, time=time
   printf, lun, $
           'display_exp', self->epoch('display_exp', time=time), $
           format='(%"%-30s : %f")'
+  printf, lun, $
+          'display_gamma', self->epoch('display_gamma', time=time), $
+          format='(%"%-30s : %f")'
 
   printf, lun, $
           'remove_horizontal_artifact', $
@@ -585,6 +588,7 @@ function kcor_run::epoch, name, time=time
     'display_min': return, self->_readepoch('display_min', self.date, hst_time, type=4)
     'display_max': return, self->_readepoch('display_max', self.date, hst_time, type=4)
     'display_exp': return, self->_readepoch('display_exp', self.date, hst_time, type=4)
+    'display_gamma': return, self->_readepoch('display_gamma', self.date, hst_time, type=4)
     'remove_horizontal_artifact': return, self->_readepoch('remove_horizontal_artifact', $
                                                            self.date, hst_time, /boolean)
     'horizontal_artifact_lines': return, self->_readepoch('horizontal_artifact_lines', $

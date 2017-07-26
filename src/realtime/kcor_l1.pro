@@ -931,9 +931,6 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
       pause
     endif
 
-    lct, filepath('quallab_ver2.lut', root=run.resources_dir)
-    tvlct, red, green, blue, /get
-
     ; end of new beam combination modifications
 
     ; photosphere height = apparent diameter of sun [arcseconds] 
@@ -946,6 +943,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     ; printf, ULOG, 'Radius of photosphere [pixels] : ', r_photo
 
     lct, filepath('quallab_ver2.lut', root=run.resources_dir)
+    gamma_ct, run->epoch('display_gamma'), /current
     tvlct, red, green, blue, /get
 
     ; display image, annotate, and save as a full resolution GIF file
@@ -999,7 +997,8 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
             color=255, charsize=1.2, /device
     xyouts, 4, 6, $
             string(run->epoch('display_exp'), $
-            format='("scaling: Intensity ^ ", f3.1)'), $
+            string(run->epoch('display_gamma'), $
+            format='("scaling: Intensity ^ ", f3.1, ', ", gamma=", f4.2)'), $
             color=255, charsize=1.2, /device
     xyouts, 1018, 6, 'Circle = photosphere.', $
             color=255, charsize=1.2, /device, alignment=1.0
@@ -1442,7 +1441,8 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
                           format='("min/max: ", f5.2, ", ", f3.1)'), $
             color=255, charsize=1.0, /device
     xyouts, 4, 6, string(run->epoch('display_exp'), $
-                         format='("scaling: Intensity ^ ", f3.1)'), $
+                         run->epoch('display_gamma'), $
+                         format='("scaling: Intensity ^ ", f3.1, ", gamma=", f4.2)'), $
                   color=255, charsize=1.0, /device
     xyouts, 508, 6, 'Circle = photosphere', color=255, $
                     charsize=1.0, /device, alignment=1.0
