@@ -76,8 +76,6 @@ pro kcor_correct_camera, im, header, run=run, logger_name=logger_name
     endfor
   endfor
 
-  im += run->epoch('bias')
-
   ; return to original scale
   im *= scale
 end
