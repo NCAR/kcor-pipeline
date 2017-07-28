@@ -997,8 +997,8 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
             color=255, charsize=1.2, /device
     xyouts, 4, 6, $
             string(run->epoch('display_exp'), $
-            string(run->epoch('display_gamma'), $
-            format='("scaling: Intensity ^ ", f3.1, ', ", gamma=", f4.2)'), $
+                   run->epoch('display_gamma'), $
+                   format='("scaling: Intensity ^ ", f3.1, ", gamma=", f4.2)'), $
             color=255, charsize=1.2, /device
     xyouts, 1018, 6, 'Circle = photosphere.', $
             color=255, charsize=1.2, /device, alignment=1.0
