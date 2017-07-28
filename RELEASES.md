@@ -45,3 +45,9 @@
   typo in KCOR_L1 date_dp
 1.3.5
   add bias in camera correction
+1.4.0
+  remove bias to camera correction
+  added main kcor script
+  add gamma correction for GIFs
+  doesn't unzip compress FTS files
+  configurable sky polarization correction
