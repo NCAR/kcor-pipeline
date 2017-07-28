@@ -109,11 +109,16 @@ pro kcor_reprocess, date, config_filename=config_filename
     obsday_index = mlso_obsday_insert(date, $
                                       run=run, $
                                       database=db, $
+                                      status=status, $
                                       log_name='kcor/reprocess')
-    kcor_db_clearday, run=run, $
-                      database=db, $
-                      obsday_index=obsday_index, $
-                      log_name='kcor/reprocess'
+    if (status eq 0L) then begin
+      kcor_db_clearday, run=run, $
+                        database=db, $
+                        obsday_index=obsday_index, $
+                        log_name='kcor/reprocess'
+    endif else begin
+      mg_log, 'skipping clearing database', name='kcor/reprocess', /info
+    endelse
 
     obj_destroy, db
   endif else begin
