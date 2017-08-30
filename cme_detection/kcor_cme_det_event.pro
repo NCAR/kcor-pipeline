@@ -127,7 +127,7 @@ stop_point:
         if ifile ge count then begin
             mtime = (file_info(files)).mtime
             age = systime(1) - max(mtime)
-            if age ge 600 then begin
+            if age ge 1200 then begin   ; 600 sec originally
                 message = 'No more files'
                 widget_control, wmessage, set_value=message, /append
                 print, message
