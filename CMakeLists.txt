@@ -1,6 +1,6 @@
 project(kcor-pipeline)
-set(VERSION_MAJOR "0")
-set(VERSION_MINOR "1")
+set(VERSION_MAJOR "1")
+set(VERSION_MINOR "2")
 set(VERSION_PATCH "0")
 set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
@@ -28,9 +28,15 @@ if (GIT_FOUND)
     OUTPUT_STRIP_TRAILING_WHITESPACE
     OUTPUT_VARIABLE GIT_BRANCH
   )
+  execute_process(
+    COMMAND ${GIT_EXECUTABLE} log -1 --pretty=format:%ad --date=short
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    OUTPUT_VARIABLE GIT_SHORTDATE
+  )
 else ()
   set(GIT_REVISION "")
   set(GIT_BRANCH "")
+  set(GIT_SHORTDATE "")
 endif ()
 
 message(STATUS "git branch   = ${GIT_BRANCH}")
@@ -85,8 +91,11 @@ set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${KCOR_PIPELINE_PACKAGE_VERSI
 
 include(CPack)
 
+
+configure_file(INSTALLATION.in INSTALLATION @ONLY)
 install(FILES
           README.md
+          ${CMAKE_CURRENT_BINARY_DIR}/INSTALLATION
         DESTINATION .)
 
 if (IDLdoc_FOUND)

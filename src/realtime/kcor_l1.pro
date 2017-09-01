@@ -288,6 +288,8 @@
 ;     `kcor_run` object
 ;   mean_phase1 : out, optional, type=fltarr
 ;     mean_phase1 for each file in `ok_files`
+;   error : out, optional, type=long
+;     set to a named variable to retrieve the error status of the call
 ;
 ; :Examples:
 ;   Try::
@@ -313,10 +315,12 @@
 ; All Level 1 files (fits & gif) will be stored in the sub-directory 'level1',
 ; under the date directory.
 ;-
-pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
+pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1, error=error
   compile_opt strictarr
 
   tic
+
+  error = 0L
 
   l0_dir  = filepath(date_str, root=run.raw_basedir)
   l1_dir  = filepath('level1', subdir=date_str, root=run.raw_basedir)
@@ -365,6 +369,14 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
   ; image file loop
   fnum = 0
   foreach l0_file, ok_files do begin
+    catch, error_status
+    if (error_status ne 0L) then begin
+      mg_log, 'error processing %s, skipping', file_basename(l0_file), $
+              name='kcor/rt', /error
+      mg_log, /last_error, name='kcor/rt', /error
+      continue
+    endif
+
     fnum += 1
     lclock = tic('Loop_' + strtrim(fnum, 2))
 
@@ -375,6 +387,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     endif else begin
       mg_log, 'cal file does not exist', name='kcor/rt', /error
       mg_log, 'cal file: %s', file_basename(calpath), name='kcor/rt', /error
+      error = 1L
       goto, done
     endelse
 
@@ -449,16 +462,17 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     date_dp = cyear + '-' + cmonth + '-' + cday + 'T' $
                 + chour + ':' + cminute + ':' + csecond
 
-    ;   print, 'l0_file: ', l0_file
-    img  = readfits(l0_file, header, /silent)
-    img  = float(img)
-    img0 = reform(img[*, *, 0, 0])   ; camera 0 [reflected]
-    img1 = reform(img[*, *, 0, 1])   ; camera 1 [transmitted]
+
+    mg_log, 'processing %d/%d: %s', $
+            fnum, nfiles, file_basename(l0_file), $
+            name='kcor/rt', /info
+
+    img = readfits(l0_file, header, /silent)
+
     type = ''
     type = fxpar(header, 'DATATYPE')
 
-    mg_log, 'processing %d/%d: %s %s', $
-            fnum, nfiles, file_basename(l0_file), strmid(type, 0, 3), $
+    mg_log, 'type: %s', strmid(type, 0, 3), $
             name='kcor/rt', /info
 
     ; read date of observation (needed to compute ephemeris info)
@@ -475,9 +489,6 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     shour   = strmid(date_obs, 11, 2)
     sminute = strmid(date_obs, 14, 2)
     ssecond = strmid(date_obs, 17, 2)
-
-    ; print,         'date_obs: ', date_obs
-    ; printf, ulog,  'date_obs: ', date_obs
 
     ; convert month from integer to name of month
     name_month = (['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', $
@@ -556,18 +567,6 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
             z_buffering=0
     erase
 
-    ; print,        'year, month, day, hour, minute, second: ', $
-    ;               syear, ' ', smonth, ' ', sday, ' ', shour, ' ', sminute, ' ', second
-    ; printf, ulog, 'year, month, day, hour, minute, second: ', $
-    ;               syear, ' ', smonth, ' ', sday, ' ', shour, ' ', sminute, ' ', ssecond
-
-    ; solar radius, P and B angle
-
-    ;ephem  = pb0r(date_obs, /earth)
-    ;pangle = ephem[0]
-    ;bangle = ephem[1]
-    ;radsun = ephem[2]    ; arcmin
-
     ; ephemeris data
     sun, oyear, omonth, oday, ehour, sd=radsun, pa=pangle, lat0=bangle, $
          true_ra=sol_ra, true_dec=sol_dec, $
@@ -576,20 +575,11 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     sol_ra = sol_ra * 15.0   ; convert from hours to degrees
     carrington_rotnum = fix(carrington)
 
-    ; find size of occulter
-    ;   - one occulter has 4 digits; other two have 5
-    ;   - only read in 4 digits to avoid confusion
-    if (run->epoch('use_default_occulter_size')) then begin
-      occulter = run->epoch('default_occulter_size')
-    endif else begin
-      occulter_id = fxpar(header, 'OCCLTRID')
-      occulter = strmid(occulter_id, 3, 5)
-      occulter = float(occulter)
-      if (occulter eq 1018.0) then occulter = 1018.9
-      if (occulter eq 1006.0) then occulter = 1006.9
-    endelse
+    occulter = kcor_get_occulter_size(struct.occltrid, run=run)  ; arcsec
+    radius_guess = occulter / run->epoch('plate_scale')          ; pixels
 
-    radius_guess = occulter / run->epoch('plate_scale')   ; pixels
+    ; correct camera nonlinearity
+    kcor_correct_camera, img, header, run=run
 
     ; find image centers & radii of raw images
 
@@ -637,7 +627,6 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     ; mask_occulter1[*] = 0
     ; mask_occulter1[pick1] = 1.0
 
-    ; printf, ulog, 'CAMERA CENTER INFO FOR RAW IMAGES'
     mg_log, 'camera 0 center: %0.1f, %0.1f and radius: %0.1f', $
             xcen0, ycen0, radius_0, name='kcor/rt', /debug
     mg_log, 'camera 1 center: %0.1f, %0.1f and radius: %0.1f', $
@@ -662,7 +651,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     ;   occulter in.
 
     ; camera 0
-    replace = where(rr0 gt radius_0 -4. and grr0 le info_gain0[2] + 4.0, nrep)
+    replace = where(rr0 gt radius_0 - 4.0 and grr0 le info_gain0[2] + 4.0, nrep)
     if (nrep gt 0) then begin
       gain_temp = gain_alfred[*, *, 0]
       gain_replace = shift(gain_alfred[*, *, 0], $
@@ -674,7 +663,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     endif
 
     ; camera 1
-    replace = where(rr1 gt radius_1 -4. and grr1 le info_gain1[2] + 4.0, nrep)
+    replace = where(rr1 gt radius_1 - 4.0 and grr1 le info_gain1[2] + 4.0, nrep)
     if (nrep gt 0) then begin
       gain_temp = gain_alfred[*, *, 1]
       gain_replace = shift(gain_alfred[*, *, 1], $
@@ -737,6 +726,13 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
 
     mg_log, 'elapsed time for demod_matrix: %0.1f sec', demod_time, $
             name='kcor/rt', /debug
+
+    if (run->epoch('remove_horizontal_artifact')) then begin
+      mg_log, 'correcting horizontal artifacts at lines: %s', $
+              strjoin(strtrim(run->epoch('horizontal_artifact_lines'), 2), ', '), $
+              name='kcor/rt', /debug
+      kcor_correct_horizontal_artifact, img, run->epoch('horizontal_artifact_lines')
+    endif
 
     ; apply distortion correction for raw images
     img0 = reform(img[*, *, 0, 0])    ; camera 0 [reflected]
@@ -1076,7 +1072,6 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     check_01id     = tag_exist(struct, '01ID')
     check_lyotstop = tag_exist(struct, 'LYOTSTOP')
 
-    ; TODO: use this in MLSO_SGS_INSERT
     ; clean bad SGS information
     bad_dimv = struct.sgsdimv lt 1.0 or struct.sgsdimv gt 10.0
     bad_scint = struct.sgsscint lt 0.0 or struct.sgsscint gt 20.0
@@ -1096,7 +1091,6 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     struct.sgsloop = 1   ; SGSLOOP is 1 if image passed quality check
 
     bscale = 0.001   ; pB * 1000 is stored in FITS image.
-    bunit  = 'quasi-pB'
     img_quality = 'ok'
     newheader    = strarr(200)
     newheader[0] = header[0]         ; contains SIMPLE keyword
@@ -1158,21 +1152,31 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     ;                      ' Level 1 software'
 
     fxaddpar, newheader, 'DATE_DP', date_dp, ' L1 processing date (UTC)'
-    fxaddpar, newheader, 'DPSWID',  'kcorl1.pro 14dec2015', $
-                         ' L1 data processing software'
+    version = kcor_find_code_version(revision=revision, date=code_date)
+
+    fxaddpar, newheader, 'DPSWID',  $
+                         string(version, revision, $
+                                format='(%"%s [%s]")'), $
+                         string(code_date, $
+                                format='(%" L1 data processing software (%s)")')
 
     fxaddpar, newheader, 'CALFILE', run->epoch('cal_file'), $
                          ' calibration file'
     ;                        ' calibration file:dark, opal, 4 pol.states'
     fxaddpar, newheader, 'DISTORT', run->epoch('distortion_correction_filename'), $
                          ' distortion file'
-    fxaddpar, newheader, 'DMODSWID', '18 Aug 2014', $
+    fxaddpar, newheader, 'DMODSWID', '2016-05-26', $
                          ' date of demodulation software'
     fxaddpar, newheader, 'OBSSWID', struct.obsswid, $
                          ' version of the observing software'
 
-    fxaddpar, newheader, 'BUNIT', bunit, $
-                         ' note: Level-1 intensities are quasi-pB.'
+    fxaddpar, newheader, 'BUNIT', '10e-6 Bsun', $
+                         ' Brightness with respect to solar disc'
+    fxaddpar, newheader, 'BOPAL', $
+                         string(run->epoch(struct.diffsrid), $
+                                format='(%"%se-6")'), $
+                         string(run->epoch(run->epoch(struct.diffsrid)), $
+                                format='(%" %s")')
 
     fxaddpar, newheader, 'BZERO', struct.bzero, $
                          ' offset for unsigned integer data'
@@ -1394,10 +1398,6 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     ;----------------------------------------------------------------------------
     ; For FULLY CALIBRATED DATA:  Add these when ready.
     ;----------------------------------------------------------------------------
-    ;  fxaddpar, newheader, 'BUNIT', '10^-6 Bsun', $
-    ;                       ' Brightness with respect to solar disc.'
-    ;  fxaddpar, newheader, 'BOPAL', '1.38e-05', $
-    ;                       ' Opal Transmission Calibration by Elmore at 775 nm'
     ; sxaddhist, $
     ; 'Level 2 processing performed: sky polarization removed, alignment to ', $
     ; newheader
@@ -1459,7 +1459,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
                       charsize=1.0, alignment=0.5, orientation=90.0, /device
     xyouts, 4, 34, 'Level 1 data', color=255, charsize=1.0, /device
     xyouts, 4, 20, string(run->epoch('display_min'), run->epoch('display_max'), $
-                          format='("min/max: ", f5.2, f3.1)'), $
+                          format='("min/max: ", f5.2, ", ", f3.1)'), $
             color=255, charsize=1.0, /device
     xyouts, 4, 6, string(run->epoch('display_exp'), $
                          format='("scaling: Intensity ^ ", f3.1)'), $

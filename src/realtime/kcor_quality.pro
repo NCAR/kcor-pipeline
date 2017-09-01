@@ -40,12 +40,10 @@
 ; :Keywords:
 ;   append : in, optional, type=boolean
 ;     if set, append log information to existing log file
-;   gif : in, optional, type=boolean
-;     if set, produce raw GIF images
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;-
-function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
+function kcor_quality, date, l0_fits_files, append=append, run=run
   compile_opt strictarr
 
   ; store initial system time
@@ -114,22 +112,6 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
   file_mkdir, q_dir
   file_mkdir, cdate_dir
 
-  if (keyword_set(gif)) then begin
-    file_mkdir, q_dir_ok
-    file_mkdir, q_dir_bad
-    file_mkdir, q_dir_brt
-    file_mkdir, q_dir_cal
-    file_mkdir, q_dir_cld
-    file_mkdir, q_dir_dim
-    file_mkdir, q_dir_dev
-    file_mkdir, q_dir_nsy
-    file_mkdir, q_dir_sat
-
-    ;file_mkdir, q_dir_unk
-    ;file_mkdir, q_dir_eng
-    ;file_mkdir, q_dir_ugly
-  endif
-
   ; move to 'date' directory
   cd, current=start_dir   ; save current directory
   cd, date_dir            ; move to date directory
@@ -164,17 +146,6 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
 
   ; print information
   mg_log, 'checking quality for %s', date, name='kcor/rt', /info
-
-  if (keyword_set(gif)) then begin
-    mg_log, 'q_dir_ok: %s', q_dir_ok, name='kcor/rt', /debug
-    mg_log, 'q_dir_bad: %s', q_dir_bad, name='kcor/rt', /debug
-    mg_log, 'q_dir_brt: %s', q_dir_brt, name='kcor/rt', /debug
-    mg_log, 'q_dir_cal: %s', q_dir_cal, name='kcor/rt', /debug
-    mg_log, 'q_dir_cld: %s', q_dir_cld, name='kcor/rt', /debug
-    mg_log, 'q_dir_dim: %s', q_dir_dim, name='kcor/rt', /debug
-    mg_log, 'q_dir_nsy: %s', q_dir_nsy, name='kcor/rt', /debug
-    mg_log, 'q_dir_sat: %s', q_dir_sat, name='kcor/rt', /debug
-  endif
 
   ; initialize count variables
   nokf = 0
@@ -225,6 +196,9 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
   l0_file = ''
   num_img = 0
 
+  quicklook_dir = filepath('', subdir=['level0', 'quicklook'], root=date_dir)
+  if (~file_test(quicklook_dir, /directory)) then file_mkdir, quicklook_dir
+
   ; image file loop
   foreach l0_file, l0_fits_files do begin
     num_img += 1
@@ -253,6 +227,8 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     run.time = date_obs
     level    = sxpar(hdu, 'LEVEL',    count=qlevel)
 
+    exposure = sxpar(hdu, 'EXPTIME')
+    exposure = float(exposure)
     bzero    = sxpar(hdu, 'BZERO',    count=qbzero)
     bbscale  = sxpar(hdu, 'BSCALE',   count=qbbscale)
     bitpix   = sxpar(hdu, 'BITPIX')
@@ -270,13 +246,27 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     occltrid = sxpar(hdu, 'OCCLTRID', count=qoccltrid)
 
     ; determine occulter size in pixels
-
-    occulter = strmid(occltrid, 3, 5)   ; extract 5 characters from occltrid
-    if (occulter eq '991.6') then occulter =  991.6
-    if (occulter eq '1018.') then occulter = 1018.9
-    if (occulter eq '1006.') then occulter = 1006.9
+    ; find size of occulter
+    ;   - one occulter has 4 digits; other two have 5
+    ;   - only read in 4 digits to avoid confusion
+    if (run->epoch('use_default_occulter_size')) then begin
+      occulter = run->epoch('default_occulter_size')
+    endif else begin
+      occulter = strmid(occltrid, 0, 8)
+      occulter = run->epoch(occulter)
+    endelse
 
     radius_guess = occulter / run->epoch('plate_scale')   ; occulter size [pixels]
+
+    kcor_correct_camera, img, hdu, run=run
+    if (run->epoch('remove_horizontal_artifact')) then begin
+      mg_log, 'correcting horizontal artifacts at lines: %s', $
+              strjoin(strtrim(run->epoch('horizontal_artifact_lines'), 2), ', '), $
+              name='kcor/rt', /debug
+      kcor_correct_horizontal_artifact, img, run->epoch('horizontal_artifact_lines')
+    endif
+
+; TODO: flat/dark correct
 
     ; define variables for azimuthal angle "scans"
     nray  = 36
@@ -286,11 +276,6 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     dpy   = intarr(nray)
 
     ; get FITS image size from image array
-
-    n1 = 1
-    n2 = 1
-    n3 = 1
-    n4 = 1
     imgsize = size(img)           ; get size of img array
     ndim    = imgsize[0]          ; # dimensions
     n1      = imgsize[1]          ; dimension #1 size X: 1024
@@ -332,7 +317,7 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     pangle += 180.0   ; adjust orientation for Kcor telescope
 
     ; verify that image size agrees with FITS header information
-    if (nelem ne np)   then begin
+    if (nelem ne np) then begin
       mg_log, 'nelem: %d, ne np: %d', nelem, np, name='kcor/rt', /warn
       continue
     endif
@@ -373,7 +358,7 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     endif
 
     ; check calpol position
-    if (calpol  ne 'out') then begin
+    if (calpol ne 'out') then begin
       dev  += 1
       calp += 1
     endif
@@ -385,7 +370,7 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     endif
 
     ; check cover position
-    if (cover    ne 'out') then begin
+    if (cover ne 'out') then begin
       dev += 1
       cov += 1
     endif
@@ -421,7 +406,7 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
       xcen = axcen - 4
       ycen = aycen - 4
       rdisc_pix = radius_guess
-    end else begin   ; locate disc center
+    endif else begin   ; locate disc center
       center_info = kcor_find_image(img00, radius_guess, chisq=chisq, $
                                     /center_guess, log_name='kcor/rt')
       xcen = center_info[0]        ; x offset
@@ -433,8 +418,8 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     ixcen = fix(xcen + 0.5)
     iycen = fix(ycen + 0.5)
 
-    ; rotate image by P-angle
-    ; (No rotation for calibration or device-obscured images.)
+    ; rotate image by P-angle, no rotation for calibration or device-obscured
+    ; images
     if (cal gt 0 or dev gt 0) then begin
       pb0rot = pb0
       goto, next
@@ -445,21 +430,12 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     ; bright sky check
     dobright = 1
     if (dobright gt 0) then begin
-      ; bmax  = 77.0
-      ; rpixb = 296.0
-
-      ; bmax  = 175.0   ; brightness threshold
-      ; bmax  = 220.0   ; brightness threshold
-      ; bmax  = 250.0   ; brightness threshold
-
-      ; TODO: add values to epochs file
-      if (bitpix eq 16) then bmax  = 300.0    ; brightness threshold
-      if (bitpix eq 32) then bmax  = 2.0e06   ; brightness threshold
+      bmax = run->epoch('bmax')
       if ((bitpix ne 16) and (bitpix ne 32)) then begin
         mg_log, 'unexpected BITPIX: %d', bitpix, name='kcor/rt', /error
         goto, next
       endif
-      rpixb = 450       ; circle radius [pixels]
+      rpixb = run->epoch('rpixb')   ; circle radius [pixels]
       dpx   = fix(cos(dp) * rpixb + axcen + 0.5005)
       dpy   = fix(sin(dp) * rpixb + aycen + 0.5005)
 
@@ -480,10 +456,9 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     ; saturation check
     chksat = 1
     if (chksat gt 0) then begin
-      if (bitpix eq 16) then smax  = 1000.0   ; brightness threshold
-      if (bitpix eq 32) then smax  = 1.e07    ; brightness threshold
+      smax = run->epoch('smax')     ; brightness threshold
+      rpixt = run->epoch('rpixt')   ; circle radius [pixels]
 
-      rpixt = 215      ; circle radius [pixels].
       dpx   = fix(cos(dp) * rpixt + axcen + 0.5005)
       dpy   = fix(sin(dp) * rpixt + aycen + 0.5005)
 
@@ -492,7 +467,6 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
       nelem  = n_elements(satpix)
 
       ; if too many pixels are saturated, set sat = 1
-
       sat = 0
       if (satpix[0] ne -1) then begin
         ssize = size(satpix)
@@ -508,10 +482,11 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     chi      = 0
     cloud    = 0
     if (chkcloud gt 0) then begin
-      if (bitpix eq 16) then cmax  = 2200.0   ; upper brightness threshold
-      if (bitpix eq 32) then cmax  = 5.e07    ; upper brightness threshold
-      cmin =  200.0   ; lower brightness threshold
-      rpixc = 190     ; circle radius [pixels]
+      ; upper brightness threshold
+      cmax = run->epoch('cmax')
+      ; lower brightness threshold
+      cmin = run->epoch('cmin')
+      rpixc = run->epoch('rpixc') ; circle radius [pixels]
       dpx  = fix(cos(dp) * rpixc + axcen + 0.5005)
       dpy  = fix(sin(dp) * rpixc + aycen + 0.5005)
 
@@ -545,8 +520,7 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     ; Need to find noise limits that work for 32 bit (float and long) data
     ; For now, skip noise check for 32 bit data
 
-    if (bitpix eq 16) then chknoise = 1
-    if (bitpix eq 32) then chknoise = 0
+    chknoise = run->epoch('check_noise')
 
     noise    = 0
     bad = bright + sat + clo + chi
@@ -608,37 +582,26 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
 
     if (cal gt 0 or dev gt 0) then begin
       pb0m = pb0rot
-    end else if (nx ne xdim or ny ne ydim) then begin
+    endif else if (nx ne xdim or ny ne ydim) then begin
       mg_log, 'image dimensions incompatible with mask: %d, %d, %d, %d', $
               nx, ny, xdim, ydim, name='kcor/rt', /warn
       pb0m = pb0rot 
     endif else begin
-    pb0m = pb0rot * mask 
+      pb0m = pb0rot * mask 
     endelse
 
     ; intensity scaling
-    power = 0.9
-    power = 0.8
     power = 0.5
     pb0s = pb0m ^ power   ; apply exponential power
 
     imin = min(pb0s)
     imax = max(pb0s)
 
-    ; imin = 10
-    ; imax = 3000 ^ power
-
-    ; print,        'imin/imax: ', imin, imax
-    ; printf, ulog, 'imin/imax: ', imin, imax
+    ; imin = 0.0
+    ; imax = 40.0
 
     ; scale pixel intensities
-
-    ; if ((cal eq 0 and dev eq 0) or (imax gt 250.0)) then $
-    ;    pb0sb = bytscl(pb0s, min=imin, max=imax, top=250) $;linear scaling:0-250
-    ; else $
-    ;    pb0sb = byte(pb0s)
-
-    pb0sb = bytscl(pb0s, min=imin, max=imax, top=250)   ; linear scaling:0-250
+    pb0sb = bytscl(pb0s, min=imin, max=imax, top=250)   ; linear scaling: 0-250
 
     ; display image
     tv, pb0sb
@@ -646,27 +609,22 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     rsunpix = rsun / run->epoch('plate_scale')   ; 1.0 rsun [pixels]
     irsunpix = fix(rsunpix + 0.5)      ; 1.0 rsun [integer pixels]
 
-    ; print, 'rdisc_pix, rsunpix: ', rdisc_pix, rsunpix
-
     ; Annotate image
     ; Skip annotation (except file name) for calibration images
 
     if (cal eq 0 and dev eq 0) then begin
       ; draw circle at 1.0 Rsun
-
-      ; tvcircle, rsunpix, axcen, aycen,     0, /device, /fill ; 1.0 Rsun circle
-      ; tvcircle, rdisc_pix, axcen, aycen, red, /device        ; occulter edge
-
-      tvcircle, rdisc_pix, axcen, aycen, grey, /device, /fill ; occulter disc 
-      tvcircle, rsunpix, axcen, aycen, yellow, /device        ; 1.0 Rsun circle
-      tvcircle, rsunpix*3.0, axcen, aycen, grey, /device      ; 3.0 Rsun circle
+      tvcircle, rdisc_pix, axcen, aycen, grey, /device, /fill  ; occulter disc 
+      tvcircle, rsunpix, axcen, aycen, yellow, /device         ; 1.0 Rsun circle
+      tvcircle, 3.0 * rsunpix, axcen, aycen, grey, /device     ; 3.0 Rsun circle
 
       ; draw "+" at sun center
       plots, [ixcen - 5, ixcen + 5], [iycen, iycen], color=yellow, /device
       plots, [ixcen, ixcen], [iycen - 5, iycen + 5], color=yellow, /device
 
-      if (dev eq 0) then $
+      if (dev eq 0) then begin
         xyouts, 490, 1010, 'NORTH', color=green, charsize=1.0, /device
+      endif
     endif
 
     ; create GIF file name, draw circle (as needed)
@@ -674,83 +632,67 @@ function kcor_quality, date, l0_fits_files, append=append, gif=gif, run=run
     gif_file = 'kcor.gif'   ; default gif file name
     qual     = 'unk'
 
-    ;  xyouts, 4, ydim-20, gif_file, color=red, charsize=1.5, /device
-    ;  save = tvrd()
-
     ; write GIF image
 
-    ; IF (eng GT 0) THEN begin   ; Engineering
-    ;    gif_file = strmid (l0_file, 0, fitsloc) + '_e.gif' 
-    ;    gif_path = q_dir_eng + gif_file
-    ; END ELSE $
+    l0_basename = file_basename(l0_file)
 
-    if (cal gt 0) then begin   ; calibration
-      gif_file = strmid(l0_file, 0, fitsloc) + '_c.gif' 
-      gif_path = q_dir_cal + gif_file
+    if (eng gt 0) then begin   ; engineering
+      gif_file = strmid(l0_basename, 0, fitsloc) + '_e.gif' 
+    endif else if (cal gt 0) then begin   ; calibration
+      gif_file = strmid(l0_basename, 0, fitsloc) + '_c.gif' 
       qual = q_cal
       ncal += 1
       printf, ucal, l0_file
-      ; printf, ulog, l0_file, ' --> ', cdate_dir
-      file_copy, l0_file, cdate_dir, /overwrite   ; copy l0 file to cdate_dir.
+      file_copy, l0_file, cdate_dir, /overwrite   ; copy l0 file to cdate_dir
     endif else if (dev gt 0) then begin   ; device obscuration
-      gif_file = strmid(l0_file, 0, fitsloc) + '_m.gif' 
-      gif_path = q_dir_dev + gif_file
+      gif_file = strmid(l0_basename, 0, fitsloc) + '_m.gif' 
       qual = q_dev
       ndev += 1
       printf, udev, l0_file
     endif else if (bright gt 0) then begin   ; bright image
       tvcircle, rpixb, axcen, aycen, red, /device   ; bright circle
-      gif_file = strmid(l0_file, 0, fitsloc) + '_b.gif' 
-      gif_path = q_dir_brt + gif_file
+      gif_file = strmid(l0_basename, 0, fitsloc) + '_b.gif' 
       qual = q_brt
       nbrt += 1
       printf, ubrt, l0_file
-    endif else if (clo    gt 0) then begin   ; dim image
+    endif else if (clo gt 0) then begin   ; dim image
       tvcircle, rpixc, axcen, aycen, green,  /device   ; cloud circle
-      gif_file = strmid(l0_file, 0, fitsloc) + '_d.gif'
-      gif_path = q_dir_dim + gif_file
+      gif_file = strmid(l0_basename, 0, fitsloc) + '_d.gif'
       qual = q_dim
       ndim += 1
       printf, udim, l0_file
-    endif else if (chi    gt 0) then begin   ; cloudy image
+    endif else if (chi gt 0) then begin   ; cloudy image
       tvcircle, rpixc, axcen, aycen, green,  /device   ; cloud circle
-      gif_file = strmid(l0_file, 0, fitsloc) + '_o.gif' 
-      gif_path = q_dir_cld + gif_file
+      gif_file = strmid(l0_basename, 0, fitsloc) + '_o.gif' 
       qual = q_cld
       ncld += 1
       printf, ucld, l0_file
-    endif else  if (sat    gt 0) then begin   ; saturation
+    endif else  if (sat gt 0) then begin   ; saturation
       tvcircle, rpixt, axcen, aycen, blue, /device   ; sat circle
-      gif_file = strmid(l0_file, 0, fitsloc) + '_t.gif' 
-      gif_path = q_dir_sat + gif_file
+      gif_file = strmid(l0_basename, 0, fitsloc) + '_t.gif' 
       qual = q_sat
       nsat += 1
       printf, usat, l0_file
     endif else if (noise gt 0) then begin   ; noisy
       tvcircle, rpixn, axcen, aycen, yellow, /device   ; noise circle
-      gif_file = strmid (l0_file, 0, fitsloc) + '_n.gif' 
-      gif_path = q_dir_nsy + gif_file
+      gif_file = strmid (l0_basename, 0, fitsloc) + '_n.gif' 
       qual = q_nsy
       nnsy += 1
       printf, unsy, l0_file
     endif else begin   ; good image
-      gif_file = strmid (l0_file, 0, fitsloc) + '_g.gif'
-      gif_path = q_dir_ok + gif_file
+      gif_file = strmid(l0_basename, 0, fitsloc) + '_g.gif'
       qual = q_ok
       nokf += 1
       printf, uokf, file_basename(l0_file)
       printf, uoka, file_basename(l0_file)
     endelse
 
-    ; write GIF file
-    if (keyword_set(gif)) then begin
-      xyouts, 4, ydim-20, gif_file, color=red, charsize=1.5, /device
-      save = tvrd()
-      write_gif, gif_path, save, rlut, glut, blut
+    gif_path = filepath(gif_file, root=quicklook_dir)
 
-      ; print,        'gif_file: ', gif_file
-      ; printf, ulog, 'gif_file: ', gif_file
-    endif
+    ; write GIF file
+    xyouts, 6, ydim-20, gif_file, color=white, charsize=1.0, /device
+    save = tvrd()
+    write_gif, gif_path, save, rlut, glut, blut
 
     istring     = string(format='(i5)',   num_img)
     exptime_str = string(format='(f5.2)', exptime)

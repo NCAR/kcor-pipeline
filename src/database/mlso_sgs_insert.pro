@@ -10,7 +10,7 @@
 ;   date : in, required, type=string
 ;     date in the form 'YYYYMMDD'
 ;   filelist: in, required, type=array of strings
-;     array of FITS files to insert into the database
+;     array of L0 FITS files to insert into the database
 ;
 ; :Keywords:
 ;   run : in, required, type=object
@@ -24,7 +24,7 @@
 ;   For example::
 ;
 ;     date = '20170204'
-;     filelist = ['20170204_205610_kcor_l1_nrgf.fts.gz', '20170204_205625_kcor_l1.fts.gz']
+;     filelist = ['20170204_205610_kcor.fts.gz', '20170204_205625_kcor.fts.gz']
 ;     mlso_sgs_insert, date, filelist, run=run, obsday_index=obsday_index
 ;
 ; :Author: 
@@ -72,9 +72,9 @@ pro mlso_sgs_insert, date, fits_list, $
 
   sgs_source = ''                           ; 'k' or 's'  (kcor or sgs)
   
-  l1_dir = filepath('level1', subdir=date, root=run.raw_basedir)
+  l0_dir = filepath('level0', subdir=date, root=run.raw_basedir)
   cd, current=start_dir
-  cd, l1_dir
+  cd, l0_dir
 
   ; step through list of fits files passed in parameter
   nfiles = n_elements(fits_list)
@@ -87,12 +87,6 @@ pro mlso_sgs_insert, date, fits_list, $
   i = -1
   while (++i lt nfiles) do begin
     fts_file = fits_list[i]
-
-    ; no need to look at NRGF files
-    is_nrgf = strpos(file_basename(fts_file), 'nrgf') ge 0L
-    if (is_nrgf) then continue
-
-    fts_file += '.gz'
 
     if (~file_test(fts_file)) then begin
       mg_log, '%s not found', fts_file, name='kcor/rt', /warn
@@ -108,7 +102,6 @@ pro mlso_sgs_insert, date, fits_list, $
     hdu = headfits(fts_file, /silent)   ; read FITS header
 
     date_obs  = sxpar(hdu, 'DATE-OBS', count=qdate_obs)
-
 
     sgsdimv_str  = kcor_getsgs(hdu, 'SGSDIMV')
     sgsdims_str  = kcor_getsgs(hdu, 'SGSDIMS')
@@ -150,7 +143,7 @@ end
 ; main-level example program
 
 date = '20170204'
-filelist = ['20170204_205610_kcor_l1_nrgf.fts.gz','20170204_205625_kcor_l1.fts.gz','20170204_205640_kcor_l1.fts.gz','20170204_205656_kcor_l1.fts.gz','20170204_205711_kcor_l1.fts.gz']
+filelist = ['20170204_205610_kcor.fts.gz','20170204_205625_kcor.fts.gz','20170204_205640_kcor.fts.gz','20170204_205656_kcor.fts.gz','20170204_205711_kcor.fts.gz']
 run = kcor_run(date, $
                config_filename=filepath('kcor.kolinski.mahi.latest.cfg', $
                                         subdir=['..', '..', 'config'], $

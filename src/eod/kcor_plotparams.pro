@@ -93,7 +93,6 @@ pro kcor_plotparams, date, list=list, run=run
     calpol   = ''
     darkshut = ''
     cover    = ''
-    occltrid = ''
 
     naxis    = sxpar(hdu, 'NAXIS',    count=qnaxis)
     naxis1   = sxpar(hdu, 'NAXIS1',   count=qnaxis1)
@@ -139,13 +138,8 @@ pro kcor_plotparams, date, list=list, run=run
     rcam_focus[i] = rcamfocs
     o1_focus[i]   = o1focs
 
-    ; determine occulter size in pixels
-    occulter = strmid (occltrid, 3, 5)   ; extract 5 characters from occltrid
-    if (occulter eq '991.6') then occulter =  991.6
-    if (occulter eq '1018.') then occulter = 1018.9
-    if (occulter eq '1006.') then occulter = 1006.9
-
-    radius_guess = occulter / run->epoch('plate_scale')   ; occulter size [pixels]
+    occulter = kcor_get_occulter_size(occltrid, run=run) ; occulter size [arcsec]
+    radius_guess = occulter / run->epoch('plate_scale')  ; occulter size [pixels]
 
     mg_log, '%4d/%d: %s %s', $
             i + 1, n_elements(list), file_basename(l0_file), $

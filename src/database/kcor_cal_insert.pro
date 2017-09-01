@@ -81,8 +81,10 @@ pro kcor_cal_insert, date, fits_list, $
   i = -1
   while (++i lt nfiles) do begin
     fts_file = fits_list[i]
-    fts_file += '.gz'
-    
+
+    ; allow compressed or uncompressed files to be passed in
+    if (~file_test(fts_file)) then fts_file += '.gz'
+
     if (~file_test(fts_file)) then begin
       mg_log, '%s not found', fts_file, name='kcor/eod', /warn
       continue

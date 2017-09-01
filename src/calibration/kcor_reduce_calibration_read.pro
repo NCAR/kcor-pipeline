@@ -15,9 +15,11 @@
 ;   metadata : out, optional, type=structure
 ;     structure with angles, idiff, vdimref, date, file_list, and file_types
 ;     fields
+;   run : in, optional, type=object
+;     `kcor_run` object; `config_filename` or `run` is required
 ;-
 pro kcor_reduce_calibration_read, file_list, basedir, $
-                                  data=data, metadata=metadata
+                                  data=data, metadata=metadata, run=run
   compile_opt strictarr
 
   filenames = filepath(file_list, root=basedir)
@@ -33,7 +35,7 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
   calibration = fltarr(header.naxis1, header.naxis2, 4, 2, n_elements(file_list))
   angles = fltarr(n_elements(file_list))
 
-  idiff = run->epoch('header.diffsrid')
+  idiff = run->epoch(header.diffsrid)
 
   ; read files and populate data structure
   gotdark = 0
@@ -46,6 +48,20 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
     if (~file_test(filenames[f], /regular)) then filenames[f] += '.gz'
 
     thisdata = readfits(filenames[f], header, /silent)
+
+    ; must set time before querying run object
+    date_obs = sxpar(header, 'DATE-OBS', count=qdate_obs)
+    run.time = date_obs
+
+    kcor_correct_camera, thisdata, header, run=run
+
+    if (run->epoch('remove_horizontal_artifact')) then begin
+      mg_log, 'correcting horizontal artifacts at lines: %s', $
+              strjoin(strtrim(run->epoch('horizontal_artifact_lines'), 2), ', '), $
+              name='kcor/cal', /debug
+      kcor_correct_horizontal_artifact, thisdata, run->epoch('horizontal_artifact_lines')
+    endif
+
     darkshut = sxpar(header, 'DARKSHUT', count=n_darkshut)
     diffuser = sxpar(header, 'DIFFUSER', count=n_diffuser)
     calpol = sxpar(header, 'CALPOL', count=n_calpol)

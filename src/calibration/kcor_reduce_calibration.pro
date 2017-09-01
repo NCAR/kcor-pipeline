@@ -73,7 +73,8 @@ pro kcor_reduce_calibration, date, filelist=filelist, config_filename=config_fil
                                 filepath('level0', $
                                          subdir=date, $
                                          root=run.raw_basedir), $
-                                data=data, metadata=metadata
+                                data=data, metadata=metadata, $
+                                run=run
 
   if (n_elements(data) eq 0L) then begin
     mg_log, 'incomplete cal data, exiting', name='kcor/cal', /info
@@ -197,8 +198,9 @@ pro kcor_reduce_calibration, date, filelist=filelist, config_filename=config_fil
   outfile_basename = string(date, $
                             first_time, $
                             run->epoch('calversion'), $
+                            kcor_find_code_version(), $
                             float(exposures[0]), $
-                            format='(%"%s_%s_kcor_cal_v%s_%0.1fms.ncdf")')
+                            format='(%"%s_%s_kcor_cal_v%s_%s_%0.1fms.ncdf")')
   outfile = filepath(outfile_basename, root=run.cal_out_dir)
 
   if (~file_test(run.cal_out_dir, /directory)) then file_mkdir, run.cal_out_dir
@@ -218,16 +220,18 @@ end
 
 ; main-level example program
 
+
 ; set date via command line and .run kcor_reduce_calibration
-if (n_elements(date) eq 0L) then date = '20161127'
+if (n_elements(date) eq 0L) then date = '20131204'
+
+config_filename = filepath('kcor.iguana.mahi.calibration.cfg', $
+                           subdir=['..', '..', 'config'], $
+                           root=mg_src_root())
+run = kcor_run(date, config_filename=config_filename)
+
+callist_filename = filepath('callist', subdir=date, root=run.raw_basedir)
 
 if (file_test(callist_filename)) then begin
-  config_filename = filepath('kcor.iguana.mahi.calibration.cfg', $
-                             subdir=['..', '..', 'config'], $
-                             root=mg_src_root())
-  run = kcor_run(date, config_filename=config_filename)
-
-  callist_filename = filepath('callist', subdir=date, root=run.raw_basedir)
   n_files = file_lines(callist_filename)
   filelist = strarr(n_files)
   calfile = ''

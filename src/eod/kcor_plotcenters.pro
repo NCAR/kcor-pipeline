@@ -145,7 +145,6 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     calpol   = ''
     darkshut = ''
     cover    = ''
-    occltrid = ''
 
     naxis    = sxpar(hdu, 'NAXIS',    count=qnaxis)
     naxis1   = sxpar(hdu, 'NAXIS1',   count=qnaxis1)
@@ -176,14 +175,8 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     if (darkshut eq 'in')  then dshutter = 'shut'
     if (darkshut eq 'out') then dshutter = 'open'
 
-    ; determine occulter size in pixels
-    occulter = strmid(occltrid, 3, 5)   ; extract 5 characters from occltrid
-    if (occulter eq '991.6') then occulter =  991.6
-    if (occulter eq '1006.') then occulter = 1006.9
-    if (occulter eq '1018.') then occulter = 1018.9
-
-    platescale = run->epoch('plate_scale')   ; arsec/pixel
-    radius_guess = occulter / platescale     ; occulter size [pixels].
+    occulter = kcor_get_occulter_size(occltrid, run=run) ; occulter size [arcsec]
+    radius_guess = occulter / run->epoch('plate_scale')  ; occulter size [pixels]
 
     ; get FITS image size from image array
 

@@ -58,9 +58,11 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
   fullres_dir = filepath('', subdir=date_parts, root=run.fullres_basedir)
   archive_dir = filepath('', subdir=date_parts, root=run.archive_basedir)
 
-  if (~file_test(croppedgif_dir, /directory)) then file_mkdir, croppedgif_dir
-  if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
-  if (~file_test(archive_dir, /directory)) then file_mkdir, archive_dir
+  if (run.distribute) then begin
+    if (~file_test(croppedgif_dir, /directory)) then file_mkdir, croppedgif_dir
+    if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
+    if (~file_test(archive_dir, /directory)) then file_mkdir, archive_dir
+  endif
 
   cd, raw_dir
 
@@ -93,7 +95,11 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     ok_files = kcor_quality(date, l0_fits_files, /append, run=run)
     mg_log, '%d OK L0 files', n_elements(ok_files), name='kcor/rt', /info
 
-    kcor_l1, date, ok_files, /append, run=run, mean_phase1=mean_phase1
+    kcor_l1, date, ok_files, /append, run=run, mean_phase1=mean_phase1, error=error
+    if (error ne 0L) then begin
+      mg_log, 'L1 processing failed, quitting', name='kcor/rt', /error
+      goto, done
+    endif
 
     mg_log, 'moving processed files to l0_dir', name='kcor/rt', /info
     file_move, l0_fits_files, l0_dir, /overwrite
@@ -125,6 +131,8 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     openw, okl1gz_lun, 'okl1gz.ls', /append, /get_lun
     openw, ok_rg_lun, 'oknrgf.ls', /append, /get_lun
 
+    nrgf_basenames = list()
+
     for f = 0L, n_elements(ok_files) - 1L do begin
       base = file_basename(ok_files[f], '.fts')
       printf, okcgif_lun, base + '_cropped.gif'
@@ -132,11 +140,16 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       printf, okl1gz_lun, base + '_l1.fts.gz'
 
       nrgf_filename = base + '_l1_nrgf.fts.gz'
-      if (file_test(nrgf_filename)) then printf, ok_rg_lun, nrgf_filename
+      if (file_test(nrgf_filename)) then begin
+        printf, ok_rg_lun, nrgf_filename
+        nrgf_basenames->add, base
+      endif
 
-      file_copy, base + '_cropped.gif', croppedgif_dir, /overwrite
-      file_copy, base + '.gif', fullres_dir, /overwrite
-      file_copy, base + '_l1.fts.gz', archive_dir, /overwrite
+      if (run.distribute) then begin
+        file_copy, base + '_cropped.gif', croppedgif_dir, /overwrite
+        file_copy, base + '.gif', fullres_dir, /overwrite
+        file_copy, base + '_l1.fts.gz', archive_dir, /overwrite
+      endif
     endfor
 
     free_lun, okcgif_lun
@@ -144,19 +157,28 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     free_lun, okl1gz_lun
     free_lun, ok_rg_lun
 
-    ; find the NRGF files now, will move them after updating database
-    rg_dir = filepath('', subdir=date_parts, root=run.nrgf_basedir)
-    if (~file_test(rg_dir, /directory)) then file_mkdir, rg_dir
+    ; find the NRGF files now, will copy them after updating database
+    if (run.distribute) then begin
+      nrgf_dir = filepath('', subdir=date_parts, root=run.nrgf_basedir)
+      if (~file_test(nrgf_dir, /directory)) then file_mkdir, nrgf_dir
+    endif
 
-    rg_gifs = file_search('*nrgf.gif', count=n_rg_gifs)
-    cropped_rg_gifs = file_search('*nrgf_cropped.gif', count=n_cropped_rg_gifs)
+    n_nrgf_gifs = nrgf_basenames->count()
+    if (n_nrgf_gifs gt 0L) then begin
+      nrgf_gif_basenames = nrgf_basenames->toArray()
+      nrgf_gifs = nrgf_gif_basenames + '_l1_nrgf.gif'
+      cropped_nrgf_gifs = nrgf_gif_basenames + '_l1_nrgf_cropped.gif'
+    endif
+
+    obj_destroy, nrgf_basenames
 
     if (run.update_remote_server && ~keyword_set(reprocess)) then begin
-      if (n_rg_gifs gt 0L) then begin
-        mg_log, 'transferring %d NRGF GIFs to remote server', n_rg_gifs, $
+      if (n_nrgf_gifs gt 0L) then begin
+        mg_log, 'transferring %d NRGF GIFs to remote server', n_nrgf_gifs, $
                 name='kcor/rt', /info
-        spawn_cmd = string(run.nrgf_remote_server, run.nrgf_remote_dir, $
-                           format='(%"scp -B -r -p *nrgf.gif %s:%s")')
+        ssh_key_str = run.ssh_key eq '' ? '' : string(run.ssh_key, format='(%"-i %s")')
+        spawn_cmd = string(ssh_key_str, run.nrgf_remote_server, run.nrgf_remote_dir, $
+                           format='(%"scp %s -B -r -p *nrgf.gif %s:%s")')
         spawn, spawn_cmd, result, error_result, exit_status=status
         if (status ne 0L) then begin
           mg_log, 'problem scp-ing NRGF files with command: %s', spawn_cmd, $
@@ -191,7 +213,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
                            database=db, $
                            obsday_index=obsday_index
           ; should use ALL (cal, eng, sci, and bad ones) raw files
-          mlso_sgs_insert, date, l0_fits_files, $
+          mlso_sgs_insert, date, file_basename(l0_fits_files), $
                            run=run, $
                            database=db, $
                            obsday_index=obsday_index
@@ -207,9 +229,9 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     endelse
 
     ; now move NRGF files
-    if (n_rg_gifs gt 0L) then file_move, rg_gifs, rg_dir, /overwrite
-    if (n_cropped_rg_gifs gt 0L) then begin
-      file_move, cropped_rg_gifs, croppedgif_dir, /overwrite
+    if (n_nrgf_gifs gt 0L && run.distribute) then begin
+      file_copy, nrgf_gifs, nrgf_dir, /overwrite
+      file_copy, cropped_nrgf_gifs, croppedgif_dir, /overwrite
     endif
   endif else begin
     mg_log, 'raw directory locked, quitting', name='kcor/rt', /info
