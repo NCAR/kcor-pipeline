@@ -117,7 +117,6 @@ pro mlso_sgs_insert, date, fits_list, $
 
     sgsloop   = sxpar(hdu, 'SGSLOOP', count=qsgsloop)
 		
-    ;fits_file = file_basename(fts_file, '.gz') ; remove '.gz' from file name.
     ; DB insert command
     db->execute, 'INSERT INTO mlso_sgs (date_obs, obs_day, source, sgsdimv, sgsdims, sgssumv, sgsrav, sgsras, sgsrazr, sgsdecv, sgsdecs, sgsdeczr, sgsscint, sgssums, sgsloop) VALUES (''%s'', %d, ''%s'', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d) ', $
                  date_obs, obsday_index, sgs_source, sgsdimv_str, sgsdims_str, $

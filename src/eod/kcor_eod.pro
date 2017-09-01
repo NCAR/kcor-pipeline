@@ -49,13 +49,18 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     goto, done
   endif
 
-  l0_fits_files = file_search(filepath('*kcor.fts*', root=date_dir), $
+  ; level 0 files still in root
+  l0_fits_files = file_search(filepath('*_kcor.fts.gz', root=date_dir), $
                               count=n_l0_fits_files)
   if (n_l0_fits_files gt 0L) then begin
     mg_log, 'L0 FITS files exist in %s', date_dir, name='kcor/eod', /info
     mg_log, 'L1 processing incomplete', name='kcor/eod', /info
     goto, done
   endif
+
+  ; level 0 files in the level0/ directory
+  l0_fits_files = file_search(filepath('*_kcor.fts.gz', root=l0_dir), $
+                              count=n_l0_fits_files)
 
   t1_log_file = filepath(date + '.kcor.t1.log', root=l0_dir)
   if (file_test(t1_log_file, /regular)) then begin
@@ -81,25 +86,6 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   endelse
 
   cd, l0_dir
-
-  if (run.validate_t1 || run.send_to_hpss) then begin
-    l0_zipped_fits_glob = '*fts.gz'
-    l0_zipped_files = file_search(l0_zipped_fits_glob, count=n_l0_zipped_files)
-    if (n_l0_zipped_files gt 0L) then begin
-      cmd = string(run.gunzip, l0_zipped_fits_glob, format='(%"%s %s")')
-      mg_log, 'unzipping L0 FITS files...', name='kcor/eod', /info
-      spawn, cmd, result, error_result, exit_status=status
-      if (status ne 0L) then begin
-        mg_log, 'problem unzipping L0 FITS files with command: %s', cmd, $
-                name='kcor/eod', /error
-        mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
-      endif
-    endif else begin
-      mg_log, 'no zipped L0 files to unzip', name='kcor/eod', /info
-    endelse
-  endif else begin
-    mg_log, 'skipping unzipping L0 FITS files', name='kcor/eod', /info
-  endelse
 
   l1_dir = filepath('level1', root=date_dir)
   if (~file_test(l0_dir, /directory)) then begin
@@ -133,30 +119,33 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   n_missing = 0L
   n_wrongsize = 0L
-  n_l0_files = 0L
 
   if (run.validate_t1) then begin
+    n_lines = file_lines(t1_log_file)
+    lines = strarr(n_lines)
     openr, lun, t1_log_file, /get_lun
-    row = ''
-    while (~eof(lun)) do begin
-      n_l0_files += 1
-      readf, lun, row
-      fields = strsplit(row, /extract)
-      t1_file = fields[0]
-      t1_size = long(fields[1])
+    readf, lun, lines
+    free_lun, lun
+
+    for i = 0L, n_lines - 1L do begin
+      tokens = strsplit(lines[i], /extract)
+      t1_file = tokens[0] + '.gz'
+      t1_size = long(tokens[1])
+
       if (file_test(t1_file, /regular)) then begin
-        if (t1_size ne mg_filesize(t1_file)) then begin
+        if (t1_size ne kcor_zipsize(t1_file, run=run)) then begin
           n_wrongsize += 1
-          mg_log, '%s file size: %d != %d', t1_file, t1_size, mg_filesize(t1_file), $
+          mg_log, '%s file size: %d != %d', $
+                  t1_file, t1_size, kcor_zipsize(t1_file, run=run), $
                   name='kcor/eod', /warn
         endif
       endif else begin
         n_missing += 1
         mg_log, '%s in t1, but not in level0/', t1_file, name='kcor/eod', /warn
       endelse
-    endwhile
+    endfor
 
-    mg_log, 't1.log: # L0 files: %d', n_l0_files, name='kcor/eod', /info
+    mg_log, 't1.log: # L0 files: %d', n_l0_fits_files, name='kcor/eod', /info
     if (n_missing gt 0L) then begin
       mg_log, 't1.log: # missing files: %d', n_missing, name='kcor/eod', /warn
     endif
@@ -174,7 +163,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   endelse
 
   if (success) then begin
-    files = file_search(filepath('*kcor.fts*', root=l0_dir), count=n_files)
+    files = file_search(filepath('*_kcor.fts.gz', root=l0_dir), count=n_files)
 
     if (run.produce_plots) then begin
       kcor_plotparams, date, list=files, run=run
@@ -182,7 +171,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     endif
     if (run.catalog_files) then kcor_catalog, date, list=files, run=run
 
-    kcor_archive, run=run
+    kcor_archive, run=run, reprocess=reprocess
 
     ; produce calibration for tomorrow
     if (run.reduce_calibration && run->epoch('produce_calibration')) then begin
@@ -260,11 +249,13 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   file_delete, 'list_okf', /allow_nonexistent
 
   if (run.send_notifications && run.notification_email ne '') then begin
-    l0_fits_files = file_search(filepath('*kcor.fts*', root=l0_dir), $
-                                count=n_l0_fits_files)
-
     msg = [string(date, $
                   format='(%"KCor end-of-day processing for %s")'), $
+           '', $
+           string(version, revision, branch, $
+                  format='(%"kcor-pipeline %s (%s) [%s]")'), $
+           '', $
+           '# Basic statistics', $
            '', $
            string(n_l0_fits_files, $
                   format='(%"number of raw files: %d")'), $
@@ -285,14 +276,44 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
              
     endif
 
-    msg = [msg, '', '', run.config_content, '', '', $
-           string(mg_src_root(/filename), $
-                  getenv('USER'), getenv('HOSTNAME'), $
-                  format='(%"Sent from %s (%s@%s)")')]
+    spawn, 'echo $(whoami)@$(hostname)', who, error_result, exit_status=status
+    if (status eq 0L) then begin
+      who = who[0]
+    endif else begin
+      who = 'unknown'
+    endelse
+
+    run->getProperty, log_dir=log_dir, date=date
+
+    realtime_logfile = filepath(run.date + '.realtime.log', root=log_dir)
+    eod_logfile = filepath(run.date + '.eod.log', root=log_dir)
+
+    rt_errors = kcor_filter_log(realtime_logfile, /error, n_messages=n_rt_errors)
+    eod_errors = kcor_filter_log(eod_logfile, /error, n_messages=n_eod_errors)
+
+    if (n_rt_errors gt 0L) then begin
+      msg = [msg, '', $
+             string(n_rt_errors, format='(%"# Realtime log errors (%d errors)")'), $
+             '', rt_errors]
+    endif else begin
+      msg = [msg, '', '# No realtime log errors']
+    endelse
+
+    if (n_eod_errors gt 0L) then begin
+      msg = [msg, '', $
+             string(n_eod_errors, format='(%"# End-of-day log errors (%d errors)")'), $
+             '', eod_errors]
+    endif else begin
+      msg = [msg, '', '# No end-of-day log errors']
+    endelse
+
+    msg = [msg, '', '', '# Config file', '', run.config_content, '', '', $
+           string(mg_src_root(/filename), who, $
+                  format='(%"Sent from %s (%s)")')]
 
     kcor_send_mail, run.notification_email, $
                     string(date, success ? 'success' : 'problems', $
-                           format='(%"KCor end-of-day processing for %s : %s")'), $
+                           format='(%"KCor end-of-day processing for %s (%s)")'), $
                     msg, $
                     logger_name='kcor/eod'
   endif else begin

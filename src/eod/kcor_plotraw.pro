@@ -56,7 +56,7 @@ pro kcor_plotraw, date, list=list, run=run, $
   mg_log, 'starting', name='kcor/eod', /info
 
   ; get raw filenames
-  raw_nrgf_files = strmid(list, 0, 20) + '.fts'
+  raw_nrgf_files = strmid(list, 0, 20) + '.fts.gz'
   n_nrgf_files = n_elements(raw_nrgf_files)
   if (n_nrgf_files eq 0L) then begin
     mg_log, 'no NRGF raw files to plot', name='kcor/eod', /warn

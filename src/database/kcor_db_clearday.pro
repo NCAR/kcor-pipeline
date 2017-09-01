@@ -24,8 +24,8 @@ pro kcor_db_clearday_cleartable, table, $
                                  log_name=log_name
   compile_opt strictarr
 
-  mg_log, 'clearing kcor_%s table', table, name=log_name, /info
-  db->execute, 'DELETE FROM %s WHERE obs_day=''%s''', $
+  mg_log, 'clearing %s table', table, name=log_name, /info
+  db->execute, 'DELETE FROM %s WHERE obs_day=%d', $
                table, obsday_index, $
                status=status, error_message=error_message, sql_statement=sql_cmd
   if (status ne 0L) then begin

@@ -84,6 +84,7 @@ $command = "CREATE TABLE kcor_sci
   file_name           CHAR (40) NOT NULL,
   date_obs            DATETIME NOT NULL,
   obs_day             MEDIUMINT (5) NOT NULL,
+  totalpB             FLOAT (8, 3),
   intensity           BLOB,
   intensity_stddev    BLOB,
   r108                BLOB,

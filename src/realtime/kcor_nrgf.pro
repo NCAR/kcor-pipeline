@@ -115,14 +115,8 @@ pro kcor_nrgf, fits_file, cropped=cropped, run=run
   endelse
 
   ; find size of occulter
-  ;   - one occulter has 4 digits; other two have 5
-  ;   - only read in 4 digits to avoid confusion
-  occulter_id = ''
   occulter_id = sxpar(hdu, 'OCCLTRID')
-  occulter    = strmid(occulter_id, 3, 5)
-  occulter    = float(occulter)
-  if (occulter eq 1018.0) then occulter = 1018.9
-  if (occulter eq 1006.0) then occulter = 1006.9
+  occulter = kcor_get_occulter_size(occulter_id, run=run)  ; arcsec
 
   radius_guess = 178
   if (keyword_set(cropped)) then radius_guess *= scale

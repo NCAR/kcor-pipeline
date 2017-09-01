@@ -1,6 +1,6 @@
 project(kcor-pipeline)
 set(VERSION_MAJOR "1")
-set(VERSION_MINOR "2")
+set(VERSION_MINOR "4")
 set(VERSION_PATCH "0")
 set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
@@ -23,6 +23,14 @@ if (GIT_FOUND)
     COMMAND ${GIT_EXECUTABLE} log -1 --pretty=format:%h
     OUTPUT_VARIABLE GIT_REVISION
   )
+  execute_process(
+    COMMAND ${GIT_EXECUTABLE} diff-index --quiet HEAD --
+    RESULT_VARIABLE GIT_CHANGES
+  )
+  if (${GIT_CHANGES})
+    set(GIT_REVISION "${GIT_REVISION}*")
+  endif ()
+
   execute_process(
     COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
     OUTPUT_STRIP_TRAILING_WHITESPACE

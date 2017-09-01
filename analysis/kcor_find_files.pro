@@ -57,7 +57,8 @@ function kcor_find_files, start_jd, end_jd, $
       secs  = long(strmid(l1_basenames, 13, 2))
       jds = julday(month, day, year, hours, mins, secs)
 
-      ind = where(jds ge start_jd, count)
+      cond = n_days eq 1 ? jds ge start_jd and jds le end_jd : jds ge start_jd
+      ind = where(cond, count)
       if (count gt 0L) then begin
         result_list->add, l1_files[ind], /extract
         n_files += count
@@ -87,9 +88,13 @@ end
 
 ; main-level example program
 
-files = kcor_find_files(julday(5, 9, 2017, 21, 47, 14), $
-                        julday(5, 11, 2017, 17, 03, 17), $
+files = kcor_find_files(julday(3, 6, 2017, 19, 58, 37.286400), $
+                        julday(3, 6, 2017, 20, 25, 56.207988), $
                         n_files=n_files, n_days=n_days)
+;files = kcor_find_files(julday(5, 9, 2017, 21, 47, 14), $
+;                        julday(5, 11, 2017, 17, 03, 17), $
+;                        n_files=n_files, n_days=n_days)
+
 help, n_files, n_days
 
 end

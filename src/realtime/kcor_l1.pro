@@ -335,7 +335,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
   ; get current date & time
   current_time = systime(/utc)
 
-  mg_log, '%s : %s', date_str, current_time, name='kcor/rt', /info
+  mg_log, 'processing %s', date_str, name='kcor/rt', /info
 
   ; check for empty list of OK files
   nfiles = n_elements(ok_files)
@@ -446,33 +446,15 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
 
     ; get current date & time
     current_time = systime(/utc)
-
     bdate   = bin_date(current_time)
-    cyear   = strtrim(string(bdate[0]), 2)
-    cmonth  = strtrim(string(bdate[1]), 2)
-    cday    = strtrim(string(bdate[2]), 2)
-    chour   = strtrim(string(bdate[3]), 2)
-    cminute = strtrim(string(bdate[4]), 2)
-    csecond = strtrim(string(bdate[5]), 2)
-    if (bdate[1] lt 10) then cmonth  = '0' + cmonth
-    if (bdate[2] lt 10) then cday    = '0' + cday
-    if (bdate[3] lt 10) then chour   = '0' + chour
-    if (bdate[4] lt 10) then cminute = '0' + cminute
-    if (bdate[5] lt 10) then csecond = '0' + csecond
-    date_dp = cyear + '-' + cmonth + '-' + cday + 'T' $
-                + chour + ':' + cminute + ':' + csecond
-
-
-    mg_log, 'processing %d/%d: %s', $
-            fnum, nfiles, file_basename(l0_file), $
-            name='kcor/rt', /info
+    date_dp = string(bdate, format='(%"%04d-%02d-%02dT%02d:%02d:%02d")')
 
     img = readfits(l0_file, header, /silent)
 
-    type = ''
     type = fxpar(header, 'DATATYPE')
 
-    mg_log, 'type: %s', strmid(type, 0, 3), $
+    mg_log, 'processing %d/%d: %s (%s)', $
+            fnum, nfiles, file_basename(l0_file), strmid(type, 0, 3), $
             name='kcor/rt', /info
 
     ; read date of observation (needed to compute ephemeris info)
@@ -556,7 +538,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     ; put the Level-0 FITS header into a structure
     struct = fitshead2struct(header, dash2underscore=dash2underscore)
 
-    ; all files that have passed KCOR_QUALITY are science type even though,
+    ; all files that have passed KCOR_QUALITY are science type even though
     ; they may have been engineering in the L0
     struct.datatype = 'science'
 
@@ -579,7 +561,18 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     radius_guess = occulter / run->epoch('plate_scale')          ; pixels
 
     ; correct camera nonlinearity
-    kcor_correct_camera, img, header, run=run
+    kcor_correct_camera, img, header, run=run, logger_name='kcor/rt'
+
+    if (run.diagnostics) then begin
+      save, img, header, filename=strmid(l0_file, 0, 20) + '_cam.sav'
+    endif
+
+    if (run->epoch('remove_horizontal_artifact')) then begin
+      mg_log, 'correcting horizontal artifacts at lines: %s', $
+              strjoin(strtrim(run->epoch('horizontal_artifact_lines'), 2), ', '), $
+              name='kcor/rt', /debug
+      kcor_correct_horizontal_artifact, img, run->epoch('horizontal_artifact_lines')
+    endif
 
     ; find image centers & radii of raw images
 
@@ -727,13 +720,6 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     mg_log, 'elapsed time for demod_matrix: %0.1f sec', demod_time, $
             name='kcor/rt', /debug
 
-    if (run->epoch('remove_horizontal_artifact')) then begin
-      mg_log, 'correcting horizontal artifacts at lines: %s', $
-              strjoin(strtrim(run->epoch('horizontal_artifact_lines'), 2), ', '), $
-              name='kcor/rt', /debug
-      kcor_correct_horizontal_artifact, img, run->epoch('horizontal_artifact_lines')
-    endif
-
     ; apply distortion correction for raw images
     img0 = reform(img[*, *, 0, 0])    ; camera 0 [reflected]
     img0 = reverse(img0, 2)           ; y-axis inversion
@@ -822,7 +808,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     for s = 0, 2 do begin
       cal_data_combined[*, *, s] = $
         (kcor_fshift(cal_data[*, *, 0, s], deltax, deltay) $
-          + cal_data[*, *, 1, s]) * 0.5
+           + cal_data[*, *, 1, s]) * 0.5
     endfor
 
     if (doplot eq 1) then begin
@@ -832,11 +818,11 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     endif
 
     ; polar coordinate images (mk4 scheme)
-    qmk4 = - cal_data_combined[*, *, 1] * sin(2.0 * theta1 ) $
-             + cal_data_combined[*, *, 2] * cos(2.0 * theta1 )
+    qmk4 = - cal_data_combined[*, *, 1] * sin(2.0 * theta1) $
+             + cal_data_combined[*, *, 2] * cos(2.0 * theta1)
 
-    umk4 = cal_data_combined[*, *, 1] * cos(2.0 * theta1 ) $
-             + cal_data_combined[*, *, 2] * sin(2.0 * theta1 )
+    umk4 = cal_data_combined[*, *, 1] * cos(2.0 * theta1) $
+             + cal_data_combined[*, *, 2] * sin(2.0 * theta1)
 
     intensity = cal_data_combined[*, *, 0]
 
@@ -847,12 +833,8 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     endif
 
     ; shift images to center of array & orient north up
-    xcen = 511.5 + 1     ; X Center of FITS array equals one plus IDL center.
-    ycen = 511.5 + 1     ; Y Center of FITS array equals one plus IDL center.
-
-                         ; IDL starts at zero but FITS starts at one.
-                         ; See Bill Thompson Solar Soft Tutorial on
-                         ; basic World Coorindate System Fits header.
+    xcen = 511.5 + 1     ; x center of FITS array equals one plus IDL center
+    ycen = 511.5 + 1     ; y center of FITS array equals one plus IDL center
 
     shift_center = 0
     shift_center = 1
@@ -914,25 +896,24 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
       endif
     endif
 
-    ;
     ; sky polarization removal on coordinate-transformed data
-    ; print, 'Remove sky polarization.'
-    ; **************************************************************
-    ; I AM JUMPING OVER THE SINE 2 THETA APPROACH AND DOING A STRAIGHT 
-    ; FORWARD SUBTRACTION OF THE BACKGROUND IMAGE FROM THE CORONAL IMAGE
-    ; THE BACKGROUND NEEDS TO BE ROTATED
-    ; I AM ADDING A BIAS TO THE CORONAL IMAGE SINCE THE BACKGROUND
-    ; IS HIGHER IN INTENSITY THAN THE CORONAL IMAGE (CROSS-TALK PROBLEM?)
-    ; **************************************************************
-
-    ; replace sine2theta with straigh removal
-
-    ;   SKY COMMENTING OUT OF SINE 2 THETA SKY POLARIZATION REMOVAL
-    ;   *******************************************************************************
-
-    qmk4_new = float(qmk4)
-    ; umk4 contains the corona
-    umk4_new = float(umk4) - float(rot(qmk4, 45.)) + run->epoch('skypol_bias')
+    case strlowcase(run.skypol_method) of
+      'subtraction': begin
+          mg_log, 'correcting sky polarization with subtraction method', $
+                  name='kcor/rt', /debug
+          qmk4_new = float(qmk4)
+          ; umk4 contains the corona
+          umk4_new = float(umk4) - float(rot(qmk4, 45.0)) + run->epoch('skypol_bias')
+        end
+      'sine2theta': begin
+          mg_log, 'correcting sky polarization with sine2theta (%d params) method', $
+                  run->epoch('sine2theta_nparams'), name='kcor/rt', /debug
+          kcor_sine2theta_method, umk4, qmk4, intensity, radsun, theta1, rr1, $
+                                  q_new=qmk3_new, u_new=umk4_new, $
+                                  run=run
+        end
+      else:
+    endcase
 
     ; use only corona minus sky polarization background
     corona = sqrt(umk4_new ^ 2)
@@ -941,7 +922,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     r_in  = fix(occulter / run->epoch('plate_scale')) + 5.0
     r_out = 504.0
 
-    mask = where(rad1 lt r_in or rad1 ge r_out) ; pixels beyond field of view.
+    mask = where(rad1 lt r_in or rad1 ge r_out)   ; pixels beyond field of view
     corona[mask] = 0
 
     if (doplot eq 1) then begin
@@ -949,9 +930,6 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
       tv, bytscl(sqrt(corona), 0.0, 1.2)
       pause
     endif
-
-    lct, filepath('quallab_ver2.lut', root=run.resources_dir)
-    tvlct, red, green, blue, /get
 
     ; end of new beam combination modifications
 
@@ -965,6 +943,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     ; printf, ULOG, 'Radius of photosphere [pixels] : ', r_photo
 
     lct, filepath('quallab_ver2.lut', root=run.resources_dir)
+    gamma_ct, run->epoch('display_gamma'), /current
     tvlct, red, green, blue, /get
 
     ; display image, annotate, and save as a full resolution GIF file
@@ -1018,7 +997,8 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
             color=255, charsize=1.2, /device
     xyouts, 4, 6, $
             string(run->epoch('display_exp'), $
-            format='("scaling: Intensity ^ ", f3.1)'), $
+                   run->epoch('display_gamma'), $
+                   format='("scaling: Intensity ^ ", f3.1, ", gamma=", f4.2)'), $
             color=255, charsize=1.2, /device
     xyouts, 1018, 6, 'Circle = photosphere.', $
             color=255, charsize=1.2, /device, alignment=1.0
@@ -1173,9 +1153,8 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     fxaddpar, newheader, 'BUNIT', '10e-6 Bsun', $
                          ' Brightness with respect to solar disc'
     fxaddpar, newheader, 'BOPAL', $
-                         string(run->epoch(struct.diffsrid), $
-                                format='(%"%se-6")'), $
-                         string(run->epoch(run->epoch(struct.diffsrid)), $
+                         run->epoch(struct.diffsrid) * 1e-6, $
+                         string(run->epoch(struct.diffsrid + '_comment'), $
                                 format='(%" %s")')
 
     fxaddpar, newheader, 'BZERO', struct.bzero, $
@@ -1462,7 +1441,8 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
                           format='("min/max: ", f5.2, ", ", f3.1)'), $
             color=255, charsize=1.0, /device
     xyouts, 4, 6, string(run->epoch('display_exp'), $
-                         format='("scaling: Intensity ^ ", f3.1)'), $
+                         run->epoch('display_gamma'), $
+                         format='("scaling: Intensity ^ ", f3.1, ", gamma=", f4.2)'), $
                   color=255, charsize=1.0, /device
     xyouts, 508, 6, 'Circle = photosphere', color=255, $
                     charsize=1.0, /device, alignment=1.0

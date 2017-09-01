@@ -12,13 +12,20 @@
 ; :Keywords:
 ;   run : in, required, type=object
 ;     `kcor_run` object
+;   logger_name : in, optional, type=string
+;     name of the logger to log to
 ;-
-pro kcor_correct_camera, im, header, run=run
+pro kcor_correct_camera, im, header, run=run, logger_name=logger_name
   compile_opt strictarr
 
   im = float(im)
 
-  if (~run.correct_camera) then return
+  if (~run.correct_camera) then begin
+    mg_log, 'not performing camera correction', name=logger_name, /debug
+    return
+  endif
+
+  mg_log, 'performing camera correction', name=logger_name, /debug
 
   dims = size(im, /dimensions)
   n_polstates = dims[2]
@@ -40,7 +47,7 @@ pro kcor_correct_camera, im, header, run=run
                                       format=fmt), $
                                root=run.camera_correction_dir)
   if (~file_test(rcam_cor_filename)) then begin
-    mg_log, '%s not found', rcam_cor_filename, name='kcor/rt', /error
+    mg_log, '%s not found', rcam_cor_filename, name=logger_name, /error
     return
   endif
   fp[*, *, *, 0] = kcor_read_camera_correction(rcam_cor_filename)
@@ -50,7 +57,7 @@ pro kcor_correct_camera, im, header, run=run
                                       format=fmt), $
                                root=run.camera_correction_dir)
   if (~file_test(tcam_cor_filename)) then begin
-    mg_log, '%s not found', tcam_cor_filename, name='kcor/rt', /error
+    mg_log, '%s not found', tcam_cor_filename, name=logger_name, /error
     return
   endif
   fp[*, *, *, 1] = kcor_read_camera_correction(tcam_cor_filename)
@@ -58,7 +65,7 @@ pro kcor_correct_camera, im, header, run=run
   ; scale the data to 0..1
   bitpix = sxpar(header, 'BITPIX')
   numsum = sxpar(header, 'NUMSUM')
-  scale = 2^(bitpix - 9) * numsum - 1L
+  scale = 2L^(bitpix - 9L) * numsum - 1L
   im /= scale
 
   for p = 0L, n_polstates - 1L do begin
@@ -71,4 +78,24 @@ pro kcor_correct_camera, im, header, run=run
 
   ; return to original scale
   im *= scale
+end
+
+
+; main-level example program
+
+date = '20170607'
+
+run = kcor_run(date, config_filename='../../config/kcor.mgalloy.mahi.reprocess-new.cfg')
+
+f = '20170607_192612_kcor.fts'
+
+im = readfits(filepath(f, subdir=[date], root=run.raw_basedir), header, /silent)
+original_im = im
+kcor_correct_camera, im, header, run=run
+
+mg_image, im[*, *, 0, 0], /new, title='Corrected'
+mg_image, original_im[*, *, 0, 0], /new, title='Original'
+
+obj_destroy, run
+
 end
