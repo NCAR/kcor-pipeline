@@ -44,55 +44,52 @@
 ;-
 ;
 pro kcor_cme_det_track, mdiffs, itheta, detected, leadingedge
-;
-;  Initialize parameters.
-;
-thresh = 2.0
-npix = 3
-;
-;  Step through the elements in DETECTED which do not yet appear in
-;  LEADINGEDGE.  Increment LEADINGEDGE to catch up with DETECTED.
-;
-for itime = n_elements(leadingedge),n_elements(detected)-1 do begin
+  compile_opt strictarr
+
+  ; initialize parameters
+  thresh = 2.0
+  npix = 3
+
+  ; Step through the elements in DETECTED which do not yet appear in
+  ; LEADINGEDGE. Increment LEADINGEDGE to catch up with DETECTED.
+  for itime = n_elements(leadingedge), n_elements(detected)-1 do begin
     boost_array, leadingedge, -1.0
-;
-;  If a detection was made, and the ITHETA values are valid, then look for the
-;  leading edge.  Average over longitude between the ITHETA values, taking into
-;  account that the region may wrap around.
-;
-    if (detected[itime] gt 0) and (itheta[0,itime] ge 0) then begin
-        map = mdiffs[*,*,itime] > 0
-        i0 = itheta[0,itime]
-        i1 = itheta[1,itime]
-        if i1 ge i0 then y = average(map[i0:i1,*],1) else $
-          y = average(map[0:i1,*],1) + average(map[i0:*,*],1)
-;
-;  Smooth the trace by five pixels, and calculate the derivative over six
-;  pixels, which is also smoothed.
-;
-        ys = asmooth(y,5)
-        yd = asmooth(ys[2*npix:*] - ys, 5)
-;
-;  Look for the outermost point which satisfies the threshold in the upward
-;  direction.  This is interpreted as the trailing edge.
-;
-        ydthresh = average(yd) + thresh * stddev(yd)
-        itrail = max(where(yd ge ydthresh, count))
-;
-;  Recalculate the threshold from the trailing edge onward to look for the
-;  leading edge as a downward slope.  The actual position is offset by NPIX
-;  pixels, because of the way the derivative was calculated.
-;
-        if count gt 0 then begin
-            yyd = yd[itrail:*]
-            ydthresh = average(yyd) - thresh * stddev(yyd)
-            ilead = min(where(yyd le ydthresh, count))
-            if count gt 0 then begin
-                leadingedge[itime] = npix + itrail + ilead
-                sz = size(mdiffs)
-            endif
+
+    ; If a detection was made, and the ITHETA values are valid, then look for
+    ; the leading edge.  Average over longitude between the ITHETA values,
+    ; taking into account that the region may wrap around.
+    if (detected[itime] gt 0) and (itheta[0, itime] ge 0) then begin
+      map = mdiffs[*, *, itime] > 0
+      i0 = itheta[0, itime]
+      i1 = itheta[1, itime]
+      if (i1 ge i0) then begin
+        y = average(map[i0:i1, *], 1)
+      endif else begin
+        y = average(map[0:i1, *], 1) + average(map[i0:*, *], 1)
+      endelse
+
+      ; Smooth the trace by five pixels, and calculate the derivative over six
+      ; pixels, which is also smoothed.
+      ys = asmooth(y,5)
+      yd = asmooth(ys[2*npix:*] - ys, 5)
+
+      ; Look for the outermost point which satisfies the threshold in the upward
+      ; direction. This is interpreted as the trailing edge.
+      ydthresh = average(yd) + thresh * stddev(yd)
+      itrail = max(where(yd ge ydthresh, count))
+
+      ; Recalculate the threshold from the trailing edge onward to look for the
+      ; leading edge as a downward slope.  The actual position is offset by NPIX
+      ; pixels, because of the way the derivative was calculated.
+      if (count gt 0) then begin
+        yyd = yd[itrail:*]
+        ydthresh = average(yyd) - thresh * stddev(yyd)
+        ilead = min(where(yyd le ydthresh, count))
+        if (count gt 0) then begin
+          leadingedge[itime] = npix + itrail + ilead
+          sz = size(mdiffs)
         endif
+      endif
     endif
-endfor
-;
+  endfor
 end

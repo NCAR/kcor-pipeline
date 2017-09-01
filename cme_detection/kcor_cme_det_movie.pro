@@ -47,74 +47,64 @@
 ;
 ; Contact     :	WTHOMPSON
 ;-
-;
 pro kcor_cme_det_movie
-compile_opt strictarr
-;
-common kcor_cme_detection
-;
-;  Look for the last 20 minutes worth of data, plus 5 minutes (and a bit) for
-;  generating the running differences.
-;
-w = where(date_orig.tai_end ge (tairef-1505), count)
-;
-;  Set up the arrays to store the images and difference frames.
-;
-images = fltarr(512,512,count)
-delvarx, frames
-;
-;  Step through the images, and read them in.
-;
-for i=0,count-1 do begin
+  compile_opt strictarr
+  common kcor_cme_detection
+
+  ; Look for the last 20 minutes worth of data, plus 5 minutes (and a bit) for
+  ; generating the running differences.
+  w = where(date_orig.tai_end ge (tairef - 1505), count)
+
+  ; set up the arrays to store the images and difference frames
+  images = fltarr(512, 512, count)
+  delvarx, frames
+
+  ; step through the images, and read them in
+  for i = 0, count - 1 do begin
     ii = w[i]
     image = readfits(date_orig[ii].filename, header, /silent)
-;
-;  Reduce the image size to 512x512.
-;
-    images[*,*,i] = reduce(image,2,/average)
-;
-;  Form the running differences in the same way as the polar maps.
-;
+
+    ; reduce the image size to 512x512
+    images[*, *, i] = reduce(image, 2, /average)
+
+    ; form the running differences in the same way as the polar maps
     dtime = date_orig[ii].tai_end - date_orig[w].tai_end
     w1 = where((dtime ge 0) and (dtime le 33), count1)
     w2 = where((dtime ge 297) and (dtime le 333), count2)
     if (count1 gt 0) and (count2 gt 0) then begin
-        if count1 eq 1 then image1 = images[*,*,w1] else $
+      if count1 eq 1 then image1 = images[*, *, w1] else $
           image1 = average(images[*,*,w1], 3)
-        if count2 eq 1 then image2 = images[*,*,w2] else $
-          image2 = average(images[*,*,w2], 3)
-        boost_array, frames, image1 - image2
+      if count2 eq 1 then image2 = images[*, *, w2] else $
+          image2 = average(images[*, *, w2], 3)
+      boost_array, frames, image1 - image2
     endif
-endfor
-;
-;  Rescale the image frames into a byte array for generating movies.
-;
-frames = bytscl(sigrange(frames))
-sz = size(frames)
-;
-;  Define the name of the output file.  The file extension is added later.
-;
-moviedir = getenv('KCOR_MOVIE_DIR')
-if (~file_test(moviedir, /directory)) then file_mkdir, moviedir
-moviefile = concat_dir(moviedir, 'kcor_latest_cme_detection')
-;
-;  Create an animated GIF version of the movie.
-;
-c = indgen(256)
-for i=0,sz[3]-1 do write_gif, moviefile+'.gif', frames[*,*,i], c, c, c, $
-                              /multiple, repeat_count=0
-write_gif, moviefile, frames[*,*,0], /close
-print, 'Wrote file ' + moviefile
-;
-;  Create an MPEG-4 version of the movie.
-;
-oVid = IDLffVideoWrite(moviefile+'.mp4')
-vidStream = oVid.AddVideoStream(sz[1], sz[2], 10)
-for i=0,sz[3]-1 do begin
-    iframe = rebin( reform(frames[*,*,i],1,sz[1],sz[2]), 3,sz[1],sz[2])
+  endfor
+
+  ; rescale the image frames into a byte array for generating movies
+  frames = bytscl(sigrange(frames))
+  sz = size(frames)
+
+  ; Define the name of the output file. The file extension is added later.
+  moviedir = getenv('KCOR_MOVIE_DIR')
+  if (~file_test(moviedir, /directory)) then file_mkdir, moviedir
+  moviefile = concat_dir(moviedir, 'kcor_latest_cme_detection')
+
+  ; create an animated GIF version of the movie
+  c = indgen(256)
+  for i = 0, sz[3] - 1 do begin
+    write_gif, moviefile + '.gif', frames[*, *, i], c, c, c, $
+               /multiple, repeat_count=0
+  endfor
+  write_gif, moviefile + '.gif', frames[*, *, 0], /close
+  mg_log, 'wrote file %s.gif', moviefile, name='kcor-cme', /info
+
+  ; create an MPEG-4 version of the movie
+  oVid = IDLffVideoWrite(moviefile + '.mp4')
+  vidStream = oVid.AddVideoStream(sz[1], sz[2], 10)
+  for i = 0, sz[3] - 1 do begin
+    iframe = rebin( reform(frames[*, *, i], 1, sz[1], sz[2]), 3, sz[1], sz[2])
     dummy = oVid.Put(vidStream, iframe)
-endfor
-oVid = 0
-print, 'Wrote file ' + moviefile
-;
+  endfor
+  oVid = 0
+  mg_log, 'wrote file %s.mp4', moviefile, name='kcor-cme', /info
 end

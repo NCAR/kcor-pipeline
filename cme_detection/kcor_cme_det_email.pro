@@ -59,7 +59,8 @@ pro kcor_cme_det_email, time, edge, operator=operator
   ; return.
   addressfile = getenv('KCOR_MAILING_LIST')
   if (~file_exist(addressfile)) then begin
-    print, 'no address file specified in KCOR_MAILING_LIST, not sending email'
+    mg_log, 'no address file specified in KCOR_MAILING_LIST, not sending email', $
+            name='kcor-cme', /warn
     return
   endif
 
@@ -93,14 +94,16 @@ pro kcor_cme_det_email, time, edge, operator=operator
   while (~eof(in)) do begin
     readf, in, address
     address = strtrim(address, 2)
-    if address ne '' then begin
+    if (address ne '') then begin
       cmd = string(subject, address, mailfile, $
-                   format='(%""nohup mail -s "%s" %s < %s &)')
+                   format='(%"nohup mail -s \"%s\" %s < %s &")')
       spawn, cmd, result, error_result, exit_status=status
-      if (status ne 0L) then begin
-        print, 'problem with mail command: %s', cmd
-        print, strjoin(error_result, ' ')
-      endif
+      if (status eq 0L) then begin
+        mg_log, 'alert sent to %s', address, name='kcor-cme', /info
+      endif else begin
+        mg_log, 'problem with mail command: %s', cmd, name='kcor-cme', /error
+        mg_log, strjoin(error_result, ' '), name='kcor-cme', /error
+      endelse
     endif
   endwhile
   free_lun, in
