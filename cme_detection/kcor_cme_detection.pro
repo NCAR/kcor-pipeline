@@ -209,8 +209,8 @@ wplot = widget_draw(woutbase, xsize=640, ysize=360)
 ;  Realize the widget hierarchy, and register the widget with XMANAGER.
 ;
 ifile = 0
-delvarx, date_orig, maps, date_diff, mdiffs, itheta, detected, leadingedge
-delvarx, param, tairef, angle, speed
+;delvarx, date_orig, maps, date_diff, mdiffs, itheta, detected, leadingedge
+;delvarx, param, tairef, angle, speed
 
 ; Start up SolarSoft display routines
 defsysv, '!image', exists=sys_image_defined
