@@ -48,6 +48,7 @@
 ;-
 ;
 pro kcor_cme_det_alert, itime, rsun, operator=operator
+compile_opt strictarr
 ;
 common kcor_cme_detection
 ;
