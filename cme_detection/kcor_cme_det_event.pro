@@ -93,9 +93,9 @@ stop_point:
     end
 ;
     'TIMER': if ~cstop then begin
-        files = file_search(concat_dir(datedir,'*.fts'), count=count)
+        files = file_search(concat_dir(datedir, '*kcor_l1.fts'), count=count)
         if count eq 0 then begin
-            files = file_search(concat_dir(datedir,'*.fts.gz'), count=count)
+            files = file_search(concat_dir(datedir,'*kcor_l1.fts.gz'), count=count)
             if count eq 0 then begin
                 message = 'No FITS files found in directory ' + datedir
                 widget_control, wmessage, set_value=message, /append
@@ -127,7 +127,7 @@ stop_point:
         if ifile ge count then begin
             mtime = (file_info(files)).mtime
             age = systime(1) - max(mtime)
-            if age ge 600 then begin
+            if age ge 1200 then begin   ; 600 sec originally
                 message = 'No more files'
                 widget_control, wmessage, set_value=message, /append
                 print, message
@@ -142,8 +142,10 @@ stop_point:
             widget_control, wfile, set_value=name+ext
             image = readfits(files[ifile], header, /silent)
             datatype = fxpar(header,'datatype',count=ndatatype)
-            if ndatatype eq 0 then test = 1 else $
-              test = strtrim(fxpar(header,'datatype'),2) eq 'science'
+            if ndatatype eq 0 then test = 1 else begin
+              datatype = strtrim(fxpar(header,'datatype'),2)
+              test = datatype eq 'science' or datatype eq 'engineering'
+            endelse
             if test then begin
                 date_obs = anytim2utc(fxpar(header, 'date-obs'), /ccsds)
                 date_end = anytim2utc(fxpar(header, 'date-end'), /ccsds)

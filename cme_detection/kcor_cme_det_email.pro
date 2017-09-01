@@ -100,7 +100,11 @@ while not eof(in) do begin
     if address ne '' then begin
         cmd = 'nohup mail -s "' + subject + '" ' + address + ' <' + $
               mailfile + ' &'
-        spawn, cmd
+        spawn, cmd, result, error_result, exit_status=status
+        if (status ne 0L) then begin
+          print, 'problem with mail command: %s', cmd
+          print, strjoin(error_result, ' ')
+        endif
     endif
 endwhile
 free_lun, in
