@@ -1,0 +1,113 @@
+#!/usr/bin/env python
+
+import argparse
+import glob
+import os
+import re
+import time
+
+POLL_SECS = 0.1
+
+LEVELS = ['DEBUG', 'INFO', 'WARN', 'ERROR', 'CRITICAL']
+LOG_DIR = '/hao/acos/kcor/logs'
+
+
+def filter_file(logfile, level_index, follow):
+    loglevel_filter = '|'.join(LEVELS[level_index:])
+    loglevel_prog = re.compile('.*(%s):.*' % loglevel_filter)
+    logstart_prog = re.compile('\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}')
+
+    matched_last_line = False
+
+    line = 'not empty'
+
+    try:
+        with open(logfile, 'r') as f:
+            while follow or line != '':
+                line = f.readline()
+                if line == '':
+                    try:
+                        time.sleep(POLL_SECS)
+                    except (IOError, KeyboardInterrupt):
+                        return
+                    continue
+
+                if loglevel_prog.match(line):
+                    matched_last_line = True
+                    try:
+                        print(line.rstrip())
+                    except (IOError, KeyboardInterrupt):
+                        return
+                else:
+                    if matched_last_line:
+                        if logstart_prog.match(line):
+                            matched_last_line = False
+                        else:
+                            try:
+                                print(line.rstrip())
+                            except (IOError, KeyboardInterrupt):
+                                return
+    except IOError:
+        print('Problem reading %s' % logfile)
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Display/filter KCor log file')
+    parser.add_argument('logfiles', nargs='+', help='KCor log filenames or dates')
+    parser.add_argument('-l', '--level',
+                        help='filter level: DEBUG INFO WARN ERROR CRITICAL (default DEBUG)')
+    parser.add_argument('-f', '--follow', help='output appended data as file grows', action='store_true')
+    parser.add_argument('-d', '--debug', help='DEBUG filter level', action='store_true')
+    parser.add_argument('-i', '--info', help='INFO filter level', action='store_true')
+    parser.add_argument('-w', '--warn', help='WARN filter level', action='store_true')
+    parser.add_argument('-e', '--error', help='ERROR filter level', action='store_true')
+    parser.add_argument('-c', '--critical', help='CRITICAL filter level', action='store_true')
+    args = parser.parse_args()
+
+    logfiles = []
+    for f in args.logfiles:
+        filename = f if f.endswith('.log') else os.path.join(LOG_DIR, f + '.*.log')
+        g = glob.glob(filename)
+        if g:
+            for p in g:
+                logfiles.append(p)
+        else:
+            logfiles.append(filename)
+
+    follow = args.follow
+    if follow and len(logfiles) > 1:
+        print 'cannot follow multiple files'
+        return
+
+    # default is to not filter
+    if args.level:
+        level = args.level.upper()
+    elif args.critical:
+        level = 'CRITICAL'
+    elif args.error:
+        level = 'ERROR'
+    elif args.warn:
+        level = 'WARN'
+    elif args.info:
+        level = 'INFO'
+    else:
+        level = 'DEBUG'
+
+    try:
+        level_index = LEVELS.index(level)
+    except ValueError:
+        print('invalid level: %s' % level)
+        parser.print_help()
+        return
+
+    is_first = False
+    for i, f in enumerate(logfiles):
+        if len(logfiles) > 1:
+            if i != 0: print('')
+            print(f)
+            print('-' * len(f))
+        filter_file(f, level_index, follow)
+
+
+if __name__ == '__main__':
+    main()

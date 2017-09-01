@@ -89,11 +89,6 @@ pro kcor_plotparams, date, list=list, run=run
     hdusize = size(hdu)
 
     ; extract keyword parameters from FITS header
-    diffuser = ''
-    calpol   = ''
-    darkshut = ''
-    cover    = ''
-
     naxis    = sxpar(hdu, 'NAXIS',    count=qnaxis)
     naxis1   = sxpar(hdu, 'NAXIS1',   count=qnaxis1)
     naxis2   = sxpar(hdu, 'NAXIS2',   count=qnaxis2)

@@ -43,7 +43,7 @@ def launch_loop(date, config_flags, frequency, no_eod):
 
 
 if __name__ == '__main__':
-    name = 'Realtime KCor pipeline runner'
+    name = 'Realtime KCor pipeline processing simulator'
     parser = argparse.ArgumentParser(description=name)
     config_flags_help = '''FLAGS section of config filename'''
     date_help = '''date to run on'''

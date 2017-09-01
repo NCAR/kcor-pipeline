@@ -53,7 +53,7 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
     date_obs = sxpar(header, 'DATE-OBS', count=qdate_obs)
     run.time = date_obs
 
-    kcor_correct_camera, thisdata, header, run=run
+    kcor_correct_camera, thisdata, header, run=run, logger_name='kcor/cal'
 
     if (run->epoch('remove_horizontal_artifact')) then begin
       mg_log, 'correcting horizontal artifacts at lines: %s', $

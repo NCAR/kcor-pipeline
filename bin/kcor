@@ -1,0 +1,103 @@
+#!/usr/bin/env python
+
+import argparse
+import os
+import subprocess
+
+
+DEVNULL = open(os.devnull, 'w')
+PIPELINE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+
+
+def wait_for(process):
+    try:
+        process.wait()
+        return 0
+    except KeyboardInterrupt:
+        print('killing process %d' % process.pid)
+        process.kill()
+        return 1
+
+
+def calibrate_dates(filelist_filename, dates, flags, no_wait):
+    cmd = [os.path.join(PIPELINE_DIR, 'bin', 'runkcor_calibrate.sh'),
+           filelist_filename,
+           dates,
+           flags]
+
+    process = subprocess.Popen(cmd, stdout=DEVNULL, stderr=DEVNULL)
+    print('[%d] %s' % (process.pid, ' '.join(cmd)))
+
+    if not no_wait:
+        terminated = wait_for(process)
+
+
+def process_dates(dates, flags, reprocess, no_eod, no_wait):
+    if not reprocess:
+        print('not reprocessing is not supported yet')
+        return
+
+    if no_eod:
+        print('no end-of-day processing not supported yet')
+        return
+
+    for d in dates.split(','):
+        if d.find('-') < 0:
+            cmd = [os.path.join(PIPELINE_DIR, 'bin', 'runkcor_reprocess.sh'),
+                   d,
+                   flags]
+
+            process = subprocess.Popen(cmd, stdout=DEVNULL, stderr=DEVNULL)
+            print('[%d] %s' % (process.pid, ' '.join(cmd)))
+            if not no_wait:
+                terminated = wait_for(process)
+                if terminated: break
+        else:
+            r = d.split('-')
+
+            cmd = [os.path.join(PIPELINE_DIR, 'bin', 'runkcor_reprocess_range.sh'),
+                   r[0], r[1],
+                   flags]
+
+            process = subprocess.Popen(cmd, stdout=DEVNULL, stderr=DEVNULL)
+            print('[%d] %s' % (process.pid, ' '.join(cmd)))
+            if not no_wait:
+                terminated = wait_for(process)
+                if terminated: break
+
+
+if __name__ == '__main__':
+    name = 'Realtime KCor pipeline'
+    parser = argparse.ArgumentParser(description=name)
+
+    config_flags_help = '''FLAGS section of config filename'''
+    parser.add_argument('-f', '--flags', type=str, default='latest', help=config_flags_help)
+
+    date_help = '''dates to run on'''
+    parser.add_argument('dates', type=str, help=date_help)
+
+    parser.add_argument('--no-wait',
+                        action='store_true',
+                        help='set to run all dates asynchronously')
+
+    parser.add_argument('--calibrate',
+                        type=str,
+                        help='set to filename of list of files to produce calibration')
+
+    parser.add_argument('--no-eod',
+                        action='store_true',
+                        help='set to not launch end-of-day processing')
+
+    parser.add_argument('-r', '--reprocess',
+                        action='store_true',
+                        help='set to reprocess')
+
+    args = parser.parse_args()
+
+    if args.calibrate:
+        if args.no_eod or args.reprocess:
+            print('--no-eod or --reprocess not allowed with --calibrate')
+        else:
+            calibrate_dates(args.calibrate, args.dates, args.flags, args.no_wait)
+    else:
+        process_dates(args.dates, args.flags, args.reprocess, args.no_eod, args.no_wait)

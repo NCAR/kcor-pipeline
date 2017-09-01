@@ -35,7 +35,7 @@
 ;   date : in, required, type=string
 ;     format: 'yyyymmdd'
 ;   l0_fits_files : in, required, type=strarr
-;     raw FITS files to process
+;     zipped raw FITS files to process
 ;
 ; :Keywords:
 ;   append : in, optional, type=boolean
@@ -193,7 +193,6 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
   header = 'filename                 datatype    exp  cov drk dif pol angle  qual'
   mg_log, header, name='kcor/noformat', /debug
 
-  l0_file = ''
   num_img = 0
 
   quicklook_dir = filepath('', subdir=['level0', 'quicklook'], root=date_dir)
@@ -204,18 +203,7 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
     num_img += 1
     img = readfits(l0_file, hdu, /silent)   ; read fits image & header
 
-    ; get FITS header size
-
-    ; finfo = file_info(l0_file)   ; get file information
-    ; hdusize = size(hdu)
-
     ; extract keyword parameters from FITS header
-    diffuser = ''
-    calpol   = ''
-    darkshut = ''
-    cover    = ''
-    occltrid = ''
-
     naxis    = sxpar(hdu, 'NAXIS',    count=qnaxis)
     naxis1   = sxpar(hdu, 'NAXIS1',   count=qnaxis1)
     naxis2   = sxpar(hdu, 'NAXIS2',   count=qnaxis2)
@@ -225,14 +213,14 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
 
     date_obs = sxpar(hdu, 'DATE-OBS', count=qdate_obs)
     run.time = date_obs
+
     level    = sxpar(hdu, 'LEVEL',    count=qlevel)
 
     exposure = sxpar(hdu, 'EXPTIME')
     exposure = float(exposure)
     bzero    = sxpar(hdu, 'BZERO',    count=qbzero)
     bbscale  = sxpar(hdu, 'BSCALE',   count=qbbscale)
-    bitpix   = sxpar(hdu, 'BITPIX')
-    bitpix   = fix(bitpix)
+    bitpix   = fix(sxpar(hdu, 'BITPIX'))
 
     datatype = sxpar(hdu, 'DATATYPE', count=qdatatype)
 
@@ -258,7 +246,7 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
 
     radius_guess = occulter / run->epoch('plate_scale')   ; occulter size [pixels]
 
-    kcor_correct_camera, img, hdu, run=run
+    kcor_correct_camera, img, hdu, run=run, logger_name='kcor/rt'
     if (run->epoch('remove_horizontal_artifact')) then begin
       mg_log, 'correcting horizontal artifacts at lines: %s', $
               strjoin(strtrim(run->epoch('horizontal_artifact_lines'), 2), ', '), $
@@ -636,9 +624,7 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
 
     l0_basename = file_basename(l0_file)
 
-    if (eng gt 0) then begin   ; engineering
-      gif_file = strmid(l0_basename, 0, fitsloc) + '_e.gif' 
-    endif else if (cal gt 0) then begin   ; calibration
+    if (cal gt 0) then begin   ; calibration
       gif_file = strmid(l0_basename, 0, fitsloc) + '_c.gif' 
       qual = q_cal
       ncal += 1
@@ -680,7 +666,12 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
       nnsy += 1
       printf, unsy, l0_file
     endif else begin   ; good image
-      gif_file = strmid(l0_basename, 0, fitsloc) + '_g.gif'
+      if (eng gt 0) then begin   ; engineering
+        gif_file = strmid(l0_basename, 0, fitsloc) + '_e.gif' 
+      endif else begin
+        gif_file = strmid(l0_basename, 0, fitsloc) + '_g.gif'
+      endelse
+
       qual = q_ok
       nokf += 1
       printf, uokf, file_basename(l0_file)
