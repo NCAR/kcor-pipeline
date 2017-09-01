@@ -95,6 +95,7 @@ sz = size(frames)
 ;  Define the name of the output file.  The file extension is added later.
 ;
 moviedir = getenv('KCOR_MOVIE_DIR')
+if (~file_test(moviedir, /directory)) then file_mkdir, moviedir
 moviefile = concat_dir(moviedir, 'kcor_latest_cme_detection')
 ;
 ;  Create an animated GIF version of the movie.
