@@ -206,8 +206,8 @@ pro kcor_cme_detection, date, store=k_store, timerange=k_timerange, $
 
   ; realize the widget hierarchy, and register the widget with XMANAGER
   ifile = 0
-  ;delvarx, date_orig, maps, date_diff, mdiffs, itheta, detected, leadingedge
-  ;delvarx, param, tairef, angle, speed
+  delvarx, date_orig, maps, date_diff, mdiffs, itheta, detected, leadingedge
+  delvarx, param, tairef, angle, speed
 
   ; start up SolarSoft display routines
   defsysv, '!image', exists=sys_image_defined

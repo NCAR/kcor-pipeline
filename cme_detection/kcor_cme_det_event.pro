@@ -79,6 +79,14 @@ stop_point:
         widget_control, wstop, sensitive=0
         widget_control, wexit, sensitive=1
         widget_control, wtopbase, timer=0.1
+
+        if (cme_occurring) then begin
+          ref_time = tai2utc(tairef, /time, /truncate, /ccsds)
+          kcor_cme_det_report, ref_time
+          cme_occurring = 0B
+          mg_log, 'CME ended at %s', ref_time, name='kcor-cme', /info
+        endif
+
         mg_log, 'stopped', name='kcor-cme', /info
       end
 
@@ -231,28 +239,21 @@ stop_point:
                       outplot, date_diff.date_avg, rfit
                     endif
                   endif
-                endif else begin    ; valid LEAD0 
-                  if (cme_occurring) then begin
-                    kcor_cme_det_report
-                    cme_occurring = 0B
-                    mg_log, 'CME ended', name='kcor-cme', /info
-                  endif
-                endelse
-              endif else begin      ; LEADINGEDGE grew
-                if (cme_occurring) then begin
-                  kcor_cme_det_report
-                  cme_occurring = 0B
-                  mg_log, 'CME ended', name='kcor-cme', /info
-                endif
-              endelse
-            endif else begin        ; MDIFF formed
-              if (cme_occurring) then begin
-                kcor_cme_det_report
-                cme_occurring = 0B
-                mg_log, 'CME ended', name='kcor-cme', /info
-              endif
-            endelse
-          endif           ; science image
+                endif    ; valid LEAD0 
+              endif      ; LEADINGEDGE grew
+            endif        ; MDIFF formed
+          endif          ; science image
+
+          if (n_elements(date_diff) gt 0L) then begin
+            itime = n_elements(leadingedge) - 1
+            tai0 = date_diff[itime].tai_avg
+            if (cme_occurring && ((tai0 - tairef) gt 3600)) then begin
+              ref_time = tai2utc(tairef, /time, /truncate, /ccsds)
+              kcor_cme_det_report, ref_time
+              cme_occurring = 0B
+              mg_log, 'CME ended', name='kcor-cme', /info
+            endif
+          endif
 
           ; step to the next file
           ifile = ifile + 1

@@ -4,15 +4,14 @@
 ; Send an email report about a completed CME.
 ;
 ; :Params:
-;   time : in, required, type=
+;   time : in, required, type=double
+;     Atomic International Time (TAI), seconds from midnight 1 January 1958
 ;-
 pro kcor_cme_det_report, time
   compile_opt strictarr
   common kcor_cme_detection
 
   if (n_elements(speed_history) gt 0L) then begin
-    time = tai2utc(tairef, /time, /truncate, /ccsds)
-
     ; Look for the file containing the email addresses. If not found, then
     ; simply return.
     addressfile = getenv('KCOR_MAILING_LIST')
@@ -21,6 +20,18 @@ pro kcor_cme_det_report, time
               name='kcor-cme', /warn
       return
     endif
+
+    ; create filename for plot file
+    plot_file = mk_temp_file(dir=get_temp_dir(), 'cme-report.png', /random)
+
+    ; create plot to attach to email
+    original_device = !d.name
+    set_plot, 'Z'
+    device, decomposed=0, set_pixel_depth=24, set_resolution=[600, 400]
+    plot, speed_history
+    im = tvrd(true=1)
+    set_plot, original_device
+    write_png, plot_file, im
 
     ; create a temporary file for the message
     mailfile = mk_temp_file(dir=get_temp_dir(), 'cme_mail.txt', /random)
@@ -48,8 +59,8 @@ pro kcor_cme_det_report, time
       readf, in, address
       address = strtrim(address, 2)
       if (address ne '') then begin
-        cmd = string(subject, address, mailfile, $
-                     format='(%"nohup mail -s \"%s\" %s < %s &")')
+        cmd = string(subject, plot_file, address, mailfile, $
+                     format='(%"nohup mail -s \"%s\" -a %s %s < %s")')
         spawn, cmd, result, error_result, exit_status=status
         if (status eq 0L) then begin
           mg_log, 'report sent to %s', address, name='kcor-cme', /info
@@ -61,9 +72,9 @@ pro kcor_cme_det_report, time
     endwhile
     free_lun, in
 
-    ; delete the temporary file
+    ; delete the temporary files
     file_delete, mailfile
-
+    file_delete, plot_file
 
     delvarx, speed_history
   endif

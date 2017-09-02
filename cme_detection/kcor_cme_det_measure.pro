@@ -48,7 +48,7 @@ pro kcor_cme_det_measure, rsun
   ; find all the detections within the last five minutes
   itime = n_elements(leadingedge) - 1
   tai0 = date_diff[itime].tai_avg
-  w = where(((tai0-date_diff.tai_avg) le 303) and (leadingedge ge 0), count)
+  w = where(((tai0 - date_diff.tai_avg) le 303) and (leadingedge ge 0), count)
 
   ; step backwards in time, and confirm that the position angles overlap,
   ; allowing the detection region to grow
@@ -112,6 +112,7 @@ pro kcor_cme_det_measure, rsun
       if (n_elements(tairef) eq 0) then begin
         alert = 1
       endif else begin
+        ; more than 60 minutes from last successful measurement/alert
         if ((tai0 - tairef) gt 3600) then alert = 1
       endelse
       tairef = tai0
