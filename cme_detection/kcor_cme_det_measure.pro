@@ -41,9 +41,11 @@
 ; Contact     :	WTHOMPSON
 ;-
 ;
-pro kcor_cme_det_measure, rsun
+pro kcor_cme_det_measure, rsun, updated=updated
   compile_opt strictarr
   common kcor_cme_detection
+
+  updated = 0B
 
   ; find all the detections within the last five minutes
   itime = n_elements(leadingedge) - 1
@@ -107,7 +109,7 @@ pro kcor_cme_det_measure, rsun
 
       param = param0
       speed = speed0
-      boost_array, speed_history, speed
+      updated = 1B
 
       if (n_elements(tairef) eq 0) then begin
         alert = 1

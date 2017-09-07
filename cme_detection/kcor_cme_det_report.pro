@@ -6,8 +6,12 @@
 ; :Params:
 ;   time : in, required, type=double
 ;     Atomic International Time (TAI), seconds from midnight 1 January 1958
+;
+; :Keywords:
+;   widget : in, optional, type=boolean
+;     set to run in the widget GUI
 ;-
-pro kcor_cme_det_report, time
+pro kcor_cme_det_report, time, widget=widget
   compile_opt strictarr
   common kcor_cme_detection
 
@@ -22,21 +26,46 @@ pro kcor_cme_det_report, time
     endif
 
     ; create filename for plot file
-    velocity_plot_file = mk_temp_file(dir=get_temp_dir(), 'velocity.png', /random)
+    plot_file = mk_temp_file(dir=get_temp_dir(), 'plot.png', /random)
 
     ; create plot to attach to email
     original_device = !d.name
     set_plot, 'Z'
     loadct, 0
-    device, decomposed=1, set_pixel_depth=24, set_resolution=[600, 400]
-    plot, speed_history, $
-          color='000000'x, background='ffffff'x, $
-          ytitle='velocity (km/s)', $
-          xtitle='index', $
-          title='Speed'
+    device, decomposed=1, set_pixel_depth=24, set_resolution=[800, 2 * 360]
+
+    !p.multi = [0, 1, 2]
+
+    velocity = reform(speed_history)
+    ind = where(speed_history lt 0.0, n_nan)
+    if (n_nan gt 0L) then velocity[ind] = !values.f_nan
+
+    utplot, date_diff.date_avg, velocity, $
+            color='000000'x, background='ffffff'x, $
+            psym=1, symsize=0.5, $
+            ytitle='velocity (km/s)', $
+            title='Speed', $
+            yrange=[0.0, max(velocity, /nan)]
+
+    date0 = date_diff[-1L].date_avg
+    rsun = (pb0r(date0))[2]
+    radius = 60 * (lat[leadingedge] + 90) / rsun
+
+    ind = where(leadingedge lt 0.0, n_nan)
+    if (n_nan gt 0L) then radius[ind] = !values.f_nan
+
+    utplot, date_diff.date_avg, radius, $
+            color='000000'x, background='ffffff'x, $
+            psym=1, symsize=0.5, $
+            ytitle='Solar radii', $
+            title='Leading edge', $
+            yrange=[1.0, 2.0]
+
     im = tvrd(true=1)
     set_plot, original_device
-    write_png, velocity_plot_file, im
+    write_png, plot_file, im
+
+    !p.multi = 0
 
     ; create a temporary file for the message
     mailfile = mk_temp_file(dir=get_temp_dir(), 'cme_mail.txt', /random)
@@ -48,43 +77,8 @@ pro kcor_cme_det_report, time
     printf, out, 'The Mauna Loa K-coronagraph has detected a possible CME ending at ' + $
             time + ' UT with the following parameters'
     printf, out
-    format = '(F10.2)'
-    printf, out, strjoin(strtrim(reform(speed_history), 2), ', '), $
-            format='(%"Speed history: %s km/s")'
-    printf, out, strjoin(strtrim(reform(leadingedge), 2), ', '), $
-            format='(%"Leading edge: %s")'
-
-    ind = where(leadingedge gt 0, n_pos_leadingedge)
-    printf, out, n_pos_leadingedge, format='(%"Number of positive leading edge elements: %d")'
 
     free_lun, out
-
-    ; leading edge plot
-    leadingedge_plot_file = mk_temp_file(dir=get_temp_dir(), 'leadingedge.png', /random)
-
-    ; create plot to attach to email
-    original_device = !d.name
-    set_plot, 'Z'
-    loadct, 0
-    device, decomposed=1, set_pixel_depth=24, set_resolution=[600, 400]
-    _leadingedge = reform(leadingedge)
-    ind = where(leadingedge lt 0.0, n_nan)
-    if (n_nan gt 0L) then _leadingedge[ind] = !values.f_nan
-
-    plot, _leadingedge, $
-          color='000000'x, background='ffffff'x, $
-          ytitle='leading edge (pixels)', $
-          xtitle='index', $
-          title='Leading edge'
-    im = tvrd(true=1)
-    set_plot, original_device
-    write_png, leadingedge_plot_file, im
-
-    ; grab plot window to attach to email
-    plot_window_file = mk_temp_file(dir=get_temp_dir(), 'plotwin.png', /random)
-    wset, plotwin
-    im = tvrd(true=1)
-    write_png, plot_window_file, im
 
     ; form a subject line for the email
     subject = 'MLSO K-cor report for CME ending at ' + time + ' UT'
@@ -97,12 +91,10 @@ pro kcor_cme_det_report, time
       address = strtrim(address, 2)
       if (address ne '') then begin
         cmd = string(subject, $
-                     velocity_plot_file, $
-                     leadingedge_plot_file, $
-                     plot_window_file, $
+                     plot_file, $
                      address, $
                      mailfile, $
-                     format='(%"nohup mail -s \"%s\" -a %s -a %s -a %s %s < %s")')
+                     format='(%"nohup mail -s \"%s\" -a %s %s < %s")')
         spawn, cmd, result, error_result, exit_status=status
         if (status eq 0L) then begin
           mg_log, 'report sent to %s', address, name='kcor-cme', /info
@@ -116,9 +108,7 @@ pro kcor_cme_det_report, time
 
     ; delete the temporary files
     file_delete, mailfile
-    file_delete, velocity_plot_file
-    file_delete, leadingedge_plot_file
-    file_delete, plot_window_file
+    file_delete, plot_file
 
     delvarx, speed_history
   endif

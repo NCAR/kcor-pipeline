@@ -105,8 +105,6 @@ pro kcor_cme_detection, date, store=k_store, timerange=k_timerange, $
   ; define the common block
   @kcor_cme_det_common
 
-  cme_occurring = 0B
-
   ; store relevant keywords in the common block
   if n_elements(k_store) eq 1 then store = k_store else store = 0
   if n_elements(k_timerange) eq 2 then timerange=k_timerange else $
@@ -199,10 +197,10 @@ pro kcor_cme_detection, date, store=k_store, timerange=k_timerange, $
   log_format = '%(time)s %(levelshortname)s: %(message)s'
   widget_logger->setProperty, widget_identifier=wmessage, format=log_format
 
+  ; reset common block variables
+  kcor_cme_det_reset
+
   ; realize the widget hierarchy, and register the widget with XMANAGER
-  ifile = 0
-  delvarx, date_orig, maps, date_diff, mdiffs, itheta, detected, leadingedge
-  delvarx, param, tairef, angle, speed
 
   ; start up SolarSoft display routines
   defsysv, '!image', exists=sys_image_defined

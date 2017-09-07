@@ -59,7 +59,7 @@ pro kcor_cme_det_event, event
   widget_control, event.id, get_uvalue=uvalue
   case uvalue of
     'START': begin
-        if file_exist(datedir) then begin
+        if (file_exist(datedir)) then begin
           cstop = 0
           widget_control, wstart, sensitive=0
           widget_control, wstop, sensitive=1
@@ -82,7 +82,7 @@ stop_point:
 
         if (cme_occurring) then begin
           ref_time = tai2utc(tairef, /time, /truncate, /ccsds)
-          kcor_cme_det_report, ref_time
+          kcor_cme_det_report, ref_time, /widget
           cme_occurring = 0B
           mg_log, 'CME ended at %s', ref_time, name='kcor-cme', /info
         endif
@@ -97,7 +97,7 @@ stop_point:
       end
 
     'TIMER': begin
-        kcor_cme_det_check, stopped=stopped
+        kcor_cme_det_check, stopped=stopped, /widget
         if (stopped) then goto, stop_point
       end
 

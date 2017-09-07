@@ -1,9 +1,19 @@
 ; docformat = 'rst'
 
-pro kcor_cme_det_check, stopped=stopped
+;+
+; Main CME detection processing loop.
+;
+; :Keywords:
+;   stopped : out, optional, type=boolean
+;     set to a named variable to retrieve whether to stop processing
+;   widget : in, optional, type=boolean
+;     set to run in the widget GUI
+;-
+pro kcor_cme_det_check, stopped=stopped, widget=widget
   compile_opt strictarr
   common kcor_cme_detection
 
+  updated = 0B
   stopped = 0B
 
   if (~cstop) then begin
@@ -41,15 +51,21 @@ pro kcor_cme_det_check, stopped=stopped
         mg_log, 'no more files', name='kcor-cme', /info
         goto, stop_point
       endif
-      widget_control, wtopbase, timer=5
+      if (keyword_set(widget)) then begin
+        widget_control, wtopbase, timer=5
+      endif
     endif else begin
       ; Otherwise, read in the file. Keep track of the begin and end times.
       break_file, files[ifile], disk, dir, name, ext
-      widget_control, wfile, set_value=name + ext
+      if (keyword_set(widget)) then begin
+        widget_control, wfile, set_value=name + ext
+      endif else begin
+        mg_log, 'processing %s', name + ext, name='kcor-cme', /debug
+      endelse
       image = readfits(files[ifile], header, /silent)
       datatype = fxpar(header, 'datatype', count=ndatatype)
       if (ndatatype eq 0) then test = 1 else begin
-        datatype = strtrim(fxpar(header,'datatype'),2)
+        datatype = strtrim(fxpar(header,'datatype'), 2)
         test = datatype eq 'science' or datatype eq 'engineering'
       endelse
       if (test) then begin
@@ -82,9 +98,11 @@ pro kcor_cme_det_check, stopped=stopped
         ; keep track of the begin, end, and average times of the running
         ; difference maps
         if (n_elements(mdiff) gt 1) then begin
-          wset, mapwin
-          exptv, sigrange(mdiff), /nosquare, /nobox
-          widget_control, wdate, set_value=fxpar(hdiff, 'date-avg')
+          if (keyword_set(widget)) then begin
+            wset, mapwin
+            exptv, sigrange(mdiff), /nosquare, /nobox
+            widget_control, wdate, set_value=fxpar(hdiff, 'date-avg')
+          endif
 
           date_obs = fxpar(hdiff, 'date-obs')
           date_end = fxpar(hdiff, 'date-end')
@@ -98,11 +116,12 @@ pro kcor_cme_det_check, stopped=stopped
           if n_elements(date_diff) eq 0 then date_diff = temp else $
               date_diff = [date_diff, temp]
 
+          boost_array, speed_history, -1.0
           boost_array, mdiffs, mdiff
 
           ; determine candidate limits for any CME in the difference image
           kcor_cme_det_thresh, mdiff, itheta0
-          if (itheta0[0] ge 0) then begin
+          if (itheta0[0] ge 0 && keyword_set(widget)) then begin
             tvplt, replicate(itheta0[0],     2), [0, nrad]
             tvplt, replicate(itheta0[1] + 1, 2), [0, nrad]
             empty
@@ -128,25 +147,39 @@ pro kcor_cme_det_check, stopped=stopped
             lead0 = leadingedge[ilead]
             date0 = date_diff[ilead].date_avg
             if (lead0 ge 0) then begin
-              wset, mapwin
-              tvplt, [0, nlon], replicate(lead0, 2)
+              if (keyword_set(widget)) then begin
+                wset, mapwin
+                tvplt, [0, nlon], replicate(lead0, 2)
+              endif
               w = where(leadingedge ge 0, count)
               if (count gt 1) then begin
-                wset, plotwin
                 rsun = (pb0r(date0))[2]
                 rad = 60 * (lat[leadingedge[w]] + 90) / rsun
-                utplot, date_diff[w].date_avg, rad, $
-                        psym=2, xstyle=3, /ynozero, $
-                        ytitle='Solar radii'
+
+                if (keyword_set(widget)) then begin
+                  wset, plotwin
+                  utplot, date_diff[w].date_avg, rad, $
+                          psym=2, xstyle=3, /ynozero, $
+                          ytitle='Solar radii'
+                endif
 
                 ; attempt to measure the CME parameters
-                kcor_cme_det_measure, rsun
+                kcor_cme_det_measure, rsun, updated=updated
+                if (keyword_set(updated)) then speed_history[-1] = speed
+
                 if (n_elements(param) gt 0) then begin
-                  widget_control, wangle, set_value=string(angle, format='(%"%d")')
-                  widget_control, wspeed, set_value=string(speed, format='(%"%0.2f")')
+                  if (keyword_set(widget)) then begin
+                    widget_control, wangle, set_value=string(angle, format='(%"%d")')
+                    widget_control, wspeed, set_value=string(speed, format='(%"%0.2f")')
+                  endif else begin
+                    mg_log, '%d degrees at %0.2f km/s', angle, speed, $
+                            name='kcor-cme', /debug
+                  endelse
                   x = date_diff.tai_avg - tairef
                   rfit = poly(x, param)
-                  outplot, date_diff.date_avg, rfit
+                  if (keyword_set(widget)) then begin
+                    outplot, date_diff.date_avg, rfit
+                  endif
                 endif
               endif
             endif    ; valid LEAD0 
@@ -167,7 +200,9 @@ pro kcor_cme_det_check, stopped=stopped
 
       ; step to the next file
       ifile = ifile + 1
-      widget_control, wtopbase, timer=0.1
+      if (keyword_set(widget)) then begin
+        widget_control, wtopbase, timer=0.1
+      endif
     endelse
   endif                         ; Not stopped
 
