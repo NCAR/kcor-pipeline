@@ -344,6 +344,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            hpss_gateway=hpss_gateway, $
                            log_dir=log_dir, $
                            log_level=log_level, $
+                           engineering_dir=engineering_dir, $
                            database_config_filename=database_config_filename, $
                            database_config_section=database_config_section, $
                            notification_email=notification_email, $
@@ -445,6 +446,11 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   if (arg_present(log_level)) then begin
     log_level = self.options->get('level', section='logging', $
                                   type=3, default=4L)
+  endif
+
+  ; engineering
+  if (arg_present(engineering_dir)) then begin
+    engineering_dir = self.options->get('engineering_dir', section='engineering')
   endif
 
   ; database
