@@ -85,8 +85,9 @@ pro kcor_cme_det_email, time, edge, operator=operator
   endelse
   free_lun, out
 
-  ; form a subject line for the email
-  subject = 'MLSO K-cor possible CME at ' + time + ' UT'
+  subject = string(simple_date, time, $
+                   format='(%"MLSO K-Cor possible CME on %s at %s UT")')
+
 
   ; step through the address file, and send a message to each listed recipient
   openr, in, addressfile, /get_lun
@@ -96,7 +97,7 @@ pro kcor_cme_det_email, time, edge, operator=operator
     address = strtrim(address, 2)
     if (address ne '') then begin
       cmd = string(subject, address, mailfile, $
-                   format='(%"nohup mail -s \"%s\" %s < %s &")')
+                   format='(%"mail -s \"%s\" %s < %s")')
       spawn, cmd, result, error_result, exit_status=status
       if (status eq 0L) then begin
         mg_log, 'alert sent to %s', address, name='kcor-cme', /info

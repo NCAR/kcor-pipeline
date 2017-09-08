@@ -117,6 +117,7 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
               date_diff = [date_diff, temp]
 
           boost_array, speed_history, -1.0
+          boost_array, angle_history, -1.0
           boost_array, mdiffs, mdiff
 
           ; determine candidate limits for any CME in the difference image
@@ -165,7 +166,10 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
 
                 ; attempt to measure the CME parameters
                 kcor_cme_det_measure, rsun, updated=updated
-                if (keyword_set(updated)) then speed_history[-1] = speed
+                if (keyword_set(updated)) then begin
+                  angle_history[-1] = angle
+                  speed_history[-1] = speed
+                endif
 
                 if (n_elements(param) gt 0) then begin
                   if (keyword_set(widget)) then begin

@@ -37,4 +37,7 @@ common kcor_cme_detection, nlon, $
                            speed, $
                            cme_occurring, $
                            speed_history, $
-                           running
+                           angle_history, $
+                           running, $
+                           simple_date, $
+                           run

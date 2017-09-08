@@ -1,6 +1,6 @@
 ; docformat = 'rst'
 
-pro kcor_cme_detection_job, date, timerange=_timerange
+pro kcor_cme_detection_job, date, timerange=_timerange, config_filename=config_filename
   compile_opt strictarr
   @kcor_cme_det_common
 
@@ -56,6 +56,12 @@ pro kcor_cme_detection_job, date, timerange=_timerange
   if (n_elements(date) eq 0) then get_utc, date
   sdate = anytim2utc(date, /ecs, /date_only)
   datedir = concat_dir(kcor_dir, sdate)
+  simple_date = string(strmid(date, 0, 4), $
+                       strmid(date, 5, 2), $
+                       strmid(date, 8, 2), $
+                       format='(%"%s%s%s")')
+
+  run = kcor_run(simple_date, config_filename=config_filename)
 
   ; make sure that the output directories exist
   hpr_out_dir = concat_dir(kcor_hpr_dir, sdate)
@@ -65,13 +71,13 @@ pro kcor_cme_detection_job, date, timerange=_timerange
   if keyword_set(store) and (not file_exist(diff_out_dir)) then $
       file_mkdir, diff_out_dir
 
+  if (~file_test(run.log_dir, /directory)) then file_mkdir, run.log_dir
   mg_log, logger=logger, name='kcor-cme'
   log_format = '%(time)s %(levelshortname)s: %(message)s'
   logger->setProperty, format=log_format, $
-                       filename=string(strmid(date, 0, 4), $
-                                       strmid(date, 5, 2), $
-                                       strmid(date, 8, 2), $
-                                       format='(%"%s%s%s.cme.log")')
+                       filename=filepath(string(simple_date, $
+                                                format='(%"%s.cme.log")'), $
+                                         root=run.log_dir)
 
   kcor_cme_det_reset
 

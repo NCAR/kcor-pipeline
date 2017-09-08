@@ -93,7 +93,8 @@
 ;-
 ;
 pro kcor_cme_detection, date, store=k_store, timerange=k_timerange, $
-                        group_leader=group_leader
+                        group_leader=group_leader, $
+                        config_filename=config_filename
   compile_opt strictarr
 
   ; check to see if the program is already running
@@ -152,14 +153,23 @@ pro kcor_cme_detection, date, store=k_store, timerange=k_timerange, $
   if n_elements(date) eq 0 then get_utc, date
   sdate = anytim2utc(date, /ecs, /date_only)
   datedir = concat_dir(kcor_dir, sdate)
+  simple_date = string(strmid(date, 0, 4), $
+                       strmid(date, 5, 2), $
+                       strmid(date, 8, 2), $
+                       format='(%"%s%s%s")')
+
+  run = kcor_run(simple_date, config_filename=config_filename)
 
   ; make sure that the output directories exist
   hpr_out_dir = concat_dir(kcor_hpr_dir, sdate)
-  if keyword_set(store) and (not file_exist(hpr_out_dir)) then $
-      file_mkdir, hpr_out_dir
+  if (keyword_set(store) and not file_exist(hpr_out_dir)) then begin
+    file_mkdir, hpr_out_dir
+  endif
+
   diff_out_dir = concat_dir(kcor_hpr_diff_dir, sdate)
-  if keyword_set(store) and (not file_exist(diff_out_dir)) then $
-      file_mkdir, diff_out_dir
+  if (keyword_set(store) and not file_exist(diff_out_dir)) then begin
+    file_mkdir, diff_out_dir
+  endif
 
   ; define the top widget base
   wtopbase = widget_base(title='K-cor CME Detection', $

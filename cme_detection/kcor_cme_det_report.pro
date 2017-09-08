@@ -26,16 +26,23 @@ pro kcor_cme_det_report, time, widget=widget
     endif
 
     ; create filename for plot file
-    plot_file = mk_temp_file(dir=get_temp_dir(), 'plot.png', /random)
+    if (~file_test(run.engineering_dir, /directory)) then begin
+      file_mkdir, run.engineering_dir
+    endif
+    plot_file = filepath(string(simple_date, format='(%"%s.cme.plot.png")'), $
+                         root=run.engineering_dir)
 
     ; create plot to attach to email
     original_device = !d.name
     set_plot, 'Z'
     loadct, 0
-    device, decomposed=1, set_pixel_depth=24, set_resolution=[800, 2 * 360]
 
-    !p.multi = [0, 1, 2]
+    n_plots = 3
+    device, decomposed=1, set_pixel_depth=24, set_resolution=[800, n_plots * 360]
 
+    !p.multi = [0, 1, n_plots]
+
+    ; speed plot
     velocity = reform(speed_history)
     ind = where(speed_history lt 0.0, n_nan)
     if (n_nan gt 0L) then velocity[ind] = !values.f_nan
@@ -47,6 +54,19 @@ pro kcor_cme_det_report, time, widget=widget
             title='Speed', $
             yrange=[0.0, max(velocity, /nan)]
 
+    ; angle plot
+    position = reform(angle_history)
+    ind = where(angle_history lt 0.0, n_nan)
+    if (n_nan gt 0L) then position[ind] = !values.f_nan
+
+    utplot, date_diff.date_avg, position, $
+            color='000000'x, background='ffffff'x, $
+            psym=1, symsize=0.5, $
+            ytitle='Angle (degrees)', $
+            title='Position angle', $
+            ystyle=1, yrange=[0.0, 360.0]
+
+    ; leading edge plot
     date0 = date_diff[-1L].date_avg
     rsun = (pb0r(date0))[2]
     radius = 60 * (lat[leadingedge] + 90) / rsun
@@ -81,7 +101,8 @@ pro kcor_cme_det_report, time, widget=widget
     free_lun, out
 
     ; form a subject line for the email
-    subject = 'MLSO K-cor report for CME ending at ' + time + ' UT'
+    subject = string(simple_date, time, $
+                     format='(%"MLSO K-Cor report for CME on %s ending at %s UT")')
 
     ; step through the address file, and send a message to each listed recipient
     openr, in, addressfile, /get_lun
@@ -94,7 +115,7 @@ pro kcor_cme_det_report, time, widget=widget
                      plot_file, $
                      address, $
                      mailfile, $
-                     format='(%"nohup mail -s \"%s\" -a %s %s < %s")')
+                     format='(%"mail -s \"%s\" -a %s %s < %s")')
         spawn, cmd, result, error_result, exit_status=status
         if (status eq 0L) then begin
           mg_log, 'report sent to %s', address, name='kcor-cme', /info
@@ -108,7 +129,6 @@ pro kcor_cme_det_report, time, widget=widget
 
     ; delete the temporary files
     file_delete, mailfile
-    file_delete, plot_file
 
     delvarx, speed_history
   endif
