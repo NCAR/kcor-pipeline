@@ -345,6 +345,10 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            log_dir=log_dir, $
                            log_level=log_level, $
                            engineering_dir=engineering_dir, $
+                           hpr_dir=hpr_dir, $
+                           hpr_diff_dir=hpr_diff_dir, $
+                           cme_movie_dir=cme_movie_dir, $
+                           cme_email=cme_email, $
                            database_config_filename=database_config_filename, $
                            database_config_section=database_config_section, $
                            notification_email=notification_email, $
@@ -451,6 +455,20 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   ; engineering
   if (arg_present(engineering_dir)) then begin
     engineering_dir = self.options->get('engineering_dir', section='engineering')
+  endif
+
+  ; cme
+  if (arg_present(hpr_dir)) then begin
+    hpr_dir = self.options->get('hpr_dir', section='cme')
+  endif
+  if (arg_present(hpr_diff_dir)) then begin
+    hpr_diff_dir = self.options->get('hpr_diff_dir', section='cme')
+  endif
+  if (arg_present(cme_movie_dir)) then begin
+    cme_movie_dir = self.options->get('movie_dir', section='cme')
+  endif
+  if (arg_present(cme_email)) then begin
+    cme_email = self.options->get('email', section='cme')
   endif
 
   ; database

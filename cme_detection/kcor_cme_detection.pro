@@ -37,7 +37,7 @@
 ; Opt. Outputs:	None
 ;
 ; Keywords    :	STORE   = If set, then intermediate files are written to the
-;                         $KCOR_HPR_DIR and $KCOR_HPR_DIFF_DIR directories.
+;                         run.hpr_dir and run.hpr_diff_dir directories.
 ;                         This speeds up processing if the software is rerun
 ;                         over the same date.
 ;
@@ -48,30 +48,6 @@
 ;
 ;               GROUP_LEADER = Widget ID of group leader, when called from
 ;                              another widget program.
-;
-; Env. Vars.  : KCOR_DIR = Top of the directory tree containing the FITS files.
-;                          Contains directories for the years, months, and
-;                          individual days, e.g. $KCOR_DIR/2016/01/01.  If not
-;                          defined, then defaults to the subdirectory "acos" in
-;                          the current directory.
-;
-;               KCOR_MOVIE_DIR = Directory to write movies to.  If not defined,
-;                                then the movies are written to the current
-;                                directory.
-;
-;               KCOR_MAILING_LIST = Text file containing a list of email
-;                                   addresses, one per line.
-;
-;               KCOR_HPR_DIR = Top of directory tree containing intermediate
-;                              FITS files in helioprojective-radial (HPR)
-;                              polar coordinates.  If not defined, then
-;                              defaults to "kcor_hpr" in current directory.
-;                              Ignored unless used with /STORE.
-;
-;               KCOR_HPR_DIFF_DIR = Top of directory tree containing running
-;                                   difference maps.  If not defined, then
-;                                   defaults to "kcor_hpr_diff".  Ignored
-;                                   unless used with /STORE.
 ;
 ; Calls       :	DELVARX, CONCAT_DIR, GET_UTC, ANYTIM2UTC, FILE_EXIST,
 ;               KCOR_CME_DET_EVENT
@@ -118,41 +94,10 @@ pro kcor_cme_detection, date, store=k_store, timerange=k_timerange, $
   navg = 40        ; Number of points to average in longitude
   nrad = 310       ; Number of radial points.
 
-  ; The top of the directory tree containing the kcor data is given by the
-  ; environment variable KCOR_DIR.
-  kcor_dir = getenv('KCOR_DIR')
-  if (kcor_dir eq '') then begin
-    cd, current=current
-    kcor_dir = concat_dir(current, 'acos')
-  endif
-
-  ; The environment variable KCOR_HPR_DIR points to the top of the directory
-  ; tree used for storing images converted into helioprojective-radial (HPR)
-  ; coordinates.
-  kcor_hpr_dir = getenv('KCOR_HPR_DIR')
-  if (kcor_hpr_dir eq '') then begin
-    if (~file_test(kcor_hpr_dir, /directory)) then file_mkdir, kcor_hpr_dir
-    cd, current=current
-    kcor_hpr_dir = concat_dir(current,'kcor_hpr')
-  endif
-
-  ; The environment variable KCOR_HPR_DIFF_DIR points to the top of the
-  ; directory tree used for storing running difference maps in
-  ; helioprojective-radial (HPR) coordinates.
-  kcor_hpr_diff_dir = getenv('KCOR_HPR_DIFF_DIR')
-  if (kcor_hpr_diff_dir eq '') then begin
-    if (~file_test(kcor_hpr_diff_dir, /directory)) then begin
-      file_mkdir, kcor_hpr_diff_dir
-    endif
-    cd, current=current
-    kcor_hpr_diff_dir = concat_dir(current,'kcor_hpr_diff')
-  endif
-
   ; Determine the date directory from the date. If no date was passed, then use
   ; today's date.
   if n_elements(date) eq 0 then get_utc, date
   sdate = anytim2utc(date, /ecs, /date_only)
-  datedir = concat_dir(kcor_dir, sdate)
   simple_date = string(strmid(date, 0, 4), $
                        strmid(date, 5, 2), $
                        strmid(date, 8, 2), $
@@ -160,21 +105,38 @@ pro kcor_cme_detection, date, store=k_store, timerange=k_timerange, $
 
   run = kcor_run(simple_date, config_filename=config_filename)
 
+  ; the top of the directory tree containing the KCor data is given by
+  ; archive_basedir
+  kcor_dir = run.archive_basedir
+  datedir = filepath(sdate, root=kcor_dir)
+
+  ; hpr_dir points to the top of the directory tree used for storing images
+  ; converted into helioprojective-radial (HPR) coordinates
+  kcor_hpr_dir = run.hpr_dir
+  if (~file_test(kcor_hpr_dir, /directory)) then file_mkdir, kcor_hpr_dir
+
+  ; hpr_diff_dir points to the top of the directory tree used for storing
+  ; running difference maps in helioprojective-radial (HPR) coordinates
+  kcor_hpr_diff_dir = run.hpr_diff_dir
+  if (~file_test(kcor_hpr_diff_dir, /directory)) then begin
+    file_mkdir, kcor_hpr_diff_dir
+  endif
+
   ; make sure that the output directories exist
   hpr_out_dir = concat_dir(kcor_hpr_dir, sdate)
-  if (keyword_set(store) and not file_exist(hpr_out_dir)) then begin
+  if (keyword_set(store) and not file_test(hpr_out_dir, /directory)) then begin
     file_mkdir, hpr_out_dir
   endif
 
   diff_out_dir = concat_dir(kcor_hpr_diff_dir, sdate)
-  if (keyword_set(store) and not file_exist(diff_out_dir)) then begin
+  if (keyword_set(store) and not file_test(diff_out_dir, /directory)) then begin
     file_mkdir, diff_out_dir
   endif
 
   ; define the top widget base
-  wtopbase = widget_base(title='K-cor CME Detection', $
+  wtopbase = widget_base(title='K-Cor CME Detection', $
                          group_leader=group_leader, $
-                         /row, tlb_frame_attr=1, uvalue='TIMER', $
+                         /row, tlb_xframe_attr=1, uvalue='TIMER', $
                          /tlb_kill_request_events)
 
   ; define a base for the maps

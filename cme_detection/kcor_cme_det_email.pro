@@ -31,9 +31,6 @@
 ; Keywords    :	OPERATOR = Flags that this is an operator alert, and not all
 ;                          the CME parameters are available.
 ;
-; Env. Vars.  : KCOR_MAILING_LIST = Text file containing a list of email
-;                                   addresses, one per line.
-;
 ; Calls       :	MK_TEMP_FILE, GET_TEMP_DIR, 
 ;
 ; Common      :	KCOR_CME_DETECTION defined in kcor_cme_detection.pro
@@ -55,11 +52,9 @@ pro kcor_cme_det_email, time, edge, operator=operator
   compile_opt strictarr
   common kcor_cme_detection
 
-  ; Look for the file containing the email addresses. If not found, then simply
-  ; return.
-  addressfile = getenv('KCOR_MAILING_LIST')
-  if (~file_exist(addressfile)) then begin
-    mg_log, 'no address file specified in KCOR_MAILING_LIST, not sending email', $
+  addresses = run.cme_email
+  if (addresses eq '') then begin
+    mg_log, 'no cme.email specified, not sending email', $
             name='kcor-cme', /warn
     return
   endif
@@ -88,26 +83,15 @@ pro kcor_cme_det_email, time, edge, operator=operator
   subject = string(simple_date, time, $
                    format='(%"MLSO K-Cor possible CME on %s at %s UT")')
 
-
-  ; step through the address file, and send a message to each listed recipient
-  openr, in, addressfile, /get_lun
-  address = ''
-  while (~eof(in)) do begin
-    readf, in, address
-    address = strtrim(address, 2)
-    if (address ne '') then begin
-      cmd = string(subject, address, mailfile, $
-                   format='(%"mail -s \"%s\" %s < %s")')
-      spawn, cmd, result, error_result, exit_status=status
-      if (status eq 0L) then begin
-        mg_log, 'alert sent to %s', address, name='kcor-cme', /info
-      endif else begin
-        mg_log, 'problem with mail command: %s', cmd, name='kcor-cme', /error
-        mg_log, strjoin(error_result, ' '), name='kcor-cme', /error
-      endelse
-    endif
-  endwhile
-  free_lun, in
+  cmd = string(subject, addresses, mailfile, $
+               format='(%"mail -s \"%s\" %s < %s")')
+  spawn, cmd, result, error_result, exit_status=status
+  if (status eq 0L) then begin
+    mg_log, 'alert sent to %s', addresses, name='kcor-cme', /info
+  endif else begin
+    mg_log, 'problem with mail command: %s', cmd, name='kcor-cme', /error
+    mg_log, strjoin(error_result, ' '), name='kcor-cme', /error
+  endelse
 
   ; delete the temporary file
   file_delete, mailfile

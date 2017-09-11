@@ -16,11 +16,9 @@ pro kcor_cme_det_report, time, widget=widget
   common kcor_cme_detection
 
   if (n_elements(speed_history) gt 0L) then begin
-    ; Look for the file containing the email addresses. If not found, then
-    ; simply return.
-    addressfile = getenv('KCOR_MAILING_LIST')
-    if (~file_exist(addressfile)) then begin
-      mg_log, 'no address file specified in KCOR_MAILING_LIST, not sending email', $
+    addresses = run.cme_email
+    if (addresses eq '') then begin
+      mg_log, 'no cme.email specified, not sending email', $
               name='kcor-cme', /warn
       return
     endif
@@ -105,27 +103,18 @@ pro kcor_cme_det_report, time, widget=widget
                      format='(%"MLSO K-Cor report for CME on %s ending at %s UT")')
 
     ; step through the address file, and send a message to each listed recipient
-    openr, in, addressfile, /get_lun
-    address = ''
-    while (~eof(in)) do begin
-      readf, in, address
-      address = strtrim(address, 2)
-      if (address ne '') then begin
-        cmd = string(subject, $
-                     plot_file, $
-                     address, $
-                     mailfile, $
-                     format='(%"mail -s \"%s\" -a %s %s < %s")')
-        spawn, cmd, result, error_result, exit_status=status
-        if (status eq 0L) then begin
-          mg_log, 'report sent to %s', address, name='kcor-cme', /info
-        endif else begin
-          mg_log, 'problem with mail command: %s', cmd, name='kcor-cme', /error
-          mg_log, strjoin(error_result, ' '), name='kcor-cme', /error
-        endelse
-      endif
-    endwhile
-    free_lun, in
+    cmd = string(subject, $
+                 plot_file, $
+                 addresses, $
+                 mailfile, $
+                 format='(%"mail -s \"%s\" -a %s %s < %s")')
+    spawn, cmd, result, error_result, exit_status=status
+    if (status eq 0L) then begin
+      mg_log, 'report sent to %s', addresses, name='kcor-cme', /info
+    endif else begin
+      mg_log, 'problem with mail command: %s', cmd, name='kcor-cme', /error
+      mg_log, strjoin(error_result, ' '), name='kcor-cme', /error
+    endelse
 
     ; delete the temporary files
     file_delete, mailfile

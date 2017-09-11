@@ -27,10 +27,6 @@
 ;
 ; Keywords    :	None
 ;
-; Env. Vars.  : KCOR_MOVIE_DIR = Directory to write movies to.  If not defined,
-;                                then the movies are written to the current
-;                                directory.
-;
 ; Calls       :	READFITS, AVERAGE, BOOST_ARRAY, CONCAT_DIR
 ;
 ; Common      :	KCOR_CME_DETECTION defined in kcor_cme_detection.pro
@@ -85,9 +81,11 @@ pro kcor_cme_det_movie
   sz = size(frames)
 
   ; Define the name of the output file. The file extension is added later.
-  moviedir = getenv('KCOR_MOVIE_DIR')
+  moviedir = run.cme_movie_dir
   if (~file_test(moviedir, /directory)) then file_mkdir, moviedir
-  moviefile = concat_dir(moviedir, 'kcor_latest_cme_detection')
+  moviefile = concat_dir(moviedir, $
+                         string(simple_date, $
+                                format='(%"%s_kcor_cme_detection")'))
 
   ; create an animated GIF version of the movie
   c = indgen(256)
@@ -96,6 +94,13 @@ pro kcor_cme_det_movie
                /multiple, repeat_count=0
   endfor
   write_gif, moviefile + '.gif', frames[*, *, 0], /close
+
+  latest_gif_filename = filepath('kcor_latest_cme_detection.gif', root=moviedir)
+  if (file_test(latest_gif_filename)) then begin
+    file_delete, latest_gif_filename
+  endif
+  file_link, moviefile + '.gif', latest_gif_filename
+
   mg_log, 'wrote file %s.gif', moviefile, name='kcor-cme', /info
 
   ; create an MPEG-4 version of the movie
@@ -106,5 +111,12 @@ pro kcor_cme_det_movie
     dummy = oVid.Put(vidStream, iframe)
   endfor
   oVid = 0
+
+  latest_mp4_filename = filepath('kcor_latest_cme_detection.mp4', root=moviedir)
+  if (file_test(latest_mp4_filename)) then begin
+    file_delete, latest_mp4_filename
+  endif
+  file_link, moviefile + '.mp4', latest_mp4_filename
+
   mg_log, 'wrote file %s.mp4', moviefile, name='kcor-cme', /info
 end

@@ -21,41 +21,10 @@ pro kcor_cme_detection_job, date, timerange=_timerange, config_filename=config_f
   navg = 40        ; Number of points to average in longitude
   nrad = 310       ; Number of radial points.
 
-  ; The top of the directory tree containing the kcor data is given by the
-  ; environment variable KCOR_DIR.
-  kcor_dir = getenv('KCOR_DIR')
-  if (kcor_dir eq '') then begin
-    cd, current=current
-    kcor_dir = concat_dir(current, 'acos')
-  endif
-
-  ; The environment variable KCOR_HPR_DIR points to the top of the directory
-  ; tree used for storing images converted into helioprojective-radial (HPR)
-  ; coordinates.
-  kcor_hpr_dir = getenv('KCOR_HPR_DIR')
-  if (kcor_hpr_dir eq '') then begin
-    if (~file_test(kcor_hpr_dir, /directory)) then file_mkdir, kcor_hpr_dir
-    cd, current=current
-    kcor_hpr_dir = concat_dir(current, 'kcor_hpr')
-  endif
-
-  ; The environment variable KCOR_HPR_DIFF_DIR points to the top of the
-  ; directory tree used for storing running difference maps in
-  ; helioprojective-radial (HPR) coordinates.
-  kcor_hpr_diff_dir = getenv('KCOR_HPR_DIFF_DIR')
-  if (kcor_hpr_diff_dir eq '') then begin
-    if (~file_test(kcor_hpr_diff_dir, /directory)) then begin
-      file_mkdir, kcor_hpr_diff_dir
-    endif
-    cd, current=current
-    kcor_hpr_diff_dir = concat_dir(current, 'kcor_hpr_diff')
-  endif
-
   ; Determine the date directory from the date. If no date was passed, then use
   ; today's date.
   if (n_elements(date) eq 0) then get_utc, date
   sdate = anytim2utc(date, /ecs, /date_only)
-  datedir = concat_dir(kcor_dir, sdate)
   simple_date = string(strmid(date, 0, 4), $
                        strmid(date, 5, 2), $
                        strmid(date, 8, 2), $
@@ -63,13 +32,32 @@ pro kcor_cme_detection_job, date, timerange=_timerange, config_filename=config_f
 
   run = kcor_run(simple_date, config_filename=config_filename)
 
+  ; the top of the directory tree containing the KCor data is given by
+  ; archive_basedir
+  kcor_dir = run.archive_basedir
+  datedir = filepath(sdate, root=kcor_dir)
+
+  ; hpr_dir points to the top of the directory tree used for storing images
+  ; converted into helioprojective-radial (HPR) coordinates
+  kcor_hpr_dir = run.hpr_dir
+  if (~file_test(kcor_hpr_dir, /directory)) then file_mkdir, kcor_hpr_dir
+
+  ; hpr_diff_dir points to the top of the directory tree used for storing
+  ; running difference maps in helioprojective-radial (HPR) coordinates
+  kcor_hpr_diff_dir = run.hpr_diff_dir
+  if (~file_test(kcor_hpr_diff_dir, /directory)) then begin
+    file_mkdir, kcor_hpr_diff_dir
+  endif
+
   ; make sure that the output directories exist
   hpr_out_dir = concat_dir(kcor_hpr_dir, sdate)
-  if keyword_set(store) and (not file_exist(hpr_out_dir)) then $
-      file_mkdir, hpr_out_dir
+  if (keyword_set(store) and not file_exist(hpr_out_dir)) then begin
+    file_mkdir, hpr_out_dir
+  endif
   diff_out_dir = concat_dir(kcor_hpr_diff_dir, sdate)
-  if keyword_set(store) and (not file_exist(diff_out_dir)) then $
-      file_mkdir, diff_out_dir
+  if (keyword_set(store) and not file_exist(diff_out_dir)) then begin
+    file_mkdir, diff_out_dir
+  endif
 
   if (~file_test(run.log_dir, /directory)) then file_mkdir, run.log_dir
   mg_log, logger=logger, name='kcor-cme'

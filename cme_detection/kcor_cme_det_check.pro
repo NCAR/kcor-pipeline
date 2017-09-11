@@ -21,8 +21,7 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
     if (count eq 0) then begin
       files = file_search(concat_dir(datedir,'*kcor_l1.fts.gz'), count=count)
       if (count eq 0) then begin
-        message = 'No FITS files found in directory ' + datedir
-        mg_log, message, name='kcor-cme', /info
+        mg_log, 'no FITS files found in %s', datedir, name='kcor-cme', /info
         goto, stop_point
       endif
     endif
@@ -35,8 +34,7 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
       tt = anytim2utc(strmid(name,0,15),/ccsds)
       w = where((tt ge t0) and (tt le t1), count)
       if (count eq 0) then begin
-        message = 'No FITS files found in time range'
-        mg_log, message, name='kcor-cme', /info
+        mg_log, 'no FITS files found in time range', name='kcor-cme', /info
         goto, stop_point
       endif
       files = files[w]
@@ -65,7 +63,7 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
       image = readfits(files[ifile], header, /silent)
       datatype = fxpar(header, 'datatype', count=ndatatype)
       if (ndatatype eq 0) then test = 1 else begin
-        datatype = strtrim(fxpar(header,'datatype'), 2)
+        datatype = strtrim(fxpar(header, 'datatype'), 2)
         test = datatype eq 'science' or datatype eq 'engineering'
       endelse
       if (test) then begin
