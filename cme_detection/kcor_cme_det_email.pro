@@ -84,14 +84,29 @@ pro kcor_cme_det_email, time, edge, operator=operator
   endelse
 
   rsun = (pb0r(date0))[2]
-  height = 60 * (lat + 90) / rsun
-  plot, height, y, $
+  radius = 60 * (lat + 90) / rsun
+  plot, radius, y, $
         color='000000'x, background='ffffff'x, $
-        xstyle=1, $
+        xstyle=1, xrange=[1.0, 3.0], $
         xtitle='Solar radii', $
         ytitle='Difference in pB', $
         title=string(angle, date_diff[itime].date_avg, $
                      format='(%"Radial plot at %0.1f degrees at %s")')
+
+  polyfill, [!x.crange[0], fltarr(2) + min(radius), fltarr(2) + !x.crange[0]], $
+            [fltarr(2) + !y.crange[0], fltarr(2) + !y.crange[1], !y.crange[0]], $
+            color='e0e0e0'x
+
+  plot, radius, y, /noerase, $
+        color='000000'x, background='ffffff'x, $
+        xstyle=1, xrange=[1.0, 3.0], $
+        xtitle='Solar radii', $
+        ytitle='Difference in pB', $
+        title=string(angle, date_diff[itime].date_avg, $
+                     format='(%"Radial plot at %0.1f degrees at %s")')
+  min_y = min(y, max=max_y)
+  oplot, fltarr(2) + radius[leadingedge[-1]], !y.crange, color='0000ff'x
+  oplot, fltarr(2) + min(radius), !y.crange, color='808080'x, linestyle=2
 
   im = tvrd(true=1)
   set_plot, original_device
