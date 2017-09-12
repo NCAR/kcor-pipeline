@@ -66,6 +66,7 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
         datatype = strtrim(fxpar(header, 'datatype'), 2)
         test = datatype eq 'science' or datatype eq 'engineering'
       endelse
+
       if (test) then begin
         date_obs = anytim2utc(fxpar(header, 'date-obs'), /ccsds)
         date_end = anytim2utc(fxpar(header, 'date-end'), /ccsds)
@@ -74,7 +75,7 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
         temp = {date_obs: date_obs, tai_obs: tai_obs, $
                 date_end: date_end, tai_end: tai_end, $
                 filename: files[ifile]}
-        if n_elements(date_orig) eq 0 then begin
+        if (n_elements(date_orig) eq 0) then begin
           date_orig = temp
         endif else begin
           date_orig = [date_orig, temp]
@@ -124,6 +125,7 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
           ; determine candidate limits for any CME in the difference image
           kcor_cme_det_thresh, mdiff, itheta0
           if (itheta0[0] ge 0 && keyword_set(widget)) then begin
+            wset, mapwin
             tvplt, replicate(itheta0[0],     2), [0, nrad]
             tvplt, replicate(itheta0[1] + 1, 2), [0, nrad]
             empty

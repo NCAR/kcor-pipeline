@@ -69,29 +69,29 @@ pro kcor_cme_det_find, tai_avg, date_diff, itheta0, itheta, nlon, detected
       jdate = wdate[itai]
       i0 = itheta0[0]
       i1 = itheta0[1]
-      if i1 lt i0 then i1 = i1 + nlon
+      if (i1 lt i0) then i1 = i1 + nlon
       j0 = itheta[0,jdate]
       j1 = itheta[1,jdate]
-      if j1 lt j0 then j1 = j1 + nlon
+      if (j1 lt j0) then j1 = j1 + nlon
 
       ; Mark any images which overlap.  Use the value 2 to mark cases which are more
       ; than 30 seconds earlier, since these images are completely independent from
       ; the current image.
-      if (i1 ge j0) and (i0 le j1) then begin
+      if ((i1 ge j0) and (i0 le j1)) then begin
         boost_array, joverlap, jdate
-        if tdelta[jdate] gt 30 then found[itai] = 2 else found[itai] = 1
+        if (tdelta[jdate] gt 30) then found[itai] = 2 else found[itai] = 1
       endif
     endfor
 
     ; Check that at least one of the overlapping regions is at least 30 seconds
     ; old, and that most of the images within the persistence period overlap.
     w = where(found eq 2, count)
-    if (average(found < 1) gt 0.5) and (count gt 0) then begin
+    if ((average(found < 1) gt 0.5) and (count gt 0)) then begin
       detected[idet] = 1
 
       ; Mark earlier images within the persistence period as detections, so long
       ; as they overlap.
-      for i = n_elements(joverlap)-1,0,-1 do begin
+      for i = n_elements(joverlap) - 1, 0, -1 do begin
         j = joverlap[i]
         if (detected[j + 1]) then detected[j] = 1 else break
       endfor
