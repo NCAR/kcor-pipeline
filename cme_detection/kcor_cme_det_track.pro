@@ -52,7 +52,7 @@ pro kcor_cme_det_track, mdiffs, itheta, detected, leadingedge
 
   ; Step through the elements in DETECTED which do not yet appear in
   ; LEADINGEDGE. Increment LEADINGEDGE to catch up with DETECTED.
-  for itime = n_elements(leadingedge), n_elements(detected)-1 do begin
+  for itime = n_elements(leadingedge), n_elements(detected) - 1 do begin
     boost_array, leadingedge, -1.0
 
     ; If a detection was made, and the ITHETA values are valid, then look for
@@ -70,7 +70,7 @@ pro kcor_cme_det_track, mdiffs, itheta, detected, leadingedge
 
       ; Smooth the trace by five pixels, and calculate the derivative over six
       ; pixels, which is also smoothed.
-      ys = asmooth(y,5)
+      ys = asmooth(y, 5)
       yd = asmooth(ys[2*npix:*] - ys, 5)
 
       ; Look for the outermost point which satisfies the threshold in the upward
