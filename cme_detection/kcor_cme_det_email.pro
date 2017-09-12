@@ -59,6 +59,44 @@ pro kcor_cme_det_email, time, edge, operator=operator
     return
   endif
 
+  ; create filename for plot file
+  if (~file_test(run.engineering_dir, /directory)) then begin
+    file_mkdir, run.engineering_dir
+  endif
+  plot_file = filepath(string(simple_date, format='(%"%s.cme.profile.png")'), $
+                       root=run.engineering_dir)
+
+  ; create plot to attach to email
+  original_device = !d.name
+  set_plot, 'Z'
+  loadct, 0
+
+  device, decomposed=1, set_pixel_depth=24, set_resolution=[800, 360]
+
+  itime = n_elements(leadingedge) - 1L
+  map = mdiffs[*, *, itime] > 0
+  i0 = itheta[0, itime]
+  i1 = itheta[1, itime]
+  if (i1 ge i0) then begin
+    y = average(map[i0:i1, *], 1)
+  endif else begin
+    y = average(map[0:i1, *], 1) + average(map[i0:*, *], 1)
+  endelse
+
+  rsun = (pb0r(date0))[2]
+  height = 60 * (lat + 90) / rsun
+  plot, height, y, $
+        color='000000'x, background='ffffff'x, $
+        xstyle=1, $
+        xtitle='Solar radii', $
+        ytitle='Difference in pB', $
+        title=string(angle, date_diff[itime].date_avg, $
+                     format='(%"Radial plot at %0.1f degrees at %s")')
+
+  im = tvrd(true=1)
+  set_plot, original_device
+  write_png, plot_file, im
+
   ; create a temporary file for the message
   mailfile = mk_temp_file(dir=get_temp_dir(), 'cme_mail.txt', /random)
 
@@ -74,7 +112,7 @@ pro kcor_cme_det_email, time, edge, operator=operator
             time + ' UT with the following parameters'
     printf, out
     format = '(F10.2)'
-    printf, out, 'Radial distance from Sun center: ' + ntrim(edge,format) + ' Rsun'
+    printf, out, 'Radial distance from Sun center: ' + ntrim(edge, format) + ' Rsun'
     printf, out, 'Position angle: ' + ntrim(angle) + ' degrees'
     printf, out, 'Initial speed: ' + ntrim(speed, format) + ' km/s'
   endelse
@@ -83,8 +121,8 @@ pro kcor_cme_det_email, time, edge, operator=operator
   subject = string(simple_date, time, $
                    format='(%"MLSO K-Cor possible CME on %s at %s UT")')
 
-  cmd = string(subject, addresses, mailfile, $
-               format='(%"mail -s \"%s\" %s < %s")')
+  cmd = string(subject, plot_file, addresses, mailfile, $
+               format='(%"mail -s \"%s\" -a %s %s < %s")')
   spawn, cmd, result, error_result, exit_status=status
   if (status eq 0L) then begin
     mg_log, 'alert sent to %s', addresses, name='kcor-cme', /info
