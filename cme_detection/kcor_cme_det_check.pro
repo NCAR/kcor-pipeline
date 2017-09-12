@@ -111,8 +111,11 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
           temp = {date_obs: date_obs, tai_obs: tai_obs, $
                   date_end: date_end, tai_end: tai_end, $
                   date_avg: date_avg, tai_avg: tai_avg}
-          if n_elements(date_diff) eq 0 then date_diff = temp else $
-              date_diff = [date_diff, temp]
+          if (n_elements(date_diff) eq 0) then begin
+            date_diff = temp
+          endif else begin
+            date_diff = [date_diff, temp]
+          endelse
 
           boost_array, speed_history, -1.0
           boost_array, angle_history, -1.0
@@ -180,6 +183,7 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
                   x = date_diff.tai_avg - tairef
                   rfit = poly(x, param)
                   if (keyword_set(widget)) then begin
+                    wset, plotwin
                     outplot, date_diff.date_avg, rfit
                   endif
                 endif
