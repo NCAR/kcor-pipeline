@@ -49,52 +49,44 @@
 ;
 pro kcor_cme_det_rdiff, hmap, maps, date_orig, outfile, hdiff, mdiff, $
                         store=store
-;
-;  If the output file already exists, then simply read it in.
-;
-if file_exist(outfile) then fxread, outfile, mdiff, hdiff else begin
-;
-;  Convert the times into TAI seconds.
-;
+
+  ; If the output file already exists, then simply read it in.
+  if (file_exist(outfile)) then fxread, outfile, mdiff, hdiff else begin
+    ; Convert the times into TAI seconds.
     tai_obs = date_orig.tai_obs
     tai_end = date_orig.tai_end
     tai0 = utc2tai(fxpar(hmap, 'date-obs'))
-;
-;  Find the images within 30 seconds of the target time, plus some margin.  Do
-;  the same for a background image five minutes earlier.
-;
+
+    ; Find the images within 30 seconds of the target time, plus some margin. Do
+    ; the same for a background image five minutes earlier.
     dtime = tai0 - tai_obs
     w1 = where((dtime ge 0) and (dtime le 33), count1)
     w2 = where((dtime ge 297) and (dtime le 333), count2)
-;
-;  If one of the other wasn't found, then simply return -1 for the
-;  difference map.
-;
-    if (count1 eq 0) or (count2 eq 0) then mdiff = -1 else begin
-;
-;  Otherwise, form the running difference image.
-;
-        if count1 eq 1 then map1 = maps[*,*,w1] else $
-          map1 = average(maps[*,*,w1], 3)
-        if count2 eq 1 then map2 = maps[*,*,w2] else $
-          map2 = average(maps[*,*,w2], 3)
-        mdiff = map1 - map2
-;
-;  Update the header information.
-;
-        hdiff = hmap
-        fxhmake, hdiff, mdiff
-        fxaddpar, hdiff, 'date-obs', min(date_orig[w1].date_obs)
-        fxaddpar, hdiff, 'date-end', max(date_orig[w1].date_end)
-        tai_avg = average((tai_obs[w1] + tai_end[w1]) / 2)
-        utc_avg = tai2utc(tai_avg, /ccsds)
-        fxaddpar, hdiff, 'date-avg', utc_avg, $
-                  'UTC observation average date/time'
-;
-;  Write the output file.
-;
-        if keyword_set(store) then fxwrite, outfile, hdiff, mdiff
+
+    ; If one of the other wasn't found, then simply return -1 for the
+    ; difference map.
+    if ((count1 eq 0) or (count2 eq 0)) then mdiff = -1 else begin
+      ; Otherwise, form the running difference image.
+      if (count1 eq 1) then map1 = maps[*, *, w1] else begin
+        map1 = average(maps[*,*,w1], 3)
+      endelse
+      if (count2 eq 1) then map2 = maps[*, *, w2] else begin
+        map2 = average(maps[*,*,w2], 3)
+      endelse
+      mdiff = map1 - map2
+
+      ; Update the header information.
+      hdiff = hmap
+      fxhmake, hdiff, mdiff
+      fxaddpar, hdiff, 'date-obs', min(date_orig[w1].date_obs)
+      fxaddpar, hdiff, 'date-end', max(date_orig[w1].date_end)
+      tai_avg = average((tai_obs[w1] + tai_end[w1]) / 2)
+      utc_avg = tai2utc(tai_avg, /ccsds)
+      fxaddpar, hdiff, 'date-avg', utc_avg, $
+                'UTC observation average date/time'
+
+      ; Write the output file.
+      if keyword_set(store) then fxwrite, outfile, hdiff, mdiff
     endelse
-endelse
-;
+  endelse
 end
