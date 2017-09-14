@@ -69,15 +69,15 @@ pro kcor_cme_det_thresh, mdiff, itheta
       found[ii] = 1
       i0 = ii
       ii = i0 - 1
-      if ii lt 0 then ii = ntheta - 1
-    endrep until y[ii] lt t1
+      if (ii lt 0) then ii = ntheta - 1
+    endrep until (y[ii] lt t1)
     ii = w0
     repeat begin
       found[ii] = 1
       i1 = ii
       ii = i1 + 1
-      if ii eq ntheta then ii = 0
-    endrep until y[ii] lt t1
+      if (ii eq ntheta) then ii = 0
+    endrep until (y[ii] lt t1)
 
     ; Apply the second threshold to grow the CME range.
     w = where(found eq 0)

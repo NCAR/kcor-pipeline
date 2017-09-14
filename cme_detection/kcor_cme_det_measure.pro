@@ -40,11 +40,12 @@
 ;
 ; Contact     :	WTHOMPSON
 ;-
-pro kcor_cme_det_measure, rsun, updated=updated
+pro kcor_cme_det_measure, rsun, updated=updated, alert=alert
   compile_opt strictarr
   common kcor_cme_detection
 
   updated = 0B
+  alert   = 0B
 
   ; find all the detections within the last five minutes
   itime = n_elements(leadingedge) - 1
@@ -97,7 +98,6 @@ pro kcor_cme_det_measure, rsun, updated=updated
 
       iavg = (i0 + i1) / 2.0
       if (iavg ge nlon) then iavg = iavg - nlon
-      alert = 0
       angle0 = interpol(lon, indgen(n_elements(lon)), iavg)
       if (n_elements(angle) eq 0) then alert = 1 else begin
         delta = abs(angle - angle0)

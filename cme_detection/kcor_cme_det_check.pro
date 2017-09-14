@@ -168,11 +168,14 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
                 endif
 
                 ; attempt to measure the CME parameters
-                kcor_cme_det_measure, rsun, updated=updated
+                kcor_cme_det_measure, rsun, updated=updated, alert=alert
                 if (keyword_set(updated)) then begin
                   angle_history[-1] = angle
                   speed_history[-1] = speed
                 endif
+;                if (alert) then begin
+;                  kcor_cme_det_threshplot, mdiff, itheta0
+;                endif
 
                 if (n_elements(param) gt 0) then begin
                   if (keyword_set(widget)) then begin
