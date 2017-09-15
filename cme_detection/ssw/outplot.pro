@@ -1,13 +1,13 @@
-PRO OUTPLOT,X0, Y, xst0, $
+PRO OUTPLOT,X0, Y, base_time, $
         channel=channel, $
         clip=clip, color=color, device=device, $
         linestyle=linestyle, noclip=noclip, data=data, $
         normal=normal, nsum=nsum, polar=polar, $
         psym=psym, symsize=symsize, $
-        t3d=t3d, thick=thick
+        t3d=t3d, thick=thick, max_value=max_value
 
-quiet_save = !quiet
-!quiet=1
+;quiet_save = !quiet
+;!quiet=1
 on_error,2
 ;+
 ; NAME:
@@ -19,21 +19,20 @@ on_error,2
 ; CATEGORY:
 ; CALLING SEQUENCE:
 ;	OUTPLOT,X,Y
-;	OUTPLOT,X,Y,'UTSTRING'
+;	OUTPLOT,X,Y, base_time
 ; INPUTS:
 ;       X -     X array to plot in seconds relative to base time.
 ;               (MDM) Structures allowed
 ;       Y -     Y array to plot.
-;       xst -   Optional. The reference time to use for converting a structure
-;               into a seconds array. IMPORTANT - this should not be
-;		used since it will use the start time that was defined in the
-;		plot command.  It is necessary if the X input is an in seconds
-;		already and the reference time is no the same as that used by
-;		the UTPLOT base time.
-; OPTIONAL INPUT PARAMETERS:
-;	UTSTRING = ASCII string containing base time of data to be be overlaid.
-;	If present, it is used as base time for this data, but UTBASE variable
-;	in common is not changed.  If not present, last base time set is used.
+;	base_time - reference time, formerly called...
+;       	xst or utstring.  It's purpose is to fully define the time
+;		in the input parameter, x0.  The start of the plot is fully
+;		defined by utbase and xst, both in utcommon and the two are identical
+;		after a call to Utplot.  When x0 is passed as a double precision
+;		vector, it is assumed to be relative to utbase.  Any other form
+;		for the time should be complete.  
+;		This parameter should only be used for seconds arrays relative to
+;		a base other than Utbase, the base just used for plotting.
 ; OUTPUTS:
 ;	None.
 ; OPTIONAL OUTPUT PARAMETERS:
@@ -59,8 +58,12 @@ on_error,2
 ;	28-Apr-92 (MDM) - "SYMSIZE" was not being implemented
 ;	23-Oct-92 (MDM) - IDL Ver 2.4.0 does not accept /DEV, /NORM, or /DATA
 ;			  for the OPLOT command any more
+;	5-jan-94 ras    - incorporated t_utplot for preparation of x array
+;	Version 7, richard.schwartz@gsfc.nasa.gov, protect against non-scalar values
+;	of XST coming out of t_utplot.  16-mar-1998.
 ;-
-COMMON UTCOMMON, UTBASE, UTSTART, UTEND, xst_plot
+@utcommon
+;COMMON UTCOMMON, UTBASE, UTSTART, UTEND, xst
 ;
 ;overplot on UTPLOT
 ;;utbase=getutbase(0)
@@ -70,20 +73,40 @@ COMMON UTCOMMON, UTBASE, UTSTART, UTEND, xst_plot
 ;;oplot,x+utbasenew-utbase,y
 
 ;--------------------- MDM added
-if (n_elements(xst0) ne 0) then begin
-    ex2int, anytim2ex(xst0), xst_msod, xst_ds79
-    xst = [xst_msod, xst_ds79]
-    off = int2secarr(xst, xst_plot)
-    off = off(0)	;convert to scalar
-end else begin
-    xst = xst_plot	;use the value that was used for UTPLOT
-    off = 0
-end
+;if (n_elements(xst0) ne 0) then begin
+;    ex2int, anytim2ex(xst0), xst_msod, xst_ds79
+;    xst = [xst_msod, xst_ds79]
+;    off = int2secarr(xst, xst_plot)
+;    off = off(0)        ;convert to scalar
+;end else begin
+;    xst = xst_plot      ;use the value that was used for UTPLOT
+;    off = 0
+;end
+
+;siz = size(x0)
+;typ = siz( siz(0)+1 )
+;if (typ eq 8) then x = int2secarr(x0, xst) else x = x0 + off
+;--------------------- RAS 2-nov-93
+;ref_time = anytim( xst, out='sec')  ;the plot is relative to this time, in secs
+;checkvar, base_time, utbase ;Utbase must have been defined on the call to Utplot!
+;typ = datatype( x0 )
+;if typ eq 'DOU'  or typ eq 'FLO' then $ 
+;	x = anytim( x0, out='sec') + anytim( base_time, out='sec') - ref_time $
+;else $
+;	x = anytim( x0, out='sec') - ref_time
 ;
-siz = size(x0)
-typ = siz( siz(0)+1 )
-if (typ eq 8) then x = int2secarr(x0, xst) else x = x0 + off
+; 	commonality on time axis using t_utplot
+; 	ras, 5-jan-94
 ;
+	;save some values which could be changed inside t_utplot, utbase, and xst
+	utbase_old=utbase
+	xst_old   =xst
+	t_utplot, x0, xplot=x, utbase=utbase, xstart=xst, base_time=base_time
+	x = x + (anytim(xst,/sec))(0) - (anytim(xst_old,/sec))(0)
+	utbase = utbase_old
+	xst    = xst_old
+;
+;    
 psave = !p
         !p.channel=fcheck(channel,!p.channel)
         !p.clip=fcheck(clip,!p.clip)
@@ -98,12 +121,14 @@ psave = !p
 ;;oplot,x,y, data=fcheck(data), device=fcheck(device), $
 ;;        normal=fcheck(normal), $
 ;;        polar=fcheck(polar), symsize=fcheck(symsize,1)
-oplot,x,y, polar=fcheck(polar), symsize=fcheck(symsize,1)	;MDM patch 23-Oct-92 because of change to IDL
-
+if n_elements(max_value) eq 0 then max_value=max(y)+1
+oplot,x,y, polar=fcheck(polar), symsize=fcheck(symsize,1), $	;MDM patch 23-Oct-92 because of change to IDL
+	max_value=max_value
 !p = psave
 ;
 ;.........................................................................
 
-!quiet = quiet_save
+;!quiet = quiet_save
 return
 end
+
