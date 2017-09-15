@@ -168,7 +168,7 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
                 endif
 
                 ; attempt to measure the CME parameters
-                kcor_cme_det_measure, rsun, updated=updated, alert=alert
+                kcor_cme_det_measure, rsun, updated=updated, alert=alert, ysig=ysig
                 if (keyword_set(updated)) then begin
                   angle_history[-1] = angle
                   speed_history[-1] = speed
@@ -190,7 +190,35 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
                   if (keyword_set(widget)) then begin
                     wset, plotwin
                     outplot, date_diff.date_avg, rfit
-                  endif
+                  endif else begin
+                    if (0) then begin
+                      mg_psbegin, filename='20170327.alertfit.ps', $
+                                  xsize=6, ysize=3, /inches, bits_per_pixel=8, /color
+
+                      device, get_decomposed=odec
+                      device, decomposed=1
+
+                      utplot, date_diff[w].date_avg, rad, $
+                              psym=mg_usersym(/circle, /fill), symsize=0.5, $
+                              xstyle=3, /ynozero, $
+                              ytitle='Solar radii', $
+                              title='Fit of leading edge', $
+                              color='000000'x, background='ffffff'x, font=1
+                      outplot, date_diff.date_avg, rfit, $
+                               color='a0a0a0'x, $
+                               linestyle=2, thick=2.0
+
+                      xyouts, 0.75, 0.45, string(ysig, sunsymbol(font=1), $
+                                                 format='(%"Std dev: %0.3f R%s")'), $
+                              font=1, /normal
+                      xyouts, 0.75, 0.4, string(speed, format='(%"Speed: %0.2f km/s")'), $
+                              font=1, /normal
+
+                      device, decomposed=odec
+                      mg_psend
+                      stop
+                    endif
+                  endelse
                 endif
               endif
             endif    ; valid LEAD0 

@@ -40,7 +40,7 @@
 ;
 ; Contact     :	WTHOMPSON
 ;-
-pro kcor_cme_det_measure, rsun, updated=updated, alert=alert
+pro kcor_cme_det_measure, rsun, updated=updated, alert=alert, ysig=ysig
   compile_opt strictarr
   common kcor_cme_detection
 
