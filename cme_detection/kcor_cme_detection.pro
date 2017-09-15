@@ -136,7 +136,7 @@ pro kcor_cme_detection, date, store=k_store, timerange=k_timerange, $
   ; define the top widget base
   wtopbase = widget_base(title='K-Cor CME Detection', $
                          group_leader=group_leader, $
-                         /row, tlb_xframe_attr=1, uvalue='TIMER', $
+                         /row, tlb_frame_attr=1, uvalue='TIMER', $
                          /tlb_kill_request_events)
 
   ; define a base for the maps
