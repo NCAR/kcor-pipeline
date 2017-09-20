@@ -101,7 +101,7 @@ pro kcor_cme_det_movie
   endif
   file_link, moviefile + '.gif', latest_gif_filename
 
-  mg_log, 'wrote file %s.gif', moviefile, name='kcor-cme', /info
+  mg_log, 'wrote file %s.gif', moviefile, name='kcor/cme', /info
 
   ; create an MPEG-4 version of the movie
   oVid = IDLffVideoWrite(moviefile + '.mp4')
@@ -118,5 +118,5 @@ pro kcor_cme_det_movie
   endif
   file_link, moviefile + '.mp4', latest_mp4_filename
 
-  mg_log, 'wrote file %s.mp4', moviefile, name='kcor-cme', /info
+  mg_log, 'wrote file %s.mp4', moviefile, name='kcor/cme', /info
 end

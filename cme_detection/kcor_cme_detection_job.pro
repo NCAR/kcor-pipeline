@@ -60,10 +60,8 @@ pro kcor_cme_detection_job, date, timerange=_timerange, config_filename=config_f
   endif
 
   if (~file_test(run.log_dir, /directory)) then file_mkdir, run.log_dir
-  mg_log, logger=logger, name='kcor-cme'
-  log_format = '%(time)s %(levelshortname)s: %(message)s'
-  logger->setProperty, format=log_format, $
-                       filename=filepath(string(simple_date, $
+  mg_log, logger=logger, name='kcor/cme'
+  logger->setProperty, filename=filepath(string(simple_date, $
                                                 format='(%"%s.cme.log")'), $
                                          root=run.log_dir)
 
@@ -78,6 +76,8 @@ pro kcor_cme_detection_job, date, timerange=_timerange, config_filename=config_f
   if (file_exist(datedir)) then begin
     cstop = 0
 
+    mg_log, 'starting CME detection for %s', simple_date, name='kcor/cme', /info
+
     ; TODO: should check for time of day, stop after a certain time of day
     ; TODO: but when running with a date set, stop after done with files
     while (1B) do begin
@@ -88,12 +88,12 @@ pro kcor_cme_detection_job, date, timerange=_timerange, config_filename=config_f
           ref_time = tai2utc(tairef, /time, /truncate, /ccsds)
           kcor_cme_det_report, ref_time
           cme_occurring = 0B
-          mg_log, 'CME ended at %s', ref_time, name='kcor-cme', /info
+          mg_log, 'CME ended at %s', ref_time, name='kcor/cme', /info
         endif
         break
       endif
     endwhile
   endif else begin
-    mg_log, 'directory %s does not exist', datedir, name='kcor-cme', /warn
+    mg_log, 'directory %s does not exist', datedir, name='kcor/cme', /warn
   endelse
 end

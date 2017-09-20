@@ -21,7 +21,7 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
     if (count eq 0) then begin
       files = file_search(concat_dir(datedir,'*kcor_l1.fts.gz'), count=count)
       if (count eq 0) then begin
-        mg_log, 'no FITS files found in %s', datedir, name='kcor-cme', /info
+        mg_log, 'no FITS files found in %s', datedir, name='kcor/cme', /info
         goto, stop_point
       endif
     endif
@@ -34,7 +34,7 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
       tt = anytim2utc(strmid(name,0,15),/ccsds)
       w = where((tt ge t0) and (tt le t1), count)
       if (count eq 0) then begin
-        mg_log, 'no FITS files found in time range', name='kcor-cme', /info
+        mg_log, 'no FITS files found in time range', name='kcor/cme', /info
         goto, stop_point
       endif
       files = files[w]
@@ -46,7 +46,7 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
       mtime = (file_info(files)).mtime
       age = systime(1) - max(mtime)
       if (age ge 1200) then begin   ; 600 sec originally
-        mg_log, 'no more files', name='kcor-cme', /info
+        mg_log, 'no more files', name='kcor/cme', /info
         goto, stop_point
       endif
       if (keyword_set(widget)) then begin
@@ -58,7 +58,7 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
       if (keyword_set(widget)) then begin
         widget_control, wfile, set_value=name + ext
       endif else begin
-        mg_log, 'processing %s', name + ext, name='kcor-cme', /debug
+        mg_log, '%s', name + ext, name='kcor/cme', /debug
       endelse
       image = readfits(files[ifile], header, /silent)
       datatype = fxpar(header, 'datatype', count=ndatatype)
@@ -183,7 +183,7 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
                     widget_control, wspeed, set_value=string(speed, format='(%"%0.2f")')
                   endif else begin
                     mg_log, '%d degrees at %0.2f km/s', angle, speed, $
-                            name='kcor-cme', /debug
+                            name='kcor/cme', /debug
                   endelse
                   x = date_diff.tai_avg - tairef
                   rfit = poly(x, param)
@@ -233,7 +233,7 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
           ref_time = tai2utc(tairef, /time, /truncate, /ccsds)
           kcor_cme_det_report, ref_time
           cme_occurring = 0B
-          mg_log, 'CME ended', name='kcor-cme', /info
+          mg_log, 'CME ended', name='kcor/cme', /info
         endif
       endif
 

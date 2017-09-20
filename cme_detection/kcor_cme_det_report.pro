@@ -19,7 +19,7 @@ pro kcor_cme_det_report, time, widget=widget
     addresses = run.cme_email
     if (addresses eq '') then begin
       mg_log, 'no cme.email specified, not sending email', $
-              name='kcor-cme', /warn
+              name='kcor/cme', /warn
       return
     endif
 
@@ -110,10 +110,10 @@ pro kcor_cme_det_report, time, widget=widget
                  format='(%"mail -s \"%s\" -a %s %s < %s")')
     spawn, cmd, result, error_result, exit_status=status
     if (status eq 0L) then begin
-      mg_log, 'report sent to %s', addresses, name='kcor-cme', /info
+      mg_log, 'report sent to %s', addresses, name='kcor/cme', /info
     endif else begin
-      mg_log, 'problem with mail command: %s', cmd, name='kcor-cme', /error
-      mg_log, strjoin(error_result, ' '), name='kcor-cme', /error
+      mg_log, 'problem with mail command: %s', cmd, name='kcor/cme', /error
+      mg_log, strjoin(error_result, ' '), name='kcor/cme', /error
     endelse
 
     ; delete the temporary files

@@ -65,10 +65,10 @@ pro kcor_cme_det_event, event
           widget_control, wstop, sensitive=1
           widget_control, wexit, sensitive=0
           widget_control, wfile, set_value=''
-          mg_log, 'started', name='kcor-cme', /info
+          mg_log, 'started', name='kcor/cme', /info
           widget_control, wtopbase, timer=0.1
         endif else begin
-          mg_log, 'directory %s does not exist', datedir, name='kcor-cme', /warn
+          mg_log, 'directory %s does not exist', datedir, name='kcor/cme', /warn
         endelse
       end
 
@@ -84,10 +84,10 @@ stop_point:
           ref_time = tai2utc(tairef, /time, /truncate, /ccsds)
           kcor_cme_det_report, ref_time, /widget
           cme_occurring = 0B
-          mg_log, 'CME ended at %s', ref_time, name='kcor-cme', /info
+          mg_log, 'CME ended at %s', ref_time, name='kcor/cme', /info
         endif
 
-        mg_log, 'stopped', name='kcor-cme', /info
+        mg_log, 'stopped', name='kcor/cme', /info
       end
 
     ; Operator-generated alert.

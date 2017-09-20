@@ -65,7 +65,7 @@ pro kcor_cme_det_alert, itime, rsun, operator=operator
               ', initial speed ' + ntrim(speed,format) + ' km/s'
   endelse
 
-  mg_log, message, name='kcor-cme', /info
+  mg_log, message, name='kcor/cme', /info
 
   kcor_cme_det_movie
   kcor_cme_det_email, time, edge, operator=operator

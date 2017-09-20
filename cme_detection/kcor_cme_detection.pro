@@ -165,7 +165,7 @@ pro kcor_cme_detection, date, store=k_store, timerange=k_timerange, $
   wmessage = widget_text(woutbase, xsize=100, ysize=5, /scroll)
   wplot = widget_draw(woutbase, xsize=800, ysize=360, retain=2)
 
-  mg_log, logger=widget_logger, name='kcor-cme'
+  mg_log, logger=widget_logger, name='kcor/cme'
   log_format = '%(time)s %(levelshortname)s: %(message)s'
   widget_logger->setProperty, widget_identifier=wmessage, format=log_format
 
