@@ -32,7 +32,7 @@ def catalog_depot(depot_dir):
     files = os.listdir(depot_dir)
     l0_re = re.compile(KCOR_L0_RE)
     log_re = re.compile(KCOR_LOG_RE)
-    data_files = [f for f in files if l0_re.match(f)]
+    data_files = [f for f in sorted(files) if l0_re.match(f)]
     dates = [datetime.datetime(*decompose_filename(f)) for f in data_files]
     logs = [f for f in files if log_re.match(f)]
     return [{'filename': f, 'date': d} for f, d in zip(data_files, dates)], logs
