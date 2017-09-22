@@ -83,6 +83,10 @@ pro kcor_sci_insert, date, files, $
     cy = sxpar(header, 'CRPIX2') - 1.0   ; IDL convention
 
     date_obs = sxpar(header, 'DATE-OBS', count=qdate_obs)
+
+    ; normalize odd values for date/times
+    date_obs = kcor_normalize_datetime(date_obs)
+
     year   = long(strmid(date_obs,  0, 4))
     month  = long(strmid(date_obs,  5, 2))
     day    = long(strmid(date_obs,  8, 2))

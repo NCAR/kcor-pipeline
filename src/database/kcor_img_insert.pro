@@ -107,6 +107,12 @@ pro kcor_img_insert, date, fits_list, $
     hdu   = headfits(fts_file, /silent)   ; read FITS header
     date_obs   = sxpar(hdu, 'DATE-OBS', count=qdate_obs)
     date_end   = sxpar(hdu, 'DATE-END', count=qdate_end)
+
+    ; normalize odd values for date/times, particularly "60" as minute value in
+    ; DATE-END
+    date_obs = kcor_normalize_datetime(date_obs)
+    date_end = kcor_normalize_datetime(date_end)
+
     exptime    = sxpar(hdu, 'EXPTIME',  count=qexptime)
     numsum     = sxpar(hdu, 'NUMSUM',   count=qnumsum)
     quality    = sxpar(hdu, 'QUALITY',  count=qquality)

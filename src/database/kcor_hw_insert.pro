@@ -103,6 +103,10 @@ pro kcor_hw_insert, date, fits_list, $
     hdu   = headfits(fts_file, /silent)
 
     date_obs	= sxpar(hdu, 'DATE-OBS', count=qdate_obs)
+
+    ; normalize odd values for date/times
+    date_obs = kcor_normalize_datetime(date_obs)
+
     diffsrid	= sxpar(hdu, 'DIFFSRID', count=qdiffsrid)
     rcamid		= sxpar(hdu, 'RCAMID',   count=qrcamid)
     tcamid		= sxpar(hdu, 'TCAMID',   count=qtcamid)

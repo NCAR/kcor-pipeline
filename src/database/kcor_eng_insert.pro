@@ -110,7 +110,10 @@ pro kcor_eng_insert, date, fits_list, $
     hdu = headfits(fts_file, /silent)
 
     date_obs     = sxpar(hdu, 'DATE-OBS', count=qdate_obs)
-		
+
+    ; normalize odd values for date/times
+    date_obs = kcor_normalize_datetime(date_obs)
+
     rcamfocs     = sxpar(hdu, 'RCAMFOCS', count=qrcamfocs)
     rcamfocs_str = strtrim(rcamfocs, 2)
     if (rcamfocs_str eq 'NaN') then rcamfocs = -99.99

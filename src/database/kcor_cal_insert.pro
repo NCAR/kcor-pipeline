@@ -96,7 +96,12 @@ pro kcor_cal_insert, date, fits_list, $
 	
     date_obs    = sxpar(hdu, 'DATE-OBS', count=qdate_obs)
     date_end    = sxpar(hdu, 'DATE-END', count=qdate_end)
-	
+
+    ; normalize odd values for date/times, particularly "60" as minute value in
+    ; DATE-END
+    date_obs = kcor_normalize_datetime(date_obs)
+    date_end = kcor_normalize_datetime(date_end)
+
     level       = strtrim(sxpar(hdu, 'LEVEL', count=qlevel), 2)
     ; TODO: Older NRGF headers have 'NRGF' appended to level string, but newer headers
     ;   will have another keyword added to header for producttype

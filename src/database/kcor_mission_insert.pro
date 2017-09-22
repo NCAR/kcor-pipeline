@@ -142,55 +142,58 @@ pro kcor_mission_insert, date, run=run
     wavelnth   = sxpar(hdu, 'WAVELNTH', count=qwavelnth)
     wavefwhm   = sxpar(hdu, 'WAVEFWHM', count=qwavefwhm)
 
-  filetype   = 'fits'
-  resolution = cdelt1                   ; arcsec / pixel
-  fov_min    = 1018.9 / 960.0           ; largest occulter size.
-  fov_max    = (511 * cdelt1) / 960.0   ; outer field-of-view.
+    ; normalize odd values for date/times
+    date_obs = kcor_normalize_datetime(date_obs)
 
-  ; Construct variables for database table fields.
+    filetype   = 'fits'
+    resolution = cdelt1                   ; arcsec / pixel
+    fov_min    = 1018.9 / 960.0           ; largest occulter size.
+    fov_max    = (511 * cdelt1) / 960.0   ; outer field-of-view.
 
-  year  = strmid(date_obs, 0, 4)        ; yyyy
-  month = strmid(date_obs, 5, 2)        ; mm
-  day   = strmid(date_obs, 8, 2)        ; dd
+    ; Construct variables for database table fields.
 
-  cal_year  = strmid(calfile, 0, 4)     ; yyyy
-  cal_month = strmid(calfile, 4, 2)     ; mm
-  cal_day   = strmid(calfile, 6, 2)     ; dd
+    year  = strmid(date_obs, 0, 4)        ; yyyy
+    month = strmid(date_obs, 5, 2)        ; mm
+    day   = strmid(date_obs, 8, 2)        ; dd
 
-   ; Determine DOY.
+    cal_year  = strmid(calfile, 0, 4)     ; yyyy
+    cal_month = strmid(calfile, 4, 2)     ; mm
+    cal_day   = strmid(calfile, 6, 2)     ; dd
 
-  mday      = [0,31,59,90,120,151,181,212,243,273,304,334]
-  mday_leap = [0,31,60,91,121,152,182,213,244,274,305,335] ; leap year 
+    ; Determine DOY.
 
-  if ((fix (year) mod 4) eq 0) then begin
-    doy = mday_leap[fix(month) - 1] + fix(day)
-  endif else begin
-    doy = mday[fix(month) - 1] + fix(day)
-  endelse
-  doy_str = string(doy, format='(%"%3d")')
+    mday      = [0,31,59,90,120,151,181,212,243,273,304,334]
+    mday_leap = [0,31,60,91,121,152,182,213,244,274,305,335] ; leap year 
 
-  date_dash    = strmid(date_obs, 0, 10)        ; yyyy-mm-dd
-  time_obs     = strmid(date_obs, 11, 8)        ; hh:mm:ss
-  date_mission = date_dash + ' ' + time_obs     ; yyyy-mm-dd hh:mm:ss
+    if ((fix (year) mod 4) eq 0) then begin
+      doy = mday_leap[fix(month) - 1] + fix(day)
+    endif else begin
+      doy = mday[fix(month) - 1] + fix(day)
+    endelse
+    doy_str = string(doy, format='(%"%3d")')
 
-  date_cal  = cal_year + '-' + cal_month + '-' + cal_day
-  fits_file = strmid(fts_file, 0, 27)
+    date_dash    = strmid(date_obs, 0, 10)        ; yyyy-mm-dd
+    time_obs     = strmid(date_obs, 11, 8)        ; hh:mm:ss
+    date_mission = date_dash + ' ' + time_obs     ; yyyy-mm-dd hh:mm:ss
 
-;--- DB insert command.
+    date_cal  = cal_year + '-' + cal_month + '-' + cal_day
+    fits_file = strmid(fts_file, 0, 27)
 
-  db->execute, 'INSERT INTO kcor_mission (date, mlso_url, doi_url, telescope, instrument, location, origin, object, wavelength, wavefwhm, resolution, fov_min, fov_max, bitpix, xdim, ydim) VALUES (''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, %f, %f, %f, %d, %d, %d) ', $
-               date_mission, $
-               run->epoch('mlso_url'), $
-               run->epoch('doi_url'), telescop, instrume, location, $
-               origin, object, wavelnth, wavefwhm, resolution, $
-               fov_min, fov_max, bitpix, naxis1, naxis2, $
-               status=status, error_message=error_message, sql_statement=sql_cmd
+    ;--- DB insert command.
+
+    db->execute, 'INSERT INTO kcor_mission (date, mlso_url, doi_url, telescope, instrument, location, origin, object, wavelength, wavefwhm, resolution, fov_min, fov_max, bitpix, xdim, ydim) VALUES (''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, %f, %f, %f, %d, %d, %d) ', $
+                 date_mission, $
+                 run->epoch('mlso_url'), $
+                 run->epoch('doi_url'), telescop, instrume, location, $
+                 origin, object, wavelnth, wavefwhm, resolution, $
+                 fov_min, fov_max, bitpix, naxis1, naxis2, $
+                 status=status, error_message=error_message, sql_statement=sql_cmd
 
     mg_log, '%s: status: %d, error message: %s', status, error_message, $
             name='kcor', /debug
     mg_log, 'sql_cmd: %s', sql_cmd, name='kcor', /debug
-    if (i EQ 0) then  goto, done
-  end
+    if (i eq 0) then  goto, done
+  endwhile
 
   done:
   obj_destroy, db

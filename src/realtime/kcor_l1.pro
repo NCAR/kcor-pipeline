@@ -1084,10 +1084,17 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     if (struct.extend eq 1) then val_extend = 'T'
     fxaddpar, newheader, 'EXTEND', 'F', ' No FITS extensions'
 
+
+    ; normalize odd values for date/times, particularly "60" as minute value in
+    ; DATE-END
+    struct.date_d$obs = kcor_normalize_datetime(struct.date_d$obs)
+    struct.date_d$end = kcor_normalize_datetime(struct.date_d$end)
+
     ; observation information
     fxaddpar, newheader, 'DATE-OBS', struct.date_d$obs, ' UTC observation start'
     ; fxaddpar, newheader, 'DATE-BEG', struct.date_d$obs, ' UTC observation start'
     fxaddpar, newheader, 'DATE-END', struct.date_d$end, ' UTC observation end'
+
     fxaddpar, newheader, 'TIMESYS',  'UTC', $
                          ' date/time system: Coordinated Universal Time'
     fxaddpar, newheader, 'DATE_HST', date_hst, ' MLSO observation date [HST]'

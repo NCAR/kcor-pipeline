@@ -37,127 +37,122 @@
 ;                 determine whether a new entry is needed.
 ;-
 pro kcor_sw_insert, date, fits_list, run=run
-compile_opt strictarr
-on_error, 2
+  compile_opt strictarr
+  on_error, 2
 
-np = n_params() 
-if (np ne 2) then begin
-	mg_log, 'missing date or filelist parameter', name='kcor', /error
-	return
-end
+  np = n_params() 
+  if (np ne 2) then begin
+    mg_log, 'missing date or filelist parameter', name='kcor', /error
+    return
+  endif
 
-;--------------------------
-; Connect to MLSO database.
-;--------------------------
+  ;--------------------------
+  ; Connect to MLSO database.
+  ;--------------------------
 
-; Note: The connect procedure accesses DB connection information in the file
-;       .mysqldb. The "config_section" parameter specifies
-;       which group of data to use.
+  ; Note: The connect procedure accesses DB connection information in the file
+  ;       .mysqldb. The "config_section" parameter specifies
+  ;       which group of data to use.
 
-db = mgdbmysql()
-db->connect, config_filename=run.database_config_filename, $
-		   config_section=run.database_config_section
+  db = mgdbmysql()
+  db->connect, config_filename=run.database_config_filename, $
+               config_section=run.database_config_section
 
-db->getProperty, host_name=host
-mg_log, 'connected to %s', host, name='kcor', /info
+  db->getProperty, host_name=host
+  mg_log, 'connected to %s', host, name='kcor', /info
 
-db->setProperty, database='MLSO'
+  db->setProperty, database='MLSO'
 
+  ;-----------------------
+  ; Directory definitions.
+  ;-----------------------
 
-;-----------------------
-; Directory definitions.
-;-----------------------
+  year    = strmid(date, 0, 4)	; yyyy
+  month   = strmid(date, 4, 2)	; mm
+  day     = strmid(date, 6, 2)	; dd
 
-year    = strmid(date, 0, 4)	; yyyy
-month   = strmid(date, 4, 2)	; mm
-day     = strmid(date, 6, 2)	; dd
+  ;TODO: Change to proper processing directory
+  fts_dir = filepath('', subdir=[year, month, day], root=run.archive_basedir)
 
-;TODO: Change to proper processing directory
-fts_dir = filepath('', subdir=[year, month, day], root=run.archive_basedir)
+  ; Move to fts_dir
+  cd, current=start_dir
+  cd, fts_dir
 
-;----------------
-; Move to fts_dir.
-;----------------
+  ; Loop through fits list
+  nfiles = n_elements(fits_list)
 
-cd, current=start_dir
-cd, fts_dir
+  if (nfiles eq 0) then begin
+    mg_log, 'no images in list file', name='kcor', /info
+    goto, done
+  endif
 
-;------------------------------------------------
-; Loop through fits list
-;------------------------------------------------
-nfiles = n_elements(fits_list)
+  i = -1
+  fts_file = 'img.fts'
+  while (++i lt nfiles) do begin
+    fts_file = fits_list[i]
+    finfo = file_info(fts_file)          ; Get file information.
 
-if (nfiles eq 0) then begin
-	mg_log, 'no images in list file', name='kcor', /info
-	goto, done
-endif
+    ; extract desired items from header
+    hdu   = headfits(fts_file, /silent)  ; Read FITS header.  
 
-i = -1
-fts_file = 'img.fts'
-while (++i lt nfiles) do begin
-	fts_file = fits_list[i]
-	finfo = file_info(fts_file)          ; Get file information.
+    date			= sxpar(hdu, 'DATE-OBS', count=qdate_obs)
 
-	; Extract desired items from header.
+    ; normalize odd values for date/times
+    date_obs = kcor_normalize_datetime(date_obs)
+
+    dmodswid		= sxpar(hdu, 'DMODSWID', count=qdmodswid)
+    distort			= sxpar(hdu, 'DISTORT', count=qdistort)
+    sw_version		= sxpar(hdu, 'DPSWID', count=ql1swid) ;TODO: Replace with new header var for processing sw version?
+    bunit			= sxpar(hdu, 'BUNIT', count=qbunit)
+    bzero			= sxpar(hdu, 'BZERO', count=qbzero)
+    bscale			= sxpar(hdu, 'BSCALE', count=qbscale)
+    labviewid		= sxpar(hdu, 'OBSSWID', count=qlabviewid) ;TODO: Replace with new header var for labview sw
+    socketcamid		= sxpar(hdu, 'OBSSWID', count=qsocketcamid) ;TODO: Replace with new header var for socketcam sw
 	
-	hdu   = headfits(fts_file, /silent)  ; Read FITS header.  
+    ;TODO: get these from pipline, delete test lines:	
+    sw_revision		= '23e45b23'   ; for testing
+    sky_pol_factor	= 99.99        ; for testing
+    sky_bias		= 99.99        ; for testing
 
-	date			= sxpar(hdu, 'DATE-OBS', count=qdate_obs)
-	dmodswid		= sxpar(hdu, 'DMODSWID', count=qdmodswid)
-	distort			= sxpar(hdu, 'DISTORT', count=qdistort)
-	sw_version		= sxpar(hdu, 'DPSWID', count=ql1swid) ;TODO: Replace with new header var for processing sw version?
-	bunit			= sxpar(hdu, 'BUNIT', count=qbunit)
-	bzero			= sxpar(hdu, 'BZERO', count=qbzero)
-	bscale			= sxpar(hdu, 'BSCALE', count=qbscale)
-	labviewid		= sxpar(hdu, 'OBSSWID', count=qlabviewid) ;TODO: Replace with new header var for labview sw
-	socketcamid		= sxpar(hdu, 'OBSSWID', count=qsocketcamid) ;TODO: Replace with new header var for socketcam sw
+    if (qbunit eq 0) then begin
+      bunit = 'quasi-pB'
+    endif
+    if (qbscale eq 0) then begin
+      bscale = 0.001
+    endif	
+
+    ; TODO: Test for changes from previous db entry
+    ; TODO: From 20170315 meeting: We will wait for older data to be completely reprocessed to avoid problems caused
+    ;    by trying to update this table out of order.
 	
-;TODO: get these from pipline, delete test lines:	
-sw_revision		= '23e45b23'   ; for testing
-sky_pol_factor	= 99.99        ; for testing
-sky_bias		= 99.99        ; for testing
-
-	if (qbunit eq 0) then begin
-	  bunit = 'quasi-pB'
-	endif
-	if (qbscale eq 0) then begin
-	  bscale = 0.001
-	endif	
-
-	; TODO: Test for changes from previous db entry
-	; TODO: From 20170315 meeting: We will wait for older data to be completely reprocessed to avoid problems caused
-	;    by trying to update this table out of order.
+    ;---- Check values against previous db entry (assuming processing in temporal order)
+    change = 0
 	
-	;---- Check values against previous db entry (assuming processing in temporal order)
-	change = 0
+    ; Set change to 1 if difference from db entry
+    change = 1  ;for testing
 	
-	; Set change to 1 if difference from db entry
-	change = 1  ;for testing
-	
-	if (change eq 1) then begin
+    if (change eq 1) then begin
+      ;--- DB insert command.
 
-		;--- DB insert command.
+      db->execute, 'INSERT INTO kcor_sw (date, dmodswid, distort, sw_version, bunit, bzero, bscale, labviewid, socketcamid, sw_revision, sky_pol_factor, sky_bias) VALUES (''%s'', ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, ''%s'', ''%s'', ''%s'', %f, %f) ', $
+                   date, dmodswid, distort, sw_version, bunit, bzero, bscale, labviewid, socketcamid, sw_revision, sky_pol_factor, sky_bias, $
+                   status=status, error_message=error_message, sql_statement=sql_cmd
 
-		db->execute, 'INSERT INTO kcor_sw (date, dmodswid, distort, sw_version, bunit, bzero, bscale, labviewid, socketcamid, sw_revision, sky_pol_factor, sky_bias) VALUES (''%s'', ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, ''%s'', ''%s'', ''%s'', %f, %f) ', $
-				   date, dmodswid, distort, sw_version, bunit, bzero, bscale, labviewid, socketcamid, sw_revision, sky_pol_factor, sky_bias, $
-				   status=status, error_message=error_message, sql_statement=sql_cmd
+      mg_log, '%d, error message: %s', status, error_message, $
+              name='kcor', /debug
+      mg_log, 'sql_cmd: %s', sql_cmd, name='kcor', /debug
 
-		mg_log, '%d, error message: %s', status, error_message, $
-					name='kcor', /debug
-		mg_log, 'sql_cmd: %s', sql_cmd, name='kcor', /debug
-		
-		;TODO: Write sw_id (auto-incremented in kcor_sw table) into kcor_eng table for every entry processed with these 
-		;  software parameters. Actually, in practice, we will be writing previous sw_id into kcor_eng for every entry 
-		;  processed with the software parameters between the newly changed kcor_sw entry and the entry before the previous
-		;  one.  Hammer out details of this with Mike G and Joan.
+      ;TODO: Write sw_id (auto-incremented in kcor_sw table) into kcor_eng table for every entry processed with these 
+      ;  software parameters. Actually, in practice, we will be writing previous sw_id into kcor_eng for every entry 
+      ;  processed with the software parameters between the newly changed kcor_sw entry and the entry before the previous
+      ;  one.  Hammer out details of this with Mike G and Joan.
+    endif
+  endwhile
 
-	endif
-endwhile
+  done:
+  obj_destroy, db
 
-done:
-obj_destroy, db
-
-mg_log, '*** end of kcor_sw_insert ***', name='kcor', /info
+  mg_log, '*** end of kcor_sw_insert ***', name='kcor', /info
 end
 
 ; main-level example program

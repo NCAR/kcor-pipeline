@@ -103,6 +103,9 @@ pro mlso_sgs_insert, date, fits_list, $
 
     date_obs  = sxpar(hdu, 'DATE-OBS', count=qdate_obs)
 
+    ; normalize odd values for date/times
+    date_obs = kcor_normalize_datetime(date_obs)
+
     sgsdimv_str  = kcor_getsgs(hdu, 'SGSDIMV')
     sgsdims_str  = kcor_getsgs(hdu, 'SGSDIMS')
     sgssumv_str  = kcor_getsgs(hdu, 'SGSSUMV')
