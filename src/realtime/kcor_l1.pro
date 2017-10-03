@@ -378,6 +378,15 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     endif
 
     fnum += 1
+
+    ; skip first good image of the day
+    if (~kcor_state(/first_image, run=run)) then begin
+      mg_log, 'skipping first good science image %d/%d: %s', $
+              fnum, nfiles, file_basename(l0_file), $
+              name='kcor/rt', /info
+      continue
+    endif
+
     lclock = tic('Loop_' + strtrim(fnum, 2))
 
     ; extract information from calibration file
