@@ -13,14 +13,21 @@
 ;   datetime : in, required, type=string
 ;     date of the form YYYY-MM-DDTHH:MM:SS
 ;-
-function kcor_normalize_datetime, datetime
+function kcor_normalize_datetime, datetime, error=error
   compile_opt strictarr
 
+  error = 0L
   re = '([[:digit:]]{4})-([[:digit:]]{2})-([[:digit:]]{2})T([[:digit:]]{2}):([[:digit:]]{2}):([[:digit:]]{2})'
 
-  tokens = long(stregex(datetime, re, /extract, /subexpr))
+  tokens = stregex(datetime, re, /extract, /subexpr)
+  dt_comp = long(tokens[1:*])
+  !null = where(dt_comp eq 0 and [1, 1, 1, 0, 0, 0], n_null)
+  if (n_null gt 0) then begin
+    error = 1L
+    return, ''
+  endif
 
-  jd = julday(tokens[2], tokens[3], tokens[1], tokens[4], tokens[5], tokens[6])
+  jd = julday(dt_comp[1], dt_comp[2], dt_comp[0], dt_comp[3], dt_comp[4], dt_comp[5])
 
   fmt = '(C(CYI, "-", CMOI2.2, "-", CDI2.2, "T", CHI2.2, ":", CMI2.2, ":", CSI2.2))'
   return, string(jd, format=fmt)
