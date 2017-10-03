@@ -278,7 +278,7 @@
 ; :Params:
 ;   date : in, required, type=string, 
 ;     format='yyyymmdd', where yyyy=year, mm=month, dd=day
-;   ok_files : in, optional, type=strarr
+;   ok_files : in, out, optional, type=strarr
 ;     array containing FITS level 0 filenames
 ;
 ; :Keywords:
@@ -368,6 +368,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
 
   ; image file loop
   fnum = 0
+  first_skipped = 0B
   foreach l0_file, ok_files do begin
     catch, error_status
     if (error_status ne 0L) then begin
@@ -384,6 +385,7 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
       mg_log, 'skipping first good science image %d/%d: %s', $
               fnum, nfiles, file_basename(l0_file), $
               name='kcor/rt', /info
+      first_skipped = 1B
       continue
     endif
 
@@ -1482,6 +1484,11 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
     loop_time = toc(lclock)   ; save loop time.
     mg_log, '%0.1f sec to process %s', loop_time, l0_file, name='kcor/rt', /info
   endforeach   ; end file loop
+
+  ; drop the first file from OK files if skipped
+  if (first_skipped && nfiles gt 1L) then begin
+    ok_files = ok_files[1:*]
+  endif
 
   ; get system time & compute elapsed time since "TIC" command
   done:
