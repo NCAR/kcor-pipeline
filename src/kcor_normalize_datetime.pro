@@ -12,8 +12,15 @@
 ; :Params:
 ;   datetime : in, required, type=string
 ;     date of the form YYYY-MM-DDTHH:MM:SS
+;
+; :Keywords:
+;   error : out, optional, type=integer
+;     set to a named variable to retrieve the error status of the normalization;
+;     0 for no error, 1 for an error
+;   add_15 : in, optional, type=boolean
+;     set to return the given time plus 15 seconds (normalized)
 ;-
-function kcor_normalize_datetime, datetime, error=error
+function kcor_normalize_datetime, datetime, error=error, add_15=add_15
   compile_opt strictarr
 
   error = 0L
@@ -26,6 +33,8 @@ function kcor_normalize_datetime, datetime, error=error
     error = 1L
     return, ''
   endif
+
+  if (keyword_set(add_15)) then dt_comp[5] += 15
 
   jd = julday(dt_comp[1], dt_comp[2], dt_comp[0], dt_comp[3], dt_comp[4], dt_comp[5])
 

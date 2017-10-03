@@ -110,8 +110,11 @@ pro kcor_img_insert, date, fits_list, $
 
     ; normalize odd values for date/times, particularly "60" as minute value in
     ; DATE-END
-    date_obs = kcor_normalize_datetime(date_obs)
-    date_end = kcor_normalize_datetime(date_end)
+    date_obs = kcor_normalize_datetime(date_obs, error=error)
+    date_end = kcor_normalize_datetime(date_end, error=error)
+    if (error ne 0L) then begin
+      date_end = kcor_normalize_datetime(date_obs, error=error, /add_15)
+    endif
 
     exptime    = sxpar(hdu, 'EXPTIME',  count=qexptime)
     numsum     = sxpar(hdu, 'NUMSUM',   count=qnumsum)

@@ -1098,8 +1098,11 @@ pro kcor_l1, date_str, ok_files, append=append, run=run, mean_phase1=mean_phase1
 
     ; normalize odd values for date/times, particularly "60" as minute value in
     ; DATE-END
-    struct.date_d$obs = kcor_normalize_datetime(struct.date_d$obs)
-    struct.date_d$end = kcor_normalize_datetime(struct.date_d$end)
+    struct.date_d$obs = kcor_normalize_datetime(struct.date_d$obs, error=error)
+    struct.date_d$end = kcor_normalize_datetime(struct.date_d$end, error=error)
+    if (error ne 0L) then begin
+      struct.date_d$end = kcor_normalize_datetime(struct.date_d$obs, error=error, /add_15)
+    endif
 
     ; observation information
     fxaddpar, newheader, 'DATE-OBS', struct.date_d$obs, ' UTC observation start'

@@ -10,17 +10,22 @@ pro kcor_fix_dateend_file, results, r, filename, db
   mg_log, 'found %s', filename, /debug
 
   if (error gt 0L) then begin
-    ; TODO: should try to add 15 sec to DATE-OBS?
-    mg_log, 'cannot normalize %s', date_end, /error
-  endif else begin
-    mg_log, '[img_id=%d] %s -> %s', $
-            results[r].img_id, results[r].date_end, normalized_date_end, $
-            /debug
+    date_obs = sxpar(header, 'DATE-OBS')
+    normalized_date_end = kcor_normalize_datetime(date_obs, error=error, /add_15)
 
-    sql_cmd = string(date_end, results[r].img_id, $
+    if (error gt 0L) then begin
+      mg_log, 'cannot normalize %s', date_end, /error
+      return
+    endif
+  endif
+
+  mg_log, '[img_id=%d] %s -> %s', $
+          results[r].img_id, results[r].date_end, normalized_date_end, $
+          /debug
+
+  sql_cmd = string(date_end, results[r].img_id, $
                    format='(%"UPDATE kcor_img SET date_end=''%s'' WHERE img_id=%d")')
-    db->execute, sql_cmd, status=status, error_message=error_message
-  endelse
+  db->execute, sql_cmd, status=status, error_message=error_message
 end
 
 
