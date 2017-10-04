@@ -1,6 +1,6 @@
 ; docformat = 'rst'
 
-pro kcor_fix_dateend_file, results, r, filename, db
+pro kcor_fix_dateend_file, results, r, filename, db, table
   compile_opt strictarr
 
   header = headfits(filename)
@@ -19,39 +19,43 @@ pro kcor_fix_dateend_file, results, r, filename, db
     endif
   endif
 
-  mg_log, '[img_id=%d] %s -> %s', $
-          results[r].img_id, results[r].date_end, normalized_date_end, $
+  tags = tag_names(results[r])
+  ind = where(tags eq strupcase(table) + '_ID', count)
+  id_index = ind[0]
+
+  mg_log, '[%s_id=%d] %s -> %s', $
+          table, results[r].(id_index), results[r].date_end, normalized_date_end, $
           /debug
 
-  sql_cmd = string(date_end, results[r].img_id, $
-                   format='(%"UPDATE kcor_img SET date_end=''%s'' WHERE img_id=%d")')
+  sql_cmd = string(table, date_end, table, results[r].(id_index), $
+                   format='(%"UPDATE kcor_%s SET date_end=''%s'' WHERE %s=%d")')
   db->execute, sql_cmd, status=status, error_message=error_message
 end
 
 
-pro kcor_fix_dateend
+pro kcor_fix_dateend, table
   compile_opt strictarr
 
+  _table = n_elements(table) eq 0L ? 'img' : table
+
   mg_log, logger=logger
-  logger->setProperty, filename='fix-date-end.log'
+  logger->setProperty, filename=string(_table, format='(%"fix-date-end-%s.log")')
 
   _config_filename = n_elements(config_filename) eq 0L $
                        ? filepath('.mysqldb', root=getenv('HOME')) $
                        : config_filename
 
   config = mg_read_config(_config_filename)
-  config->getProperty, sections=sections
-  _section = sections[0]
 
   db = mgdbmysql()
   db->connect, config_filename=_config_filename, $
-               config_section=_section, $
+               config_section='pipeline@databases', $
                error_message=error_message
   db->getProperty, host_name=host, connected=connected
 
   days = db->query('select * from mlso_numfiles')
 
-  sql_query = 'select kcor_img.* from kcor_img, mlso_numfiles where date_end = ''0000-00-00 00:00:00'' order by mlso_numfiles.obs_day'
+  sql_query = string(_table, _table, format='(%"select kcor_%s.* from kcor_%s, mlso_numfiles where date_end = ''0000-00-00 00:00:00'' order by mlso_numfiles.obs_day")')
 
   mg_log, 'ready to query...', /info
 
@@ -81,7 +85,7 @@ pro kcor_fix_dateend
           found = 1B
           n_found += 1
 
-          kcor_fix_dateend_file, results, r, filename1, db
+          kcor_fix_dateend_file, results, r, filename1, db, _table
 
           break
         endif
@@ -91,7 +95,7 @@ pro kcor_fix_dateend
           found = 1B
           n_found += 1
         
-          kcor_fix_dateend_file, results, r, filename2, db
+          kcor_fix_dateend_file, results, r, filename2, db, _table
 
           break
         endif
@@ -102,7 +106,7 @@ pro kcor_fix_dateend
           found = 1B
           n_found += 1
 
-          kcor_fix_dateend_file, results, r, filename3, db
+          kcor_fix_dateend_file, results, r, filename3, db, _table
 
           break
         endif
