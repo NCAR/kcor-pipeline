@@ -54,3 +54,5 @@
 1.4.1
   normalize dates in FITS headers to correct for invalid values
   skip first image of the day
+1.4.2
+  change date that display values changed in 2017
