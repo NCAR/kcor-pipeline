@@ -385,6 +385,20 @@ static IDL_VPTR IDL_mg_mysql_real_query(int argc, IDL_VPTR *argv) {
 }
 
 
+// my_ulonglong mysql_affected_rows(MYSQL *mysql)
+static IDL_VPTR IDL_mg_mysql_affected_rows(int argc, IDL_VPTR *argv) {
+  IDL_ULONG64 n_rows = (IDL_ULONG64) mysql_affected_rows((MYSQL *)argv[0]->value.ptrint);
+  return IDL_GettmpULong64(n_rows);
+}
+
+
+// unsigned int mysql_warning_count(MYSQL *mysql)
+static IDL_VPTR IDL_mg_mysql_warning_count(int argc, IDL_VPTR *argv) {
+  IDL_ULONG n_warnings = (IDL_ULONG) mysql_warning_count((MYSQL *)argv[0]->value.ptrint);
+  return IDL_GettmpULong(n_warnings);
+}
+
+
 // unsigned long * STDCALL mysql_fetch_lengths(MYSQL_RES *result);
 static IDL_VPTR IDL_mg_mysql_fetch_lengths(int argc, IDL_VPTR *argv) {
   MYSQL_RES *result = (MYSQL_RES *)argv[0]->value.ptrint;
@@ -454,6 +468,8 @@ int IDL_Load(void) {
     { IDL_mg_mysql_next_result,        "MG_MYSQL_NEXT_RESULT",        1, 1, 0, 0 },
     { IDL_mg_mysql_real_escape_string, "MG_MYSQL_REAL_ESCAPE_STRING", 4, 4, 0, 0 },
     { IDL_mg_mysql_real_query,         "MG_MYSQL_REAL_QUERY",         3, 3, 0, 0 },
+    { IDL_mg_mysql_affected_rows,      "MG_MYSQL_AFFECTED_ROWS",      1, 1, 0, 0 },
+    { IDL_mg_mysql_warning_count,      "MG_MYSQL_WARNING_COUNT",      1, 1, 0, 0 },
   };
 
   static IDL_SYSFUN_DEF2 procedure_addr[] = {

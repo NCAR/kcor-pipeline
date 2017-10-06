@@ -7,7 +7,7 @@ pro kcor_fix_dateend_file, results, r, filename, db, table
   date_end = sxpar(header, 'DATE-END')
   normalized_date_end = kcor_normalize_datetime(date_end, error=error)
 
-  mg_log, 'found %s', filename, /debug
+  mg_log, 'found %s with DATE-END=''%s''', filename, date_end, /debug
 
   if (error gt 0L) then begin
     date_obs = sxpar(header, 'DATE-OBS')
@@ -27,9 +27,14 @@ pro kcor_fix_dateend_file, results, r, filename, db, table
           table, results[r].(id_index), results[r].date_end, normalized_date_end, $
           /debug
 
-  sql_cmd = string(table, date_end, table, results[r].(id_index), $
-                   format='(%"UPDATE kcor_%s SET date_end=''%s'' WHERE %s=%d")')
-  db->execute, sql_cmd, status=status, error_message=error_message
+  sql_cmd = string(table, normalized_date_end, file_basename(filename, '.gz'), $
+                   format='(%"UPDATE kcor_%s SET date_end=''%s'' WHERE file_name=''%s''")')
+  mg_log, sql_cmd, /debug
+  db->execute, sql_cmd, $
+               status=status, error_message=error_message, $
+               n_affected_rows=n_affected_rows
+  mg_log, 'status=%d, msg=%s', status, error_message, /info
+  mg_log, 'n_affected_rows=%d', n_affected_rows, /info
 end
 
 
@@ -51,6 +56,8 @@ pro kcor_fix_dateend, table
   db->connect, config_filename=_config_filename, $
                config_section='pipeline@databases', $
                error_message=error_message
+  mg_log, '%s', error_message, /info
+
   db->getProperty, host_name=host, connected=connected
 
   days = db->query('select * from mlso_numfiles')
@@ -70,7 +77,8 @@ pro kcor_fix_dateend, table
   n_results = n_elements(results)
   for r = 0L, n_results - 1L do begin
     basename = strmid(results[r].file_name, 0, 15)
-    mg_log, '## Looking for %d/%d [%d]: %s...', r + 1, n_results, n_found, basename, /info
+    mg_log, 'Filename %s', results[r].file_name, /debug
+    mg_log, 'Looking for %d/%d [%d]: %s...', r + 1, n_results, n_found, basename, /info
     year = strmid(basename, 0, 4)
 
     ind = where(results[r].obs_day eq days.day_id, count)
