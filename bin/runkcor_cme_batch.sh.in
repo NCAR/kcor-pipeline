@@ -39,7 +39,7 @@ else
   FLAGS=${3}
 fi
 
-CONFIG_FILENAME=${KCOR_ROOT}/config/kcor.$(whoami).$(hostname).${FLAGS}.cfg
+CONFIG_FILENAME=${KCOR_ROOT}/config/kcor.$(whoami).$(hostname | sed -e 's/\..*$//').${FLAGS}.cfg
 
 IDL=@IDL_EXECUTABLE@
 
