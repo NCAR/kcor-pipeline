@@ -107,9 +107,12 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     openr, lun, nrgf_list, /get_lun
     readf, lun, nrgf_files
     free_lun, lun
+
     kcor_plotraw, date, list=nrgf_files, run=run, $
                   line_means=line_means, line_medians=line_medians, $
                   azi_means=azi_means, azi_medians=azi_medians
+
+    kcor_create_animations, date, list=nrgf_files, run=run
   endif
 
   ok_list = filepath('okfgif.ls', $

@@ -326,6 +326,8 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            resources_dir=resources_dir, $
                            gzip=gzip, $
                            gunzip=gunzip, $
+                           convert=convert, $
+                           mencoder=mencoder, $
                            npick=npick, $
                            cal_basedir=cal_basedir, $
                            cal_out_dir=cal_out_dir, $
@@ -383,6 +385,12 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   endif
   if (arg_present(gunzip)) then begin
     gunzip = self.options->get('gunzip', section='externals')
+  endif
+  if (arg_present(convert)) then begin
+    convert = self.options->get('convert', section='externals')
+  endif
+  if (arg_present(mencoder)) then begin
+    mencoder = self.options->get('mencoder', section='externals')
   endif
 
   ; calibration
