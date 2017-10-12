@@ -327,6 +327,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            gzip=gzip, $
                            gunzip=gunzip, $
                            convert=convert, $
+                           ffmpeg=ffmpeg, $
                            mencoder=mencoder, $
                            npick=npick, $
                            cal_basedir=cal_basedir, $
@@ -388,6 +389,9 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   endif
   if (arg_present(convert)) then begin
     convert = self.options->get('convert', section='externals')
+  endif
+  if (arg_present(ffmpeg)) then begin
+    ffmpeg = self.options->get('ffmpeg', section='externals')
   endif
   if (arg_present(mencoder)) then begin
     mencoder = self.options->get('mencoder', section='externals')

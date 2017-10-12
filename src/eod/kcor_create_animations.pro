@@ -25,10 +25,10 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
   gif_filenames = file_basename(nrgf_files, '_l1_nrgf.fts.gz') + '.gif'
 
   nrgf_dailygif_filename = string(date, format='(%"%s_kcor_l1_nrgf.gif")')
-  nrgf_dailympeg_filename = string(date, format='(%"%s_kcor_l1_nrgf.mpg")')
+  nrgf_dailympeg_filename = string(date, format='(%"%s_kcor_l1_nrgf.mp4")')
 
   dailygif_filename = string(date, format='(%"%s_kcor_l1.gif")')
-  dailympeg_filename = string(date, format='(%"%s_kcor_l1.mpg")')
+  dailympeg_filename = string(date, format='(%"%s_kcor_l1.mp4")')
 
 
   ; create daily GIF of NRGF files
@@ -45,18 +45,21 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
   endif
 
   ; create daily MPEG of NRGF files
-  cmd = string(run.mencoder, $
-               nrgf_dailygif_filename, $
+  cmd = string(run.ffmpeg, $
+               date, $
                nrgf_dailympeg_filename, $
-               format='(%"%s %s -ovc lavc -lavcopts vcodec=mp4 -o %s")')
-               ;format='(%"%s %s -ovc lavc -lavcopts vcodec=mpeg4 -o %s")')
+               format='(%"%s -r 25 -i %s_%%*_kcor_l1_nrgf.gif -y -loglevel error -vcodec libx264 -passlogfile kcor_nrgf_tmp -r 25 %s")')
   spawn, cmd, result, error_result, exit_status=status
   if (status ne 0L) then begin
-    mg_log, 'problem creating NRGF daily MPEG with command: %s', cmd, $
+    mg_log, 'problem creating NRGF daily MP4 with command: %s', cmd, $
             name='kcor/eod', /error
     mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
     goto, done
   endif
+
+  tmp_files = file_search('kcor_nrgf_tmp*', count=n_tmp_files)
+  if (n_tmp_files gt 0L) then file_delete, tmp_files
+
 
   ; create daily GIF of L1 files
   cmd = string(run.convert, $
@@ -72,18 +75,20 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
   endif
 
   ; create daily MPEG of L1 files
-  cmd = string(run.mencoder, $
-               dailygif_filename, $
+  cmd = string(run.ffmpeg, $
+               date, $
                dailympeg_filename, $
-               format='(%"%s %s -ovc lavc -lavcopts vcodec=mp4 -o %s")')
-               ;format='(%"%s %s -ovc lavc -lavcopts vcodec=mpeg4 -o %s")')
+               format='(%"%s -r 25 -i %s_%%*_kcor.gif -y -loglevel error -vcodec libx264 -passlogfile kcor_tmp -r 100 %s")')
   spawn, cmd, result, error_result, exit_status=status
   if (status ne 0L) then begin
-    mg_log, 'problem creating daily MPEG with command: %s', cmd, $
+    mg_log, 'problem creating daily MP4 with command: %s', cmd, $
             name='kcor/eod', /error
     mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
     goto, done
   endif
+
+  tmp_files = file_search('kcor_tmp*', count=n_tmp_files)
+  if (n_tmp_files gt 0L) then file_delete, tmp_files
 
 
   ; restore
