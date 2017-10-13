@@ -46,7 +46,7 @@ pro kcor_cme_det_report, time, widget=widget
     if (n_nan gt 0L) then velocity[ind] = !values.f_nan
 
     utplot, date_diff.date_avg, velocity, $
-            color='000000'x, background='ffffff'x, $
+            color='000000'x, background='ffffff'x, charsize=1.5, $
             psym=1, symsize=0.5, $
             ytitle='velocity (km/s)', $
             title='Speed', $
@@ -58,7 +58,7 @@ pro kcor_cme_det_report, time, widget=widget
     if (n_nan gt 0L) then position[ind] = !values.f_nan
 
     utplot, date_diff.date_avg, position, $
-            color='000000'x, background='ffffff'x, $
+            color='000000'x, background='ffffff'x, charsize=1.5, $
             psym=1, symsize=0.5, $
             ytitle='Angle (degrees)', $
             title='Position angle', $
@@ -73,7 +73,7 @@ pro kcor_cme_det_report, time, widget=widget
     if (n_nan gt 0L) then radius[ind] = !values.f_nan
 
     utplot, date_diff.date_avg, radius, $
-            color='000000'x, background='ffffff'x, $
+            color='000000'x, background='ffffff'x, charsize=1.5, $
             psym=1, symsize=0.5, $
             ytitle='Solar radii', $
             title='Leading edge', $
