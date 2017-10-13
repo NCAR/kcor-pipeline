@@ -1,7 +1,7 @@
 ; docformat = 'rst'
 
 ;+
-; Create GIF and MPEG animations for the day.
+; Create GIF and mp4 animations for the day.
 ;
 ; :Params:
 ;   date : in, required, type=string
@@ -16,6 +16,12 @@
 pro kcor_create_animations, date, list=nrgf_files, run=run
   compile_opt strictarr
 
+  date_parts = kcor_decompose_date(date)
+  fullres_dir = filepath('', subdir=date_parts, root=run.fullres_basedir)
+  if (run.distribute) then begin
+    if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
+  endif
+
   l1_dir   = filepath('level1', subdir=date, root=run.raw_basedir)
 
   cd, current=current
@@ -26,10 +32,10 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
   n_gif_filenames = n_elements(gif_filenames)
 
   nrgf_dailygif_filename = string(date, format='(%"%s_kcor_l1_nrgf.gif")')
-  nrgf_dailympeg_filename = string(date, format='(%"%s_kcor_l1_nrgf.mp4")')
+  nrgf_dailymp4_filename = string(date, format='(%"%s_kcor_l1_nrgf.mp4")')
 
   dailygif_filename = string(date, format='(%"%s_kcor_l1.gif")')
-  dailympeg_filename = string(date, format='(%"%s_kcor_l1.mp4")')
+  dailymp4_filename = string(date, format='(%"%s_kcor_l1.mp4")')
 
 
   ; create daily GIF of NRGF files
@@ -43,12 +49,16 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
             name='kcor/eod', /error
     mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
     goto, done
-  endif
+  endif else begin
+    if (run.distribute) then begin
+      file_copy, nrgf_dailygif_filename, fullres_dir, /overwrite
+    endif
+  endelse
 
-  ; create daily MPEG of NRGF files
+  ; create daily mp4 of NRGF files
   cmd = string(run.ffmpeg, $
                date, $
-               nrgf_dailympeg_filename, $
+               nrgf_dailymp4_filename, $
                format='(%"%s -r 20 -i %s_%%*_kcor_l1_nrgf.gif -y -loglevel error -vcodec libx264 -passlogfile kcor_nrgf_tmp -r 20 %s")')
   spawn, cmd, result, error_result, exit_status=status
   if (status ne 0L) then begin
@@ -56,7 +66,12 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
             name='kcor/eod', /error
     mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
     goto, done
-  endif
+  endif else begin
+    if (run.distribute) then begin
+      file_copy, nrgf_dailymp4_filename, fullres_dir, /overwrite
+    endif
+  endelse
+
 
   tmp_files = file_search('kcor_nrgf_tmp*', count=n_tmp_files)
   if (n_tmp_files gt 0L) then file_delete, tmp_files
@@ -73,16 +88,21 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
             name='kcor/eod', /error
     mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
     goto, done
-  endif
+  endif else begin
+    if (run.distribute) then begin
+      file_copy, dailygif_filename, fullres_dir, /overwrite
+    endif
+  endelse
 
-  ; create daily MPEG of L1 files
+
+  ; create daily mp4 of L1 files
   tmp_gif_fmt = '(%"tmp-%04d.gif")'
   for f = 0L, n_gif_filenames - 1L do begin
     file_link, gif_filenames[f], string(f, format=tmp_gif_fmt)
   endfor
 
   cmd = string(run.ffmpeg, $
-               dailympeg_filename, $
+               dailymp4_filename, $
                format='(%"%s -r 20 -i tmp-%%*.gif -y -loglevel error -vcodec libx264 -passlogfile kcor_tmp -r 20 %s")')
   spawn, cmd, result, error_result, exit_status=status
   if (status ne 0L) then begin
@@ -90,7 +110,12 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
             name='kcor/eod', /error
     mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
     goto, done
-  endif
+  endif else begin
+    if (run.distribute) then begin
+      file_copy, dailymp4_filename, fullres_dir, /overwrite
+    endif
+  endelse
+
 
   tmp_files = file_search('kcor_tmp*', count=n_tmp_files)
   if (n_tmp_files gt 0L) then file_delete, tmp_files
