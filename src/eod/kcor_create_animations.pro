@@ -23,6 +23,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
 
   nrgf_gif_filenames = file_basename(nrgf_files, '.fts.gz') + '.gif'
   gif_filenames = file_basename(nrgf_files, '_l1_nrgf.fts.gz') + '.gif'
+  n_gif_filenames = n_elements(gif_filenames)
 
   nrgf_dailygif_filename = string(date, format='(%"%s_kcor_l1_nrgf.gif")')
   nrgf_dailympeg_filename = string(date, format='(%"%s_kcor_l1_nrgf.mp4")')
@@ -48,10 +49,10 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
   cmd = string(run.ffmpeg, $
                date, $
                nrgf_dailympeg_filename, $
-               format='(%"%s -r 25 -i %s_%%*_kcor_l1_nrgf.gif -y -loglevel error -vcodec libx264 -passlogfile kcor_nrgf_tmp -r 25 %s")')
+               format='(%"%s -r 20 -i %s_%%*_kcor_l1_nrgf.gif -y -loglevel error -vcodec libx264 -passlogfile kcor_nrgf_tmp -r 20 %s")')
   spawn, cmd, result, error_result, exit_status=status
   if (status ne 0L) then begin
-    mg_log, 'problem creating NRGF daily MP4 with command: %s', cmd, $
+    mg_log, 'problem creating NRGF daily mp4 with command: %s', cmd, $
             name='kcor/eod', /error
     mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
     goto, done
@@ -75,13 +76,17 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
   endif
 
   ; create daily MPEG of L1 files
+  tmp_gif_fmt = '(%"tmp-%04d.gif")'
+  for f = 0L, n_gif_filenames - 1L do begin
+    file_link, gif_filenames[f], string(f, format=tmp_gif_fmt)
+  endfor
+
   cmd = string(run.ffmpeg, $
-               date, $
                dailympeg_filename, $
-               format='(%"%s -r 25 -i %s_%%*_kcor.gif -y -loglevel error -vcodec libx264 -passlogfile kcor_tmp -r 100 %s")')
+               format='(%"%s -r 20 -i tmp-%%*.gif -y -loglevel error -vcodec libx264 -passlogfile kcor_tmp -r 20 %s")')
   spawn, cmd, result, error_result, exit_status=status
   if (status ne 0L) then begin
-    mg_log, 'problem creating daily MP4 with command: %s', cmd, $
+    mg_log, 'problem creating daily mp4 with command: %s', cmd, $
             name='kcor/eod', /error
     mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
     goto, done
@@ -93,6 +98,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
 
   ; restore
   done:
+  for f = 0L, n_gif_filenames - 1L do file_delete, string(f, format=tmp_gif_fmt)
   cd, current
 end
 
