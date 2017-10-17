@@ -27,13 +27,14 @@ pro kcor_fix_dateend_file, results, r, filename, db, table
           table, results[r].(id_index), results[r].date_end, normalized_date_end, $
           /debug
 
-  sql_cmd = string(table, normalized_date_end, file_basename(filename, '.gz'), $
-                   format='(%"UPDATE kcor_%s SET date_end=''%s'' WHERE file_name=''%s''")')
+  sql_cmd = string(table, normalized_date_end, strupcase(table), results[r].(id_index), $
+                   format='(%"UPDATE kcor_%s SET date_end=''%s'' WHERE %s_ID=%d")')
   mg_log, sql_cmd, /debug
   db->execute, sql_cmd, $
-               status=status, error_message=error_message, $
+               status=status, error_message=error_message, n_warnings=n_warnings, $
                n_affected_rows=n_affected_rows
   mg_log, 'status=%d, msg=%s', status, error_message, /info
+  mg_log, 'n_warnings=%d', n_warnings, /info
   mg_log, 'n_affected_rows=%d', n_affected_rows, /info
 end
 
@@ -62,7 +63,7 @@ pro kcor_fix_dateend, table
 
   days = db->query('select * from mlso_numfiles')
 
-  sql_query = string(_table, _table, format='(%"select kcor_%s.* from kcor_%s, mlso_numfiles where date_end = ''0000-00-00 00:00:00'' order by mlso_numfiles.obs_day")')
+  sql_query = string(_table, _table, format='(%"select kcor_%s.* from kcor_%s, mlso_numfiles where date_end = ''0000-00-00 00:00:00'' and date_obs < ''2014-01-01'' order by mlso_numfiles.obs_day")')
 
   mg_log, 'ready to query...', /info
 
