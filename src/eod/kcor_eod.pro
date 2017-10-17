@@ -108,11 +108,15 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     readf, lun, nrgf_files
     free_lun, lun
 
-    kcor_plotraw, date, list=nrgf_files, run=run, $
-                  line_means=line_means, line_medians=line_medians, $
-                  azi_means=azi_means, azi_medians=azi_medians
+    if (run.produce_plots) then begin
+      kcor_plotraw, date, list=nrgf_files, run=run, $
+                    line_means=line_means, line_medians=line_medians, $
+                    azi_means=azi_means, azi_medians=azi_medians
+    endif
 
-    kcor_create_animations, date, list=nrgf_files, run=run
+    if (run.create_daily_movies) then begin
+      kcor_create_animations, date, list=nrgf_files, run=run
+    endif
   endif
 
   ok_list = filepath('okfgif.ls', $

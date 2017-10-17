@@ -367,7 +367,8 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            send_to_hpss=send_to_hpss, $
                            validate_t1=validate_t1, $
                            produce_plots=produce_plots, $
-                           catalog_files=catalog_files
+                           catalog_files=catalog_files, $
+                           create_daily_movies=create_daily_movies
   compile_opt strictarr
 
   if (arg_present(config_contents)) then begin
@@ -550,6 +551,10 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   if (arg_present(catalog_files)) then begin
     catalog_files = self.options->get('catalog_files', section='eod', $
                                       /boolean, default=1B)
+  endif
+  if (arg_present(create_daily_movies)) then begin
+    create_daily_movies = self.options->get('create_daily_movies', section='eod', $
+                                            /boolean, default=1B)
   endif
 end
 
