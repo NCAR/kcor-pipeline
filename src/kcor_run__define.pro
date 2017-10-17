@@ -364,6 +364,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            distribute=distribute, $
                            diagnostics=diagnostics, $
                            reduce_calibration=reduce_calibration, $
+                           archive=archive, $
                            send_to_hpss=send_to_hpss, $
                            validate_t1=validate_t1, $
                            produce_plots=produce_plots, $
@@ -535,6 +536,10 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   if (arg_present(reduce_calibration)) then begin
     reduce_calibration = self.options->get('reduce_calibration', section='eod', $
                                            /boolean, default=1B)
+  endif
+  if (arg_present(archive)) then begin
+    archive = self.options->get('archive', section='eod', $
+                                /boolean, default=1B)
   endif
   if (arg_present(send_to_hpss)) then begin
     send_to_hpss = self.options->get('send_to_hpss', section='eod', $
