@@ -361,6 +361,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            process_l1=process_l1, $
                            skypol_method=skypol_method, $
                            sine2theta_nparams=sine2theta_nparams, $
+                           create_gifs=create_gifs, $
                            distribute=distribute, $
                            diagnostics=diagnostics, $
                            reduce_calibration=reduce_calibration, $
@@ -522,6 +523,10 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   if (arg_present(sine2theta_nparams)) then begin
     sine2theta_nparams = self.options->get('sine2theta_nparams', section='realtime', $
                                            type=3, default=2)
+  endif
+  if (arg_present(create_gifs)) then begin
+    create_gifs = self.options->get('create_gifs', section='realtime', $
+                                    /boolean, default=1B)
   endif
   if (arg_present(distribute)) then begin
     distribute = self.options->get('distribute', section='realtime', $
