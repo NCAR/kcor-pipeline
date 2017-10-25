@@ -63,7 +63,7 @@ pro kcor_fix_dateend, table
 
   days = db->query('select * from mlso_numfiles')
 
-  sql_query = string(_table, _table, format='(%"select kcor_%s.* from kcor_%s, mlso_numfiles where date_end = ''0000-00-00 00:00:00'' and date_obs < ''2014-05-01'' order by mlso_numfiles.obs_day")')
+  sql_query = string(_table, _table, format='(%"select kcor_%s.* from kcor_%s, mlso_numfiles where date_end = ''0000-00-00 00:00:00'' and date_obs < ''2014-06-01'' order by mlso_numfiles.obs_day")')
 
   mg_log, 'ready to query...', /info
 
