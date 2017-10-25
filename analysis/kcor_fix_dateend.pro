@@ -63,7 +63,7 @@ pro kcor_fix_dateend, table
 
   days = db->query('select * from mlso_numfiles')
 
-  sql_query = string(_table, _table, format='(%"select kcor_%s.* from kcor_%s, mlso_numfiles where date_end = ''0000-00-00 00:00:00'' and date_obs < ''2014-01-01'' order by mlso_numfiles.obs_day")')
+  sql_query = string(_table, _table, format='(%"select kcor_%s.* from kcor_%s, mlso_numfiles where date_end = ''0000-00-00 00:00:00'' and date_obs < ''2014-05-01'' order by mlso_numfiles.obs_day")')
 
   mg_log, 'ready to query...', /info
 
@@ -129,4 +129,32 @@ pro kcor_fix_dateend, table
   mg_log, '%d/%d rows fixed', n_found, n_results, /info
 
   obj_destroy, [db, config]
+end
+
+
+; main-level example program
+
+config_filename = filepath('.mysqldb', root=getenv('HOME'))
+
+config = mg_read_config(config_filename)
+
+db = mgdbmysql()
+db->connect, config_filename=config_filename, $
+             config_section='pipeline@databases', $
+             error_message=error_message
+
+table = 'img'
+
+sql_query = string(table, table, format='(%"select kcor_%s.* from kcor_%s, mlso_numfiles where date_end = ''0000-00-00 00:00:00'' and date_obs < ''2014-05-31'' and date_obs > ''2014-05-29'' order by mlso_numfiles.obs_day")')
+;sql_query = string(table, format='(%"select count(*) from kcor_%s where date_end = ''0000-00-00 00:00:00''")')
+
+results = db->query(sql_query, sql_statement=sql_statement, error=error, fields=fields)
+
+n_bad = n_elements(results)
+;n_bad = (results[0]).count___
+
+print, mg_float2str(n_bad, places_sep=','), format='(%"%s bad rows")'
+
+obj_destroy, [db, config]
+
 end
