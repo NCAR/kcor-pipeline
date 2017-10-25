@@ -1,6 +1,7 @@
 configure_file(runkcor_eod.sh.in runkcor_eod.sh @ONLY)
 configure_file(runkcor_rt.sh.in runkcor_rt.sh @ONLY)
 configure_file(runkcor_calibrate.sh.in runkcor_calibrate.sh @ONLY)
+configure_file(kcor.in kcor @ONLY)
 
 configure_file(runkcor_process.sh.in runkcor_process.sh @ONLY)
 configure_file(runkcor_process_range.sh.in runkcor_process_range.sh @ONLY)

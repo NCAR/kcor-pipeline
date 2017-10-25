@@ -32,11 +32,7 @@ def calibrate_dates(filelist_filename, dates, flags, no_wait):
         terminated = wait_for(process)
 
 
-def process_dates(dates, flags, no_eod, no_wait):
-    if no_eod:
-        print('no end-of-day processing not supported yet')
-        return
-
+def process_dates(dates, flags, no_wait):
     for d in dates.split(','):
         if d.find('-') < 0:
             cmd = [os.path.join(PIPELINE_DIR,
@@ -65,33 +61,45 @@ def process_dates(dates, flags, no_eod, no_wait):
 
 
 if __name__ == '__main__':
-    name = 'Realtime KCor pipeline'
+    name = 'KCor pipeline @VERSION@'
+
     parser = argparse.ArgumentParser(description=name)
 
-    config_flags_help = '''FLAGS section of config filename'''
-    parser.add_argument('-f', '--flags', type=str, default='latest', help=config_flags_help)
+    date_help = '''Dates to run on in the form YYYYMMDD including lists (using
+                   commas) and ranges (using hyphens). Note that the beginning
+                   of a range is inclusive and the end is exclusive. For
+                   example, '20170101-20170201' represents all of January 2017,
+                   '20170201,20170202' represents the first two days of February
+                   2017, and '20170101-20170201,20170201,20170202' represents
+                   all of January and the first two days of February 2017.
+                '''
+    parser.add_argument('dates', type=str, nargs='+', help=date_help)
 
-    date_help = '''dates to run on'''
-    parser.add_argument('dates', type=str, help=date_help)
+    parser.add_argument('-f', '--flags',
+                        type=str,
+                        default='latest',
+                        help='''FLAGS section of config filename, i.e., file in
+                                config/ directory matching kcor.user.machine.FLAGS.cfg
+                                will be used''')
 
     parser.add_argument('--no-wait',
                         action='store_true',
-                        help='set to run all dates asynchronously')
+                        help='set to run all dates simultaneously')
 
-    parser.add_argument('--calibrate',
+    parser.add_argument('-c', '--calibrate',
                         type=str,
-                        help='set to filename of list of files to produce calibration')
+                        help='''set to the filename containing a list of files
+                                to use to produce calibration''')
 
-    parser.add_argument('--no-eod',
-                        action='store_true',
-                        help='set to not launch end-of-day processing')
+    parser.add_argument('-v', '--version',
+                        action='version',
+                        version=name)
 
     args = parser.parse_args()
 
+    dates = ''.join(args.dates)
+
     if args.calibrate:
-        if args.no_eod:
-            print('--no-eod not allowed with --calibrate')
-        else:
-            calibrate_dates(args.calibrate, args.dates, args.flags, args.no_wait)
+        calibrate_dates(args.calibrate, dates, args.flags, args.no_wait)
     else:
-        process_dates(args.dates, args.flags, args.no_eod, args.no_wait)
+        process_dates(dates, args.flags, args.no_wait)
