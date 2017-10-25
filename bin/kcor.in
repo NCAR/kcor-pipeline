@@ -88,8 +88,9 @@ if __name__ == '__main__':
 
     parser.add_argument('-c', '--calibrate',
                         type=str,
-                        help='''set to the filename containing a list of files
-                                to use to produce calibration''')
+                        metavar='FILENAME',
+                        help='''set to a filename containing a list of files
+                                to use to produce the calibration''')
 
     parser.add_argument('-v', '--version',
                         action='version',
