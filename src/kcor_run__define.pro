@@ -357,15 +357,15 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            notification_email=notification_email, $
                            send_notifications=send_notifications, $
                            update_database=update_database, $
+                           reprocess=reprocess, $
+                           update_processing=update_processing, $
                            update_remote_server=update_remote_server, $
-                           process_l1=process_l1, $
                            skypol_method=skypol_method, $
                            sine2theta_nparams=sine2theta_nparams, $
-                           create_gifs=create_gifs, $
                            distribute=distribute, $
                            diagnostics=diagnostics, $
                            reduce_calibration=reduce_calibration, $
-                           archive=archive, $
+                           send_to_archive=send_to_archive, $
                            send_to_hpss=send_to_hpss, $
                            validate_t1=validate_t1, $
                            produce_plots=produce_plots, $
@@ -508,13 +508,17 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   endif
 
   ; realtime
+  if (arg_present(reprocess)) then begin
+    reprocess = self.options->get('reprocess', section='realtime', $
+                                  /boolean, default=0B)
+  endif
+  if (arg_present(update_processing)) then begin
+    update_processing = self.options->get('update_processing', section='realtime', $
+                                          /boolean, default=0B)
+  endif
   if (arg_present(update_remote_server)) then begin
     update_remote_server = self.options->get('update_remote_server', section='realtime', $
                                              /boolean, default=1B)
-  endif
-  if (arg_present(process_l1)) then begin
-    process_l1 = self.options->get('process_l1', section='realtime', $
-                                   /boolean, default=1B)
   endif
   if (arg_present(skypol_method)) then begin
     skypol_method = self.options->get('skypol_method', section='realtime', $
@@ -523,10 +527,6 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   if (arg_present(sine2theta_nparams)) then begin
     sine2theta_nparams = self.options->get('sine2theta_nparams', section='realtime', $
                                            type=3, default=2)
-  endif
-  if (arg_present(create_gifs)) then begin
-    create_gifs = self.options->get('create_gifs', section='realtime', $
-                                    /boolean, default=1B)
   endif
   if (arg_present(distribute)) then begin
     distribute = self.options->get('distribute', section='realtime', $
@@ -542,9 +542,9 @@ pro kcor_run::getProperty, config_contents=config_contents, $
     reduce_calibration = self.options->get('reduce_calibration', section='eod', $
                                            /boolean, default=1B)
   endif
-  if (arg_present(archive)) then begin
-    archive = self.options->get('archive', section='eod', $
-                                /boolean, default=1B)
+  if (arg_present(send_to_archive)) then begin
+    send_to_archive = self.options->get('send_to_archive', section='eod', $
+                                        /boolean, default=1B)
   endif
   if (arg_present(send_to_hpss)) then begin
     send_to_hpss = self.options->get('send_to_hpss', section='eod', $

@@ -56,3 +56,6 @@
   skip first image of the day
 1.4.2
   change date that display values changed in 2017
+1.4.3
+  daily animations of L1/NRGF full/cropped GIFs
+  options to turn on/off L1 processing, producing GIFs

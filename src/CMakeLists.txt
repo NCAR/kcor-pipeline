@@ -2,7 +2,6 @@ add_subdirectory(calibration)
 add_subdirectory(database)
 add_subdirectory(eod)
 add_subdirectory(realtime)
-add_subdirectory(reprocess)
 add_subdirectory(util)
 
 configure_file(kcor_find_code_version.pro.in kcor_find_code_version.pro)

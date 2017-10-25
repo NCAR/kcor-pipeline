@@ -8,10 +8,10 @@
 ;     date to process in the form "YYYYMMDD"
 ;
 ; :Keywords:
-;   config_filename : in, required, type=string
-;     configuration file specifying the parameters of the run
+;   run : in, required, type=object
+;     `kcor_run` object
 ;-
-pro kcor_reprocess, date, config_filename=config_filename
+pro kcor_reprocess, date, run=run
   compile_opt strictarr
 
   ; catch and log any crashes
@@ -22,9 +22,15 @@ pro kcor_reprocess, date, config_filename=config_filename
     goto, done
   endif
 
-  run = kcor_run(date, config_filename=config_filename)
-
-  mg_log, 'prepping for reprocessing', name='kcor/reprocess', /info
+  case 1 of
+    run.reprocess: mg_log, 'prepping for reprocessing', name='kcor/reprocess', /info
+    run.update_processing: mg_log, 'prepping for updating', name='kcor/reprocess', /info
+    else: begin
+        mg_log, 'exiting, neither reprocessing nor udpating', $
+                name='kcor/reprocess', /error
+        goto, done
+      end
+  endcase
 
   ; zip any unzipped raw files
   unzipped_raw_fits_glob = filepath('*_kcor.fts', $
@@ -72,25 +78,32 @@ pro kcor_reprocess, date, config_filename=config_filename
   endelse
 
   ; remove quicklook dir in level0 dir
-  quicklook_dir = filepath('quicklook', subdir=[date, 'level0'], $
-                           root=run.raw_basedir)
-  mg_log, 'removing level0/quicklook dir', name='kcor/reprocess', /info
-  file_delete, quicklook_dir, /recursive, /allow_nonexistent
+  if (run.reprocess) then begin
+    quicklook_dir = filepath('quicklook', subdir=[date, 'level0'], $
+                             root=run.raw_basedir)
+    mg_log, 'removing level0/quicklook dir', name='kcor/reprocess', /info
+    file_delete, quicklook_dir, /recursive, /allow_nonexistent
+  endif
 
-  ; remove quicklook dir in level0 dir
-  l1_dir = filepath('level1', subdir=[date], root=run.raw_basedir)
-  mg_log, 'removing level1 dir', name='kcor/reprocess', /info
-  file_delete, l1_dir, /recursive, /allow_nonexistent
+  ; remove level1 dir
+  if (run.reprocess) then begin
+    l1_dir = filepath('level1', subdir=[date], root=run.raw_basedir)
+    mg_log, 'removing level1 dir', name='kcor/reprocess', /info
+    file_delete, l1_dir, /recursive, /allow_nonexistent
+  endif
 
   ; TODO: remove *kcor* files from archive, movie, fullres, croppedgif, rg dirs
+  ; if a run.reprocess
 
-  p_dir = filepath('p', subdir=date, root=run.raw_basedir)
-  mg_log, 'removing p dir', name='kcor/reprocess', /info
-  file_delete, p_dir, /recursive, /allow_nonexistent
+  if (run.reprocess) then begin
+    p_dir = filepath('p', subdir=date, root=run.raw_basedir)
+    mg_log, 'removing p dir', name='kcor/reprocess', /info
+    file_delete, p_dir, /recursive, /allow_nonexistent
 
-  q_dir = filepath('q', subdir=date, root=run.raw_basedir)
-  mg_log, 'removing q dir', name='kcor/reprocess', /info
-  file_delete, q_dir, /recursive, /allow_nonexistent
+    q_dir = filepath('q', subdir=date, root=run.raw_basedir)
+    mg_log, 'removing q dir', name='kcor/reprocess', /info
+    file_delete, q_dir, /recursive, /allow_nonexistent
+  endif
 
   ; remove inventory files in process directory
   inventory = ['science', 'calibration', 'engineering']
@@ -103,7 +116,7 @@ pro kcor_reprocess, date, config_filename=config_filename
   endfor
 
   ; clear database for the day
-  if (run.update_database) then begin
+  if (run.update_database && run.reprocess) then begin
     mg_log, 'clear database for the day', name='kcor/reprocess', /info
 
     obsday_index = mlso_obsday_insert(date, $
@@ -127,5 +140,4 @@ pro kcor_reprocess, date, config_filename=config_filename
 
   done:
   mg_log, 'done prepping for reprocessing', name='kcor/reprocess', /info
-  obj_destroy, run
 end

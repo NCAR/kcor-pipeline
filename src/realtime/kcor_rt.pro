@@ -69,6 +69,12 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
   available = kcor_state(/lock, run=run)
 
   if (available) then begin
+    if (run.reprocess || run.update_processing) then begin
+      kcor_reprocess, date, run=run
+    endif else begin
+      mg_log, 'skipping updating/reprocessing', name='kcor/rt', /info
+    endelse
+
     l0_fits_files = file_search('*_kcor.fts.gz', count=n_l0_fits_files)
     if (n_l0_fits_files eq 0L) then begin
       mg_log, 'no L0 files to process in %s', raw_dir, name='kcor/rt', /info
@@ -134,9 +140,15 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
           file_copy, nrgf_filename, archive_dir, /overwrite
         endif
 
-        file_copy, base + '_cropped.gif', croppedgif_dir, /overwrite
-        file_copy, base + '.gif', fullres_dir, /overwrite
-        file_copy, base + '_l1.fts.gz', archive_dir, /overwrite
+        if (file_test(base + '_cropped.gif')) then begin
+          file_copy, base + '_cropped.gif', croppedgif_dir, /overwrite
+        endif
+        if (file_test(base + '.gif')) then begin
+          file_copy, base + '.gif', fullres_dir, /overwrite
+        endif
+        if (file_test(base + '_l1.fts.gz')) then begin
+          file_copy, base + '_l1.fts.gz', archive_dir, /overwrite
+        endif
       endif
     endfor
 

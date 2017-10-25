@@ -6,10 +6,6 @@ configure_file(runkcor_process.sh.in runkcor_process.sh @ONLY)
 configure_file(runkcor_process_range.sh.in runkcor_process_range.sh @ONLY)
 configure_file(runkcor_process_list.sh.in runkcor_process_list.sh @ONLY)
 
-configure_file(runkcor_reprocess.sh.in runkcor_reprocess.sh @ONLY)
-configure_file(runkcor_reprocess_range.sh.in runkcor_reprocess_range.sh @ONLY)
-configure_file(runkcor_reprocess_list.sh.in runkcor_reprocess_list.sh @ONLY)
-
 configure_file(runkcor_env.sh.in runkcor_env.sh @ONLY)
 
 configure_file(runkcor_cme_batch.sh.in runkcor_cme_batch.sh @ONLY)
@@ -21,9 +17,6 @@ install(PROGRAMS
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_process.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_process_range.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_process_list.sh
-          ${CMAKE_CURRENT_BINARY_DIR}/runkcor_reprocess.sh
-          ${CMAKE_CURRENT_BINARY_DIR}/runkcor_reprocess_range.sh
-          ${CMAKE_CURRENT_BINARY_DIR}/runkcor_reprocess_list.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_env.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_cme_batch.sh
 	  kcor

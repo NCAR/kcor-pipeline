@@ -32,14 +32,16 @@ def calibrate_dates(filelist_filename, dates, flags, no_wait):
         terminated = wait_for(process)
 
 
-def process_dates(dates, flags, reprocess, no_eod, no_wait):
+def process_dates(dates, flags, no_eod, no_wait):
     if no_eod:
         print('no end-of-day processing not supported yet')
         return
 
     for d in dates.split(','):
         if d.find('-') < 0:
-            cmd = [os.path.join(PIPELINE_DIR, 'bin', 'runkcor_reprocess.sh'),
+            cmd = [os.path.join(PIPELINE_DIR,
+                                'bin', 
+                                'runkcor_process.sh'),
                    d,
                    flags]
 
@@ -50,7 +52,7 @@ def process_dates(dates, flags, reprocess, no_eod, no_wait):
                 if terminated: break
         else:
             r = d.split('-')
-            script = 'runkcor_%sprocess_range.sh' % ('re' if reprocess else '')
+            script = 'runkcor_process_range.sh'
             cmd = [os.path.join(PIPELINE_DIR, 'bin', script),
                    r[0], r[1],
                    flags]
@@ -84,16 +86,12 @@ if __name__ == '__main__':
                         action='store_true',
                         help='set to not launch end-of-day processing')
 
-    parser.add_argument('-r', '--reprocess',
-                        action='store_true',
-                        help='set to reprocess')
-
     args = parser.parse_args()
 
     if args.calibrate:
-        if args.no_eod or args.reprocess:
-            print('--no-eod or --reprocess not allowed with --calibrate')
+        if args.no_eod:
+            print('--no-eod not allowed with --calibrate')
         else:
             calibrate_dates(args.calibrate, args.dates, args.flags, args.no_wait)
     else:
-        process_dates(args.dates, args.flags, args.reprocess, args.no_eod, args.no_wait)
+        process_dates(args.dates, args.flags, args.no_eod, args.no_wait)

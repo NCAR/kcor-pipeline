@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # This script launches IDL in the same environment as the KCor pipeline, but
-# doesn't launch the pipeline code, i.e., kcor_rt, kcor_eod, or kcor_reprocess.
+# doesn't launch the pipeline code, i.e., kcor_rt or kcor_eod.
 
 canonicalpath() {
   if [ -d $1 ]; then
