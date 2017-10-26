@@ -20,7 +20,7 @@ install(PROGRAMS
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_process_list.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_env.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_cme_batch.sh
-	  kcor
+	  ${CMAKE_CURRENT_BINARY_DIR}/kcor
 	  kcor_log
           kcor_simulate
           kcor_simulate_data
