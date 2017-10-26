@@ -61,3 +61,6 @@
   options to do reprocessing vs. updating
 1.4.4
   fix for daily animations for observing days across UT midnight
+  better interface for kcor script
+1.4.5
+  fix for kcor script installation
