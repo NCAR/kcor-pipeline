@@ -69,10 +69,14 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
   endif
 
   ; create daily mp4 of NRGF files
+  tmp_gif_fmt = '(%"tmp-%04d.gif")'
+  for f = 0L, n_gif_filenames - 1L do begin
+    file_link, nrgf_gif_filenames[f], string(f, format=tmp_gif_fmt)
+  endfor
+
   cmd = string(run.ffmpeg, $
-               date, $
                nrgf_dailymp4_filename, $
-               format='(%"%s -r 20 -i %s_%%*_kcor_l1_nrgf.gif -y -loglevel error -vcodec libx264 -passlogfile kcor_nrgf_tmp -r 20 %s")')
+               format='(%"%s -r 20 -i tmp-%%*.gif -y -loglevel error -vcodec libx264 -passlogfile kcor_nrgf_tmp -r 20 %s")')
   spawn, cmd, result, error_result, exit_status=status
   if (status ne 0L) then begin
     mg_log, 'problem creating NRGF daily mp4 with command: %s', cmd, $
@@ -85,7 +89,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
     endif
   endelse
 
-
+  for f = 0L, n_gif_filenames - 1L do file_delete, string(f, format=tmp_gif_fmt)
   tmp_files = file_search('kcor_nrgf_tmp*', count=n_tmp_files)
   if (n_tmp_files gt 0L) then file_delete, tmp_files
 
@@ -130,7 +134,6 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
     endif
   endelse
 
-
   for f = 0L, n_gif_filenames - 1L do file_delete, string(f, format=tmp_gif_fmt)
   tmp_files = file_search('kcor_tmp*', count=n_tmp_files)
   if (n_tmp_files gt 0L) then file_delete, tmp_files
@@ -156,10 +159,13 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
   endif
 
   ; create daily mp4 of cropped NRGF GIF files
+  tmp_gif_fmt = '(%"tmp-%04d.gif")'
+  for f = 0L, n_gif_filenames - 1L do begin
+    file_link, cropped_nrgf_gif_filenames[f], string(f, format=tmp_gif_fmt)
+  endfor
   cmd = string(run.ffmpeg, $
-               date, $
                cropped_nrgf_dailymp4_filename, $
-               format='(%"%s -r 20 -i %s_%%*_kcor_l1_nrgf_cropped.gif -y -loglevel error -vcodec libx264 -passlogfile kcor_nrgf_tmp -r 20 %s")')
+               format='(%"%s -r 20 -i tmp-%%*.gif -y -loglevel error -vcodec libx264 -passlogfile kcor_nrgf_tmp -r 20 %s")')
   spawn, cmd, result, error_result, exit_status=status
   if (status ne 0L) then begin
     mg_log, 'problem creating cropped NRGF daily mp4 with command: %s', cmd, $
@@ -172,7 +178,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
     endif
   endelse
 
-
+  for f = 0L, n_gif_filenames - 1L do file_delete, string(f, format=tmp_gif_fmt)
   tmp_files = file_search('kcor_nrgf_tmp*', count=n_tmp_files)
   if (n_tmp_files gt 0L) then file_delete, tmp_files
 
