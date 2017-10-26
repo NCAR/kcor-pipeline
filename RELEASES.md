@@ -64,3 +64,5 @@
   better interface for kcor script
 1.4.5
   fix for kcor script installation
+1.4.6
+  fix for trying to change permissions of files not owned

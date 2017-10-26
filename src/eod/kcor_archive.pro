@@ -66,7 +66,14 @@ pro kcor_archive, run=run, reprocess=reprocess
     mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
     goto, done
   endif
-  file_chmod, tarfile, /a_read, /g_write
+  if (file_test(tarfile, /user)) then begin
+    file_chmod, tarfile, /a_read, /g_write
+  endif else begin
+    !null = file_test(tarfile, get_mode=mode)
+    if (mode and '664' ne '664') then begin
+      mg_log, 'bad permissions on %s', tarfile, name='kcor/eod', /warn
+    endif
+  endelse
 
   tarlist_cmd = string(tarfile, tarlist, $
                        format='(%"tar tfv %s > %s")')
@@ -78,7 +85,14 @@ pro kcor_archive, run=run, reprocess=reprocess
     mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
     goto, done
   endif
-  file_chmod, tarlist, /a_read, /g_write
+  if (file_test(tarlist, /user)) then begin
+    file_chmod, tarlist, /a_read, /g_write
+  endif else begin
+    !null = file_test(tarlist, get_mode=mode)
+    if (mode and '664' ne '664') then begin
+      mg_log, 'bad permissions on %s', tarlist, name='kcor/eod', /warn
+    endif
+  endelse
 
   if (run.send_to_hpss && ~keyword_set(reprocess)) then begin
     ; create HPSS gateway directory if needed
