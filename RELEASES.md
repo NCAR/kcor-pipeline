@@ -59,3 +59,5 @@
 1.4.3
   daily animations of L1/NRGF full/cropped GIFs
   options to do reprocessing vs. updating
+1.4.4
+  fix for daily animations for observing days across UT midnight
