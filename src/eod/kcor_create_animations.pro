@@ -60,7 +60,6 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
       mg_log, 'problem creating NRGF daily GIF with command: %s', cmd, $
               name='kcor/eod', /error
       mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
-      goto, done
     endif else begin
       if (run.distribute) then begin
         file_copy, nrgf_dailygif_filename, fullres_dir, /overwrite
@@ -82,7 +81,6 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
     mg_log, 'problem creating NRGF daily mp4 with command: %s', cmd, $
             name='kcor/eod', /error
     mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
-    goto, done
   endif else begin
     if (run.distribute) then begin
       file_copy, nrgf_dailymp4_filename, fullres_dir, /overwrite
@@ -105,7 +103,6 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
       mg_log, 'problem creating daily GIF with command: %s', cmd, $
               name='kcor/eod', /error
       mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
-      goto, done
     endif else begin
       if (run.distribute) then begin
         file_copy, dailygif_filename, fullres_dir, /overwrite
@@ -127,7 +124,6 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
     mg_log, 'problem creating daily mp4 with command: %s', cmd, $
             name='kcor/eod', /error
     mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
-    goto, done
   endif else begin
     if (run.distribute) then begin
       file_copy, dailymp4_filename, fullres_dir, /overwrite
@@ -150,7 +146,6 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
       mg_log, 'problem creating cropped NRGF daily GIF with command: %s', cmd, $
               name='kcor/eod', /error
       mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
-      goto, done
     endif else begin
       if (run.distribute) then begin
         file_copy, cropped_nrgf_dailygif_filename, cropped_dir, /overwrite
@@ -171,7 +166,6 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
     mg_log, 'problem creating cropped NRGF daily mp4 with command: %s', cmd, $
             name='kcor/eod', /error
     mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
-    goto, done
   endif else begin
     if (run.distribute) then begin
       file_copy, cropped_nrgf_dailymp4_filename, cropped_dir, /overwrite
@@ -194,7 +188,6 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
       mg_log, 'problem creating daily cropped GIF with command: %s', cmd, $
               name='kcor/eod', /error
       mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
-      goto, done
     endif else begin
       if (run.distribute) then begin
         file_copy, cropped_dailygif_filename, cropped_dir, /overwrite
@@ -217,7 +210,6 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
     mg_log, 'problem creating daily cropped mp4 with command: %s', cmd, $
             name='kcor/eod', /error
     mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
-    goto, done
   endif else begin
     if (run.distribute) then begin
       file_copy, cropped_dailymp4_filename, cropped_dir, /overwrite
