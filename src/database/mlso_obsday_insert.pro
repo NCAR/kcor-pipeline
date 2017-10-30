@@ -78,7 +78,27 @@ function mlso_obsday_insert, date, $
     obs_day_results = db->query('SELECT day_id FROM mlso_numfiles WHERE obs_day=''%s''', $
                                 obs_day, fields=fields)	
     obs_day_index = obs_day_results.day_id
-  endelse	
+
+    ; remove multiple entries
+    if (n_elements(obs_day_index) gt 1L) then begin
+      for i = 2L, n_elements(obs_day_index) - 1L do begin
+        mg_log, 'deleting redundant day_id=%d', obs_day_index[i], name=log_name, /warn
+        db->execute, 'DELETE FROM mlso_numfiles WHERE day_id=%d', obs_day_index[i], $
+                     status=status, error_message=error_message, sql_statement=sql_cmd
+        if (status ne 0L) then begin
+          mg_log, 'error deleting redundant mlso_numfiles entry', name=log_name, /error
+          mg_log, 'status: %d, error message: %s', status, error_message, $
+                  name=log_name, /error
+          mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
+        endif
+      endfor
+
+      ; keep just the first one
+      mg_log, 'keeping day_id=%d', obs_day_index[0], name=log_name, /debug
+      obs_day_index = obs_day_index[0]
+    endif
+  endelse
+
   if (~arg_present(db)) then obj_destroy, db
 								 
   return, obs_day_index							 
