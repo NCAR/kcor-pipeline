@@ -66,3 +66,5 @@
   fix for kcor script installation
 1.4.6
   fix for trying to change permissions of files not owned
+1.4.7
+  fix for redundant obs day identifiers in database
