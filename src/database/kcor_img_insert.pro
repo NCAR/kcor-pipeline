@@ -188,7 +188,7 @@ pro kcor_img_insert, date, fits_list, $
     level_num = level_results.level_id	
 
     ; DB insert command
-    db->execute, 'INSERT INTO kcor_img (file_name, date_obs, date_end, obs_day, level, quality, producttype, filetype, numsum, exptime) VALUES (''%s'', ''%s'', ''%s'', %d, %d, %d, %d, %d, %d, %f) ', $
+    db->execute, 'INSERT INTO kcor_img (file_name, date_obs, date_end, obs_day, level, quality, producttype, filetype, numsum, exptime) VALUES (''%s'', ''%s'', ''%s'', %d, %d, %d, %d, %d, %d, %f)', $
                  fits_file, date_obs, date_end, obsday_index, level_num, quality, producttype_num, $
                  filetype_num, numsum, exptime, $
                  status=status, error_message=error_message, sql_statement=sql_cmd
