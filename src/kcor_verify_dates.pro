@@ -41,6 +41,8 @@ pro kcor_verify_dates, date_expression, config_filename=config_filename
       1: begin
           kcor_verify, endpts[0], config_filename=config_filename, status=status
           if (status ne 0L) then failed_days->add, endpts[0]
+          mg_log, name='kcor/verify', logger=logger
+          logger->setProperty, format='%(time)s %(levelshortname)s: %(message)s'
           mg_log, divider, name='kcor/verify', /info
         end
       2: begin
@@ -49,6 +51,9 @@ pro kcor_verify_dates, date_expression, config_filename=config_filename
           for d = 0L, n_dates - 1L do begin
             kcor_verify, dates[d], config_filename=config_filename, status=status
             if (status ne 0L) then failed_days->add, dates[d]
+
+            mg_log, name='kcor/verify', logger=logger
+            logger->setProperty, format='%(time)s %(levelshortname)s: %(message)s'
             mg_log, divider, name='kcor/verify', /info 
          endfor
         end
@@ -57,6 +62,8 @@ pro kcor_verify_dates, date_expression, config_filename=config_filename
   endfor
 
   n_failed_days = failed_days->count()
+  mg_log, name='kcor/verify', logger=logger
+  logger->setProperty, format='%(time)s %(levelshortname)s: %(message)s'
   if (n_failed_days gt 0L) then begin
     mg_log, 'failed days: %s', strjoin(failed_days->toArray(), ', '), $
             name='kcor/verify', /info
@@ -65,5 +72,6 @@ pro kcor_verify_dates, date_expression, config_filename=config_filename
   endelse
 
   obj_destroy, failed_days
+  mg_log, /quit
   exit, status=n_failed_days
 end

@@ -19,26 +19,28 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   compile_opt strictarr
 
   status = 0L
+  logger_name = 'kcor/verify'
 
   _config_filename = file_expand_path(n_elements(config_filename) eq 0L $
                        ? filepath('kcor.cfg', root=mg_src_root()) $
                        : config_filename)
 
   if (n_elements(date) eq 0L) then begin
-    mg_log, 'date argument is missing', name='kcor', /error
+    mg_log, 'date argument is missing', name=logger_name, /error
     status = 1L
     goto, done
   endif
 
   if (~file_test(_config_filename, /regular)) then begin
-    mg_log, 'config file not found', name='kcor', /error
+    mg_log, 'config file not found', name=logger_name, /error
     status = 1L
     goto, done
   endif
 
-  logger_name = 'kcor/verify'
-
   run = kcor_run(date, config_filename=_config_filename)
+
+  mg_log, name=logger_name, logger=logger
+  logger->setProperty, format='%(time)s %(levelshortname)s: %(message)s'
 
   ; list_file : listing of the tar file for that date 
   ; log_file  : original t1.log file 
@@ -287,7 +289,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
             name=logger_name, /info
     mg_log, 'compression ratio: %0.2f', compress_ratio, name=logger_name, /info
 
-    if ((compress_ratio ge 1.06) or (compress_ratio le 1.03)) then begin 
+    if ((compress_ratio ge 1.06) or (compress_ratio le 1.01)) then begin
       mg_log, 'unusual compression ratio %0.2f', compress_ratio, $
               name=logger_name, /warn
       status = 1L
