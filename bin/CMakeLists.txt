@@ -24,6 +24,7 @@ install(PROGRAMS
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_cme_batch.sh
 	  ${CMAKE_CURRENT_BINARY_DIR}/kcor
 	  ${CMAKE_CURRENT_BINARY_DIR}/kcor_verify_dates.sh
+	  kcor_verify.sh
 	  kcor_log
           kcor_simulate
           kcor_simulate_data
