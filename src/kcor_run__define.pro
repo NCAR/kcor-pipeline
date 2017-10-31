@@ -329,6 +329,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            convert=convert, $
                            ffmpeg=ffmpeg, $
                            mencoder=mencoder, $
+                           hsi=hsi, $
                            npick=npick, $
                            cal_basedir=cal_basedir, $
                            cal_out_dir=cal_out_dir, $
@@ -398,6 +399,9 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   endif
   if (arg_present(mencoder)) then begin
     mencoder = self.options->get('mencoder', section='externals')
+  endif
+  if (arg_present(hsi)) then begin
+    hsi = self.options->get('hsi', section='externals')
   endif
 
   ; calibration

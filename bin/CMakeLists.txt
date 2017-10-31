@@ -7,6 +7,8 @@ configure_file(runkcor_process.sh.in runkcor_process.sh @ONLY)
 configure_file(runkcor_process_range.sh.in runkcor_process_range.sh @ONLY)
 configure_file(runkcor_process_list.sh.in runkcor_process_list.sh @ONLY)
 
+configure_file(kcor_verify_dates.sh.in kcor_verify_dates.sh @ONLY)
+
 configure_file(runkcor_env.sh.in runkcor_env.sh @ONLY)
 
 configure_file(runkcor_cme_batch.sh.in runkcor_cme_batch.sh @ONLY)
@@ -21,6 +23,7 @@ install(PROGRAMS
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_env.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_cme_batch.sh
 	  ${CMAKE_CURRENT_BINARY_DIR}/kcor
+	  ${CMAKE_CURRENT_BINARY_DIR}/kcor_verify_dates.sh
 	  kcor_log
           kcor_simulate
           kcor_simulate_data

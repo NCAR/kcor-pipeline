@@ -18,20 +18,37 @@
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;-
-function kcor_zipsize, filenames, run=run
+function kcor_zipsize, filenames, run=run, logger_name=logger_name, block_size=block_size
   compile_opt strictarr
+
+  n_files = n_elements(filenames)
+  _block_size = n_elements(block_size) eq 0L ? 10L : block_size
+
+  if (n_files gt _block_size) then begin
+    sizes = lonarr(n_files)
+    for b = 0L, ceil(n_files / float(_block_size)) - 1L do begin
+      first = b * _block_size
+      last = ((b + 1) * _block_size - 1L) < (n_files - 1L)
+      sizes[first:last] = kcor_zipsize(filenames[first:last], $
+                                       run=run, $
+                                       logger_name=logger_name, $
+                                       block_size=_block_size)
+    endfor
+    return, sizes
+  endif
 
   cmd = string(run.gunzip, strjoin(filenames, ' '), format='(%"%s -l %s")')
   spawn, cmd, result, error_result, exit_status=status
   if (status ne 0L) then begin
-    logger_name = run.mode eq 'realtime' ? 'kcor/rt' : 'kcor/eod'
-    mg_log, 'error checking unzipped size of %s', filename, $
-            name=logger_name, /error
-    mg_log, '%s', strjoin(error_result, ' '), name=logger_name, /error
+    _logger_name = n_elements(logger_name) eq 0L $
+                   ? (run.mode eq 'realtime' ? 'kcor/rt' : 'kcor/eod') $
+                   : logger_name
+    mg_log, 'error checking unzipped size of %s', strjoin(filenames, ', '), $
+            name=_logger_name, /error
+    mg_log, '%s', strjoin(error_result, ' '), name=_logger_name, /error
     return, -1L
   endif
 
-  n_files = n_elements(filenames)
   sizes = lonarr(n_files)
   for f = 0L, n_files - 1L do begin
     matches = strmatch(result, '*' + file_basename(filenames[f], '.gz'))

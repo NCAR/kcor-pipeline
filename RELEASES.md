@@ -68,3 +68,5 @@
   fix for trying to change permissions of files not owned
 1.4.7
   fix for redundant obs day identifiers in database
+1.4.8
+  verify script
