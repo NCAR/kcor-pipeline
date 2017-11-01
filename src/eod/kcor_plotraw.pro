@@ -61,7 +61,9 @@ pro kcor_plotraw, date, list=list, run=run, $
   if (n_nrgf_files eq 0L) then begin
     mg_log, 'no NRGF raw files to plot', name='kcor/eod', /warn
     goto, done
-  endif
+  endif else begin
+    mg_log, 'plotting %d NRGF raw files', n_nrgf_files, name='kcor/eod', /info
+  endelse
 
   ; create output arrays
   line_means    = fltarr(2, n_nrgf_files)

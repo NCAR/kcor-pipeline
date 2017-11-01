@@ -94,7 +94,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
   ; determine the number of files to process
   n_images = n_elements(list)
-  mg_log, '%d images to process', n_images, name='kcor/eod', /debug
+  mg_log, '%d L0 images to process', n_images, name='kcor/eod', /debug
 
   ; header for row of values
   mg_log, '   %5s %3s %4s %4s %4s %7s %4s', $

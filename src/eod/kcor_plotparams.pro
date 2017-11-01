@@ -55,7 +55,7 @@ pro kcor_plotparams, date, list=list, run=run
 
   ; determine the number of files to process
   nimg = n_elements(list)
-  mg_log, '%d images to plot', nimg, name='kcor/eod', /debug
+  mg_log, '%d L0 images to plot', nimg, name='kcor/eod', /debug
 
   ; declare storage for plot arrays
 
