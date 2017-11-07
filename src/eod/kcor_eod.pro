@@ -318,9 +318,16 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
            string(mg_src_root(/filename), who, $
                   format='(%"Sent from %s (%s)")')]
 
+    n_errors_msg = n_rt_errors eq 0L && n_eod_errors eq 0L $
+                     ? '' $
+                     : string(n_rt_errors, n_eod_errors, $
+                              format='(%" - %d rt, %d eod errors")')
+
     kcor_send_mail, run.notification_email, $
-                    string(date, success ? 'success' : 'problems', $
-                           format='(%"KCor end-of-day processing for %s (%s)")'), $
+                    string(date, $
+                           success ? 'success' : 'problems', $
+                           n_errors_msg, $
+                           format='(%"KCor end-of-day processing for %s (%s%s)")'), $
                     msg, $
                     logger_name='kcor/eod'
   endif else begin
