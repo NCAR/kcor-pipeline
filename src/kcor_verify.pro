@@ -28,13 +28,13 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   if (n_elements(date) eq 0L) then begin
     mg_log, 'date argument is missing', name=logger_name, /error
     status = 1L
-    goto, test2_done
+    goto, done
   endif
 
   if (~file_test(_config_filename, /regular)) then begin
     mg_log, 'config file not found', name=logger_name, /error
     status = 1L
-    goto, test2_done
+    goto, done
   endif
 
   run = kcor_run(date, config_filename=_config_filename)
@@ -80,12 +80,12 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   if (~file_exist(log_filename)) then begin 
      mg_log, 't1.log file not found', name=logger_name, /error
      status = 1L
-     goto, done
+     goto, test2_done
   endif else begin 
     if (~file_exist(list_filename)) then begin 
       mg_log, 'tarlist file not found'
       status = 1L
-      goto, done
+      goto, test2_done
     endif 
   endelse 
 
