@@ -344,6 +344,8 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            nrgf_basedir=nrgf_basedir, $
                            nrgf_remote_dir=nrgf_remote_dir, $
                            nrgf_remote_server=nrgf_remote_server, $
+                           raw_remote_dir=raw_remote_dir, $
+                           raw_remote_server=raw_remote_server, $
                            ssh_key=ssh_key, $
                            hpss_gateway=hpss_gateway, $
                            log_dir=log_dir, $
@@ -570,6 +572,15 @@ pro kcor_run::getProperty, config_contents=config_contents, $
     create_daily_movies = self.options->get('create_daily_movies', section='eod', $
                                             /boolean, default=1B)
   endif
+
+  ; verification
+  if (arg_present(raw_remote_dir)) then begin
+    raw_remote_dir = self.options->get('raw_remote_dir', section='verification')
+  endif
+  if (arg_present(raw_remote_server)) then begin
+    raw_remote_server = self.options->get('raw_remote_server', section='verification')
+  endif
+
 end
 
 

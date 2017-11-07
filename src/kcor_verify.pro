@@ -77,29 +77,31 @@ pro kcor_verify, date, config_filename=config_filename, status=status
                            root=run.raw_basedir)
 
   ; TEST: check if log/list files exist
-  if (~file_exist(log_filename)) then begin 
+
+  if (file_test(log_filename)) then n_log_lines  = file_lines(log_filename)
+  if (file_test(list_filename)) then n_list_lines = file_lines(list_filename)
+
+  if (~file_test(log_filename)) then begin 
      mg_log, 't1.log file not found', name=logger_name, /error
      status = 1L
      goto, test2_done
-  endif else begin 
-    if (~file_exist(list_filename)) then begin 
-      mg_log, 'tarlist file not found'
-      status = 1L
-      goto, test2_done
-    endif 
-  endelse 
+  endif
+  if (~file_test(list_filename)) then begin 
+    mg_log, 'tarlist file not found'
+    status = 1L
+    goto, test2_done
+  endif 
 
   ; TEST: if log file and list file exist, check number of lines:
   ;   list_file # of lines = log_file # of lines - 1
   ;   because the t1.log file is included in the tar
 
-  n_log_lines  = file_lines(log_filename)
-  n_list_lines = file_lines(list_filename)
-
-  mg_log, 'log file: %s', file_basename(log_filename), name=logger_name, /info
-  mg_log, 'log file # of lines: %d', n_log_lines, name=logger_name, /info
-  mg_log, 'list file: %s', file_basename(list_filename), name=logger_name, /info
-  mg_log, 'list file # of lines: %d', n_list_lines, name=logger_name, /info
+  mg_log, 'log file: %s (%d lines)', $
+          file_basename(log_filename), n_log_lines, $
+          name=logger_name, /info
+  mg_log, 'list file: %s (%d lines)', $
+          file_basename(list_filename), n_list_lines, $
+          name=logger_name, /info
 
   ; subtract t1 and t2 logs from tarlist file, i.e., -2 below
   if ((n_log_lines ne n_list_lines - 2) || (n_list_lines eq 0)) then begin 
@@ -259,6 +261,58 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   test2_done:
   free_lun, lun
 
+
+  ; TEST: compare t1/t2 log vs. what is present on MLSO server
+
+  ssh_key_str = run.ssh_key eq '' ? '' : string(run.ssh_key, format='(%"-i %s")')
+  cmd = string(ssh_key_str, run.raw_remote_server, run.raw_remote_dir, date, $
+               format='(%"ssh %s %s ls %s/%s/*.fts | wc -l")')
+  spawn, cmd, output, error_output, exit_status=status
+  if (status ne 0L) then begin
+    mg_log, 'problem checking raw files on %s:%s', $
+            run.raw_remote_server, run.raw_remote_dir, $
+            name=logger_name, /error
+    mg_log, 'Command: %s', cmd, name=logger_name, /error
+    mg_log, '%s', strjoin(error_output, ' '), name=logger_name, /error
+    status = 1L
+    goto, mlso_server_test_done
+  endif
+
+  n_raw_files = long(output[0])
+  if (n_elements(n_log_lines) gt 0L) then begin
+    if (n_log_lines eq n_raw_files) then begin
+      mg_log, '# of L0 on %s (%d) matches t1.log (%d)', $
+              run.raw_remote_server, n_raw_files, n_log_lines, $
+              name=logger_name, /info
+    endif else begin
+      mg_log, '# of L0 on %s (%d) does not match t1.log (%d)', $
+              run.raw_remote_server, n_raw_files, n_log_lines, $
+              name=logger_name, /error
+      status = 1L
+      goto, mlso_server_test_done
+    endelse
+  endif else if (n_elements(n_list_lines) gt 0L) then begin
+    if (n_list_lines - 2L eq n_raw_files) then begin
+      mg_log, '# of L0 on %s (%d) matches tarlist (%d)', $
+              run.raw_remote_server, n_raw_files, n_list_lines - 2L, $
+              name=logger_name, /info
+    endif else begin
+      mg_log, '# of L0 on %s (%d) does not match tarlist (%d)', $
+              run.raw_remote_server, n_raw_files, n_list_lines - 2L, $
+              name=logger_name, /error
+      status = 1L
+      goto, mlso_server_test_done
+    endelse
+  endif else begin
+    mg_log, 'nothing to compare number of files on %s to', $
+            run.raw_remote_server, $
+            name=logger_name, /error
+  endelse
+
+
+  mlso_server_test_done:
+
+
   ; TEST: tgz size
 
   tarball_size = mg_filesize(tarball_filename)
@@ -400,12 +454,19 @@ end
 
 ; main-level example program
 
-cfile = 'kcor.mgalloy.kaula.production.cfg'
+logger_name = 'kcor/verify'
+cfile = 'kcor.mgalloy.mlsodata.production.cfg'
 config_filename = filepath(cfile, subdir=['..', 'config'], root=mg_src_root())
 
-kcor_verify, '20171026', config_filename=config_filename
-kcor_verify, '20171027', config_filename=config_filename
-kcor_verify, '20171028', config_filename=config_filename
-kcor_verify, '20171029', config_filename=config_filename
+dates = ['20171026', '20171027', '20171028', '20171029']
+for d = 0L, n_elements(dates) - 1L do begin
+  kcor_verify, dates[d], config_filename=config_filename
+
+  if (d lt n_elements(dates) - 1L) then begin
+    mg_log, name=logger_name, logger=logger
+    logger->setProperty, format='%(time)s %(levelshortname)s: %(message)s'
+    mg_log, '-----------------------------------', name=logger_name, /info
+  endif
+endfor
 
 end
