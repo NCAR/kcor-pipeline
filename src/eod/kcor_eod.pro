@@ -53,8 +53,13 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   l0_fits_files = file_search(filepath('*_kcor.fts.gz', root=date_dir), $
                               count=n_l0_fits_files)
   if (n_l0_fits_files gt 0L) then begin
-    mg_log, 'L0 FITS files exist in %s', date_dir, name='kcor/eod', /info
-    mg_log, 'L1 processing incomplete', name='kcor/eod', /info
+    if (keyword_set(reprocess)) then begin
+      mg_log, 'L0 FITS files exist in %s', date_dir, name='kcor/eod', /error
+      mg_log, 'L1 processing incomplete', name='kcor/eod', /error
+    endif else begin
+      mg_log, 'L0 FITS files exist in %s', date_dir, name='kcor/eod', /info
+      mg_log, 'L1 processing incomplete', name='kcor/eod', /info
+    endelse
     goto, done
   endif
 
@@ -73,7 +78,11 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     mg_log, 'copying t1 log to level0/', name='kcor/eod', /info
     file_copy, t1_log_file, l0_dir, /overwrite
   endif else begin
-    mg_log, 't1 log does not exist in %s', date_dir, name='kcor/eod', /info
+    if (keyword_set(reprocess)) then begin
+      mg_log, 't1 log does not exist in %s', date_dir, name='kcor/eod', /error
+    endif else begin
+      mg_log, 't1 log does not exist in %s', date_dir, name='kcor/eod', /info
+    endelse
     goto, done
   endelse
 
