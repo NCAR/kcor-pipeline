@@ -56,42 +56,47 @@ pro kcor_archive, run=run, reprocess=reprocess
             name='kcor/eod', /info
   endelse
 
-  tar_cmd = string(tarfile, $
-                   format='(%"tar cf %s *_kcor.fts.gz *t1.log *t2.log")')
-  mg_log, 'creating tarfile %s...', tarfile, name='kcor/eod', /info
-  spawn, tar_cmd, result, error_result, exit_status=status
-  if (status ne 0L) then begin
-    mg_log, 'problem tarring files with command: %s', tar_cmd, $
-            name='kcor/eod', /error
-    mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
-    goto, done
-  endif
-  if (file_test(tarfile, /user)) then begin
-    file_chmod, tarfile, /a_read, /g_write
-  endif else begin
-    !null = file_test(tarfile, get_mode=mode)
-    if (mode and '664' ne '664') then begin
-      mg_log, 'bad permissions on %s', tarfile, name='kcor/eod', /warn
+  if (run.send_to_hpss && ~keyword_set(reprocess)) then begin
+    tar_cmd = string(tarfile, $
+                     format='(%"tar cf %s *_kcor.fts.gz *t1.log *t2.log")')
+    mg_log, 'creating tarfile %s...', tarfile, name='kcor/eod', /info
+    spawn, tar_cmd, result, error_result, exit_status=status
+    if (status ne 0L) then begin
+      mg_log, 'problem tarring files with command: %s', tar_cmd, $
+              name='kcor/eod', /error
+      mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
+      goto, done
     endif
-  endelse
+    if (file_test(tarfile, /user)) then begin
+      file_chmod, tarfile, /a_read, /g_write
+    endif else begin
+      !null = file_test(tarfile, get_mode=mode)
+      if (mode and '664' ne '664') then begin
+        mg_log, 'bad permissions on %s', tarfile, name='kcor/eod', /warn
+      endif
+    endelse
 
-  tarlist_cmd = string(tarfile, tarlist, $
-                       format='(%"tar tfv %s > %s")')
-  mg_log, 'creating tarlist %s...', tarlist, name='kcor/eod', /info
-  spawn, tarlist_cmd, result, error_result, exit_status=status
-  if (status ne 0L) then begin
-    mg_log, 'problem create tarlist file with command: %s', tarlist_cmd, $
-            name='kcor/eod', /error
-    mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
-    goto, done
-  endif
-  if (file_test(tarlist, /user)) then begin
-    file_chmod, tarlist, /a_read, /g_write
-  endif else begin
-    !null = file_test(tarlist, get_mode=mode)
-    if (mode and '664' ne '664') then begin
-      mg_log, 'bad permissions on %s', tarlist, name='kcor/eod', /warn
+    tarlist_cmd = string(tarfile, tarlist, $
+                         format='(%"tar tfv %s > %s")')
+    mg_log, 'creating tarlist %s...', tarlist, name='kcor/eod', /info
+    spawn, tarlist_cmd, result, error_result, exit_status=status
+    if (status ne 0L) then begin
+      mg_log, 'problem create tarlist file with command: %s', tarlist_cmd, $
+              name='kcor/eod', /error
+      mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
+      goto, done
     endif
+
+    if (file_test(tarlist, /user)) then begin
+      file_chmod, tarlist, /a_read, /g_write
+    endif else begin
+      !null = file_test(tarlist, get_mode=mode)
+      if (mode and '664' ne '664') then begin
+        mg_log, 'bad permissions on %s', tarlist, name='kcor/eod', /warn
+      endif
+    endelse
+  endif else begin
+    mg_log, 'not creating tarfile or tarlist', name='kcor/eod', /info
   endelse
 
   if (run.send_to_hpss && ~keyword_set(reprocess)) then begin
