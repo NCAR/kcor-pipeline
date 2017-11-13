@@ -144,7 +144,13 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     free_lun, lun
 
     for i = 0L, n_lines - 1L do begin
-      tokens = strsplit(lines[i], /extract)
+      tokens = strsplit(lines[i], /extract, count=n_tokens)
+      if (n_tokens ne 2) then begin
+        mg_log, 'malformed t1.log file on line %d', i + 1, name='kcor/eod', /error
+        success = 0B
+        goto, done_validating
+      endif
+
       t1_file = tokens[0] + '.gz'
       t1_size = long(tokens[1])
 
@@ -177,6 +183,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   endif else begin
     success = n_missing eq 0L && n_wrongsize eq 0L
   endelse
+
+  done_validating:
 
   if (success) then begin
     files = file_search(filepath('*_kcor.fts.gz', root=l0_dir), count=n_files)
