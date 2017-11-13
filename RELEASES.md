@@ -70,3 +70,6 @@
   fix for redundant obs day identifiers in database
 1.4.8
   verify script
+1.4.9
+  more checks for t1.log correctness
+  don't create L0 tgz if reprocessing
