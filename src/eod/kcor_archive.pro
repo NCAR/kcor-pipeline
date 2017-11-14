@@ -87,14 +87,15 @@ pro kcor_archive, run=run, reprocess=reprocess
       goto, done
     endif
 
-    if (file_test(tarlist, /user)) then begin
-      file_chmod, tarlist, /a_read, /g_write
-    endif else begin
-      !null = file_test(tarlist, get_mode=mode)
-      if (mode and '664' ne '664') then begin
-        mg_log, 'bad permissions on %s', tarlist, name='kcor/eod', /warn
-      endif
-    endelse
+    !null = file_test(tarlist, get_mode=mode)
+    if (mode and '664'o ne '664'o) then begin
+      if (file_test(tarlist, /user)) then begin
+        file_chmod, tarlist, /a_read, /g_write
+      endif else begin
+        mg_log, 'bad permissions %o on %s', mode, tarlist, $
+                name='kcor/eod', /warn
+      endelse
+    endif
   endif else begin
     mg_log, 'not creating tarfile or tarlist', name='kcor/eod', /info
   endelse
