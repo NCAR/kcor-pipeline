@@ -73,3 +73,5 @@
 1.4.9
   more checks for t1.log correctness
   don't create L0 tgz if reprocessing
+1.4.10
+  remove camera correction config option, corrects when we have corrections

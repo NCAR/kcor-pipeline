@@ -417,10 +417,6 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   if (arg_present(cal_out_dir)) then begin
     cal_out_dir = self.options->get('out_dir', section='calibration')
   endif
-  if (arg_present(correct_camera)) then begin
-    correct_camera = self.options->get('correct_camera', section='calibration', $
-                                       /boolean, default=1B)
-  endif
   if (arg_present(camera_correction_dir)) then begin
     camera_correction_dir = self.options->get('camera_correction_dir', $
                                               section='calibration')
@@ -651,6 +647,8 @@ function kcor_run::epoch, name, time=time
                                                   self.date, hst_time, type=7)
     'camera_lut_date': return, self->_readepoch('camera_lut_date', $
                                                 self.date, hst_time, type=7)
+    'correct_camera' : return, self->_readepoch('correct_camera', $
+                                                self.date, hst_time, /boolean)
     'display_min': return, self->_readepoch('display_min', self.date, hst_time, type=4)
     'display_max': return, self->_readepoch('display_max', self.date, hst_time, type=4)
     'display_exp': return, self->_readepoch('display_exp', self.date, hst_time, type=4)
