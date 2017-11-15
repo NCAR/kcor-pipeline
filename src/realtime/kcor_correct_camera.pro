@@ -20,7 +20,7 @@ pro kcor_correct_camera, im, header, run=run, logger_name=logger_name
 
   im = float(im)
 
-  if (~run->epoch(correct_camera)) then begin
+  if (~run->epoch('correct_camera')) then begin
     mg_log, 'not performing camera correction', name=logger_name, /debug
     return
   endif
