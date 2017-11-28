@@ -35,7 +35,7 @@ pro kcor_send_mail, address, subject, body, error=error, logger_name=logger_name
   endelse
 
   cmd = string(subject, address, body_filename, $
-               format='(%"mail -s ''%s'' %s < %s")')
+               format='(%"mail -s ''%s'' -r $(whoami)@ucar.edu %s < %s")')
   spawn, cmd, result, error_result, exit_status=error
   if (error ne 0L) then begin
     mg_log, 'problem with mail command: %s', cmd, name=logger_name, /error
