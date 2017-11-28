@@ -34,6 +34,8 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
   clear = fltarr(header.naxis1, header.naxis2, 2)
   calibration = fltarr(header.naxis1, header.naxis2, 4, 2, n_elements(file_list))
   angles = fltarr(n_elements(file_list))
+  numsum = header.numsum
+  exptime = header.exptime
 
   idiff = run->epoch(header.diffsrid)
 
@@ -67,6 +69,13 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
     calpol = sxpar(header, 'CALPOL', count=n_calpol)
     calpang = sxpar(header, 'CALPANG', count=n_calpang)
     sgsdimv = sxpar(header, 'SGSDIMV', count=n_sgsdimv)
+    file_numsum = sxpar(header, 'NUMSUM', count=n_numsum)
+    if (file_numsum ne numsum) then begin
+      mg_log, 'NUMSUM for %s (%d) does not match NUMSUM for %s (%d)', $
+              file_list[f], file_numsum, file_list[0], numsum, $
+              nmae='kcor/cal', /error
+      return
+    endif
 
     ; get diffuser intensity from somewhere in 1E-6 B_sun
     
@@ -127,5 +136,7 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
               vdimref:vdimref, $
               date:date, $
               file_list:file_list, $
-              file_types:file_types}
+              file_types:file_types, $
+              numsum: numsum, $
+              exptime: exptime}
 end

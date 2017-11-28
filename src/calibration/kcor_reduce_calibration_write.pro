@@ -33,6 +33,7 @@ pro kcor_reduce_calibration_write, data, metadata, $
   date = metadata.date
   file_list = metadata.file_list
   file_types = metadata.file_types
+  numsum = metadata.numsum
 
   sz = size(data.gain, /dimensions)
 
@@ -58,6 +59,8 @@ pro kcor_reduce_calibration_write, data, metadata, $
   darkvar = ncdf_vardef(cid, 'Dark', [xdim, ydim, beamdim], /float)
   gainvar = ncdf_vardef(cid, 'Gain', [xdim, ydim, beamdim], /float)
   dimrefvar = ncdf_vardef(cid, 'DIM Reference Voltage', [scalardim], /float)
+  dimnumsum = ncdf_vardef(cid, 'numsum', [scalardim], /long)
+  dimexptime = ncdf_vardef(cid, 'exptime', [scalardim], /float)
   ncdf_attput, cid, dimrefvar, 'units', 'V'
   pixels0var = ncdf_vardef(cid, 'Pixels Fit with Model for Beam 0', $
                            [vectordim, pixels0dim], /short)
@@ -89,6 +92,8 @@ pro kcor_reduce_calibration_write, data, metadata, $
   ncdf_varput, cid, darkvar, dark
   ncdf_varput, cid, gainvar, gain
   ncdf_varput, cid, dimrefvar, vdimref
+  ncdf_varput, cid, dimnumsum, numsum
+  ncdf_varput, cid, dimexptime, exptime
   ncdf_varput, cid, mmatvar, mmat
   ncdf_varput, cid, dmatvar, dmat
   ncdf_varput, cid, pixels0var, pixels0
