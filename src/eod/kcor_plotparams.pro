@@ -140,10 +140,10 @@ pro kcor_plotparams, date, list=list, run=run
             i + 1, n_elements(list), file_basename(l0_file), $
             strmid(datatype, 0, 3), $
             name='kcor/eod', /debug
-    mg_log, '%s%7.3f %7.3f %7.3f', $
+    mg_log, '%s%8.3f %8.3f %8.3f', $
             indent, modltrt, sgs_dimv[i], sgs_scin[i], $
             name='kcor/eod', /debug
-    mg_log, '%s%7.3f %7.3f %9.3f', $
+    mg_log, '%s%8.3f %8.3f %10.3f', $
             indent, tcamfocs, rcamfocs, o1focs, $
             name='kcor/eod', /debug
 
