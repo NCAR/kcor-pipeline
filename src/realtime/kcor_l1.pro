@@ -413,6 +413,12 @@ pro kcor_l1, date_str, ok_files, $
     ncdf_varget, unit, 'Gain', gain_alfred
     ncdf_varget, unit, 'Modulation Matrix', mmat
     ncdf_varget, unit, 'Demodulation Matrix', dmat
+    if (kcor_nc_varid(unit, 'numsum') eq -1L) then begin
+      ; default for old cal files without a numsum variable is 512
+      cal_numsum = 512L
+    endif else begin
+      ncdf_varget, unit, 'numsum', cal_numsum
+    endelse
     ncdf_close, unit
 
     ; modify gain images
@@ -692,6 +698,8 @@ pro kcor_l1, date_str, ok_files, $
         img_cor[*, *, s, b] /= gain_shift[*, *, b]
       endfor
     endfor
+
+    img_cor *= cal_numsum / struct.numsum
 
     img_temp = 0
 
