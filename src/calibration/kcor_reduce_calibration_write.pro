@@ -34,6 +34,7 @@ pro kcor_reduce_calibration_write, data, metadata, $
   file_list = metadata.file_list
   file_types = metadata.file_types
   numsum = metadata.numsum
+  exptime = metadata.exptime
 
   sz = size(data.gain, /dimensions)
 
