@@ -699,7 +699,7 @@ pro kcor_l1, date_str, ok_files, $
       endfor
     endfor
 
-    img_cor *= cal_numsum / struct.numsum
+    img_cor *= float(cal_numsum) / float(struct.numsum)
 
     img_temp = 0
 
