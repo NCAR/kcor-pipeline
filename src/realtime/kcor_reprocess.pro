@@ -10,8 +10,11 @@
 ; :Keywords:
 ;   run : in, required, type=object
 ;     `kcor_run` object
+;   error : out, optional, type=long
+;     set to named variable to retrieve the status of the reprocessing, 0L
+;     indicates no error
 ;-
-pro kcor_reprocess, date, run=run
+pro kcor_reprocess, date, run=run, error=error
   compile_opt strictarr
 
   ; catch and log any crashes
@@ -92,8 +95,29 @@ pro kcor_reprocess, date, run=run
     file_delete, l1_dir, /recursive, /allow_nonexistent
   endif
 
-  ; TODO: remove *kcor* files from archive, movie, fullres, croppedgif, rg dirs
-  ; if a run.reprocess
+  ; remove *kcor* files from archive, fullres, croppedgif, rg dirs
+  if (run.reprocess) then begin
+    date_parts = kcor_decompose_date(date)
+    wildcard = '*kcor*'
+    dirs = [run.archive_basedir, run.fullres_basedir, run.croppedgif_basedir, $
+            run.nrgf_basedir]
+    for d = 0L, n_elements(dirs) - 1L do begin
+      old_files = file_search(filepath(wildcard, $
+                                       subdir=date_parts, $
+                                       root=run.archive_dir), $
+                              count=n_old_files)
+      if (n_old_files gt 0L) then begin
+        for f = 0L, n_old_files - 1L do begin
+          mg_file_delete, old_files[f], status=error, message=message
+          if (error ne 0L) then begin
+            mg_log, 'error deleting %s', old_files[f], name='kcor/reprocess', /error
+            mg_log, message, name='kcor/reprocess', /error
+            goto, done
+          endif
+        endfor
+      endif
+    endfor
+  endif
 
   if (run.reprocess) then begin
     p_dir = filepath('p', subdir=date, root=run.raw_basedir)
