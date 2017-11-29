@@ -70,7 +70,11 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
 
   if (available) then begin
     if (run.reprocess || run.update_processing) then begin
-      kcor_reprocess, date, run=run
+      kcor_reprocess, date, run=run, error=error
+      if (error ne 0L) then begin
+        mg_log, 'error in reprocessing setup, exiting', name='kcor/rt', /error
+        goto, done
+      endif
     endif else begin
       mg_log, 'skipping updating/reprocessing', name='kcor/rt', /info
     endelse
