@@ -69,11 +69,22 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
     calpol = sxpar(header, 'CALPOL', count=n_calpol)
     calpang = sxpar(header, 'CALPANG', count=n_calpang)
     sgsdimv = sxpar(header, 'SGSDIMV', count=n_sgsdimv)
+
+    ; NUMSUM for all files must be the same to produce a calibration
     file_numsum = sxpar(header, 'NUMSUM', count=n_numsum)
     if (file_numsum ne numsum) then begin
       mg_log, 'NUMSUM for %s (%d) does not match NUMSUM for %s (%d)', $
               file_list[f], file_numsum, file_list[0], numsum, $
-              nmae='kcor/cal', /error
+              name='kcor/cal', /error
+      return
+    endif
+
+    ; EXPTIME for all files must be the same to produce a calibration
+    file_exptime = sxpar(header, 'EXPTIME', count=n_exptime)
+    if (file_exptime ne exptime) then begin
+      mg_log, 'EXPTIME for %s (%f) does not match EXPTIME for %s (%f)', $
+              file_list[f], file_exptime, file_list[0], exptime, $
+              name='kcor/cal', /error
       return
     endif
 
