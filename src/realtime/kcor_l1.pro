@@ -419,6 +419,18 @@ pro kcor_l1, date_str, ok_files, $
     endif else begin
       ncdf_varget, unit, 'numsum', cal_numsum
     endelse
+
+    if (kcor_nc_varid(unit, 'exptime') eq -1L) then begin
+      if (run.use_pipeline_calfiles) then begin
+        tokens = strsplit(file_basename(run->epoch('cal_file'), '.ncdf'), '_', /extract)
+        cal_exptime = float(strmid(tokens[-1], 0, strlen(tokens[-1]) - 2))
+      endif else begin
+        ; no way to determine EXPTIME for old-style cal files
+      endelse
+    endif else begin
+      ncdf_varget, unit, 'exptime', cal_exptime
+    endelse
+
     ncdf_close, unit
 
     ; modify gain images
@@ -556,6 +568,13 @@ pro kcor_l1, date_str, ok_files, $
 
     ; put the Level-0 FITS header into a structure
     struct = fitshead2struct(header, dash2underscore=dash2underscore)
+
+    if (n_elements(cal_exptime) gt 0L && cal_exptime ne struct.exptime) then begin
+      mg_log, 'cal file EXPTIME (%0.1f ms) does not match file (%01.f ms) for %s', $
+              cal_exptime, struct.exptime, file_basename(l0_file), $
+              name='kcor/rt', /warn
+      continue
+    endif
 
     ; all files that have passed KCOR_QUALITY are science type even though
     ; they may have been engineering in the L0
