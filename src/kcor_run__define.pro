@@ -149,6 +149,7 @@ function kcor_run::epoch, name, time=time
     'rpixc': return, self->_readepoch('rpixc', self.date, hst_time, type=3)
     'cal_epoch_version': return, self->_readepoch('cal_epoch_version', $
                                                   self.date, hst_time, type=7)
+    'lyotstop': return, self->_readepoch('lyotstop', self.date, hst_time, type=7)
     else: mg_log, 'epoch value %s not found', name, name=self.log_name, /error
   endcase
 end
@@ -281,6 +282,11 @@ pro kcor_run::write_epochs, filename, time=time
           format='(%"%-30s : %d")'
 
   printf, lun, 'cal_epoch_version', self->epoch('cal_epoch_version', time=time), $
+          format='(%"%-30s : %s")'
+
+  printf, lun, 'lyotstop', self->epoch('lyotstop', time=time), $
+          format='(%"%-30s : %s")'
+  printf, lun, 'lyotstop', self->epoch('use_lyotstop_keyword', time=time) ? 'YES' : 'NO', $
           format='(%"%-30s : %s")'
 
   if (n_elements(filename) gt 0L) then free_lun, lun

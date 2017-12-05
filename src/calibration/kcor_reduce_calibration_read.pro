@@ -55,6 +55,12 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
     date_obs = sxpar(header, 'DATE-OBS', count=qdate_obs)
     run.time = date_obs
 
+    ; save info from beginning of calibration sequence
+    if (f eq 0) then begin
+      original_date_obs = date_obs
+      lyotstop = kcor_lyotstop(header, run=run)
+    endif
+
     kcor_correct_camera, thisdata, header, run=run, logger_name='kcor/cal'
 
     if (run->epoch('remove_horizontal_artifact')) then begin
@@ -140,6 +146,10 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
     mg_log, 'insufficient calibration positions', name='kcor/cal', /error
     return
   endelse
+  
+  ; set time for epochs for the rest of the calibration sequence to be the start
+  ; of the calibration sequence
+  run.time = original_date_obs
 
   data = {dark:dark, gain:gain, calibration:calibration}
   metadata = {angles:angles, $
@@ -149,5 +159,6 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
               file_list:file_list, $
               file_types:file_types, $
               numsum: numsum, $
-              exptime: exptime}
+              exptime: exptime, $
+              lyotstop: lyotstop}
 end

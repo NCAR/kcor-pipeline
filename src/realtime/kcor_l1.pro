@@ -490,9 +490,9 @@ pro kcor_l1, date_str, ok_files, $
             fnum, nfiles, file_basename(l0_file), strmid(type, 0, 3), $
             name='kcor/rt', /info
 
-    if (cal_epoch_version ne run.cal_epoch_version) then begin
+    if (cal_epoch_version ne run->epoch('cal_epoch_version')) then begin
       mg_log, 'cal file epoch_version (%s) does not match (%s) for time of file %s', $
-              cal_epoch_version, run.cal_epoch_version, file_basename(l0_file), $
+              cal_epoch_version, run->epoch('cal_epoch_version'), file_basename(l0_file), $
               name='kcor/rt', /warn
       mg_log, 'skipping file %s', file_basename(l0_file), name='kcor/rt', /warn
       continue

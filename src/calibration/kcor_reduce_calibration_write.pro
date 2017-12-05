@@ -33,14 +33,12 @@ pro kcor_reduce_calibration_write, data, metadata, $
   date = metadata.date
   file_list = metadata.file_list
   file_types = metadata.file_types
-  numsum = metadata.numsum
-  exptime = metadata.exptime
 
   sz = size(data.gain, /dimensions)
 
   cid = ncdf_create(outfile, /clobber, /netcdf4_format)
   ncdf_attput, cid, /global, 'title', 'COSMO K-Cor Calibration Data for ' + date
-  ncdf_attput, cid, /global, 'epoch_version', run.cal_epoch_version
+  ncdf_attput, cid, /global, 'epoch_version', run->epoch('cal_epoch_version')
 
   ; define dimensions
   filesdim = ncdf_dimdef(cid, 'Number of Files', n_elements(file_list))
@@ -62,8 +60,10 @@ pro kcor_reduce_calibration_write, data, metadata, $
   gainvar = ncdf_vardef(cid, 'Gain', [xdim, ydim, beamdim], /float)
   dimrefvar = ncdf_vardef(cid, 'DIM Reference Voltage', [scalardim], /float)
   dimnumsum = ncdf_vardef(cid, 'numsum', [scalardim], /long)
+
   dimexptime = ncdf_vardef(cid, 'exptime', [scalardim], /float)
   ncdf_attput, cid, dimrefvar, 'units', 'V'
+
   pixels0var = ncdf_vardef(cid, 'Pixels Fit with Model for Beam 0', $
                            [vectordim, pixels0dim], /short)
   fits0var = ncdf_vardef(cid, 'Model Fit Parameters for Beam 0', $
@@ -80,6 +80,7 @@ pro kcor_reduce_calibration_write, data, metadata, $
                         [xdim, ydim, beamdim, stokesdim, statedim], /float)
   dmatvar = ncdf_vardef(cid, 'Demodulation Matrix', $
                         [xdim, ydim, beamdim, statedim, stokesdim], /float)
+  lyotstop_var = ncdf_vardef(cid, 'lyotstop', [scalardim], /string)
 
   if filelistvar eq -1 or filetypesvar eq -1 or darkvar eq -1 or gainvar eq -1 or $
       dimrefvar eq -1 or fits0var eq -1 or fits1var eq -1 or $
@@ -94,8 +95,9 @@ pro kcor_reduce_calibration_write, data, metadata, $
   ncdf_varput, cid, darkvar, dark
   ncdf_varput, cid, gainvar, gain
   ncdf_varput, cid, dimrefvar, vdimref
-  ncdf_varput, cid, dimnumsum, numsum
-  ncdf_varput, cid, dimexptime, exptime
+  ncdf_varput, cid, dimnumsum, metadata.numsum
+  ncdf_varput, cid, dimexptime, metadata.exptime
+  ncdf_varput, cid, lyotstop_var, metadata.lyotstop
   ncdf_varput, cid, mmatvar, mmat
   ncdf_varput, cid, dmatvar, dmat
   ncdf_varput, cid, pixels0var, pixels0
