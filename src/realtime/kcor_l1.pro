@@ -490,6 +490,14 @@ pro kcor_l1, date_str, ok_files, $
             fnum, nfiles, file_basename(l0_file), strmid(type, 0, 3), $
             name='kcor/rt', /info
 
+    if (cal_epoch_version ne run.cal_epoch_version) then begin
+      mg_log, 'cal file epoch_version (%s) does not match (%s) for time of file %s', $
+              cal_epoch_version, run.cal_epoch_version, file_basename(l0_file), $
+              name='kcor/rt', /warn
+      mg_log, 'skipping file %s', file_basename(l0_file), name='kcor/rt', /warn
+      continue
+    endif
+
     ; read date of observation (needed to compute ephemeris info)
     date_obs = sxpar(header, 'DATE-OBS')   ; yyyy-mm-ddThh:mm:ss
     run.time = date_obs
@@ -575,6 +583,7 @@ pro kcor_l1, date_str, ok_files, $
       mg_log, 'cal file EXPTIME (%0.1f ms) does not match file (%01.f ms) for %s', $
               cal_exptime, struct.exptime, file_basename(l0_file), $
               name='kcor/rt', /warn
+      mg_log, 'skipping file %s', file_basename(l0_file), name='kcor/rt', /warn
       continue
     endif
 
