@@ -197,7 +197,7 @@ pro kcor_reduce_calibration, date, filelist=filelist, config_filename=config_fil
   first_time = tokens[1]
   outfile_basename = string(date, $
                             first_time, $
-                            run->epoch('calversion'), $
+                            run->epoch('cal_epoch_version'), $
                             kcor_find_code_version(), $
                             float(exposures[0]), $
                             format='(%"%s_%s_kcor_cal_v%s_%s_%0.1fms.ncdf")')
