@@ -415,6 +415,12 @@ pro kcor_l1, date_str, ok_files, $
     ncdf_varget, unit, 'Demodulation Matrix', dmat
     cal_epoch_version = kcor_nc_getattribute(unit, 'epoch_version', default='-1')
 
+    if (kcor_nc_varid(unit, 'lyotstop') eq -1L) then begin
+      cal_lyotstop = 'undefined'
+    endif else begin
+      ncdf_varget, unit, 'lyotstop', cal_lyotstop
+    endelse
+
     if (kcor_nc_varid(unit, 'numsum') eq -1L) then begin
       ; default for old cal files without a numsum variable is 512
       cal_numsum = 512L
@@ -582,6 +588,15 @@ pro kcor_l1, date_str, ok_files, $
     if (n_elements(cal_exptime) gt 0L && cal_exptime ne struct.exptime) then begin
       mg_log, 'cal file EXPTIME (%0.1f ms) does not match file (%01.f ms) for %s', $
               cal_exptime, struct.exptime, file_basename(l0_file), $
+              name='kcor/rt', /warn
+      mg_log, 'skipping file %s', file_basename(l0_file), name='kcor/rt', /warn
+      continue
+    endif
+
+    file_lyotstop = kcor_lyotstop(header, run=run)
+    if (cal_lyotstop ne file_lyotstop) then begin
+      mg_log, 'cal file LYOTSTOP (%s) does not match file (%s) for %s', $
+              cal_lyotstop, file_lyotstop, file_basename(l0_file), $
               name='kcor/rt', /warn
       mg_log, 'skipping file %s', file_basename(l0_file), name='kcor/rt', /warn
       continue
