@@ -57,6 +57,105 @@ end
 ;= API
 
 ;+
+; Get epoch value.
+;
+; :Params:
+;   name : in, required, type=string
+;     name of epoch entity to query for
+;
+; :Keywords:
+;   time : in, required, type=string
+;     time at which epoch value is requested as UT time in the form "HHMMSS"
+;-
+function kcor_run::epoch, name, time=time
+  compile_opt strictarr
+
+  ; times in the epoch file are in HST (observing days)
+  if (n_elements(time) eq 0L) then begin
+    hst_time = self.time eq '' ? '000000' : self.time
+  endif else begin
+    hst_time = kcor_ut2hst(time)
+  endelse
+
+  case name of
+    'mlso_url': return, self->_readepoch('mlso_url', self.date, hst_time, type=7) 
+    'doi_url': return, self->_readepoch('doi_url', self.date, hst_time, type=7)
+    'plate_scale': return, self->_readepoch('plate_scale', self.date, hst_time, type=4)
+    'use_default_darks': begin
+        return, self->_readepoch('use_default_darks', self.date, hst_time, /boolean)
+      end
+    'gbuparams_filename': begin
+        return, self->_readepoch('gbuparams_filename', self.date, hst_time, type=7)
+      end
+    'skypol_bias': return, self->_readepoch('skypol_bias', self.date, hst_time, type=4)
+    'skypol_factor': return, self->_readepoch('skypol_factor', self.date, hst_time, type=4) 
+    'bias': return, self->_readepoch('bias', self.date, hst_time, type=4) 
+    'distortion_correction_filename': begin
+        return, self->_readepoch('distortion_correction_filename', $
+                                 self.date, hst_time, type=7)
+      end
+    'cal_file': begin
+        if (self->_readepoch('use_pipeline_calfiles', self.date, hst_time, /boolean)) then begin
+          calfile = self->_find_calfile(self.date, hst_time)
+          return, calfile eq '' $
+                    ? self->_readepoch('cal_file', self.date, hst_time, type=7) $
+                    : calfile
+        endif else begin
+          return, self->_readepoch('cal_file', self.date, hst_time, type=7)
+        endelse
+      end
+    'use_pipeline_calfiles': return, self->_readepoch('use_pipeline_calfiles', self.date, hst_time, /boolean)
+    '01id': return, self->_readepoch('01id', self.date, hst_time, type=7)
+    'default_occulter_size' : return, self->_readepoch('default_occulter_size', $
+                                                       self.date, hst_time, type=4)
+    'use_default_occulter_size': return, self->_readepoch('use_default_occulter_size', $
+                                                          self.date, hst_time, /boolean)
+    'header_changes': return, self->_readepoch('header_changes', $
+                                               self.date, hst_time, /boolean)
+    'mk4-opal': return, self->_readepoch('mk4-opal', self.date, hst_time, type=4)
+    'mk4-opal_comment': return, self->_readepoch('mk4-opal_comment', self.date, hst_time, type=7)
+    'POC-L10P6-10-1': return, self->_readepoch('POC-L10P6-10-1', self.date, hst_time, type=4)
+    'POC-L10P6-10-1_comment': return, self->_readepoch('POC-L10P6-10-1_comment', self.date, hst_time, type=7)
+    'calversion': return, self->_readepoch('calversion', self.date, hst_time, type=7)
+    'use_camera_prefix': return, self->_readepoch('use_camera_prefix', $
+                                                  self.date, hst_time, /boolean)
+    'camera_prefix': return, self->_readepoch('camera_prefix', $
+                                                  self.date, hst_time, type=7)
+    'camera_lut_date': return, self->_readepoch('camera_lut_date', $
+                                                self.date, hst_time, type=7)
+    'correct_camera' : return, self->_readepoch('correct_camera', $
+                                                self.date, hst_time, /boolean)
+    'display_min': return, self->_readepoch('display_min', self.date, hst_time, type=4)
+    'display_max': return, self->_readepoch('display_max', self.date, hst_time, type=4)
+    'display_exp': return, self->_readepoch('display_exp', self.date, hst_time, type=4)
+    'display_gamma': return, self->_readepoch('display_gamma', self.date, hst_time, type=4)
+    'remove_horizontal_artifact': return, self->_readepoch('remove_horizontal_artifact', $
+                                                           self.date, hst_time, /boolean)
+    'horizontal_artifact_lines': return, self->_readepoch('horizontal_artifact_lines', $
+                                                          self.date, hst_time, $
+                                                          /extract, type=3)
+    'produce_calibration': return, self->_readepoch('produce_calibration', $
+                                                    self.date, hst_time, /boolean)
+    'OC-1': return, self->_readepoch('OC-1', self.date, hst_time, type=4)
+    'OC-991.6': return, self->_readepoch('OC-991.6', self.date, hst_time, type=4)
+    'OC-1006.': return, self->_readepoch('OC-1006.', self.date, hst_time, type=4)
+    'OC-1018.': return, self->_readepoch('OC-1018.', self.date, hst_time, type=4)
+    'bmax': return, self->_readepoch('bmax', self.date, hst_time, type=4)
+    'smax': return, self->_readepoch('smax', self.date, hst_time, type=4)
+    'cmax': return, self->_readepoch('cmax', self.date, hst_time, type=4)
+    'cmin': return, self->_readepoch('cmin', self.date, hst_time, type=4)
+    'check_noise': return, self->_readepoch('check_noise', self.date, hst_time, /boolean)
+    'rpixb': return, self->_readepoch('rpixb', self.date, hst_time, type=3)
+    'rpixt': return, self->_readepoch('rpixt', self.date, hst_time, type=3)
+    'rpixc': return, self->_readepoch('rpixc', self.date, hst_time, type=3)
+    'cal_epoch_version': return, self->_readepoch('cal_epoch_version', $
+                                                  self.date, hst_time, type=7)
+    else: mg_log, 'epoch value %s not found', name, name=self.log_name, /error
+  endcase
+end
+
+
+;+
 ; Write the values used from the epochs file to the given filename.
 ;
 ; :Params:
@@ -184,6 +283,9 @@ pro kcor_run::write_epochs, filename, time=time
           format='(%"%-30s : %d")'
   printf, lun, 'rpixc', self->epoch('rpixc', time=time), $
           format='(%"%-30s : %d")'
+
+  printf, lun, 'cal_epoch_version', self->epoch('cal_epoch_version', time=time), $
+          format='(%"%-30s : %s")'
 
   if (n_elements(filename) gt 0L) then free_lun, lun
 end
@@ -577,103 +679,6 @@ pro kcor_run::getProperty, config_contents=config_contents, $
     raw_remote_server = self.options->get('raw_remote_server', section='verification')
   endif
 
-end
-
-
-;+
-; Get epoch value.
-;
-; :Params:
-;   name : in, required, type=string
-;     name of epoch entity to query for
-;
-; :Keywords:
-;   time : in, required, type=string
-;     time at which epoch value is requested as UT time in the form "HHMMSS"
-;-
-function kcor_run::epoch, name, time=time
-  compile_opt strictarr
-
-  ; times in the epoch file are in HST (observing days)
-  if (n_elements(time) eq 0L) then begin
-    hst_time = self.time eq '' ? '000000' : self.time
-  endif else begin
-    hst_time = kcor_ut2hst(time)
-  endelse
-
-  case name of
-    'mlso_url': return, self->_readepoch('mlso_url', self.date, hst_time, type=7) 
-    'doi_url': return, self->_readepoch('doi_url', self.date, hst_time, type=7)
-    'plate_scale': return, self->_readepoch('plate_scale', self.date, hst_time, type=4)
-    'use_default_darks': begin
-        return, self->_readepoch('use_default_darks', self.date, hst_time, /boolean)
-      end
-    'gbuparams_filename': begin
-        return, self->_readepoch('gbuparams_filename', self.date, hst_time, type=7)
-      end
-    'skypol_bias': return, self->_readepoch('skypol_bias', self.date, hst_time, type=4)
-    'skypol_factor': return, self->_readepoch('skypol_factor', self.date, hst_time, type=4) 
-    'bias': return, self->_readepoch('bias', self.date, hst_time, type=4) 
-    'distortion_correction_filename': begin
-        return, self->_readepoch('distortion_correction_filename', $
-                                 self.date, hst_time, type=7)
-      end
-    'cal_file': begin
-        if (self->_readepoch('use_pipeline_calfiles', self.date, hst_time, /boolean)) then begin
-          calfile = self->_find_calfile(self.date, hst_time)
-          return, calfile eq '' $
-                    ? self->_readepoch('cal_file', self.date, hst_time, type=7) $
-                    : calfile
-        endif else begin
-          return, self->_readepoch('cal_file', self.date, hst_time, type=7)
-        endelse
-      end
-    'use_pipeline_calfiles': return, self->_readepoch('use_pipeline_calfiles', self.date, hst_time, /boolean)
-    '01id': return, self->_readepoch('01id', self.date, hst_time, type=7)
-    'default_occulter_size' : return, self->_readepoch('default_occulter_size', $
-                                                       self.date, hst_time, type=4)
-    'use_default_occulter_size': return, self->_readepoch('use_default_occulter_size', $
-                                                          self.date, hst_time, /boolean)
-    'header_changes': return, self->_readepoch('header_changes', $
-                                               self.date, hst_time, /boolean)
-    'mk4-opal': return, self->_readepoch('mk4-opal', self.date, hst_time, type=4)
-    'mk4-opal_comment': return, self->_readepoch('mk4-opal_comment', self.date, hst_time, type=7)
-    'POC-L10P6-10-1': return, self->_readepoch('POC-L10P6-10-1', self.date, hst_time, type=4)
-    'POC-L10P6-10-1_comment': return, self->_readepoch('POC-L10P6-10-1_comment', self.date, hst_time, type=7)
-    'calversion': return, self->_readepoch('calversion', self.date, hst_time, type=7)
-    'use_camera_prefix': return, self->_readepoch('use_camera_prefix', $
-                                                  self.date, hst_time, /boolean)
-    'camera_prefix': return, self->_readepoch('camera_prefix', $
-                                                  self.date, hst_time, type=7)
-    'camera_lut_date': return, self->_readepoch('camera_lut_date', $
-                                                self.date, hst_time, type=7)
-    'correct_camera' : return, self->_readepoch('correct_camera', $
-                                                self.date, hst_time, /boolean)
-    'display_min': return, self->_readepoch('display_min', self.date, hst_time, type=4)
-    'display_max': return, self->_readepoch('display_max', self.date, hst_time, type=4)
-    'display_exp': return, self->_readepoch('display_exp', self.date, hst_time, type=4)
-    'display_gamma': return, self->_readepoch('display_gamma', self.date, hst_time, type=4)
-    'remove_horizontal_artifact': return, self->_readepoch('remove_horizontal_artifact', $
-                                                           self.date, hst_time, /boolean)
-    'horizontal_artifact_lines': return, self->_readepoch('horizontal_artifact_lines', $
-                                                          self.date, hst_time, $
-                                                          /extract, type=3)
-    'produce_calibration': return, self->_readepoch('produce_calibration', $
-                                                    self.date, hst_time, /boolean)
-    'OC-1': return, self->_readepoch('OC-1', self.date, hst_time, type=4)
-    'OC-991.6': return, self->_readepoch('OC-991.6', self.date, hst_time, type=4)
-    'OC-1006.': return, self->_readepoch('OC-1006.', self.date, hst_time, type=4)
-    'OC-1018.': return, self->_readepoch('OC-1018.', self.date, hst_time, type=4)
-    'bmax': return, self->_readepoch('bmax', self.date, hst_time, type=4)
-    'smax': return, self->_readepoch('smax', self.date, hst_time, type=4)
-    'cmax': return, self->_readepoch('cmax', self.date, hst_time, type=4)
-    'cmin': return, self->_readepoch('cmin', self.date, hst_time, type=4)
-    'check_noise': return, self->_readepoch('check_noise', self.date, hst_time, /boolean)
-    'rpixb': return, self->_readepoch('rpixb', self.date, hst_time, type=3)
-    'rpixt': return, self->_readepoch('rpixt', self.date, hst_time, type=3)
-    'rpixc': return, self->_readepoch('rpixc', self.date, hst_time, type=3)
-    else: mg_log, 'epoch value %s not found', name, name=self.log_name, /error
-  endcase
 end
 
 

@@ -413,6 +413,8 @@ pro kcor_l1, date_str, ok_files, $
     ncdf_varget, unit, 'Gain', gain_alfred
     ncdf_varget, unit, 'Modulation Matrix', mmat
     ncdf_varget, unit, 'Demodulation Matrix', dmat
+    cal_epoch_version = kcor_nc_getattribute(unit, 'epoch_version', default='-1')
+
     if (kcor_nc_varid(unit, 'numsum') eq -1L) then begin
       ; default for old cal files without a numsum variable is 512
       cal_numsum = 512L
