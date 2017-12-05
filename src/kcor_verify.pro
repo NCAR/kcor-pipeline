@@ -153,6 +153,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
       mg_log, 'log file %s missing in tar list', log_name, $
               name=logger_name, /error
       status = 1L
+      free_lun, lun
       goto, test1_done
     endif
 
@@ -160,6 +161,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
       mg_log, 'log file %s in tar list %d times', log_name, npick, $
               name=logger_name, /error
       status = 1L
+      free_lun, lun
       goto, test1_done
     endif
   endfor 
@@ -230,6 +232,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
       mg_log, 'protection for %s is wrong: %s', filename, tokens[0], $
               name=logger_name, /error
       status = 1L
+      free_lun, lun
       goto, test2_done
     endif
 
@@ -238,6 +241,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
       mg_log, 'extra file %s found in tar list', filename, $
               name=logger_name, /error
       status = 1L
+      free_lun, lun
       goto, test2_done
     endif else begin 
 ;      if (filesize ne log_sizes[pick]) then begin 
@@ -258,8 +262,9 @@ pro kcor_verify, date, config_filename=config_filename, status=status
             name=logger_name, /info
   endif
 
-  test2_done:
   free_lun, lun
+
+  test2_done:
 
 
   ; TEST: compare t1/t2 log vs. what is present on MLSO server
