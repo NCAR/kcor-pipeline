@@ -138,6 +138,6 @@ if __name__ == '__main__':
         if args.cal_list:
             calibrate_list(args.cal_list, dates, args.flags, args.no_wait)
         else:
-            calibrate_dates(args.calibrate, dates, args.flags, args.no_wait)
+            calibrate_dates(dates, args.flags, args.no_wait)
     else:
         process_dates(dates, args.flags, args.no_wait)
