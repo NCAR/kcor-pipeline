@@ -409,6 +409,13 @@ pro kcor_l1, date_str, ok_files, $
     endelse
 
     unit = ncdf_open(calpath)
+    if (unit lt 0L) then begin
+      mg_log, 'unable to open cal file %s', file_basename(calpath), $
+              name='kcor/rt', /error
+      error = 1L
+      goto, done
+    endif
+
     ncdf_varget, unit, 'Dark', dark_alfred
     ncdf_varget, unit, 'Gain', gain_alfred
     ncdf_varget, unit, 'Modulation Matrix', mmat
