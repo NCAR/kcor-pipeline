@@ -22,16 +22,34 @@ pro kcor_calibration, date, $
                       filelist_filename=filelist_filename
   compile_opt strictarr
 
+  ; catch and log any crashes
+  catch, error
+  if (error ne 0L) then begin
+    catch, /cancel
+    mg_log, /last_error, name='kcor/eod', /critical
+    goto, done
+  endif
+
   run = kcor_run(date, config_filename=config_filename)
+  run.mode = 'eod'
 
-  n_files = file_lines(filelist_filename)
-  filelist = strarr(n_files)
+  mg_log, '------------------------------', name='kcor/eod', /info
 
-  calfile = ''
+  version = kcor_find_code_version(revision=revision, branch=branch)
+  mg_log, 'kcor-pipeline %s (%s) [%s]', version, revision, branch, $
+          name='kcor/eod', /info
+  mg_log, 'IDL %s (%s %s)', !version.release, !version.os, !version.arch, $
+          name='kcor/eod', /info
+  mg_log, 'starting calibration for %s', date, name='kcor/eod', /info
 
   if (n_elements(filelist_filename) gt 0L) then begin
+    n_files = file_lines(filelist_filename)
+    filelist = strarr(n_files)
+
+    mg_log, 'using provided list of files for calibration', name='kcor/eod', info
     openr, lun, filelist_filename, /get_lun
 
+    calfile = ''
     for f = 0L, n_files - 1L do begin
       readf, lun, calfile
       filelist[f] = calfile
@@ -76,5 +94,6 @@ pro kcor_calibration, date, $
     mg_log, 'skipping updating database', name='kcor/eod', /info
   endelse
 
-  obj_destroy, run
+  done:
+  if (obj_valid(run)) then obj_destroy, run
 end
