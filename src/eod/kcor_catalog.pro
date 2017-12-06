@@ -30,7 +30,11 @@ pro kcor_catalog, date, list=list, run=run
   endif
 
   ; move to kcor L0 directory
-  cd, l0_dir
+  if (file_test(l0_dir, /directory)) then begin
+    cd, l0_dir
+  endif else begin
+    cd, filepath(date, root=run.raw_basedir)
+  endelse
 
   for f = 0L, n_elements(list) - 1L do begin
     fits_file = list[f]
