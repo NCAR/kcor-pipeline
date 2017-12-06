@@ -13,6 +13,8 @@
 ;     date in the form 'YYYYMMDD' to produce calibration for
 ;
 ; :Keywords:
+;   catalog_dir : in, optional, type=string
+;     if present, subdir of date directory that contains files from `FILELIST`
 ;   filelist : in, optional, type=strarr
 ;     list of L0 FITS files to use for the calibration if present, otherwise
 ;     reads the `calibration_files.txt` file in the process directory
@@ -21,7 +23,11 @@
 ;   run : in, optional, type=object
 ;     `kcor_run` object; `config_filename` or `run` is required
 ;-
-pro kcor_reduce_calibration, date, filelist=filelist, config_filename=config_filename, run=run
+pro kcor_reduce_calibration, date, $
+                             catalog_dir=catalog_dir, $
+                             filelist=filelist, $
+                             config_filename=config_filename, $
+                             run=run
   common kcor_random, seed
 
   run_created = ~obj_valid(run)
@@ -29,7 +35,12 @@ pro kcor_reduce_calibration, date, filelist=filelist, config_filename=config_fil
     run = kcor_run(date, config_filename=config_filename)
   endif
 
+  _catalog_dir = n_elements(catalog_dir) eq 0L $
+                   ? filepath('level0', subdir=date, root=run.raw_basedir) $
+                   : catalog_dir
+
   if (n_elements(filelist) gt 0L) then begin
+    mg_log, 'constructing list of calibration files...', name='kcor/cal', /debug
     n_files = n_elements(filelist)
     file_list = filelist
     exposures = strarr(n_files)
@@ -49,6 +60,7 @@ pro kcor_reduce_calibration, date, filelist=filelist, config_filename=config_fil
 
     cd, current_dir
   endif else begin
+    mg_log, 'reading calibration files list...', name='kcor/cal', /debug
     file_list = kcor_read_calibration_text(date, run.process_basedir, $
                                            exposures=exposures, $
                                            n_files=n_files)
@@ -68,11 +80,8 @@ pro kcor_reduce_calibration, date, filelist=filelist, config_filename=config_fil
   endif
 
   ; read the data
-  mg_log, 'reading data...', name='kcor/cal', /info
-  kcor_reduce_calibration_read, file_list, $
-                                filepath('level0', $
-                                         subdir=date, $
-                                         root=run.raw_basedir), $
+  mg_log, 'reading data (%d files)...', n_elements(file_list), name='kcor/cal', /info
+  kcor_reduce_calibration_read, file_list, _catalog_dir, $
                                 data=data, metadata=metadata, $
                                 run=run
 

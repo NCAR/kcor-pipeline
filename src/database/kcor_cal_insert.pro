@@ -37,6 +37,7 @@
 ;   20170216 - First version, with all cal fields from spreadsheet plan
 ;-
 pro kcor_cal_insert, date, fits_list, $
+                     catalog_dir=catalog_dir, $
                      run=run, $
                      database=database, $
                      obsday_index=obsday_index
@@ -68,8 +69,10 @@ pro kcor_cal_insert, date, fits_list, $
   endelse
 
   l0_dir = filepath('level0', subdir=date, root=run.raw_basedir)
+  _catalog_dir = n_elements(catalog_dir) eq 0L ? l0_dir : catalog_dir
+
   cd, current=start_dir
-  cd, l0_dir
+  cd, catalog_dir
 
   ; step through list of fits files passed in parameter
   nfiles = n_elements(fits_list)

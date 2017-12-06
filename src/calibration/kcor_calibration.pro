@@ -57,10 +57,17 @@ pro kcor_calibration, date, $
 
     free_lun, lun
   endif else begin
-    if (run.catalog_files) then kcor_catalog, date, list=filelist, run=run
+    if (run.catalog_files) then begin
+      ; clear inventory files before catalog'ing
+      log_glob = filepath('*.log', subdir=date, root=run.process_basedir)
+      log_files = file_search(log_glob, count=n_files)
+      if (n_files gt 0L) then file_delete, log_files, /allow_nonexistent
+
+      kcor_catalog, date, run=run, catalog_dir=catalog_dir
+    endif
   endelse
 
-  kcor_reduce_calibration, date, run=run, filelist=filelist
+  kcor_reduce_calibration, date, run=run, filelist=filelist, catalog_dir=catalog_dir
 
   ; update databases
   if (run.update_database && (n_elements(filelist_filename) eq 0L)) then begin
@@ -82,7 +89,10 @@ pro kcor_calibration, date, $
 
       if (n_cal_files gt 0L) then begin
         kcor_cal_insert, date, cal_files, $
-                         run=run, database=db, obsday_index=obsday_index
+                         catalog_dir=catalog_dir, $
+                         run=run, $
+                         database=db, $
+                         obsday_index=obsday_index
       endif else begin
         mg_log, 'no cal files for kcor_cal table', name='kcor/eod', /info
       endelse

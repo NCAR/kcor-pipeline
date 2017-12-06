@@ -28,6 +28,9 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
 
   ; read header of the first file to determine image size etc.
   if (~file_test(filenames[0], /regular)) then filenames[0] += '.gz'
+
+  mg_log, 'testing %s...', filenames[0], name='kcor/cal', /debug
+
   header = fitshead2struct(headfits(filenames[0]))
   date = (strsplit(header.date_obs, 'T', /extract))[0]
   dark = fltarr(header.naxis1, header.naxis2, 2)
