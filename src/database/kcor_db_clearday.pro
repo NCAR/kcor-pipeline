@@ -49,11 +49,14 @@ end
 ;     database connection to use
 ;   log_name : in, required, type=string
 ;     name of log to send log messages to
+;   calibration : in, optional, type=boolean
+;     set to just clear the calibration for a day
 ;-
 pro kcor_db_clearday, run=run, $
                       database=database, $
                       obsday_index=obsday_index, $
-                      log_name=log_name
+                      log_name=log_name, $
+                      calibration=calibration
   compile_opt strictarr
 
   ; Note: The connect procedure accesses DB connection information in the file
@@ -87,42 +90,45 @@ pro kcor_db_clearday, run=run, $
           name=log_name, /info
 
   ; zero num_kcor_pb and num_kcor_nrgf in mlso_numfiles
-  mg_log, 'zeroing KCor values for mlso_numfiles table', name=log_name, /info
-  db->execute, 'UPDATE mlso_numfiles SET num_kcor_pb_fits=''0'', num_kcor_nrgf_fits=''0'', num_kcor_pb_lowresgif=''0'', num_kcor_pb_fullresgif=''0'', num_kcor_nrgf_lowresgif=''0'', num_kcor_nrgf_fullresgif=''0'' WHERE day_id=''%d''', $
-               obsday_index, $
-               status=status, error_message=error_message, sql_statement=sql_cmd
-  if (status ne 0L) then begin
-    mg_log, 'error zeroing values in mlso_numfiles table', name=log_name, /error
-    mg_log, 'status: %d, error message: %s', status, error_message, $
-            name=log_name, /error
-    mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
+  if (not keyword_set(calibration)) then begin
+    mg_log, 'zeroing KCor values for mlso_numfiles table', name=log_name, /info
+    db->execute, 'UPDATE mlso_numfiles SET num_kcor_pb_fits=''0'', num_kcor_nrgf_fits=''0'', num_kcor_pb_lowresgif=''0'', num_kcor_pb_fullresgif=''0'', num_kcor_nrgf_lowresgif=''0'', num_kcor_nrgf_fullresgif=''0'' WHERE day_id=''%d''', $
+                 obsday_index, $
+                 status=status, error_message=error_message, sql_statement=sql_cmd
+    if (status ne 0L) then begin
+      mg_log, 'error zeroing values in mlso_numfiles table', name=log_name, /error
+      mg_log, 'status: %d, error message: %s', status, error_message, $
+              name=log_name, /error
+      mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
+    endif
+
+    ; mlso_sgs
+    mg_log, 'clearing mlso_sgs table', name=log_name, /info
+    db->execute, 'DELETE FROM mlso_sgs WHERE obs_day=''%s'' AND source=''k''', $
+                 obsday_index, $
+                 status=status, error_message=error_message, sql_statement=sql_cmd
+    if (status ne 0L) then begin
+      mg_log, 'error clearing mlso_sgs table', name=log_name, /error
+      mg_log, 'status: %d, error message: %s', status, error_message, $
+              name=log_name, /error
+      mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
+    endif
+
+    kcor_db_clearday_cleartable, 'kcor_img', $
+                                 obsday_index=obsday_index, $
+                                 database=db, $
+                                 log_name=log_name
+    kcor_db_clearday_cleartable, 'kcor_eng', $
+                                 obsday_index=obsday_index, $
+                                 database=db, $
+                                 log_name=log_name
+    kcor_db_clearday_cleartable, 'kcor_sci', $
+                                 obsday_index=obsday_index, $
+                                 database=db, $
+                                 log_name=log_name
   endif
 
-  ; mlso_sgs
-  mg_log, 'clearing mlso_sgs table', name=log_name, /info
-  db->execute, 'DELETE FROM mlso_sgs WHERE obs_day=''%s'' AND source=''k''', $
-               obsday_index, $
-               status=status, error_message=error_message, sql_statement=sql_cmd
-  if (status ne 0L) then begin
-    mg_log, 'error clearing mlso_sgs table', name=log_name, /error
-    mg_log, 'status: %d, error message: %s', status, error_message, $
-            name=log_name, /error
-    mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
-  endif
-
-  kcor_db_clearday_cleartable, 'kcor_img', $
-                               obsday_index=obsday_index, $
-                               database=db, $
-                               log_name=log_name
-  kcor_db_clearday_cleartable, 'kcor_eng', $
-                               obsday_index=obsday_index, $
-                               database=db, $
-                               log_name=log_name
   kcor_db_clearday_cleartable, 'kcor_cal', $
-                               obsday_index=obsday_index, $
-                               database=db, $
-                               log_name=log_name
-  kcor_db_clearday_cleartable, 'kcor_sci', $
                                obsday_index=obsday_index, $
                                database=db, $
                                log_name=log_name
