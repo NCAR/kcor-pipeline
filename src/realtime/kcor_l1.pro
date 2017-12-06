@@ -429,7 +429,7 @@ pro kcor_l1, date_str, ok_files, $
     endelse
 
     if (kcor_nc_varid(unit, 'exptime') eq -1L) then begin
-      if (run.use_pipeline_calfiles) then begin
+      if (run->epoch('use_pipeline_calfiles')) then begin
         tokens = strsplit(file_basename(run->epoch('cal_file'), '.ncdf'), '_', /extract)
         cal_exptime = float(strmid(tokens[-1], 0, strlen(tokens[-1]) - 2))
       endif else begin
