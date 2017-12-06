@@ -208,7 +208,7 @@ pro kcor_reduce_calibration, date, filelist=filelist, config_filename=config_fil
   kcor_reduce_calibration_write, data, metadata, $
                                  mmat, dmat, outfile, $
                                  pixels0, fits0, fiterrors0, $
-                                 pixels1, fits1, fiterrors1
+                                 pixels1, fits1, fiterrors1, run=run
   mg_log, 'wrote %s', file_basename(outfile), name='kcor/cal', /info
 
   mg_log, 'done', name='kcor/cal', /info

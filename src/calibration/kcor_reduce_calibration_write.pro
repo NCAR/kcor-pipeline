@@ -20,11 +20,15 @@
 ;   pixels1
 ;   fits1
 ;   fiterrors1
+;
+; :Keywords:
+;   run : in, optional, type=object
+;     `kcor_run` object; `config_filename` or `run` is required
 ;-
 pro kcor_reduce_calibration_write, data, metadata, $
                                    mmat, dmat, outfile, $
                                    pixels0, fits0, fiterrors0, $
-                                   pixels1, fits1, fiterrors1
+                                   pixels1, fits1, fiterrors1, run=run
   compile_opt strictarr
 
   dark = data.dark
