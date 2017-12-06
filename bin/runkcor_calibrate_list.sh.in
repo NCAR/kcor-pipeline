@@ -23,20 +23,26 @@ SCRIPT_LOC=$(canonicalpath $0)
 BIN_DIR=$(dirname ${SCRIPT_LOC})
 PIPE_DIR=$(dirname ${BIN_DIR})
 
+if [[ $# -lt 1 ]]; then
+  echo "syntax: $0 filelist_filename [date] [config_flags]"
+  exit 1
+else
+  FILELIST_FILENAME=$1
+fi
 
 # use today if date not passed to script
-if [[ $# -lt 1 ]]; then
+if [[ $# -lt 2 ]]; then
   DATE=$(date +"%Y%m%d")
 else
-  DATE=$1
+  DATE=$2
 fi
 
 MACHINE=$(hostname | sed -e 's/\..*$//')
-if [[ $# -lt 2 ]]; then
+if [[ $# -lt 3 ]]; then
   CONFIG=${PIPE_DIR}/config/kcor.${USER}.${MACHINE}.production.cfg
   #CONFIG=${PIPE_DIR}/config/kcor.${USER}.${MACHINE}.latest.cfg
 else
-  CONFIG=${PIPE_DIR}/config/kcor.${USER}.${MACHINE}.${2}.cfg
+  CONFIG=${PIPE_DIR}/config/kcor.${USER}.${MACHINE}.${3}.cfg
 fi
 
 IDL=@IDL_EXECUTABLE@
@@ -52,4 +58,4 @@ KCOR_SRC_DIR=${PIPE_DIR}/src
 KCOR_PATH=+${KCOR_SRC_DIR}:${SSW_DIR}:${GEN_DIR}:+${LIB_DIR}:"<IDL_DEFAULT>"
 KCOR_DLM_PATH=${KCOR_SRC_DIR}/realtime:${LIB_DIR}/mysql:"<IDL_DEFAULT>"
 
-${IDL} -quiet -IDL_QUIET 1 -IDL_STARTUP "" -IDL_PATH ${KCOR_PATH} -IDL_DLM_PATH ${KCOR_DLM_PATH} -e "kcor_calibration, '${DATE}', config_filename='${CONFIG}'"
+${IDL} -quiet -IDL_QUIET 1 -IDL_STARTUP "" -IDL_PATH ${KCOR_PATH} -IDL_DLM_PATH ${KCOR_DLM_PATH} -e "kcor_calibration, '${DATE}', config_filename='${CONFIG}', filelist_filename='${FILELIST_FILENAME}'"
