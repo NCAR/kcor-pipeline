@@ -1201,12 +1201,13 @@ pro kcor_l1, date_str, ok_files, $
     fxaddpar, newheader, 'BOPAL', $
               run->epoch(struct.diffsrid) * 1e-6, $
               string(run->epoch(struct.diffsrid + '_comment'), $
-                     format='(%" %s")')
+                     format='(%" %s")'), $
+              format='(G0.3)'
 
     fxaddpar, newheader, 'BZERO', struct.bzero, $
               ' offset for unsigned integer data'
     fxaddpar, newheader, 'BSCALE', bscale, $
-              ' physical = data * BSCALE + BZERO', format='(f8.3)'
+              ' physical = data * BSCALE + BZERO', format='(F8.3)'
 
     ; data display information
     fxaddpar, newheader, 'DATAMIN', min(corona_int), ' minimum  value of  data'
@@ -1218,7 +1219,7 @@ pro kcor_l1, date_str, ok_files, $
               ' maximum  value for display', $
               format='(f10.2)'
     fxaddpar, newheader, 'DISPEXP', run->epoch('display_exp'), $
-              ' exponent value for display (d=b^dispexp)', $
+              ' exponent value for display (d=b^DISPEXP)', $
               format='(f10.2)'
 
     ; coordinate system information
