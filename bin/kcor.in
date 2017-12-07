@@ -1,12 +1,61 @@
 #!/usr/bin/env python
 
 import argparse
+import datetime
 import os
+import psutil
 import subprocess
 
 
 DEVNULL = open(os.devnull, 'w')
 PIPELINE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+
+
+intervals = (
+    ('weeks', 604800),  # 60 * 60 * 24 * 7
+    ('days', 86400),    # 60 * 60 * 24
+    ('hrs', 3600),    # 60 * 60
+    ('mins', 60),
+    ('secs', 1),
+    )
+
+def display_time(seconds, granularity=2):
+    result = []
+
+    for name, count in intervals:
+        value = seconds // count
+        if value:
+            seconds -= value * count
+            if value == 1:
+                name = name.rstrip('s')
+            result.append("%d %s" % (value, name))
+    return ' '.join(result[:granularity])
+
+
+def format_timedelta(timedelta):
+    return(display_time(int(timedelta.total_seconds()), granularity=len(intervals)))
+
+
+def list_processes():
+    kcor_processes = []
+    for p in psutil.process_iter():
+        cmdline = p.cmdline()
+        cmdline = '' if len(cmdline) == 0 else cmdline[-1]
+        if p.name() == 'idl' and cmdline.startswith('kcor'):
+            kcor_processes.append({'cmdline': cmdline,
+                                   'pid': p.pid,
+                                   'start_time': p.create_time()})
+    if len(kcor_processes) == 0:
+        print('no kcor processes currently running')
+        return
+
+    now = datetime.datetime.now()
+
+    for p in kcor_processes:
+        started = datetime.datetime.fromtimestamp(p['start_time'])
+        time_running = now - started
+        start_time = started.strftime("%Y-%m-%d %H:%M:%S")
+        print('[%d] (%s running %s): %s' % (p['pid'], start_time, format_timedelta(time_running), p['cmdline']))
 
 
 def wait_for(process):
@@ -103,7 +152,10 @@ if __name__ == '__main__':
                    2017, and '20170101-20170201,20170201,20170202' represents
                    all of January and the first two days of February 2017.
                 '''
-    parser.add_argument('dates', type=str, nargs='+', help=date_help)
+    parser.add_argument('dates', type=str, nargs='*', help=date_help)
+
+    parser.add_argument('-l', '--list', action='store_true',
+                        help='set to list kcor processes')
 
     parser.add_argument('-f', '--flags',
                         type=str,
@@ -131,6 +183,14 @@ if __name__ == '__main__':
                         version=name)
 
     args = parser.parse_args()
+
+    if args.list:
+        list_processes()
+        parser.exit(status=0)
+
+    # only allow no date arguments if doing a listing
+    if len(args.dates) == 0:
+        parser.error('too few arguments')
 
     dates = ''.join(args.dates)
 
