@@ -72,7 +72,7 @@ pro kcor_cal_insert, date, fits_list, $
   _catalog_dir = n_elements(catalog_dir) eq 0L ? l0_dir : catalog_dir
 
   cd, current=start_dir
-  cd, catalog_dir
+  cd, _catalog_dir
 
   ; step through list of fits files passed in parameter
   nfiles = n_elements(fits_list)
