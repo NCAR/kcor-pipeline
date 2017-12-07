@@ -59,9 +59,15 @@ pro kcor_calibration, date, $
   endif else begin
     if (run.catalog_files) then begin
       ; clear inventory files before catalog'ing
-      log_glob = filepath('*.log', subdir=date, root=run.process_basedir)
-      log_files = file_search(log_glob, count=n_files)
-      if (n_files gt 0L) then file_delete, log_files, /allow_nonexistent
+      txt_glob = filepath('*.txt', subdir=date, root=run.process_basedir)
+      txt_files = file_search(txt_glob, count=n_files)
+      if (n_files gt 0L) then begin
+        mg_log, 'deleting %d old inventory log files', n_files, $
+                name='kcor/eod', /debug
+        file_delete, txt_files, /allow_nonexistent
+      endif else begin
+        mg_log, 'no old inventory log files to delete', name='kcor/eod', /debug
+      endelse
 
       kcor_catalog, date, run=run, catalog_dir=catalog_dir
     endif
@@ -105,5 +111,6 @@ pro kcor_calibration, date, $
   endelse
 
   done:
+  mg_log, 'done', name='kcor/eod', /info
   if (obj_valid(run)) then obj_destroy, run
 end
