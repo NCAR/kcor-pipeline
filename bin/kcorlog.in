@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 
 import argparse
-import glob
 import os
 import re
 import time
 
-POLL_SECS = 0.1
+POLL_SECS = 0.5
 
 LEVELS = ['DEBUG', 'INFO', 'WARN', 'ERROR', 'CRITICAL']
 LOG_DIR = '/hao/acos/kcor/logs'
@@ -52,28 +51,34 @@ def filter_file(logfile, level_index, follow):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Display/filter KCor log file')
-    parser.add_argument('logfiles', nargs='+', help='KCor log filenames or dates')
+    name = 'KCor log viewer @VERSION@'
+
+    parser = argparse.ArgumentParser(description=name)
+    parser.add_argument('logfiles', nargs='+',
+                        help='CoMP log filenames or dates')
     parser.add_argument('-l', '--level',
                         help='filter level: DEBUG INFO WARN ERROR CRITICAL (default DEBUG)')
-    parser.add_argument('-f', '--follow', help='output appended data as file grows', action='store_true')
-    parser.add_argument('-d', '--debug', help='DEBUG filter level', action='store_true')
-    parser.add_argument('-i', '--info', help='INFO filter level', action='store_true')
-    parser.add_argument('-w', '--warn', help='WARN filter level', action='store_true')
-    parser.add_argument('-e', '--error', help='ERROR filter level', action='store_true')
-    parser.add_argument('-c', '--critical', help='CRITICAL filter level', action='store_true')
+    parser.add_argument('-f', '--follow',
+                        help='output appended data as file grows',
+                        action='store_true')
+    parser.add_argument('-d', '--debug', help='DEBUG filter level',
+                        action='store_true')
+    parser.add_argument('-i', '--info', help='INFO filter level',
+                        action='store_true')
+    parser.add_argument('-w', '--warn', help='WARN filter level',
+                        action='store_true')
+    parser.add_argument('-e', '--error', help='ERROR filter level',
+                        action='store_true')
+    parser.add_argument('-c', '--critical', help='CRITICAL filter level',
+                        action='store_true')
+    parser.add_argument('-v', '--version',
+                        action='version',
+                        version=name)
+
     args = parser.parse_args()
 
-    logfiles = []
-    for f in args.logfiles:
-        filename = f if f.endswith('.log') else os.path.join(LOG_DIR, f + '.*.log')
-        g = glob.glob(filename)
-        if g:
-            for p in g:
-                logfiles.append(p)
-        else:
-            logfiles.append(filename)
-
+    logfiles = [f if f.endswith('.log') else os.path.join(LOG_DIR, f + '.log')
+                  for f in args.logfiles]
     follow = args.follow
     if follow and len(logfiles) > 1:
         print 'cannot follow multiple files'
@@ -100,7 +105,6 @@ def main():
         parser.print_help()
         return
 
-    is_first = False
     for i, f in enumerate(logfiles):
         if len(logfiles) > 1:
             if i != 0: print('')
