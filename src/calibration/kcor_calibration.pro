@@ -62,7 +62,7 @@ pro kcor_calibration, date, $
       txt_glob = filepath('*.txt', subdir=date, root=run.process_basedir)
       txt_files = file_search(txt_glob, count=n_files)
       if (n_files gt 0L) then begin
-        mg_log, 'deleting %d old inventory log files', n_files, $
+        mg_log, 'deleting %d old inventory files', n_files, $
                 name='kcor/eod', /debug
         file_delete, txt_files, /allow_nonexistent
       endif else begin
