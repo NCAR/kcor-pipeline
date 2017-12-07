@@ -1,0 +1,163 @@
+#!/usr/bin/env python
+
+import argparse
+import base64
+import os
+import sys
+
+PY3 = sys.version_info > (3, 0)
+
+if PY3:
+    from io import BytesIO as IO
+else:
+    from StringIO import StringIO as IO
+
+from astropy.io import fits
+import numpy as np
+from PIL import Image
+
+
+def none_filter(x):
+    return x
+
+
+def sqrt_filter(x):
+    return np.sqrt(x)
+
+
+def log_filter(x):
+    return np.log1p(x)
+
+
+def create_slices(slices):
+    new_slices = []
+    for s in slices.split(','):
+        parts = s.split(':')
+        if len(parts) == 1:
+            start = int(parts[0]) if parts[0] != '' else None
+            new_slices.append(slice(start, start + 1))
+        elif len(parts) == 2:
+            start = int(parts[0]) if parts[0] != '' else None
+            end = int(parts[1]) if parts[1] != '' else None
+            new_slices.append(slice(start, end))
+        elif len(parts) == 3:
+            start = int(parts[0]) if parts[0] != '' else None
+            end = int(parts[1]) if parts[1] != '' else None
+            stride = int(parts[2]) if parts[2] != '' else None
+            new_slices.append(slice(start, end, stride))
+        else:
+            print('invalid slice notation: %s' % s)
+            return None
+
+    return new_slices
+
+
+def byte_scale(data, min=None, max=None, debug=False):
+    '''Convert an arbitrary n-dimensional array into a unsigned byte valued
+       array'''
+
+    dims = data.shape
+
+    if debug:
+        print('%s %d x %d'% (data.dtype, dims[0], dims[1]))
+
+    # determine min/max values to use
+    min_value = float(min) if min is not None else data.min()
+    max_value = float(max) if max is not None else data.max()
+
+    if debug:
+        print('min=%f, max=%f' % (min_value, max_value))
+
+    # scale
+    new_data = 255.0 * (data.astype(float) - min_value) / (max_value - min_value)
+
+    return new_data.astype(np.ubyte)
+
+
+def pre_osc(screen=False):
+    return '\x1bPtmux;\x1b\x1b]' if screen else '\x1b]'
+
+
+def post_osc(screen=False):
+    return '\a\x1b\\' if screen else '\a'
+
+
+def display_image(data, debug=False):
+    '''For more about the protocol to display images at the terminal in iTerm 2,
+       see https://iterm2.com/documentation-images.html'''
+    term = os.environ['TERM']
+    screen = term.startswith('screen')
+
+    im = Image.fromarray(data)
+    output = IO()
+    im.save(output, 'PNG')
+
+    im_bytes = base64.b64encode(output.getvalue())
+
+    # a sequence of bytes in Python 2 is a string, but in Python 3 it must be
+    # decoded via a Unicode encoding
+    if PY3:
+        im_str = im_bytes.decode('latin1')
+    else:
+        im_str = im_bytes
+
+    iterm_format = '%s1337;File=inline=1;width=auto;height=auto:%s%s'
+    print(iterm_format % (pre_osc(screen), im_str, post_osc(screen)))
+
+
+def main():
+    name = 'kcorcat @VERSION@'
+    description = 'a KCor file query/display program'
+    parser = argparse.ArgumentParser(description='%s - %s' % (name, description))
+
+    parser.add_argument('filename', help='FITS file to query')
+    parser.add_argument('--min', type=float, default=None, help='min for scaling')
+    parser.add_argument('--max', type=float, default=None, help='max for scaling')
+    parser.add_argument('--debug', action='store_true', help='set to debug')
+    parser.add_argument('-d', '--display', action='store_true', help='set to display')
+    parser.add_argument('-l', '--list', action='store_true', help='set to list HDUs')
+    parser.add_argument('-r', '--header', action='store_true', help='set to display header')
+    parser.add_argument('-e', '--exten_no', type=int, default=0, help='specify extension')
+    parser.add_argument('-f', '--filter', type=str, default='none', help='specify filter (default: none)')
+    parser.add_argument('-s', '--slice', type=str, default=None, help='specify slice of data array to display')
+    parser.add_argument('-v', '--version',
+                        action='version',
+                        version=name)
+    
+    args = parser.parse_args()
+
+    filters = {'none': none_filter, 'sqrt': sqrt_filter, 'log': log_filter}
+
+    with fits.open(args.filename) as f:
+        if args.list or (not args.header and not args.display):
+            f.info()
+
+        if args.header:
+            header = f[args.exten_no].header
+            print(repr(header))
+
+        if args.display:
+            data = f[args.exten_no].data
+            ndims = len(data.shape)
+            dims = data.shape
+
+            if args.slice is not None:
+                indices = create_slices(args.slice)
+                data = data[tuple(indices)].squeeze()
+
+            ndims = len(data.shape)
+            if ndims != 2:
+                print('bad number of dimensions: %d' % ndims)
+                return
+
+            if args.debug:
+                dims = data.shape
+                print('%s %d x %d'% (data.dtype, dims[0], dims[1]))
+
+            data = filters[args.filter](data)
+            byte_data = byte_scale(data, min=args.min, max=args.max, debug=args.debug)
+            display_image(byte_data, debug=args.debug)
+
+
+if __name__ == '__main__':
+    main()
