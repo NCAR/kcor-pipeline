@@ -63,7 +63,7 @@ def byte_scale(data, min=None, max=None, exp=None, debug=False):
         print('min=%f, max=%f' % (min_value, max_value))
 
     # scale
-    new_data = data.astype(float)
+    new_data = np.flipud(data.astype(float))
     new_data = (new_data - min_value) / (max_value - min_value)
 
     min_ind = np.where(new_data < min_value)
