@@ -104,7 +104,7 @@ pro kcor_reprocess, date, run=run, error=error
     for d = 0L, n_elements(dirs) - 1L do begin
       old_files = file_search(filepath(wildcard, $
                                        subdir=date_parts, $
-                                       root=run.archive_basedir), $
+                                       root=dirs[d]), $
                               count=n_old_files)
       if (n_old_files gt 0L) then begin
         for f = 0L, n_old_files - 1L do begin
