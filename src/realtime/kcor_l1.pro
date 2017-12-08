@@ -1221,6 +1221,9 @@ pro kcor_l1, date_str, ok_files, $
     fxaddpar, newheader, 'DISPEXP', run->epoch('display_exp'), $
               ' exponent value for display (d=b^DISPEXP)', $
               format='(f10.2)'
+    fxaddpar, newheader, 'DISPGAM', run->epoch('display_gamma'), $
+              ' gamma value for color table correction', $
+              format='(f10.2)'
 
     ; coordinate system information
     fxaddpar, newheader, 'WCSNAME',  'helioprojective-cartesian', $
