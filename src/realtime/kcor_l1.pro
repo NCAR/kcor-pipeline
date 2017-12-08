@@ -1196,7 +1196,7 @@ pro kcor_l1, date_str, ok_files, $
     fxaddpar, newheader, 'OBSSWID', struct.obsswid, $
               ' version of the observing software'
 
-    fxaddpar, newheader, 'BUNIT', '10e-6 Bsun', $
+    fxaddpar, newheader, 'BUNIT', '1.0E-6 Bsun', $
               ' Brightness with respect to solar disc'
     fxaddpar, newheader, 'BOPAL', $
               run->epoch(struct.diffsrid) * 1e-6, $
