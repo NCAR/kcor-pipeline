@@ -17,16 +17,10 @@ import numpy as np
 from PIL import Image
 
 
-def none_filter(x):
-    return x
-
-
-def sqrt_filter(x):
-    return np.sqrt(x)
-
-
-def log_filter(x):
-    return np.log1p(x)
+def default_scaling_param(cmdline, name, header):
+    if cmdline is not None: return cmdline
+    if name in header: return header[name]
+    return None
 
 
 def create_slices(slices):
@@ -52,7 +46,7 @@ def create_slices(slices):
     return new_slices
 
 
-def byte_scale(data, min=None, max=None, debug=False):
+def byte_scale(data, min=None, max=None, exp=None, debug=False):
     '''Convert an arbitrary n-dimensional array into a unsigned byte valued
        array'''
 
@@ -69,7 +63,19 @@ def byte_scale(data, min=None, max=None, debug=False):
         print('min=%f, max=%f' % (min_value, max_value))
 
     # scale
-    new_data = 255.0 * (data.astype(float) - min_value) / (max_value - min_value)
+    new_data = data.astype(float)
+    new_data = (new_data - min_value) / (max_value - min_value)
+
+    min_ind = np.where(new_data < min_value)
+    new_data[min_ind] = min_value
+
+    max_ind = np.where(new_data > max_value)
+    new_data[max_ind] = max_value
+
+    if exp is not None:
+        new_data = np.power(new_data + 0.0000001, float(exp))
+
+    new_data = 255.0 * (new_data - new_data.min()) / (new_data.max() - new_data.min())
 
     return new_data.astype(np.ubyte)
 
@@ -107,18 +113,17 @@ def display_image(data, debug=False):
 
 def main():
     name = 'kcorcat @VERSION@'
-    description = 'a KCor file query/display program'
+    description = 'KCor file query/display program'
     parser = argparse.ArgumentParser(description='%s - %s' % (name, description))
 
     parser.add_argument('filename', help='FITS file to query')
     parser.add_argument('--min', type=float, default=None, help='min for scaling')
     parser.add_argument('--max', type=float, default=None, help='max for scaling')
+    parser.add_argument('--exp', type=float, default=None, help='exp for scaling')
     parser.add_argument('--debug', action='store_true', help='set to debug')
     parser.add_argument('-d', '--display', action='store_true', help='set to display')
     parser.add_argument('-l', '--list', action='store_true', help='set to list HDUs')
     parser.add_argument('-r', '--header', action='store_true', help='set to display header')
-    parser.add_argument('-e', '--exten_no', type=int, default=0, help='specify extension')
-    parser.add_argument('-f', '--filter', type=str, default='none', help='specify filter (default: none)')
     parser.add_argument('-s', '--slice', type=str, default=None, help='specify slice of data array to display')
     parser.add_argument('-v', '--version',
                         action='version',
@@ -126,18 +131,17 @@ def main():
     
     args = parser.parse_args()
 
-    filters = {'none': none_filter, 'sqrt': sqrt_filter, 'log': log_filter}
-
     with fits.open(args.filename) as f:
         if args.list or (not args.header and not args.display):
             f.info()
 
         if args.header:
-            header = f[args.exten_no].header
+            header = f[0].header
             print(repr(header))
 
         if args.display:
-            data = f[args.exten_no].data
+            header = f[0].header
+            data = f[0].data
             ndims = len(data.shape)
             dims = data.shape
 
@@ -154,8 +158,11 @@ def main():
                 dims = data.shape
                 print('%s %d x %d'% (data.dtype, dims[0], dims[1]))
 
-            data = filters[args.filter](data)
-            byte_data = byte_scale(data, min=args.min, max=args.max, debug=args.debug)
+            minv = default_scaling_param(args.min, 'DISPMIN', header)
+            maxv = default_scaling_param(args.max, 'DISPMAX', header)
+            expv = default_scaling_param(args.exp, 'DISPEXP', header)
+
+            byte_data = byte_scale(data, min=minv, max=maxv, exp=expv, debug=args.debug)
             display_image(byte_data, debug=args.debug)
 
 
