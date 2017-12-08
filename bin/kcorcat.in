@@ -16,9 +16,9 @@ from astropy.io import fits
 import numpy as np
 from PIL import Image
 
-ct = (( 0,    0,   0,   0),
-      ( 1,    0,   0,   8),
-      ( 2,    0,   0,  16),
+quallab = ((  0,   0,   0,   0),
+      (  1,   0,   0,   8),
+      (  2,   0,   0,  16),
       (  3,   0,   0,  24),
       (  4,   0,   0,  30),
       (  5,   0,   0,  33),
@@ -196,6 +196,21 @@ ct = (( 0,    0,   0,   0),
       (177, 202, 202, 234),
       (178, 203, 203, 235),
       (179, 204, 204, 235),
+      (180, 205, 205, 236),
+      (181, 206, 206, 236),
+      (182, 207, 207, 236),
+      (183, 208, 208, 237),
+      (184, 209, 209, 237),
+      (185, 210, 210, 238),
+      (186, 211, 211, 238),
+      (187, 212, 212, 238),
+      (188, 213, 213, 239),
+      (189, 214, 214, 239),
+      (190, 215, 215, 239),
+      (191, 215, 215, 240),
+      (192, 216, 216, 240),
+      (193, 217, 217, 241),
+      (194, 218, 218, 241),
       (195, 219, 219, 241),
       (196, 220, 220, 242),
       (197, 221, 221, 242),
@@ -261,7 +276,7 @@ ct = (( 0,    0,   0,   0),
 
 def gamma_correct(r, g, b, gamma, n_colors=256):
     s = n_colors * np.power(np.arange(n_colors, dtype=np.float32) / n_colors, gamma)
-    s = s.astype(int)
+    s = s.astype(np.uint8)
     return (r[s], g[s], b[s])
 
 
@@ -328,6 +343,23 @@ def byte_scale(data, min=None, max=None, exp=None, debug=False):
     return new_data.astype(np.ubyte)
 
 
+def apply_colortable(array, colortable, gamma):
+    # read colortable and gamma correct it
+    ct = np.array(colortable, dtype=np.uint8)
+    r = ct[:, 1]
+    g = ct[:, 2]
+    b = ct[:, 3]
+    (r, g, b) = gamma_correct(r, g, b, gamma)
+
+    # apply color table to array
+    r_array = r[array]
+    g_array = g[array]
+    b_array = b[array]
+
+    # combine channels
+    return np.stack([r_array, g_array, b_array], axis=2)
+
+
 def pre_osc(screen=False):
     return '\x1bPtmux;\x1b\x1b]' if screen else '\x1b]'
 
@@ -342,7 +374,7 @@ def display_image(data, debug=False):
     term = os.environ['TERM']
     screen = term.startswith('screen')
 
-    im = Image.fromarray(data)
+    im = Image.fromarray(data, mode='RGB')
     output = IO()
     im.save(output, 'PNG')
 
@@ -368,6 +400,7 @@ def main():
     parser.add_argument('--min', type=float, default=None, help='min for scaling')
     parser.add_argument('--max', type=float, default=None, help='max for scaling')
     parser.add_argument('--exp', type=float, default=None, help='exp for scaling')
+    parser.add_argument('--gamma', type=float, default=0.65, help='colortable gamma')
     parser.add_argument('--debug', action='store_true', help='set to debug')
     parser.add_argument('-d', '--display', action='store_true', help='set to display')
     parser.add_argument('-l', '--list', action='store_true', help='set to list HDUs')
@@ -411,6 +444,7 @@ def main():
             expv = default_scaling_param(args.exp, 'DISPEXP', header)
 
             byte_data = byte_scale(data, min=minv, max=maxv, exp=expv, debug=args.debug)
+            byte_data = apply_colortable(byte_data, quallab, args.gamma)
             display_image(byte_data, debug=args.debug)
 
 
