@@ -73,7 +73,7 @@ def byte_scale(data, min=None, max=None, exp=None, debug=False):
     new_data[max_ind] = max_value
 
     if exp is not None:
-        new_data = np.power(new_data + 0.0000001, float(exp))
+        new_data = np.power(new_data + np.finfo(np.float32).eps, float(exp))
 
     new_data = 255.0 * (new_data - new_data.min()) / (new_data.max() - new_data.min())
 
