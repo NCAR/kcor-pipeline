@@ -1384,18 +1384,16 @@ pro kcor_l1, date_str, ok_files, $
                 ' Specifies if the 2nd lyot stop is in the beam'
     endif
 
-    fxaddpar, newheader, 'OCCLTRID', struct.occltrid, $
-              ' ID occulter'
-    fxaddpar, newheader, 'MODLTRID', struct.modltrid, $
-              ' ID modulator'
-    fxaddpar, newheader, 'RCAMID',   'MV-D1024E-CL-11461', $
-              ' ID camera 0 (reflected)'
-    fxaddpar, newheader, 'TCAMID',   'MV-D1024E-CL-13889', $
-              ' ID camera 1 (transmitted)' 
-    fxaddpar, newheader, 'RCAMLUT',  '11461-20131203', $
-              ' ID LUT for camera 0'
-    fxaddpar, newheader, 'TCAMLUT',  '13889-20131203', $
-              ' ID LUT for camera 1'
+    fxaddpar, newheader, 'OCCLTRID', struct.occltrid, ' ID occulter'
+    fxaddpar, newheader, 'MODLTRID', struct.modltrid, ' ID modulator'
+
+    prefix = run->epoch('use_camera_prefix') ? run->epoch('camera_prefix') : ''
+    rcamid = prefix + struct.rcamid
+    tcamid = prefix + struct.tcamid
+    fxaddpar, newheader, 'RCAMID', rcamid, ' ID camera 0 (reflected)'
+    fxaddpar, newheader, 'TCAMID', tcamid, ' ID camera 1 (transmitted)' 
+    fxaddpar, newheader, 'RCAMLUT',  struct.rcamlut, ' ID LUT for camera 0'
+    fxaddpar, newheader, 'TCAMLUT',  struct.rcamlut, ' ID LUT for camera 1'
 
     ; data citation URL
     fxaddpar, newheader, 'DATACITE', run->epoch('doi_url'), ' URL for DOI'
