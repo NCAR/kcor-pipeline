@@ -97,6 +97,7 @@ pro kcor_reprocess, date, run=run, error=error
 
   ; remove *kcor* files from archive, fullres, croppedgif, rg dirs
   if (run.reprocess) then begin
+    mg_log, 'removing old archived files...', name='kcor/reprocess', /info
     date_parts = kcor_decompose_date(date)
     wildcard = '*kcor*'
     dirs = [run.archive_basedir, run.fullres_basedir, run.croppedgif_basedir, $
@@ -107,6 +108,8 @@ pro kcor_reprocess, date, run=run, error=error
                                        root=dirs[d]), $
                               count=n_old_files)
       if (n_old_files gt 0L) then begin
+        mg_log, 'removing %d files from %s', n_old_files, dirs[d], $
+                name='kcor/reprocess', /info
         for f = 0L, n_old_files - 1L do begin
           mg_file_delete, old_files[f], status=error, message=message
           if (error ne 0L) then begin
@@ -115,7 +118,9 @@ pro kcor_reprocess, date, run=run, error=error
             goto, done
           endif
         endfor
-      endif
+      endif else begin
+        mg_log, 'no files to remove from %s', dirs[d], name='kcor/reprocess', /info
+      endelse
     endfor
   endif
 
