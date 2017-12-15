@@ -1393,7 +1393,7 @@ pro kcor_l1, date_str, ok_files, $
     fxaddpar, newheader, 'RCAMID', rcamid, ' ID camera 0 (reflected)'
     fxaddpar, newheader, 'TCAMID', tcamid, ' ID camera 1 (transmitted)' 
     fxaddpar, newheader, 'RCAMLUT',  struct.rcamlut, ' ID LUT for camera 0'
-    fxaddpar, newheader, 'TCAMLUT',  struct.rcamlut, ' ID LUT for camera 1'
+    fxaddpar, newheader, 'TCAMLUT',  struct.tcamlut, ' ID LUT for camera 1'
 
     ; data citation URL
     fxaddpar, newheader, 'DATACITE', run->epoch('doi_url'), ' URL for DOI'
