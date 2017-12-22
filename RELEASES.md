@@ -1,51 +1,53 @@
 # Release notes
 
-1.0.0 initial release
-1.0.1 minor fixes
+1.0.0 [May 12, 2017]
+  initial release
+1.0.1 [May 12, 2017]
   default to production config file
   ssh_key config file option
   look for mlso_sgs_insert files in level0/ directory
-1.0.2 minor fix
+1.0.2 [May 12, 2017]
   typo in ssh_key usage
-1.0.3 minor fix
+1.0.3 [May 12, 2017]
   send relative paths to MLSO_SGS_INSERT
-1.0.4 minor fix
+1.0.4 [May 12, 2017]
   raw files are not zipped when dealt with my MLSO_SGS_INSERT
 1.1.0
   fix horizontal artifacts in raw files
   better transmission value for opal
   add options for end-of-day actions
-1.1.1 minor fix
+1.1.1 [May 16, 2017]
   typo in end-of-day processing
-1.2.0 camera correction
+1.2.0 [May 24, 2017]
+  camera correction
   turn off horizontal correction for epoch starting 20170522
-1.2.1 several fixes
+1.2.1 [May 31, 2017]
   fix for horizontal correction not being applied
   better headers
   better email notications
-1.2.2 minor fix
+1.2.2 [Jun 1, 2017]
   typo in end-of-day
-1.2.3 minor fix
+1.2.3 [Jun 1, 2017]
   typo in end-of-day
-1.2.4 minor fixes
+1.2.4 [Jun 2, 2017]
   remove inventory files on reprocessing
   fix for errors listed in email notifications
-1.3.0 several features
+1.3.0 [Jun 2, 2017]
   after 20121204, use pipeline created calibraton files
   use new distortion file for 20150619 and later
   add totalpB to science database table
-1.3.1 minor fixes
+1.3.1 [Jun 5, 2017]
   fix for distributing NRGF FITS files
   handle bad occulter IDs in FITS headers better
-1.3.2 minor fix
+1.3.2 [Jun 6, 2017]
   full format for totalpB in kcor_sci
-1.3.3 minor fix
+1.3.3 [Jun 6, 2017]
   find occulter correctly in NRGF routine
-1.3.4 minor fix
+1.3.4 [Jun 6, 2017]
   typo in KCOR_L1 date_dp
-1.3.5
+1.3.5 [Jun 14, 2017]
   add bias in camera correction
-1.4.0
+1.4.0 [Jun 28, 2017]
   remove bias to camera correction
   added main kcor script
   add gamma correction for GIFs
@@ -54,30 +56,31 @@
 1.4.1
   normalize dates in FITS headers to correct for invalid values
   skip first image of the day
-1.4.2
+1.4.2 [Oct 6, 2017]
   change date that display values changed in 2017
 1.4.3
   daily animations of L1/NRGF full/cropped GIFs
   options to do reprocessing vs. updating
-1.4.4
+1.4.4 [Oct 26, 2017]
   fix for daily animations for observing days across UT midnight
   better interface for kcor script
-1.4.5
+1.4.5 [[Oct 26, 2017]
   fix for kcor script installation
-1.4.6
+1.4.6 [Oct 26, 2017]
   fix for trying to change permissions of files not owned
-1.4.7
+1.4.7 [Oct 30, 2017]
   fix for redundant obs day identifiers in database
-1.4.8
+1.4.8 [Oct 31, 2017]
   verify script
-1.4.9
+1.4.9 [Nov 14, 2017]
   more checks for t1.log correctness
   don't create L0 tgz if reprocessing
-1.4.10
+1.4.10 [Nov 15, 2017]
   remove camera correction config option, corrects when we have corrections
-1.4.11
+1.4.11 [Nov 15, 2017]
   bug fix
 1.4.12
   updated kcor program to produce only calibration (default or from a list of files)
   add kcorcat program
   add kcorlog program
+  correect for DIMV
