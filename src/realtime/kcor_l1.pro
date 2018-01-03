@@ -868,9 +868,13 @@ pro kcor_l1, date_str, ok_files, $
     cal_data_combined = dblarr(xsize, ysize, 3)
 
     for s = 0, 2 do begin
-      cal_data_combined[*, *, s] = $
-          (kcor_fshift(cal_data[*, *, 0, s], deltax, deltay) $
-           + cal_data[*, *, 1, s]) * 0.5
+      camera_0 = kcor_fshift(cal_data[*, *, 0, s], deltax, deltay)
+      camera_1 = cal_data[*, *, 1, s]
+      case run.cameras of
+        '0': cal_data_combined[*, *, s] = camera_0
+        '1': cal_data_combined[*, *, s] = camera_1
+        'else': cal_data_combined[*, *, s] = (camera_0 + camera_1) / 2.0
+      endcase
     endfor
 
     if (doplot eq 1) then begin
