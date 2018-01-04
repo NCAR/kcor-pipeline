@@ -83,4 +83,5 @@
   updated kcor program to produce only calibration (default or from a list of files)
   add kcorcat program
   add kcorlog program
-  correect for DIMV
+  correct for DIMV
+  option for using only a single camera
