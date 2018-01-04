@@ -63,6 +63,8 @@ pro kcor_reduce_calibration_write, data, metadata, $
   darkvar = ncdf_vardef(cid, 'Dark', [xdim, ydim, beamdim], /float)
   gainvar = ncdf_vardef(cid, 'Gain', [xdim, ydim, beamdim], /float)
   dimrefvar = ncdf_vardef(cid, 'DIM Reference Voltage', [scalardim], /float)
+  dimrefsigmavar = ncdf_vardef(cid, 'DIM Reference Voltage Standard Deviation', $
+                               [scalardim], /float)
   dimnumsum = ncdf_vardef(cid, 'numsum', [scalardim], /long)
 
   dimexptime = ncdf_vardef(cid, 'exptime', [scalardim], /float)
@@ -99,6 +101,7 @@ pro kcor_reduce_calibration_write, data, metadata, $
   ncdf_varput, cid, darkvar, dark
   ncdf_varput, cid, gainvar, gain
   ncdf_varput, cid, dimrefvar, vdimref
+  ncdf_varput, cid, dimrefsigmavar, metadata.vdimref_sigma
   ncdf_varput, cid, dimnumsum, metadata.numsum
   ncdf_varput, cid, dimexptime, metadata.exptime
   ncdf_varput, cid, lyotstop_var, metadata.lyotstop

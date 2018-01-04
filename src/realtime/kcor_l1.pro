@@ -420,6 +420,8 @@ pro kcor_l1, date_str, ok_files, $
     ncdf_varget, unit, 'Gain', gain_alfred
     ncdf_varget, unit, 'Modulation Matrix', mmat
     ncdf_varget, unit, 'Demodulation Matrix', dmat
+    ncdf_varget, unit, 'DIM Reference Voltage', flat_vdimref
+
     cal_epoch_version = kcor_nc_getattribute(unit, 'epoch_version', default='-1')
 
     if (kcor_nc_varid(unit, 'lyotstop') eq -1L) then begin
@@ -873,7 +875,7 @@ pro kcor_l1, date_str, ok_files, $
       case run.cameras of
         '0': cal_data_combined[*, *, s] = camera_0
         '1': cal_data_combined[*, *, s] = camera_1
-        'else': cal_data_combined[*, *, s] = (camera_0 + camera_1) / 2.0
+        else: cal_data_combined[*, *, s] = (camera_0 + camera_1) / 2.0
       endcase
     endfor
 
@@ -976,6 +978,11 @@ pro kcor_l1, date_str, ok_files, $
 
     ; use only corona minus sky polarization background
     corona = sqrt(umk4_new ^ 2)
+
+    vdimref = sxpar(header, 'SGSDIMV')
+    mg_log, 'flat DIMV: %0.1f, image DIMV: %0.1f', flat_vdimref, vdimref, $
+            name='kcor/rt', /debug
+    corona *= flat_vdimref / vdimref
 
     ; use mask to build final image
     r_in  = fix(occulter / run->epoch('plate_scale')) + 5.0

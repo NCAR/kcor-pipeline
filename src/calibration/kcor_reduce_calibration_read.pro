@@ -43,10 +43,14 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
   idiff = run->epoch(header.diffsrid)
 
   ; read files and populate data structure
-  gotdark = 0
+  gotdark  = 0
   gotclear = 0
-  gotcal = 0
-  vdimref = 0.
+  gotcal   = 0
+
+  vdimref         = 0.0
+  vdimref_sigma   = 0.0
+  vdimref_squared = 0.0
+
   file_types = replicate('unused', n_elements(file_list))
   for f = 0, n_elements(file_list) - 1 do begin
     ; check for zipped file if the FTS file is not present
@@ -108,6 +112,7 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
       if strmatch(calpol, '*out*', /fold_case) then begin
         clear += mean(thisdata, dimension=3)
         vdimref += sgsdimv
+        vdimref_squared += sgsdimv * sgsdimv
         gotclear++
         file_types[f] = 'clear'
         mg_log, 'clear: %s', file_list[f], name='kcor/cal', /debug
@@ -134,8 +139,11 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
   if (gotclear ne 0) then begin
     ; determine the gain
     gain = (clear / float(gotclear) - dark) / idiff
+
     ; determine the DIM reference voltage
     vdimref /= float(gotclear)
+    vdimref_squared /= float(gotclear)
+    vdimref_sigma = sqrt(vdimref_squared - vdimref^2)
   endif else begin
     mg_log, 'no clear data found', name='kcor/cal', /error
     return
@@ -155,12 +163,13 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
   run.time = original_date_obs
 
   data = {dark:dark, gain:gain, calibration:calibration}
-  metadata = {angles:angles, $
-              idiff:idiff, $
-              vdimref:vdimref, $
-              date:date, $
-              file_list:file_list, $
-              file_types:file_types, $
+  metadata = {angles: angles, $
+              idiff: idiff, $
+              vdimref: vdimref, $
+              vdimref_sigma: vdimref_sigma, $
+              date: date, $
+              file_list: file_list, $
+              file_types: file_types, $
               numsum: numsum, $
               exptime: exptime, $
               lyotstop: lyotstop}
