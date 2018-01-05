@@ -1202,6 +1202,9 @@ pro kcor_l1, date_str, ok_files, $
     ;                        ' calibration file:dark, opal, 4 pol.states'
     fxaddpar, newheader, 'DISTORT', run->epoch('distortion_correction_filename'), $
               ' distortion file'
+    fxaddpar, newheader, 'SKYTRANS', flat_vdimref / vdimref, $
+              ' Sky Transmission correction normalized to gain image', $
+              format='(F5.3)
     fxaddpar, newheader, 'DMODSWID', '2016-05-26', $
               ' date of demodulation software'
     fxaddpar, newheader, 'OBSSWID', struct.obsswid, $
