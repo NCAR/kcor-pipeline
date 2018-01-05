@@ -5,6 +5,9 @@ IDL=/usr/local/bin/idl
 KCOR_CME_ROOT=$(dirname $0)
 KCOR_CME_PATH=+${KCOR_CME_ROOT}:"<IDL_DEFAULT>"
 
+KCOR_ROOT=$(dirname $KCOR_CME_ROOT)
+KCOR_CME_PATH=+${KCOR_CME_ROOT}:+${KCOR_ROOT}/lib:+${KCOR_ROOT}/src:"<IDL_DEFAULT>"
+
 SHORT_HOSTNAME=$(hostname | sed -e 's/\..*$//')
 FLAGS=cme
 
