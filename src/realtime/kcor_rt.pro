@@ -217,7 +217,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
                            database=db, $
                            obsday_index=obsday_index
         endif else begin
-          mg_log, 'no L1 files for img, or eng tables', name='kcor/rt', /info
+          mg_log, 'no L1 files for img or eng tables', name='kcor/rt', /info
         endelse
 
         if (n_l0_fits_files gt 0L) then begin
