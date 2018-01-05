@@ -79,7 +79,7 @@
   remove camera correction config option, corrects when we have corrections
 1.4.11 [Nov 15, 2017]
   bug fix
-1.4.12
+1.4.12 [Jan 5, 2017]
   updated kcor program to produce only calibration (default or from a list of files)
   add kcorcat program
   add kcorlog program
