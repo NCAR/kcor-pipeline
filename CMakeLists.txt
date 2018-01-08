@@ -123,3 +123,4 @@ if (IDLdoc_FOUND)
   add_dependencies(dist doc)
 endif ()
 
+message(STATUS "Install location = ${CMAKE_INSTALL_PREFIX}")
