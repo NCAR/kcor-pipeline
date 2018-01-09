@@ -350,8 +350,12 @@ end
 
 ;+
 ; Setup logging.
+;
+; :Keywords:
+;   rotate_logs : in, optional, type=boolean
+;     set to rotate logs
 ;-
-pro kcor_run::setup_loggers
+pro kcor_run::setup_loggers, rotate_logs=rotate_logs
   compile_opt strictarr
 
   ; setup logging
@@ -361,40 +365,66 @@ pro kcor_run::setup_loggers
   self->getProperty, log_level=log_level, log_dir=log_dir
   if (~file_test(log_dir, /directory)) then file_mkdir, log_dir
 
+  self->getProperty, max_log_version=max_log_version
+
   mg_log, name='kcor', logger=logger
+  log_filename = filepath(self.date + '.log', root=log_dir)
+  if (keyword_set(rotate_logs)) then begin
+    mg_rotate_log, log_filename, max_version=max_log_version
+  endif
   logger->setProperty, format=log_fmt, $
                        time_format=log_time_fmt, $
                        level=log_level, $
-                       filename=filepath(self.date + '.log', root=log_dir)
+                       filename=log_filename
 
   mg_log, name='kcor/cal', logger=logger
+  log_filename = filepath(self.date + '.eod.log', root=log_dir)
+  if (keyword_set(rotate_logs)) then begin
+    mg_rotate_log, log_filename, max_version=max_log_version
+  endif
   logger->setProperty, format=log_fmt, $
                        time_format=log_time_fmt, $
                        level=log_level, $
-                       filename=filepath(self.date + '.eod.log', root=log_dir)
+                       filename=log_filename
 
   mg_log, name='kcor/eod', logger=logger
+  log_filename = filepath(self.date + '.eod.log', root=log_dir)
+  if (keyword_set(rotate_logs)) then begin
+    mg_rotate_log, log_filename, max_version=max_log_version
+  endif
   logger->setProperty, format=log_fmt, $
                        time_format=log_time_fmt, $
                        level=log_level, $
-                       filename=filepath(self.date + '.eod.log', root=log_dir)
+                       filename=log_filename
 
   mg_log, name='kcor/rt', logger=logger
+  log_filename = filepath(self.date + '.realtime.log', root=log_dir)
+  if (keyword_set(rotate_logs)) then begin
+    mg_rotate_log, log_filename, max_version=max_log_version
+  endif
   logger->setProperty, format=log_fmt, $
                        time_format=log_time_fmt, $
                        level=log_level, $
-                       filename=filepath(self.date + '.realtime.log', root=log_dir)
+                       filename=log_filename
 
   mg_log, name='kcor/noformat', logger=logger
+  log_filename = filepath(self.date + '.realtime.log', root=log_dir)
+  if (keyword_set(rotate_logs)) then begin
+    mg_rotate_log, log_filename, max_version=max_log_version
+  endif
   logger->setProperty, format='%(message)s', $
                        level=log_level, $
-                       filename=filepath(self.date + '.realtime.log', root=log_dir)
+                       filename=logfilename
 
   mg_log, name='kcor/reprocess', logger=logger
+  log_filename = filepath(self.date + '.reprocess.log', root=log_dir)
+  if (keyword_set(rotate_logs)) then begin
+    mg_rotate_log, log_filename, max_version=max_log_version
+  endif
   logger->setProperty, format=log_fmt, $
                        time_format=log_time_fmt, $
                        level=log_level, $
-                       filename=filepath(self.date + '.reprocess.log', root=log_dir)
+                       filename=log_filename
 end
 
 
@@ -457,6 +487,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            hpss_gateway=hpss_gateway, $
                            log_dir=log_dir, $
                            log_level=log_level, $
+                           max_log_version=max_log_version, $
                            engineering_dir=engineering_dir, $
                            hpr_dir=hpr_dir, $
                            hpr_diff_dir=hpr_diff_dir, $
@@ -575,6 +606,10 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   if (arg_present(log_level)) then begin
     log_level = self.options->get('level', section='logging', $
                                   type=3, default=4L)
+  endif
+  if (arg_present(max_log_version)) then begin
+    max_log_version = self.options->get('max_log_version', section='logging', $
+                                        type=3, default=10L)
   endif
 
   ; engineering
@@ -715,7 +750,8 @@ end
 ;   date : in, required, type=string
 ;     date in the form 'YYYYMMDD'
 ;-
-function kcor_run::init, date, config_filename=config_filename
+function kcor_run::init, date, $
+                         config_filename=config_filename
   compile_opt strictarr
   on_error, 2
 
@@ -726,7 +762,9 @@ function kcor_run::init, date, config_filename=config_filename
   self.options = mg_read_config(config_filename)
   self.epochs = mg_read_config(filepath('epochs.cfg', root=mg_src_root()))
 
-  self->setup_loggers
+  ; rotate the logs if this is a reprocessing
+  self->getProperty, reprocess=reprocess
+  self->setup_loggers, rotate_logs=reprocess
 
   return, 1
 end
