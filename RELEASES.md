@@ -86,3 +86,4 @@
   correct for DIMV
   option for using only a single camera
 1.4.13
+  rotate logs when reprocessing
