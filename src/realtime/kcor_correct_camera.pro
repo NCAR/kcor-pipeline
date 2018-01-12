@@ -27,6 +27,13 @@ pro kcor_correct_camera, im, header, run=run, logger_name=logger_name
 
   mg_log, 'performing camera correction', name=logger_name, /debug
 
+  n_dims = size(im, /n_dimensions)
+  if (n_dims ne 4) then begin
+    mg_log, 'wrong number of dimensions for image: %d', n_dims, $
+            name=logger_name, /warn
+    return
+  endif
+
   dims = size(im, /dimensions)
   n_polstates = dims[2]
   n_cameras = dims[3]
