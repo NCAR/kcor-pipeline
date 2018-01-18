@@ -32,6 +32,10 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
   mg_log, 'testing %s...', filenames[0], name='kcor/cal', /debug
 
   header = fitshead2struct(headfits(filenames[0]))
+
+  ; set epoch values to the beginning of the calibration
+  run.time = header.date_obs
+
   date = (strsplit(header.date_obs, 'T', /extract))[0]
   dark = fltarr(header.naxis1, header.naxis2, 2)
   clear = fltarr(header.naxis1, header.naxis2, 2)
