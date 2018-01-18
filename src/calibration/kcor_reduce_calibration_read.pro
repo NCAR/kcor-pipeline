@@ -40,7 +40,6 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
 
   numsum = header.numsum
   exptime = header.exptime
-  lyotstop = header.lyotstop
 
   idiff = run->epoch(header.diffsrid)
 
@@ -106,7 +105,7 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
     ; LYOTSTOP for all files must be the same to produce a calibration
     file_lyotstop = sxpar(header, 'LYOTSTOP', count=n_lyotstop)
     if (n_lyotstop gt 0L) then begin
-      if (n_lyotstop ne lyotstop) then begin
+      if (file_lyotstop ne lyotstop) then begin
         mg_log, 'LYOTSTOP for %s (%s) does not match LYOTSTOP for %s (%s)', $
                 file_list[f], file_lyotstop, file_list[0], lyotstop, $
                 name='kcor/cal', /error
