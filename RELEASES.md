@@ -87,3 +87,4 @@
   option for using only a single camera
 1.4.13
   rotate logs when reprocessing
+  enforce calibration files all have same LYOTSTOP value

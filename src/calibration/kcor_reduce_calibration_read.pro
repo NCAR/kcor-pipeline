@@ -37,8 +37,10 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
   clear = fltarr(header.naxis1, header.naxis2, 2)
   calibration = fltarr(header.naxis1, header.naxis2, 4, 2, n_elements(file_list))
   angles = fltarr(n_elements(file_list))
+
   numsum = header.numsum
   exptime = header.exptime
+  lyotstop = header.lyotstop
 
   idiff = run->epoch(header.diffsrid)
 
@@ -99,6 +101,17 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
               file_list[f], file_exptime, file_list[0], exptime, $
               name='kcor/cal', /error
       return
+    endif
+
+    ; LYOTSTOP for all files must be the same to produce a calibration
+    file_lyotstop = sxpar(header, 'LYOTSTOP', count=n_lyotstop)
+    if (n_lyotstop gt 0L) then begin
+      if (n_lyotstop ne lyotstop) then begin
+        mg_log, 'LYOTSTOP for %s (%s) does not match LYOTSTOP for %s (%s)', $
+                file_list[f], file_lyotstop, file_list[0], lyotstop, $
+                name='kcor/cal', /error
+        return
+      endif
     endif
 
     ; get diffuser intensity from somewhere in 1E-6 B_sun
