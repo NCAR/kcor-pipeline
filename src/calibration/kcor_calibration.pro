@@ -46,7 +46,7 @@ pro kcor_calibration, date, $
     n_files = file_lines(filelist_filename)
     filelist = strarr(n_files)
 
-    mg_log, 'using provided list of files for calibration', name='kcor/eod', info
+    mg_log, 'using provided list of files for calibration', name='kcor/eod', /info
     openr, lun, filelist_filename, /get_lun
 
     calfile = ''
