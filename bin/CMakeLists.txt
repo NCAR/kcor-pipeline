@@ -2,6 +2,7 @@ configure_file(runkcor_eod.sh.in runkcor_eod.sh @ONLY)
 configure_file(runkcor_rt.sh.in runkcor_rt.sh @ONLY)
 configure_file(runkcor_calibrate.sh.in runkcor_calibrate.sh @ONLY)
 configure_file(runkcor_calibrate_range.sh.in runkcor_calibrate_range.sh @ONLY)
+configure_file(runkcor_calibrate_list.sh.in runkcor_calibrate_list.sh @ONLY)
 configure_file(kcor.in kcor @ONLY)
 configure_file(kcorlog.in kcorlog @ONLY)
 configure_file(kcorcat.in kcorcat @ONLY)
@@ -21,6 +22,7 @@ install(PROGRAMS
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_rt.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_calibrate.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_calibrate_range.sh
+          ${CMAKE_CURRENT_BINARY_DIR}/runkcor_calibrate_list.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_process.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_process_range.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_process_list.sh
