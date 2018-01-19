@@ -22,8 +22,11 @@ function kcor_run::_find_calfile, date, hst_time
 
   re = '([[:digit:]]{8})_([[:digit:]]{6})_kcor_cal.*.\.ncdf'
   self->getProperty, cal_out_dir=cal_out_dir
+  epoch_version = self->epoch('cal_epoch_version')
 
-  cal_search_spec = filepath('*.ncdf', root=cal_out_dir)
+  cal_format = '(%"*kcor_cal_v%s*.ncdf")'
+  cal_search_spec = filepath(string(epoch_version, format=cal_format), $
+                             root=cal_out_dir)
   calfiles = file_basename(file_search(cal_search_spec, count=n_calfiles))
 
   now_date = long(kcor_decompose_date(date))

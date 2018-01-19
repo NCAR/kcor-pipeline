@@ -384,6 +384,10 @@ pro kcor_l1, date_str, ok_files, $
 
     fnum += 1
 
+    mg_log, 'processing %d/%d: %s', $
+            fnum, nfiles, file_basename(l0_file), $
+            name='kcor/rt', /info
+
     l1_file = strmid(l0_file, 0, 20) + '_l1.fts'
 
     ; skip first good image of the day
@@ -500,10 +504,12 @@ pro kcor_l1, date_str, ok_files, $
     img = readfits(l0_file, header, /silent)
 
     type = fxpar(header, 'DATATYPE')
+    mg_log, 'type: %s', strmid(type, 0, 3), name='kcor/rt', /info
 
-    mg_log, 'processing %d/%d: %s (%s)', $
-            fnum, nfiles, file_basename(l0_file), strmid(type, 0, 3), $
-            name='kcor/rt', /info
+    ; read date of observation (needed to compute ephemeris info)
+    date_obs = sxpar(header, 'DATE-OBS')   ; yyyy-mm-ddThh:mm:ss
+    run.time = date_obs
+    date     = strmid(date_obs, 0, 10)     ; yyyy-mm-dd
 
     if (cal_epoch_version ne run->epoch('cal_epoch_version')) then begin
       mg_log, 'cal file epoch_version (%s) does not match (%s) for time of file %s', $
@@ -512,11 +518,6 @@ pro kcor_l1, date_str, ok_files, $
       mg_log, 'skipping file %s', file_basename(l0_file), name='kcor/rt', /warn
       continue
     endif
-
-    ; read date of observation (needed to compute ephemeris info)
-    date_obs = sxpar(header, 'DATE-OBS')   ; yyyy-mm-ddThh:mm:ss
-    run.time = date_obs
-    date     = strmid(date_obs, 0, 10)     ; yyyy-mm-dd
 
     ; create string data for annotating image
 
