@@ -85,8 +85,9 @@
   add kcorlog program
   correct for DIMV
   option for using only a single camera
-1.4.13 [Jan. 19, 2018]
+1.4.13 [Jan 19, 2018]
   rotate logs when reprocessing
   enforce calibration files all have same LYOTSTOP value
   new cal epoch
-1.4.14
+1.4.14 [Jan 20, 2018]
+  bug fix

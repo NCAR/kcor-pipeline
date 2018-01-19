@@ -505,7 +505,8 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            validate_t1=validate_t1, $
                            produce_plots=produce_plots, $
                            catalog_files=catalog_files, $
-                           create_daily_movies=create_daily_movies
+                           create_daily_movies=create_daily_movies, $
+                           mode=mode
   compile_opt strictarr
 
   if (arg_present(config_contents)) then begin
@@ -517,6 +518,8 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   if (arg_present(resources_dir)) then begin
     resources_dir = filepath('resources', root=self.pipe_dir)
   endif
+
+  if (arg_present(mode)) then mode = self.mode
 
   ; externals
   if (arg_present(gzip)) then begin
