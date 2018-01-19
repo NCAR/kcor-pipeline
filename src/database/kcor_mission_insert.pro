@@ -37,7 +37,7 @@ pro kcor_mission_insert, date, run=run
 
   np = n_params() 
   if (np ne 1) then begin
-    mg_log, 'missing date parameter', name='kcor', /error
+    mg_log, 'missing date parameter', name='kcor/eod', /error
     return
   endif
 
@@ -54,7 +54,7 @@ pro kcor_mission_insert, date, run=run
                config_section=run.database_config_section
 
   db->getProperty, host_name=host
-  mg_log, 'connected to %s', host, name='kcor', /info
+  mg_log, 'connected to %s', host, name='kcor/eod', /info
 
   db->setProperty, database='MLSO'
 
@@ -76,9 +76,9 @@ pro kcor_mission_insert, date, run=run
   db->execute, 'DELETE FROM kcor_mission WHERE date like ''%s''', pdate_dash, $
                status=status, error_message=error_message, sql_statement=sql_cmd
 
-  mg_log, 'sql_cmd: %s', sql_cmd, name='kcor', /info
+  mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/eod', /info
   mg_log, 'status: %d, error message: %s', status, error_message, $
-          name='kcor', /info
+          name='kcor/eod', /info
 
   ;-----------------------
   ; Directory definitions.
@@ -100,7 +100,7 @@ pro kcor_mission_insert, date, run=run
   fits_list = file_search('*kcor_l1.fts*', count=nfiles)
 
   if (nfiles eq 0) then begin
-    mg_log, 'no images in list file', name='kcor', /info
+    mg_log, 'no images in list file', name='kcor/eod', /info
     goto, done
   end
 
@@ -190,13 +190,13 @@ pro kcor_mission_insert, date, run=run
                  status=status, error_message=error_message, sql_statement=sql_cmd
 
     mg_log, '%s: status: %d, error message: %s', status, error_message, $
-            name='kcor', /debug
-    mg_log, 'sql_cmd: %s', sql_cmd, name='kcor', /debug
+            name='kcor/eod', /debug
+    mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/eod', /debug
     if (i eq 0) then  goto, done
   endwhile
 
   done:
   obj_destroy, db
 
-  mg_log, '*** end of kcor_mission_insert ***', name='kcor', /info
+  mg_log, '*** end of kcor_mission_insert ***', name='kcor/eod', /info
 end

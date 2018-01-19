@@ -42,7 +42,7 @@ pro kcor_sw_insert, date, fits_list, run=run
 
   np = n_params() 
   if (np ne 2) then begin
-    mg_log, 'missing date or filelist parameter', name='kcor', /error
+    mg_log, 'missing date or filelist parameter', name='kcor/', /error
     return
   endif
 
@@ -59,7 +59,7 @@ pro kcor_sw_insert, date, fits_list, run=run
                config_section=run.database_config_section
 
   db->getProperty, host_name=host
-  mg_log, 'connected to %s', host, name='kcor', /info
+  mg_log, 'connected to %s', host, name='kcor/eod', /info
 
   db->setProperty, database='MLSO'
 
@@ -82,7 +82,7 @@ pro kcor_sw_insert, date, fits_list, run=run
   nfiles = n_elements(fits_list)
 
   if (nfiles eq 0) then begin
-    mg_log, 'no images in list file', name='kcor', /info
+    mg_log, 'no images in list file', name='kcor/eod', /info
     goto, done
   endif
 
@@ -139,8 +139,8 @@ pro kcor_sw_insert, date, fits_list, run=run
                    status=status, error_message=error_message, sql_statement=sql_cmd
 
       mg_log, '%d, error message: %s', status, error_message, $
-              name='kcor', /debug
-      mg_log, 'sql_cmd: %s', sql_cmd, name='kcor', /debug
+              name='kcor/eod', /debug
+      mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/eod', /debug
 
       ;TODO: Write sw_id (auto-incremented in kcor_sw table) into kcor_eng table for every entry processed with these 
       ;  software parameters. Actually, in practice, we will be writing previous sw_id into kcor_eng for every entry 
@@ -152,7 +152,7 @@ pro kcor_sw_insert, date, fits_list, run=run
   done:
   obj_destroy, db
 
-  mg_log, '*** end of kcor_sw_insert ***', name='kcor', /info
+  mg_log, '*** end of kcor_sw_insert ***', name='kcor/eod', /info
 end
 
 ; main-level example program

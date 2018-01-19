@@ -368,21 +368,11 @@ pro kcor_run::setup_loggers, rotate_logs=rotate_logs
   self->getProperty, log_level=log_level, log_dir=log_dir
   if (~file_test(log_dir, /directory)) then file_mkdir, log_dir
 
-  self->getProperty, max_log_version=max_log_version
-
-  mg_log, name='kcor', logger=logger
-  log_filename = filepath(self.date + '.log', root=log_dir)
-  if (keyword_set(rotate_logs)) then begin
-    mg_rotate_log, log_filename, max_version=max_log_version
-  endif
-  logger->setProperty, format=log_fmt, $
-                       time_format=log_time_fmt, $
-                       level=log_level, $
-                       filename=log_filename
+  self->getProperty, max_log_version=max_log_version, mode=mode, reprocess=reprocess
 
   mg_log, name='kcor/cal', logger=logger
   log_filename = filepath(self.date + '.eod.log', root=log_dir)
-  if (keyword_set(rotate_logs)) then begin
+  if (keyword_set(rotate_logs) && mode eq 'eod') then begin
     mg_rotate_log, log_filename, max_version=max_log_version
   endif
   logger->setProperty, format=log_fmt, $
@@ -392,7 +382,7 @@ pro kcor_run::setup_loggers, rotate_logs=rotate_logs
 
   mg_log, name='kcor/eod', logger=logger
   log_filename = filepath(self.date + '.eod.log', root=log_dir)
-  if (keyword_set(rotate_logs)) then begin
+  if (keyword_set(rotate_logs) && mode eq 'eod') then begin
     mg_rotate_log, log_filename, max_version=max_log_version
   endif
   logger->setProperty, format=log_fmt, $
@@ -402,7 +392,7 @@ pro kcor_run::setup_loggers, rotate_logs=rotate_logs
 
   mg_log, name='kcor/rt', logger=logger
   log_filename = filepath(self.date + '.realtime.log', root=log_dir)
-  if (keyword_set(rotate_logs)) then begin
+  if (keyword_set(rotate_logs) && mode eq 'realtime') then begin
     mg_rotate_log, log_filename, max_version=max_log_version
   endif
   logger->setProperty, format=log_fmt, $
@@ -421,7 +411,7 @@ pro kcor_run::setup_loggers, rotate_logs=rotate_logs
 
   mg_log, name='kcor/reprocess', logger=logger
   log_filename = filepath(self.date + '.reprocess.log', root=log_dir)
-  if (keyword_set(rotate_logs)) then begin
+  if (keyword_set(rotate_logs) && mode eq 'realtime' && reprocess) then begin
     mg_rotate_log, log_filename, max_version=max_log_version
   endif
   logger->setProperty, format=log_fmt, $
@@ -754,7 +744,8 @@ end
 ;     date in the form 'YYYYMMDD'
 ;-
 function kcor_run::init, date, $
-                         config_filename=config_filename
+                         config_filename=config_filename, $
+                         mode=mode
   compile_opt strictarr
   on_error, 2
 
@@ -766,6 +757,7 @@ function kcor_run::init, date, $
   self.epochs = mg_read_config(filepath('epochs.cfg', root=mg_src_root()))
 
   ; rotate the logs if this is a reprocessing
+  self->setProperty, mode=mode
   self->getProperty, reprocess=reprocess
   self->setup_loggers, rotate_logs=reprocess
 
