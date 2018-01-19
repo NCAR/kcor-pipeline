@@ -79,12 +79,13 @@
   remove camera correction config option, corrects when we have corrections
 1.4.11 [Nov 15, 2017]
   bug fix
-1.4.12 [Jan 5, 2017]
+1.4.12 [Jan 5, 2018]
   updated kcor program to produce only calibration (default or from a list of files)
   add kcorcat program
   add kcorlog program
   correct for DIMV
   option for using only a single camera
-1.4.13
+1.4.13 [Jan. 19, 2018]
   rotate logs when reprocessing
   enforce calibration files all have same LYOTSTOP value
+  new cal epoch
