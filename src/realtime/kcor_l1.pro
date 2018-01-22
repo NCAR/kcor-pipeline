@@ -512,8 +512,8 @@ pro kcor_l1, date_str, ok_files, $
     date     = strmid(date_obs, 0, 10)     ; yyyy-mm-dd
 
     if (cal_epoch_version ne run->epoch('cal_epoch_version')) then begin
-      mg_log, 'cal file epoch_version (%s) does not match (%s) for time of file %s', $
-              cal_epoch_version, run->epoch('cal_epoch_version'), file_basename(l0_file), $
+      mg_log, 'cal file epoch_version (%s) does not match for time of file %s (%s)', $
+              cal_epoch_version, file_basename(l0_file), run->epoch('cal_epoch_version'), $
               name='kcor/rt', /warn
       mg_log, 'skipping file %s', file_basename(l0_file), name='kcor/rt', /warn
       continue
