@@ -78,6 +78,21 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       mg_log, 'skipping updating/reprocessing', name='kcor/rt', /info
     endelse
 
+    ; need to run on machine at MLSO since data are not zipped there, should not
+    ; run or be needed in Boulder
+    unzipped_glob = '*_kcor.fts'
+    unzipped_files = file_search(unzipped_glob, count=n_unzipped_files)
+    if (n_unzipped_files gt 0L) then begin
+      mg_log, 'zipping %d FITS files...', n_unzipped_files, name-'kcor/rt', /debug
+      gzip_cmd = string(run.gzip, unzipped_glob, format='(%"%s %s")')
+      spawn, gzip_cmd, result, error_result, exit_status=status
+      if (status ne 0L) then begin
+        mg_log, 'problem zipping files with command: %s', gzip_cmd, $
+                name='kcor/rt', /error
+        mg_log, '%s', strjoin(error_result, ' '), name='kcor/rt', /error
+      endif
+    endif
+
     l0_fits_files = file_search('*_kcor.fts.gz', count=n_l0_fits_files)
     if (n_l0_fits_files eq 0L) then begin
       mg_log, 'no L0 files to process in %s', raw_dir, name='kcor/rt', /info

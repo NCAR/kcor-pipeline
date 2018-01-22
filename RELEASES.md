@@ -93,3 +93,4 @@
   bug fix
 1.4.15
   log camera correction filename
+  run at MLSO, i.e., zip FTS files in raw directory if present
