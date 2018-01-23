@@ -138,7 +138,7 @@ pro kcor_create_differencs, date, l1_files, run=run
       ;  If images are > 2 minutes apart we stop averaging, save avg. image and
       ;     make a subtraction
       if (i gt 0) then begin
-        difftime = date_julian(i) - date_julian(0)
+        difftime = date_julian[i] - date_julian[0]
 
         if (difftime le avginterval) then begin
           aveimg += imgsave[*, *, i]
@@ -221,7 +221,7 @@ pro kcor_create_differencs, date, l1_files, run=run
            bkdimg[*, *, 0] = aveimg
            ; save current time as the new time of bkd image 
            bkdtime[0] = date_julian[i]
-	   filetime[0] = imgtime
+           filetime[0] = imgtime
            if (newsub eq 1) then break
          endif
         if (newsub eq 1) then break
@@ -267,6 +267,7 @@ pro kcor_create_differencs, date, l1_files, run=run
 
     good_value  = run.diff_good_max
     pass_value  = run.diff_pass_max
+    threshold_intensity = run.diff_threshold_intensity
 
     pointing_ck = 0
 
@@ -276,7 +277,7 @@ pro kcor_create_differencs, date, l1_files, run=run
              scan, scandx, ns
 
       for i = 0, ns - 1 do begin
-        if (abs(scan[i]) gt 0.01) then pointing_ck += 1
+        if (abs(scan[i]) gt threshold_intensity) then pointing_ck += 1
       endfor
 
       ; 2) Create annotation for GIF image
