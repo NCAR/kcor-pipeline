@@ -100,13 +100,11 @@ pro kcor_cme_detection, date, store=k_store, timerange=k_timerange, $
     date = string(julday(), format='(C(CYI4, CMOI02, CDI02))')
   endif
 
-  ymd = kcor_decompose_date(date)
   run = kcor_run(date, config_filename=config_filename)
 
   ; the top of the directory tree containing the KCor data is given by
   ; archive_basedir
   kcor_dir = run.archive_basedir
-  datedir = filepath('', subdir=ymd, root=kcor_dir)
 
   ; hpr_dir points to the top of the directory tree used for storing images
   ; converted into helioprojective-radial (HPR) coordinates
@@ -120,16 +118,7 @@ pro kcor_cme_detection, date, store=k_store, timerange=k_timerange, $
     file_mkdir, kcor_hpr_diff_dir
   endif
 
-  ; make sure that the output directories exist
-  hpr_out_dir = filepath('', subdir=ymd, root=kcor_hpr_dir)
-  if (keyword_set(store) and not file_test(hpr_out_dir, /directory)) then begin
-    file_mkdir, hpr_out_dir
-  endif
-
-  diff_out_dir = filepath('', subdir=ymd, root=kcor_hpr_diff_dir)
-  if (keyword_set(store) and not file_test(diff_out_dir, /directory)) then begin
-    file_mkdir, diff_out_dir
-  endif
+  kcor_cme_det_setdate, date
 
   ; define the top widget base
   wtopbase = widget_base(title='K-Cor CME Detection', $

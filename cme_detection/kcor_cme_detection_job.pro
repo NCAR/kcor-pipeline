@@ -27,13 +27,11 @@ pro kcor_cme_detection_job, date, timerange=_timerange, config_filename=config_f
     date = string(julday(), format='(C(CYI4, CMOI02, CDI02))')
   endif
 
-  ymd = kcor_decompose_date(date)
   run = kcor_run(date, config_filename=config_filename)
 
   ; the top of the directory tree containing the KCor data is given by
   ; archive_basedir
   kcor_dir = run.archive_basedir
-  datedir = filepath('', subdir=ymd, root=kcor_dir)
 
   ; hpr_dir points to the top of the directory tree used for storing images
   ; converted into helioprojective-radial (HPR) coordinates
@@ -47,23 +45,13 @@ pro kcor_cme_detection_job, date, timerange=_timerange, config_filename=config_f
     file_mkdir, kcor_hpr_diff_dir
   endif
 
-  ; make sure that the output directories exist
-  hpr_out_dir = filepath('', subdir=ymd, root=kcor_hpr_dir)
-  if (keyword_set(store) and not file_exist(hpr_out_dir)) then begin
-    file_mkdir, hpr_out_dir
-  endif
-
-  diff_out_dir = filepath('', subdir=ymd, root=kcor_hpr_diff_dir)
-  if (keyword_set(store) and not file_exist(diff_out_dir)) then begin
-    file_mkdir, diff_out_dir
-  endif
-
   if (~file_test(run.log_dir, /directory)) then file_mkdir, run.log_dir
   mg_log, logger=logger, name='kcor/cme'
-  logger->setProperty, filename=filepath(string(simple_date, $
+  logger->setProperty, filename=filepath(string(date, $
                                                 format='(%"%s.cme.log")'), $
                                          root=run.log_dir)
 
+  kcor_cme_det_setdate, date
   kcor_cme_det_reset
 
   ; start up SolarSoft display routines
@@ -75,7 +63,7 @@ pro kcor_cme_detection_job, date, timerange=_timerange, config_filename=config_f
   if (file_exist(datedir)) then begin
     cstop = 0
 
-    mg_log, 'starting CME detection for %s', simple_date, name='kcor/cme', /info
+    mg_log, 'starting CME detection for %s', date, name='kcor/cme', /info
 
     ; TODO: should check for time of day, stop after a certain time of day
     ; TODO: but when running with a date set, stop after done with files

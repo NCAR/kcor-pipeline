@@ -15,6 +15,6 @@ CONFIG_FILENAME=$KCOR_ROOT/config/kcor.$(whoami).$SHORT_HOSTNAME.$FLAGS.cfg
 
 export KCOR_MAILING_LIST=$KCOR_CME_ROOT/mailing-list
 
-TODAY=$(date +"%Y-%m-%d")
+TODAY=$(date +"%Y%m%d")
 
 ${IDL} -IDL_PATH ${KCOR_CME_PATH} -IDL_STARTUP '' -e "kcor_cme_detection, '$TODAY', config_filename='$CONFIG_FILENAME'"

@@ -12,4 +12,4 @@ KCOR_CME_PATH=+${KCOR_CME_ROOT}:"<IDL_DEFAULT>"
 
 export KCOR_MAILING_LIST=$KCOR_CME_ROOT/test-mailing-list
 
-${IDL} -IDL_PATH ${KCOR_CME_PATH} -IDL_STARTUP '' -e "kcor_cme_detection, '2017-08-20'"
+${IDL} -IDL_PATH ${KCOR_CME_PATH} -IDL_STARTUP '' -e "kcor_cme_detection, '20170820'"
