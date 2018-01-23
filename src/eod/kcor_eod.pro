@@ -131,7 +131,6 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     kcor_create_differences, date, l1_zipped_files, run=run
   endif
 
-
   ok_list = filepath('okfgif.ls', $
                      subdir=[date, 'level1'], $
                      root=run.raw_basedir)

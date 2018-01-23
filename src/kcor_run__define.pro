@@ -511,6 +511,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            diff_interval=diff_interval, $
                            diff_good_max=diff_good_max, $
                            diff_pass_max=diff_pass_max, $
+                           diff_threshold_intensity=diff_threshold_intensity, $
                            mode=mode
   compile_opt strictarr
 
@@ -720,28 +721,33 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   ; difference movies
   if (arg_present(diff_average_interval)) then begin
     diff_average_interval = self.options->get('average_interval', $
-                                              section='diff_movies', $
+                                              section='differences', $
                                               type=4, default=120.0)
   endif
   if (arg_present(diff_cadence)) then begin
-    diff_cadence = self.options->get('diff_cadence', $
-                                     section='diff_movies', $
+    diff_cadence = self.options->get('cadence', $
+                                     section='differences', $
                                      type=4, default=300.0)
   endif
   if (arg_present(diff_interval)) then begin
-    diff_interval = self.options->get('diff_interval', $
-                                      section='diff_movies', $
+    diff_interval = self.options->get('interval', $
+                                      section='differences', $
                                       type=4, default=600.0)
   endif
   if (arg_present(diff_good_max)) then begin
     diff_good_max = self.options->get('good_max', $
-                                      section='diff_movies', $
+                                      section='differences', $
                                       type=3, default=100L)
   endif
   if (arg_present(diff_pass_max)) then begin
     diff_pass_max = self.options->get('pass_max', $
-                                      section='diff_movies', $
+                                      section='differences', $
                                       type=3, default=250L)
+  endif
+  if (arg_present(diff_threshold_intensity)) then begin
+    diff_threshold_intensity = self.options->get('threshold_intensity', $
+                                                 section='differences', $
+                                                 type=4, default=0.01)
   endif
 
   ; verification
