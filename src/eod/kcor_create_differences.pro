@@ -26,7 +26,7 @@
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;-
-pro kcor_create_differencs, date, l1_files, run=run
+pro kcor_create_differences, date, l1_files, run=run
   compile_opt strictarr
 
   mg_log, 'creating difference movies', name='kcor/eod', /info
@@ -377,4 +377,24 @@ pro kcor_create_differencs, date, l1_files, run=run
   done:
   cd, current
   mg_log, 'done', name='kcor/eod', /info
+end
+
+
+; main-level example program
+
+date = '20170821'
+config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
+                           subdir=['..', '..', 'config'], $
+                           root=mg_src_root())
+run = kcor_run(date, config_filename=config_filename)
+
+l1_files = file_search(filepath('*_l1.fts.gz', $
+                                subdir=[date, 'level1'], $
+                                root=run.raw_basedir), $
+                       count=n_l1_files)
+
+kcor_create_differences, date, l1_files, run=run
+
+obj_destroy, run
+
 end
