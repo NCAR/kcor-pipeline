@@ -17,6 +17,8 @@
 pro kcor_create_animations, date, list=nrgf_files, run=run
   compile_opt strictarr
 
+  mg_log, 'creating animations', name='kcor/eod', /info
+
   create_gifs = 0B
 
   date_parts = kcor_decompose_date(date)
@@ -224,6 +226,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
   ; restore
   done:
   cd, current
+  mg_log, 'done', name='kcor/eod', /info
 end
 
 
