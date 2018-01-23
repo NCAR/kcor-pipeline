@@ -509,6 +509,8 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            diff_average_interval=diff_average_interval, $
                            diff_cadence=diff_cadence, $
                            diff_interval=diff_interval, $
+                           diff_good_max=diff_good_max, $
+                           diff_pass_max=diff_pass_max, $
                            mode=mode
   compile_opt strictarr
 
@@ -730,6 +732,16 @@ pro kcor_run::getProperty, config_contents=config_contents, $
     diff_interval = self.options->get('diff_interval', $
                                       section='diff_movies', $
                                       type=4, default=600.0)
+  endif
+  if (arg_present(diff_good_max)) then begin
+    diff_good_max = self.options->get('good_max', $
+                                      section='diff_movies', $
+                                      type=3, default=100L)
+  endif
+  if (arg_present(diff_pass_max)) then begin
+    diff_pass_max = self.options->get('pass_max', $
+                                      section='diff_movies', $
+                                      type=3, default=250L)
   endif
 
   ; verification

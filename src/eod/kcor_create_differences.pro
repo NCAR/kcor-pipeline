@@ -15,18 +15,37 @@
 ;
 ; :Uses:
 ;   tscan
-;  
+;
+; :Params:
+;   date : in, required, type=string
+;     date in the form "YYYYMMDD"
+;   l1_files : in, required, type=strarr
+;     array of L1 filenames
+;
 ; :Keywords:
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;-
-pro kcor_make_diffs, run=run
+pro kcor_create_differencs, date, l1_files, run=run
   compile_opt strictarr
+
+  mg_log, 'creating difference movies', name='kcor/eod', /info
+
+  date_parts = kcor_decompose_date(date)
+  fullres_dir = filepath('', subdir=date_parts, root=run.fullres_basedir)
+  cropped_dir = filepath('', subdir=date_parts, root=run.croppedgif_basedir)
+  if (run.distribute) then begin
+    if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
+  endif
+
+  l1_dir = filepath('level1', subdir=date, root=run.raw_basedir)
+
+  cd, current=current
+  cd, l1_dir
 
   ; set up variables and arrays needed
   l1_file = ''
   base_file = ''
-  imglist = 'list'
   fits_file = ''
   gif_file = ''
 
@@ -53,8 +72,6 @@ pro kcor_make_diffs, run=run
   time_between_subs = run.diff_cadence / 60.0D / 60.0D / 24.0D
   subinterval = run.diff_interval / 60.0D / 60.0D / 24.0D
 
-  openr, lun, imglist, /get_lun
-
   ; set up counting variables
 
   avgcount  = 0   ; keep track of number of averaged images 
@@ -64,13 +81,13 @@ pro kcor_make_diffs, run=run
   newsub    = 0
 
   ; read in images and generate subtractions ~10 minutes apart
-  while (not eof(lun)) do begin
+  for f = 0L, n_elements(l1_files) - 1L do begin
     numavg = 0
 
     ; read in up to 4 images, get time, and average if images <= 2 min apart
     for i = 0, 3 do begin
-      readf, lun, l1_file
-      img = readfits(l1_file,header,/silent)
+      l1_file = l1_files[f]
+      img = readfits(l1_file, header, /silent)
       imgsave[*, *, i] = float(img)
 
       ; scaling information for quality scans
@@ -84,7 +101,7 @@ pro kcor_make_diffs, run=run
 
       ; find image time
       date_obs = fxpar(header, 'DATE-OBS')   ; yyyy-mm-ddThh:mm:ss
-      date     = strmid (date_obs,  0,10)    ; yyyy-mm-dd
+      date     = strmid(date_obs, 0, 10)    ; yyyy-mm-dd
 
       ; extract fields from DATE_OBS
       yr  = strmid(date_obs,  0, 4)
@@ -233,28 +250,30 @@ pro kcor_make_diffs, run=run
       endif
     endif
     
-    ;   If a subtraction image was created save:
+    ; If a subtraction image was created save:
 
-    ;   1) perform a quality control check using an azimuthal scan at 1.15
-    ;      solar radii and checking the absolute values of the intensities.
-    ;      Flag the filenames with: good, pass, bad
-    ;   2) Create annotation for the GIF image
-    ;   3) Create GIF and FITS images of the subtraction
+    ; 1) perform a quality control check using an azimuthal scan at 1.15
+    ;    solar radii and checking the absolute values of the intensities.
+    ;    Flag the filenames with: good, pass, bad
+    ; 2) Create annotation for the GIF image
+    ; 3) Create GIF and FITS images of the subtraction
 
-    ;   1) SET UP SCAN PARAMETERS and perform quality control scan:
+    ; 1) SET UP SCAN PARAMETERS and perform quality control scan
 
-    ; TODO: move these to configuration file
-    thmin       = 0.0
-    thmax       = 359.0
-    thinc       = 0.5
-    radius      = 1.15
+    theta_min       = 0.0
+    theta_max       = 359.0
+    theta_increment = 0.5
+    radius          = 1.15
+
+    good_value  = run.diff_good_max
+    pass_value  = run.diff_pass_max
+
     pointing_ck = 0
-    good_value  = 100
-    pass_value  = 250
 
     if (newsub eq 1) then begin
       tscan, l1_file, subimg, pixrs, roll, xcen, ycen, $
-             thmin, thmax, thinc, radius, scan, scandx, ns
+             theta_min, theta_max, theta_increment, radius, $
+             scan, scandx, ns
 
       for i = 0, ns - 1 do begin
         if (abs(scan[i]) gt 0.01) then pointing_ck += 1
@@ -265,8 +284,9 @@ pro kcor_make_diffs, run=run
       ; convert month from integer to name of month
       name_month = (['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', $
                      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])[month - 1]
-      date_img = dy + ' ' + name_month + ' ' + yr + ' ' $
-                 + hr + ':' + mnt + ':'  + sec
+
+      date_img = string(dy, name_month, yr, hr, mnt, sec, $
+                        format='%s %s %s %:%s:%s')
 
       ; compute DOY (day-of-year)
       mday      = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
@@ -329,21 +349,30 @@ pro kcor_make_diffs, run=run
 
       case 1 of
         pointing_ck le good_value: status = 'good'
-        pointing_ck gt good_value && pointing_ck le pass_value: status = 'pass'
-        pointing_ck gt pass_value: status = 'bad'
+        pointing_ck le pass_value: status = 'pass'
+        else: status = 'bad'
       endcase
 
       name = strmid(l1_file, 0, 20)
 
-      gif_file = string(name, timestring, status, format='%s_minus_%s_%s.gif')
-      write_gif, gif_file, save
+      gif_basename = string(name, timestring, status, format='%s_minus_%s_%s.gif')
+      gif_filename = filepath(gif_basename, root=)
+      write_gif, gif_filename, save
 
-      fits_file = string(name, timestring, status, format='%s_minus_%s_%s.fts')
-      writefits, fits_file, subimg, goodheader, /silent
+      fits_basename = string(name, timestring, status, format='%s_minus_%s_%s.fts')
+      fits_filename = filepath(fits_basename, root=)
+      writefits, fits_filename, subimg, goodheader, /silent
+
+      if (run.distribute) then begin
+        file_copy, gif_filename, fullres_dir, /overwrite
+        file_copy, fits_filename, fullres_dir, /overwrite
+      endif
 
       newsub = 0
     endif
-  endwhile
+  endfor
 
-  free_lun, lun
+  done:
+  cd, current
+  mg_log, 'done', name='kcor/eod', /info
 end

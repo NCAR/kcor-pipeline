@@ -127,6 +127,11 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     endif
   endif
 
+  if (run.create_daily_movies && n_l1_zipped_files gt 0L) then begin
+    kcor_create_differences, date, l1_zipped_files, run=run
+  endif
+
+
   ok_list = filepath('okfgif.ls', $
                      subdir=[date, 'level1'], $
                      root=run.raw_basedir)
