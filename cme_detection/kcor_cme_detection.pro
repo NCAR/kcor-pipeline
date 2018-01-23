@@ -25,7 +25,7 @@
 ; Examples    :	KCOR_CME_DETECTION                      ;Process real-time data
 ;               KCOR_CME_DETECTION, '2016-01-01'        ;Test with old data
 ;
-;               DATE = '2016-01-01'                     ;TIMERANGE example
+;               DATE = '20160101'                       ;TIMERANGE example
 ;               KCOR_CME_DETECTION, DATE, TIMERANGE=DATE+' '+['21:30','23:50']
 ;
 ; Inputs      :	None required
@@ -96,19 +96,17 @@ pro kcor_cme_detection, date, store=k_store, timerange=k_timerange, $
 
   ; Determine the date directory from the date. If no date was passed, then use
   ; today's date.
-  if n_elements(date) eq 0 then get_utc, date
-  sdate = anytim2utc(date, /ecs, /date_only)
-  simple_date = string(strmid(date, 0, 4), $
-                       strmid(date, 5, 2), $
-                       strmid(date, 8, 2), $
-                       format='(%"%s%s%s")')
+  if (n_elements(date) eq 0) then begin
+    date = string(julday(), format='(C(CYI4, CMOI02, CDI02))')
+  endif
 
-  run = kcor_run(simple_date, config_filename=config_filename)
+  ymd = kcor_decompose_date(date)
+  run = kcor_run(date, config_filename=config_filename)
 
   ; the top of the directory tree containing the KCor data is given by
   ; archive_basedir
   kcor_dir = run.archive_basedir
-  datedir = filepath(sdate, root=kcor_dir)
+  datedir = filepath('', subdir=ymd, root=kcor_dir)
 
   ; hpr_dir points to the top of the directory tree used for storing images
   ; converted into helioprojective-radial (HPR) coordinates
@@ -123,12 +121,12 @@ pro kcor_cme_detection, date, store=k_store, timerange=k_timerange, $
   endif
 
   ; make sure that the output directories exist
-  hpr_out_dir = concat_dir(kcor_hpr_dir, sdate)
+  hpr_out_dir = filepath('', subdir=ymd, root=kcor_hpr_dir)
   if (keyword_set(store) and not file_test(hpr_out_dir, /directory)) then begin
     file_mkdir, hpr_out_dir
   endif
 
-  diff_out_dir = concat_dir(kcor_hpr_diff_dir, sdate)
+  diff_out_dir = filepath('', subdir=ymd, root=kcor_hpr_diff_dir)
   if (keyword_set(store) and not file_test(diff_out_dir, /directory)) then begin
     file_mkdir, diff_out_dir
   endif

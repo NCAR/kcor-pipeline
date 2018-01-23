@@ -23,19 +23,17 @@ pro kcor_cme_detection_job, date, timerange=_timerange, config_filename=config_f
 
   ; Determine the date directory from the date. If no date was passed, then use
   ; today's date.
-  if (n_elements(date) eq 0) then get_utc, date
-  sdate = anytim2utc(date, /ecs, /date_only)
-  simple_date = string(strmid(date, 0, 4), $
-                       strmid(date, 5, 2), $
-                       strmid(date, 8, 2), $
-                       format='(%"%s%s%s")')
+  if (n_elements(date) eq 0) then begin
+    date = string(julday(), format='(C(CYI4, CMOI02, CDI02))')
+  endif
 
-  run = kcor_run(simple_date, config_filename=config_filename)
+  ymd = kcor_decompose_date(date)
+  run = kcor_run(date, config_filename=config_filename)
 
   ; the top of the directory tree containing the KCor data is given by
   ; archive_basedir
   kcor_dir = run.archive_basedir
-  datedir = filepath(sdate, root=kcor_dir)
+  datedir = filepath('', subdir=ymd, root=kcor_dir)
 
   ; hpr_dir points to the top of the directory tree used for storing images
   ; converted into helioprojective-radial (HPR) coordinates
@@ -50,11 +48,12 @@ pro kcor_cme_detection_job, date, timerange=_timerange, config_filename=config_f
   endif
 
   ; make sure that the output directories exist
-  hpr_out_dir = concat_dir(kcor_hpr_dir, sdate)
+  hpr_out_dir = filepath('', subdir=ymd, root=kcor_hpr_dir)
   if (keyword_set(store) and not file_exist(hpr_out_dir)) then begin
     file_mkdir, hpr_out_dir
   endif
-  diff_out_dir = concat_dir(kcor_hpr_diff_dir, sdate)
+
+  diff_out_dir = filepath('', subdir=ymd, root=kcor_hpr_diff_dir)
   if (keyword_set(store) and not file_exist(diff_out_dir)) then begin
     file_mkdir, diff_out_dir
   endif
