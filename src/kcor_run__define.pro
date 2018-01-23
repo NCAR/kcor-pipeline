@@ -402,7 +402,7 @@ pro kcor_run::setup_loggers, rotate_logs=rotate_logs
 
   mg_log, name='kcor/noformat', logger=logger
   log_filename = filepath(self.date + '.realtime.log', root=log_dir)
-  if (keyword_set(rotate_logs)) then begin
+  if (keyword_set(rotate_logs) && mode eq 'realtime') then begin
     mg_rotate_log, log_filename, max_version=max_log_version
   endif
   logger->setProperty, format='%(message)s', $
