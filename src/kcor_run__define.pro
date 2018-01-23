@@ -506,6 +506,9 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            produce_plots=produce_plots, $
                            catalog_files=catalog_files, $
                            create_daily_movies=create_daily_movies, $
+                           diff_average_interval=diff_average_interval, $
+                           diff_cadence=diff_cadence, $
+                           diff_interval=diff_interval, $
                            mode=mode
   compile_opt strictarr
 
@@ -710,6 +713,23 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   if (arg_present(create_daily_movies)) then begin
     create_daily_movies = self.options->get('create_daily_movies', section='eod', $
                                             /boolean, default=1B)
+  endif
+
+  ; difference movies
+  if (arg_present(diff_average_interval)) then begin
+    diff_average_interval = self.options->get('average_interval', $
+                                              section='diff_movies', $
+                                              type=4, default=120.0)
+  endif
+  if (arg_present(diff_cadence)) then begin
+    diff_cadence = self.options->get('diff_cadence', $
+                                     section='diff_movies', $
+                                     type=4, default=300.0)
+  endif
+  if (arg_present(diff_interval)) then begin
+    diff_interval = self.options->get('diff_interval', $
+                                      section='diff_movies', $
+                                      type=4, default=600.0)
   endif
 
   ; verification
