@@ -356,21 +356,22 @@ pro kcor_create_differencs, date, l1_files, run=run
       name = strmid(l1_file, 0, 20)
 
       gif_basename = string(name, timestring, status, format='%s_minus_%s_%s.gif')
-      gif_filename = filepath(gif_basename, root=)
-      write_gif, gif_filename, save
+      write_gif, gif_basename, save
 
       fits_basename = string(name, timestring, status, format='%s_minus_%s_%s.fts')
-      fits_filename = filepath(fits_basename, root=)
-      writefits, fits_filename, subimg, goodheader, /silent
+      writefits, fits_basename, subimg, goodheader, /silent
 
       if (run.distribute) then begin
-        file_copy, gif_filename, fullres_dir, /overwrite
-        file_copy, fits_filename, fullres_dir, /overwrite
+        ; TODO: eventually these will be distributed
+        ;file_copy, gif_filename, fullres_dir, /overwrite
+        ;file_copy, fits_filename, fullres_dir, /overwrite
       endif
 
       newsub = 0
     endif
   endfor
+
+  ; TODO: make mp4s and distribute them
 
   done:
   cd, current
