@@ -287,7 +287,7 @@ pro kcor_create_differences, date, l1_files, run=run
                      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])[month - 1]
 
       date_img = string(dy, name_month, yr, hr, mnt, sec, $
-                        format='%s %s %s %:%s:%s')
+                        format='(%"%s %s %s %sx:%s:%s")')
 
       ; compute DOY (day-of-year)
       mday      = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
@@ -354,13 +354,15 @@ pro kcor_create_differences, date, l1_files, run=run
         else: status = 'bad'
       endcase
 
-      name = strmid(l1_file, 0, 20)
+      name = strmid(file_basename(l1_file), 0, 20)
 
-      gif_basename = string(name, timestring, status, format='%s_minus_%s_%s.gif')
+      mg_log, 'writing %s - %s (%s)', strmid(name, 9, 6), status, name='kcor/eod', /debug
+
+      gif_basename = string(name, timestring, status, format='(%"%s_minus_%s_%s.gif")')
       write_gif, gif_basename, save
 
-      fits_basename = string(name, timestring, status, format='%s_minus_%s_%s.fts')
-      writefits, fits_basename, subimg, goodheader, /silent
+      fits_basename = string(name, timestring, status, format='(%"%s_minus_%s_%s.fts")')
+      writefits, fits_basename, subimg, goodheader;, /silent
 
       if (run.distribute) then begin
         ; TODO: eventually these will be distributed
