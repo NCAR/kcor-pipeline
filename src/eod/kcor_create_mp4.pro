@@ -29,7 +29,7 @@ pro kcor_create_mp4, gif_filenames, mp4_filename, run=run, status=status
 
   ; use FFmpeg to create mp4 from GIF files
   cmd_format = '(%"%s -r 20 -i tmp-%%*.gif -y -loglevel error ' $
-                 + '-vcodec libx264 -passlogfile kcor_tmp -r 20 %s")')
+                 + '-vcodec libx264 -passlogfile kcor_tmp -r 20 %s")'
 
   cmd = string(run.ffmpeg, mp4_filename, format=cmd_format)
   spawn, cmd, result, error_result, exit_status=status
