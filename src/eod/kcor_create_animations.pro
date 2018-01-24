@@ -50,178 +50,69 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
   cropped_dailygif_filename = string(date, format='(%"%s_kcor_l1_cropped.gif")')
   cropped_dailymp4_filename = string(date, format='(%"%s_kcor_l1_cropped.mp4")')
 
-
   ; create daily GIF of NRGF files
   if (create_gifs) then begin
-    cmd = string(run.convert, $
-                 strjoin(nrgf_gif_filenames, ' '), $
-                 nrgf_dailygif_filename, $
-                 format='(%"%s -delay 10 -loop 0 %s %s")')
-    spawn, cmd, result, error_result, exit_status=status
-    if (status ne 0L) then begin
-      mg_log, 'problem creating NRGF daily GIF with command: %s', cmd, $
-              name='kcor/eod', /error
-      mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
-    endif else begin
-      if (run.distribute) then begin
-        file_copy, nrgf_dailygif_filename, fullres_dir, /overwrite
-      endif
-    endelse
+    kcor_create_animated_gif, nrgf_gif_filenames, nrgf_dailygif_filename, $
+                              run=run, status=status
+    if (status eq 0 && run.distribute) then begin
+      file_copy, nrgf_dailygif_filename, fullres_dir, /overwrite
+    endif
   endif
 
   ; create daily mp4 of NRGF files
-  tmp_gif_fmt = '(%"tmp-%04d.gif")'
-  for f = 0L, n_gif_filenames - 1L do begin
-    file_link, nrgf_gif_filenames[f], string(f, format=tmp_gif_fmt)
-  endfor
-
-  cmd = string(run.ffmpeg, $
-               nrgf_dailymp4_filename, $
-               format='(%"%s -r 20 -i tmp-%%*.gif -y -loglevel error -vcodec libx264 -passlogfile kcor_nrgf_tmp -r 20 %s")')
-  spawn, cmd, result, error_result, exit_status=status
-  if (status ne 0L) then begin
-    mg_log, 'problem creating NRGF daily mp4 with command: %s', cmd, $
-            name='kcor/eod', /error
-    mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
-  endif else begin
-    if (run.distribute) then begin
-      file_copy, nrgf_dailymp4_filename, fullres_dir, /overwrite
-    endif
-  endelse
-
-  for f = 0L, n_gif_filenames - 1L do file_delete, string(f, format=tmp_gif_fmt)
-  tmp_files = file_search('kcor_nrgf_tmp*', count=n_tmp_files)
-  if (n_tmp_files gt 0L) then file_delete, tmp_files
-
+  kcor_create_mp4, nrgf_gif_filenames, nrgf_dailymp4_filename, $
+                   run=run, status=status
+  if (status eq 0 && run.distribute) then begin
+    file_copy, nrgf_dailymp4_filename, fullres_dir, /overwrite
+  endif
 
   ; create daily GIF of L1 files
   if (create_gifs) then begin
-    cmd = string(run.convert, $
-                 strjoin(gif_filenames, ' '), $
-                 dailygif_filename, $
-                 format='(%"%s -delay 10 -loop 0 %s %s")')
-    spawn, cmd, result, error_result, exit_status=status
-    if (status ne 0L) then begin
-      mg_log, 'problem creating daily GIF with command: %s', cmd, $
-              name='kcor/eod', /error
-      mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
-    endif else begin
-      if (run.distribute) then begin
-        file_copy, dailygif_filename, fullres_dir, /overwrite
-      endif
-    endelse
-  endif
+    kcor_create_animated_gif, gif_filenames, dailygif_filename, $
+                              run=run, status=status
+    if (status eq 0 && run.distribute) then begin
+      file_copy, dailygif_filename, fullres_dir, /overwrite
+    endif
 
   ; create daily mp4 of L1 files
-  tmp_gif_fmt = '(%"tmp-%04d.gif")'
-  for f = 0L, n_gif_filenames - 1L do begin
-    file_link, gif_filenames[f], string(f, format=tmp_gif_fmt)
-  endfor
-
-  cmd = string(run.ffmpeg, $
-               dailymp4_filename, $
-               format='(%"%s -r 20 -i tmp-%%*.gif -y -loglevel error -vcodec libx264 -passlogfile kcor_tmp -r 20 %s")')
-  spawn, cmd, result, error_result, exit_status=status
-  if (status ne 0L) then begin
-    mg_log, 'problem creating daily mp4 with command: %s', cmd, $
-            name='kcor/eod', /error
-    mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
-  endif else begin
-    if (run.distribute) then begin
-      file_copy, dailymp4_filename, fullres_dir, /overwrite
-    endif
-  endelse
-
-  for f = 0L, n_gif_filenames - 1L do file_delete, string(f, format=tmp_gif_fmt)
-  tmp_files = file_search('kcor_tmp*', count=n_tmp_files)
-  if (n_tmp_files gt 0L) then file_delete, tmp_files
-
+  kcor_create_mp4, gif_filenames, dailymp4_filename, run=run, status=status
+  if (status eq 0 && run.distribute) then begin
+    file_copy, dailymp4_filename, fullres_dir, /overwrite
+  endif
 
   ; create daily GIF of cropped NRGF GIF files
   if (create_gifs) then begin
-    cmd = string(run.convert, $
-                 strjoin(cropped_nrgf_gif_filenames, ' '), $
-                 cropped_nrgf_dailygif_filename, $
-                 format='(%"%s -delay 10 -loop 0 %s %s")')
-    spawn, cmd, result, error_result, exit_status=status
-    if (status ne 0L) then begin
-      mg_log, 'problem creating cropped NRGF daily GIF with command: %s', cmd, $
-              name='kcor/eod', /error
-      mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
-    endif else begin
-      if (run.distribute) then begin
-        file_copy, cropped_nrgf_dailygif_filename, cropped_dir, /overwrite
-      endif
-    endelse
+    kcor_create_animated_gif, cropped_nrgf_gif_filenames, $
+                              cropped_nrgf_dailygif_filename, $
+                              run=run, status=status
+    if (status eq 0 && run.distribute) then begin
+      file_copy, cropped_nrgf_dailygif_filename, cropped_dir, /overwrite
+    endif
   endif
 
   ; create daily mp4 of cropped NRGF GIF files
-  tmp_gif_fmt = '(%"tmp-%04d.gif")'
-  for f = 0L, n_gif_filenames - 1L do begin
-    file_link, cropped_nrgf_gif_filenames[f], string(f, format=tmp_gif_fmt)
-  endfor
-  cmd = string(run.ffmpeg, $
-               cropped_nrgf_dailymp4_filename, $
-               format='(%"%s -r 20 -i tmp-%%*.gif -y -loglevel error -vcodec libx264 -passlogfile kcor_nrgf_tmp -r 20 %s")')
-  spawn, cmd, result, error_result, exit_status=status
-  if (status ne 0L) then begin
-    mg_log, 'problem creating cropped NRGF daily mp4 with command: %s', cmd, $
-            name='kcor/eod', /error
-    mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
-  endif else begin
-    if (run.distribute) then begin
-      file_copy, cropped_nrgf_dailymp4_filename, cropped_dir, /overwrite
-    endif
-  endelse
-
-  for f = 0L, n_gif_filenames - 1L do file_delete, string(f, format=tmp_gif_fmt)
-  tmp_files = file_search('kcor_nrgf_tmp*', count=n_tmp_files)
-  if (n_tmp_files gt 0L) then file_delete, tmp_files
-
+  kcor_create_mp4, cropped_nrgf_filenames, cropped_nrgf_dailymp4_filename, $
+                   run=run, status=status
+  if (status eq 0 && run.distribute) then begin
+    file_copy, cropped_nrgf_dailymp4_filename, cropped_dir, /overwrite
+  endif
 
   ; create daily GIF of cropped L1 GIF files
   if (create_gifs) then begin
-    cmd = string(run.convert, $
-                 strjoin(cropped_gif_filenames, ' '), $
-                 cropped_dailygif_filename, $
-                 format='(%"%s -delay 10 -loop 0 %s %s")')
-    spawn, cmd, result, error_result, exit_status=status
-    if (status ne 0L) then begin
-      mg_log, 'problem creating daily cropped GIF with command: %s', cmd, $
-              name='kcor/eod', /error
-      mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
-    endif else begin
-      if (run.distribute) then begin
-        file_copy, cropped_dailygif_filename, cropped_dir, /overwrite
-      endif
-    endelse
+    kcor_create_animated_gif, cropped_gif_filenames, $
+                              cropped_dailygif_filename, $
+                              run=run, status=status 
+    if (status eq 0 && run.distribute) then begin
+      file_copy, cropped_dailygif_filename, cropped_dir, /overwrite
+    endif
   endif
 
-
   ; create daily mp4 of cropped L1 GIF files
-  tmp_gif_fmt = '(%"tmp-%04d.gif")'
-  for f = 0L, n_gif_filenames - 1L do begin
-    file_link, cropped_gif_filenames[f], string(f, format=tmp_gif_fmt)
-  endfor
-
-  cmd = string(run.ffmpeg, $
-               cropped_dailymp4_filename, $
-               format='(%"%s -r 20 -i tmp-%%*.gif -y -loglevel error -vcodec libx264 -passlogfile kcor_tmp -r 20 %s")')
-  spawn, cmd, result, error_result, exit_status=status
-  if (status ne 0L) then begin
-    mg_log, 'problem creating daily cropped mp4 with command: %s', cmd, $
-            name='kcor/eod', /error
-    mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
-  endif else begin
-    if (run.distribute) then begin
-      file_copy, cropped_dailymp4_filename, cropped_dir, /overwrite
-    endif
-  endelse
-
-  for f = 0L, n_gif_filenames - 1L do file_delete, string(f, format=tmp_gif_fmt)
-  tmp_files = file_search('kcor_tmp*', count=n_tmp_files)
-  if (n_tmp_files gt 0L) then file_delete, tmp_files
-
+  kcor_create_mp4, cropped_gif_filenames, cropped_dailymp4_filename, $
+                   run=run, status=status
+  if (status eq 0 && run.distribute) then begin
+    file_copy, cropped_dailymp4_filename, cropped_dir, /overwrite
+  endif
 
   ; restore
   done:

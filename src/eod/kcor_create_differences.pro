@@ -100,8 +100,7 @@ pro kcor_create_differences, date, l1_files, run=run
       roll    = 0.0
 
       ; find image time
-      date_obs = fxpar(header, 'DATE-OBS')   ; yyyy-mm-ddThh:mm:ss
-      date     = strmid(date_obs, 0, 10)    ; yyyy-mm-dd
+      date_obs = fxpar(header, 'DATE-OBS')    ; yyyy-mm-ddThh:mm:ss
 
       ; extract fields from DATE_OBS
       yr  = strmid(date_obs,  0, 4)
@@ -374,7 +373,17 @@ pro kcor_create_differences, date, l1_files, run=run
     endif
   endfor
 
-  ; TODO: make mp4s and distribute them
+  ; create mp4 of difference images
+  difference_gif_filenames = file_search('*minus*', $
+                                         count=n_difference_gif_files)
+  if (n_difference_gif_files gt 0L) then begin
+    kcor_create_mp4, difference_gif_filenames, difference_mp4_filename, $
+                     run=run, status=status
+    if (status eq 0 && run.distribute) then begin
+      ; TODO: distribute when the quality of these is correct
+      ;file_copy, difference_mp4_filename, fullres_dir, /overwrite
+    endif
+  endif
 
   done:
   cd, current
