@@ -120,7 +120,8 @@ pro kcor_reprocess, date, run=run, error=error
           endif
         endfor
       endif else begin
-        mg_log, 'no files to remove from %s', dirs[d], name='kcor/reprocess', /info
+        mg_log, 'no files to remove from %s', dir_names[d], $
+                name='kcor/reprocess', /info
       endelse
     endfor
   endif
