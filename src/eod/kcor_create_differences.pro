@@ -355,7 +355,9 @@ pro kcor_create_differences, date, l1_files, run=run
 
       name = strmid(file_basename(l1_file), 0, 20)
 
-      mg_log, 'writing %s - %s (%s)', strmid(name, 9, 6), status, name='kcor/eod', /debug
+      mg_log, 'writing %s - %s GIF/FTS file (%s)', $
+              strmid(name, 9, 6), timestring, status, $
+              name='kcor/eod', /debug
 
       gif_basename = string(name, timestring, status, format='(%"%s_minus_%s_%s.gif")')
       write_gif, gif_basename, save
@@ -377,13 +379,18 @@ pro kcor_create_differences, date, l1_files, run=run
   difference_gif_filenames = file_search('*minus*', $
                                          count=n_difference_gif_files)
   if (n_difference_gif_files gt 0L) then begin
+    mg_log, 'creating difference mp4', name='kcor/eod', /info
+    difference_mp4_filename = string(date, format='(%"%s_kcor_minus.mp4")')
     kcor_create_mp4, difference_gif_filenames, difference_mp4_filename, $
                      run=run, status=status
     if (status eq 0 && run.distribute) then begin
       ; TODO: distribute when the quality of these is correct
       ;file_copy, difference_mp4_filename, fullres_dir, /overwrite
     endif
-  endif
+  endif else begin
+    mg_log, 'no difference GIFs, not creating difference mp4', $
+            name='kcor/eod', /info
+  endelse
 
   done:
   cd, current

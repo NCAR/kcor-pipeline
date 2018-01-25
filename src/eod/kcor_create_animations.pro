@@ -52,6 +52,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
 
   ; create daily GIF of NRGF files
   if (create_gifs) then begin
+    mg_log, 'creating NRGF GIF', name='kcor/eod', /info
     kcor_create_animated_gif, nrgf_gif_filenames, nrgf_dailygif_filename, $
                               run=run, status=status
     if (status eq 0 && run.distribute) then begin
@@ -60,6 +61,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
   endif
 
   ; create daily mp4 of NRGF files
+  mg_log, 'creating NRGF mp4', name='kcor/eod', /info
   kcor_create_mp4, nrgf_gif_filenames, nrgf_dailymp4_filename, $
                    run=run, status=status
   if (status eq 0 && run.distribute) then begin
@@ -68,13 +70,16 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
 
   ; create daily GIF of L1 files
   if (create_gifs) then begin
+    mg_log, 'creating daily GIF', name='kcor/eod', /info
     kcor_create_animated_gif, gif_filenames, dailygif_filename, $
                               run=run, status=status
     if (status eq 0 && run.distribute) then begin
       file_copy, dailygif_filename, fullres_dir, /overwrite
     endif
+  endif
 
   ; create daily mp4 of L1 files
+  mg_log, 'creating daily mp4', name='kcor/eod', /info
   kcor_create_mp4, gif_filenames, dailymp4_filename, run=run, status=status
   if (status eq 0 && run.distribute) then begin
     file_copy, dailymp4_filename, fullres_dir, /overwrite
@@ -82,6 +87,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
 
   ; create daily GIF of cropped NRGF GIF files
   if (create_gifs) then begin
+    mg_log, 'creating cropped NRGF GIF', name='kcor/eod', /info
     kcor_create_animated_gif, cropped_nrgf_gif_filenames, $
                               cropped_nrgf_dailygif_filename, $
                               run=run, status=status
@@ -91,7 +97,8 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
   endif
 
   ; create daily mp4 of cropped NRGF GIF files
-  kcor_create_mp4, cropped_nrgf_filenames, cropped_nrgf_dailymp4_filename, $
+  mg_log, 'creating cropped NRGF mp4', name='kcor/eod', /info
+  kcor_create_mp4, cropped_nrgf_gif_filenames, cropped_nrgf_dailymp4_filename, $
                    run=run, status=status
   if (status eq 0 && run.distribute) then begin
     file_copy, cropped_nrgf_dailymp4_filename, cropped_dir, /overwrite
@@ -99,6 +106,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
 
   ; create daily GIF of cropped L1 GIF files
   if (create_gifs) then begin
+    mg_log, 'creating cropped L1 GIF', name='kcor/eod', /info
     kcor_create_animated_gif, cropped_gif_filenames, $
                               cropped_dailygif_filename, $
                               run=run, status=status 
@@ -108,6 +116,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
   endif
 
   ; create daily mp4 of cropped L1 GIF files
+  mg_log, 'creating cropped L1 mp4', name='kcor/eod', /info
   kcor_create_mp4, cropped_gif_filenames, cropped_dailymp4_filename, $
                    run=run, status=status
   if (status eq 0 && run.distribute) then begin

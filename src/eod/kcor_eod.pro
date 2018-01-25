@@ -359,3 +359,14 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   mg_log, 'done', name='kcor/eod', /info
   obj_destroy, run
 end
+
+
+; main-level example program
+
+date = '20170821'
+config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
+                           subdir=['..', '..', 'config'], $
+                           root=mg_src_root())
+kcor_eod, date, config_filename=config_filename
+
+end
