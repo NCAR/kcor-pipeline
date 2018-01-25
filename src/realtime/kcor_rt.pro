@@ -95,7 +95,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
 
     l0_fits_files = file_search('*_kcor.fts.gz', count=n_l0_fits_files)
     if (n_l0_fits_files eq 0L) then begin
-      mg_log, 'no L0 files to process in %s', raw_dir, name='kcor/rt', /info
+      mg_log, 'no L0 files to process in raw dir', name='kcor/rt', /info
       goto, done
     endif
 

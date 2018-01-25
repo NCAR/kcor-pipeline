@@ -95,8 +95,9 @@ pro kcor_plotraw, date, list=list, run=run, $
   theta_degrees = findgen(360)
   theta = theta_degrees * !dtor
 
+  n_digits = floor(alog10(n_nrgf_files)) + 1L  ; for formatting
   for f = 0L, n_nrgf_files - 1L do begin
-    mg_log, '%4d/%d: %s', $
+    mg_log, '%' + strtrim(n_digits, 2) + 'd/%d: %s', $
             f + 1, n_nrgf_files, file_basename(raw_nrgf_files[f]), $
             name='kcor/eod', /info
 

@@ -113,6 +113,8 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
   fycen1 = fltarr(n_images)
   frocc1 = fltarr(n_images)
 
+  n_digits = floor(alog10(n_images)) + 1L   ; for formatting
+
   ; image file loop
   for i = 0L, n_images - 1L do begin
     l0_file = list[i]
@@ -307,8 +309,8 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     qual_str     = strtrim(qual, 2)
 
     ; print image summary
-    mg_log, '%4d/%d: %s %s', $
-            i + 1, n_elements(list), file_basename(img_file), datatype_str, $
+    mg_log, '%' + strtrim(n_digits, 2) + 'd/%d: %s %s', $
+            i + 1, n_images, file_basename(img_file), datatype_str, $
             name='kcor/eod', /info
     mg_log, '   %5s %3s %4s %4s %4s %7s %4s', $
             exptime_str, cover_str, dshutter_str, $
