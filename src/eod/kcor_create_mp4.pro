@@ -23,11 +23,18 @@ pro kcor_create_mp4, gif_filenames, mp4_filename, run=run, status=status
   n_gif_files = n_elements(gif_filenames)
 
   tmp_gif_fmt = '(%"tmp-%04d.gif")'
+
+  ; delete temp links in case any are still there from a previous run
+  for f = 0L, n_gif_files - 1L do begin
+    file_delete, string(f, format=tmp_gif_fmt), /allow_nonexistent
+  endfor
+
+  ; create links so filenames are in correct order
   for f = 0L, n_gif_files - 1L do begin
     file_link, gif_filenames[f], string(f, format=tmp_gif_fmt)
   endfor
 
-  ; use FFmpeg to create mp4 from GIF files
+  ; use ffmpeg to create mp4 from GIF files
   cmd_format = '(%"%s -r 20 -i tmp-%%*.gif -y -loglevel error ' $
                  + '-vcodec libx264 -passlogfile kcor_tmp -r 20 %s")'
 
