@@ -214,6 +214,13 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
     date_obs = sxpar(hdu, 'DATE-OBS', count=qdate_obs)
     run.time = date_obs
 
+    if (~run->epoch('process')) then begin
+      mg_log, 'files from this epoch should not be processed, skipping', $
+              name='kcor/rt', /warn
+      printf, udev, l0_file
+      continue
+    endif
+
     level    = sxpar(hdu, 'LEVEL',    count=qlevel)
 
     exposure = sxpar(hdu, 'EXPTIME')
