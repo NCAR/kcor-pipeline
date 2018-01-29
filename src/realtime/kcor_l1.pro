@@ -1402,13 +1402,23 @@ pro kcor_l1, date_str, ok_files, $
     fxaddpar, newheader, 'OCCLTRID', struct.occltrid, ' ID occulter'
     fxaddpar, newheader, 'MODLTRID', struct.modltrid, ' ID modulator'
 
-    prefix = run->epoch('use_camera_prefix') ? run->epoch('camera_prefix') : ''
-    rcamid = prefix + struct.rcamid
-    tcamid = prefix + struct.tcamid
-    fxaddpar, newheader, 'RCAMID', rcamid, ' ID camera 0 (reflected)'
-    fxaddpar, newheader, 'TCAMID', tcamid, ' ID camera 1 (transmitted)' 
-    fxaddpar, newheader, 'RCAMLUT',  struct.rcamlut, ' ID LUT for camera 0'
-    fxaddpar, newheader, 'TCAMLUT',  struct.tcamlut, ' ID LUT for camera 1'
+    if (run->epoch('use_camera_info')) then begin
+      prefix = run->epoch('use_camera_prefix') ? run->epoch('camera_prefix') : ''
+      rcamid = prefix + struct.rcamid
+      tcamid = prefix + struct.tcamid
+      rcamlut = struct.rcamlut
+      tcamlut = struct.tcamlut
+    endif else begin
+      rcamid = run->epoch('rcamid')
+      tcamid = run->epoch('tcamid')
+      rcamlut = run->epoch('rcamlut')
+      tcamlut = run->epoch('tcamlut')
+    endelse
+
+    fxaddpar, newheader, 'RCAMID', rcamid, ' ' + run->epoch('rcamid_comment') 
+    fxaddpar, newheader, 'TCAMID', tcamid, ' ' + run->epoch('tcamid_comment')  
+    fxaddpar, newheader, 'RCAMLUT', rcamlut, ' ' + run->epoch('rcamlut_comment')
+    fxaddpar, newheader, 'TCAMLUT', tcamlut, ' ' + run->epoch('tcamlut_comment')
 
     ; data citation URL
     fxaddpar, newheader, 'DATACITE', run->epoch('doi_url'), ' URL for DOI'

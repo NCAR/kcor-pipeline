@@ -136,6 +136,18 @@ function kcor_run::epoch, name, time=time
     'horizontal_artifact_lines': return, self->_readepoch('horizontal_artifact_lines', $
                                                           self.date, hst_time, $
                                                           /extract, type=3)
+    'use_camera_info': return, self->_readepoch('use_camera_info', $
+                                                self.date, hst_time, /boolean)
+    'tcamid': return, self->_readepoch('tcamid', self.date, hst_time, type=7)
+    'rcamid': return, self->_readepoch('rcamid', self.date, hst_time, type=7)
+    'tcamlut': return, self->_readepoch('tcamlut', self.date, hst_time, type=7)
+    'rcamlut': return, self->_readepoch('rcamlut', self.date, hst_time, type=7)
+
+    'tcamid_comment': return, self->_readepoch('tcamid_comment', self.date, hst_time, type=7)
+    'rcamid_comment': return, self->_readepoch('rcamid_comment', self.date, hst_time, type=7)
+    'tcamlut_comment': return, self->_readepoch('tcamlut_comment', self.date, hst_time, type=7)
+    'rcamlut_comment': return, self->_readepoch('rcamlut_comment', self.date, hst_time, type=7)
+
     'produce_calibration': return, self->_readepoch('produce_calibration', $
                                                     self.date, hst_time, /boolean)
     'OC-1': return, self->_readepoch('OC-1', self.date, hst_time, type=4)
