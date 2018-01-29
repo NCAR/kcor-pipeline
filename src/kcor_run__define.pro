@@ -83,7 +83,7 @@ function kcor_run::epoch, name, time=time
   case name of
     'mlso_url': return, self->_readepoch('mlso_url', self.date, hst_time, type=7) 
     'doi_url': return, self->_readepoch('doi_url', self.date, hst_time, type=7)
-    'process': self->_readepoch('process', self.date, hst_time, /boolean)
+    'process': return, self->_readepoch('process', self.date, hst_time, /boolean)
     'plate_scale': return, self->_readepoch('plate_scale', self.date, hst_time, type=4)
     'use_default_darks': begin
         return, self->_readepoch('use_default_darks', self.date, hst_time, /boolean)
