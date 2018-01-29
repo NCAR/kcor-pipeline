@@ -81,15 +81,14 @@ pro kcor_create_differences, date, l1_files, run=run
   newsub    = 0
 
   ; read in images and generate subtractions ~10 minutes apart
-  f = 0
-  while (f lt n_elements(l1_files)) do begin
+  f = -1
+  while (++f lt n_elements(l1_files)) do begin
     numavg = 0
 
     ; read in up to 4 images, get time, and average if images <= 2 min apart
     for i = 0, 3 do begin
       l1_file = file_basename(l1_files[f])
       img = readfits(l1_file, header, /silent)
-      f += 1
 
       imgsave[*, *, i] = float(img)
 
