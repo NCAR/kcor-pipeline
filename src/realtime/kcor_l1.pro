@@ -1219,7 +1219,8 @@ pro kcor_l1, date_str, ok_files, $
                      format='(%" %s")'), $
               format='(G0.3)'
 
-    fxaddpar, newheader, 'BZERO', struct.bzero, $
+    fxaddpar, newheader, 'BZERO', $
+              run->epoch('use_bzero') ? struct.bzero : run_epoch('bzero'), $
               ' offset for unsigned integer data'
     fxaddpar, newheader, 'BSCALE', bscale, $
               ' physical = data * BSCALE + BZERO', format='(F8.3)'

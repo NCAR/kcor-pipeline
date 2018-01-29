@@ -148,6 +148,9 @@ function kcor_run::epoch, name, time=time
     'tcamlut_comment': return, self->_readepoch('tcamlut_comment', self.date, hst_time, type=7)
     'rcamlut_comment': return, self->_readepoch('rcamlut_comment', self.date, hst_time, type=7)
 
+    'use_bzero': return, self->_readepoch('use_bzero', self.date, hst_time, /boolean)
+    'bzero': return, self->_readepoch('bzero', self.date, hst_time, type=14)
+
     'produce_calibration': return, self->_readepoch('produce_calibration', $
                                                     self.date, hst_time, /boolean)
     'OC-1': return, self->_readepoch('OC-1', self.date, hst_time, type=4)
