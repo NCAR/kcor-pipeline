@@ -17,6 +17,6 @@ else
   SUBJECT="KCor verify for $START_DATE-$END_DATE (success)"
 fi
 
-mail -s "$SUBJECT" $(cat ~/.kcor_notifiers) < $LOG_FILENAME
+mail -s "$SUBJECT" $(cat ~/.kcor_notifiers) -r $(whoami)@ucar.edu < $LOG_FILENAME
 
 rm -f $LOG_FILENAME
