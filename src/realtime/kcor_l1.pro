@@ -1387,7 +1387,7 @@ pro kcor_l1, date_str, ok_files, $
     fxaddpar, newheader, 'CALPOLID', struct.calpolid, $
               ' ID polarizer'
     fxaddpar, newheader, 'DIFFSRID', diffsrid, $
-              run->epoch('use_diffsrid') ? ' ID diffuser' : run->epoch('diffsrid_comment'), $
+              run->epoch('use_diffsrid') ? ' ID diffuser' : run->epoch('diffsrid_comment')
     fxaddpar, newheader, 'FILTERID', struct.filterid, $
               ' ID bandpass filter'
 
