@@ -1213,9 +1213,10 @@ pro kcor_l1, date_str, ok_files, $
 
     fxaddpar, newheader, 'BUNIT', '1.0E-6 Bsun', $
               ' Brightness with respect to solar disc'
+    diffsrid = run->epoch('use_diffsrid') ? struct.diffsrid : run->epoch('diffsrid')
     fxaddpar, newheader, 'BOPAL', $
-              run->epoch(struct.diffsrid) * 1e-6, $
-              string(run->epoch(struct.diffsrid + '_comment'), $
+              run->epoch(diffsrid) * 1e-6, $
+              string(run->epoch(diffsrid + '_comment'), $
                      format='(%" %s")'), $
               format='(G0.3)'
 
@@ -1385,8 +1386,8 @@ pro kcor_l1, date_str, ok_files, $
     ; component identifiers
     fxaddpar, newheader, 'CALPOLID', struct.calpolid, $
               ' ID polarizer'
-    fxaddpar, newheader, 'DIFFSRID', struct.diffsrid, $
-              ' ID diffuser'
+    fxaddpar, newheader, 'DIFFSRID', diffsrid, $
+              run->epoch('use_diffsrid') ? ' ID diffuser' : run->epoch('diffsrid_comment'), $
     fxaddpar, newheader, 'FILTERID', struct.filterid, $
               ' ID bandpass filter'
 
