@@ -1,6 +1,15 @@
 ; docformat = 'rst'
 
-pro kcor_cme_detection_job, date, timerange=_timerange, config_filename=config_filename
+;+
+; :Keywords:
+;   realtime : in, optional, type=boolean
+;     set to indicate that the job is being run in realtime, i.e., files for
+;     the are not all present already and the code must wait for them to come in
+;-
+pro kcor_cme_detection_job, date, $
+                            timerange=_timerange, $
+                            config_filename=config_filename, $
+                            realtime=realtime
   compile_opt strictarr
   @kcor_cme_det_common
 
@@ -65,8 +74,9 @@ pro kcor_cme_detection_job, date, timerange=_timerange, config_filename=config_f
 
     mg_log, 'starting CME detection for %s', date, name='kcor/cme', /info
 
-    ; TODO: should check for time of day, stop after a certain time of day
-    ; TODO: but when running with a date set, stop after done with files
+    ; If running in realtime mode, stop when KCOR_CME_DET_CHECK detects a stop
+    ; *and* when it is after the cme_stop_time. If running a job on already
+    ; existing files, stop after done with all the files.
     while (1B) do begin
       kcor_cme_det_check, stopped=stopped
 
@@ -77,10 +87,20 @@ pro kcor_cme_detection_job, date, timerange=_timerange, config_filename=config_f
           cme_occurring = 0B
           mg_log, 'CME ended at %s', ref_time, name='kcor/cme', /info
         endif
-        break
+
+        if (keyword_set(realtime)) then begin
+          current_time = string(julday(), format='(C(CHI2.2, CMI2.2, CSI2.2))')
+          if (current_time gt run.cme_stop_time) then break
+          mg_log, 'waiting %0.1f seconds...', run.cme_wait_time, name='kcor/cme', /info
+          wait, run.cme_wait_time
+        endif else begin
+          break
+        endelse
       endif
     endwhile
   endif else begin
     mg_log, 'directory %s does not exist', datedir, name='kcor/cme', /warn
   endelse
+
+  obj_destroy, run
 end

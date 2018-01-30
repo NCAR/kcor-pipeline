@@ -505,6 +505,8 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            hpr_dir=hpr_dir, $
                            hpr_diff_dir=hpr_diff_dir, $
                            cme_movie_dir=cme_movie_dir, $
+                           cme_stop_time=cme_stop_time, $
+                           cme_wait_time=cme_wait_time, $
                            cme_email=cme_email, $
                            database_config_filename=database_config_filename, $
                            database_config_section=database_config_section, $
@@ -648,6 +650,12 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   endif
   if (arg_present(cme_movie_dir)) then begin
     cme_movie_dir = self.options->get('movie_dir', section='cme')
+  endif
+  if (arg_present(cme_stop_time)) then begin
+    cme_stop_time = self.options->get('stop_time', section='cme', default='180000')
+  endif
+  if (arg_present(cme_wait_time)) then begin
+    cme_wait_time = self.options->get('wait_time', section='cme', default=15.0, type=4)
   endif
   if (arg_present(cme_email)) then begin
     cme_email = self.options->get('email', section='cme')
