@@ -1173,11 +1173,11 @@ pro kcor_l1, date_str, ok_files, $
               ' calibration polarizer in or out of beam'
     fxaddpar, newheader, 'CALPANG',  struct.calpang, $
               ' calibration polarizer angle', format='(f9.3)'
-    fxaddpar, newheader, 'EXPTIME',  struct.exptime*1.e-3, $
+    exposure = run->epoch('use_exptime') ? struct.exptime : run->epoch('exptime')
+    fxaddpar, newheader, 'EXPTIME',  exposure * 1.e-3, $
               ' [s] exposure time for each frame', format = '(f10.4)'
-    ; fxaddpar, newheader, 'XPOSURE',  struct.exptime * 1.e-3 * struct.numsum, $
-    ;                      ' [s] total exposure for image', format = '(f10.4)'
-    fxaddpar, newheader, 'NUMSUM',   struct.numsum, $
+    numsum = run->epoch('use_numsum') ? struct.numsum : run->epoch('numsum')
+    fxaddpar, newheader, 'NUMSUM', numsum, $
               ' # frames summed per camera & polarizer state'
 
     ; software information

@@ -223,8 +223,6 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
 
     level    = sxpar(hdu, 'LEVEL',    count=qlevel)
 
-    exposure = sxpar(hdu, 'EXPTIME')
-    exposure = float(exposure)
     bbscale  = sxpar(hdu, 'BSCALE',   count=qbbscale)
     bitpix   = fix(sxpar(hdu, 'BITPIX'))
 

@@ -161,6 +161,8 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     calpang  = sxpar(hdu, 'CALPANG',  count=qcalpang)
     darkshut = sxpar(hdu, 'DARKSHUT', count=qdarkshut)
     exptime  = sxpar(hdu, 'EXPTIME',  count=qexptime)
+    if (~run->epoch('use_exptime')) then exptime = run->epoch('exptime')
+
     cover    = sxpar(hdu, 'COVER',    count=qcover)
 
     occltrid = sxpar(hdu, 'OCCLTRID', count=qoccltrid)

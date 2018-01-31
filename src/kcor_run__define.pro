@@ -156,6 +156,12 @@ function kcor_run::epoch, name, time=time
     'use_bzero': return, self->_readepoch('use_bzero', self.date, hst_time, /boolean)
     'bzero': return, self->_readepoch('bzero', self.date, hst_time, type=14)
 
+    'use_exptime': return, self->_readepoch('use_exptime', self.date, hst_time, /boolean)
+    'exptime': return, self->_readepoch('exptime', self.date, hst_time, type=4)
+
+    'use_numsum': return, self->_readepoch('use_numsum', self.date, hst_time, /boolean)
+    'numsum': return, self->_readepoch('numsum', self.date, hst_time, type=3)
+
     'produce_calibration': return, self->_readepoch('produce_calibration', $
                                                     self.date, hst_time, /boolean)
     'OC-1': return, self->_readepoch('OC-1', self.date, hst_time, type=4)

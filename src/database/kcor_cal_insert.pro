@@ -118,6 +118,8 @@ pro kcor_cal_insert, date, fits_list, $
 
     numsum      =         sxpar(hdu, 'NUMSUM',   count=qnumsum)
     exptime     =         sxpar(hdu, 'EXPTIME',  count=qexptime)
+    if (~run->epoch('use_exptime')) then exptime = run->epoch('exptime')
+
     cover       = strtrim(sxpar(hdu, 'COVER',    count=qcover), 2)
     darkshut    = strtrim(sxpar(hdu, 'DARKSHUT', count=qdarkshut), 2)
     diffuser    = strtrim(sxpar(hdu, 'DIFFUSER', count=qdiffuser), 2)

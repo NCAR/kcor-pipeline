@@ -42,6 +42,8 @@ pro kcor_correct_camera, im, header, run=run, logger_name=logger_name
   fp = fltarr(1024, 1024, 5, n_cameras)
 
   exposure = sxpar(header, 'EXPTIME')
+  if (~run->epoch('use_exptime')) then exposure = run->epoch('exptime')
+
   tcamid = sxpar(header, 'TCAMID')
   rcamid = sxpar(header, 'RCAMID')
 

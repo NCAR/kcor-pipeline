@@ -30,6 +30,7 @@ pro kcor_catalog_file, filename, run=run
 
   exposure = sxpar(header, 'EXPTIME', count=nrecords)
   if (nrecords eq 0) then exposure = sxpar(header, 'EXPOSURE')
+  if (~run->epoch('use_exptime')) then exposure = run->epoch('exptime')
 
   ; datatype = science
   if (datatype eq 'science') then begin

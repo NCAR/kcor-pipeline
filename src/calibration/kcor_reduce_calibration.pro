@@ -54,6 +54,7 @@ pro kcor_reduce_calibration, date, $
 
       exposure = sxpar(header, 'EXPTIME', count=nrecords)
       if (nrecords eq 0) then exposure = sxpar(header, 'EXPOSURE')
+      if (~run->epoch('use_exptime')) then exposure = run->epoch('exptime')
 
       exposures[f] = string(exposure, format='(f10.4)')
     endfor
