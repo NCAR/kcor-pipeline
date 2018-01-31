@@ -1221,7 +1221,7 @@ pro kcor_l1, date_str, ok_files, $
               format='(G0.3)'
 
     fxaddpar, newheader, 'BZERO', $
-              run->epoch('use_bzero') ? struct.bzero : run_epoch('bzero'), $
+              run->epoch('use_bzero') ? struct.bzero : run->epoch('bzero'), $
               ' offset for unsigned integer data'
     fxaddpar, newheader, 'BSCALE', bscale, $
               ' physical = data * BSCALE + BZERO', format='(F8.3)'
@@ -1387,7 +1387,7 @@ pro kcor_l1, date_str, ok_files, $
     fxaddpar, newheader, 'CALPOLID', struct.calpolid, $
               ' ID polarizer'
     fxaddpar, newheader, 'DIFFSRID', diffsrid, $
-              run->epoch('use_diffsrid') ? ' ID diffuser' : run->epoch('diffsrid_comment'), $
+              run->epoch('use_diffsrid') ? ' ID diffuser' : run->epoch('diffsrid_comment')
     fxaddpar, newheader, 'FILTERID', struct.filterid, $
               ' ID bandpass filter'
 

@@ -81,20 +81,26 @@ pro kcor_create_differences, date, l1_files, run=run
   newsub    = 0
 
   ; read in images and generate subtractions ~10 minutes apart
-  for f = 0L, n_elements(l1_files) - 1L do begin
+  f = 0L
+  while (f lt n_elements(l1_files)) do begin
     numavg = 0
 
     ; read in up to 4 images, get time, and average if images <= 2 min apart
     for i = 0, 3 do begin
-      l1_file = l1_files[f]
+      if (f ge n_elements(l1_files)) then break
+
+      l1_file = file_basename(l1_files[f])
       img = readfits(l1_file, header, /silent)
+
+      f += 1
+
       imgsave[*, *, i] = float(img)
 
       ; scaling information for quality scans
       rsun    = fxpar (header, 'RSUN')         ; solar radius [arcsec/Rsun]
       cdelt1  = fxpar (header, 'CDELT1')       ; resolution   [arcsec/pixel]
       pixrs   = rsun / cdelt1
-      r_photo = rsun/cdelt1
+      r_photo = rsun / cdelt1
       xcen    = fxpar (header, 'CRPIX1')       ; X center
       ycen    = fxpar (header, 'CRPIX2')       ; Y center
       roll    = 0.0
@@ -175,10 +181,10 @@ pro kcor_create_differences, date, l1_files, run=run
       endfor
     endif
 
-    ;  SECOND LOOP TO BUILD UP BACKGROUND IMAGE STACK:  
-    ;  Next add later images to stack until we have 12 unique images in stack
-    ;  Latest time is put into stack[0], oldest time is in stack[11]
-    ;  Begin looking for images 10 minutes apart to make subtraction
+    ; SECOND LOOP TO BUILD UP BACKGROUND IMAGE STACK:
+    ; Next add later images to stack until we have 12 unique images in stack
+    ; Latest time is put into stack[0], oldest time is in stack[11]
+    ; Begin looking for images 10 minutes apart to make subtraction
     if (bkdcount gt 1 && bkdcount le 12) then begin
       counter = bkdcount - 2
       for k = 0, counter do begin   
@@ -201,28 +207,29 @@ pro kcor_create_differences, date, l1_files, run=run
     ;  Has it been 5 minutes since the previous subtraction?
     ;  Go thru the stack of 10 images looking for the 'newest' time that is 10
     ;  minutes before the current image
-    if (avgcount ge 2 && date_julian[i]-time_since_sub ge time_between_subs) then begin
+    if ((avgcount ge 2) $
+          && ((date_julian[i] - time_since_sub) ge time_between_subs)) then begin
       for j = 0, 11 do begin
         if (date_julian[i] - bkdtime[j] ge subinterval) then begin  
           subimg = aveimg - bkdimg[*, *, j]
-          newsub = 1  ;  Need to write a new subtraction image
+          newsub = 1  ;  need to write a new subtraction image
           time_since_sub = date_julian[i]
           ; need this info to write into FITS and GIF filename
           timestring = filetime[j]
 
-          ;   HAVE A NEW SUBTRACTION. NEED TO SHIFT THE BKD IMAGE STACK
+          ; HAVE A NEW SUBTRACTION. NEED TO SHIFT THE BKD IMAGE STACK
           for k = 0, 10 do begin   
             bkdtime[11 - k] = bkdtime[10 - k]
             bkdimg[*, *, 11 - k] = bkdimg[*, *, 10 - k]
             filetime[11 - k] = filetime[10 - k]
           endfor
           ; save current image as the new bkd image 
-           bkdimg[*, *, 0] = aveimg
-           ; save current time as the new time of bkd image 
-           bkdtime[0] = date_julian[i]
-           filetime[0] = imgtime
-           if (newsub eq 1) then break
-         endif
+          bkdimg[*, *, 0] = aveimg
+          ; save current time as the new time of bkd image
+          bkdtime[0] = date_julian[i]
+          filetime[0] = imgtime
+          if (newsub eq 1) then break
+        endif
         if (newsub eq 1) then break
       endfor
     endif
@@ -355,9 +362,9 @@ pro kcor_create_differences, date, l1_files, run=run
 
       name = strmid(file_basename(l1_file), 0, 20)
 
-      mg_log, 'writing %s - %s GIF/FTS file (%s)', $
+      mg_log, 'writing %s-%s GIF/FTS file (%s)', $
               strmid(name, 9, 6), timestring, status, $
-              name='kcor/eod', /debug
+              name='kcor/eod', /info
 
       gif_basename = string(name, timestring, status, format='(%"%s_minus_%s_%s.gif")')
       write_gif, gif_basename, save
@@ -373,7 +380,7 @@ pro kcor_create_differences, date, l1_files, run=run
 
       newsub = 0
     endif
-  endfor
+  endwhile
 
   ; create mp4 of difference images
   difference_gif_filenames = file_search('*minus*', $
@@ -400,7 +407,7 @@ end
 
 ; main-level example program
 
-date = '20170821'
+date = '20180104'
 config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())

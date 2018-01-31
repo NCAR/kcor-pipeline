@@ -363,7 +363,7 @@ end
 
 ; main-level example program
 
-date = '20170821'
+date = '20180104'
 config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())

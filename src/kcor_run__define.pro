@@ -83,7 +83,7 @@ function kcor_run::epoch, name, time=time
   case name of
     'mlso_url': return, self->_readepoch('mlso_url', self.date, hst_time, type=7) 
     'doi_url': return, self->_readepoch('doi_url', self.date, hst_time, type=7)
-    'process': self->_readepoch('process', self.date, hst_time, /boolean)
+    'process': return, self->_readepoch('process', self.date, hst_time, /boolean)
     'plate_scale': return, self->_readepoch('plate_scale', self.date, hst_time, type=4)
     'use_default_darks': begin
         return, self->_readepoch('use_default_darks', self.date, hst_time, /boolean)
@@ -511,6 +511,8 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            hpr_dir=hpr_dir, $
                            hpr_diff_dir=hpr_diff_dir, $
                            cme_movie_dir=cme_movie_dir, $
+                           cme_stop_time=cme_stop_time, $
+                           cme_wait_time=cme_wait_time, $
                            cme_email=cme_email, $
                            database_config_filename=database_config_filename, $
                            database_config_section=database_config_section, $
@@ -654,6 +656,12 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   endif
   if (arg_present(cme_movie_dir)) then begin
     cme_movie_dir = self.options->get('movie_dir', section='cme')
+  endif
+  if (arg_present(cme_stop_time)) then begin
+    cme_stop_time = self.options->get('stop_time', section='cme', default='180000')
+  endif
+  if (arg_present(cme_wait_time)) then begin
+    cme_wait_time = self.options->get('wait_time', section='cme', default=15.0, type=4)
   endif
   if (arg_present(cme_email)) then begin
     cme_email = self.options->get('email', section='cme')
