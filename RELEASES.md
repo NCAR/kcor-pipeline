@@ -91,4 +91,8 @@
   new cal epoch
 1.4.14 [Jan 20, 2018]
   bug fix
-1.4.15
+1.4.15 [Jan 31, 2018]
+  log camera correction filename
+  run at MLSO, i.e., zip FTS files in raw directory if present
+  check machine log against t1.log in verification
+  new cal epoch

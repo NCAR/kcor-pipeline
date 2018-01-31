@@ -42,6 +42,8 @@ pro kcor_correct_camera, im, header, run=run, logger_name=logger_name
   fp = fltarr(1024, 1024, 5, n_cameras)
 
   exposure = sxpar(header, 'EXPTIME')
+  if (~run->epoch('use_exptime')) then exposure = run->epoch('exptime')
+
   tcamid = sxpar(header, 'TCAMID')
   rcamid = sxpar(header, 'RCAMID')
 
@@ -53,20 +55,24 @@ pro kcor_correct_camera, im, header, run=run, logger_name=logger_name
                                       run->epoch('camera_lut_date'), $
                                       format=fmt), $
                                root=run.camera_correction_dir)
-  if (~file_test(rcam_cor_filename)) then begin
+  if (file_test(rcam_cor_filename)) then begin
+    mg_log, 'RCAM correction: %s', rcam_cor_filename, name=logger_name, /debug
+  endif else begin
     mg_log, '%s not found', rcam_cor_filename, name=logger_name, /error
     return
-  endif
+  endelse
   fp[*, *, *, 0] = kcor_read_camera_correction(rcam_cor_filename)
 
   tcam_cor_filename = filepath(string(prefix, tcamid, exposure, $
                                       run->epoch('camera_lut_date'), $
                                       format=fmt), $
                                root=run.camera_correction_dir)
-  if (~file_test(tcam_cor_filename)) then begin
+  if (file_test(tcam_cor_filename)) then begin
+    mg_log, 'TCAM correction: %s', tcam_cor_filename, name=logger_name, /debug
+  endif else begin
     mg_log, '%s not found', tcam_cor_filename, name=logger_name, /error
     return
-  endif
+  endelse
   fp[*, *, *, 1] = kcor_read_camera_correction(tcam_cor_filename)
 
   ; scale the data to 0..1

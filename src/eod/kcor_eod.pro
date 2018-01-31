@@ -127,6 +127,10 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     endif
   endif
 
+  if (run.create_daily_movies && n_l1_zipped_files gt 0L) then begin
+    kcor_create_differences, date, l1_zipped_files, run=run
+  endif
+
   ok_list = filepath('okfgif.ls', $
                      subdir=[date, 'level1'], $
                      root=run.raw_basedir)
@@ -354,4 +358,15 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   done:
   mg_log, 'done', name='kcor/eod', /info
   obj_destroy, run
+end
+
+
+; main-level example program
+
+date = '20180104'
+config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
+                           subdir=['..', '..', 'config'], $
+                           root=mg_src_root())
+kcor_eod, date, config_filename=config_filename
+
 end

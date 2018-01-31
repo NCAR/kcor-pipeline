@@ -30,10 +30,7 @@
 pro kcor_plotparams, date, list=list, run=run
   compile_opt strictarr
 
-  if (n_params() eq 0) then begin
-    mg_log, 'missing date parameter', name='kcor/eod', /error
-    return
-  endif
+  mg_log, 'plotting parameters for %s', date, name='kcor/eod', /info
 
   ; establish directory paths
   l0_base = run.raw_basedir

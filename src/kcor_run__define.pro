@@ -24,7 +24,7 @@ function kcor_run::_find_calfile, date, hst_time
   self->getProperty, cal_out_dir=cal_out_dir
   epoch_version = self->epoch('cal_epoch_version')
 
-  cal_format = '(%"*kcor_cal_v%s*.ncdf")'
+  cal_format = '(%"*kcor_cal_v%s_*.ncdf")'
   cal_search_spec = filepath(string(epoch_version, format=cal_format), $
                              root=cal_out_dir)
   calfiles = file_basename(file_search(cal_search_spec, count=n_calfiles))
@@ -83,6 +83,7 @@ function kcor_run::epoch, name, time=time
   case name of
     'mlso_url': return, self->_readepoch('mlso_url', self.date, hst_time, type=7) 
     'doi_url': return, self->_readepoch('doi_url', self.date, hst_time, type=7)
+    'process': return, self->_readepoch('process', self.date, hst_time, /boolean)
     'plate_scale': return, self->_readepoch('plate_scale', self.date, hst_time, type=4)
     'use_default_darks': begin
         return, self->_readepoch('use_default_darks', self.date, hst_time, /boolean)
@@ -115,6 +116,10 @@ function kcor_run::epoch, name, time=time
                                                           self.date, hst_time, /boolean)
     'header_changes': return, self->_readepoch('header_changes', $
                                                self.date, hst_time, /boolean)
+    'use_diffsrid': return, self->_readepoch('use_diffsrid', self.date, hst_time, /boolean)
+    'diffsrid': return, self->_readepoch('diffsrid', self.date, hst_time, type=7)
+    'diffsrid_comment': return, self->_readepoch('diffsrid_comment', self.date, hst_time, type=7)
+
     'mk4-opal': return, self->_readepoch('mk4-opal', self.date, hst_time, type=4)
     'mk4-opal_comment': return, self->_readepoch('mk4-opal_comment', self.date, hst_time, type=7)
     'POC-L10P6-10-1': return, self->_readepoch('POC-L10P6-10-1', self.date, hst_time, type=4)
@@ -136,6 +141,27 @@ function kcor_run::epoch, name, time=time
     'horizontal_artifact_lines': return, self->_readepoch('horizontal_artifact_lines', $
                                                           self.date, hst_time, $
                                                           /extract, type=3)
+    'use_camera_info': return, self->_readepoch('use_camera_info', $
+                                                self.date, hst_time, /boolean)
+    'tcamid': return, self->_readepoch('tcamid', self.date, hst_time, type=7)
+    'rcamid': return, self->_readepoch('rcamid', self.date, hst_time, type=7)
+    'tcamlut': return, self->_readepoch('tcamlut', self.date, hst_time, type=7)
+    'rcamlut': return, self->_readepoch('rcamlut', self.date, hst_time, type=7)
+
+    'tcamid_comment': return, self->_readepoch('tcamid_comment', self.date, hst_time, type=7)
+    'rcamid_comment': return, self->_readepoch('rcamid_comment', self.date, hst_time, type=7)
+    'tcamlut_comment': return, self->_readepoch('tcamlut_comment', self.date, hst_time, type=7)
+    'rcamlut_comment': return, self->_readepoch('rcamlut_comment', self.date, hst_time, type=7)
+
+    'use_bzero': return, self->_readepoch('use_bzero', self.date, hst_time, /boolean)
+    'bzero': return, self->_readepoch('bzero', self.date, hst_time, type=14)
+
+    'use_exptime': return, self->_readepoch('use_exptime', self.date, hst_time, /boolean)
+    'exptime': return, self->_readepoch('exptime', self.date, hst_time, type=4)
+
+    'use_numsum': return, self->_readepoch('use_numsum', self.date, hst_time, /boolean)
+    'numsum': return, self->_readepoch('numsum', self.date, hst_time, type=3)
+
     'produce_calibration': return, self->_readepoch('produce_calibration', $
                                                     self.date, hst_time, /boolean)
     'OC-1': return, self->_readepoch('OC-1', self.date, hst_time, type=4)
@@ -402,7 +428,7 @@ pro kcor_run::setup_loggers, rotate_logs=rotate_logs
 
   mg_log, name='kcor/noformat', logger=logger
   log_filename = filepath(self.date + '.realtime.log', root=log_dir)
-  if (keyword_set(rotate_logs)) then begin
+  if (keyword_set(rotate_logs) && mode eq 'realtime') then begin
     mg_rotate_log, log_filename, max_version=max_log_version
   endif
   logger->setProperty, format='%(message)s', $
@@ -485,6 +511,8 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            hpr_dir=hpr_dir, $
                            hpr_diff_dir=hpr_diff_dir, $
                            cme_movie_dir=cme_movie_dir, $
+                           cme_stop_time=cme_stop_time, $
+                           cme_wait_time=cme_wait_time, $
                            cme_email=cme_email, $
                            database_config_filename=database_config_filename, $
                            database_config_section=database_config_section, $
@@ -506,6 +534,12 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            produce_plots=produce_plots, $
                            catalog_files=catalog_files, $
                            create_daily_movies=create_daily_movies, $
+                           diff_average_interval=diff_average_interval, $
+                           diff_cadence=diff_cadence, $
+                           diff_interval=diff_interval, $
+                           diff_good_max=diff_good_max, $
+                           diff_pass_max=diff_pass_max, $
+                           diff_threshold_intensity=diff_threshold_intensity, $
                            mode=mode
   compile_opt strictarr
 
@@ -623,6 +657,12 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   if (arg_present(cme_movie_dir)) then begin
     cme_movie_dir = self.options->get('movie_dir', section='cme')
   endif
+  if (arg_present(cme_stop_time)) then begin
+    cme_stop_time = self.options->get('stop_time', section='cme', default='180000')
+  endif
+  if (arg_present(cme_wait_time)) then begin
+    cme_wait_time = self.options->get('wait_time', section='cme', default=15.0, type=4)
+  endif
   if (arg_present(cme_email)) then begin
     cme_email = self.options->get('email', section='cme')
   endif
@@ -710,6 +750,38 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   if (arg_present(create_daily_movies)) then begin
     create_daily_movies = self.options->get('create_daily_movies', section='eod', $
                                             /boolean, default=1B)
+  endif
+
+  ; difference movies
+  if (arg_present(diff_average_interval)) then begin
+    diff_average_interval = self.options->get('average_interval', $
+                                              section='differences', $
+                                              type=4, default=120.0)
+  endif
+  if (arg_present(diff_cadence)) then begin
+    diff_cadence = self.options->get('cadence', $
+                                     section='differences', $
+                                     type=4, default=300.0)
+  endif
+  if (arg_present(diff_interval)) then begin
+    diff_interval = self.options->get('interval', $
+                                      section='differences', $
+                                      type=4, default=600.0)
+  endif
+  if (arg_present(diff_good_max)) then begin
+    diff_good_max = self.options->get('good_max', $
+                                      section='differences', $
+                                      type=3, default=100L)
+  endif
+  if (arg_present(diff_pass_max)) then begin
+    diff_pass_max = self.options->get('pass_max', $
+                                      section='differences', $
+                                      type=3, default=250L)
+  endif
+  if (arg_present(diff_threshold_intensity)) then begin
+    diff_threshold_intensity = self.options->get('threshold_intensity', $
+                                                 section='differences', $
+                                                 type=4, default=0.01)
   endif
 
   ; verification

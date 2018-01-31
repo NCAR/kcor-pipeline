@@ -272,7 +272,7 @@ pro kcor_nrgf, fits_file, cropped=cropped, run=run
     dispmin = cmin
     dispmax = cmax
 
-    ; modify the FITS header for an NRG fits image
+    ; modify the FITS header for an NRG FITS image
     rhdu = hdu
     fxaddpar, rhdu, 'LEVEL', 'L1NRGF', $
               ' Level 1 Normalized Radially-Graded Intensity'

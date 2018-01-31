@@ -512,8 +512,8 @@ pro kcor_l1, date_str, ok_files, $
     date     = strmid(date_obs, 0, 10)     ; yyyy-mm-dd
 
     if (cal_epoch_version ne run->epoch('cal_epoch_version')) then begin
-      mg_log, 'cal file epoch_version (%s) does not match (%s) for time of file %s', $
-              cal_epoch_version, run->epoch('cal_epoch_version'), file_basename(l0_file), $
+      mg_log, 'cal file epoch_version (%s) does not match for time of file %s (%s)', $
+              cal_epoch_version, file_basename(l0_file), run->epoch('cal_epoch_version'), $
               name='kcor/rt', /warn
       mg_log, 'skipping file %s', file_basename(l0_file), name='kcor/rt', /warn
       continue
@@ -1173,11 +1173,11 @@ pro kcor_l1, date_str, ok_files, $
               ' calibration polarizer in or out of beam'
     fxaddpar, newheader, 'CALPANG',  struct.calpang, $
               ' calibration polarizer angle', format='(f9.3)'
-    fxaddpar, newheader, 'EXPTIME',  struct.exptime*1.e-3, $
+    exposure = run->epoch('use_exptime') ? struct.exptime : run->epoch('exptime')
+    fxaddpar, newheader, 'EXPTIME',  exposure * 1.e-3, $
               ' [s] exposure time for each frame', format = '(f10.4)'
-    ; fxaddpar, newheader, 'XPOSURE',  struct.exptime * 1.e-3 * struct.numsum, $
-    ;                      ' [s] total exposure for image', format = '(f10.4)'
-    fxaddpar, newheader, 'NUMSUM',   struct.numsum, $
+    numsum = run->epoch('use_numsum') ? struct.numsum : run->epoch('numsum')
+    fxaddpar, newheader, 'NUMSUM', numsum, $
               ' # frames summed per camera & polarizer state'
 
     ; software information
@@ -1213,13 +1213,15 @@ pro kcor_l1, date_str, ok_files, $
 
     fxaddpar, newheader, 'BUNIT', '1.0E-6 Bsun', $
               ' Brightness with respect to solar disc'
+    diffsrid = run->epoch('use_diffsrid') ? struct.diffsrid : run->epoch('diffsrid')
     fxaddpar, newheader, 'BOPAL', $
-              run->epoch(struct.diffsrid) * 1e-6, $
-              string(run->epoch(struct.diffsrid + '_comment'), $
+              run->epoch(diffsrid) * 1e-6, $
+              string(run->epoch(diffsrid + '_comment'), $
                      format='(%" %s")'), $
               format='(G0.3)'
 
-    fxaddpar, newheader, 'BZERO', struct.bzero, $
+    fxaddpar, newheader, 'BZERO', $
+              run->epoch('use_bzero') ? struct.bzero : run->epoch('bzero'), $
               ' offset for unsigned integer data'
     fxaddpar, newheader, 'BSCALE', bscale, $
               ' physical = data * BSCALE + BZERO', format='(F8.3)'
@@ -1384,8 +1386,8 @@ pro kcor_l1, date_str, ok_files, $
     ; component identifiers
     fxaddpar, newheader, 'CALPOLID', struct.calpolid, $
               ' ID polarizer'
-    fxaddpar, newheader, 'DIFFSRID', struct.diffsrid, $
-              ' ID diffuser'
+    fxaddpar, newheader, 'DIFFSRID', diffsrid, $
+              run->epoch('use_diffsrid') ? ' ID diffuser' : run->epoch('diffsrid_comment')
     fxaddpar, newheader, 'FILTERID', struct.filterid, $
               ' ID bandpass filter'
 
@@ -1402,13 +1404,23 @@ pro kcor_l1, date_str, ok_files, $
     fxaddpar, newheader, 'OCCLTRID', struct.occltrid, ' ID occulter'
     fxaddpar, newheader, 'MODLTRID', struct.modltrid, ' ID modulator'
 
-    prefix = run->epoch('use_camera_prefix') ? run->epoch('camera_prefix') : ''
-    rcamid = prefix + struct.rcamid
-    tcamid = prefix + struct.tcamid
-    fxaddpar, newheader, 'RCAMID', rcamid, ' ID camera 0 (reflected)'
-    fxaddpar, newheader, 'TCAMID', tcamid, ' ID camera 1 (transmitted)' 
-    fxaddpar, newheader, 'RCAMLUT',  struct.rcamlut, ' ID LUT for camera 0'
-    fxaddpar, newheader, 'TCAMLUT',  struct.tcamlut, ' ID LUT for camera 1'
+    if (run->epoch('use_camera_info')) then begin
+      prefix = run->epoch('use_camera_prefix') ? run->epoch('camera_prefix') : ''
+      rcamid = prefix + struct.rcamid
+      tcamid = prefix + struct.tcamid
+      rcamlut = struct.rcamlut
+      tcamlut = struct.tcamlut
+    endif else begin
+      rcamid = run->epoch('rcamid')
+      tcamid = run->epoch('tcamid')
+      rcamlut = run->epoch('rcamlut')
+      tcamlut = run->epoch('tcamlut')
+    endelse
+
+    fxaddpar, newheader, 'RCAMID', rcamid, ' ' + run->epoch('rcamid_comment') 
+    fxaddpar, newheader, 'TCAMID', tcamid, ' ' + run->epoch('tcamid_comment')  
+    fxaddpar, newheader, 'RCAMLUT', rcamlut, ' ' + run->epoch('rcamlut_comment')
+    fxaddpar, newheader, 'TCAMLUT', tcamlut, ' ' + run->epoch('tcamlut_comment')
 
     ; data citation URL
     fxaddpar, newheader, 'DATACITE', run->epoch('doi_url'), ' URL for DOI'

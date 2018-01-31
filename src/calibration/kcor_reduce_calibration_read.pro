@@ -44,6 +44,7 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
 
   numsum = header.numsum
   exptime = header.exptime
+  if (~run->epoch('use_exptime')) then exptime = run->epoch('exptime')
 
   idiff = run->epoch(header.diffsrid)
 
@@ -99,6 +100,8 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
 
     ; EXPTIME for all files must be the same to produce a calibration
     file_exptime = sxpar(header, 'EXPTIME', count=n_exptime)
+    if (~run->epoch('use_exptime')) then file_exptime = run->epoch('exptime')
+
     if (file_exptime ne exptime) then begin
       mg_log, 'EXPTIME for %s (%f) does not match EXPTIME for %s (%f)', $
               file_list[f], file_exptime, file_list[0], exptime, $

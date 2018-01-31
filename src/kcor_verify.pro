@@ -72,6 +72,9 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   log_filename = filepath(date + '.kcor.t1.log', $
                           subdir=[date, 'level0'], $
                           root=run.raw_basedir)
+  machine_log_filename = filepath(date + '.kcor.machine.log', $
+                                  subdir=[date], $
+                                  root=run.raw_basedir)
   list_filename = filepath(date + '_kcor_l0.tarlist', $
                            subdir=[date, 'level0'], $
                            root=run.raw_basedir)
@@ -79,10 +82,18 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   ; TEST: check if log/list files exist
 
   if (file_test(log_filename)) then n_log_lines  = file_lines(log_filename)
+  if (file_test(machine_log_filename)) then begin
+    n_machine_log_lines  = file_lines(machine_log_filename)
+  endif
   if (file_test(list_filename)) then n_list_lines = file_lines(list_filename)
 
   if (~file_test(log_filename)) then begin 
-     mg_log, 't1.log file not found', name=logger_name, /error
+    mg_log, 't1.log file not found', name=logger_name, /error
+    status = 1L
+    goto, test2_done
+  endif
+  if (~file_test(machine_log_filename)) then begin 
+     mg_log, 'machine.log file not found', name=logger_name, /error
      status = 1L
      goto, test2_done
   endif
@@ -99,13 +110,24 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   mg_log, 'log file: %s (%d lines)', $
           file_basename(log_filename), n_log_lines, $
           name=logger_name, /info
+  mg_log, 'machine log file: %s (%d lines)', $
+          file_basename(machine_log_filename), n_machine_log_lines, $
+          name=logger_name, /info
   mg_log, 'list file: %s (%d lines)', $
           file_basename(list_filename), n_list_lines, $
           name=logger_name, /info
 
   ; subtract t1 and t2 logs from tarlist file, i.e., -2 below
   if ((n_log_lines ne n_list_lines - 2) || (n_list_lines eq 0)) then begin 
-    mg_log, '# of lines does not match', name=logger_name, /error
+    mg_log, '# of lines in t1.log and tarlist do not match', $
+            name=logger_name, /error
+    status = 1L
+    goto, test1_done
+  endif
+
+  if ((n_machine_log_lines ne n_log_lines)) then begin 
+    mg_log, '# of lines in t1.log and machine.log do not match', $
+            name=logger_name, /error
     status = 1L
     goto, test1_done
   endif
@@ -129,7 +151,8 @@ pro kcor_verify, date, config_filename=config_filename, status=status
                                          subdir=[date, 'level0'], $
                                          root=run.raw_basedir), $
                                 run=run, logger_name=logger_name)
-  ind = where(unzipped_sizes ne 16782980, n_bad_sizes)
+  kcor_raw_size = 16782980   ; bytes
+  ind = where(unzipped_sizes ne kcor_raw_size, n_bad_sizes)
   if (n_bad_sizes ne 0L) then begin
     mg_log, '%d files in tar list with bad unzipped size', $
             n_bad_sizes, $
@@ -166,6 +189,39 @@ pro kcor_verify, date, config_filename=config_filename, status=status
     endif
   endfor 
   free_lun, lun
+
+  openr, log_lun, log_filename, /get_lun
+  openr, machine_log_lun, machine_log_filename, /get_lun
+  log_line = ''
+  machine_log_line = ''
+  for j = 0L, n_log_lines - 1L do begin
+    readf, log_lun, log_line
+    readf, machine_log_lun, machine_log_line
+
+    log_tokens = strsplit(log_line, /extract)
+    machine_log_tokens = strsplit(machine_log_line, /extract)
+    if (log_tokens[0] ne machine_log_tokens[0]) then begin
+      mg_log, 'mis-matched filenames in t1 and machine logs: %s and %s', $
+              log_tokens[0], $
+              machine_log_tokens[0], $
+              name=logger_name, /error
+      status = 1L
+      free_lun, log_lun, machine_log, lun
+      goto, test1_done
+    endif
+    if (log_tokens[1] ne machine_log_tokens[1]) then begin
+      mg_log, 'mis-matched sizes in t1 and machine logs for %s: %s and %s', $
+              log_tokens[0], $
+              log_tokens[1], $
+              machine_log_tokens[1], $
+              name=logger_name, /error
+      status = 1L
+      free_lun, log_lun, machine_log, lun
+      goto, test1_done
+    endif
+  endfor
+  free_lun, log_lun, machine_log_lun
+
 
   ; TEST: check range of file sizes
   testsize = ulong64(list_sizes)
@@ -463,7 +519,7 @@ logger_name = 'kcor/verify'
 cfile = 'kcor.mgalloy.mlsodata.production.cfg'
 config_filename = filepath(cfile, subdir=['..', 'config'], root=mg_src_root())
 
-dates = ['20171026', '20171027', '20171028', '20171029']
+dates = ['20180122', '20180123', '20180124']
 for d = 0L, n_elements(dates) - 1L do begin
   kcor_verify, dates[d], config_filename=config_filename
 

@@ -59,6 +59,9 @@ pro kcor_cme_det_event, event
   widget_control, event.id, get_uvalue=uvalue
   case uvalue of
     'START': begin
+        date = string(julday(), format='(C(CYI4, CMOI02, CDI02))')
+        kcor_cme_det_date, date
+
         if (file_exist(datedir)) then begin
           cstop = 0
           widget_control, wstart, sensitive=0

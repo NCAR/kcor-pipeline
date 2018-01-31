@@ -80,12 +80,12 @@ pro kcor_cme_det_movie
   frames = bytscl(sigrange(frames))
   sz = size(frames)
 
-  ; Define the name of the output file. The file extension is added later.
+  ; define the name of the output file, the file extension is added later
   moviedir = run.cme_movie_dir
   if (~file_test(moviedir, /directory)) then file_mkdir, moviedir
-  moviefile = concat_dir(moviedir, $
-                         string(simple_date, $
-                                format='(%"%s_kcor_cme_detection")'))
+  moviefile = filepath(string(simple_date, $
+                              format='(%"%s_kcor_cme_detection")'), $
+                       root=moviedir)
 
   ; create an animated GIF version of the movie
   c = indgen(256)

@@ -102,13 +102,14 @@ pro kcor_reprocess, date, run=run, error=error
     wildcard = '*kcor*'
     dirs = [run.archive_basedir, run.fullres_basedir, run.croppedgif_basedir, $
             run.nrgf_basedir]
+    dir_names = ['archive', 'fullres', 'cropped GIF', 'NRGF'] + ' directory'
     for d = 0L, n_elements(dirs) - 1L do begin
       old_files = file_search(filepath(wildcard, $
                                        subdir=date_parts, $
                                        root=dirs[d]), $
                               count=n_old_files)
       if (n_old_files gt 0L) then begin
-        mg_log, 'removing %d files from %s', n_old_files, dirs[d], $
+        mg_log, 'removing %d files from %s', n_old_files, dir_names[d], $
                 name='kcor/reprocess', /info
         for f = 0L, n_old_files - 1L do begin
           mg_file_delete, old_files[f], status=error, message=message
@@ -119,7 +120,8 @@ pro kcor_reprocess, date, run=run, error=error
           endif
         endfor
       endif else begin
-        mg_log, 'no files to remove from %s', dirs[d], name='kcor/reprocess', /info
+        mg_log, 'no files to remove from %s', dir_names[d], $
+                name='kcor/reprocess', /info
       endelse
     endfor
   endif

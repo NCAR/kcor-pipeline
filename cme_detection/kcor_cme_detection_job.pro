@@ -1,6 +1,15 @@
 ; docformat = 'rst'
 
-pro kcor_cme_detection_job, date, timerange=_timerange, config_filename=config_filename
+;+
+; :Keywords:
+;   realtime : in, optional, type=boolean
+;     set to indicate that the job is being run in realtime, i.e., files for
+;     the are not all present already and the code must wait for them to come in
+;-
+pro kcor_cme_detection_job, date, $
+                            timerange=_timerange, $
+                            config_filename=config_filename, $
+                            realtime=realtime
   compile_opt strictarr
   @kcor_cme_det_common
 
@@ -23,19 +32,15 @@ pro kcor_cme_detection_job, date, timerange=_timerange, config_filename=config_f
 
   ; Determine the date directory from the date. If no date was passed, then use
   ; today's date.
-  if (n_elements(date) eq 0) then get_utc, date
-  sdate = anytim2utc(date, /ecs, /date_only)
-  simple_date = string(strmid(date, 0, 4), $
-                       strmid(date, 5, 2), $
-                       strmid(date, 8, 2), $
-                       format='(%"%s%s%s")')
+  if (n_elements(date) eq 0) then begin
+    date = string(julday(), format='(C(CYI4, CMOI02, CDI02))')
+  endif
 
-  run = kcor_run(simple_date, config_filename=config_filename)
+  run = kcor_run(date, config_filename=config_filename)
 
   ; the top of the directory tree containing the KCor data is given by
   ; archive_basedir
   kcor_dir = run.archive_basedir
-  datedir = filepath(sdate, root=kcor_dir)
 
   ; hpr_dir points to the top of the directory tree used for storing images
   ; converted into helioprojective-radial (HPR) coordinates
@@ -49,22 +54,13 @@ pro kcor_cme_detection_job, date, timerange=_timerange, config_filename=config_f
     file_mkdir, kcor_hpr_diff_dir
   endif
 
-  ; make sure that the output directories exist
-  hpr_out_dir = concat_dir(kcor_hpr_dir, sdate)
-  if (keyword_set(store) and not file_exist(hpr_out_dir)) then begin
-    file_mkdir, hpr_out_dir
-  endif
-  diff_out_dir = concat_dir(kcor_hpr_diff_dir, sdate)
-  if (keyword_set(store) and not file_exist(diff_out_dir)) then begin
-    file_mkdir, diff_out_dir
-  endif
-
   if (~file_test(run.log_dir, /directory)) then file_mkdir, run.log_dir
   mg_log, logger=logger, name='kcor/cme'
-  logger->setProperty, filename=filepath(string(simple_date, $
+  logger->setProperty, filename=filepath(string(date, $
                                                 format='(%"%s.cme.log")'), $
                                          root=run.log_dir)
 
+  kcor_cme_det_setdate, date
   kcor_cme_det_reset
 
   ; start up SolarSoft display routines
@@ -76,10 +72,11 @@ pro kcor_cme_detection_job, date, timerange=_timerange, config_filename=config_f
   if (file_exist(datedir)) then begin
     cstop = 0
 
-    mg_log, 'starting CME detection for %s', simple_date, name='kcor/cme', /info
+    mg_log, 'starting CME detection for %s', date, name='kcor/cme', /info
 
-    ; TODO: should check for time of day, stop after a certain time of day
-    ; TODO: but when running with a date set, stop after done with files
+    ; If running in realtime mode, stop when KCOR_CME_DET_CHECK detects a stop
+    ; *and* when it is after the cme_stop_time. If running a job on already
+    ; existing files, stop after done with all the files.
     while (1B) do begin
       kcor_cme_det_check, stopped=stopped
 
@@ -90,10 +87,20 @@ pro kcor_cme_detection_job, date, timerange=_timerange, config_filename=config_f
           cme_occurring = 0B
           mg_log, 'CME ended at %s', ref_time, name='kcor/cme', /info
         endif
-        break
+
+        if (keyword_set(realtime)) then begin
+          current_time = string(julday(), format='(C(CHI2.2, CMI2.2, CSI2.2))')
+          if (current_time gt run.cme_stop_time) then break
+          mg_log, 'waiting %0.1f seconds...', run.cme_wait_time, name='kcor/cme', /info
+          wait, run.cme_wait_time
+        endif else begin
+          break
+        endelse
       endif
     endwhile
   endif else begin
     mg_log, 'directory %s does not exist', datedir, name='kcor/cme', /warn
   endelse
+
+  obj_destroy, run
 end

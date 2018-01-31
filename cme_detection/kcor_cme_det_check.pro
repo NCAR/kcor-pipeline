@@ -60,6 +60,8 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
       endif else begin
         mg_log, '%s', name + ext, name='kcor/cme', /debug
       endelse
+      mg_log, 'reading %s', file_basename(files[ifile]), $
+              name='kcor/cme', /info
       image = readfits(files[ifile], header, /silent)
       datatype = fxpar(header, 'datatype', count=ndatatype)
       if (ndatatype eq 0) then test = 1 else begin
