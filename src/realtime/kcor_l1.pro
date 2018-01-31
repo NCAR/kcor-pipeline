@@ -595,7 +595,7 @@ pro kcor_l1, date_str, ok_files, $
     ; put the Level-0 FITS header into a structure
     struct = fitshead2struct(header, dash2underscore=dash2underscore)
 
-    if (n_elements(cal_exptime) gt 0L && cal_exptime ne struct.exptime) then begin
+    if (n_elements(cal_exptime) eq 0L || cal_exptime ne struct.exptime) then begin
       mg_log, 'cal file EXPTIME (%0.1f ms) does not match file (%01.f ms) for %s', $
               cal_exptime, struct.exptime, file_basename(l0_file), $
               name='kcor/rt', /warn
