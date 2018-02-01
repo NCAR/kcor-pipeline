@@ -43,12 +43,12 @@ pro kcor_catalog, date, list=list, run=run, catalog_dir=catalog_dir
   if (n_elements(list) eq 0L) then begin
     list = file_search(filepath('*_kcor.fts.gz', root=catalog_dir), count=n_files)
   endif else begin
-    n_files = n_elements(list0)
+    n_files = n_elements(list)
   endelse
 
   mg_log, 'cataloging %d L0 files in %s', n_files, catalog_dir, name='kcor/eod', /info
 
-  for f = 0L, n_elements(list) - 1L do begin
+  for f = 0L, n_files - 1L do begin
     fits_file = list[f]
     mg_log, '%4d/%d: %s', f + 1, n_elements(list), file_basename(fits_file), $
             name='kcor/eod', /info
