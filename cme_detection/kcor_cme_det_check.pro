@@ -26,6 +26,11 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
       endif
     endif
 
+    ; wait for the last file to finish writing -- the last file found in the
+    ; FILE_SEARCH might still be being written, so wait a few seconds to make
+    ; sure it finishes
+    wait, 5.0
+
     ; optionally limit the time range for testing purposes
     if (n_elements(timerange) eq 2) then begin
       t0 = anytim2utc(timerange[0], /ccsds)
