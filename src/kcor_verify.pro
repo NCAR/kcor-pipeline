@@ -404,7 +404,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
             name=logger_name, /info
     mg_log, 'compression ratio: %0.2f', compress_ratio, name=logger_name, /info
 
-    if ((compress_ratio ge 1.06) or (compress_ratio le 1.01)) then begin
+    if ((compress_ratio lt 1.01) or (compress_ratio gt 1.08)) then begin
       mg_log, 'unusual compression ratio %0.2f', compress_ratio, $
               name=logger_name, /warn
       status = 1L
