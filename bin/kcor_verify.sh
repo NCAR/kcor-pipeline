@@ -11,6 +11,8 @@ LOG_FILENAME=/tmp/kcor-$RANDOM.log
 $BIN_DIR/kcor_verify_dates.sh "$START_DATE-$END_DATE" &> $LOG_FILENAME
 N_FAILED_DAYS=$?
 
+echo -e "\nSent from $0 ($(whoami)@$(hostname))" >> $LOG_FILENAME
+
 if (( N_FAILED_DAYS > 0 )); then
   SUBJECT="KCor verify for $START_DATE-$END_DATE ($N_FAILED_DAYS failed days)"
 else
