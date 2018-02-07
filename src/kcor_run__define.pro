@@ -109,7 +109,10 @@ function kcor_run::epoch, name, time=time
         endelse
       end
     'use_pipeline_calfiles': return, self->_readepoch('use_pipeline_calfiles', self.date, hst_time, /boolean)
-    '01id': return, self->_readepoch('01id', self.date, hst_time, type=7)
+    'O1id': return, self->_readepoch('O1id', self.date, hst_time, type=7)
+    'use_O1id', return, self->_readepoch('use_O1id', self.date, hst_time, /boolean)
+    'O1-1': return, self->_readepoch('O1-1', self.date, hst_time, type=7)
+    'O1-2': return, self->_readepoch('O1-2', self.date, hst_time, type=7)
     'default_occulter_size' : return, self->_readepoch('default_occulter_size', $
                                                        self.date, hst_time, type=4)
     'use_default_occulter_size': return, self->_readepoch('use_default_occulter_size', $

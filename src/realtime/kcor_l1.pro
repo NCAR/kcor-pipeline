@@ -1076,7 +1076,7 @@ pro kcor_l1, date_str, ok_files, $
     ; Issues of interest:
     ;----------------------------------------------------------------------------
     ; 1. SGSRAZR and SGSDECZR keywords added Oct 22, 2013 00:13:58 image
-    ; 2. 01ID objective lens id keyword added on June 18, 2014 22:29:48
+    ; 2. O1ID objective lens id keyword added on June 18, 2014 22:29:48
     ; 3. On June 17, 2014 19:30 Allen reports the Optimax 01 was installed.
     ;    Prior to that date the 01 was from Jenoptik
     ;    NEED TO CHECK THE EXACT TIME NEW OBJECTIVE WENT IN BY OBSERVING 
@@ -1098,7 +1098,6 @@ pro kcor_l1, date_str, ok_files, $
 
     check_sgsrazr  = tag_exist(struct, 'SGSRAZR')
     check_sgsdeczr = tag_exist(struct, 'SGSDECZR')
-    check_01id     = tag_exist(struct, '01ID')
     check_lyotstop = tag_exist(struct, 'LYOTSTOP')
 
     ; clean bad SGS information
@@ -1391,10 +1390,8 @@ pro kcor_l1, date_str, ok_files, $
     fxaddpar, newheader, 'FILTERID', struct.filterid, $
               ' ID bandpass filter'
 
-    id01 = check_01id eq 0 ? run->epoch('01id') : struct.o1id
-    if (id01 eq '01-2') then id01 = 'Optimax'
-    fxaddpar, newheader, 'O1ID', id01, $
-              ' ID objective (01) lens' 
+    o1id = run->epoch('use_O1id') ? run->epoch(struct.o1id) : run->epoch('O1id')
+    fxaddpar, newheader, 'O1ID', o1id, ' ID objective (O1) lens' 
 
     if (check_lyotstop ne 0) then begin
       fxaddpar, newheader, 'LYOTSTOP', struct.lyotstop, $ 
