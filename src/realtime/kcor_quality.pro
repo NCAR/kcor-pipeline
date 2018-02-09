@@ -480,7 +480,7 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
 
       ; if too many pixels are below lower limit, set clo = 1
       clo = n_cloudy_lo ge (nray / 5)
-      if (n_cloud_hi gt 0L) then chi = cace ge cmax
+      if (n_cloudy_hi gt 0L) then chi = cace ge cmax
 
       cloud = clo + chi
     endif
