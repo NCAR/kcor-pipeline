@@ -1,22 +1,22 @@
 ; docformat = 'rst'
 
 ;+
-
-;  1) Create averaged images from KCor level 1 data,
-;     averaging up to 8 images taken < 3 minutes apart
+; Create averages from L1 data.
+;
+;  1) create averaged images from KCor level 1 data, averaging up to 8 images
+;     taken < 3 minutes apart
 ;  2) save each average an annotated gif and a fits image 
 ;  3) create a daily averaged image of up to 40 images taken < 15 min. apart
 ;     for the daily average we will skip the first 8 images (~2 minutes) of data
-;  4) save the daily average as an annotated gif and a fits image 
-
-;  NOTE:  mike galloy will create the nrgf images (fits and gif) in a separate routine
-;         using the averaged fits images created here.
+;  4) save the daily average as an annotated gif and a fits image
 ;
-;  J. Burkepile
-;  Jan 2018
+; TODO: @mgalloy will create the nrgf images (fits and gif) in a separate
+;       routine using the averaged fits images created here.
 ;
+; :Author:
+;   J. Burkepile, Jan 2018
 ;
-; Params:
+; :Params:
 ;   date : in, required, type=string
 ;     date in the form "YYYYMMDD"
 ;   l1_files : in, required, type=strarr
@@ -26,27 +26,22 @@
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;- 
+pro kcor_make_average, date, l1_files, run=run
+  compile_opt strictarr
 
- 
-; galloy
-;pro make_kcor_l2_avg, date, l1_files, run=run      
-;  compile_opt strictarr
+  mg_log, 'creating average movies', name='kcor/eod', /info
 
-;  mg_log, 'creating average movies', name='kcor/eod', /info
+  date_parts = kcor_decompose_date(date)
+  fullres_dir = filepath('', subdir=date_parts, root=run.fullres_basedir)
+  cropped_dir = filepath('', subdir=date_parts, root=run.croppedgif_basedir)
+  if (run.distribute) then begin
+    if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
+  endif
 
-;  date_parts = kcor_decompose_date(date)
-;  fullres_dir = filepath('', subdir=date_parts, root=run.fullres_basedir)
-;  cropped_dir = filepath('', subdir=date_parts, root=run.croppedgif_basedir)
-;  if (run.distribute) then begin
-;    if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
-;  endif
+  l1_dir = filepath('level1', subdir=date, root=run.raw_basedir)
 
-;  l1_dir = filepath('level1', avgdir=date, root=run.raw_basedir)
-
-;  cd, current=current
-;  cd, l1_dir
-
-  pro make_kcor_l2_avg
+  cd, current=current
+  cd, l1_dir
 
   ;  Set up variables and arrays needed
 
@@ -581,4 +576,7 @@
   fits_file= string(format='(a23,"_dailyavg.fts")',name)
 
   writefits,fits_file,daily,saveheader,/silent    
+
+  done:
+  cd, current
 end
