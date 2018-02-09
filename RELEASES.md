@@ -102,3 +102,4 @@
   bug fix
 1.4.18 [Feb 9, 2018]
   fix for handling NaN SGS values (specifically for SGSLOOP)
+1.4.19
