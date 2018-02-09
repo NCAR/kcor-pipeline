@@ -980,10 +980,12 @@ pro kcor_l1, date_str, ok_files, $
     ; use only corona minus sky polarization background
     corona = sqrt(umk4_new ^ 2)
 
-    vdimref = sxpar(header, 'SGSDIMV')
+    vdimref = kcor_getsgs(header, 'SGSDIMV', /float)
     mg_log, 'flat DIMV: %0.1f, image DIMV: %0.1f', flat_vdimref, vdimref, $
             name='kcor/rt', /debug
-    corona *= flat_vdimref / vdimref
+    if (finite(vdimref) && finite(flat_vdimref)) then begin
+      corona *= flat_vdimref / vdimref
+    endif
 
     ; use mask to build final image
     r_in  = fix(occulter / run->epoch('plate_scale')) + 5.0
@@ -1059,7 +1061,7 @@ pro kcor_l1, date_str, ok_files, $
 
     device, decomposed=1
     save     = tvrd()
-    gif_file = strmid(l0_file, 0, 20) + '.gif'
+    gif_file = strmid(l0_file, 0, 20) + '_l1.gif'
     write_gif, filepath(gif_file, root=l1_dir), save, red, green, blue
 
     ;----------------------------------------------------------------------------
@@ -1202,7 +1204,12 @@ pro kcor_l1, date_str, ok_files, $
     ;                        ' calibration file:dark, opal, 4 pol.states'
     fxaddpar, newheader, 'DISTORT', run->epoch('distortion_correction_filename'), $
               ' distortion file'
-    fxaddpar, newheader, 'SKYTRANS', flat_vdimref / vdimref, $
+    if (finite(vdimref) && finite(flat_vdimref)) then begin
+      skytrans = flat_vdimref / vdimref
+    endif else begin
+      skytrans = 'NaN'
+    endelse
+    fxaddpar, newheader, 'SKYTRANS', skytrans, $
               ' Sky Transmission correction normalized to gain image', $
               format='(F5.3)
     fxaddpar, newheader, 'DMODSWID', '2016-05-26', $
@@ -1524,7 +1531,7 @@ pro kcor_l1, date_str, ok_files, $
     tvcircle, r, 255.5, 255.5, color=255, /device
 
     save = tvrd()
-    cgif_file = strmid(l0_file, 0, 20) + '_cropped.gif'
+    cgif_file = strmid(l0_file, 0, 20) + '_l1_cropped.gif'
     write_gif, filepath(cgif_file, root=l1_dir), save, red, green, blue
 
     ; create NRG (normalized, radially-graded) GIF image
