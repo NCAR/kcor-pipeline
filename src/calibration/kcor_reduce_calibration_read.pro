@@ -129,6 +129,7 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
       mg_log, 'dark: %s', file_list[f], name='kcor/cal', /debug
     endif else if strmatch(diffuser, '*in*', /fold_case) then begin
       if strmatch(calpol, '*out*', /fold_case) then begin
+        if (n_elements(flat_date_obs) eq 0L) then flat_date_obs = date_obs
         clear += mean(thisdata, dimension=3)
         vdimref += sgsdimv
         vdimref_squared += sgsdimv * sgsdimv
@@ -184,6 +185,7 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
   data = {dark:dark, gain:gain, calibration:calibration}
   metadata = {angles: angles, $
               idiff: idiff, $
+              flat_date_obs: flat_date_obs, $
               vdimref: vdimref, $
               vdimref_sigma: vdimref_sigma, $
               date: date, $

@@ -43,6 +43,7 @@ pro kcor_reduce_calibration_write, data, metadata, $
   cid = ncdf_create(outfile, /clobber, /netcdf4_format)
   ncdf_attput, cid, /global, 'title', 'COSMO K-Cor Calibration Data for ' + date
   ncdf_attput, cid, /global, 'epoch_version', run->epoch('cal_epoch_version')
+  ncdf_attput, cid, /global, 'flat-date-obs', metadata.flat_date_obs
 
   ; define dimensions
   filesdim = ncdf_dimdef(cid, 'Number of Files', n_elements(file_list))
