@@ -104,3 +104,4 @@
   fix for handling NaN SGS values (specifically for SGSLOOP)
 1.4.19 [Feb 9, 2018]
   more fixes for handling NaN SGS values
+1.4.20
