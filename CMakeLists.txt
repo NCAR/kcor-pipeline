@@ -124,3 +124,4 @@ if (IDLdoc_FOUND)
 endif ()
 
 message(STATUS "Install location = ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "Install version = ${VERSION}")
