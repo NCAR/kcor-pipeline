@@ -980,10 +980,12 @@ pro kcor_l1, date_str, ok_files, $
     ; use only corona minus sky polarization background
     corona = sqrt(umk4_new ^ 2)
 
-    vdimref = sxpar(header, 'SGSDIMV')
+    vdimref = kcor_getsgs(header, 'SGSDIMV', /float)
     mg_log, 'flat DIMV: %0.1f, image DIMV: %0.1f', flat_vdimref, vdimref, $
             name='kcor/rt', /debug
-    corona *= flat_vdimref / vdimref
+    if (finite(vdimref) && finite(flat_vdimref)) then begin
+      corona *= flat_vdimref / vdimref
+    endif
 
     ; use mask to build final image
     r_in  = fix(occulter / run->epoch('plate_scale')) + 5.0
@@ -1202,7 +1204,12 @@ pro kcor_l1, date_str, ok_files, $
     ;                        ' calibration file:dark, opal, 4 pol.states'
     fxaddpar, newheader, 'DISTORT', run->epoch('distortion_correction_filename'), $
               ' distortion file'
-    fxaddpar, newheader, 'SKYTRANS', flat_vdimref / vdimref, $
+    if (finite(vdimref) && finite(flat_vdimref)) then begin
+      skytrans = flat_vdimref / vdimref
+    endif else begin
+      skytrans = 'NaN'
+    endelse
+    fxaddpar, newheader, 'SKYTRANS', skytrans, $
               ' Sky Transmission correction normalized to gain image', $
               format='(F5.3)
     fxaddpar, newheader, 'DMODSWID', '2016-05-26', $
