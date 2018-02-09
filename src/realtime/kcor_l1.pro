@@ -1505,9 +1505,9 @@ pro kcor_l1, date_str, ok_files, $
                                + ' ' + string(format='(a4)', syear), $
             /device, alignment = 1.0, $
             charsize=1.0, color=255
-    xyouts, 500, 480, 'DOY ' + string(format='(i3)', odoy), $
-            /device, alignment=1.0, charsize=1.0, color=255
-    xyouts, 507, 465, string(format='(a2)', shour) + ':' $
+    ;xyouts, 500, 480, 'DOY ' + string(format='(i3)', odoy), $
+    ;        /device, alignment=1.0, charsize=1.0, color=255
+    xyouts, 500, 480, string(format='(a2)', shour) + ':' $
             + string(format='(a2)', sminute) + ':' $
             + string(format='(a2)', ssecond) + ' UT', $
             /device, alignment=1.0, $
@@ -1516,7 +1516,7 @@ pro kcor_l1, date_str, ok_files, $
             charsize=1.0, alignment=0.5, orientation=90.0, /device
     xyouts, 507, 256, 'West', color=255, $
             charsize=1.0, alignment=0.5, orientation=90.0, /device
-    xyouts, 4, 34, 'Level 1 data', color=255, charsize=1.0, /device
+    ;xyouts, 4, 34, 'Level 1 data', color=255, charsize=1.0, /device
     xyouts, 4, 20, string(run->epoch('display_min'), run->epoch('display_max'), $
                           format='("min/max: ", f5.2, ", ", f3.1)'), $
             color=255, charsize=1.0, /device
