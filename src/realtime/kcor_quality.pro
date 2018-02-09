@@ -237,6 +237,8 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
 
     occltrid = sxpar(hdu, 'OCCLTRID', count=qoccltrid)
 
+    numsum = sxpar(hdu, 'NUMSUM', count=qnumsum)
+
     ; determine occulter size in pixels
     ; find size of occulter
     ;   - one occulter has 4 digits; other two have 5
@@ -422,7 +424,7 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
     ; bright sky check
     dobright = 1
     if (dobright gt 0) then begin
-      bmax = run->epoch('bmax')
+      bmax = run->epoch('bmax') * numsum / 512.0
       if ((bitpix ne 16) and (bitpix ne 32)) then begin
         mg_log, 'unexpected BITPIX: %d', bitpix, name='kcor/rt', /error
         goto, next
@@ -432,40 +434,28 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
       dpy   = fix(sin(dp) * rpixb + aycen + 0.5005)
 
       brightave = total(pb0rot[dpx, dpy]) / nray
-      brightpix = where(pb0rot[dpx, dpy] ge bmax)
+      brightpix = where(pb0rot[dpx, dpy] ge bmax, n_bright_pixels)
       nelem = n_elements(brightpix)
 
       ; if too many pixels in circle exceed threshold, set bright = 1
-      bright = 0
-      if (brightpix[0] ne -1) then begin
-        bsize = size(brightpix)
-        if (bsize[1] ge (nray / 5)) then begin
-          bright = 1
-        endif
-      endif
+      bright = n_bright_pixels ge (nray / 5)
     endif
 
     ; saturation check
     chksat = 1
     if (chksat gt 0) then begin
-      smax = run->epoch('smax')     ; brightness threshold
+      smax = run->epoch('smax') * numsum / 512.0    ; brightness threshold
       rpixt = run->epoch('rpixt')   ; circle radius [pixels]
 
       dpx   = fix(cos(dp) * rpixt + axcen + 0.5005)
       dpy   = fix(sin(dp) * rpixt + aycen + 0.5005)
 
       satave = total(pb0rot[dpx, dpy]) / nray
-      satpix = where(pb0rot[dpx, dpy] ge smax)
+      satpix = where(pb0rot[dpx, dpy] ge smax, n_saturated_pixels)
       nelem  = n_elements(satpix)
 
       ; if too many pixels are saturated, set sat = 1
-      sat = 0
-      if (satpix[0] ne -1) then begin
-        ssize = size(satpix)
-        if (ssize[1] ge (nray / 5)) then begin
-          sat = 1
-        endif
-      endif
+      sat = n_saturated_pixels ge (nray / 5)
     endif
 
     ; cloud check
@@ -475,35 +465,22 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
     cloud    = 0
     if (chkcloud gt 0) then begin
       ; upper brightness threshold
-      cmax = run->epoch('cmax')
+      cmax = run->epoch('cmax') * numsum / 512.0
       ; lower brightness threshold
-      cmin = run->epoch('cmin')
+      cmin = run->epoch('cmin') * numsum / 512.0
       rpixc = run->epoch('rpixc') ; circle radius [pixels]
       dpx  = fix(cos(dp) * rpixc + axcen + 0.5005)
       dpy  = fix(sin(dp) * rpixc + aycen + 0.5005)
 
       cave = total(pb0rot[dpx, dpy]) / nray
-      cloudpixlo = where(pb0rot[dpx, dpy] le cmin)
-      cloudpixhi = where(pb0rot[dpx, dpy] ge cmax)
+      cloudpixlo = where(pb0rot[dpx, dpy] le cmin, n_cloudy_lo)
+      cloudpixhi = where(pb0rot[dpx, dpy] ge cmax, n_cloudy_hi)
       nelemlo    = n_elements(cloudpixlo)
       nelemhi    = n_elements(cloudpixhi)
 
       ; if too many pixels are below lower limit, set clo = 1
-      if (cloudpixlo[0] ne -1) then begin
-        closize = size(cloudpixlo)
-
-        if (closize[1] ge (nray / 5)) then begin
-          clo = 1
-        endif
-      endif
-
-      if (cloudpixhi[0] ne -1) then begin
-        chisize = size(cloudpixhi)
-
-        if (cave ge cmax) then begin
-          chi = 1
-        endif
-      endif
+      clo = n_cloudy_lo ge (nray / 5)
+      if (n_cloudy_hi gt 0L) then chi = cace ge cmax
 
       cloud = clo + chi
     endif
@@ -563,16 +540,14 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
       endfor
 
       ; if noise limit is exceeded, set bad = 1
-      if (total_bad ge total_bad_limit) then begin
-        noise = 1
-      endif
+      noise = total_bad ge total_bad_limit
     endif
 
     ; apply mask to restrict field of view (FOV)
 
     next:
 
-    if (cal gt 0 or dev gt 0) then begin
+    if ((cal gt 0) or (dev gt 0)) then begin
       pb0m = pb0rot
     endif else if (nx ne xdim or ny ne ydim) then begin
       mg_log, 'image dimensions incompatible with mask: %d, %d, %d, %d', $

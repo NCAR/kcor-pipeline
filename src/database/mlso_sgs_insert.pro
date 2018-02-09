@@ -80,7 +80,7 @@ pro mlso_sgs_insert, date, fits_list, $
   nfiles = n_elements(fits_list)
 
   if (nfiles eq 0) then begin
-    mg_log, 'no images in fits list', name='kcor/rt', /info
+    mg_log, 'no images in FITS list', name='kcor/rt', /info
     goto, done
   endif
 
@@ -118,13 +118,13 @@ pro mlso_sgs_insert, date, fits_list, $
     sgsscint_str = kcor_getsgs(hdu, 'SGSSCINT')
     sgssums_str  = kcor_getsgs(hdu, 'SGSSUMS')
 
-    sgsloop   = sxpar(hdu, 'SGSLOOP', count=qsgsloop)
+    sgsloop_str  = kcor_getsgs(hdu, 'SGSLOOP')
 		
     ; DB insert command
-    db->execute, 'INSERT INTO mlso_sgs (date_obs, obs_day, source, sgsdimv, sgsdims, sgssumv, sgsrav, sgsras, sgsrazr, sgsdecv, sgsdecs, sgsdeczr, sgsscint, sgssums, sgsloop) VALUES (''%s'', %d, ''%s'', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %d) ', $
+    db->execute, 'INSERT INTO mlso_sgs (date_obs, obs_day, source, sgsdimv, sgsdims, sgssumv, sgsrav, sgsras, sgsrazr, sgsdecv, sgsdecs, sgsdeczr, sgsscint, sgssums, sgsloop) VALUES (''%s'', %d, ''%s'', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) ', $
                  date_obs, obsday_index, sgs_source, sgsdimv_str, sgsdims_str, $
                  sgssumv_str, sgsrav_str, sgsras_str, sgsrazr_str, sgsdecv_str, $
-                 sgsdecs_str, sgsdeczr_str, sgsscint_str, sgssums_str, sgsloop, $
+                 sgsdecs_str, sgsdeczr_str, sgsscint_str, sgssums_str, sgsloop_str, $
                  status=status, error_message=error_message, sql_statement=sql_cmd
     if (status ne 0L) then begin
       mg_log, 'error inserting to mlso_sgs table', name='kcor/rt', /error
