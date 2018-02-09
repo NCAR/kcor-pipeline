@@ -1059,7 +1059,7 @@ pro kcor_l1, date_str, ok_files, $
 
     device, decomposed=1
     save     = tvrd()
-    gif_file = strmid(l0_file, 0, 20) + '.gif'
+    gif_file = strmid(l0_file, 0, 20) + '_l1.gif'
     write_gif, filepath(gif_file, root=l1_dir), save, red, green, blue
 
     ;----------------------------------------------------------------------------
@@ -1524,7 +1524,7 @@ pro kcor_l1, date_str, ok_files, $
     tvcircle, r, 255.5, 255.5, color=255, /device
 
     save = tvrd()
-    cgif_file = strmid(l0_file, 0, 20) + '_cropped.gif'
+    cgif_file = strmid(l0_file, 0, 20) + '_l1_cropped.gif'
     write_gif, filepath(cgif_file, root=l1_dir), save, red, green, blue
 
     ; create NRG (normalized, radially-graded) GIF image
