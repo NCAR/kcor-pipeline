@@ -34,9 +34,9 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
   cd, l1_dir
 
   nrgf_gif_filenames = file_basename(nrgf_files, '.fts.gz') + '.gif'
-  gif_filenames = file_basename(nrgf_files, '_l1_nrgf.fts.gz') + '.gif'
+  gif_filenames = file_basename(nrgf_files, '.fts.gz') + '.gif'
   cropped_nrgf_gif_filenames = file_basename(nrgf_files, '.fts.gz') + '_cropped.gif'
-  cropped_gif_filenames = file_basename(nrgf_files, '_l1_nrgf.fts.gz') + '_cropped.gif'
+  cropped_gif_filenames = file_basename(nrgf_files, '.fts.gz') + '_cropped.gif'
 
   n_gif_filenames = n_elements(gif_filenames)
 
