@@ -106,3 +106,4 @@
   more fixes for handling NaN SGS values
 1.4.20 [Feb 10, 2018]
   fix to handle new L1 GIF names
+1.4.21
