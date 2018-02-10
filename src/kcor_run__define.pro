@@ -184,6 +184,8 @@ function kcor_run::epoch, name, time=time
     'lyotstop': return, self->_readepoch('lyotstop', self.date, hst_time, type=7)
     'use_lyotstop_keyword': return, self->_readepoch('use_lyotstop_keyword', $
                                                      self.date, hst_time, /boolean)
+    'raw_filesize': return, self->_readepoch('raw_filesize', $
+                                             self.date, hst_time, type=3)
     else: mg_log, 'epoch value %s not found', name, name=self.log_name, /error
   endcase
 end

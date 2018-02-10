@@ -151,7 +151,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
                                          subdir=[date, 'level0'], $
                                          root=run.raw_basedir), $
                                 run=run, logger_name=logger_name)
-  kcor_raw_size = 16782980   ; bytes
+  kcor_raw_size = run->epoch('raw_filesize')   ; bytes
   ind = where(unzipped_sizes ne kcor_raw_size, n_bad_sizes)
   if (n_bad_sizes ne 0L) then begin
     mg_log, '%d files in tar list with bad unzipped size', $
