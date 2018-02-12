@@ -143,9 +143,15 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
 
     for f = 0L, n_elements(ok_files) - 1L do begin
       base = file_basename(ok_files[f], '.fts.gz')
-      printf, okcgif_lun, base + '_cropped.gif'
-      printf, okfgif_lun, base + '.gif'
-      printf, okl1gz_lun, base + '_l1.fts.gz'
+
+      cropped_gif_filename = base + '_l1_cropped.gif'
+      printf, okcgif_lun, cropped_gif_filename
+
+      gif_filename = base + '_l1.gif'
+      printf, okfgif_lun, gif_filename
+
+      l1_filename = base + '_l1.fts.gz'
+      printf, okl1gz_lun, l1_filename
 
       nrgf_filename = base + '_l1_nrgf.fts.gz'
       if (file_test(nrgf_filename)) then begin
@@ -158,14 +164,14 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
           file_copy, nrgf_filename, archive_dir, /overwrite
         endif
 
-        if (file_test(base + '_cropped.gif')) then begin
-          file_copy, base + '_cropped.gif', croppedgif_dir, /overwrite
+        if (file_test(cropped_gif_filename)) then begin
+          file_copy, cropped_gif_filename, croppedgif_dir, /overwrite
         endif
-        if (file_test(base + '.gif')) then begin
-          file_copy, base + '.gif', fullres_dir, /overwrite
+        if (file_test(gif_filename)) then begin
+          file_copy, gif_filename, fullres_dir, /overwrite
         endif
-        if (file_test(base + '_l1.fts.gz')) then begin
-          file_copy, base + '_l1.fts.gz', archive_dir, /overwrite
+        if (file_test(l1_filename)) then begin
+          file_copy, l1_filename, archive_dir, /overwrite
         endif
       endif
     endfor
