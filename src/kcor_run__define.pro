@@ -545,6 +545,8 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            diff_good_max=diff_good_max, $
                            diff_pass_max=diff_pass_max, $
                            diff_threshold_intensity=diff_threshold_intensity, $
+                           average_interval=average_interval, $
+                           daily_average_interval=daily_average_interval
                            mode=mode
   compile_opt strictarr
 
@@ -787,6 +789,18 @@ pro kcor_run::getProperty, config_contents=config_contents, $
     diff_threshold_intensity = self.options->get('threshold_intensity', $
                                                  section='differences', $
                                                  type=4, default=0.01)
+  endif
+
+  ; averages
+  if (arg_present(average_interval)) then begin
+    average_interval = self.options->get('interval', $
+                                              section='averaging', $
+                                              type=4, default=180.0)
+  endif
+  if (arg_present(daily_average_interval)) then begin
+    daily_average_interval = self.options->get('daily_interval', $
+                                              section='averaging', $
+                                              type=4, default=900.0)
   endif
 
   ; verification
