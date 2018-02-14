@@ -10,8 +10,9 @@
 ;     for the daily average we will skip the first 8 images (~2 minutes) of data
 ;  4) save the daily average as an annotated gif and a fits image
 ;
-; TODO: @mgalloy will create the nrgf images (fits and gif) in a separate
-;       routine using the averaged FITS images created here.
+; :Todo:
+;   re-create the nrgf images (FITS and GIF) in a separate routine using the
+;   averaged FITS images created here.
 ;
 ; :Author:
 ;   J. Burkepile, Jan 2018
@@ -26,7 +27,7 @@
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;- 
-pro kcor_make_average, date, l1_files, run=run
+pro kcor_create_averages, date, l1_files, run=run
   compile_opt strictarr
 
   mg_log, 'creating average movies', name='kcor/eod', /info
