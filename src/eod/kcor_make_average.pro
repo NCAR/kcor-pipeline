@@ -216,9 +216,10 @@ pro kcor_make_average, date, l1_files, run=run
     ; set up device, color table and scaling
     set_plot, 'Z'
     device, set_resolution=[1024, 1024], decomposed=0, set_colors=256, z_buffering=0
-    display_min = -.03
-    display_max = 0.9
-    dexp        = 0.7
+
+    display_min = run->epoch('display_min')
+    display_max = run->epoch('display_max')
+    display_exp = run->epoch('display_exp')
 
     lct, filepath('quallab_ver2.lut', root=run.resources_dir)
 
@@ -227,7 +228,7 @@ pro kcor_make_average, date, l1_files, run=run
 
     ; create fullres (1024x1024) GIF images
 
-    tv, bytscl(avgimg^dexp, display_min, display_max)
+    tv, bytscl(avgimg^display_exp, display_min, display_max)
 
     xyouts, 4, 990, 'MLSO/HAO/KCOR', color=255, charsize=1.5, /device
     xyouts, 4, 970, 'K-Coronagraph', color=255, charsize=1.5, /device
@@ -251,11 +252,11 @@ pro kcor_make_average, date, l1_files, run=run
     xyouts, 1012, 512, 'West', color=255, charsize=1.2, alignment=0.5, $
             orientation=90., /device
     xyouts, 4, 46, 'Level 1 Avg', color=255, charsize=1.2, /device
-    xyouts, 4, 26, string(run->epoch('display_min'), run->epoch('display_max'), $
+    xyouts, 4, 26, string(display_min, display_max, $
                           format='("min/max: ", f5.2, ", ", f3.1)'), $
             color=255, charsize=1.2, /device
-    xyouts, 4, 6, string(run->epoch('display_exp'), $
-                         run->epoch('display_gamma'), $
+    xyouts, 4, 6, string(display_exp, $
+                         display_gamma, $
                          format='("scaling: Intensity ^ ", f3.1, ", gamma=", f4.2)'), $
             color=255, charsize=1.2, /device
     xyouts, 1018, 6, 'Circle = photosphere.', $
@@ -285,8 +286,8 @@ pro kcor_make_average, date, l1_files, run=run
             z_buffering=0
     erase
 
-    tv, bytscl(crop_img ^ run->epoch('display_exp'), $
-               min=run->epoch('display_min'), max=run->epoch('display_max'))
+    tv, bytscl(crop_img ^ display_exp, $
+               min=display_min, max=display_max)
 
     xyouts, 4, 495, 'MLSO/HAO/KCOR', color=255, charsize=1.2, /device
     xyouts, 4, 480, 'K-Coronagraph', color=255, charsize=1.2, /device
@@ -308,7 +309,7 @@ pro kcor_make_average, date, l1_files, run=run
     xyouts, 507, 256, 'West', color=255, $
             charsize=1.0, alignment=0.5, orientation=90.0, /device
 
-    xyouts, 4, 20, string(run->epoch('display_min'), run->epoch('display_max'), $
+    xyouts, 4, 20, string(display_min, display_max, $
                           format='("min/max: ", f5.2, ", ", f3.1)'), $
             color=255, charsize=1.0, /device
 
@@ -328,91 +329,75 @@ pro kcor_make_average, date, l1_files, run=run
     write_gif, filepath(gif_file, root=l1_dir), save, red, green, blue
 
 
-;   ----------------------------------------------------------------------------------
-;   Create fullres (1024x1024) FITS image
-;   Create up to 2 new keywords that record the times of the images used in the avg.
-;   Each keyword holds up 4 image times to accommodate up to 8 images in the avg.
-;   ----------------------------------------------------------------------------------
+    ; Create fullres (1024x1024) FITS image
+    ; Create up to 2 new keywords that record the times of the images used in
+    ; the avg. Each keyword holds up 4 image times to accommodate up to 8 images
+    ; in the avg.
+    fxaddpar, saveheader, 'AVGTIME1', timestring[0], ' IMG TIMES USED IN AVG.'
+    if (numavg gt 3) then begin
+      fxaddpar, saveheader, 'AVGTIME2', timestring[1], ' IMG TIMES USED IN AVG.'
+    endif
+    name = strmid(savename, 0, 23)
+    fits_file = string(format='(a23, "_avg.fts")',name)
 
-    fxaddpar, saveheader, 'AVGTIME1', timestring(0),' IMG TIMES USED IN AVG.'
-    if (numavg gt 3) then fxaddpar,saveheader, 'AVGTIME2',timestring(1),' IMG TIMES USED IN AVG.'
-    name= strmid(savename, 0, 23)
-    fits_file= string(format='(a23,"_avg.fts")',name)
+    writefits, fits_file, avgimg, saveheader, /silent
+  endwhile
 
-    writefits,fits_file,avgimg,saveheader,/silent    
-
-
-  endwhile ;}
-
-;*******************************************************************************
-; end of WHILE loop
-;*******************************************************************************
-
-  close,13
-
-;   ----------------------------------------------------------------------------------
-;   Make daily average 1024 x 1024 gif ; 512 x 512 gif;  and 1024 x 1024 fits image 
-;   ----------------------------------------------------------------------------------
-
-  set_plot,'Z'
+  ; make daily average 1024x1024 GIF ; 512x512 gif; and 1024x1024 FITS image
+  set_plot, 'Z'
   device, set_resolution=[1024, 1024], decomposed=0, set_colors=256, z_buffering=0
   erase
 
-  daily = fltarr(1024,1024)
-  print,'dailycount = ',dailycount
-  for i = 8,dailycount-1 do begin     ; don't use the first 8 images (2 min.) of the day
-    daily = daily + dailyavg[*,*,i] 
+  daily = fltarr(1024, 1024)
+  ; don't use the first 8 images (2 min.) of the day
+  for i = 8L, dailycount - 1L do begin
+    daily += dailyavg[*, *, i] 
   endfor
 
-  daily = daily/(float(dailycount)-8.)
+  daily /= float(dailycount) - 8.0
 
-  tv,bytscl(daily^dexp,display_min,display_max)
+  tv, bytscl(daily^display_exp, display_min, display_max)
 
   xyouts, 4, 990, 'MLSO/HAO/KCOR', color=255, charsize=1.5, /device
   xyouts, 4, 970, 'K-Coronagraph', color=255, charsize=1.5, /device
   xyouts, 512, 1000, 'North', color=255, charsize=1.2, alignment=0.5, $
-            /device
-  xyouts, 1018, 995, string(format='(a2)', dy) + ' ' $
-              + string(format='(a3)', name_month) $
-              + ' ' + string(format = '(a4)', yr), $
-            /device, alignment=1.0, $
-            charsize=1.2, color=255
+          /device
+  xyouts, 1018, 995, $
+          string(format='(a2)', dy) + ' ' $
+            + string(format='(a3)', name_month) $
+            + ' ' + string(format = '(a4)', yr), $
+          /device, alignment=1.0, $
+          charsize=1.2, color=255
   xyouts, 1018, 975, 'DOY ' + string(format='(i3)', doy), /device, $
-            alignment=1.0, charsize=1.2, color=255
-  xyouts, 1018, 955, string(format='(a2)', hr) + ':' $
-                         + string(format = '(a2)', mnt) $
-                         + ':' + string(format='(a2)', sec) + ' UT', $
-            /device, alignment=1.0, charsize=1.2, color=255
+          alignment=1.0, charsize=1.2, color=255
+  xyouts, 1018, 955, $
+          string(format='(a2)', hr) + ':' $
+            + string(format = '(a2)', mnt) $
+            + ':' + string(format='(a2)', sec) + ' UT', $
+          /device, alignment=1.0, charsize=1.2, color=255
   xyouts, 1018, 935, '10 to 15 min. AVG.', /device, alignment=1.0, charsize=1.2, color=255
 
   xyouts, 22, 512, 'East', color=255, charsize=1.2, alignment=0.5, $
-            orientation=90., /device
+          orientation=90., /device
   xyouts, 1012, 512, 'West', color=255, charsize=1.2, alignment=0.5, $
-            orientation=90., /device
+          orientation=90., /device
   xyouts, 4, 46, 'Level 1 Avg', color=255, charsize=1.2, /device
-; galloy
-; xyouts, 4, 26, string(run->epoch('display_min'), run->epoch('display_max'), $  
-;                          format='("min/max: ", f5.2, ", ", f3.1)'), $
-;            color=255, charsize=1.2, /device
-  xyouts, 4, 26, string(format='("min/max: ", f5.2, ", ", f5.2)',display_min,display_max), $
-            color=255, charsize=1.2, /device
-; galloy
-; xyouts, 4, 6, string(run->epoch('display_exp'), $     
-;                         run->epoch('display_gamma'), $
-;                         format='("scaling: Intensity ^ ", f3.1, ", gamma=", f4.2)'), $
-;            color=255, charsize=1.2, /device
-  xyouts, 4, 06, string(format='("scaling: Intensity ^ ", f3.1, ", gamma=", f4.2)',dexp,gamma_value), $
-            color=255, charsize=1.2, /device
+  xyouts, 4, 26, string(display_min, display_max, $  
+                        format='("min/max: ", f5.2, ", ", f3.1)'), $
+          color=255, charsize=1.2, /device
+  xyouts, 4, 6, string(display_exp, $     
+                       display_gamma, $
+                       format='("scaling: Intensity ^ ", f3.1, ", gamma=", f4.2)'), $
+          color=255, charsize=1.2, /device
   xyouts, 1018, 6, 'Circle = photosphere.', $
-            color=255, charsize=1.2, /device, alignment=1.0
+          color=255, charsize=1.2, /device, alignment=1.0
 
   ; image has been shifted to center of array
   ; draw circle at photosphere
   tvcircle, r_photo, 511.5, 511.5, color=255, /device
 
-
-  device,decomposed = 1
-  save=tvrd()
+  device, decomposed=1
+  save = tvrd()
 
   gif_file = strmid(savename, 0, 23) + '_dailyavg.gif'
 ; galloy
@@ -437,87 +422,63 @@ pro kcor_make_average, date, l1_files, run=run
             z_buffering=0
   erase
 
-; galloy
-;    tv, bytscl(crop_img ^ run->epoch('display_exp'), $                         
-;               min=run->epoch('display_min'), max=run->epoch('display_max'))
-
-  tv,bytscl(crop_img^dexp,display_min,display_max)
+  tv, bytscl(crop_img^display_exp, min=display_min, max=display_max)
 
   xyouts, 4, 495, 'MLSO/HAO/KCOR', color=255, charsize=1.2, /device
   xyouts, 4, 480, 'K-Coronagraph', color=255, charsize=1.2, /device
   xyouts, 256, 500, 'North', color=255, $
             charsize=1.0, alignment=0.5, /device
   xyouts, 500, 495, string(format='(a2)', dy) + ' ' $
-                               + string(format='(a3)', name_month)$
-                               + ' ' + string(format='(a4)', yr), $
-            /device, alignment = 1.0, $
-            charsize=1.0, color=255
+                             + string(format='(a3)', name_month)$
+                             + ' ' + string(format='(a4)', yr), $
+          /device, alignment = 1.0, $
+          charsize=1.0, color=255
   xyouts, 500, 480, string(format='(a2)', hr) + ':' $
-            + string(format='(a2)', mnt) + ':' $
-            + string(format='(a2)', sec) + ' UT', $
-            /device, alignment=1.0, $
-            charsize=1.0, color=255
+                      + string(format='(a2)', mnt) + ':' $
+                      + string(format='(a2)', sec) + ' UT', $
+          /device, alignment=1.0, $
+          charsize=1.0, color=255
   xyouts, 12, 256, 'East', color=255, $
-            charsize=1.0, alignment=0.5, orientation=90.0, /device
+          charsize=1.0, alignment=0.5, orientation=90.0, /device
   xyouts, 507, 256, 'West', color=255, $
-            charsize=1.0, alignment=0.5, orientation=90.0, /device
-;  galloy
-;    xyouts, 4, 20, string(run->epoch('display_min'), run->epoch('display_max'), $   
-;                          format='("min/max: ", f5.2, ", ", f3.1)'), $
-;            color=255, charsize=1.0, /device
-  xyouts, 4, 20, string(format='("min/max: ", f5.2, ", ", f5.2)',display_min,display_max), $
-            color=255, charsize=1.0, /device
-; galloy
-;    xyouts, 4, 6, string(run->epoch('display_exp'), $     
-;                         run->epoch('display_gamma'), $
-;                         format='("scaling: Intensity ^ ", f3.1, ", gamma=", f4.2)'), $
-;            color=255, charsize=1.0, /device
-  xyouts, 4, 06, string(format='("scaling: Intensity ^ ", f3.1, ", gamma=", f4.2)',dexp,gamma_value), $
-            color=255, charsize=1.0, /device
+          charsize=1.0, alignment=0.5, orientation=90.0, /device
+  xyouts, 4, 20, string(format='("min/max: ", f5.2, ", ", f5.2)', $
+                        display_min, display_max), $
+          color=255, charsize=1.0, /device
+  xyouts, 4, 6, string(format='("scaling: Intensity ^ ", f3.1, ", gamma=", f4.2)', $
+                       display_exp, gamma_value), $
+          color=255, charsize=1.0, /device
   xyouts, 500, 21, '10 min. avg.', color=255, charsize=1.0, alignment=1.0, /device
   xyouts, 500, 6, 'Circle = photosphere', color=255, $
-            charsize=1.0, /device, alignment=1.0
+          charsize=1.0, /device, alignment=1.0
 
   r = r_photo * 0.75    ;  image is rebined to 75% of original size
   tvcircle, r, 255.5, 255.5, color=255, /device
 
   save = tvrd()
   gif_file = strmid(savename, 0, 23) + '_cropped_dailyavg.gif'
-;   galloy
-;    write_gif, filepath(savename, root=l1_dir), save, red, green, blue   
-  write_gif, gif_file, save,red,green,blue
+  write_gif, filepath(gif_file, root=l1_dir), save, red, green, blue   
 
-;   ----------------------------------------------------------------------------------
-;   Create fullres (1024x1024) FITS image
-;   Save times used to make the daily avg. image in the header 
-;   create 10 fits keywords; each holds 4 image times to accommodate up to 40 images in the avg.
-;   ----------------------------------------------------------------------------------
+  ; create fullres (1024x1024) FITS image
+  ; save times used to make the daily avg. image in the header 
+  ; create 10 fits keywords; each holds 4 image times to accommodate up to 40
+  ; images in the avg.
 
-  dailytimestring[0] = dailytimes(8) + ' ' + dailytimes(9) + ' ' + dailytimes(10) + ' ' + dailytimes(11)
-  dailytimestring[1] = dailytimes(12) + ' ' + dailytimes(13) + ' ' + dailytimes(14) + ' ' + dailytimes(15)
-  dailytimestring[2] = dailytimes(16) + ' ' + dailytimes(17) + ' ' + dailytimes(18) + ' ' + dailytimes(19)
-  dailytimestring[3] = dailytimes(20) + ' ' + dailytimes(21) + ' ' + dailytimes(22) + ' ' + dailytimes(23)
-  dailytimestring[4] = dailytimes(24) + ' ' + dailytimes(25) + ' ' + dailytimes(26) + ' ' + dailytimes(27)
-  dailytimestring[5] = dailytimes(28) + ' ' + dailytimes(29) + ' ' + dailytimes(30) + ' ' + dailytimes(31)
-  dailytimestring[6] = dailytimes(32) + ' ' + dailytimes(33) + ' ' + dailytimes(34) + ' ' + dailytimes(35)
-  dailytimestring[7] = dailytimes(36) + ' ' + dailytimes(37) + ' ' + dailytimes(38) + ' ' + dailytimes(39)
-  dailytimestring[8] = dailytimes(40) + ' ' + dailytimes(41) + ' ' + dailytimes(42) + ' ' + dailytimes(43)
-  dailytimestring[9] = dailytimes(44) + ' ' + dailytimes(45) + ' ' + dailytimes(46) + ' ' + dailytimes(47)
+  times_per_keyword = 4
+  n_daily_times = n_elements(daily_times[8:*])
+  n_keywords = ceil(n_daily_times / float(times_per_keyword))
+  keyword_times = strarr(n_times_per_keyword, n_keywords)
+  keyword_times[0] = dailytimes
+  keyword_times = strjoin(keyword_times, ' ')
 
-  fxaddpar, saveheader, 'AVGTIME0', dailytimestring(0),' IMAGE TIMES USED IN AVG.'
-  fxaddpar, saveheader, 'AVGTIME1', dailytimestring(1),' IMAGE TIMES USED IN AVG.'
-  fxaddpar, saveheader, 'AVGTIME2', dailytimestring(2),' IMAGE TIMES USED IN AVG.'
-  fxaddpar, saveheader, 'AVGTIME3', dailytimestring(3),' IMAGE TIMES USED IN AVG.'
-  fxaddpar, saveheader, 'AVGTIME4', dailytimestring(4),' IMAGE TIMES USED IN AVG.'
-  fxaddpar, saveheader, 'AVGTIME5', dailytimestring(5),' IMAGE TIMES USED IN AVG.'
-  fxaddpar, saveheader, 'AVGTIME6', dailytimestring(6),' IMAGE TIMES USED IN AVG.'
-  fxaddpar, saveheader, 'AVGTIME7', dailytimestring(7),' IMAGE TIMES USED IN AVG.'
-  fxaddpar, saveheader, 'AVGTIME8', dailytimestring(8),' IMAGE TIMES USED IN AVG.'
-  fxaddpar, saveheader, 'AVGTIME9', dailytimestring(9),' IMAGE TIMES USED IN AVG.'
-  name= strmid(savename, 0, 23)
-  fits_file= string(format='(a23,"_dailyavg.fts")',name)
+  for k = 0L, n_keywords - 1L do begin
+    fxaddpar, saveheader, string(k, format='(%"AVGTIME%d")'), keyword_times[k], $
+              ' Image times used in avg.'
+  endfor
 
-  writefits,fits_file,daily,saveheader,/silent    
+  name = strmid(savename, 0, 23)
+  daily_fits_average_filename = string(format='(a23, "_dailyavg.fts")', name)
+  writefits, daily_fits_average_filename, daily, saveheader, /silent    
 
   done:
   cd, current
