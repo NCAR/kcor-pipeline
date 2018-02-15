@@ -94,7 +94,7 @@ pro kcor_create_averages, date, l1_files, run=run
       if (stopavg eq 1 ) then begin
         imgsave[0, 0, 0] = imgsave[*, *, last]
         avgimg = imgsave[*, *, last]
-        if (dailycount lt 48 and date_julian(i) - firsttime lt dailyavgval) then begin
+        if (dailycount lt 48 and date_julian[i] - firsttime lt dailyavgval) then begin
           dailyavg[0, 0, dailycount] = imgsave[*, *, last]
           dailytimes[dailycount] = imgtime[last]
 	  dailycount += 1
@@ -151,7 +151,7 @@ pro kcor_create_averages, date, l1_files, run=run
           avgimg = imgsave[*, *, 0]
           saveheader = header
           numavg = 1
-          if (dailycount lt 48 and date_julian(i) - firsttime lt dailyavgval) then begin
+          if (dailycount lt 48 and date_julian[i] - firsttime lt dailyavgval) then begin
 	    dailyavg[0, 0, dailycount] = imgsave[*, *, 0]
             dailytimes[dailycount] = imgtime[0]
             dailycount += 1
@@ -181,7 +181,7 @@ pro kcor_create_averages, date, l1_files, run=run
           last = i   
         endif
 
-        if (dailycount lt 48  and  date_julian(i) - firsttime lt dailyavgval) then begin
+        if (dailycount lt 48  and  date_julian[i] - firsttime lt dailyavgval) then begin
           dailyavg[0, 0, dailycount] = imgsave[*, *, i]
           dailytimes[dailycount] = imgtime[i]
           dailycount += 1
