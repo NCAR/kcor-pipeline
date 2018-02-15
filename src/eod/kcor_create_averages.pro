@@ -35,8 +35,10 @@ pro kcor_create_averages, date, l1_files, run=run
   date_parts = kcor_decompose_date(date)
   fullres_dir = filepath('', subdir=date_parts, root=run.fullres_basedir)
   cropped_dir = filepath('', subdir=date_parts, root=run.croppedgif_basedir)
+
   if (run.distribute) then begin
     if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
+    if (~file_test(cropped_dir, /directory)) then file_mkdir, fullres_dir
   endif
 
   l1_dir = filepath('level1', subdir=date, root=run.raw_basedir)
@@ -45,11 +47,6 @@ pro kcor_create_averages, date, l1_files, run=run
   cd, l1_dir
 
   ; set up variables and arrays needed
-
-  l1_file=''
-  imglist='list'
-  fits_file=''
-  gif_file = ''
 
   imgsave    = fltarr(1024,1024,8)
   avgimg     = fltarr(1024,1024)
@@ -62,7 +59,7 @@ pro kcor_create_averages, date, l1_files, run=run
 
   date_julian = dblarr(8)
 
-  ; SET up julian date intervals for averaging  
+  ; Set up julian date intervals for averaging  
   ; Currently: 	average 8 images over a maximum of 3 minutes
   ;               create 1 daily average of 40 images over a maximum of 15 minutes
 
@@ -78,6 +75,8 @@ pro kcor_create_averages, date, l1_files, run=run
   ; set up counting variables
   dailycount = 0  ; want to average up to 40 images in < 15 minutes for daily avg.
   stopavg = 0  ; set to 1 if images are more than 3 minutes apart (stop averaging)
+
+  mg_log, 'averaging for %d L1 files', n_elements(l1_files), name='kcor/eod', /info
 
   ; read in images and generate subtractions ~10 minutes apart
   f = 0L
@@ -104,9 +103,12 @@ pro kcor_create_averages, date, l1_files, run=run
         numavg = 1
       endif else begin
         if (f ge n_elements(l1_files)) then break
-        l1_file = file_basename(l1_files[f])
 
-        img=readfits(l1_file,header,/silent)
+        l1_file = file_basename(l1_files[f])
+        savename = strmid(file_basename(l1_file), 0, 23)
+
+        img = readfits(l1_file, header, /silent)
+
         f += 1
         imgsave[0, 0, i] = float(img)
 
@@ -120,8 +122,7 @@ pro kcor_create_averages, date, l1_files, run=run
         roll    = 0.0
 
         ; find image time
-        date_obs = fxpar(header, 'DATE-OBS')    ; yyyy-mm-ddThh:mm:ss
-        date     = strmid(date_obs, 0, 10)      ; yyyy-mm-dd
+        date_obs = fxpar(header, 'DATE-OBS')       ; yyyy-mm-ddThh:mm:ss
 
         ; extract fields from DATE_OBS
         yr   = strmid(date_obs,  0, 4)
@@ -170,7 +171,6 @@ pro kcor_create_averages, date, l1_files, run=run
         if (difftime le avginterval) then begin
           avgimg += imgsave[*, *, i]
 	  saveheader = header   ; save header in case next image is > 3 min. in time
-          savename = strmid(file_basename(l1_file), 0, 23)
 	  numavg += 1
 	  if (i le 3) then timestring[0] = timestring[0] + ' ' + imgtime[i]
 	  if (i gt 3) then timestring[1] = timestring[1] + ' ' + imgtime[i]
@@ -190,7 +190,6 @@ pro kcor_create_averages, date, l1_files, run=run
 
       if (stopavg eq 1) then break
     endfor
-
 
     ; make averaged image
     avgimg = avgimg / float(numavg)
@@ -213,22 +212,21 @@ pro kcor_create_averages, date, l1_files, run=run
       doy = (mday[month] - 1) + day
     endelse
 
-
     ; set up device, color table and scaling
     set_plot, 'Z'
     device, set_resolution=[1024, 1024], decomposed=0, set_colors=256, z_buffering=0
 
-    display_min = run->epoch('display_min')
-    display_max = run->epoch('display_max')
-    display_exp = run->epoch('display_exp')
+    display_min   = run->epoch('display_min')
+    display_max   = run->epoch('display_max')
+    display_exp   = run->epoch('display_exp')
+    display_gamma = run->epoch('display_gamma')
 
     lct, filepath('quallab_ver2.lut', root=run.resources_dir)
 
-    gamma_ct, run->epoch('display_gamma'), /current
+    gamma_ct, display_gamma, /current
     tvlct, red, green, blue, /get
 
     ; create fullres (1024x1024) GIF images
-
     tv, bytscl(avgimg^display_exp, display_min, display_max)
 
     xyouts, 4, 990, 'MLSO/HAO/KCOR', color=255, charsize=1.5, /device
@@ -270,9 +268,12 @@ pro kcor_create_averages, date, l1_files, run=run
     device, decomposed=1
     save = tvrd()
 
-    gif_file = strmid(savename, 0, 23) + '_avg.gif'
-    write_gif, filepath(gif_file, root=l1_dir), save, red, green, blue
-    write_gif, gif_file, save, red, green, blue
+    gif_basename = strmid(savename, 0, 23) + '_avg.gif'
+    write_gif, gif_basename, save, red, green, blue
+    if (run.distribute) then begin
+      ; TODO: eventually these will be distributed
+      ;file_copy, gif_basename, fullres_dir, /overwrite
+    endif
 
     ; create lowres (512 x 512) GIF images
 
@@ -314,8 +315,8 @@ pro kcor_create_averages, date, l1_files, run=run
                           format='("min/max: ", f5.2, ", ", f3.1)'), $
             color=255, charsize=1.0, /device
 
-    xyouts, 4, 6, string(run->epoch('display_exp'), $
-                         run->epoch('display_gamma'), $
+    xyouts, 4, 6, string(display_exp, $
+                         display_gamma, $
                          format='("scaling: Intensity ^ ", f3.1, ", gamma=", f4.2)'), $
             color=255, charsize=1.0, /device
     xyouts, 500, 21, '2 min. avg.', color=255, charsize=1.0, alignment=1.0, /device
@@ -326,22 +327,30 @@ pro kcor_create_averages, date, l1_files, run=run
     tvcircle, r, 255.5, 255.5, color=255, /device
 
     save = tvrd()
-    gif_file = strmid(savename, 0, 23) + '_cropped_avg.gif'
-    write_gif, filepath(gif_file, root=l1_dir), save, red, green, blue
-
+    gif_basename = strmid(savename, 0, 23) + '_cropped_avg.gif'
+    write_gif, gif_basename, save, red, green, blue
+    if (run.distribute) then begin
+      ; TODO: eventually these will be distributed
+      ;file_copy, gif_basename, cropped_dir, /overwrite
+    endif
 
     ; Create fullres (1024x1024) FITS image
     ; Create up to 2 new keywords that record the times of the images used in
     ; the avg. Each keyword holds up 4 image times to accommodate up to 8 images
     ; in the avg.
-    fxaddpar, saveheader, 'AVGTIME1', timestring[0], ' IMG TIMES USED IN AVG.'
+    fxaddpar, saveheader, 'AVGTIME0', timestring[0], ' Img times used in avg.'
     if (numavg gt 3) then begin
-      fxaddpar, saveheader, 'AVGTIME2', timestring[1], ' IMG TIMES USED IN AVG.'
+      fxaddpar, saveheader, 'AVGTIME1', timestring[1], ' Img times used in avg.'
     endif
     name = strmid(savename, 0, 23)
-    fits_file = string(format='(a23, "_avg.fts")',name)
+    fits_filename = string(format='(a23, "_avg.fts")', name)
 
-    writefits, fits_file, avgimg, saveheader, /silent
+    mg_log, 'writing %s', fits_filename, name='kcor/eod', /info
+    writefits, fits_filename, avgimg, saveheader
+    if (run.distribute) then begin
+      ; TODO: eventually these will be distributed
+      ;file_copy, fits_filename, cropped_dir, /overwrite
+    endif
   endwhile
 
   ; make daily average 1024x1024 GIF ; 512x512 gif; and 1024x1024 FITS image
@@ -400,22 +409,22 @@ pro kcor_create_averages, date, l1_files, run=run
   device, decomposed=1
   save = tvrd()
 
-  gif_file = strmid(savename, 0, 23) + '_dailyavg.gif'
-; galloy
-;  write_gif, filepath(savename, root=l1_dir), save, red, green, blue  
-  write_gif, gif_file, save,red,green,blue
-  
-;   ----------------------------------------------------------------------------------
-;   Create lowres  (512 x 512  gif images
-;   ----------------------------------------------------------------------------------
+  gif_filename = strmid(savename, 0, 23) + '_dailyavg.gif'
+  write_gif, gif_filename, save, red, green, blue  
+  if (run.distribute) then begin
+    ; TODO: eventually these will be distributed
+    ;file_copy, gif_filename, fullres_dir, /overwrite
+  endif
 
-; rebin to 768x768 (75% of original size) and crop around center to 512 x
-; 512 image
+  ; create lowres  (512 x 512  gif images
+
+  ; rebin to 768x768 (75% of original size) and crop around center to 512 x
+  ; 512 image
 
   rebin_img = congrid(daily, 768, 768)
   crop_img = rebin_img[128:639, 128:639]
 
-; window, 0, xsize=512, ysize=512, retain=2
+  ; window, 0, xsize=512, ysize=512, retain=2
 
   set_plot, 'Z'
   erase
@@ -447,7 +456,7 @@ pro kcor_create_averages, date, l1_files, run=run
                         display_min, display_max), $
           color=255, charsize=1.0, /device
   xyouts, 4, 6, string(format='("scaling: Intensity ^ ", f3.1, ", gamma=", f4.2)', $
-                       display_exp, gamma_value), $
+                       display_exp, display_gamma), $
           color=255, charsize=1.0, /device
   xyouts, 500, 21, '10 min. avg.', color=255, charsize=1.0, alignment=1.0, /device
   xyouts, 500, 6, 'Circle = photosphere', color=255, $
@@ -457,19 +466,25 @@ pro kcor_create_averages, date, l1_files, run=run
   tvcircle, r, 255.5, 255.5, color=255, /device
 
   save = tvrd()
-  gif_file = strmid(savename, 0, 23) + '_cropped_dailyavg.gif'
-  write_gif, filepath(gif_file, root=l1_dir), save, red, green, blue   
+  gif_filename = strmid(savename, 0, 23) + '_dailyavg_cropped.gif'
+  write_gif, gif_filename, save, red, green, blue   
+  if (run.distribute) then begin
+    ; TODO: eventually these will be distributed
+    ;file_copy, gif_filename, cropped_dir, /overwrite
+  endif
 
   ; create fullres (1024x1024) FITS image
   ; save times used to make the daily avg. image in the header 
   ; create 10 fits keywords; each holds 4 image times to accommodate up to 40
   ; images in the avg.
 
-  times_per_keyword = 4
-  n_daily_times = n_elements(daily_times[8:*])
-  n_keywords = ceil(n_daily_times / float(times_per_keyword))
+  n_times_per_keyword = 4
+  n_skip = 8
+  n_daily_times = n_elements(dailytimes[n_skip:*])
+  n_keywords = ceil(n_daily_times / float(n_times_per_keyword))
+
   keyword_times = strarr(n_times_per_keyword, n_keywords)
-  keyword_times[0] = dailytimes
+  keyword_times[0] = dailytimes[n_skip:*]
   keyword_times = strjoin(keyword_times, ' ')
 
   for k = 0L, n_keywords - 1L do begin
@@ -479,8 +494,14 @@ pro kcor_create_averages, date, l1_files, run=run
 
   name = strmid(savename, 0, 23)
   daily_fits_average_filename = string(format='(a23, "_dailyavg.fts")', name)
-  writefits, daily_fits_average_filename, daily, saveheader, /silent    
+  mg_log, 'writing %s', daily_fits_average_filename, name='kcor/eod', /info
+  writefits, daily_fits_average_filename, daily, saveheader
+  if (run.distribute) then begin
+    ; TODO: eventually these will be distributed
+    ;file_copy, daily_fits_average_filename, fullres_dir, /overwrite
+  endif
 
   done:
   cd, current
+  mg_log, 'done', name='kcor/eod', /info
 end

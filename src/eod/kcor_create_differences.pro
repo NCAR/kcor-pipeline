@@ -36,6 +36,7 @@ pro kcor_create_differences, date, l1_files, run=run
   cropped_dir = filepath('', subdir=date_parts, root=run.croppedgif_basedir)
   if (run.distribute) then begin
     if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
+    if (~file_test(cropped_dir, /directory)) then file_mkdir, fullres_dir
   endif
 
   l1_dir = filepath('level1', subdir=date, root=run.raw_basedir)
@@ -370,12 +371,12 @@ pro kcor_create_differences, date, l1_files, run=run
       write_gif, gif_basename, save
 
       fits_basename = string(name, timestring, status, format='(%"%s_minus_%s_%s.fts")')
-      writefits, fits_basename, subimg, goodheader;, /silent
+      writefits, fits_basename, subimg, goodheader
 
       if (run.distribute) then begin
         ; TODO: eventually these will be distributed
-        ;file_copy, gif_filename, fullres_dir, /overwrite
-        ;file_copy, fits_filename, fullres_dir, /overwrite
+        ;file_copy, gif_basename, fullres_dir, /overwrite
+        ;file_copy, fits_basename, fullres_dir, /overwrite
       endif
 
       newsub = 0

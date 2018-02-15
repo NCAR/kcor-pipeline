@@ -46,7 +46,7 @@ pro kcor_catalog, date, list=list, run=run, catalog_dir=catalog_dir
     n_files = n_elements(list)
   endelse
 
-  mg_log, 'cataloging %d L0 files in %s', n_files, catalog_dir, name='kcor/eod', /info
+  mg_log, 'cataloging %d L0 files', n_files, name='kcor/eod', /info
 
   for f = 0L, n_files - 1L do begin
     fits_file = list[f]
