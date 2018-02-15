@@ -108,4 +108,5 @@
   fix to handle new L1 GIF names
 1.4.21 [Feb 12, 2018]
   fix to distribute new L1 GIF names
-1.4.22
+1.4.22 [Feb 15, 2018]
+  fix for quality check for cloudy images
