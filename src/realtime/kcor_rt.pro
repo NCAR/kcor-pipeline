@@ -109,7 +109,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       goto, done
     endif
 
-    mg_log, 'moving processed files to l0_dir', name='kcor/rt', /info
+    mg_log, 'moving processed files to level0 dir', name='kcor/rt', /info
     file_move, l0_fits_files, l0_dir, /overwrite
 
     cd, l1_dir
@@ -132,7 +132,15 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     if (n_elements(ok_files) eq 0L) then begin
       mg_log, 'no files to archive', name='kcor/rt', /info
       goto, done
-    endif
+    endif else begin
+      if (run.distribute) then begin
+        mg_log, 'distributing L1 products of %d raw files', $
+                n_elements(ok_files), $
+                name='kcor/rt', /info
+      endif else begin
+        mg_log, 'skipping distribution', name='kcor/rt', /info
+      endelse
+    endelse
 
     openw, okcgif_lun, 'okcgif.ls', /append, /get_lun
     openw, okfgif_lun, 'okfgif.ls', /append, /get_lun

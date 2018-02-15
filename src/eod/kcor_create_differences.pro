@@ -97,12 +97,12 @@ pro kcor_create_differences, date, l1_files, run=run
       imgsave[*, *, i] = float(img)
 
       ; scaling information for quality scans
-      rsun    = fxpar (header, 'RSUN')         ; solar radius [arcsec/Rsun]
-      cdelt1  = fxpar (header, 'CDELT1')       ; resolution   [arcsec/pixel]
+      rsun    = fxpar(header, 'RSUN')         ; solar radius [arcsec/Rsun]
+      cdelt1  = fxpar(header, 'CDELT1')       ; resolution   [arcsec/pixel]
       pixrs   = rsun / cdelt1
       r_photo = rsun / cdelt1
-      xcen    = fxpar (header, 'CRPIX1')       ; X center
-      ycen    = fxpar (header, 'CRPIX2')       ; Y center
+      xcen    = fxpar(header, 'CRPIX1')       ; X center
+      ycen    = fxpar(header, 'CRPIX2')       ; Y center
       roll    = 0.0
 
       ; find image time
