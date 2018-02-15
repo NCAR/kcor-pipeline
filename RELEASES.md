@@ -110,4 +110,5 @@
   fix to distribute new L1 GIF names
 1.4.22 [Feb 15, 2018]
   fix for quality check for cloudy images
-1.4.23
+1.4.23 [Feb 15, 2018]
+  making average FITS/GIFs and daily average (but not distributing)
