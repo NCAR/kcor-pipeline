@@ -141,6 +141,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   n_wrongsize = 0L
 
   if (run.validate_t1) then begin
+    mg_log, 'validating t1.log', name='kcor/eod', /info
     n_lines = file_lines(t1_log_file)
     lines = strarr(n_lines)
     openr, lun, t1_log_file, /get_lun
