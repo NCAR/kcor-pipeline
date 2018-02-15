@@ -546,7 +546,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            diff_pass_max=diff_pass_max, $
                            diff_threshold_intensity=diff_threshold_intensity, $
                            average_interval=average_interval, $
-                           daily_average_interval=daily_average_interval
+                           daily_average_interval=daily_average_interval, $
                            mode=mode
   compile_opt strictarr
 
