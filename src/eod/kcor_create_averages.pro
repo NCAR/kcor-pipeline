@@ -33,12 +33,14 @@ pro kcor_create_averages, date, l1_files, run=run
   mg_log, 'creating average movies', name='kcor/eod', /info
 
   date_parts = kcor_decompose_date(date)
+  archive_dir = filepath('', subdir=date_parts, root=run.archive_basedir)
   fullres_dir = filepath('', subdir=date_parts, root=run.fullres_basedir)
   cropped_dir = filepath('', subdir=date_parts, root=run.croppedgif_basedir)
 
   if (run.distribute) then begin
+    if (~file_test(archive_dir, /directory)) then file_mkdir, archive_dir
     if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
-    if (~file_test(cropped_dir, /directory)) then file_mkdir, fullres_dir
+    if (~file_test(cropped_dir, /directory)) then file_mkdir, cropped_dir
   endif
 
   l1_dir = filepath('level1', subdir=date, root=run.raw_basedir)
@@ -271,8 +273,7 @@ pro kcor_create_averages, date, l1_files, run=run
     gif_basename = strmid(savename, 0, 23) + '_avg.gif'
     write_gif, gif_basename, save, red, green, blue
     if (run.distribute) then begin
-      ; TODO: eventually these will be distributed
-      ;file_copy, gif_basename, fullres_dir, /overwrite
+      file_copy, gif_basename, fullres_dir, /overwrite
     endif
 
     ; create lowres (512 x 512) GIF images
@@ -330,8 +331,7 @@ pro kcor_create_averages, date, l1_files, run=run
     gif_basename = strmid(savename, 0, 23) + '_cropped_avg.gif'
     write_gif, gif_basename, save, red, green, blue
     if (run.distribute) then begin
-      ; TODO: eventually these will be distributed
-      ;file_copy, gif_basename, cropped_dir, /overwrite
+      file_copy, gif_basename, cropped_dir, /overwrite
     endif
 
     ; Create fullres (1024x1024) FITS image
@@ -348,8 +348,7 @@ pro kcor_create_averages, date, l1_files, run=run
     mg_log, 'writing %s', fits_filename, name='kcor/eod', /info
     writefits, fits_filename, avgimg, saveheader
     if (run.distribute) then begin
-      ; TODO: eventually these will be distributed
-      ;file_copy, fits_filename, cropped_dir, /overwrite
+      file_copy, fits_filename, archive_dir, /overwrite
     endif
   endwhile
 
@@ -412,8 +411,7 @@ pro kcor_create_averages, date, l1_files, run=run
   gif_filename = strmid(savename, 0, 23) + '_dailyavg.gif'
   write_gif, gif_filename, save, red, green, blue  
   if (run.distribute) then begin
-    ; TODO: eventually these will be distributed
-    ;file_copy, gif_filename, fullres_dir, /overwrite
+    file_copy, gif_filename, fullres_dir, /overwrite
   endif
 
   ; create lowres  (512 x 512  gif images
@@ -469,8 +467,7 @@ pro kcor_create_averages, date, l1_files, run=run
   gif_filename = strmid(savename, 0, 23) + '_dailyavg_cropped.gif'
   write_gif, gif_filename, save, red, green, blue   
   if (run.distribute) then begin
-    ; TODO: eventually these will be distributed
-    ;file_copy, gif_filename, cropped_dir, /overwrite
+    file_copy, gif_filename, cropped_dir, /overwrite
   endif
 
   ; create fullres (1024x1024) FITS image
@@ -497,8 +494,7 @@ pro kcor_create_averages, date, l1_files, run=run
   mg_log, 'writing %s', daily_fits_average_filename, name='kcor/eod', /info
   writefits, daily_fits_average_filename, daily, saveheader
   if (run.distribute) then begin
-    ; TODO: eventually these will be distributed
-    ;file_copy, daily_fits_average_filename, fullres_dir, /overwrite
+    file_copy, daily_fits_average_filename, archive_dir, /overwrite
   endif
 
   done:
