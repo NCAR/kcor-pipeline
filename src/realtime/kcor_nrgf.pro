@@ -8,7 +8,7 @@ pro kcor_nrgf_annotations, year, name_month, day, hour, minute, second, doy, $
                            top=top, right=right, $
                            charsize=charsize, big_charsize=big_charsize, $
                            annotation_color=annotation_color, $
-                           cropped=cropped
+                           cropped=cropped, averaged=averaged
   compile_opt strictarr
 
   big_line_height = keyword_set(cropped) ? 18 : 20
@@ -28,6 +28,11 @@ pro kcor_nrgf_annotations, year, name_month, day, hour, minute, second, doy, $
   xyouts, right - 6, top - 29 - 2 * line_height + keyword_set(cropped) * 12, $
           string(hour, minute, second, format='(a2, ":", a2, ":", a2, " UT")'), $
           /device, alignment=1.0, charsize=charsize, color=annotation_color
+  if (keyword_set(averaged)) then begin
+    xyouts, right - 6, top - 29 - 3 * line_height + keyword_set(cropped) * 12, $
+            '2 to 3 min avg', $
+            /device, alignment=1.0, charsize=charsize, color=annotation_color
+  endif
 
   xyouts, 4, 6 + 2 * line_height, 'Level 1 data', $
           color=annotation_color, charsize=charsize, /device
@@ -53,6 +58,8 @@ end
 ;     set to create a cropped NRGF
 ;   run : in, required, type=object
 ;     `kcor_run` object
+;   averaged : in, optional, type=boolean
+;     set to indicate `fits_file` is an averaged file
 ;
 ; :Author:
 ;   Andrew L. Stanger   HAO/NCAR
@@ -63,7 +70,7 @@ end
 ;   15 Jul 2015 Add /NOSCALE keyword to readfits.
 ;   04 Mar 2016 Generate a 16 bit fits nrgf image in addition to a gif.
 ;-
-pro kcor_nrgf, fits_file, cropped=cropped, run=run
+pro kcor_nrgf, fits_file, cropped=cropped, run=run, averaged=averaged
   compile_opt strictarr
 
   ; read L1 FITS image
@@ -251,7 +258,7 @@ pro kcor_nrgf, fits_file, cropped=cropped, run=run
                          top=top, right=right, $
                          charsize=charsize, big_charsize=big_charsize, $
                          annotation_color=annotation_color, $
-                         cropped=cropped
+                         cropped=cropped, averaged=averaged
 
   ; create NRG gif file
   save = tvrd()
@@ -274,8 +281,15 @@ pro kcor_nrgf, fits_file, cropped=cropped, run=run
 
     ; modify the FITS header for an NRG FITS image
     rhdu = hdu
-    fxaddpar, rhdu, 'LEVEL', 'L1NRGF', $
-              ' Level 1 Normalized Radially-Graded Intensity'
+    fxaddpar, rhdu, 'LEVEL', 'L1', $
+              ' Level 1'
+    if (keyword_set(averaged)) then begin
+      fxaddpar, rhdu, 'PRODUCT', 'NRGFAVG', $
+                ' Averaged Normalized Radially-Graded Intensity'
+    endif else begin
+      fxaddpar, rhdu, 'PRODUCT', 'NRGF', $
+                ' Normalized Radially-Graded Intensity'
+    endelse
     fxaddpar, rhdu, 'BSCALE', bscale, $
               ' Normalized Radially-Graded H.Morgan+S.Fineschi', $
               format='(f10.3)'
@@ -290,7 +304,7 @@ pro kcor_nrgf, fits_file, cropped=cropped, run=run
     fxaddpar, rhdu, 'DISPEXP', 1, ' exponent value for display (d=b^dispexp)', $
               format='(f10.3)'
 
-    ; write NRG fits file
+    ; write NRG FITS file
     fts_loc   = strpos(fits_file, '.fts')
     rfts_file = strmid(fits_file, 0, fts_loc) + '_nrgf.fts'
 
