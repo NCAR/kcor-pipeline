@@ -246,7 +246,7 @@ pro kcor_create_averages, date, l1_files, run=run
                          + string(format = '(a2)', mnt) $
                          + ':' + string(format='(a2)', sec) + ' UT', $
             /device, alignment=1.0, charsize=1.2, color=255
-    xyouts, 1018, 935, '2 to 3 min. AVG.', /device, alignment=1.0, charsize=1.2, color=255 
+    xyouts, 1018, 935, '2 to 3 min avg', /device, alignment=1.0, charsize=1.2, color=255 
    
     xyouts, 22, 512, 'East', color=255, charsize=1.2, alignment=0.5, $
             orientation=90., /device
@@ -260,7 +260,7 @@ pro kcor_create_averages, date, l1_files, run=run
                          display_gamma, $
                          format='("scaling: Intensity ^ ", f3.1, ", gamma=", f4.2)'), $
             color=255, charsize=1.2, /device
-    xyouts, 1018, 6, 'Circle = photosphere.', $
+    xyouts, 1018, 6, 'Circle = photosphere', $
             color=255, charsize=1.2, /device, alignment=1.0
 
     ; image has been shifted to center of array
@@ -320,7 +320,7 @@ pro kcor_create_averages, date, l1_files, run=run
                          display_gamma, $
                          format='("scaling: Intensity ^ ", f3.1, ", gamma=", f4.2)'), $
             color=255, charsize=1.0, /device
-    xyouts, 500, 21, '2 min. avg.', color=255, charsize=1.0, alignment=1.0, /device
+    xyouts, 500, 21, '2 minx avg', color=255, charsize=1.0, alignment=1.0, /device
     xyouts, 500, 6, 'Circle = photosphere', color=255, $
             charsize=1.0, /device, alignment=1.0
 

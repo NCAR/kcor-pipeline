@@ -19,18 +19,30 @@ pro kcor_nrgf_annotations, year, name_month, day, hour, minute, second, doy, $
   xyouts, 4, top - 34 - big_line_height + keyword_set(cropped) * 12, 'K-Coronagraph', $
           color=annotation_color, charsize=big_charsize, /device
 
-  xyouts, right - 6, top - 29 + keyword_set(cropped) * 12, $
+  line = 0
+  xyouts, right - 6, top - 29 + line++ * line_height + keyword_set(cropped) * 12, $
           string(day, name_month, year, format='(a2, " ", a3, " ", a4)'), $
           /device, alignment=1.0, charsize=charsize, color=annotation_color
-  xyouts, right - 14, top - 29 - line_height + keyword_set(cropped) * 12, $
-          string (format='("DOY ", i3)', doy), $
-          /device, alignment=1.0, charsize=charsize, color=annotation_color
-  xyouts, right - 6, top - 29 - 2 * line_height + keyword_set(cropped) * 12, $
+  if (~keyword_set(cropped)) then begin
+    xyouts, right - 14, top - 29 - line++ * line_height + keyword_set(cropped) * 12, $
+            string (format='("DOY ", i3)', doy), $
+            /device, alignment=1.0, charsize=charsize, color=annotation_color
+  endif
+  xyouts, right - 6, top - 29 - line++ * line_height + keyword_set(cropped) * 12, $
           string(hour, minute, second, format='(a2, ":", a2, ":", a2, " UT")'), $
           /device, alignment=1.0, charsize=charsize, color=annotation_color
+
+  ; put avg text label below time in standard size, above "circle = photosphere"
+  ; in cropped versions
   if (keyword_set(averaged)) then begin
-    xyouts, right - 6, top - 29 - 3 * line_height + keyword_set(cropped) * 12, $
-            '2 to 3 min avg', $
+    if (keyword_set(cropped)) then begin
+      y = 6 + line_height
+      text = '2 min avg'
+    endif else begin
+      y = top - 29 - line++ * line_height + keyword_set(cropped) * 12
+      text = '2 to 3 min avg'
+    endelse
+    xyouts, right - 6, y, text, $
             /device, alignment=1.0, charsize=charsize, color=annotation_color
   endif
 
@@ -40,7 +52,7 @@ pro kcor_nrgf_annotations, year, name_month, day, hour, minute, second, doy, $
           color=annotation_color, charsize=charsize, /device
   xyouts, 4, 6, 'Intensity: normalized, radially-graded', $
           color=annotation_color, charsize=charsize, /device
-  xyouts, right - 6, 6, 'circle: photosphere', $
+  xyouts, right - 6, 6, 'circle = photosphere', $
           color=annotation_color, charsize=charsize, /device, alignment=1.0
 end
 
