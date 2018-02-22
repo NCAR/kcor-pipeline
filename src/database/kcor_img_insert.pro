@@ -44,12 +44,13 @@
 pro kcor_img_insert, date, fits_list, $
                      run=run, $
                      database=database, $
-                     obsday_index=obsday_index
+                     obsday_index=obsday_index, $
+                     log_name=log_name
   compile_opt strictarr
   on_error, 2
 
   if (n_params() ne 2) then begin
-    mg_log, 'missing date or filelist parameters', name='kcor/rt', /error
+    mg_log, 'missing date or filelist parameters', name=log_name, /error
     return
   endif
 
@@ -62,14 +63,14 @@ pro kcor_img_insert, date, fits_list, $
     db = database
 
     db->getProperty, host_name=host
-    mg_log, 'using connection to %s', host, name='kcor/rt', /debug
+    mg_log, 'using connection to %s', host, name=log_name, /debug
   endif else begin
     db = mgdbmysql()
     db->connect, config_filename=run.database_config_filename, $
                  config_section=run.database_config_section
 
     db->getProperty, host_name=host
-    mg_log, 'connected to %s', host, name='kcor/rt', /info
+    mg_log, 'connected to %s', host, name=log_name, /info
   endelse
 
   year    = strmid (date, 0, 4)	; yyyy
@@ -83,24 +84,31 @@ pro kcor_img_insert, date, fits_list, $
   ; step through list of fits files passed in parameter
   nfiles = n_elements(fits_list)
   if (nfiles eq 0) then begin
-    mg_log, 'no images in fits list', name='kcor/rt', /info
+    mg_log, 'no images in fits list', name=log_name, /info
     goto, done
   endif
 
   i = -1
   n_pb_added = 0L
   n_nrgf_added = 0L
+  n_pb_avg_added = 0L
+  n_pb_dailyavg_added = 0L
+  n_nrgf_dailyavg_added = 0L
+
   while (++i lt nfiles) do begin
     fts_file = fits_list[i]
 
     is_nrgf = strpos(file_basename(fts_file), 'nrgf') ge 0L
+    is_avg = strpos(file_basename(fts_file), '_avg') ge 0L
+    is_dailyavg = strpos(file_basename(fts_file), 'dailyavg') ge 0L
+
     fts_file += '.gz'
 
     if (~file_test(fts_file)) then begin
-      mg_log, '%s not found', fts_file, name='kcor/rt', /warn
+      mg_log, '%s not found', fts_file, name=log_name, /warn
       continue
     endif else begin
-      mg_log, 'ingesting %s', fts_file, name='kcor/rt', /info
+      mg_log, 'ingesting %s', fts_file, name=log_name, /info
     endelse
 
     ; extract desired items from header
@@ -157,7 +165,7 @@ pro kcor_img_insert, date, fits_list, $
       ; if given producttype is not in the mlso_producttype table, set it to
       ; 'unknown' and log error
       producttype = 'unknown'
-      mg_log, 'producttype: %s', producttype, name='kcor/rt', /error
+      mg_log, 'producttype: %s', producttype, name=log_name, /error
     endif
     producttype_results = db->query('SELECT * FROM mlso_producttype WHERE producttype=''%s''', $
                                     producttype, fields=fields)
@@ -169,7 +177,7 @@ pro kcor_img_insert, date, fits_list, $
       ; if given filetype is not in the mlso_filetype table, set it to 'unknown'
       ; and log error
       filetype = 'unknown'
-      mg_log, 'filetype: %s', filetype, name='kcor/rt', /error
+      mg_log, 'filetype: %s', filetype, name=log_name, /error
     endif
     filetype_results = db->query('SELECT * FROM mlso_filetype WHERE filetype=''%s''', $
                                  filetype, fields=fields)
@@ -181,7 +189,7 @@ pro kcor_img_insert, date, fits_list, $
       ; if given level is not in the kcor_level table, set it to 'unknown' and
       ; log error
       level = 'unk'
-      mg_log, 'level: %s', level, name='kcor/rt', /error
+      mg_log, 'level: %s', level, name=log_name, /error
     endif
     level_results = db->query('SELECT * FROM kcor_level WHERE level=''%s''', $
                               level, fields=fields)
@@ -194,12 +202,17 @@ pro kcor_img_insert, date, fits_list, $
                  status=status, error_message=error_message, sql_statement=sql_cmd
 
     if (status eq 0L) then begin
-      if (is_nrgf) then n_nrgf_added += 1 else n_pb_added += 1
+      case 1 of
+        is_nrgf: n_nrgf_added += 1
+        is_avg: n_pb_avg_added += 1
+        is_dailyavg: n_nrgf_dailyavg_added += 1
+        else: n_pb_added += 1
+      endcase
     endif else begin
-      mg_log, 'error inserting in kcor_img table', name='kcor/rt', /error
+      mg_log, 'error inserting in kcor_img table', name=log_name, /error
       mg_log, 'status: %d, error message: %s', status, error_message, $
-              name='kcor/rt', /error
-      mg_log, 'SQL command: %s', sql_cmd, name='kcor/rt', /error
+              name=log_name, /error
+      mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
     endelse
   endwhile
 
@@ -207,24 +220,49 @@ pro kcor_img_insert, date, fits_list, $
   num_files_results = db->query('SELECT * FROM mlso_numfiles WHERE day_id=''%d''', obsday_index)
   n_pb_files = num_files_results.num_kcor_pb_fits + n_pb_added
   n_nrgf_files = num_files_results.num_kcor_nrgf_fits + n_nrgf_added
+  n_pb_avg_files = num_files_results.num_kcor_pb_avg_fits + n_pb_avg_added
+  n_pb_dailyavg_files = num_files_results.num_kcor_pb_dailyavg_fits + n_pb_dailyavg_added
+  n_nrgf_dailyavg_files = num_files_results.num_kcor_nrgf_dailyavg_fits + n_nrgf_dailyavg_added
 
-  db->execute, 'UPDATE mlso_numfiles SET num_kcor_pb_fits=''%d'', num_kcor_nrgf_fits=''%d'', num_kcor_pb_lowresgif=''%d'', num_kcor_pb_fullresgif=''%d'', num_kcor_nrgf_lowresgif=''%d'', num_kcor_nrgf_fullresgif=''%d'' WHERE day_id=''%d''', $
-               n_pb_files, n_nrgf_files, $
-               n_pb_files, n_pb_files, n_nrgf_files, n_nrgf_files, $
-               obsday_index, $
+  set_expression = 'num_kcor_' + ['pb_fits', $
+                                  'pb_lowresgif', $
+                                  'pb_fullresgif', $
+                                  'nrgf_fits', $
+                                  'nrgf_lowresgif', $
+                                  'nrgf_fullresgif', $
+                                  'pb_avg_fits', $
+                                  'pb_avg_lowresgif', $
+                                  'pb_avg_highresgif', $
+                                  'pb_dailyavg_fits', $
+                                  'nrgf_dailyavg_fits']
+  n_files = [n_pb_files, $
+             n_pb_files, $
+             n_pb_files, $
+             n_nrgf_files, $
+             n_nrgf_files, $
+             n_nrgf_files, $
+             n_pb_avg_files, $
+             n_pb_avg_files, $
+             n_pb_avg_files, $
+             n_pb_dailyavg_files, $
+             n_nrgf_dailyavg_files]
+  set_expression += strtrim(n_files, 2)
+  set_expression = strjoin(set_expression, ', ')
+  db->execute, 'UPDATE mlso_numfiles SET %s WHERE day_id=''%d''', $
+               set_expression, obsday_index, $
                status=status, error_message=error_message, sql_statement=sql_cmd
   if (status ne 0L) then begin
-    mg_log, 'error updating mlso_numfiles table', name='kcor/rt', /error
+    mg_log, 'error updating mlso_numfiles table', name=log_name, /error
     mg_log, 'status: %d, error message: %s', status, error_message, $
-            name='kcor/rt', /error
-    mg_log, 'SQL command: %s', sql_cmd, name='kcor/rt', /error
+            name=log_name, /error
+    mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
   endif
 
   done:
   if (~obj_valid(database)) then obj_destroy, db
   cd, start_dir
 
-  mg_log, 'done', name='kcor/rt', /info
+  mg_log, 'done', name=log_name, /info
 end
 
 

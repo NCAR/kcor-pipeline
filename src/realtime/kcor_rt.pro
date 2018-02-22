@@ -83,7 +83,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     unzipped_glob = '*_kcor.fts'
     unzipped_files = file_search(unzipped_glob, count=n_unzipped_files)
     if (n_unzipped_files gt 0L) then begin
-      mg_log, 'zipping %d FITS files...', n_unzipped_files, name='kcor/rt', /debug
+      mg_log, 'zipping %d FITS files...', n_unzipped_files, name='kcor/rt', /info
       gzip_cmd = string(run.gzip, unzipped_glob, format='(%"%s %s")')
       spawn, gzip_cmd, result, error_result, exit_status=status
       if (status ne 0L) then begin
@@ -238,7 +238,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
           kcor_img_insert, date, l1_fits_files, $
                            run=run, $
                            database=db, $
-                           obsday_index=obsday_index
+                           obsday_index=obsday_index, log_name='kcor/rt'
           kcor_eng_insert, date, l1_fits_files, $
                            mean_phase1=mean_phase1, $
                            run=run, $

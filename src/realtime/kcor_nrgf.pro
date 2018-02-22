@@ -82,7 +82,7 @@ end
 ;   15 Jul 2015 Add /NOSCALE keyword to readfits.
 ;   04 Mar 2016 Generate a 16 bit fits nrgf image in addition to a gif.
 ;-
-pro kcor_nrgf, fits_file, cropped=cropped, run=run, averaged=averaged
+pro kcor_nrgf, fits_file, cropped=cropped, run=run, averaged=averaged, log_name=log_name
   compile_opt strictarr
 
   ; read L1 FITS image
@@ -140,7 +140,7 @@ pro kcor_nrgf, fits_file, cropped=cropped, run=run, averaged=averaged
   radius_guess = 178
   if (keyword_set(cropped)) then radius_guess *= scale
 
-  img_info = kcor_find_image(img, radius_guess, log_name='kcor/rt')
+  img_info = kcor_find_image(img, radius_guess, log_name=log_name)
   xc   = img_info[0]
   yc   = img_info[1]
   r    = img_info[2]
@@ -157,12 +157,12 @@ pro kcor_nrgf, fits_file, cropped=cropped, run=run, averaged=averaged
   endif
 
   mg_log, 'starting NRGF %s', keyword_set(cropped) ? '(cropped)' : '', $
-          name='kcor/rt', /info
-  mg_log, 'rsun     [arcsec]: %0.4f', rsun, name='kcor/rt', /debug
-  mg_log, 'occulter [arcsec]: %0.4f', occulter, name='kcor/rt', /debug
-  mg_log, 'r_photo  [pixels]: %0.2f', r_photo, name='kcor/rt', /debug
-  mg_log, 'rocc     [pixels]: %0.2f', rocc, name='kcor/rt', /debug
-  mg_log, 'r0       [pixels]: %0.2f', r0, name='kcor/rt', /debug
+          name=log_name, /debug
+  mg_log, 'rsun     [arcsec]: %0.4f', rsun, name=log_name, /debug
+  mg_log, 'occulter [arcsec]: %0.4f', occulter, name=log_name, /debug
+  mg_log, 'r_photo  [pixels]: %0.2f', r_photo, name=log_name, /debug
+  mg_log, 'rocc     [pixels]: %0.2f', rocc, name=log_name, /debug
+  mg_log, 'r0       [pixels]: %0.2f', r0, name=log_name, /debug
 
   ; compute normalized, radially-graded filter
   for_nrgf, img, xcen, ycen, r0, filtered_image
@@ -185,7 +185,7 @@ pro kcor_nrgf, fits_file, cropped=cropped, run=run, averaged=averaged
     max = amax gt amin ? amax : amin
   endif
 
-  mg_log, 'cmin: %0.3f, cmax: %0.3f', cmin, cmax, name='kcor/rt', /debug
+  mg_log, 'cmin: %0.3f, cmax: %0.3f', cmin, cmax, name=log_name, /debug
 
   ; use mask to build gif image
 
@@ -202,7 +202,7 @@ pro kcor_nrgf, fits_file, cropped=cropped, run=run, averaged=averaged
   if (keyword_set(cropped)) then r_out *= scale
 
   mg_log, 'masking limits r_in: %0.2f, r_out: %0.2f', $
-          r_in, r_out, name='kcor/rt', /debug
+          r_in, r_out, name=log_name, /debug
 
   dark = where(rad1 lt r_in or rad1 ge r_out)
   filtered_image[dark] = -10.0   ; set pixels outside annulus to -10
@@ -272,15 +272,16 @@ pro kcor_nrgf, fits_file, cropped=cropped, run=run, averaged=averaged
                          annotation_color=annotation_color, $
                          cropped=cropped, averaged=averaged
 
-  ; create NRG gif file
+  ; create NRG GIF file
   save = tvrd()
   fts_loc  = strpos(fits_file, '.fts')
+  if (keyword_set(averaged)) then fts_loc -= 4   ; remove _avg too
   gif_file = string(strmid(fits_file, 0, fts_loc), $
                     keyword_set(cropped) ? '_cropped' : '', $
                     format='(%"%s_nrgf%s.gif")')
 
   write_gif, gif_file, save, red, green, blue
-  mg_log, 'wrote GIF file %s', gif_file, name='kcor/rt', /info
+  mg_log, 'wrote GIF file %s', file_basename(gif_file), name=log_name, /debug
 
   if (~keyword_set(cropped)) then begin
     ; create short integer image
@@ -317,11 +318,15 @@ pro kcor_nrgf, fits_file, cropped=cropped, run=run, averaged=averaged
               format='(f10.3)'
 
     ; write NRG FITS file
-    fts_loc   = strpos(fits_file, '.fts')
-    rfts_file = strmid(fits_file, 0, fts_loc) + '_nrgf.fts'
+    if (keyword_set(averaged)) then begin
+      remove_loc = strpos(fits_file, '_avg.fts')
+    endif else begin
+      remove_loc = strpos(fits_file, '.fts')
+    endelse
+    rfts_file = strmid(fits_file, 0, remove_loc) + '_nrgf.fts'
 
     writefits, rfts_file, simg, rhdu
-    mg_log, 'wrote FITS file %s', rfts_file, name='kcor/rt', /info
+    mg_log, 'wrote FITS file %s', file_basename(rfts_file), name=log_name, /info
   endif
 end
 

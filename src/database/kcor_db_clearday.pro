@@ -92,7 +92,20 @@ pro kcor_db_clearday, run=run, $
   ; zero num_kcor_pb and num_kcor_nrgf in mlso_numfiles
   if (not keyword_set(calibration)) then begin
     mg_log, 'zeroing KCor values for mlso_numfiles table', name=log_name, /info
-    db->execute, 'UPDATE mlso_numfiles SET num_kcor_pb_fits=''0'', num_kcor_nrgf_fits=''0'', num_kcor_pb_lowresgif=''0'', num_kcor_pb_fullresgif=''0'', num_kcor_nrgf_lowresgif=''0'', num_kcor_nrgf_fullresgif=''0'' WHERE day_id=''%d''', $
+    fields = 'num_kcor_' + ['pb_fits', $
+                            'pb_avg_fits', $
+                            'pb_dailyavg_fits', $
+                            'pb_lowresgif', $
+                            'pb_avg_lowresgif', $
+                            'pb_fullresgif', $
+                            'pb_avg_fullresgif', $
+                            'nrgf_fits', $
+                            'nrgf_dailyavg_fits', $
+                            'nrgf_lowresgif', $
+                            'nrgf_fullresgif']
+    fields_expression = strjoin(fields + '=0', ', ')
+    db->execute, 'UPDATE mlso_numfiles SET %s WHERE day_id=''%d''', $
+                 fields_expression, $
                  obsday_index, $
                  status=status, error_message=error_message, sql_statement=sql_cmd
     if (status ne 0L) then begin

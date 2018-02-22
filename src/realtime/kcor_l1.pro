@@ -504,7 +504,7 @@ pro kcor_l1, date_str, ok_files, $
     img = readfits(l0_file, header, /silent)
 
     type = fxpar(header, 'DATATYPE')
-    mg_log, 'type: %s', strmid(type, 0, 3), name='kcor/rt', /info
+    mg_log, 'type: %s', strmid(type, 0, 3), name='kcor/rt', /debug
 
     ; read date of observation (needed to compute ephemeris info)
     date_obs = sxpar(header, 'DATE-OBS')   ; yyyy-mm-ddThh:mm:ss
@@ -1543,14 +1543,14 @@ pro kcor_l1, date_str, ok_files, $
     ; create NRG (normalized, radially-graded) GIF image
     cd, l1_dir
     if (osecond lt 15 and fix(ominute / 2) * 2 eq ominute) then begin
-      kcor_nrgf, l1_file, run=run
-      kcor_nrgf, l1_file, /cropped, run=run
+      kcor_nrgf, l1_file, run=run, log_name='kcor/rt'
+      kcor_nrgf, l1_file, /cropped, run=run, log_name='kcor/rt'
     endif
 
     cd, l0_dir
 
     loop_time = toc(lclock)   ; save loop time.
-    mg_log, '%0.1f sec to process %s', loop_time, l0_file, name='kcor/rt', /info
+    mg_log, '%0.1f sec to process %s', loop_time, l0_file, name='kcor/rt', /debug
   endforeach   ; end file loop
 
   ; drop the first file from OK files if skipped

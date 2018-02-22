@@ -74,6 +74,11 @@ pro kcor_create_averages, date, l1_files, run=run
   avginterval = run.average_interval / 60.0D / 60.0D / 24.0D
   dailyavgval = run.daily_average_interval / 60.0D / 60.0D / 24.0D
 
+  display_min   = run->epoch('display_min')
+  display_max   = run->epoch('display_max')
+  display_exp   = run->epoch('display_exp')
+  display_gamma = run->epoch('display_gamma')
+
   ; set up counting variables
   dailycount = 0  ; want to average up to 40 images in < 15 minutes for daily avg.
   stopavg = 0  ; set to 1 if images are more than 3 minutes apart (stop averaging)
@@ -218,11 +223,6 @@ pro kcor_create_averages, date, l1_files, run=run
     set_plot, 'Z'
     device, set_resolution=[1024, 1024], decomposed=0, set_colors=256, z_buffering=0
 
-    display_min   = run->epoch('display_min')
-    display_max   = run->epoch('display_max')
-    display_exp   = run->epoch('display_exp')
-    display_gamma = run->epoch('display_gamma')
-
     lct, filepath('quallab_ver2.lut', root=run.resources_dir)
 
     gamma_ct, display_gamma, /current
@@ -347,10 +347,51 @@ pro kcor_create_averages, date, l1_files, run=run
 
     mg_log, 'writing %s', fits_filename, name='kcor/eod', /info
     writefits, fits_filename, avgimg, saveheader
-    if (run.distribute) then begin
-      file_copy, fits_filename, archive_dir, /overwrite
-    endif
   endwhile
+
+  ; zip average FITS files
+  zipped_avg_glob = '*_avg.fts.gz'
+  zipped_avg_files = file_search(zipped_avg_glob, count=n_avg_files)
+  if (n_avg_files gt 0L) then file_delete, zipped_avg_files, /allow_nonexistent
+
+  unzipped_avg_glob = '*_avg.fts'
+  unzipped_avg_files = file_search(unzipped_avg_glob, count=n_avg_files)
+  if (n_avg_files gt 0L) then begin
+    mg_log, 'zipping %d average FITS files...', n_avg_files, $
+            name='kcor/eod', /info
+    gzip_cmd = string(run.gzip, unzipped_avg_glob, format='(%"%s %s")')
+    spawn, gzip_cmd, result, error_result, exit_status=status
+    if (status ne 0L) then begin
+      mg_log, 'problem zipping average files with command: %s', gzip_cmd, $
+              name='kcor/eod', /error
+      mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
+    endif
+  endif
+ 
+  if (run.distribute && n_avg_files gt 0L) then begin
+    mg_log, 'copying %d average files to archive dir', n_avg_files, $
+            name='kcor/eod', /info
+    file_copy, unzipped_avg_files + '.gz', archive_dir, /overwrite
+  endif
+
+  if (run.update_database) then begin
+    obsday_index = mlso_obsday_insert(date, $
+                                      run=run, $
+                                      database=db, $
+                                      status=db_status, $
+                                      log_name='kcor/eod')
+    if (db_status eq 0L) then begin
+      mg_log, 'adding %d average FITS files to database', n_avg_files, $
+              name='kcor/eod', /info
+      kcor_img_insert, date, unzipped_avg_files, run=run, $
+                       database=db, obsday_index=obsday_index, log_name='kcor/eod'
+    endif else begin
+      mg_log, 'error connecting to database', name='kcor/eod', /warn
+      goto, done
+    endelse
+  endif else begin
+    mg_log, 'not adding daily average file to database', name='kcor/eod', /info
+  endelse
 
   ; make daily average 1024x1024 GIF ; 512x512 gif; and 1024x1024 FITS image
   set_plot, 'Z'
@@ -493,11 +534,56 @@ pro kcor_create_averages, date, l1_files, run=run
   daily_fits_average_filename = string(format='(a23, "_dailyavg.fts")', name)
   mg_log, 'writing %s', daily_fits_average_filename, name='kcor/eod', /info
   writefits, daily_fits_average_filename, daily, saveheader
-  if (run.distribute) then begin
-    file_copy, daily_fits_average_filename, archive_dir, /overwrite
+
+  ; remove zipped version if already exists
+  file_delete,   daily_fits_average_filename + '.gz', /allow_nonexistent
+
+  mg_log, 'zipping daily FITS average file...', name='kcor/eod', /info
+  gzip_cmd = string(run.gzip, daily_fits_average_filename, format='(%"%s %s")')
+  spawn, gzip_cmd, result, error_result, exit_status=status
+  if (status ne 0L) then begin
+    mg_log, 'problem zipping daily average file with command: %s', gzip_cmd, $
+            name='kcor/eod', /error
+    mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
   endif
+
+  if (run.distribute) then begin
+    mg_log, 'copying daily average file to archive', name='kcor/eod', /info
+    file_copy, daily_fits_average_filename + '.gz', archive_dir, /overwrite
+  endif else begin
+    mg_log, 'not copying daily average file to archive', name='kcor/eod', /info
+  endelse
+
+  if (run.update_database) then begin
+    mg_log, 'adding daily average file to database', name='kcor/eod', /info
+    kcor_img_insert, date, daily_fits_average_filename, run=run, $
+                     database=db, obsday_index=obsday_index, log_name='kcor/eod'
+  endif else begin
+    mg_log, 'not adding daily average file to database', name='kcor/eod', /info
+  endelse
 
   done:
   cd, current
+  if (obj_valid(db)) then obj_destroy, db
   mg_log, 'done', name='kcor/eod', /info
 end
+
+
+; main-level example program
+
+date = '20180208'
+config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
+                           subdir=['..', '..', 'config'], $
+                           root=mg_src_root())
+run = kcor_run(date, config_filename=config_filename)
+
+l1_zipped_fits_glob = '*_l1.fts.gz'
+l1_zipped_files = file_search(filepath(l1_zipped_fits_glob, $
+                                       subdir=[date, 'level1'], $
+                                       root=run.raw_basedir), $
+                              count=n_l1_zipped_files)
+
+kcor_create_averages, date, l1_zipped_files, run=run
+
+end
+
