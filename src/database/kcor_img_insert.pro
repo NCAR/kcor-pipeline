@@ -232,7 +232,7 @@ pro kcor_img_insert, date, fits_list, $
                                   'nrgf_fullresgif', $
                                   'pb_avg_fits', $
                                   'pb_avg_lowresgif', $
-                                  'pb_avg_highresgif', $
+                                  'pb_avg_fullresgif', $
                                   'pb_dailyavg_fits', $
                                   'nrgf_dailyavg_fits']
   n_files = [n_pb_files, $
@@ -246,7 +246,7 @@ pro kcor_img_insert, date, fits_list, $
              n_pb_avg_files, $
              n_pb_dailyavg_files, $
              n_nrgf_dailyavg_files]
-  set_expression += strtrim(n_files, 2)
+  set_expression += '=' + strtrim(n_files, 2)
   set_expression = strjoin(set_expression, ', ')
   db->execute, 'UPDATE mlso_numfiles SET %s WHERE day_id=''%d''', $
                set_expression, obsday_index, $
