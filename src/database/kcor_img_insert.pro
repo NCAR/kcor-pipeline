@@ -141,13 +141,18 @@ pro kcor_img_insert, date, fits_list, $
     endif	
 
     ; get product type from filename
-    ; TODO: are there any more? Parse from header when new producttype keyword
-    ; is added.
-    p = strpos(fts_file, 'nrgf')
-    if (p ne -1) then begin	
-      producttype = 'nrgf'
+    if (is_nrgf) then begin
+      case 1 of
+        is_dailyavg: producttype = 'nrgfdailyavg'
+        logname eq 'kcor/eod': producttype = 'nrgfavg'
+        else: producttype = 'nrgf'
+      endcase
     endif else begin
-      producttype = 'pB'
+      case 1 of
+        is_dailyavg: producttype = 'pbdailyavg'
+        is_avg: producttype = 'pbavg'
+        else: producttype = 'pb'
+      endcase
     endelse
 
     ; The decision is to not include non-FITS in the database because raster
