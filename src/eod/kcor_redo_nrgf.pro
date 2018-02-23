@@ -134,7 +134,7 @@ pro kcor_redo_nrgf, date, run=run
     if (n_nrgf_files gt 0L) then begin
       mg_log, 'adding %d NRGF files to database', n_nrgf_files, $
               name='kcor/eod', /info
-      kcor_img_insert, date, zipped_nrgf_files, run=run, database=db, $
+      kcor_img_insert, date, unzipped_nrgf_files, run=run, database=db, $
                        obsday_index=obsday_index, log_name='kcor/eod'
     endif else begin
       mg_log, 'no NRGF files to add to database', name='kcor/eod', /info
