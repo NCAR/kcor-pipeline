@@ -114,3 +114,5 @@
   making average FITS/GIFs and daily average (but not distributing)
 1.4.24
   more verification constants in config file
+  distribute average FITS/GIFs
+  redo NRGF files in end-of-day processing using averages
