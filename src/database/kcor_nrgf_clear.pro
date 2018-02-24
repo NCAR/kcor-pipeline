@@ -17,7 +17,7 @@ pro kcor_nrgf_clear, run=run, $
                      log_name=log_name
   compile_opt strictarr
 
-  query = 'SELECT * FROM mlso_producttype WHERE producttype=''nrgf''', $
+  query = 'SELECT * FROM mlso_producttype WHERE producttype=''nrgf'''
   producttype_results = db->query(query, fields=fields)
   producttype_id = producttype_results.producttype_id
 

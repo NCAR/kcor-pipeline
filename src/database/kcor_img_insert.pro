@@ -144,7 +144,7 @@ pro kcor_img_insert, date, fits_list, $
     if (is_nrgf) then begin
       case 1 of
         is_dailyavg: producttype = 'nrgfdailyavg'
-        logname eq 'kcor/eod': producttype = 'nrgfavg'
+        log_name eq 'kcor/eod': producttype = 'nrgfavg'
         else: producttype = 'nrgf'
       endcase
     endif else begin
