@@ -87,9 +87,20 @@ pro kcor_redo_nrgf, date, run=run
     kcor_nrgf, average_files[f], run=run, /averaged, /cropped, log_name='kcor/eod'
   endfor
 
-  ; zip new NRGF FITS files
+  ; create NRGF daily average file corresponding to daily average file
 
-  unzipped_nrgf_glob = '*_nrgf.fts'
+  daily_average_files = file_search(filepath('*_kcor_l1_dailyavg.fts.gz', $
+                                             subdir=[date, 'level1'], $
+                                             root=run.raw_basedir), $
+                                    count=n_daily_average_files)
+  for f = 0L, n_average_files - 1L do begin   ; only 1 right now
+    kcor_nrgf, daily_average_files[f], run=run, /averaged, /daily, log_name='kcor/eod'
+    kcor_nrgf, daily_average_files[f], run=run, /averaged, /daily, /cropped, log_name='kcor/eod'
+  endfor
+
+  ; zip new NRGF FITS files (including daily average)
+
+  unzipped_nrgf_glob = '*_nrgf*.fts'
   unzipped_nrgf_files = file_search(unzipped_nrgf_glob, count=n_nrgf_files)
   if (n_nrgf_files gt 0L) then begin
     mg_log, 'zipping %d NRGF FITS files...', n_nrgf_files, $

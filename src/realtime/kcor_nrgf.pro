@@ -82,7 +82,8 @@ end
 ;   15 Jul 2015 Add /NOSCALE keyword to readfits.
 ;   04 Mar 2016 Generate a 16 bit fits nrgf image in addition to a gif.
 ;-
-pro kcor_nrgf, fits_file, cropped=cropped, run=run, averaged=averaged, log_name=log_name
+pro kcor_nrgf, fits_file, cropped=cropped, averaged=averaged, daily=daily, $
+               run=run, log_name=log_name
   compile_opt strictarr
 
   ; read L1 FITS image
@@ -319,11 +320,18 @@ pro kcor_nrgf, fits_file, cropped=cropped, run=run, averaged=averaged, log_name=
 
     ; write NRG FITS file
     if (keyword_set(averaged)) then begin
-      remove_loc = strpos(fits_file, '_avg.fts')
+      if (keyword_set(daily)) then begin
+        remove_loc = strpos(fits_file, '_dailyavg.fts')
+      endif else begin
+        remove_loc = strpos(fits_file, '_avg.fts')
+      endelse
     endif else begin
       remove_loc = strpos(fits_file, '.fts')
     endelse
     rfts_file = strmid(fits_file, 0, remove_loc) + '_nrgf.fts'
+    rfts_file = string(strmid(fits_file, 0, remove_loc), $
+                       keyword_set(daily) ? '_dailyavg' : '', $
+                       format='(%"%s_nrgf%s.fts")')
 
     writefits, rfts_file, simg, rhdu
     mg_log, 'wrote FITS file %s', file_basename(rfts_file), name=log_name, /info
