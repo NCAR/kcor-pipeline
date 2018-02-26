@@ -19,6 +19,8 @@
 ;     index into mlso_numfiles database table
 ;   database : in, optional, type=MGdbMySql object
 ;     database connection to use
+;   log_name : in, required, type=string
+;     log name to use for logging, i.e., "kcor/rt", "kcor/eod", etc.
 ;
 ; :Examples:
 ;   For example::
@@ -39,7 +41,8 @@
 ;               Use /hao/mlsodata1/Data/raw/yyyymmdd/level1 directory.
 ;   14 Sep 2015 Use /hao/acos/year/month/day directory.
 ;   28 Sep 2015 Add date_end field.
-;   7 Feb 2017 DJK - Starting to edit for new table fields and noting new changes to come (search for TODO)
+;    7 Feb 2017 DJK - Starting to edit for new table fields and noting new
+;               changes to come (search for TODO)
 ;-
 pro kcor_img_insert, date, fits_list, $
                      run=run, $
