@@ -86,7 +86,8 @@ def download_loop(depot_dir, raw_dir, batch_time):
 
 
 if __name__ == '__main__':
-    name = 'Realtime KCor pipeline data simulator'
+    name = 'Realtime KCor pipeline data simulator @VERSION@'
+
     parser = argparse.ArgumentParser(description=name)
     depot_dir_help = '''source directory of data files'''
     parser.add_argument('depot_dir', type=str, help=depot_dir_help)
@@ -99,6 +100,9 @@ if __name__ == '__main__':
                         type=int,
                         help=batch_time_help,
                         default=3)
+    parser.add_argument('-v', '--version',
+                        action='version',
+                        version=name)
     args = parser.parse_args()
 
     raw_dir = args.raw_dir if args.raw_dir else os.getcwd()

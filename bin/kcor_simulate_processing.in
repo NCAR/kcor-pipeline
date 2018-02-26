@@ -43,24 +43,33 @@ def launch_loop(date, config_flags, frequency, no_eod):
 
 
 if __name__ == '__main__':
-    name = 'Realtime KCor pipeline processing simulator'
+    name = 'Realtime KCor pipeline processing simulator @VERSION@'
+
     parser = argparse.ArgumentParser(description=name)
     config_flags_help = '''FLAGS section of config filename'''
     date_help = '''date to run on'''
     parser.add_argument('date', type=str, help=date_help)
-    parser.add_argument('config_flags', type=str, help=config_flags_help)
+    parser.add_argument('-f', '--flags',
+                        type=str,
+                        default='latest',
+                        help='''FLAGS section of config filename, i.e., file in
+                                config/ directory matching kcor.user.machine.FLAGS.cfg
+                                will be used''')
     frequency_help = '''number of minutes between launches of realtime
                         pipeline, default is 10 minutes'''
-    parser.add_argument('-f', '--frequency',
+    parser.add_argument('--frequency',
                         type=int,
                         help=frequency_help,
                         default=10)
     parser.add_argument('--no-eod',
                         action='store_true',
                         help='set to not launch end-of-day processing')
+    parser.add_argument('-v', '--version',
+                        action='version',
+                        version=name)
     args = parser.parse_args()
 
     try:
-        launch_loop(args.date, args.config_flags, args.frequency, args.no_eod)
+        launch_loop(args.date, args.flags, args.frequency, args.no_eod)
     except KeyboardInterrupt:
         logging.info('quitting...')
