@@ -93,7 +93,7 @@ pro kcor_redo_nrgf, date, run=run
                                              subdir=[date, 'level1'], $
                                              root=run.raw_basedir), $
                                     count=n_daily_average_files)
-  for f = 0L, n_average_files - 1L do begin   ; only 1 right now
+  for f = 0L, n_daily_average_files - 1L do begin   ; only 1 right now
     kcor_nrgf, daily_average_files[f], run=run, /averaged, /daily, log_name='kcor/eod'
     kcor_nrgf, daily_average_files[f], run=run, /averaged, /daily, /cropped, log_name='kcor/eod'
   endfor
