@@ -36,7 +36,7 @@
 ;                 check for changes in field values compared to previous database entries to
 ;                 determine whether a new entry is needed.
 ;-
-pro kcor_sw_insert, date, fits_list, run=run, database=database
+pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_name
   compile_opt strictarr
   on_error, 2
 
