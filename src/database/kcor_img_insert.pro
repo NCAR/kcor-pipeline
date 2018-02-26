@@ -52,10 +52,7 @@ pro kcor_img_insert, date, fits_list, $
   compile_opt strictarr
   on_error, 2
 
-  if (n_params() ne 2) then begin
-    mg_log, 'missing date or filelist parameters', name=log_name, /error
-    return
-  endif
+  kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_name
 
   ; connect to MLSO database
 

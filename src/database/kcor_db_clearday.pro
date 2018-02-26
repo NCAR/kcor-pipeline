@@ -27,13 +27,16 @@ pro kcor_db_clearday_cleartable, table, $
   mg_log, 'clearing %s table', table, name=log_name, /info
   db->execute, 'DELETE FROM %s WHERE obs_day=%d', $
                table, obsday_index, $
-               status=status, error_message=error_message, sql_statement=sql_cmd
+               status=status, error_message=error_message, sql_statement=sql_cmd, $
+               n_affected_rows=n_affected_rows
   if (status ne 0L) then begin
     mg_log, 'error clearing %s table', table, name=log_name, /error
     mg_log, 'status: %d, error message: %s', status, error_message, $
             name=log_name, /error
     mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
-  endif
+  endif else begin
+    mg_log, '%d rows deleted', n_affected_rows, name=log_name, /info
+  endelse
 end
 
 
@@ -115,17 +118,36 @@ pro kcor_db_clearday, run=run, $
       mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
     endif
 
+    ; kcor_sw
+    mg_log, 'clearing kcor_sw table', name=log_name, /info
+    db->execute, 'DELETE FROM kcor_sw WHERE date=''%s''', $
+                 day[0].obs_day, $
+                 status=status, error_message=error_message, sql_statement=sql_cmd, $
+                 n_affected_rows=n_affected_rows
+    if (status ne 0L) then begin
+      mg_log, 'error clearing kcor_sw table', name=log_name, /error
+      mg_log, 'status: %d, error message: %s', status, error_message, $
+              name=log_name, /error
+      mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
+    endif else begin
+      mg_log, '%d deleted rows', n_affected_rows, name=log_name, /info
+    endelse
+
     ; mlso_sgs
     mg_log, 'clearing mlso_sgs table', name=log_name, /info
     db->execute, 'DELETE FROM mlso_sgs WHERE obs_day=''%s'' AND source=''k''', $
                  obsday_index, $
-                 status=status, error_message=error_message, sql_statement=sql_cmd
+                 status=status, error_message=error_message, sql_statement=sql_cmd, $
+                 n_affected_rows=n_affected_rows
     if (status ne 0L) then begin
       mg_log, 'error clearing mlso_sgs table', name=log_name, /error
       mg_log, 'status: %d, error message: %s', status, error_message, $
               name=log_name, /error
       mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
-    endif
+    endif else begin
+      mg_log, '%d deleted rows', n_affected_rows, name=log_name, /info
+    endelse
+
 
     kcor_db_clearday_cleartable, 'kcor_img', $
                                  obsday_index=obsday_index, $
@@ -148,7 +170,6 @@ pro kcor_db_clearday, run=run, $
 
   done:
   if (~obj_valid(database)) then obj_destroy, db
-
   mg_log, 'done', name=log_name, /info
 end
 

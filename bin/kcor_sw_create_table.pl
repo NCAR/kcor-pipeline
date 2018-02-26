@@ -78,7 +78,7 @@ $command = "CREATE TABLE kcor_sw (
   date                DATETIME NOT NULL,
   proc_date           DATETIME NOT NULL,
   dmodswid            CHAR (24),
-  distort             CHAR (28),
+  distort             CHAR (50),
   sw_version          CHAR (24),
   bunit               VARCHAR (12),
   bzero               FLOAT (4, 1),
@@ -87,8 +87,7 @@ $command = "CREATE TABLE kcor_sw (
   socketcamid         VARCHAR (20),
   sw_revision         VARCHAR (20),
   sky_pol_factor      FLOAT (6, 3),
-  sky_bias            FLOAT (7, 4),
-  UNIQUE (date)
+  sky_bias            FLOAT (7, 4)
 )";
 
 $sth = $dbh->prepare($command);
