@@ -130,7 +130,7 @@ pro kcor_db_clearday, run=run, $
               name=log_name, /error
       mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
     endif else begin
-      mg_log, '%d deleted rows', n_affected_rows, name=log_name, /info
+      mg_log, '%d rows deleted', n_affected_rows, name=log_name, /info
     endelse
 
     ; mlso_sgs
@@ -145,7 +145,7 @@ pro kcor_db_clearday, run=run, $
               name=log_name, /error
       mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
     endif else begin
-      mg_log, '%d deleted rows', n_affected_rows, name=log_name, /info
+      mg_log, '%d rows deleted', n_affected_rows, name=log_name, /info
     endelse
 
 

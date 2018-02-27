@@ -33,7 +33,6 @@ function kcor_find_latest_sw, run=run, database=database, log_name=log_name
 
   done:
   if (~obj_valid(database)) then obj_destroy, db
-  mg_log, 'done', name=log_name, /info
 
   return, latest_proc_date
 end

@@ -18,8 +18,14 @@
 ;     `kcor_run` object
 ;
 ; :Examples:
-;	  date = '20170204'
-;     filelist = ['20170214_190402_kcor.fts.gz','20170214_190417_kcor.fts.gz','20170214_190548_kcor.fts.gz','20170214_190604_kcor.fts','20170214_190619_kcor.fts']
+;   For example::
+;
+;     date = '20170204'
+;     filelist = ['20170214_190402_kcor.fts.gz', $
+;                 '20170214_190417_kcor.fts.gz', $
+;                 '20170214_190548_kcor.fts.gz', $
+;                 '20170214_190604_kcor.fts', $
+;                 '20170214_190619_kcor.fts']
 ;     kcor_sw_insert, date, filelist;
 ;
 ;
@@ -83,7 +89,9 @@ pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_na
   i = -1
   fts_file = ''
   while (++i lt nfiles) do begin
-    fts_file = fits_list[i]
+    fts_file = fits_list[i] + '.gz'
+
+    mg_log, 'checking %s', file_basename(fts_file), name=log_name, /debug
 
     ; extract desired items from header
     hdu   = headfits(fts_file, /silent)  ; read FITS header
@@ -97,9 +105,13 @@ pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_na
     dmodswid    = sxpar(hdu, 'DMODSWID', count=qdmodswid)
     distort     = sxpar(hdu, 'DISTORT', count=qdistort)
 ;TODO: Replace with new header var for processing sw version?
-    bunit       = sxpar(hdu, 'BUNIT', count=qbunit)
+    bunit       = sxpar(hdu, 'BUNIT', count=n_bunit)
+    if (n_bunit eq 0) then bunit = 'quasi-pB'
+
     bzero       = sxpar(hdu, 'BZERO', count=qbzero)
     bscale      = sxpar(hdu, 'BSCALE', count=qbscale)
+    if (qbscale eq 0) then bscale = 0.001
+
 ;TODO: Replace with new header var for labview sw
     labviewid   = sxpar(hdu, 'OBSSWID', count=qlabviewid)
 ;TODO: Replace with new header var for socketcam sw
@@ -108,10 +120,6 @@ pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_na
     sw_version     = kcor_find_code_version(revision=sw_revision)
     sky_pol_factor = run->epoch('skypol_factor')
     sky_bias       = run->epoch('skypol_bias')
-
-    ; TODO: update as needed
-    if (qbunit eq 0) then bunit = 'quasi-pB'
-    if (qbscale eq 0) then bscale = 0.001
 
     ; TODO: Test for changes from previous db entry
     ; TODO: From 20170315 meeting: We will wait for older data to be completely
@@ -186,6 +194,7 @@ pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_na
   endwhile
 
   done:
+  cd, start_dir
   if (~obj_valid(database)) then obj_destroy, db
   mg_log, 'done', name=log_name, /info
 end
