@@ -16,6 +16,8 @@
 ; :Keywords:
 ;   run : in, required, type=object
 ;     `kcor_run` object
+;   sw_ids : out, optional, type=lonarr
+;     set to a named variable to retrieve the sw_id's of the list of files
 ;
 ; :Examples:
 ;   For example::
@@ -42,7 +44,8 @@
 ;                 check for changes in field values compared to previous database entries to
 ;                 determine whether a new entry is needed.
 ;-
-pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_name
+pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_name, $
+                    sw_ids=sw_ids
   compile_opt strictarr
   on_error, 2
 
@@ -80,6 +83,8 @@ pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_na
     mg_log, 'no images in list file', name=log_name, /info
     goto, done
   endif
+
+  sw_ids = lonarr(nfiles)
 
   date_format = '(C(CYI, "-", CMOI2.2, "-", CDI2.2, "T", CHI2.2, ":", CMI2.2, ":", CSI2.2))'
 
@@ -133,7 +138,8 @@ pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_na
     ;       out of order.
 
     proc_date = string(julday(), format=date_format)
-    file_sw = {date           : date, $             ; from file
+    file_sw = {sw_id          : 0L, $               ; fill in later
+               date           : date, $             ; from file
                proc_date      : proc_date, $        ; generated
                dmodswid       : dmodswid, $         ; from file
                distort        : distort, $          ; from file
@@ -151,8 +157,6 @@ pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_na
 	
     if (update) then begin
       mg_log, 'inserting a new kcor_sw row', name=log_name, /info
-
-      latest_sw = file_sw
 
       fields = ['date', $
                 'proc_date', $
@@ -190,13 +194,13 @@ pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_na
         mg_log, 'sql_cmd: %s', sql_cmd, name=log_name, /debug
       endif
 
-      ; TODO: Write sw_id (auto-incremented in kcor_sw table) into kcor_eng
-      ; table for every entry processed with these software parameters.
-      ; Actually, in practice, we will be writing previous sw_id into kcor_eng
-      ; for every entry processed with the software parameters between the
-      ; newly changed kcor_sw entry and the entry before the previous one.
-      ; Hammer out details of this with Mike G and Joan.
-    endif
+      sw_ids[i] = db->query('select last_insert_id()')
+
+      file_sw.sw_id = sw_ids[i]
+      latest_sw = file_sw
+    endif else begin
+      sw_ids[i] = latest_sw.sw_id
+    endelse
   endwhile
 
   done:
@@ -214,12 +218,15 @@ config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
 
+latest_sw = kcor_find_latest_sw(run=run, database=database, log_name=log_name)
+help, latest_sw
+
 cd, current=current_dir
 l1_dir = filepath('level1', subdir=date, root=run.raw_basedir)
 cd, l1_dir
 l1_files = file_search('*l1.fts*', count=n_l1_files)
 
-kcor_sw_insert, date, l1_files, run=run
+;kcor_sw_insert, date, l1_files, run=run
 
 cd, current_dir
 

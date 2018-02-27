@@ -44,7 +44,8 @@ pro kcor_eng_insert, date, fits_list, $
                      run=run, $
                      database=database, $
                      obsday_index=obsday_index, $
-                     mean_phase1=mean_phase1
+                     mean_phase1=mean_phase1, $
+                     sw_ids=sw_ids
   compile_opt strictarr
 
   if (n_params() ne 2) then begin
@@ -171,7 +172,7 @@ pro kcor_eng_insert, date, fits_list, $
     level_num = level_results.level_id	
 		
     ; DB insert command
-    db->execute, 'INSERT INTO kcor_eng (file_name, date_obs, obs_day, rcamfocs, tcamfocs, modltrt, o1focs, kcor_sgsdimv, kcor_sgsdims, level, bunit, bzero, bscale, rcamxcen, rcamycen, tcamxcen, tcamycen, rcam_rad, tcam_rad, mean_phase1, cover, darkshut, diffuser, calpol) VALUES (''%s'', ''%s'', %d, %s, %s, %s, %s, %s, %s, %d, ''%s'', %d, %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', ''%s'', ''%s'', ''%s'') ', $
+    db->execute, 'INSERT INTO kcor_eng (file_name, date_obs, obs_day, rcamfocs, tcamfocs, modltrt, o1focs, kcor_sgsdimv, kcor_sgsdims, level, bunit, bzero, bscale, rcamxcen, rcamycen, tcamxcen, tcamycen, rcam_rad, tcam_rad, mean_phase1, cover, darkshut, diffuser, calpol, sw_id) VALUES (''%s'', ''%s'', %d, %s, %s, %s, %s, %s, %s, %d, ''%s'', %d, %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', ''%s'', ''%s'', ''%s'', %d) ', $
                  fits_file, date_obs, obsday_index, kcor_fitsfloat2db(rcamfocs), $
                  kcor_fitsfloat2db(tcamfocs), $
                  kcor_fitsfloat2db(modltrt), kcor_fitsfloat2db(o1focs), $
@@ -185,6 +186,7 @@ pro kcor_eng_insert, date, fits_list, $
                  kcor_fitsfloat2db(tcam_rad), $
                  kcor_fitsfloat2db(mean_phase1[i - n_nrgf]), $
                  cover, darkshut, diffuser, calpol, $
+                 sw_ids[i], $
                  status=status, error_message=error_message, sql_statement=sql_cmd
     if (status ne 0L) then begin
       mg_log, 'error inserting into kcor_eng table', name='kcor/rt', /error
