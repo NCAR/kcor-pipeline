@@ -176,7 +176,7 @@ end
 
 ; main-level example
 
-if (n_elements(date) eq 0L) then date = '20130930'
+if (n_elements(date) eq 0L) then date = '20180208'
 
 run = kcor_run(date, $
                config_filename=filepath('kcor.mgalloy.mahi.latest.cfg', $

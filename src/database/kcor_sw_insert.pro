@@ -89,7 +89,12 @@ pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_na
   i = -1
   fts_file = ''
   while (++i lt nfiles) do begin
-    fts_file = fits_list[i] + '.gz'
+    fts_file = fits_list[i]
+    if (~file_test(fts_file)) then fts_file += '.gz'
+    if (~file_test(fts_file)) then begin
+      mg_log, 'cannot find %s', fts_file, name=log_name, /warn
+      continue
+    endif
 
     mg_log, 'checking %s', file_basename(fts_file), name=log_name, /debug
 
@@ -104,6 +109,7 @@ pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_na
 
     dmodswid    = sxpar(hdu, 'DMODSWID', count=qdmodswid)
     distort     = sxpar(hdu, 'DISTORT', count=qdistort)
+
 ;TODO: Replace with new header var for processing sw version?
     bunit       = sxpar(hdu, 'BUNIT', count=n_bunit)
     if (n_bunit eq 0) then bunit = 'quasi-pB'

@@ -34,8 +34,10 @@ function kcor_compare_sw, sw1, sw2, log_name=log_name
     if (count1 eq 0 && count2 eq 0L) then continue
     if (count1 eq 0 || count2 eq 0L) then return, 1
     if (sw1.(ind1[0]) ne sw2.(ind2[0])) then begin
-      mg_log, '%s (%s) field does not match %s (%s)', $
-              fields1[ind1[0]], sw1.(ind1[0]), field2[ind2[0]], sw2.(ind2[0]), $
+      val1 = strtrim(sw1.(ind1[0]), 2)
+      val2 = strtrim(sw2.(ind2[0]), 2)
+      mg_log, '%s (%s) != %s (%s)', $
+              fields1[ind1[0]], val1, fields2[ind2[0]], val2, $
               name=log_name, /debug
       return, 1
     endif
