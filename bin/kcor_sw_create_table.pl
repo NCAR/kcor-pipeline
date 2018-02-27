@@ -81,7 +81,7 @@ $command = "CREATE TABLE kcor_sw (
   distort             CHAR (50),
   sw_version          CHAR (24),
   bunit               VARCHAR (12),
-  bzero               FLOAT (4, 1),
+  bzero               FLOAT (6, 3),
   bscale              FLOAT (6, 3),
   labviewid           VARCHAR (20),
   socketcamid         VARCHAR (20),
