@@ -114,7 +114,7 @@ pro kcor_create_averages, date, l1_files, run=run
         l1_file = file_basename(l1_files[f])
         savename = strmid(file_basename(l1_file), 0, 23)
 
-        img = readfits(l1_file, header, /silent)
+        img = readfits(l1_file, header, /silent, /noscale)
 
         f += 1
         imgsave[0, 0, i] = float(img)
