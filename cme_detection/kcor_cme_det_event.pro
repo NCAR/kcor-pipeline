@@ -60,7 +60,7 @@ pro kcor_cme_det_event, event
   case uvalue of
     'START': begin
         date = string(julday(), format='(C(CYI4, CMOI02, CDI02))')
-        kcor_cme_det_date, date
+        kcor_cme_det_setdate, date
 
         if (file_exist(datedir)) then begin
           cstop = 0
