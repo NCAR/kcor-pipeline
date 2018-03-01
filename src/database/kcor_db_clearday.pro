@@ -118,21 +118,6 @@ pro kcor_db_clearday, run=run, $
       mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
     endif
 
-    ; kcor_sw
-    mg_log, 'clearing kcor_sw table', name=log_name, /info
-    db->execute, 'DELETE FROM kcor_sw WHERE date=''%s''', $
-                 day[0].obs_day, $
-                 status=status, error_message=error_message, sql_statement=sql_cmd, $
-                 n_affected_rows=n_affected_rows
-    if (status ne 0L) then begin
-      mg_log, 'error clearing kcor_sw table', name=log_name, /error
-      mg_log, 'status: %d, error message: %s', status, error_message, $
-              name=log_name, /error
-      mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
-    endif else begin
-      mg_log, '%d rows deleted', n_affected_rows, name=log_name, /info
-    endelse
-
     ; mlso_sgs
     mg_log, 'clearing mlso_sgs table', name=log_name, /info
     db->execute, 'DELETE FROM mlso_sgs WHERE obs_day=''%s'' AND source=''k''', $
@@ -161,6 +146,21 @@ pro kcor_db_clearday, run=run, $
                                  obsday_index=obsday_index, $
                                  database=db, $
                                  log_name=log_name
+
+    ; kcor_sw (must do after kcor_eng)
+    mg_log, 'clearing kcor_sw table', name=log_name, /info
+    db->execute, 'DELETE FROM kcor_sw WHERE date=''%s''', $
+                 day[0].obs_day, $
+                 status=status, error_message=error_message, sql_statement=sql_cmd, $
+                 n_affected_rows=n_affected_rows
+    if (status ne 0L) then begin
+      mg_log, 'error clearing kcor_sw table', name=log_name, /error
+      mg_log, 'status: %d, error message: %s', status, error_message, $
+              name=log_name, /error
+      mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
+    endif else begin
+      mg_log, '%d rows deleted', n_affected_rows, name=log_name, /info
+    endelse
   endif
 
   kcor_db_clearday_cleartable, 'kcor_cal', $
