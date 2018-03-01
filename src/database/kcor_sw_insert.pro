@@ -145,7 +145,7 @@ pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_na
                distort        : distort, $          ; from file
                sw_version     : sw_version, $       ; from KCOR_FIND_CODE_VERSION
                bunit          : bunit, $            ; from file
-               bzero          : bscale, $           ; from file
+               bzero          : bzero, $            ; from file
                bscale         : bscale, $           ; from file
                labviewid      : labviewid, $        ; from file
                socketcamid    : socketcamid, $      ; from file
@@ -194,7 +194,8 @@ pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_na
         mg_log, 'sql_cmd: %s', sql_cmd, name=log_name, /debug
       endif
 
-      sw_ids[i] = db->query('select last_insert_id()')
+      sw = db->query('select last_insert_id()')
+      sw_ids[i] = sw.last_insert_id__
 
       file_sw.sw_id = sw_ids[i]
       latest_sw = file_sw

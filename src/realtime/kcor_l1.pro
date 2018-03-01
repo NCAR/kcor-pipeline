@@ -1217,7 +1217,7 @@ pro kcor_l1, date_str, ok_files, $
     endelse
     fxaddpar, newheader, 'SKYTRANS', skytrans, $
               ' Sky Transmission correction normalized to gain image', $
-              format='(F5.3)
+              format='(F5.3)'
     fxaddpar, newheader, 'DMODSWID', '2016-05-26', $
               ' date of demodulation software'
     fxaddpar, newheader, 'OBSSWID', struct.obsswid, $

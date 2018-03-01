@@ -48,11 +48,13 @@ pro kcor_img_insert, date, fits_list, $
                      run=run, $
                      database=database, $
                      obsday_index=obsday_index, $
-                     log_name=log_name
+                     log_name=log_name, $
+                     sw_ids=sw_ids
   compile_opt strictarr
   on_error, 2
 
-  kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_name
+  kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_name, $
+                  sw_ids=sw_ids
 
   ; connect to MLSO database
 
