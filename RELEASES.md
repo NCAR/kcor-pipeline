@@ -118,4 +118,6 @@
   redo NRGF files in end-of-day processing using averages
   create daily NRGF file from daily average
   update kcor_sw table
-1.4.25
+1.4.25 [Mar 5, 2018]
+  fixes for filenames of daily average NRGF files
+  fix for mlso_numfiles entry for daily average file
