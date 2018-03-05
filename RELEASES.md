@@ -118,3 +118,4 @@
   redo NRGF files in end-of-day processing using averages
   create daily NRGF file from daily average
   update kcor_sw table
+1.4.25
