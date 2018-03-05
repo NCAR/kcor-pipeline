@@ -209,12 +209,18 @@ pro kcor_img_insert, date, fits_list, $
                  status=status, error_message=error_message, sql_statement=sql_cmd
 
     if (status eq 0L) then begin
-      case 1 of
-        is_nrgf: n_nrgf_added += 1
-        is_avg: n_pb_avg_added += 1
-        is_dailyavg: n_nrgf_dailyavg_added += 1
-        else: n_pb_added += 1
-      endcase
+      if (is_nrgf) then begin
+        case 1 of
+          is_dailyavg: n_nrgf_dailyavg_added += 1
+          else: n_nrgf_added += 1
+        endcase
+      endif else begin
+        case 1 of
+          is_dailyavg: n_pb_dailyavg_added += 1
+          is_avg: n_pb_avg_added += 1
+          else: n_pb_added += 1
+        endcase
+      endelse
     endif else begin
       mg_log, 'error inserting in kcor_img table', name=log_name, /error
       mg_log, 'status: %d, error message: %s', status, error_message, $
