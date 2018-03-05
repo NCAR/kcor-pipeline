@@ -112,7 +112,7 @@
   fix for quality check for cloudy images
 1.4.23 [Feb 15, 2018]
   making average FITS/GIFs and daily average (but not distributing)
-1.4.24
+1.4.24 [Mar 5, 2018]
   more verification constants in config file
   distribute average/daily average FITS/GIFs
   redo NRGF files in end-of-day processing using averages
