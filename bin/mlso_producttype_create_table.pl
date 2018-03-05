@@ -95,7 +95,7 @@ if (! $sth)
   }
 
 # populate 
-$command = "INSERT INTO mlso_producttype (producttype, description) VALUES ('pB', 'A regular KCor image')";
+$command = "INSERT INTO mlso_producttype (producttype, description) VALUES ('pB', 'K-Cor level 1 polarization brightness image')";
 $sth = $dbh->prepare ($command) ;
 $sth->execute () ;
 
@@ -104,6 +104,22 @@ $sth = $dbh->prepare ($command) ;
 $sth->execute () ;
 
 $command = "INSERT INTO mlso_producttype (producttype, description) VALUES ('unknown', 'Value entered was not in this table; Check for error.')";
+$sth = $dbh->prepare ($command) ;
+$sth->execute () ;
+
+$command = "INSERT INTO mlso_producttype (producttype, description) VALUES ('nrgfavg', 'K-Cor level 1 averaged images with a normalized radially graded filter (nrgf, Morgan et al. 2009, adapted by Silvano Fineschi and Sarah Gibson for KCor use) to maximize image contrast.')";
+$sth = $dbh->prepare ($command) ;
+$sth->execute () ;
+
+$command = "INSERT INTO mlso_producttype (producttype, description) VALUES ('pbavg', 'Averaged K-Cor level 1 polarized brightness images')";
+$sth = $dbh->prepare ($command) ;
+$sth->execute () ;
+
+$command = "INSERT INTO mlso_producttype (producttype, description) VALUES ('pbdailyavg', 'Daily averaged K-Cor level 1 polarized brightness images')";
+$sth = $dbh->prepare ($command) ;
+$sth->execute () ;
+
+$command = "INSERT INTO mlso_producttype (producttype, description) VALUES ('nrgfdailyavg', 'Daily averaged K-Cor level 1 NRGF images')";
 $sth = $dbh->prepare ($command) ;
 $sth->execute () ;
 

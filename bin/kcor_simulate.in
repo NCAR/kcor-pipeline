@@ -16,15 +16,25 @@ else:
 
 
 if __name__ == '__main__':
-    name = 'Realtime KCor pipeline simulator'
+    name = 'Realtime KCor pipeline simulator @VERSION@'
+
     parser = argparse.ArgumentParser(description=name)
     config_flags_help = '''FLAGS section of config filename'''
     date_help = '''date to run on'''
     parser.add_argument('date', type=str, help=date_help)
-    parser.add_argument('config_flags', type=str, help=config_flags_help)
+    parser.add_argument('-f', '--flags',
+                        type=str,
+                        default='latest',
+                        help='''FLAGS section of config filename, i.e., file in
+                                config/ directory matching kcor.user.machine.FLAGS.cfg
+                                will be used''')
     parser.add_argument('--no-eod',
                         action='store_true',
                         help='set to not launch end-of-day processing')
+    parser.add_argument('-v', '--version',
+                        action='version',
+                        version=name)
+
     args = parser.parse_args()
 
     # read config file to get options
@@ -34,7 +44,7 @@ if __name__ == '__main__':
     username = os.path.split(userhome)[-1]
     machine = socket.gethostname().split('.')[0]
 
-    config_basename = 'kcor.%s.%s.%s.cfg' % (username, machine, args.config_flags)
+    config_basename = 'kcor.%s.%s.%s.cfg' % (username, machine, args.flags)
 
     # construct config file filename
     config_filename = os.path.join(pipeline_dir, 'config', config_basename)
@@ -53,9 +63,9 @@ if __name__ == '__main__':
 
     # launch processing simulator
     processing_cmd = [os.path.join(pipeline_dir, 'bin', 'kcor_simulate_processing'),
-                      '-f %s' % frequency,
-                      args.date,
-                      args.config_flags]
+                      '-f %s' % args.flags,
+                      '--frequency %s' % frequency,
+                      args.date]
     if args.no_eod:
         processing_cmd.insert(2, '--no-eod')
     processing_process = subprocess.Popen(processing_cmd)

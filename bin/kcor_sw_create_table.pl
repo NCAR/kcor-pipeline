@@ -47,70 +47,56 @@ $pass = $configvar{"password"};
 $host = $configvar{"host"};
 $db = $configvar{"dbname"};
 
-#---------------------
 # Connect to database.
-#---------------------
+$dbh = DBI->connect ("DBI:mysql:$db:$host", $user, $pass);
 
-$dbh = DBI->connect ("DBI:mysql:$db:$host", $user, $pass) ;
+if (! $dbh) {
+  print "DB connection failed.\n";
+  die();
+} else {
+  print "DB connection successful.\n";
+}
 
-if (! $dbh)
-  {
-  print "DB connection failed.\n" ;
-  die () ;
-  }
-else
-  {
-  print "DB connection successful.\n" ;
-  }
+# Create new kcor_dp table
+$command = "DROP TABLE IF EXISTS kcor_sw";
+$sth     = $dbh->prepare ($command);
 
-#-----------------------------
-# Create new kcor_dp table.
-#-----------------------------
-
-$command = "DROP TABLE IF EXISTS kcor_sw" ;
-$sth     = $dbh->prepare ($command) ;
-
-$sth->execute () ;
-if (! $sth)
-  {
-  print "$command\n" ;
-  print "mysql error: $dbh->errstr\n" ;
-  die () ;
-  }
+$sth->execute();
+if (! $sth) {
+  print "$command\n";
+  print "mysql error: $dbh->errstr\n";
+  die();
+}
 
 # Define fields
 #	Notes:
-#   If a lot of queries are done, it is best to have VARCHARS at the end of field list, but this
-#	table will not get a lot of queries.
-#	I left 'labviewid' and 'socketcamid' as varchars due to not knowing their actual length
-$command = "CREATE TABLE kcor_sw 
-  (
-  sw_id				INT (10) AUTO_INCREMENT PRIMARY KEY,
-  date				DATETIME NOT NULL,
-  dmodswid			CHAR (24),
-  distort			CHAR (28),
-  sw_version		CHAR (24),
-  bunit				VARCHAR (12),
-  bzero				FLOAT (4, 1),
-  bscale			FLOAT (6, 3),
-  labviewid			VARCHAR (20),
-  socketcamid		VARCHAR (20),
-  sw_revision		VARCHAR (20),
-  sky_pol_factor	FLOAT (6, 3),
-  sky_bias			FLOAT (7, 4),
-  UNIQUE (date)
-  )" ;  # TODO: remove _test when in production
+#   If a lot of queries are done, it is best to have VARCHARS at the end of
+#   field list, but this table will not get a lot of queries. I left 'labviewid'
+#   and 'socketcamid' as varchars due to not knowing their actual length
+$command = "CREATE TABLE kcor_sw (
+  sw_id               INT (10) AUTO_INCREMENT PRIMARY KEY,
+  date                DATETIME NOT NULL,
+  proc_date           DATETIME NOT NULL,
+  dmodswid            CHAR (24),
+  distort             CHAR (50),
+  sw_version          CHAR (24),
+  bunit               VARCHAR (12),
+  bzero               FLOAT (6, 3),
+  bscale              FLOAT (6, 3),
+  labviewid           VARCHAR (20),
+  socketcamid         VARCHAR (20),
+  sw_revision         VARCHAR (20),
+  sky_pol_factor      FLOAT (6, 3),
+  sky_bias            FLOAT (7, 4)
+)";
 
-$sth = $dbh->prepare ($command) ;
-$sth->execute () ;
-if (! $sth)
-  {
-  print "$command\n" ;
-  print "mysql error: $dbh->errstr\n" ;
-  die () ;
-  }
+$sth = $dbh->prepare($command);
+$sth->execute();
+if (! $sth) {
+  print "$command\n";
+  print "mysql error: $dbh->errstr\n";
+  die();
+}
 
-#----------------------------------------
-# Terminate connection to mysql database.
-#----------------------------------------
-$dbh->disconnect ;
+# Terminate connection to mysql database
+$dbh->disconnect;

@@ -198,10 +198,16 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
   quicklook_dir = filepath('', subdir=['level0', 'quicklook'], root=date_dir)
   if (~file_test(quicklook_dir, /directory)) then file_mkdir, quicklook_dir
 
+  n_l0_fits_files = n_elements(l0_fits_files)
+
   ; image file loop
   foreach l0_file, l0_fits_files do begin
     num_img += 1
     img = readfits(l0_file, hdu, /silent)   ; read fits image & header
+
+    mg_log, 'checking %d/%d: %s', $
+            num_img, n_l0_fits_files, file_basename(l0_file), $
+            name='kcor/rt', /info
 
     ; extract keyword parameters from FITS header
     naxis    = sxpar(hdu, 'NAXIS',    count=qnaxis)
@@ -215,8 +221,7 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
     run.time = date_obs
 
     if (~run->epoch('process')) then begin
-      mg_log, 'files from this epoch should not be processed, skipping', $
-              name='kcor/rt', /warn
+      mg_log, 'skipping files from this epoch', name='kcor/rt', /warn
       printf, udev, l0_file
       continue
     endif

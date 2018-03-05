@@ -148,7 +148,7 @@ pro kcor_reprocess, date, run=run, error=error
 
   ; clear database for the day
   if (run.update_database && run.reprocess) then begin
-    mg_log, 'clear database for the day', name='kcor/reprocess', /info
+    mg_log, 'clearing database for the day', name='kcor/reprocess', /info
 
     obsday_index = mlso_obsday_insert(date, $
                                       run=run, $

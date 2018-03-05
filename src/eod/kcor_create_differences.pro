@@ -91,7 +91,7 @@ pro kcor_create_differences, date, l1_files, run=run
       if (f ge n_elements(l1_files)) then break
 
       l1_file = file_basename(l1_files[f])
-      img = readfits(l1_file, header, /silent)
+      img = readfits(l1_file, header, /silent, /noscale)
 
       f += 1
 

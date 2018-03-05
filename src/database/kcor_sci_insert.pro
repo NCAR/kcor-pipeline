@@ -75,7 +75,7 @@ pro kcor_sci_insert, date, files, $
       mg_log, '%s not found', files[f], name='kcor/eod', /warn
       continue
     endif else begin
-      mg_log, 'db inserting %s', files[f], name='kcor/eod', /info
+      mg_log, 'inserting %s', files[f], name='kcor/eod', /info
     endelse
 
     image = readfits(files[f], header, /silent)

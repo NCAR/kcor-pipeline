@@ -124,3 +124,18 @@ pro kcor_archive, run=run, reprocess=reprocess
   cd, cwd
   mg_log, 'done', name='kcor/eod', /info
 end
+
+
+; main-level example program
+
+; WARNING: this uses the production config file, so will actually copy L0
+; tarball to the HPSS!
+
+date = '20180214'
+config_filename = filepath('kcor.mgalloy.kaula.production.cfg', $
+                           subdir=['..', '..', 'config'], $
+                           root=mg_src_root())
+run = kcor_run(date, config_filename=config_filename)
+kcor_archive, run=run
+
+end

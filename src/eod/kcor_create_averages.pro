@@ -33,12 +33,14 @@ pro kcor_create_averages, date, l1_files, run=run
   mg_log, 'creating average movies', name='kcor/eod', /info
 
   date_parts = kcor_decompose_date(date)
+  archive_dir = filepath('', subdir=date_parts, root=run.archive_basedir)
   fullres_dir = filepath('', subdir=date_parts, root=run.fullres_basedir)
   cropped_dir = filepath('', subdir=date_parts, root=run.croppedgif_basedir)
 
   if (run.distribute) then begin
+    if (~file_test(archive_dir, /directory)) then file_mkdir, archive_dir
     if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
-    if (~file_test(cropped_dir, /directory)) then file_mkdir, fullres_dir
+    if (~file_test(cropped_dir, /directory)) then file_mkdir, cropped_dir
   endif
 
   l1_dir = filepath('level1', subdir=date, root=run.raw_basedir)
@@ -71,6 +73,11 @@ pro kcor_create_averages, date, l1_files, run=run
 
   avginterval = run.average_interval / 60.0D / 60.0D / 24.0D
   dailyavgval = run.daily_average_interval / 60.0D / 60.0D / 24.0D
+
+  display_min   = run->epoch('display_min')
+  display_max   = run->epoch('display_max')
+  display_exp   = run->epoch('display_exp')
+  display_gamma = run->epoch('display_gamma')
 
   ; set up counting variables
   dailycount = 0  ; want to average up to 40 images in < 15 minutes for daily avg.
@@ -107,7 +114,7 @@ pro kcor_create_averages, date, l1_files, run=run
         l1_file = file_basename(l1_files[f])
         savename = strmid(file_basename(l1_file), 0, 23)
 
-        img = readfits(l1_file, header, /silent)
+        img = readfits(l1_file, header, /silent, /noscale)
 
         f += 1
         imgsave[0, 0, i] = float(img)
@@ -216,11 +223,6 @@ pro kcor_create_averages, date, l1_files, run=run
     set_plot, 'Z'
     device, set_resolution=[1024, 1024], decomposed=0, set_colors=256, z_buffering=0
 
-    display_min   = run->epoch('display_min')
-    display_max   = run->epoch('display_max')
-    display_exp   = run->epoch('display_exp')
-    display_gamma = run->epoch('display_gamma')
-
     lct, filepath('quallab_ver2.lut', root=run.resources_dir)
 
     gamma_ct, display_gamma, /current
@@ -244,7 +246,7 @@ pro kcor_create_averages, date, l1_files, run=run
                          + string(format = '(a2)', mnt) $
                          + ':' + string(format='(a2)', sec) + ' UT', $
             /device, alignment=1.0, charsize=1.2, color=255
-    xyouts, 1018, 935, '2 to 3 min. AVG.', /device, alignment=1.0, charsize=1.2, color=255 
+    xyouts, 1018, 935, '2 to 3 min avg', /device, alignment=1.0, charsize=1.2, color=255 
    
     xyouts, 22, 512, 'East', color=255, charsize=1.2, alignment=0.5, $
             orientation=90., /device
@@ -258,7 +260,7 @@ pro kcor_create_averages, date, l1_files, run=run
                          display_gamma, $
                          format='("scaling: Intensity ^ ", f3.1, ", gamma=", f4.2)'), $
             color=255, charsize=1.2, /device
-    xyouts, 1018, 6, 'Circle = photosphere.', $
+    xyouts, 1018, 6, 'Circle = photosphere', $
             color=255, charsize=1.2, /device, alignment=1.0
 
     ; image has been shifted to center of array
@@ -271,8 +273,7 @@ pro kcor_create_averages, date, l1_files, run=run
     gif_basename = strmid(savename, 0, 23) + '_avg.gif'
     write_gif, gif_basename, save, red, green, blue
     if (run.distribute) then begin
-      ; TODO: eventually these will be distributed
-      ;file_copy, gif_basename, fullres_dir, /overwrite
+      file_copy, gif_basename, fullres_dir, /overwrite
     endif
 
     ; create lowres (512 x 512) GIF images
@@ -319,7 +320,7 @@ pro kcor_create_averages, date, l1_files, run=run
                          display_gamma, $
                          format='("scaling: Intensity ^ ", f3.1, ", gamma=", f4.2)'), $
             color=255, charsize=1.0, /device
-    xyouts, 500, 21, '2 min. avg.', color=255, charsize=1.0, alignment=1.0, /device
+    xyouts, 500, 21, '2 minx avg', color=255, charsize=1.0, alignment=1.0, /device
     xyouts, 500, 6, 'Circle = photosphere', color=255, $
             charsize=1.0, /device, alignment=1.0
 
@@ -330,8 +331,7 @@ pro kcor_create_averages, date, l1_files, run=run
     gif_basename = strmid(savename, 0, 23) + '_cropped_avg.gif'
     write_gif, gif_basename, save, red, green, blue
     if (run.distribute) then begin
-      ; TODO: eventually these will be distributed
-      ;file_copy, gif_basename, cropped_dir, /overwrite
+      file_copy, gif_basename, cropped_dir, /overwrite
     endif
 
     ; Create fullres (1024x1024) FITS image
@@ -347,11 +347,51 @@ pro kcor_create_averages, date, l1_files, run=run
 
     mg_log, 'writing %s', fits_filename, name='kcor/eod', /info
     writefits, fits_filename, avgimg, saveheader
-    if (run.distribute) then begin
-      ; TODO: eventually these will be distributed
-      ;file_copy, fits_filename, cropped_dir, /overwrite
-    endif
   endwhile
+
+  ; zip average FITS files
+  zipped_avg_glob = '*_avg.fts.gz'
+  zipped_avg_files = file_search(zipped_avg_glob, count=n_avg_files)
+  if (n_avg_files gt 0L) then file_delete, zipped_avg_files, /allow_nonexistent
+
+  unzipped_avg_glob = '*_avg.fts'
+  unzipped_avg_files = file_search(unzipped_avg_glob, count=n_avg_files)
+  if (n_avg_files gt 0L) then begin
+    mg_log, 'zipping %d average FITS files...', n_avg_files, $
+            name='kcor/eod', /info
+    gzip_cmd = string(run.gzip, unzipped_avg_glob, format='(%"%s %s")')
+    spawn, gzip_cmd, result, error_result, exit_status=status
+    if (status ne 0L) then begin
+      mg_log, 'problem zipping average files with command: %s', gzip_cmd, $
+              name='kcor/eod', /error
+      mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
+    endif
+  endif
+ 
+  if (run.distribute && n_avg_files gt 0L) then begin
+    mg_log, 'copying %d average files to archive dir', n_avg_files, $
+            name='kcor/eod', /info
+    file_copy, unzipped_avg_files + '.gz', archive_dir, /overwrite
+  endif
+
+  if (run.update_database) then begin
+    obsday_index = mlso_obsday_insert(date, $
+                                      run=run, $
+                                      database=db, $
+                                      status=db_status, $
+                                      log_name='kcor/eod')
+    if (db_status eq 0L) then begin
+      mg_log, 'adding %d average FITS files to database', n_avg_files, $
+              name='kcor/eod', /info
+      kcor_img_insert, date, unzipped_avg_files, run=run, $
+                       database=db, obsday_index=obsday_index, log_name='kcor/eod'
+    endif else begin
+      mg_log, 'error connecting to database', name='kcor/eod', /warn
+      goto, done
+    endelse
+  endif else begin
+    mg_log, 'not adding daily average file to database', name='kcor/eod', /info
+  endelse
 
   ; make daily average 1024x1024 GIF ; 512x512 gif; and 1024x1024 FITS image
   set_plot, 'Z'
@@ -412,8 +452,7 @@ pro kcor_create_averages, date, l1_files, run=run
   gif_filename = strmid(savename, 0, 23) + '_dailyavg.gif'
   write_gif, gif_filename, save, red, green, blue  
   if (run.distribute) then begin
-    ; TODO: eventually these will be distributed
-    ;file_copy, gif_filename, fullres_dir, /overwrite
+    file_copy, gif_filename, fullres_dir, /overwrite
   endif
 
   ; create lowres  (512 x 512  gif images
@@ -469,8 +508,7 @@ pro kcor_create_averages, date, l1_files, run=run
   gif_filename = strmid(savename, 0, 23) + '_dailyavg_cropped.gif'
   write_gif, gif_filename, save, red, green, blue   
   if (run.distribute) then begin
-    ; TODO: eventually these will be distributed
-    ;file_copy, gif_filename, cropped_dir, /overwrite
+    file_copy, gif_filename, cropped_dir, /overwrite
   endif
 
   ; create fullres (1024x1024) FITS image
@@ -496,12 +534,56 @@ pro kcor_create_averages, date, l1_files, run=run
   daily_fits_average_filename = string(format='(a23, "_dailyavg.fts")', name)
   mg_log, 'writing %s', daily_fits_average_filename, name='kcor/eod', /info
   writefits, daily_fits_average_filename, daily, saveheader
-  if (run.distribute) then begin
-    ; TODO: eventually these will be distributed
-    ;file_copy, daily_fits_average_filename, fullres_dir, /overwrite
+
+  ; remove zipped version if already exists
+  file_delete,   daily_fits_average_filename + '.gz', /allow_nonexistent
+
+  mg_log, 'zipping daily FITS average file...', name='kcor/eod', /info
+  gzip_cmd = string(run.gzip, daily_fits_average_filename, format='(%"%s %s")')
+  spawn, gzip_cmd, result, error_result, exit_status=status
+  if (status ne 0L) then begin
+    mg_log, 'problem zipping daily average file with command: %s', gzip_cmd, $
+            name='kcor/eod', /error
+    mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
   endif
+
+  if (run.distribute) then begin
+    mg_log, 'copying daily average file to archive', name='kcor/eod', /info
+    file_copy, daily_fits_average_filename + '.gz', archive_dir, /overwrite
+  endif else begin
+    mg_log, 'not copying daily average file to archive', name='kcor/eod', /info
+  endelse
+
+  if (run.update_database) then begin
+    mg_log, 'adding daily average file to database', name='kcor/eod', /info
+    kcor_img_insert, date, daily_fits_average_filename, run=run, $
+                     database=db, obsday_index=obsday_index, log_name='kcor/eod'
+  endif else begin
+    mg_log, 'not adding daily average file to database', name='kcor/eod', /info
+  endelse
 
   done:
   cd, current
+  if (obj_valid(db)) then obj_destroy, db
   mg_log, 'done', name='kcor/eod', /info
 end
+
+
+; main-level example program
+
+date = '20180208'
+config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
+                           subdir=['..', '..', 'config'], $
+                           root=mg_src_root())
+run = kcor_run(date, config_filename=config_filename)
+
+l1_zipped_fits_glob = '*_l1.fts.gz'
+l1_zipped_files = file_search(filepath(l1_zipped_fits_glob, $
+                                       subdir=[date, 'level1'], $
+                                       root=run.raw_basedir), $
+                              count=n_l1_zipped_files)
+
+kcor_create_averages, date, l1_zipped_files, run=run
+
+end
+

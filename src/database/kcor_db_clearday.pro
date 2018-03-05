@@ -27,13 +27,16 @@ pro kcor_db_clearday_cleartable, table, $
   mg_log, 'clearing %s table', table, name=log_name, /info
   db->execute, 'DELETE FROM %s WHERE obs_day=%d', $
                table, obsday_index, $
-               status=status, error_message=error_message, sql_statement=sql_cmd
+               status=status, error_message=error_message, sql_statement=sql_cmd, $
+               n_affected_rows=n_affected_rows
   if (status ne 0L) then begin
     mg_log, 'error clearing %s table', table, name=log_name, /error
     mg_log, 'status: %d, error message: %s', status, error_message, $
             name=log_name, /error
     mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
-  endif
+  endif else begin
+    mg_log, '%d rows deleted', n_affected_rows, name=log_name, /info
+  endelse
 end
 
 
@@ -92,7 +95,20 @@ pro kcor_db_clearday, run=run, $
   ; zero num_kcor_pb and num_kcor_nrgf in mlso_numfiles
   if (not keyword_set(calibration)) then begin
     mg_log, 'zeroing KCor values for mlso_numfiles table', name=log_name, /info
-    db->execute, 'UPDATE mlso_numfiles SET num_kcor_pb_fits=''0'', num_kcor_nrgf_fits=''0'', num_kcor_pb_lowresgif=''0'', num_kcor_pb_fullresgif=''0'', num_kcor_nrgf_lowresgif=''0'', num_kcor_nrgf_fullresgif=''0'' WHERE day_id=''%d''', $
+    fields = 'num_kcor_' + ['pb_fits', $
+                            'pb_avg_fits', $
+                            'pb_dailyavg_fits', $
+                            'pb_lowresgif', $
+                            'pb_avg_lowresgif', $
+                            'pb_fullresgif', $
+                            'pb_avg_fullresgif', $
+                            'nrgf_fits', $
+                            'nrgf_dailyavg_fits', $
+                            'nrgf_lowresgif', $
+                            'nrgf_fullresgif']
+    fields_expression = strjoin(fields + '=0', ', ')
+    db->execute, 'UPDATE mlso_numfiles SET %s WHERE day_id=''%d''', $
+                 fields_expression, $
                  obsday_index, $
                  status=status, error_message=error_message, sql_statement=sql_cmd
     if (status ne 0L) then begin
@@ -106,13 +122,17 @@ pro kcor_db_clearday, run=run, $
     mg_log, 'clearing mlso_sgs table', name=log_name, /info
     db->execute, 'DELETE FROM mlso_sgs WHERE obs_day=''%s'' AND source=''k''', $
                  obsday_index, $
-                 status=status, error_message=error_message, sql_statement=sql_cmd
+                 status=status, error_message=error_message, sql_statement=sql_cmd, $
+                 n_affected_rows=n_affected_rows
     if (status ne 0L) then begin
       mg_log, 'error clearing mlso_sgs table', name=log_name, /error
       mg_log, 'status: %d, error message: %s', status, error_message, $
               name=log_name, /error
       mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
-    endif
+    endif else begin
+      mg_log, '%d rows deleted', n_affected_rows, name=log_name, /info
+    endelse
+
 
     kcor_db_clearday_cleartable, 'kcor_img', $
                                  obsday_index=obsday_index, $
@@ -126,6 +146,21 @@ pro kcor_db_clearday, run=run, $
                                  obsday_index=obsday_index, $
                                  database=db, $
                                  log_name=log_name
+
+    ; kcor_sw (must do after kcor_eng)
+;    mg_log, 'clearing kcor_sw table', name=log_name, /info
+;    db->execute, 'DELETE FROM kcor_sw WHERE date=''%s''', $
+;                 day[0].obs_day, $
+;                 status=status, error_message=error_message, sql_statement=sql_cmd, $
+;                 n_affected_rows=n_affected_rows
+;    if (status ne 0L) then begin
+;      mg_log, 'error clearing kcor_sw table', name=log_name, /error
+;      mg_log, 'status: %d, error message: %s', status, error_message, $
+;              name=log_name, /error
+;      mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
+;    endif else begin
+;      mg_log, '%d rows deleted', n_affected_rows, name=log_name, /info
+;    endelse
   endif
 
   kcor_db_clearday_cleartable, 'kcor_cal', $
@@ -135,14 +170,13 @@ pro kcor_db_clearday, run=run, $
 
   done:
   if (~obj_valid(database)) then obj_destroy, db
-
   mg_log, 'done', name=log_name, /info
 end
 
 
 ; main-level example
 
-if (n_elements(date) eq 0L) then date = '20130930'
+if (n_elements(date) eq 0L) then date = '20180208'
 
 run = kcor_run(date, $
                config_filename=filepath('kcor.mgalloy.mahi.latest.cfg', $

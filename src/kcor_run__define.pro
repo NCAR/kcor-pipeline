@@ -507,6 +507,8 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            nrgf_remote_server=nrgf_remote_server, $
                            raw_remote_dir=raw_remote_dir, $
                            raw_remote_server=raw_remote_server, $
+                           min_compression_ratio=min_compression_ratio, $
+                           max_compression_ratio=max_compression_ratio, $
                            ssh_key=ssh_key, $
                            hpss_gateway=hpss_gateway, $
                            log_dir=log_dir, $
@@ -810,7 +812,16 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   if (arg_present(raw_remote_server)) then begin
     raw_remote_server = self.options->get('raw_remote_server', section='verification')
   endif
-
+  if (arg_present(min_compression_ratio)) then begin
+    min_compression_ratio = self.options->get('min_compression_ratio', $
+                                              section='verification', $
+                                              type=4, default=1.01)
+  endif
+  if (arg_present(max_compression_ratio)) then begin
+    max_compression_ratio = self.options->get('max_compression_ratio', $
+                                              section='verification', $
+                                              type=4, default=1.09)
+  endif
 end
 
 
@@ -873,4 +884,22 @@ pro kcor_run__define
            pipe_dir: '', $
            options: obj_new(), $
            epochs: obj_new()}
+end
+
+
+; main-level example program
+
+; example of creating a run object
+
+date = '20180212'
+config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
+                           subdir=['..', 'config'], $
+                           root=mg_src_root())
+run = kcor_run(date, config_filename=config_filename)
+
+help, run.min_compression_ratio
+help, run.max_compression_ratio
+
+obj_destroy, run
+
 end

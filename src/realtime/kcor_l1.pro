@@ -504,7 +504,7 @@ pro kcor_l1, date_str, ok_files, $
     img = readfits(l0_file, header, /silent)
 
     type = fxpar(header, 'DATATYPE')
-    mg_log, 'type: %s', strmid(type, 0, 3), name='kcor/rt', /info
+    mg_log, 'type: %s', strmid(type, 0, 3), name='kcor/rt', /debug
 
     ; read date of observation (needed to compute ephemeris info)
     date_obs = sxpar(header, 'DATE-OBS')   ; yyyy-mm-ddThh:mm:ss
@@ -595,13 +595,19 @@ pro kcor_l1, date_str, ok_files, $
     ; put the Level-0 FITS header into a structure
     struct = fitshead2struct(header, dash2underscore=dash2underscore)
 
-    if (n_elements(cal_exptime) eq 0L || cal_exptime ne struct.exptime) then begin
-      mg_log, 'cal file EXPTIME (%0.1f ms) does not match file (%0.1f ms) for %s', $
-              cal_exptime, struct.exptime, file_basename(l0_file), $
-              name='kcor/rt', /warn
+    if (n_elements(cal_exptime) eq 0L) then begin
+      mg_log, 'calibration exptime not defined', name='kcor/rt', /warn
       mg_log, 'skipping file %s', file_basename(l0_file), name='kcor/rt', /warn
       continue
-    endif
+    endif else begin
+      if (cal_exptime ne struct.exptime) then begin
+        mg_log, 'cal file EXPTIME (%0.1f ms) does not match file (%0.1f ms) for %s', $
+                cal_exptime, struct.exptime, file_basename(l0_file), $
+                name='kcor/rt', /warn
+        mg_log, 'skipping file %s', file_basename(l0_file), name='kcor/rt', /warn
+        continue
+      endif
+    endelse
 
     file_lyotstop = kcor_lyotstop(header, run=run)
     if (cal_lyotstop ne file_lyotstop) then begin
@@ -1211,7 +1217,7 @@ pro kcor_l1, date_str, ok_files, $
     endelse
     fxaddpar, newheader, 'SKYTRANS', skytrans, $
               ' Sky Transmission correction normalized to gain image', $
-              format='(F5.3)
+              format='(F5.3)'
     fxaddpar, newheader, 'DMODSWID', '2016-05-26', $
               ' date of demodulation software'
     fxaddpar, newheader, 'OBSSWID', struct.obsswid, $
@@ -1537,14 +1543,14 @@ pro kcor_l1, date_str, ok_files, $
     ; create NRG (normalized, radially-graded) GIF image
     cd, l1_dir
     if (osecond lt 15 and fix(ominute / 2) * 2 eq ominute) then begin
-      kcor_nrgf, l1_file, run=run
-      kcor_nrgf, l1_file, /cropped, run=run
+      kcor_nrgf, l1_file, run=run, log_name='kcor/rt'
+      kcor_nrgf, l1_file, /cropped, run=run, log_name='kcor/rt'
     endif
 
     cd, l0_dir
 
     loop_time = toc(lclock)   ; save loop time.
-    mg_log, '%0.1f sec to process %s', loop_time, l0_file, name='kcor/rt', /info
+    mg_log, '%0.1f sec to process %s', loop_time, l0_file, name='kcor/rt', /debug
   endforeach   ; end file loop
 
   ; drop the first file from OK files if skipped

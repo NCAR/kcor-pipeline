@@ -8,7 +8,7 @@ pro kcor_nrgf_annotations, year, name_month, day, hour, minute, second, doy, $
                            top=top, right=right, $
                            charsize=charsize, big_charsize=big_charsize, $
                            annotation_color=annotation_color, $
-                           cropped=cropped
+                           cropped=cropped, averaged=averaged
   compile_opt strictarr
 
   big_line_height = keyword_set(cropped) ? 18 : 20
@@ -19,15 +19,32 @@ pro kcor_nrgf_annotations, year, name_month, day, hour, minute, second, doy, $
   xyouts, 4, top - 34 - big_line_height + keyword_set(cropped) * 12, 'K-Coronagraph', $
           color=annotation_color, charsize=big_charsize, /device
 
-  xyouts, right - 6, top - 29 + keyword_set(cropped) * 12, $
+  line = 0
+  xyouts, right - 6, top - 29 + line++ * line_height + keyword_set(cropped) * 12, $
           string(day, name_month, year, format='(a2, " ", a3, " ", a4)'), $
           /device, alignment=1.0, charsize=charsize, color=annotation_color
-  xyouts, right - 14, top - 29 - line_height + keyword_set(cropped) * 12, $
-          string (format='("DOY ", i3)', doy), $
-          /device, alignment=1.0, charsize=charsize, color=annotation_color
-  xyouts, right - 6, top - 29 - 2 * line_height + keyword_set(cropped) * 12, $
+  if (~keyword_set(cropped)) then begin
+    xyouts, right - 14, top - 29 - line++ * line_height + keyword_set(cropped) * 12, $
+            string (format='("DOY ", i3)', doy), $
+            /device, alignment=1.0, charsize=charsize, color=annotation_color
+  endif
+  xyouts, right - 6, top - 29 - line++ * line_height + keyword_set(cropped) * 12, $
           string(hour, minute, second, format='(a2, ":", a2, ":", a2, " UT")'), $
           /device, alignment=1.0, charsize=charsize, color=annotation_color
+
+  ; put avg text label below time in standard size, above "circle = photosphere"
+  ; in cropped versions
+  if (keyword_set(averaged)) then begin
+    if (keyword_set(cropped)) then begin
+      y = 6 + line_height
+      text = '2 min avg'
+    endif else begin
+      y = top - 29 - line++ * line_height + keyword_set(cropped) * 12
+      text = '2 to 3 min avg'
+    endelse
+    xyouts, right - 6, y, text, $
+            /device, alignment=1.0, charsize=charsize, color=annotation_color
+  endif
 
   xyouts, 4, 6 + 2 * line_height, 'Level 1 data', $
           color=annotation_color, charsize=charsize, /device
@@ -35,7 +52,7 @@ pro kcor_nrgf_annotations, year, name_month, day, hour, minute, second, doy, $
           color=annotation_color, charsize=charsize, /device
   xyouts, 4, 6, 'Intensity: normalized, radially-graded', $
           color=annotation_color, charsize=charsize, /device
-  xyouts, right - 6, 6, 'circle: photosphere', $
+  xyouts, right - 6, 6, 'circle = photosphere', $
           color=annotation_color, charsize=charsize, /device, alignment=1.0
 end
 
@@ -53,6 +70,8 @@ end
 ;     set to create a cropped NRGF
 ;   run : in, required, type=object
 ;     `kcor_run` object
+;   averaged : in, optional, type=boolean
+;     set to indicate `fits_file` is an averaged file
 ;
 ; :Author:
 ;   Andrew L. Stanger   HAO/NCAR
@@ -63,7 +82,8 @@ end
 ;   15 Jul 2015 Add /NOSCALE keyword to readfits.
 ;   04 Mar 2016 Generate a 16 bit fits nrgf image in addition to a gif.
 ;-
-pro kcor_nrgf, fits_file, cropped=cropped, run=run
+pro kcor_nrgf, fits_file, cropped=cropped, averaged=averaged, daily=daily, $
+               run=run, log_name=log_name
   compile_opt strictarr
 
   ; read L1 FITS image
@@ -121,7 +141,7 @@ pro kcor_nrgf, fits_file, cropped=cropped, run=run
   radius_guess = 178
   if (keyword_set(cropped)) then radius_guess *= scale
 
-  img_info = kcor_find_image(img, radius_guess, log_name='kcor/rt')
+  img_info = kcor_find_image(img, radius_guess, log_name=log_name)
   xc   = img_info[0]
   yc   = img_info[1]
   r    = img_info[2]
@@ -138,12 +158,12 @@ pro kcor_nrgf, fits_file, cropped=cropped, run=run
   endif
 
   mg_log, 'starting NRGF %s', keyword_set(cropped) ? '(cropped)' : '', $
-          name='kcor/rt', /info
-  mg_log, 'rsun     [arcsec]: %0.4f', rsun, name='kcor/rt', /debug
-  mg_log, 'occulter [arcsec]: %0.4f', occulter, name='kcor/rt', /debug
-  mg_log, 'r_photo  [pixels]: %0.2f', r_photo, name='kcor/rt', /debug
-  mg_log, 'rocc     [pixels]: %0.2f', rocc, name='kcor/rt', /debug
-  mg_log, 'r0       [pixels]: %0.2f', r0, name='kcor/rt', /debug
+          name=log_name, /debug
+  mg_log, 'rsun     [arcsec]: %0.4f', rsun, name=log_name, /debug
+  mg_log, 'occulter [arcsec]: %0.4f', occulter, name=log_name, /debug
+  mg_log, 'r_photo  [pixels]: %0.2f', r_photo, name=log_name, /debug
+  mg_log, 'rocc     [pixels]: %0.2f', rocc, name=log_name, /debug
+  mg_log, 'r0       [pixels]: %0.2f', r0, name=log_name, /debug
 
   ; compute normalized, radially-graded filter
   for_nrgf, img, xcen, ycen, r0, filtered_image
@@ -166,7 +186,7 @@ pro kcor_nrgf, fits_file, cropped=cropped, run=run
     max = amax gt amin ? amax : amin
   endif
 
-  mg_log, 'cmin: %0.3f, cmax: %0.3f', cmin, cmax, name='kcor/rt', /debug
+  mg_log, 'cmin: %0.3f, cmax: %0.3f', cmin, cmax, name=log_name, /debug
 
   ; use mask to build gif image
 
@@ -183,7 +203,7 @@ pro kcor_nrgf, fits_file, cropped=cropped, run=run
   if (keyword_set(cropped)) then r_out *= scale
 
   mg_log, 'masking limits r_in: %0.2f, r_out: %0.2f', $
-          r_in, r_out, name='kcor/rt', /debug
+          r_in, r_out, name=log_name, /debug
 
   dark = where(rad1 lt r_in or rad1 ge r_out)
   filtered_image[dark] = -10.0   ; set pixels outside annulus to -10
@@ -251,17 +271,18 @@ pro kcor_nrgf, fits_file, cropped=cropped, run=run
                          top=top, right=right, $
                          charsize=charsize, big_charsize=big_charsize, $
                          annotation_color=annotation_color, $
-                         cropped=cropped
+                         cropped=cropped, averaged=averaged
 
-  ; create NRG gif file
+  ; create NRG GIF file
   save = tvrd()
   fts_loc  = strpos(fits_file, '.fts')
+  if (keyword_set(averaged)) then fts_loc -= 4   ; remove _avg too
   gif_file = string(strmid(fits_file, 0, fts_loc), $
                     keyword_set(cropped) ? '_cropped' : '', $
                     format='(%"%s_nrgf%s.gif")')
 
   write_gif, gif_file, save, red, green, blue
-  mg_log, 'wrote GIF file %s', gif_file, name='kcor/rt', /info
+  mg_log, 'wrote GIF file %s', file_basename(gif_file), name=log_name, /debug
 
   if (~keyword_set(cropped)) then begin
     ; create short integer image
@@ -274,8 +295,15 @@ pro kcor_nrgf, fits_file, cropped=cropped, run=run
 
     ; modify the FITS header for an NRG FITS image
     rhdu = hdu
-    fxaddpar, rhdu, 'LEVEL', 'L1NRGF', $
-              ' Level 1 Normalized Radially-Graded Intensity'
+    fxaddpar, rhdu, 'LEVEL', 'L1', $
+              ' Level 1'
+    if (keyword_set(averaged)) then begin
+      fxaddpar, rhdu, 'PRODUCT', 'NRGFAVG', $
+                ' Averaged Normalized Radially-Graded Intensity'
+    endif else begin
+      fxaddpar, rhdu, 'PRODUCT', 'NRGF', $
+                ' Normalized Radially-Graded Intensity'
+    endelse
     fxaddpar, rhdu, 'BSCALE', bscale, $
               ' Normalized Radially-Graded H.Morgan+S.Fineschi', $
               format='(f10.3)'
@@ -290,12 +318,23 @@ pro kcor_nrgf, fits_file, cropped=cropped, run=run
     fxaddpar, rhdu, 'DISPEXP', 1, ' exponent value for display (d=b^dispexp)', $
               format='(f10.3)'
 
-    ; write NRG fits file
-    fts_loc   = strpos(fits_file, '.fts')
-    rfts_file = strmid(fits_file, 0, fts_loc) + '_nrgf.fts'
+    ; write NRG FITS file
+    if (keyword_set(averaged)) then begin
+      if (keyword_set(daily)) then begin
+        remove_loc = strpos(fits_file, '_dailyavg.fts')
+      endif else begin
+        remove_loc = strpos(fits_file, '_avg.fts')
+      endelse
+    endif else begin
+      remove_loc = strpos(fits_file, '.fts')
+    endelse
+    rfts_file = strmid(fits_file, 0, remove_loc) + '_nrgf.fts'
+    rfts_file = string(strmid(fits_file, 0, remove_loc), $
+                       keyword_set(daily) ? '_dailyavg' : '', $
+                       format='(%"%s_nrgf%s.fts")')
 
     writefits, rfts_file, simg, rhdu
-    mg_log, 'wrote FITS file %s', rfts_file, name='kcor/rt', /info
+    mg_log, 'wrote FITS file %s', file_basename(rfts_file), name=log_name, /info
   endif
 end
 
