@@ -273,13 +273,19 @@ pro kcor_nrgf, fits_file, cropped=cropped, averaged=averaged, daily=daily, $
                          annotation_color=annotation_color, $
                          cropped=cropped, averaged=averaged
 
-  ; create NRG GIF file
+  ; create NRGF GIF file
   save = tvrd()
   fts_loc  = strpos(fits_file, '.fts')
-  if (keyword_set(averaged)) then fts_loc -= 4   ; remove _avg too
+  if (keyword_set(averaged)) then begin
+    if (keyword_set(daily)) then begin
+      fts_loc -= 9   ; remove _dailyavg too
+    endif else begin
+      fts_loc -= 4   ; remove _avg too
+    endelse
   gif_file = string(strmid(fits_file, 0, fts_loc), $
+                    keyword_set(daily) ? '_dailyavg' : '', $
                     keyword_set(cropped) ? '_cropped' : '', $
-                    format='(%"%s_nrgf%s.gif")')
+                    format='(%"%s_nrgf%s%s.gif")')
 
   write_gif, gif_file, save, red, green, blue
   mg_log, 'wrote GIF file %s', file_basename(gif_file), name=log_name, /debug

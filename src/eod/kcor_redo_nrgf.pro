@@ -77,7 +77,6 @@ pro kcor_redo_nrgf, date, run=run
   endif
 
   ; create new NRGF files corresponding to average files
-
   average_files = file_search(filepath('*_kcor_l1_avg.fts.gz', $
                                        subdir=[date, 'level1'], $
                                        root=run.raw_basedir), $
@@ -88,7 +87,6 @@ pro kcor_redo_nrgf, date, run=run
   endfor
 
   ; create NRGF daily average file corresponding to daily average file
-
   daily_average_files = file_search(filepath('*_kcor_l1_dailyavg.fts.gz', $
                                              subdir=[date, 'level1'], $
                                              root=run.raw_basedir), $
@@ -99,7 +97,6 @@ pro kcor_redo_nrgf, date, run=run
   endfor
 
   ; zip new NRGF FITS files (including daily average)
-
   unzipped_nrgf_glob = '*_nrgf*.fts'
   unzipped_nrgf_files = file_search(unzipped_nrgf_glob, count=n_nrgf_files)
   if (n_nrgf_files gt 0L) then begin
