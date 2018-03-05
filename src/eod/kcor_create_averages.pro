@@ -328,7 +328,7 @@ pro kcor_create_averages, date, l1_files, run=run
     tvcircle, r, 255.5, 255.5, color=255, /device
 
     save = tvrd()
-    gif_basename = strmid(savename, 0, 23) + '_cropped_avg.gif'
+    gif_basename = strmid(savename, 0, 23) + '_avg_cropped.gif'
     write_gif, gif_basename, save, red, green, blue
     if (run.distribute) then begin
       file_copy, gif_basename, cropped_dir, /overwrite
