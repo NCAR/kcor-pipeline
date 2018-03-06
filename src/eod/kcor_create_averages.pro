@@ -124,6 +124,9 @@ pro kcor_create_averages, date, l1_files, run=run
         cdelt1  = fxpar(header, 'CDELT1')       ; resolution   [arcsec/pixel]
         pixrs   = rsun / cdelt1
         r_photo = rsun / cdelt1
+
+        bscale  = fxpar(header, 'BSCALE')
+
         xcen    = fxpar(header, 'CRPIX1')       ; X center
         ycen    = fxpar(header, 'CRPIX2')       ; Y center
         roll    = 0.0
@@ -229,7 +232,7 @@ pro kcor_create_averages, date, l1_files, run=run
     tvlct, red, green, blue, /get
 
     ; create fullres (1024x1024) GIF images
-    tv, bytscl(avgimg^display_exp, display_min, display_max)
+    tv, bytscl((bscale * avgimg) ^ display_exp, display_min, display_max)
 
     xyouts, 4, 990, 'MLSO/HAO/KCOR', color=255, charsize=1.5, /device
     xyouts, 4, 970, 'K-Coronagraph', color=255, charsize=1.5, /device
@@ -289,7 +292,7 @@ pro kcor_create_averages, date, l1_files, run=run
             z_buffering=0
     erase
 
-    tv, bytscl(crop_img ^ display_exp, $
+    tv, bytscl((bscale * crop_img) ^ display_exp, $
                min=display_min, max=display_max)
 
     xyouts, 4, 495, 'MLSO/HAO/KCOR', color=255, charsize=1.2, /device

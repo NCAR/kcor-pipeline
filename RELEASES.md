@@ -123,4 +123,5 @@
   fix for mlso_numfiles entry for daily average file
 1.4.26 [Mar 6, 2018]
   typo/bug in NRGF code
-1.4.27
+1.4.27 [Mar 6, 2018]
+  more fixes for distribution of averages/daily averages/NRGF daily averages

@@ -106,16 +106,16 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     cd, l0_dir
   endelse
 
-  nrgf_list = filepath('oknrgf.ls', $
-                       subdir=[date, 'level1'], $
-                       root=run.raw_basedir)
-  n_nrgf_files = file_test(nrgf_list) ? file_lines(nrgf_list) : 0L
-  if (n_nrgf_files gt 0L) then begin
-    nrgf_files = strarr(n_nrgf_files)
-    openr, lun, nrgf_list, /get_lun
-    readf, lun, nrgf_files
-    free_lun, lun
+  if (run.create_daily_movies && n_l1_zipped_files gt 0L) then begin
+    kcor_create_differences, date, l1_zipped_files, run=run
+    kcor_create_averages, date, l1_zipped_files, run=run
+    kcor_redo_nrgf, date, run=run
+  endif
 
+  nrgf_glob = filepath('*_kcor_l1_nrgf.fts.gz', $
+                       subdir=[date, 'level1'], root=run.raw_basedir)
+  nrgf_files = file_search(nrgf_glob, count=n_nrgf_files)
+  if (n_nrgf_files gt 0L) then begin
     if (run.produce_plots) then begin
       kcor_plotraw, date, list=nrgf_files, run=run, $
                     line_means=line_means, line_medians=line_medians, $
@@ -125,12 +125,6 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     if (run.create_daily_movies) then begin
       kcor_create_animations, date, list=nrgf_files, run=run
     endif
-  endif
-
-  if (run.create_daily_movies && n_l1_zipped_files gt 0L) then begin
-    kcor_create_differences, date, l1_zipped_files, run=run
-    kcor_create_averages, date, l1_zipped_files, run=run
-    kcor_redo_nrgf, date, run=run
   endif
 
   ok_list = filepath('okfgif.ls', $

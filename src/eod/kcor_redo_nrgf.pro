@@ -151,6 +151,27 @@ pro kcor_redo_nrgf, date, run=run
     mg_log, 'not adding NRGF files to database', name='kcor/eod', /info
   endelse
 
+  ; distribute NRGF daily average GIFs
+  if (run.distribute) then begin
+    nrgf_dailyavg_files = file_search('*nrgf_dailyavg.gif', $
+                                      count=n_nrgf_dailyavg_files)
+    if (n_nrgf_dailyavg_files gt 0L) then begin
+      file_copy, nrgf_dailyavg_files, nrgf_dir
+    endif else begin
+      mg_log, 'no NRGF daily average GIF to distribute', name='kcor/eod', /info
+    endelse
+
+    nrgf_dailyavg_cropped_files = file_search('*nrgf_dailyavg_cropped.gif', $
+                                              count=n_nrgf_dailyavg_cropped_files)
+    if (n_nrgf_dailyavg_cropped_files gt 0L) then begin
+      file_copy, nrgf_dailyavg_cropped_files, cropped_dir
+    endif else begin
+      mg_log, 'no NRGF daily average cropped GIFs to distribute', name='kcor/eod', /info
+    endelse
+  endif else begin
+    mg_log, 'not distributing NRGF daily average GIFs', name='kcor/eod', /info
+  endelse
+
   done:
   cd, current_dir
   if (obj_valid(db)) then obj_destroy, db
