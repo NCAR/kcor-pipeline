@@ -102,6 +102,9 @@ pro kcor_create_differences, date, l1_files, run=run
       cdelt1  = fxpar(header, 'CDELT1')       ; resolution   [arcsec/pixel]
       pixrs   = rsun / cdelt1
       r_photo = rsun / cdelt1
+
+      bscale  = fxpar(header, 'BSCALE')
+
       xcen    = fxpar(header, 'CRPIX1')       ; X center
       ycen    = fxpar(header, 'CRPIX2')       ; Y center
       roll    = 0.0
@@ -314,7 +317,7 @@ pro kcor_create_differences, date, l1_files, run=run
       display_min = -0.02
       display_max =  0.02
     
-      tv, bytscl(subimg, display_min, display_max)
+      tv, bytscl(bscale * subimg, display_min, display_max)
 
       xyouts, 4, 990, 'MLSO/HAO/KCOR', color=255, charsize=1.5, /device
       xyouts, 4, 970, 'K-Coronagraph', color=255, charsize=1.5, /device

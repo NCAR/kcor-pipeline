@@ -126,3 +126,4 @@
 1.4.27 [Mar 6, 2018]
   more fixes for distribution of averages/daily averages/NRGF daily averages
 1.4.28
+  fix for scaling of difference GIFs
