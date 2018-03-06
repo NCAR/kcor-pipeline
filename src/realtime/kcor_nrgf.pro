@@ -282,6 +282,7 @@ pro kcor_nrgf, fits_file, cropped=cropped, averaged=averaged, daily=daily, $
     endif else begin
       fts_loc -= 4   ; remove _avg too
     endelse
+  endif
   gif_file = string(strmid(fits_file, 0, fts_loc), $
                     keyword_set(daily) ? '_dailyavg' : '', $
                     keyword_set(cropped) ? '_cropped' : '', $
