@@ -120,12 +120,6 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     l0_file = list[i]
     img = readfits (l0_file, hdu, /silent)   ; read fits image & header
 
-    img_file = l0_file
-
-    ; remove the .gz for some of the log messages and plot titles
-    gzloc    = strpos(l0_file, '.gz')
-    if (gzloc ge 0) then img_file = strmid(l0_file, gzloc)
-
     img0 = reform(img[*, *, 0, 0])
     ; img0 = reverse(img0, 2)  ; y-axis inversion
     img1 = reform(img[*, *, 0, 1])
@@ -312,7 +306,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
     ; print image summary
     mg_log, '%' + strtrim(n_digits, 2) + 'd/%d: %s %s', $
-            i + 1, n_images, file_basename(img_file), datatype_str, $
+            i + 1, n_images, file_basename(l0_file, '.gz'), datatype_str, $
             name='kcor/eod', /info
     mg_log, '   %5s %3s %4s %4s %4s %7s %4s', $
             exptime_str, cover_str, dshutter_str, $

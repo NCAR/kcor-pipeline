@@ -118,9 +118,6 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   nrgf_files = file_search(nrgf_glob, count=n_nrgf_files)
   if (n_nrgf_files gt 0L) then begin
     if (run.produce_plots) then begin
-      mg_log, 'glob: %s', nrgf_glob, name='kcor/eod', /debug
-      mg_log, '%d NRGF files to plot', n_nrgf_files, name='kcor/eod', /debug
-      mg_log, '%s', strjoin(nrgf_files, ', '), name='kcor/eod', /debug
       kcor_plotraw, date, list=nrgf_files, run=run, $
                     line_means=line_means, line_medians=line_medians, $
                     azi_means=azi_means, azi_medians=azi_medians
