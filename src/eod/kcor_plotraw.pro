@@ -56,14 +56,15 @@ pro kcor_plotraw, date, list=list, run=run, $
   mg_log, 'starting', name='kcor/eod', /info
 
   ; get raw filenames
-  raw_nrgf_files = strmid(list, 0, 20) + '.fts.gz'
-  n_nrgf_files = n_elements(raw_nrgf_files)
+  n_nrgf_files = n_elements(list)
   if (n_nrgf_files eq 0L) then begin
     mg_log, 'no NRGF raw files to plot', name='kcor/eod', /warn
     goto, done
   endif else begin
     mg_log, 'plotting %d NRGF raw files', n_nrgf_files, name='kcor/eod', /info
   endelse
+
+  raw_nrgf_files = strmid(file_basename(list), 0, 20) + '.fts.gz'
 
   ; create output arrays
   line_means    = fltarr(2, n_nrgf_files)

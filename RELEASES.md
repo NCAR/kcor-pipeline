@@ -127,3 +127,4 @@
   more fixes for distribution of averages/daily averages/NRGF daily averages
 1.4.28
   fix for scaling of difference GIFs
+  fixes for new order of creating animations/averages and redoing NRGFs
