@@ -257,11 +257,11 @@ pro kcor_nrgf, fits_file, cropped=cropped, averaged=averaged, daily=daily, $
 
     ; lower text boxes
     save[0:259, 0:49] = alpha * save[0:259, 0:49]
-    save[out_xdim - 139:*, 0:19] = alpha * save[out_xdim - 139:*, 0:19]
+    save[out_xdim - 154:*, 0:39] = alpha * save[out_xdim - 154:*, 0:39]
 
     ; upper text boxes
     save[0:144, out_ydim - 49:out_ydim - 1] = alpha * save[0:144, out_ydim - 49:out_ydim - 1]
-    save[out_xdim - 99:*, out_ydim - 54:out_ydim - 1] = alpha * save[out_xdim - 99:*, out_ydim - 54:out_ydim - 1]
+    save[out_xdim - 99:*, out_ydim - 36:out_ydim - 1] = alpha * save[out_xdim - 99:*, out_ydim - 36:out_ydim - 1]
 
     tv, save
   endif

@@ -57,13 +57,13 @@ pro kcor_create_averages, date, l1_files, run=run
 
   dailyavg = fltarr(1024, 1024, 48)  ; this will hold up to 15 min. of data
   dailytimes = strarr(48)            ; this will hold up to 15 min. of data
-  dailytimestring = strarr(10)
+  n_skip = 8                         ; number of daily times to skip
 
   date_julian = dblarr(8)
 
   ; Set up julian date intervals for averaging  
   ; Currently: 	average 8 images over a maximum of 3 minutes
-  ;               create 1 daily average of 40 images over a maximum of 15 minutes
+  ;             create 1 daily average of 40 images over a maximum of 15 minutes
 
   ; ** NOTE: 2 minutes in julian date units = 1.38889e-03
   ; ** NOTE: 3 minutes in julian date units = 2.08334e-03
@@ -245,11 +245,11 @@ pro kcor_create_averages, date, l1_files, run=run
             charsize=1.2, color=255
     xyouts, 1018, 975, 'DOY ' + string(format='(i3)', doy), /device, $
             alignment=1.0, charsize=1.2, color=255
-    xyouts, 1018, 955, string(format='(a2)', hr) + ':' $
-                         + string(format = '(a2)', mnt) $
-                         + ':' + string(format='(a2)', sec) + ' UT', $
-            /device, alignment=1.0, charsize=1.2, color=255
-    xyouts, 1018, 935, '2 to 3 min avg', /device, alignment=1.0, charsize=1.2, color=255 
+    avgtimes = strsplit(strjoin(timestring, ' '), /extract)
+    xyouts, 1018, 955, string(avgtimes[0], format='(%"%s UT to")'), $
+            /device, alignment=1.0, charsize=1.2, color=255 
+    xyouts, 1018, 935, string(avgtimes[-1], format='(%"%s UT")'), $
+            /device, alignment=1.0, charsize=1.2, color=255 
    
     xyouts, 22, 512, 'East', color=255, charsize=1.2, alignment=0.5, $
             orientation=90., /device
@@ -323,7 +323,7 @@ pro kcor_create_averages, date, l1_files, run=run
                          display_gamma, $
                          format='("scaling: Intensity ^ ", f3.1, ", gamma=", f4.2)'), $
             color=255, charsize=1.0, /device
-    xyouts, 500, 21, '2 minx avg', color=255, charsize=1.0, alignment=1.0, /device
+    xyouts, 500, 21, '2 min. avg', color=255, charsize=1.0, alignment=1.0, /device
     xyouts, 500, 6, 'Circle = photosphere', color=255, $
             charsize=1.0, /device, alignment=1.0
 
@@ -424,11 +424,11 @@ pro kcor_create_averages, date, l1_files, run=run
   xyouts, 1018, 975, 'DOY ' + string(format='(i3)', doy), /device, $
           alignment=1.0, charsize=1.2, color=255
   xyouts, 1018, 955, $
-          string(format='(a2)', hr) + ':' $
-            + string(format = '(a2)', mnt) $
-            + ':' + string(format='(a2)', sec) + ' UT', $
+          string(dailytimes[n_skip], format='(%"%s UT to")'), $
           /device, alignment=1.0, charsize=1.2, color=255
-  xyouts, 1018, 935, '10 to 15 min. AVG.', /device, alignment=1.0, charsize=1.2, color=255
+  xyouts, 1018, 935, $
+          string(dailytimes[-1], format='(%"%s UT")'), $
+          /device, alignment=1.0, charsize=1.2, color=255
 
   xyouts, 22, 512, 'East', color=255, charsize=1.2, alignment=0.5, $
           orientation=90., /device
@@ -500,7 +500,8 @@ pro kcor_create_averages, date, l1_files, run=run
   xyouts, 4, 6, string(format='("scaling: Intensity ^ ", f3.1, ", gamma=", f4.2)', $
                        display_exp, display_gamma), $
           color=255, charsize=1.0, /device
-  xyouts, 500, 21, '10 min. avg.', color=255, charsize=1.0, alignment=1.0, /device
+  ; TODO: change
+  xyouts, 500, 21, '~10 min. avg.', color=255, charsize=1.0, alignment=1.0, /device
   xyouts, 500, 6, 'Circle = photosphere', color=255, $
           charsize=1.0, /device, alignment=1.0
 
@@ -520,7 +521,6 @@ pro kcor_create_averages, date, l1_files, run=run
   ; images in the avg.
 
   n_times_per_keyword = 4
-  n_skip = 8
   n_daily_times = n_elements(dailytimes[n_skip:*])
   n_keywords = ceil(n_daily_times / float(n_times_per_keyword))
 
