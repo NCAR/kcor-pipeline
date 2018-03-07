@@ -94,15 +94,15 @@ pro kcor_img_insert, date, fits_list, $
   n_pb_added = 0L
   n_nrgf_added = 0L
   n_pb_avg_added = 0L
-  n_pb_dailyavg_added = 0L
-  n_nrgf_dailyavg_added = 0L
+  n_pb_extavg_added = 0L
+  n_nrgf_extavg_added = 0L
 
   while (++i lt nfiles) do begin
     fts_file = fits_list[i]
 
     is_nrgf = strpos(file_basename(fts_file), 'nrgf') ge 0L
     is_avg = strpos(file_basename(fts_file), '_avg') ge 0L
-    is_dailyavg = strpos(file_basename(fts_file), 'extavg') ge 0L
+    is_extavg = strpos(file_basename(fts_file), 'extavg') ge 0L
 
     fts_file += '.gz'
 
@@ -145,13 +145,13 @@ pro kcor_img_insert, date, fits_list, $
     ; get product type from filename
     if (is_nrgf) then begin
       case 1 of
-        is_dailyavg: producttype = 'nrgfextavg'
+        is_extavg: producttype = 'nrgfextavg'
         log_name eq 'kcor/eod': producttype = 'nrgfavg'
         else: producttype = 'nrgf'
       endcase
     endif else begin
       case 1 of
-        is_dailyavg: producttype = 'pbextavg'
+        is_extavg: producttype = 'pbextavg'
         is_avg: producttype = 'pbavg'
         else: producttype = 'pb'
       endcase
@@ -211,12 +211,12 @@ pro kcor_img_insert, date, fits_list, $
     if (status eq 0L) then begin
       if (is_nrgf) then begin
         case 1 of
-          is_dailyavg: n_nrgf_dailyavg_added += 1
+          is_extavg: n_nrgf_extavg_added += 1
           else: n_nrgf_added += 1
         endcase
       endif else begin
         case 1 of
-          is_dailyavg: n_pb_dailyavg_added += 1
+          is_extavg: n_pb_extavg_added += 1
           is_avg: n_pb_avg_added += 1
           else: n_pb_added += 1
         endcase
@@ -234,8 +234,8 @@ pro kcor_img_insert, date, fits_list, $
   n_pb_files = num_files_results.num_kcor_pb_fits + n_pb_added
   n_nrgf_files = num_files_results.num_kcor_nrgf_fits + n_nrgf_added
   n_pb_avg_files = num_files_results.num_kcor_pb_avg_fits + n_pb_avg_added
-  n_pb_dailyavg_files = num_files_results.num_kcor_pb_dailyavg_fits + n_pb_dailyavg_added
-  n_nrgf_dailyavg_files = num_files_results.num_kcor_nrgf_dailyavg_fits + n_nrgf_dailyavg_added
+  n_pb_extavg_files = num_files_results.num_kcor_pb_extavg_fits + n_pb_extavg_added
+  n_nrgf_extavg_files = num_files_results.num_kcor_nrgf_extavg_fits + n_nrgf_extavg_added
 
   set_expression = 'num_kcor_' + ['pb_fits', $
                                   'pb_lowresgif', $
@@ -257,8 +257,8 @@ pro kcor_img_insert, date, fits_list, $
              n_pb_avg_files, $
              n_pb_avg_files, $
              n_pb_avg_files, $
-             n_pb_dailyavg_files, $
-             n_nrgf_dailyavg_files]
+             n_pb_extavg_files, $
+             n_nrgf_extavg_files]
   set_expression += '=' + strtrim(n_files, 2)
   set_expression = strjoin(set_expression, ', ')
   db->execute, 'UPDATE mlso_numfiles SET %s WHERE day_id=''%d''', $
