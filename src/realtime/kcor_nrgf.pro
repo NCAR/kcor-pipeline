@@ -278,13 +278,13 @@ pro kcor_nrgf, fits_file, cropped=cropped, averaged=averaged, daily=daily, $
   fts_loc  = strpos(fits_file, '.fts')
   if (keyword_set(averaged)) then begin
     if (keyword_set(daily)) then begin
-      fts_loc -= 9   ; remove _dailyavg too
+      fts_loc -= 1 + 3 + 3   ; remove _extavg too
     endif else begin
-      fts_loc -= 4   ; remove _avg too
+      fts_loc -= 1 + 3   ; remove _avg too
     endelse
   endif
   gif_file = string(strmid(fits_file, 0, fts_loc), $
-                    keyword_set(daily) ? '_dailyavg' : '', $
+                    keyword_set(daily) ? '_extavg' : '', $
                     keyword_set(cropped) ? '_cropped' : '', $
                     format='(%"%s_nrgf%s%s.gif")')
 
@@ -328,7 +328,7 @@ pro kcor_nrgf, fits_file, cropped=cropped, averaged=averaged, daily=daily, $
     ; write NRG FITS file
     if (keyword_set(averaged)) then begin
       if (keyword_set(daily)) then begin
-        remove_loc = strpos(fits_file, '_dailyavg.fts')
+        remove_loc = strpos(fits_file, '_extavg.fts')
       endif else begin
         remove_loc = strpos(fits_file, '_avg.fts')
       endelse
@@ -337,7 +337,7 @@ pro kcor_nrgf, fits_file, cropped=cropped, averaged=averaged, daily=daily, $
     endelse
     rfts_file = strmid(fits_file, 0, remove_loc) + '_nrgf.fts'
     rfts_file = string(strmid(fits_file, 0, remove_loc), $
-                       keyword_set(daily) ? '_dailyavg' : '', $
+                       keyword_set(daily) ? '_extavg' : '', $
                        format='(%"%s_nrgf%s.fts")')
 
     writefits, rfts_file, simg, rhdu

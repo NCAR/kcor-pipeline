@@ -232,7 +232,7 @@ pro kcor_create_averages, date, l1_files, run=run
     tvlct, red, green, blue, /get
 
     ; create fullres (1024x1024) GIF images
-    tv, bytscl((bscale * avgimg) ^ display_exp, display_min, display_max)
+    tv, bytscl((bscale * avgimg)^display_exp, display_min, display_max)
 
     xyouts, 4, 990, 'MLSO/HAO/KCOR', color=255, charsize=1.5, /device
     xyouts, 4, 970, 'K-Coronagraph', color=255, charsize=1.5, /device
@@ -292,7 +292,7 @@ pro kcor_create_averages, date, l1_files, run=run
             z_buffering=0
     erase
 
-    tv, bytscl((bscale * crop_img) ^ display_exp, $
+    tv, bytscl((bscale * crop_img)^display_exp, $
                min=display_min, max=display_max)
 
     xyouts, 4, 495, 'MLSO/HAO/KCOR', color=255, charsize=1.2, /device
@@ -409,7 +409,7 @@ pro kcor_create_averages, date, l1_files, run=run
 
   daily /= float(dailycount) - 8.0
 
-  tv, bytscl(daily^display_exp, display_min, display_max)
+  tv, bytscl((bscale * daily)^display_exp, display_min, display_max)
 
   xyouts, 4, 990, 'MLSO/HAO/KCOR', color=255, charsize=1.5, /device
   xyouts, 4, 970, 'K-Coronagraph', color=255, charsize=1.5, /device
@@ -452,7 +452,7 @@ pro kcor_create_averages, date, l1_files, run=run
   device, decomposed=1
   save = tvrd()
 
-  gif_filename = strmid(savename, 0, 23) + '_dailyavg.gif'
+  gif_filename = strmid(savename, 0, 23) + '_extavg.gif'
   write_gif, gif_filename, save, red, green, blue  
   if (run.distribute) then begin
     file_copy, gif_filename, fullres_dir, /overwrite
@@ -474,7 +474,7 @@ pro kcor_create_averages, date, l1_files, run=run
             z_buffering=0
   erase
 
-  tv, bytscl(crop_img^display_exp, min=display_min, max=display_max)
+  tv, bytscl((bscale * crop_img)^display_exp, min=display_min, max=display_max)
 
   xyouts, 4, 495, 'MLSO/HAO/KCOR', color=255, charsize=1.2, /device
   xyouts, 4, 480, 'K-Coronagraph', color=255, charsize=1.2, /device
@@ -508,7 +508,7 @@ pro kcor_create_averages, date, l1_files, run=run
   tvcircle, r, 255.5, 255.5, color=255, /device
 
   save = tvrd()
-  gif_filename = strmid(savename, 0, 23) + '_dailyavg_cropped.gif'
+  gif_filename = strmid(savename, 0, 23) + '_extavg_cropped.gif'
   write_gif, gif_filename, save, red, green, blue   
   if (run.distribute) then begin
     file_copy, gif_filename, cropped_dir, /overwrite
@@ -534,7 +534,7 @@ pro kcor_create_averages, date, l1_files, run=run
   endfor
 
   name = strmid(savename, 0, 23)
-  daily_fits_average_filename = string(format='(a23, "_dailyavg.fts")', name)
+  daily_fits_average_filename = string(format='(a23, "_extavg.fts")', name)
   mg_log, 'writing %s', daily_fits_average_filename, name='kcor/eod', /info
   writefits, daily_fits_average_filename, daily, saveheader
 

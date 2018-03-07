@@ -87,7 +87,7 @@ pro kcor_redo_nrgf, date, run=run
   endfor
 
   ; create NRGF daily average file corresponding to daily average file
-  daily_average_files = file_search(filepath('*_kcor_l1_dailyavg.fts.gz', $
+  daily_average_files = file_search(filepath('*_kcor_l1_extavg.fts.gz', $
                                              subdir=[date, 'level1'], $
                                              root=run.raw_basedir), $
                                     count=n_daily_average_files)
@@ -153,23 +153,23 @@ pro kcor_redo_nrgf, date, run=run
 
   ; distribute NRGF daily average GIFs
   if (run.distribute) then begin
-    nrgf_dailyavg_files = file_search('*nrgf_dailyavg.gif', $
+    nrgf_dailyavg_files = file_search('*nrgf_extavg.gif', $
                                       count=n_nrgf_dailyavg_files)
     if (n_nrgf_dailyavg_files gt 0L) then begin
       file_copy, nrgf_dailyavg_files, nrgf_dir
     endif else begin
-      mg_log, 'no NRGF daily average GIF to distribute', name='kcor/eod', /info
+      mg_log, 'no NRGF 10 min average GIF to distribute', name='kcor/eod', /info
     endelse
 
-    nrgf_dailyavg_cropped_files = file_search('*nrgf_dailyavg_cropped.gif', $
+    nrgf_dailyavg_cropped_files = file_search('*nrgf_extavg_cropped.gif', $
                                               count=n_nrgf_dailyavg_cropped_files)
     if (n_nrgf_dailyavg_cropped_files gt 0L) then begin
       file_copy, nrgf_dailyavg_cropped_files, cropped_dir
     endif else begin
-      mg_log, 'no NRGF daily average cropped GIFs to distribute', name='kcor/eod', /info
+      mg_log, 'no NRGF 10 min average cropped GIFs to distribute', name='kcor/eod', /info
     endelse
   endif else begin
-    mg_log, 'not distributing NRGF daily average GIFs', name='kcor/eod', /info
+    mg_log, 'not distributing NRGF 10 min average GIFs', name='kcor/eod', /info
   endelse
 
   done:

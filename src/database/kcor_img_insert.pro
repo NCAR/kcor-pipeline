@@ -102,7 +102,7 @@ pro kcor_img_insert, date, fits_list, $
 
     is_nrgf = strpos(file_basename(fts_file), 'nrgf') ge 0L
     is_avg = strpos(file_basename(fts_file), '_avg') ge 0L
-    is_dailyavg = strpos(file_basename(fts_file), 'dailyavg') ge 0L
+    is_dailyavg = strpos(file_basename(fts_file), 'extavg') ge 0L
 
     fts_file += '.gz'
 
@@ -145,13 +145,13 @@ pro kcor_img_insert, date, fits_list, $
     ; get product type from filename
     if (is_nrgf) then begin
       case 1 of
-        is_dailyavg: producttype = 'nrgfdailyavg'
+        is_dailyavg: producttype = 'nrgfextavg'
         log_name eq 'kcor/eod': producttype = 'nrgfavg'
         else: producttype = 'nrgf'
       endcase
     endif else begin
       case 1 of
-        is_dailyavg: producttype = 'pbdailyavg'
+        is_dailyavg: producttype = 'pbextavg'
         is_avg: producttype = 'pbavg'
         else: producttype = 'pb'
       endcase
@@ -246,8 +246,8 @@ pro kcor_img_insert, date, fits_list, $
                                   'pb_avg_fits', $
                                   'pb_avg_lowresgif', $
                                   'pb_avg_fullresgif', $
-                                  'pb_dailyavg_fits', $
-                                  'nrgf_dailyavg_fits']
+                                  'pb_extavg_fits', $
+                                  'nrgf_extavg_fits']
   n_files = [n_pb_files, $
              n_pb_files, $
              n_pb_files, $

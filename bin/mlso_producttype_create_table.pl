@@ -115,11 +115,11 @@ $command = "INSERT INTO mlso_producttype (producttype, description) VALUES ('pba
 $sth = $dbh->prepare ($command) ;
 $sth->execute () ;
 
-$command = "INSERT INTO mlso_producttype (producttype, description) VALUES ('pbdailyavg', 'Daily averaged K-Cor level 1 polarized brightness images')";
+$command = "INSERT INTO mlso_producttype (producttype, description) VALUES ('pbextavg', 'Daily averaged K-Cor level 1 polarized brightness images')";
 $sth = $dbh->prepare ($command) ;
 $sth->execute () ;
 
-$command = "INSERT INTO mlso_producttype (producttype, description) VALUES ('nrgfdailyavg', 'Daily averaged K-Cor level 1 NRGF images')";
+$command = "INSERT INTO mlso_producttype (producttype, description) VALUES ('nrgfextavg', 'Daily averaged K-Cor level 1 NRGF images')";
 $sth = $dbh->prepare ($command) ;
 $sth->execute () ;
 
