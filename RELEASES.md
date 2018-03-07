@@ -125,7 +125,7 @@
   typo/bug in NRGF code
 1.4.27 [Mar 6, 2018]
   more fixes for distribution of averages/daily averages/NRGF daily averages
-1.4.28
+1.4.28 [Mar 7, 2018]
   fix for scaling of difference GIFs
   fixes for new order of creating animations/averages and redoing NRGFs
   crash notification
