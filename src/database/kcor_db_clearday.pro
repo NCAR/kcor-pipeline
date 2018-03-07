@@ -97,13 +97,13 @@ pro kcor_db_clearday, run=run, $
     mg_log, 'zeroing KCor values for mlso_numfiles table', name=log_name, /info
     fields = 'num_kcor_' + ['pb_fits', $
                             'pb_avg_fits', $
-                            'pb_dailyavg_fits', $
+                            'pb_extavg_fits', $
                             'pb_lowresgif', $
                             'pb_avg_lowresgif', $
                             'pb_fullresgif', $
                             'pb_avg_fullresgif', $
                             'nrgf_fits', $
-                            'nrgf_dailyavg_fits', $
+                            'nrgf_extavg_fits', $
                             'nrgf_lowresgif', $
                             'nrgf_fullresgif']
     fields_expression = strjoin(fields + '=0', ', ')
