@@ -130,3 +130,4 @@
   fixes for new order of creating animations/averages and redoing NRGFs
   crash notification
   log messages
+1.4.29
