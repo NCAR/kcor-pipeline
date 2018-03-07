@@ -22,6 +22,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   if (error ne 0L) then begin
     catch, /cancel
     mg_log, /last_error, name='kcor/eod', /critical
+    kcor_crash_notification, /eod, run=run
     goto, done
   endif
 

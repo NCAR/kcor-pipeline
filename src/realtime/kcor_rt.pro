@@ -24,6 +24,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
   if (error ne 0L) then begin
     catch, /cancel
     mg_log, /last_error, name='kcor/rt', /critical
+    kcor_crash_notification, /realtime, run=run
     goto, done
   endif
 
