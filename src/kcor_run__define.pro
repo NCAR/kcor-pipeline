@@ -440,7 +440,7 @@ pro kcor_run::setup_loggers, rotate_logs=rotate_logs
   endif
   logger->setProperty, format='%(message)s', $
                        level=log_level, $
-                       filename=logfilename
+                       filename=log_filename
 
   mg_log, name='kcor/reprocess', logger=logger
   log_filename = filepath(self.date + '.reprocess.log', root=log_dir)
