@@ -219,7 +219,10 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     mg_log, 'updating database', name='kcor/eod', /info
     cal_files = kcor_read_calibration_text(date, run.process_basedir, $
                                            exposures=exposures, $
-                                           n_files=n_cal_files)
+                                           run=run, $
+                                           all_files=all_cal_files, $
+                                           n_all_files=n_all_cal_files, $
+                                           quality=cal_quality)
 
     obsday_index = mlso_obsday_insert(date, $
                                       run=run, $
@@ -228,8 +231,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
                                       log_name='kcor/eod')
 
     if (db_status eq 0L) then begin
-      if (n_cal_files gt 0L) then begin
-        kcor_cal_insert, date, cal_files, $
+      if (n_all_cal_files gt 0L) then begin
+        kcor_cal_insert, date, all_cal_files, cal_quality, $
                          run=run, database=db, obsday_index=obsday_index
       endif else begin
         mg_log, 'no cal files for kcor_cal table', name='kcor/eod', /info

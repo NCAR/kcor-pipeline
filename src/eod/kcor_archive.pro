@@ -131,11 +131,12 @@ end
 ; WARNING: this uses the production config file, so will actually copy L0
 ; tarball to the HPSS!
 
-date = '20180214'
+date = '20180306'
 config_filename = filepath('kcor.mgalloy.kaula.production.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
 kcor_archive, run=run
+obj_destroy, run
 
 end

@@ -21,7 +21,10 @@
 ;-
 function kcor_read_calibration_text, date, process_basedir, $
                                      exposures=exposures, $
-                                     n_files=n_files, run=run
+                                     n_files=n_files, run=run, $
+                                     all_files=filenames, $
+                                     n_all_files=n_all_files, $
+                                     quality=quality
   compile_opt strictarr
 
   cal_file = filepath('calibration_files.txt', $
@@ -30,10 +33,12 @@ function kcor_read_calibration_text, date, process_basedir, $
 
   if (~file_test(cal_file)) then begin
     n_files = 0L
+    n_all_files = 0L
     return, !null
   endif
 
   n_files = file_lines(cal_file)
+  n_all_files = n_files
   if (n_files lt 1) then return, !null
 
   text = strarr(n_files)
@@ -44,7 +49,7 @@ function kcor_read_calibration_text, date, process_basedir, $
 
   filenames = strarr(n_files)
   exposures = strarr(n_files)
-  keep      = bytarr(n_files)
+  quality   = lonarr(n_files)
 
   for i = 0L, n_files - 1L do begin
     tokens = strsplit(text[i], /extract)
@@ -52,10 +57,13 @@ function kcor_read_calibration_text, date, process_basedir, $
     exposures[i] = tokens[1]
 
     run.time = strmid(tokens[0], 9, 6)
-    keep[i] = run->epoch('process')
+
+    ; TODO: eventually this quality will be determined by a GBU process, now is
+    ; is either 0 or 99
+    quality[i] = 99L * run->epoch('process')
   endfor
 
-  return, filenames[where(keep, n_files, /null)]
+  return, filenames[where(quality ge run->epoch('min_cal_quality'), n_files, /null)]
 end
 
 

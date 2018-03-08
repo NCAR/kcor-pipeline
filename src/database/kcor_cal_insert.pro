@@ -36,7 +36,7 @@
 ; :History:
 ;   20170216 - First version, with all cal fields from spreadsheet plan
 ;-
-pro kcor_cal_insert, date, fits_list, $
+pro kcor_cal_insert, date, fits_list, quality, $
                      catalog_dir=catalog_dir, $
                      run=run, $
                      database=database, $
@@ -174,8 +174,8 @@ pro kcor_cal_insert, date, fits_list, $
                               level, fields=fields)
     level_num = level_results.level_id	
     
-    db->execute, 'INSERT INTO kcor_cal (file_name, date_obs, date_end, obs_day, level, numsum, exptime, cover, darkshut, diffuser, calpol, calpang, mean_int_img0, mean_int_img1, mean_int_img2, mean_int_img3, mean_int_img4, mean_int_img5, mean_int_img6, mean_int_img7, rcamid, tcamid, rcamlut, tcamlut, rcamfocs, tcamfocs, modltrid, modltrt, occltrid, o1id, o1focs, calpolid, diffsrid, filterid, kcor_sgsdimv, kcor_sgsdims) VALUES (''%s'', ''%s'', ''%s'', %d, %d, %d, %f, ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, ''%s'', %f, ''%s'', ''%s'', %f, ''%s'', ''%s'', ''%s'', %s, %s) ', $
-                 fits_file, date_obs, date_end, obsday_index, level_num, $
+    db->execute, 'INSERT INTO kcor_cal (file_name, date_obs, date_end, obs_day, level, quality, numsum, exptime, cover, darkshut, diffuser, calpol, calpang, mean_int_img0, mean_int_img1, mean_int_img2, mean_int_img3, mean_int_img4, mean_int_img5, mean_int_img6, mean_int_img7, rcamid, tcamid, rcamlut, tcamlut, rcamfocs, tcamfocs, modltrid, modltrt, occltrid, o1id, o1focs, calpolid, diffsrid, filterid, kcor_sgsdimv, kcor_sgsdims) VALUES (''%s'', ''%s'', ''%s'', %d, %d, %d, %d, %f, ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, ''%s'', %f, ''%s'', ''%s'', %f, ''%s'', ''%s'', ''%s'', %s, %s) ', $
+                 fits_file, date_obs, date_end, obsday_index, level_num, quality[i], $
                  numsum, exptime, cover, darkshut, diffuser, calpol, calpang, $
                  mean_int_img0, mean_int_img1, mean_int_img2, mean_int_img3, $
                  mean_int_img4, mean_int_img5, mean_int_img6, mean_int_img7, $

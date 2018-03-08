@@ -132,4 +132,5 @@
   log messages
 1.4.29 [Mar 8, 2018]
   make calibration respect process flag in epochs file
-1.4.30
+1.4.30 [Mar 8, 2018]
+  add quality field to kcor_cal table
