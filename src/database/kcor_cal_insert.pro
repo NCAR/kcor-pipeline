@@ -44,11 +44,6 @@ pro kcor_cal_insert, date, fits_list, quality, $
   compile_opt strictarr
   on_error, 2
 
-  if (n_params() ne 2) then begin
-    mg_log, 'missing date or filelist parameters', name='kcor/eod', /error
-    return
-  endif
-
   ; connect to MLSO database
 
   ; Note: The connect procedure accesses DB connection information in the file
