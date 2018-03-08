@@ -64,7 +64,7 @@ pro kcor_reduce_calibration, date, $
     mg_log, 'reading calibration files list...', name='kcor/cal', /debug
     file_list = kcor_read_calibration_text(date, run.process_basedir, $
                                            exposures=exposures, $
-                                           n_files=n_files)
+                                           n_files=n_files, run=run)
   endelse
 
   if (n_files lt 1L) then begin

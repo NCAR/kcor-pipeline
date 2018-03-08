@@ -130,4 +130,6 @@
   fixes for new order of creating animations/averages and redoing NRGFs
   crash notification
   log messages
-1.4.29
+1.4.29 [Mar 8, 2018]
+  make calibration respect process flag in epochs file
+

@@ -79,7 +79,7 @@ pro kcor_calibration, date, $
     mg_log, 'updating database', name='kcor/eod', /info
     cal_files = kcor_read_calibration_text(date, run.process_basedir, $
                                            exposures=exposures, $
-                                           n_files=n_cal_files)
+                                           n_files=n_cal_files, run=run)
 
     obsday_index = mlso_obsday_insert(date, $
                                       run=run, $

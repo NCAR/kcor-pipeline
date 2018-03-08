@@ -189,6 +189,9 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   if (success) then begin
     files = file_search(filepath('*_kcor.fts.gz', root=l0_dir), count=n_files)
+    
+    ; TODO: should really check process flag from epochs file here to filter
+    ;       out L0 files that should not be processed
 
     if (run.produce_plots) then begin
       kcor_plotparams, date, list=files, run=run
