@@ -134,4 +134,5 @@
   make calibration respect process flag in epochs file
 1.4.30 [Mar 8, 2018]
   add quality field to kcor_cal table
-1.4.31
+1.4.31 [Mar 8, 2018]
+  fix for using full paths for db files
