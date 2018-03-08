@@ -83,7 +83,7 @@ $command = "CREATE TABLE mlso_numfiles (
   obs_day                      DATE NOT NULL,
   num_kcor_pb_fits             smallint(5),
   num_kcor_pb_avg_fits         smallint(5),
-  num_kcor_pb_exyavg_fits      tinyint(1),
+  num_kcor_pb_extavg_fits      tinyint(1),
   num_kcor_pb_lowresgif        smallint(5),
   num_kcor_pb_avg_lowresgif    smallint(5),
   num_kcor_pb_fullresgif       smallint(5),
