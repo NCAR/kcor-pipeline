@@ -63,8 +63,8 @@ if __name__ == '__main__':
 
     # launch processing simulator
     processing_cmd = [os.path.join(pipeline_dir, 'bin', 'kcor_simulate_processing'),
-                      '-f %s' % args.flags,
-                      '--frequency %s' % frequency,
+                      '-f', args.flags,
+                      '--frequency', frequency,
                       args.date]
     if args.no_eod:
         processing_cmd.insert(2, '--no-eod')
@@ -72,10 +72,8 @@ if __name__ == '__main__':
 
     # launch incoming data simulator
     data_cmd = [os.path.join(pipeline_dir, 'bin', 'kcor_simulate_data'),
-                '-r',
-                ' %s' % raw_dir,
-                '-b',
-                ' %s' % batch_time,
+                '-r', raw_dir,
+                '-b', batch_time,
                 os.path.join(depot_basedir, args.date)]
     data_process = subprocess.Popen(data_cmd)
 
