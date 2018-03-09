@@ -50,13 +50,19 @@ pro kcor_create_averages, date, l1_files, run=run
 
   ; set up variables and arrays needed
 
-  imgsave    = fltarr(1024,1024,8)
-  avgimg     = fltarr(1024,1024)
-  imgtime    = strarr(8)
-  timestring = strarr(2)
+  imgsave     = fltarr(1024,1024,8)
+  avgimg      = fltarr(1024,1024)
+  imgtimes    = strarr(8)
+  imgendtimes = strarr(8)
+  timestring  = strarr(2)
 
   dailyavg = fltarr(1024, 1024, 48)  ; this will hold up to 15 min. of data
   dailytimes = strarr(48)            ; this will hold up to 15 min. of data
+  dailyendtimes = strarr(48)
+
+  hst = ''
+  daily_hst = ''
+
   n_skip = 8                         ; number of daily times to skip
 
   date_julian = dblarr(8)
@@ -101,8 +107,10 @@ pro kcor_create_averages, date, l1_files, run=run
         imgsave[0, 0, 0] = imgsave[*, *, last]
         avgimg = imgsave[*, *, last]
         if (dailycount lt 48 and date_julian[i] - firsttime lt dailyavgval) then begin
+          if (dailycount eq n_skip) then daily_hst = hst
           dailyavg[0, 0, dailycount] = imgsave[*, *, last]
-          dailytimes[dailycount] = imgtime[last]
+          dailytimes[dailycount] = imgtimes[last]
+          dailyendtimes[dailycount] = imgendtimes[last]
 	  dailycount += 1
           daily_savename = strmid(file_basename(l1_file), 0, 23)
         endif
@@ -133,7 +141,9 @@ pro kcor_create_averages, date, l1_files, run=run
         roll    = 0.0
 
         ; find image time
-        date_obs = fxpar(header, 'DATE-OBS')       ; yyyy-mm-ddThh:mm:ss
+        date_obs = fxpar(header, 'DATE-OBS')    ; yyyy-mm-ddThh:mm:ss
+        date_end = fxpar(header, 'DATE-END')    ; yyyy-mm-ddThh:mm:ss
+        tmp_hst  = fxpar(header, 'DATE_HST')    ; yyyy-mm-ddThh:mm:ss
 
         ; extract fields from DATE_OBS
         yr   = strmid(date_obs,  0, 4)
@@ -143,7 +153,8 @@ pro kcor_create_averages, date, l1_files, run=run
         mnt  = strmid(date_obs, 14, 2)
         sec  = strmid(date_obs, 17, 2)
 
-        imgtime[i] = string(hr, mnt, sec, format='(%"%s:%s:%s")')
+        imgtimes[i]    = date_obs
+        imgendtimes[i] = date_end
 
         ; convert strings to integers
         year   = fix(yr)
@@ -157,18 +168,24 @@ pro kcor_create_averages, date, l1_files, run=run
         date_julian[i] = julday(month, day, year, hour, minute, second)
 
         ; save first image time for making daily avg. img.
-        if (numavg eq 0) then firsttime = date_julian[0]
+        if (numavg eq 0) then begin
+          hst = tmp_hst
+          firsttime = date_julian[0]
+        endif
 
         if (i eq 0) then begin
           avgimg = imgsave[*, *, 0]
           saveheader = header
           numavg = 1
           if (dailycount lt 48 and date_julian[i] - firsttime lt dailyavgval) then begin
+            if (dailycount eq n_skip) then daily_hst = hst
+            dailysaveheader = header
 	    dailyavg[0, 0, dailycount] = imgsave[*, *, 0]
-            dailytimes[dailycount] = imgtime[0]
+            dailytimes[dailycount] = imgtimes[0]
+            dailyendtimes[dailycount] = imgendtimes[0]
             dailycount += 1
           endif
-          timestring[0] = imgtime[0]
+          timestring[0] = strmid(imgtimes[0], 11)
         endif
       endelse
 
@@ -183,8 +200,8 @@ pro kcor_create_averages, date, l1_files, run=run
           avgimg += imgsave[*, *, i]
 	  saveheader = header   ; save header in case next image is > 3 min. in time
 	  numavg += 1
-	  if (i le 3) then timestring[0] = timestring[0] + ' ' + imgtime[i]
-	  if (i gt 3) then timestring[1] = timestring[1] + ' ' + imgtime[i]
+	  if (i le 3) then timestring[0] = timestring[0] + ' ' + strmid(imgtimes[i], 11)
+	  if (i gt 3) then timestring[1] = timestring[1] + ' ' + strmid(imgtimes[i], 11)
         endif
 
         if (difftime gt avginterval) then begin
@@ -193,8 +210,11 @@ pro kcor_create_averages, date, l1_files, run=run
         endif
 
         if (dailycount lt 48  and  date_julian[i] - firsttime lt dailyavgval) then begin
+          if (dailycount eq n_skip) then daily_hst = hst
+          dailysaveheader = header
           dailyavg[0, 0, dailycount] = imgsave[*, *, i]
-          dailytimes[dailycount] = imgtime[i]
+          dailytimes[dailycount] = imgtimes[i]
+          dailyendtimes[dailycount] = imgendtimes[i]
           dailycount += 1
         endif
       endif
@@ -349,6 +369,10 @@ pro kcor_create_averages, date, l1_files, run=run
     name = strmid(savename, 0, 23)
     fits_filename = string(format='(a23, "_avg.fts")', name)
 
+    fxaddpar, saveheader, 'DATE-OBS', imgtimes[0]
+    fxaddpar, saveheader, 'DATE-END', imgtimes[numavg - 1]
+    fxaddpar, saveheader, 'DATE_HST', hst
+
     mg_log, 'writing %s', fits_filename, name='kcor/eod', /info
     writefits, fits_filename, avgimg, saveheader
   endwhile
@@ -425,10 +449,10 @@ pro kcor_create_averages, date, l1_files, run=run
   xyouts, 1018, 975, 'DOY ' + string(format='(i3)', doy), /device, $
           alignment=1.0, charsize=1.2, color=255
   xyouts, 1018, 955, $
-          string(dailytimes[n_skip], format='(%"%s UT to")'), $
+          string(strmid(dailytimes[n_skip], 11), format='(%"%s UT to")'), $
           /device, alignment=1.0, charsize=1.2, color=255
   xyouts, 1018, 935, $
-          string(dailytimes[-1], format='(%"%s UT")'), $
+          string(strmid(dailytimes[dailycount - 1], 11), format='(%"%s UT")'), $
           /device, alignment=1.0, charsize=1.2, color=255
 
   xyouts, 22, 512, 'East', color=255, charsize=1.2, alignment=0.5, $
@@ -486,9 +510,7 @@ pro kcor_create_averages, date, l1_files, run=run
                              + ' ' + string(format='(a4)', yr), $
           /device, alignment = 1.0, $
           charsize=1.0, color=255
-  xyouts, 500, 480, string(format='(a2)', hr) + ':' $
-                      + string(format='(a2)', mnt) + ':' $
-                      + string(format='(a2)', sec) + ' UT', $
+  xyouts, 500, 480, strmid(dailytimes[dailycount - 1], 11) + ' UT', $
           /device, alignment=1.0, $
           charsize=1.0, color=255
   xyouts, 12, 256, 'East', color=255, $
@@ -530,14 +552,18 @@ pro kcor_create_averages, date, l1_files, run=run
   keyword_times = strjoin(keyword_times, ' ')
 
   for k = 0L, n_keywords - 1L do begin
-    fxaddpar, saveheader, string(k, format='(%"AVGTIME%d")'), keyword_times[k], $
+    fxaddpar, dailysaveheader, string(k, format='(%"AVGTIME%d")'), keyword_times[k], $
               ' Image times used in avg.'
   endfor
+
+  fxaddpar, dailysaveheader, 'DATE-OBS', dailytimes[n_skip]
+  fxaddpar, dailysaveheader, 'DATE-END', dailyendtimes[dailycount - 1]
+  fxaddpar, dailysaveheader, 'DATE_HST', daily_hst
 
   name = strmid(daily_savename, 0, 23)
   daily_fits_average_filename = string(format='(a23, "_extavg.fts")', name)
   mg_log, 'writing %s', daily_fits_average_filename, name='kcor/eod', /info
-  writefits, daily_fits_average_filename, daily, saveheader
+  writefits, daily_fits_average_filename, daily, dailysaveheader
 
   ; remove zipped version if already exists
   file_delete,   daily_fits_average_filename + '.gz', /allow_nonexistent
