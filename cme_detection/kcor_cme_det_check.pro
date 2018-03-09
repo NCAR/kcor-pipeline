@@ -62,9 +62,7 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
       break_file, files[ifile], disk, dir, name, ext
       if (keyword_set(widget)) then begin
         widget_control, wfile, set_value=name + ext
-      endif else begin
-        mg_log, '%s', name + ext, name='kcor/cme', /debug
-      endelse
+      endif
       mg_log, 'reading %s', file_basename(files[ifile]), $
               name='kcor/cme', /info
       image = readfits(files[ifile], header, /silent)
