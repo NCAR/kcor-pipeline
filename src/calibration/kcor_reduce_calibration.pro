@@ -50,7 +50,12 @@ pro kcor_reduce_calibration, date, $
 
     ; extract exposures from files
     for f = 0L, n_files - 1L do begin
-      header = headfits(filelist[f])
+      header = headfits(filelist[f], errmsg=errmsg)
+      if (errmsg ne '') then begin
+        mg_log, 'error reading %s', filelist[f], name='kcor/cal', /error
+        mg_log, errmsg, name='kcor/cal', /error
+        goto, done
+      endif
 
       exposure = sxpar(header, 'EXPTIME', count=nrecords)
       if (nrecords eq 0) then exposure = sxpar(header, 'EXPOSURE')
