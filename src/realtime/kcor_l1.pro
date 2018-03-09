@@ -1185,7 +1185,7 @@ pro kcor_l1, date_str, ok_files, $
               ' [s] exposure time for each frame', format = '(f10.4)'
     numsum = run->epoch('use_numsum') ? struct.numsum : run->epoch('numsum')
     fxaddpar, newheader, 'NUMSUM', numsum, $
-              ' # frames summed per camera & polarizer state'
+              ' # frames summed per L0 img for each pol state'
 
     ; software information
     fxaddpar, newheader, 'QUALITY', img_quality, ' Image quality'
