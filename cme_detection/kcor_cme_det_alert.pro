@@ -55,17 +55,17 @@ pro kcor_cme_det_alert, itime, rsun, operator=operator
   if (keyword_set(operator)) then begin
     tairef = date_diff[itime].tai_avg
     time = tai2utc(tairef, /time, /truncate, /ccsds)
-    message = 'Operator-generated alert at ' + time + ' UT'
+    mg_log, 'Operator-generated alert at ' + time + ' UT', name='kcor/cme', /info
   endif else begin
     time = tai2utc(tairef, /time, /truncate, /ccsds)
     edge = 60 * (lat[leadingedge[itime]] + 90) / rsun
-    format = '(F10.2)'
-    message = 'CME detected at ' + time + ' UT, Rsun ' + ntrim(edge,format) + $
-              ', position angle ' + ntrim(angle) + $
-              ', initial speed ' + ntrim(speed,format) + ' km/s'
+    format = '(F0.2)'
+    mg_log, 'CME detected at ' + time + ' UT', name='kcor/cme', /info
+    mg_log, '  Rsun           : %s', ntrim(edge, format), name='kcor/cme', /info
+    mg_log, '  position angle : %s deg', ntrim(angle, format), name='kcor/cme', /info
+    mg_log, '  initial speed  : %s km/s', ntrim(speed, format), name='kcor/cme', /info
   endelse
 
-  mg_log, message, name='kcor/cme', /info
 
   kcor_cme_det_movie
   kcor_cme_det_email, time, edge, operator=operator
