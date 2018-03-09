@@ -305,7 +305,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     qual_str     = strtrim(qual, 2)
 
     ; print image summary
-    mg_log, '%' + strtrim(n_digits, 2) + 'd/%d: %s %s', $
+    mg_log, mg_format('%*d/%d: %s %s', n_digits, /simple), $
             i + 1, n_images, file_basename(l0_file, '.gz'), datatype_str, $
             name='kcor/eod', /info
     mg_log, '   %5s %3s %4s %4s %4s %7s %4s', $

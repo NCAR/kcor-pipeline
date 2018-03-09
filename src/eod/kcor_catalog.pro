@@ -48,9 +48,11 @@ pro kcor_catalog, date, list=list, run=run, catalog_dir=catalog_dir
 
   mg_log, 'cataloging %d L0 files', n_files, name='kcor/eod', /info
 
+  n_digits = long(alog10(n_files)) + 1L
   for f = 0L, n_files - 1L do begin
     fits_file = list[f]
-    mg_log, '%4d/%d: %s', f + 1, n_elements(list), file_basename(fits_file), $
+    mg_log, mg_format('%*d/%d: %s', n_digits, /simple), $
+            f + 1, n_files, file_basename(fits_file), $
             name='kcor/eod', /info
     kcor_catalog_file, fits_file, run=run
   endfor

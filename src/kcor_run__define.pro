@@ -637,7 +637,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
     ssh_key = self.options->get('ssh_key', section='results', default='')
   endif
   if (arg_present(hpss_gateway)) then begin
-    hpss_gateway = self.options->get('hpss_gateway', section='results')
+    hpss_gateway = self.options->get('hpss_gateway', section='results', default='')
   endif
 
   ; logging

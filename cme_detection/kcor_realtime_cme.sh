@@ -24,7 +24,10 @@ SHORT_HOSTNAME=$(hostname | sed -e 's/\..*$//')
 # TODO: change to cme when put into production
 FLAGS=cmetest
 
-CONFIG_FILENAME=$KCOR_ROOT/config/kcor.$(whoami).$SHORT_HOSTNAME.$FLAGS.cfg
+SCRIPT_NAME=kcor_cme_detection_job
 
-idl_cmd="kcor_cme_detection_job, config_filename='$CONFIG_FILENAME', /realtime"
-${IDL} -IDL_PATH ${KCOR_CME_PATH} -IDL_STARTUP '' -e "${idl_cmd}"
+CONFIG_FILENAME=$KCOR_ROOT/config/kcor.$(whoami).$SHORT_HOSTNAME.$FLAGS.cfg
+TEST_DATE=20171122
+
+IDL_CMD="$SCRIPT_NAME, '$TEST_DATE', config_filename='$CONFIG_FILENAME', /realtime"
+${IDL} -IDL_PATH ${KCOR_CME_PATH} -IDL_STARTUP '' -e "${IDL_CMD}"
