@@ -48,10 +48,11 @@ pro kcor_calibration, date, $
     mg_log, 'using provided list of files for calibration', name='kcor/eod', /info
     openr, lun, filelist_filename, /get_lun
 
-    calfile = ''
+    filelist_line = ''
     for f = 0L, n_files - 1L do begin
-      readf, lun, calfile
-      filelist[f] = calfile
+      readf, lun, filelist_line
+      tokens = strsplit(filelist_line, /extract)
+      filelist[f] = tokens[0]
     endfor
 
     free_lun, lun
