@@ -73,6 +73,7 @@ pro kcor_cme_detection_job, date, $
     cstop = 0
 
     mg_log, 'starting CME detection for %s', date, name='kcor/cme', /info
+    mg_log, 'archive dir : %s', datedir, name='kcor/cme', /info
 
     ; If running in realtime mode, stop when KCOR_CME_DET_CHECK detects a stop
     ; *and* when it is after the cme_stop_time. If running a job on already
