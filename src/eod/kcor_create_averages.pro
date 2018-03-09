@@ -104,6 +104,7 @@ pro kcor_create_averages, date, l1_files, run=run
           dailyavg[0, 0, dailycount] = imgsave[*, *, last]
           dailytimes[dailycount] = imgtime[last]
 	  dailycount += 1
+          daily_savename = strmid(file_basename(l1_file), 0, 23)
         endif
         date_julian[0] = date_julian[last]
         stopavg = 0
@@ -452,7 +453,7 @@ pro kcor_create_averages, date, l1_files, run=run
   device, decomposed=1
   save = tvrd()
 
-  gif_filename = strmid(savename, 0, 23) + '_extavg.gif'
+  gif_filename = strmid(daily_savename, 0, 23) + '_extavg.gif'
   write_gif, gif_filename, save, red, green, blue  
   if (run.distribute) then begin
     file_copy, gif_filename, fullres_dir, /overwrite
@@ -509,7 +510,7 @@ pro kcor_create_averages, date, l1_files, run=run
   tvcircle, r, 255.5, 255.5, color=255, /device
 
   save = tvrd()
-  gif_filename = strmid(savename, 0, 23) + '_extavg_cropped.gif'
+  gif_filename = strmid(daily_savename, 0, 23) + '_extavg_cropped.gif'
   write_gif, gif_filename, save, red, green, blue   
   if (run.distribute) then begin
     file_copy, gif_filename, cropped_dir, /overwrite
@@ -533,7 +534,7 @@ pro kcor_create_averages, date, l1_files, run=run
               ' Image times used in avg.'
   endfor
 
-  name = strmid(savename, 0, 23)
+  name = strmid(daily_savename, 0, 23)
   daily_fits_average_filename = string(format='(a23, "_extavg.fts")', name)
   mg_log, 'writing %s', daily_fits_average_filename, name='kcor/eod', /info
   writefits, daily_fits_average_filename, daily, saveheader
