@@ -136,4 +136,5 @@
   add quality field to kcor_cal table
 1.4.31 [Mar 8, 2018]
   fix for using full paths for db files
-1.4.32
+1.4.32 [Mar 9, 2018]
+  fix DATE-OBS/DATE-END in averages
