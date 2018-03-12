@@ -138,3 +138,5 @@
   fix for using full paths for db files
 1.4.32 [Mar 9, 2018]
   fix DATE-OBS/DATE-END in averages
+1.4.33 [Mar 12, 2018]
+  separate automated, real-time CME detection script for production
