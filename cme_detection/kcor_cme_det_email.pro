@@ -124,20 +124,32 @@ pro kcor_cme_det_email, time, edge, operator=operator
     printf, out, 'Parameters for this CME have not yet been measured.'
   endif else begin
     printf, out, 'The Mauna Loa K-coronagraph has detected a possible CME at ' + $
-            time + ' UT with the following parameters'
+            time + ' UT with the following parameters:'
     printf, out
     format = '(F10.2)'
     printf, out, 'Radial distance from Sun center: ' + ntrim(edge, format) + ' Rsun'
     printf, out, 'Position angle: ' + ntrim(angle) + ' degrees'
     printf, out, 'Initial speed: ' + ntrim(speed, format) + ' km/s'
   endelse
+
+  spawn, 'echo $(whoami)@$(hostname)', who, error_result, exit_status=status
+  if (status eq 0L) then begin
+    who = who[0]
+  endif else begin
+    who = 'unknown'
+  endelse
+
+  printf, out
+  printf, out, mg_src_root(/filename), who, format='(%"Sent from %s (%s)")'
+  printf, out
+
   free_lun, out
 
   subject = string(simple_date, time, $
                    format='(%"MLSO K-Cor possible CME on %s at %s UT")')
 
   cmd = string(subject, plot_file, addresses, mailfile, $
-               format='(%"mail -s \"%s\" -a %s %s < %s")')
+               format='(%"mail -s \"%s\" -r $(whoami)@ucar.edu -a %s %s < %s")')
   spawn, cmd, result, error_result, exit_status=status
   if (status eq 0L) then begin
     mg_log, 'alert sent to %s', addresses, name='kcor/cme', /info

@@ -93,7 +93,18 @@ pro kcor_cme_det_report, time, widget=widget
     openw, out, mailfile, /get_lun
 
     printf, out, 'The Mauna Loa K-coronagraph has detected a possible CME ending at ' + $
-            time + ' UT with the following parameters'
+            time + ' UT with the below parameters.'
+    printf, out
+
+    spawn, 'echo $(whoami)@$(hostname)', who, error_result, exit_status=status
+    if (status eq 0L) then begin
+      who = who[0]
+    endif else begin
+      who = 'unknown'
+    endelse
+
+    printf, out
+    printf, out, mg_src_root(/filename), who, format='(%"Sent from %s (%s)")'
     printf, out
 
     free_lun, out
@@ -107,7 +118,7 @@ pro kcor_cme_det_report, time, widget=widget
                  plot_file, $
                  addresses, $
                  mailfile, $
-                 format='(%"mail -s \"%s\" -a %s %s < %s")')
+                 format='(%"mail -s \"%s\" -r $(whoami)@ucar.edu -a %s %s < %s")')
     spawn, cmd, result, error_result, exit_status=status
     if (status eq 0L) then begin
       mg_log, 'report sent to %s', addresses, name='kcor/cme', /info
