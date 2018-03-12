@@ -421,6 +421,8 @@ pro kcor_create_averages, date, l1_files, run=run
     mg_log, 'not adding daily average file to database', name='kcor/eod', /info
   endelse
 
+  mg_log, 'making extended averages', name='kcor/eod', /info
+
   ; make daily average 1024x1024 GIF ; 512x512 gif; and 1024x1024 FITS image
   set_plot, 'Z'
   device, set_resolution=[1024, 1024], decomposed=0, set_colors=256, z_buffering=0
@@ -480,6 +482,8 @@ pro kcor_create_averages, date, l1_files, run=run
   gif_filename = strmid(daily_savename, 0, 23) + '_extavg.gif'
   write_gif, gif_filename, save, red, green, blue  
   if (run.distribute) then begin
+    mg_log, 'copying extended average GIF to cropped dir', $
+            name='kcor/eod', /debug
     file_copy, gif_filename, fullres_dir, /overwrite
   endif
 
@@ -535,6 +539,8 @@ pro kcor_create_averages, date, l1_files, run=run
   gif_filename = strmid(daily_savename, 0, 23) + '_extavg_cropped.gif'
   write_gif, gif_filename, save, red, green, blue   
   if (run.distribute) then begin
+    mg_log, 'copying cropped extended average GIF to cropped dir', $
+            name='kcor/eod', /debug
     file_copy, gif_filename, cropped_dir, /overwrite
   endif
 
