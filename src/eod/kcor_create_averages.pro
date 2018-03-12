@@ -479,13 +479,17 @@ pro kcor_create_averages, date, l1_files, run=run
   device, decomposed=1
   save = tvrd()
 
-  gif_filename = strmid(daily_savename, 0, 23) + '_extavg.gif'
-  write_gif, gif_filename, save, red, green, blue  
-  if (run.distribute) then begin
-    mg_log, 'copying extended average GIF to cropped dir', $
-            name='kcor/eod', /debug
-    file_copy, gif_filename, fullres_dir, /overwrite
-  endif
+  if (n_elements(daily_savename) gt 0L) then begin
+    gif_filename = strmid(daily_savename, 0, 23) + '_extavg.gif'
+    write_gif, gif_filename, save, red, green, blue  
+    if (run.distribute) then begin
+      mg_log, 'copying extended average GIF to cropped dir', $
+              name='kcor/eod', /debug
+      file_copy, gif_filename, fullres_dir, /overwrite
+    endif
+  endif else begin
+    mg_log, 'no extended average for this day', name='kcor/eod', /warn
+  endelse
 
   ; create lowres  (512 x 512  gif images
 
@@ -536,13 +540,18 @@ pro kcor_create_averages, date, l1_files, run=run
   tvcircle, r, 255.5, 255.5, color=255, /device
 
   save = tvrd()
-  gif_filename = strmid(daily_savename, 0, 23) + '_extavg_cropped.gif'
-  write_gif, gif_filename, save, red, green, blue   
-  if (run.distribute) then begin
-    mg_log, 'copying cropped extended average GIF to cropped dir', $
-            name='kcor/eod', /debug
-    file_copy, gif_filename, cropped_dir, /overwrite
-  endif
+
+  if (n_elements(daily_savename) gt 0L) then begin
+    gif_filename = strmid(daily_savename, 0, 23) + '_extavg_cropped.gif'
+    write_gif, gif_filename, save, red, green, blue   
+    if (run.distribute) then begin
+      mg_log, 'copying cropped extended average GIF to cropped dir', $
+              name='kcor/eod', /debug
+      file_copy, gif_filename, cropped_dir, /overwrite
+    endif
+  endif else begin
+    mg_log, 'no extended average for this day', name='kcor/eod', /warn
+  endelse
 
   ; create fullres (1024x1024) FITS image
   ; save times used to make the daily avg. image in the header 
@@ -566,36 +575,39 @@ pro kcor_create_averages, date, l1_files, run=run
   fxaddpar, dailysaveheader, 'DATE-END', dailyendtimes[dailycount - 1]
   fxaddpar, dailysaveheader, 'DATE_HST', daily_hst
 
-  name = strmid(daily_savename, 0, 23)
-  daily_fits_average_filename = string(format='(a23, "_extavg.fts")', name)
-  mg_log, 'writing %s', daily_fits_average_filename, name='kcor/eod', /info
-  writefits, daily_fits_average_filename, daily, dailysaveheader
+  if (n_elements(daily_savename) gt 0L) then begin
+    name = strmid(daily_savename, 0, 23)
+    daily_fits_average_filename = string(format='(a23, "_extavg.fts")', name)
+    mg_log, 'writing %s', daily_fits_average_filename, name='kcor/eod', /info
+    writefits, daily_fits_average_filename, daily, dailysaveheader
+    ; remove zipped version if already exists
+    file_delete,  daily_fits_average_filename + '.gz', /allow_nonexistent
 
-  ; remove zipped version if already exists
-  file_delete,   daily_fits_average_filename + '.gz', /allow_nonexistent
+    mg_log, 'zipping daily FITS average file...', name='kcor/eod', /info
+    gzip_cmd = string(run.gzip, daily_fits_average_filename, format='(%"%s %s")')
+    spawn, gzip_cmd, result, error_result, exit_status=status
+    if (status ne 0L) then begin
+      mg_log, 'problem zipping daily average file with command: %s', gzip_cmd, $
+              name='kcor/eod', /error
+      mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
+    endif
 
-  mg_log, 'zipping daily FITS average file...', name='kcor/eod', /info
-  gzip_cmd = string(run.gzip, daily_fits_average_filename, format='(%"%s %s")')
-  spawn, gzip_cmd, result, error_result, exit_status=status
-  if (status ne 0L) then begin
-    mg_log, 'problem zipping daily average file with command: %s', gzip_cmd, $
-            name='kcor/eod', /error
-    mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
-  endif
+    if (run.distribute) then begin
+      mg_log, 'copying daily average file to archive', name='kcor/eod', /info
+      file_copy, daily_fits_average_filename + '.gz', archive_dir, /overwrite
+    endif else begin
+      mg_log, 'not copying daily average file to archive', name='kcor/eod', /info
+    endelse
 
-  if (run.distribute) then begin
-    mg_log, 'copying daily average file to archive', name='kcor/eod', /info
-    file_copy, daily_fits_average_filename + '.gz', archive_dir, /overwrite
+    if (run.update_database) then begin
+      mg_log, 'adding daily average file to database', name='kcor/eod', /info
+      kcor_img_insert, date, daily_fits_average_filename, run=run, $
+                       database=db, obsday_index=obsday_index, log_name='kcor/eod'
+    endif else begin
+      mg_log, 'not adding daily average file to database', name='kcor/eod', /info
+    endelse
   endif else begin
-    mg_log, 'not copying daily average file to archive', name='kcor/eod', /info
-  endelse
-
-  if (run.update_database) then begin
-    mg_log, 'adding daily average file to database', name='kcor/eod', /info
-    kcor_img_insert, date, daily_fits_average_filename, run=run, $
-                     database=db, obsday_index=obsday_index, log_name='kcor/eod'
-  endif else begin
-    mg_log, 'not adding daily average file to database', name='kcor/eod', /info
+    mg_log, 'no extended average for this day', name='kcor/eod', /warn
   endelse
 
   done:
