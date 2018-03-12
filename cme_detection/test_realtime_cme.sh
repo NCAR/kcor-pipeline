@@ -27,6 +27,7 @@ FLAGS=cmetest
 SCRIPT_NAME=kcor_cme_detection_job
 
 CONFIG_FILENAME=$KCOR_ROOT/config/kcor.$(whoami).$SHORT_HOSTNAME.$FLAGS.cfg
+TEST_DATE=20171122
 
-IDL_CMD="$SCRIPT_NAME, config_filename='$CONFIG_FILENAME', /realtime"
+IDL_CMD="$SCRIPT_NAME, '$TEST_DATE', config_filename='$CONFIG_FILENAME', /realtime"
 ${IDL} -IDL_PATH ${KCOR_CME_PATH} -IDL_STARTUP '' -e "${IDL_CMD}"
