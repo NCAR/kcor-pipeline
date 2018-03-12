@@ -140,3 +140,4 @@
   fix DATE-OBS/DATE-END in averages
 1.4.33 [Mar 12, 2018]
   separate automated, real-time CME detection script for production
+1.4.34

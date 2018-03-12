@@ -1,7 +1,7 @@
 project(kcor-pipeline)
 set(VERSION_MAJOR "1")
 set(VERSION_MINOR "4")
-set(VERSION_PATCH "33")
+set(VERSION_PATCH "34")
 set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 # required version of CMake
