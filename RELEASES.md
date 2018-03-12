@@ -142,3 +142,4 @@
   separate automated, real-time CME detection script for production
 1.4.34 [Mar 12, 2018]
   handle days which don't have an extended average
+1.4.35
