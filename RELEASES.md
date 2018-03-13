@@ -144,3 +144,4 @@
   handle days which don't have an extended average
 1.4.35 [Mar 13, 2018]
   fix for now creating extended average on many days
+1.4.36
