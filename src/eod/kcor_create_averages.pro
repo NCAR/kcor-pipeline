@@ -184,6 +184,7 @@ pro kcor_create_averages, date, l1_files, run=run
             dailytimes[dailycount] = imgtimes[0]
             dailyendtimes[dailycount] = imgendtimes[0]
             dailycount += 1
+            daily_savename = strmid(file_basename(l1_file), 0, 23)
           endif
           timestring[0] = strmid(imgtimes[0], 11)
         endif
@@ -216,6 +217,7 @@ pro kcor_create_averages, date, l1_files, run=run
           dailytimes[dailycount] = imgtimes[i]
           dailyendtimes[dailycount] = imgendtimes[i]
           dailycount += 1
+          daily_savename = strmid(file_basename(l1_file), 0, 23)
         endif
       endif
 
@@ -549,9 +551,7 @@ pro kcor_create_averages, date, l1_files, run=run
               name='kcor/eod', /debug
       file_copy, gif_filename, cropped_dir, /overwrite
     endif
-  endif else begin
-    mg_log, 'no extended average for this day', name='kcor/eod', /warn
-  endelse
+  endif
 
   ; create fullres (1024x1024) FITS image
   ; save times used to make the daily avg. image in the header 
@@ -606,9 +606,7 @@ pro kcor_create_averages, date, l1_files, run=run
     endif else begin
       mg_log, 'not adding daily average file to database', name='kcor/eod', /info
     endelse
-  endif else begin
-    mg_log, 'no extended average for this day', name='kcor/eod', /warn
-  endelse
+  endif
 
   done:
   cd, current
