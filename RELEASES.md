@@ -144,4 +144,5 @@
   handle days which don't have an extended average
 1.4.35 [Mar 13, 2018]
   fix for now creating extended average on many days
-1.4.36
+1.4.36 [Mar 14, 2018]
+  handle days when the extended average time is not the same as any 2 min average

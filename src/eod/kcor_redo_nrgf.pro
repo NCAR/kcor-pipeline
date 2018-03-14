@@ -122,14 +122,23 @@ pro kcor_redo_nrgf, date, run=run
 
       pos = strpos(zipped_nrgf_files[0], '_nrgf') + 5   ; '_nrgf' is 5 chars
 
+      gif_filenames = file_test(strmid(zipped_nrgf_files, 0, pos) + '.gif')
       mg_log, 'copying %d NRGF files to NRGF dir', n_nrgf_files, $
               name='kcor/eod', /info
-      file_copy, strmid(zipped_nrgf_files, 0, pos) + '.gif', nrgf_dir, /overwrite
+      for f = 0L, n_nrgf_files - 1L do begin
+        if (file_test(gif_filenames[f])) then begin
+          file_copy, gif_filenames[f], nrgf_dir, /overwrite
+        endif
+      endfor
 
       mg_log, 'copying %d NRGF files to cropped dir', n_nrgf_files, $
               name='kcor/eod', /info
-      file_copy, strmid(zipped_nrgf_files, 0, pos) + '_cropped.gif', cropped_dir, $
-                 /overwrite
+      cropped_gif_filenames = strmid(zipped_nrgf_files, 0, pos) + '_cropped.gif'
+      for f = 0L, n_nrgf_files - 1L do begin
+        if (file_test(cropped_gif_filenames[f])) then begin
+          file_copy, cropped_gif_filenames, cropped_dir, /overwrite
+        endif
+      endfor
     endif else begin
       mg_log, 'no NRGF files to distribute', name='kcor/eod', /info
     endelse
