@@ -136,7 +136,7 @@ pro kcor_redo_nrgf, date, run=run
       cropped_gif_filenames = strmid(zipped_nrgf_files, 0, pos) + '_cropped.gif'
       for f = 0L, n_nrgf_files - 1L do begin
         if (file_test(cropped_gif_filenames[f])) then begin
-          file_copy, cropped_gif_filenames, cropped_dir, /overwrite
+          file_copy, cropped_gif_filenames[f], cropped_dir, /overwrite
         endif
       endfor
     endif else begin
