@@ -122,7 +122,7 @@ pro kcor_redo_nrgf, date, run=run
 
       pos = strpos(zipped_nrgf_files[0], '_nrgf') + 5   ; '_nrgf' is 5 chars
 
-      gif_filenames = file_test(strmid(zipped_nrgf_files, 0, pos) + '.gif')
+      gif_filenames = strmid(zipped_nrgf_files, 0, pos) + '.gif'
       mg_log, 'copying %d NRGF files to NRGF dir', n_nrgf_files, $
               name='kcor/eod', /info
       for f = 0L, n_nrgf_files - 1L do begin

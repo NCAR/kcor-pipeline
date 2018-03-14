@@ -146,3 +146,5 @@
   fix for now creating extended average on many days
 1.4.36 [Mar 14, 2018]
   handle days when the extended average time is not the same as any 2 min average
+1.4.37 [Mar 14, 2018]
+  bug fix in handling days when the extended average time is not the same as 2 min average
