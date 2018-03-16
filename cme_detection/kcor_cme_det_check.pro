@@ -188,7 +188,7 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
                     widget_control, wspeed, set_value=string(speed, format='(%"%0.2f")')
                   endif else begin
                     mg_log, '%d degrees at %0.2f km/s', angle, speed, $
-                            name='kcor/cme', /debug
+                            name='kcor/cme', /info
                   endelse
                   x = date_diff.tai_avg - tairef
                   rfit = poly(x, param)
