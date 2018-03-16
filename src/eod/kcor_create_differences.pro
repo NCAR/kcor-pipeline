@@ -306,7 +306,7 @@ pro kcor_create_differences, date, l1_files, run=run
       if ((year mod 4) eq 0) then begin
         doy = (mday_leap[month - 1] + day)
       endif else begin
-        doy = (mday[month] - 1) + day
+        doy = (mday[month - 1]) + day
       endelse
 
       ; 3) Create gif and fits images
@@ -411,7 +411,7 @@ end
 
 ; main-level example program
 
-date = '20180104'
+date = '20171203'
 config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())
