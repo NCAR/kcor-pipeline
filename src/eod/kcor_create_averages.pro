@@ -242,7 +242,7 @@ pro kcor_create_averages, date, l1_files, run=run
     if ((year mod 4) eq 0) then begin
       doy = (mday_leap[month - 1] + day)
     endif else begin
-      doy = (mday[month] - 1) + day
+      doy = (mday[month - 1]) + day
     endelse
 
     ; set up device, color table and scaling
