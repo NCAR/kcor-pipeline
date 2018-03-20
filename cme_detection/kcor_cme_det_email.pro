@@ -64,6 +64,7 @@ pro kcor_cme_det_email, time, edge, operator=operator
     file_mkdir, run.engineering_dir
   endif
   plot_file = filepath(string(simple_date, format='(%"%s.cme.profile.png")'), $
+                       subdir=kcor_decompose_date(simple_date), $
                        root=run.engineering_dir)
 
   ; create plot to attach to email
@@ -148,7 +149,7 @@ pro kcor_cme_det_email, time, edge, operator=operator
   subject = string(simple_date, time, $
                    format='(%"MLSO K-Cor possible CME on %s at %s UT")')
 
-  from_email = run.cme_from_email eq '' : '$(whoami)@ucar.edu' : run.cme_from_email
+  from_email = run.cme_from_email eq '' ? '$(whoami)@ucar.edu' : run.cme_from_email
   cmd = string(subject, from_email, plot_file, addresses, mailfile, $
                format='(%"mail -s \"%s\" -r %s -a %s %s < %s")')
   spawn, cmd, result, error_result, exit_status=status
