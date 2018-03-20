@@ -27,9 +27,14 @@ pro kcor_cme_det_report, time, widget=widget
     if (~file_test(run.engineering_dir, /directory)) then begin
       file_mkdir, run.engineering_dir
     endif
+
+    eng_dir = filepath('', $
+                       subdir=kcor_decompose_date(simple_date), $
+                       root=run.engineering_dir)
+    if (~file_test(eng_dir, /directory)) then file_mkdir, eng_dir
+
     plot_file = filepath(string(simple_date, format='(%"%s.cme.plot.png")'), $
-                         subdir=kcor_decompose_date(simple_date), $
-                         root=run.engineering_dir)
+                         root=eng_dir)
 
     ; create plot to attach to email
     original_device = !d.name
