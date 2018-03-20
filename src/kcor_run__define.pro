@@ -523,6 +523,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            cme_stop_time=cme_stop_time, $
                            cme_wait_time=cme_wait_time, $
                            cme_email=cme_email, $
+                           cme_from_email=cme_from_email, $
                            database_config_filename=database_config_filename, $
                            database_config_section=database_config_section, $
                            notification_email=notification_email, $
@@ -676,6 +677,9 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   endif
   if (arg_present(cme_email)) then begin
     cme_email = self.options->get('email', section='cme')
+  endif
+  if (arg_present(cme_from_email)) then begin
+    cme_from_email = self.options->get('from_email', section='cme')
   endif
 
   ; database

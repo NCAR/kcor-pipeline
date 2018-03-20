@@ -148,8 +148,9 @@ pro kcor_cme_det_email, time, edge, operator=operator
   subject = string(simple_date, time, $
                    format='(%"MLSO K-Cor possible CME on %s at %s UT")')
 
-  cmd = string(subject, plot_file, addresses, mailfile, $
-               format='(%"mail -s \"%s\" -r $(whoami)@ucar.edu -a %s %s < %s")')
+  from_email = run.cme_from_email eq '' : '$(whoami)@ucar.edu' : run.cme_from_email
+  cmd = string(subject, from_email, plot_file, addresses, mailfile, $
+               format='(%"mail -s \"%s\" -r %s -a %s %s < %s")')
   spawn, cmd, result, error_result, exit_status=status
   if (status eq 0L) then begin
     mg_log, 'alert sent to %s', addresses, name='kcor/cme', /info
