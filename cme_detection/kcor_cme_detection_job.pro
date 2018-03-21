@@ -69,39 +69,46 @@ pro kcor_cme_detection_job, date, $
   defsysv, '!aspect', exists=sys_aspect_defined
   if (~sys_aspect_defined) then devicelib
 
-  if (file_exist(datedir)) then begin
-    cstop = 0
+  cstop = 0
 
-    mg_log, 'starting CME detection for %s', date, name='kcor/cme', /info
-    mg_log, 'archive dir : %s', datedir, name='kcor/cme', /info
+  version = kcor_find_code_version(revision=revision, branch=branch)
+  mg_log, 'kcor-pipeline %s (%s) [%s]', version, revision, branch, $
+          name='kcor/cme', /info
+  mg_log, 'IDL %s (%s %s)', !version.release, !version.os, !version.arch, $
+          name='kcor/cme', /info
 
-    ; If running in realtime mode, stop when KCOR_CME_DET_CHECK detects a stop
-    ; *and* when it is after the cme_stop_time. If running a job on already
-    ; existing files, stop after done with all the files.
-    while (1B) do begin
-      kcor_cme_det_check, stopped=stopped
+  mg_log, 'starting CME detection for %s', date, name='kcor/cme', /info
+  mg_log, 'archive dir : %s', datedir, name='kcor/cme', /info
 
-      if (stopped) then begin
-        if (cme_occurring) then begin
-          ref_time = tai2utc(tairef, /time, /truncate, /ccsds)
-          kcor_cme_det_report, ref_time
-          cme_occurring = 0B
-          mg_log, 'CME ended at %s', ref_time, name='kcor/cme', /info
-        endif
+  if (~file_exist(datedir)) then begin
+    mg_log, 'creating archive dir...', name='kcor/cme', /debug
+    file_mkdir, datedir
+  endif
 
-        if (keyword_set(realtime)) then begin
-          current_time = string(julday(), format='(C(CHI2.2, CMI2.2, CSI2.2))')
-          if (current_time gt run.cme_stop_time) then break
-          mg_log, 'waiting %0.1f seconds...', run.cme_wait_time, name='kcor/cme', /info
-          wait, run.cme_wait_time
-        endif else begin
-          break
-        endelse
+  ; If running in realtime mode, stop when KCOR_CME_DET_CHECK detects a stop
+  ; *and* when it is after the cme_stop_time. If running a job on already
+  ; existing files, stop after done with all the files.
+  while (1B) do begin
+    kcor_cme_det_check, stopped=stopped
+
+    if (stopped) then begin
+      if (cme_occurring) then begin
+        ref_time = tai2utc(tairef, /time, /truncate, /ccsds)
+        kcor_cme_det_report, ref_time
+        cme_occurring = 0B
+        mg_log, 'CME ended at %s', ref_time, name='kcor/cme', /info
       endif
-    endwhile
-  endif else begin
-    mg_log, 'directory %s does not exist', datedir, name='kcor/cme', /warn
-  endelse
+
+      if (keyword_set(realtime)) then begin
+        current_time = string(julday(), format='(C(CHI2.2, CMI2.2, CSI2.2))')
+        if (current_time gt run.cme_stop_time) then break
+        mg_log, 'waiting %0.1f seconds...', run.cme_wait_time, name='kcor/cme', /info
+        wait, run.cme_wait_time
+      endif else begin
+        break
+      endelse
+    endif
+  endwhile
 
   obj_destroy, run
 end

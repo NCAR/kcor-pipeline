@@ -172,4 +172,13 @@ pro kcor_cme_detection, date, store=k_store, timerange=k_timerange, $
   widget_control, wplot, get_value=plotwin
   xmanager, 'kcor_cme_detection', wtopbase, /no_block, $
             event_handler='kcor_cme_det_event'
+
+  version = kcor_find_code_version(revision=revision, branch=branch)
+  mg_log, 'kcor-pipeline %s (%s) [%s]', version, revision, branch, $
+          name='kcor/cme', /info
+  mg_log, 'IDL %s (%s %s)', !version.release, !version.os, !version.arch, $
+          name='kcor/cme', /info
+
+  mg_log, 'starting CME detection for %s', date, name='kcor/cme', /info
+  mg_log, 'archive dir : %s', datedir, name='kcor/cme', /info
 end
