@@ -45,7 +45,7 @@
 ;-
 pro kcor_cme_det_movie
   compile_opt strictarr
-  common kcor_cme_detection
+  @kcor_cme_det_common
 
   ; Look for the last 20 minutes worth of data, plus 5 minutes (and a bit) for
   ; generating the running differences.

@@ -13,7 +13,7 @@
 ;-
 pro kcor_cme_det_report, time, widget=widget
   compile_opt strictarr
-  common kcor_cme_detection
+  @kcor_cme_det_common
 
   if (n_elements(speed_history) gt 0L) then begin
     addresses = run.cme_email
@@ -111,6 +111,8 @@ pro kcor_cme_det_report, time, widget=widget
 
     printf, out
     printf, out, mg_src_root(/filename), who, format='(%"Sent from %s (%s)")'
+    version = kcor_find_code_version(revision=revision, branch=branch)
+    printf, out, version, revision, branch, format='(%"kcor-pipeline %s (%s) [%s]")'
     printf, out
 
     free_lun, out
@@ -119,12 +121,13 @@ pro kcor_cme_det_report, time, widget=widget
     subject = string(simple_date, time, $
                      format='(%"MLSO K-Cor report for CME on %s ending at %s UT")')
 
-    ; step through the address file, and send a message to each listed recipient
+    from_email = run.cme_from_email eq '' ? '$(whoami)@ucar.edu' : run.cme_from_email
     cmd = string(subject, $
+                 from_email, $
                  plot_file, $
                  addresses, $
                  mailfile, $
-                 format='(%"mail -s \"%s\" -r $(whoami)@ucar.edu -a %s %s < %s")')
+                 format='(%"mail -s \"%s\" -r %s -a %s %s < %s")')
     spawn, cmd, result, error_result, exit_status=status
     if (status eq 0L) then begin
       mg_log, 'report sent to %s', addresses, name='kcor/cme', /info

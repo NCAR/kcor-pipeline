@@ -42,7 +42,7 @@
 ;-
 pro kcor_cme_det_measure, rsun, updated=updated, alert=alert, ysig=ysig
   compile_opt strictarr
-  common kcor_cme_detection
+  @kcor_cme_det_common
 
   updated = 0B
   alert   = 0B

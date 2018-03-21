@@ -50,7 +50,7 @@
 ;-
 pro kcor_cme_det_email, time, edge, operator=operator
   compile_opt strictarr
-  common kcor_cme_detection
+  @kcor_cme_det_common
 
   addresses = run.cme_email
   if (addresses eq '') then begin
@@ -147,6 +147,8 @@ pro kcor_cme_det_email, time, edge, operator=operator
 
   printf, out
   printf, out, mg_src_root(/filename), who, format='(%"Sent from %s (%s)")'
+  version = kcor_find_code_version(revision=revision, branch=branch)
+  printf, out, version, revision, branch, format='(%"kcor-pipeline %s (%s) [%s]")'
   printf, out
 
   free_lun, out

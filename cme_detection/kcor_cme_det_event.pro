@@ -48,7 +48,7 @@
 ;
 pro kcor_cme_det_event, event
   compile_opt strictarr
-  common kcor_cme_detection
+  @kcor_cme_det_common
 
   ; if the window close box has been selected, then kill the widget
   if (tag_names(event, /structure_name) eq 'WIDGET_KILL_REQUEST') then begin

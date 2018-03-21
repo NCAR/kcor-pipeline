@@ -45,7 +45,7 @@
 ;-
 pro kcor_cme_det_remap, header, image, outfile, hmap, map
   compile_opt strictarr
-  common kcor_cme_detection
+  @kcor_cme_det_common
 
   ; Define the longitude and latitude arrays.
   lon = reverse((dindgen(navg * nlon) - (navg - 1) / 2.d0) * (360.d0 / navg / nlon))

@@ -11,7 +11,7 @@
 ;-
 pro kcor_cme_det_check, stopped=stopped, widget=widget
   compile_opt strictarr
-  common kcor_cme_detection
+  @kcor_cme_det_common
 
   updated = 0B
   stopped = 0B
@@ -21,7 +21,7 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
     if (count eq 0) then begin
       files = file_search(concat_dir(datedir,'*kcor_l1.fts.gz'), count=count)
       if (count eq 0) then begin
-        mg_log, 'no FITS files found in %s', datedir, name='kcor/cme', /info
+        mg_log, 'no FITS files found in archive dir', name='kcor/cme', /info
         goto, stop_point
       endif
     endif
