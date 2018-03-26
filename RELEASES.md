@@ -150,4 +150,5 @@
   bug fix in handling days when the extended average time is not the same as 2 min average
 1.4.38 [Mar 14, 2018]
   bug fix in handling days when the extended average time is not the same as 2 min average
-1.4.39
+1.4.39 [Mar 26, 2018]
+  new distortion
