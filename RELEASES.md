@@ -152,3 +152,6 @@
   bug fix in handling days when the extended average time is not the same as 2 min average
 1.4.39 [Mar 26, 2018]
   new distortion
+  indexing fixes for CME detection
+  create missing directories in CME detection
+  send CME notification from config file "from_email" address
