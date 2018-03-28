@@ -21,8 +21,7 @@ KCOR_ROOT=$(dirname $KCOR_CME_ROOT)
 KCOR_CME_PATH=+${KCOR_CME_ROOT}:+${KCOR_ROOT}/lib:+${KCOR_ROOT}/src:"<IDL_DEFAULT>"
 SHORT_HOSTNAME=$(hostname | sed -e 's/\..*$//')
 
-# TODO: change to cme when put into production
-FLAGS=cmetest
+FLAGS=cme
 
 SCRIPT_NAME=kcor_cme_detection_job
 
