@@ -4,7 +4,7 @@
 # is not running.
 
 pid=$(pgrep -u mgalloy -f 'kcor_cme_detection_job.*/realtime')
-if [ $? -eq 1 ]; do
+if [ $? -eq 1 ]; then
   # status=1 if automated, real-time CME detection is not running
 
   # restart process
