@@ -9,6 +9,7 @@ if [ $? -eq 1 ]; then
 
   # restart process
   script=$(dirname $0)/kcor_realtime_cme.sh
+  echo "Launching automated, real-time pipeline $(date)..."
   $script
 
   # send notification that process wasn't running and restarting it
