@@ -101,7 +101,11 @@ pro kcor_cme_detection_job, date, $
 
       if (keyword_set(realtime)) then begin
         current_time = string(julday(), format='(C(CHI2.2, CMI2.2, CSI2.2))')
-        if (current_time gt run.cme_stop_time) then break
+        if (current_time gt run.cme_stop_time) then begin
+          mg_log, 'current time %s later than stop time %s', $
+                  current_time, run.cme_stop_time, name='kcor/cme', /info
+          break
+        endif
         mg_log, 'waiting %0.1f seconds...', run.cme_wait_time, name='kcor/cme', /info
         wait, run.cme_wait_time
       endif else begin
@@ -109,6 +113,8 @@ pro kcor_cme_detection_job, date, $
       endelse
     endif
   endwhile
+
+  mg_log, 'quiting...', name='kcor/cme', /info
 
   obj_destroy, run
 end
