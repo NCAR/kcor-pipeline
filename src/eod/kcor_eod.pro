@@ -128,6 +128,13 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     endif
   endif
 
+  if (run.produce_plots) then begin
+    q_dir = filepath('q', subdir=date, root=run.raw_basedir)
+    kcor_quality_plot, q_dir, $
+                       filepath(string(date, format='(%"%s.kcor.quality.png")'), $
+                                root=q_dir)
+  endif
+
   ok_list = filepath('okfgif.ls', $
                      subdir=[date, 'level1'], $
                      root=run.raw_basedir)
