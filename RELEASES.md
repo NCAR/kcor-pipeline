@@ -157,3 +157,4 @@
   send CME notification from config file "from_email" address
 1.4.40
   quality plot
+  fixes for putting means/medians in kcor_eng table
