@@ -52,6 +52,8 @@ pro kcor_quality_plot, q_dir, output_filename
   n_types = n_elements(types)
   type_filenames = filepath(types + '.ls', root=q_dir)
 
+  ; create quality histogram
+
   start_time = 06   ; 24-hour time
   end_time   = 19   ; 24-hour time
   increment  = 15   ; minutes
@@ -71,17 +73,21 @@ pro kcor_quality_plot, q_dir, output_filename
     endif
   endfor
 
+  ; display plot
+
   original_device = !d.name
   set_plot, 'Z'
-  device, set_resolution=[800, 150], set_pixel_depth=24, decomposed=1
+  device, set_resolution=[600, 120], set_pixel_depth=24, decomposed=1
   tvlct, original_rgb, /get
-  loadct, 41, /silent
-  tvlct, rgb, /get
 
-  ;colors = mg_rgb2index(rgb[bytscl(bindgen(n_types)), *])
-  colors = mg_color(['orange', 'slateblue', 'yellow', 'red', $
-                     'darkgrey', 'blanchedalmond', 'dodgerblue', 'aquamarine'], $
-                    /index)
+  colors = ['00a000'x, $   ; oka
+            '00d0ff'x, $   ; brt
+            'a06000'x, $   ; cal
+            'a9a9a9'x, $   ; cld
+            'e6d8ad'x, $   ; dev
+            '606060'x, $   ; dim
+            '0090d0'x, $   ; nsy
+            'ee82ee'x]     ; sat
   sums = total(histograms, 2, /preserve_type)
   mg_stacked_histplot, (increment / 60.0) * findgen(n_bins) + start_time, $
                        histograms, $
@@ -89,16 +95,21 @@ pro kcor_quality_plot, q_dir, output_filename
                        background='ffffff'x, color=colors, /fill, $
                        xstyle=9, xticks=end_time - start_time, xminor=4, $
                        ystyle=9, yrange=[0, max_images], yticks=4, $
+                       charsize=0.85, $
                        xtitle='Time (HST)', ytitle='# of images', $
-                       position=[0.075, 0.15, 0.85, 0.95]
+                       position=[0.075, 0.25, 0.85, 0.95]
 
-  square = mg_usersym(/square, /fill)
-  mg_legend, item_name=types + ' ' + strtrim(sums, 2), $
-             item_color=colors, $
-             item_psym=square, $
-             item_symsize=1.5, $
-             color='000000'x, $
-             position=[0.86, 0.15, 0.95, 0.95]
+  present_ind = where(sums gt 0, n_present)
+  if (n_present gt 0L) then begin
+    square = mg_usersym(/square, /fill)
+    mg_legend, item_name=types + ' ' + strtrim(sums, 2), $
+               item_color=colors, $
+               item_psym=square, $
+               item_symsize=1.5, $
+               color='000000'x, $
+               charsize=0.85, $
+               position=[0.875, 0.15, 0.95, 0.95]
+  endif
 
   im = tvrd(true=1)
   tvlct, original_rgb
@@ -109,6 +120,7 @@ end
 
 ; main-level example program
 
-kcor_quality_plot, '/Users/mgalloy/Desktop/q', 'quality.png'
+q_dir = '/hao/mahidata1/Data/KCor/raw.test/20170821/q'
+kcor_quality_plot, q_dir, 'quality.png'
 
 end

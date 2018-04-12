@@ -128,12 +128,12 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     endif
   endif
 
-  if (run.produce_plots) then begin
-    q_dir = filepath('q', subdir=date, root=run.raw_basedir)
-    kcor_quality_plot, q_dir, $
-                       filepath(string(date, format='(%"%s.kcor.quality.png")'), $
-                                root=q_dir)
-  endif
+  q_dir = filepath('q', subdir=date, root=run.raw_basedir)
+  quality_plot = filepath(string(date, format='(%"%s.kcor.quality.png")'), $
+                          root=q_dir)
+
+  kcor_quality_plot, q_dir, quality_plot
+
 
   ok_list = filepath('okfgif.ls', $
                      subdir=[date, 'level1'], $
@@ -360,6 +360,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
                            n_errors_msg, $
                            format='(%"KCor end-of-day processing for %s (%s%s)")'), $
                     msg, $
+                    attachments=quality_plot, $
                     logger_name='kcor/eod'
   endif else begin
     mg_log, 'not sending notification email', name='kcor/eod', /warn

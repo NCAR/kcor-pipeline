@@ -156,3 +156,4 @@
   create missing directories in CME detection
   send CME notification from config file "from_email" address
 1.4.40
+  quality plot
