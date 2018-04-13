@@ -17,6 +17,9 @@
 pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   compile_opt strictarr
 
+  run = kcor_run(date, config_filename=config_filename, mode='eod')
+  if (~obj_valid(run)) then message, 'problem creating run object'
+
   ; catch and log any crashes
   catch, error
   if (error ne 0L) then begin
@@ -25,8 +28,6 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     kcor_crash_notification, /eod, run=run
     goto, done
   endif
-
-  run = kcor_run(date, config_filename=config_filename, mode='eod')
 
   mg_log, '------------------------------', name='kcor/eod', /info
 

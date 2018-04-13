@@ -864,8 +864,11 @@ function kcor_run::init, date, $
   self.pipe_dir = file_expand_path(filepath('..', root=mg_src_root()))
 
   if (~file_test(config_filename)) then message, config_filename + ' not found'
-  self.options = mg_read_config(config_filename)
-  self.epochs = mg_read_config(filepath('epochs.cfg', root=mg_src_root()))
+  self.options = mg_read_config(config_filename, error=error, errmsg=errmsg)
+  if (error ne 0) then message, errmsg
+  self.epochs = mg_read_config(filepath('epochs.cfg', root=mg_src_root()), $
+                               error=error, errmsg=errmsg)
+  if (error ne 0) then message, errmsg
 
   ; rotate the logs if this is a reprocessing
   self->setProperty, mode=mode

@@ -60,7 +60,9 @@ def list_processes():
 
 def wait_for(process):
     try:
-        process.wait()
+        out, err = process.communicate()
+        print(err)
+        #process.wait()
         return 0
     except KeyboardInterrupt:
         print('killing process %d' % process.pid)
@@ -78,7 +80,7 @@ def calibrate_list(filelist, dates, flags, no_wait):
            dates,
            flags]
 
-    process = subprocess.Popen(cmd, stdout=DEVNULL, stderr=DEVNULL)
+    process = subprocess.Popen(cmd, stdout=None, stderr=subprocess.PIPE)
     print('[%d] %s' % (process.pid, ' '.join(cmd)))
             
     if not no_wait:
@@ -92,7 +94,7 @@ def calibrate_dates(dates, flags, no_wait):
                    d,
                    flags]
 
-            process = subprocess.Popen(cmd, stdout=DEVNULL, stderr=DEVNULL)
+            process = subprocess.Popen(cmd, stdout=None, stderr=subprocess.PIPE)
             print('[%d] %s' % (process.pid, ' '.join(cmd)))
             
             if not no_wait:
@@ -104,7 +106,7 @@ def calibrate_dates(dates, flags, no_wait):
                    r[0], r[1],
                    flags]
 
-            process = subprocess.Popen(cmd, stdout=DEVNULL, stderr=DEVNULL)
+            process = subprocess.Popen(cmd, stdout=None, stderr=subprocess.PIPE)
             print('[%d] %s' % (process.pid, ' '.join(cmd)))
             if not no_wait:
                 terminated = wait_for(process)
@@ -120,7 +122,7 @@ def process_dates(dates, flags, no_wait):
                    d,
                    flags]
 
-            process = subprocess.Popen(cmd, stdout=DEVNULL, stderr=DEVNULL)
+            process = subprocess.Popen(cmd, stdout=None, stderr=subprocess.PIPE)
             print('[%d] %s' % (process.pid, ' '.join(cmd)))
             if not no_wait:
                 terminated = wait_for(process)
@@ -132,7 +134,7 @@ def process_dates(dates, flags, no_wait):
                    r[0], r[1],
                    flags]
 
-            process = subprocess.Popen(cmd, stdout=DEVNULL, stderr=DEVNULL)
+            process = subprocess.Popen(cmd, stdout=None, stderr=subprocess.PIPE)
             print('[%d] %s' % (process.pid, ' '.join(cmd)))
             if not no_wait:
                 terminated = wait_for(process)

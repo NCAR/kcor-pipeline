@@ -19,6 +19,9 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
 
   rt_clock = tic('rt')
 
+  run = kcor_run(date, config_filename=config_filename, mode='realtime')
+  if (~obj_valid(run)) then message, 'problem creating run object'
+
   ; catch and log any crashes
   catch, error
   if (error ne 0L) then begin
@@ -27,8 +30,6 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     kcor_crash_notification, /realtime, run=run
     goto, done
   endif
-
-  run = kcor_run(date, config_filename=config_filename, mode='realtime')
 
   mg_log, '------------------------------', name='kcor/rt', /info
 
