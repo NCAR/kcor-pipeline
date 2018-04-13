@@ -99,17 +99,14 @@ pro kcor_quality_plot, q_dir, output_filename
                        xtitle='Time (HST)', ytitle='# of images', $
                        position=[0.075, 0.25, 0.85, 0.95]
 
-  present_ind = where(sums gt 0, n_present)
-  if (n_present gt 0L) then begin
-    square = mg_usersym(/square, /fill)
-    mg_legend, item_name=types + ' ' + strtrim(sums, 2), $
-               item_color=colors, $
-               item_psym=square, $
-               item_symsize=1.5, $
-               color='000000'x, $
-               charsize=0.85, $
-               position=[0.875, 0.15, 0.95, 0.95]
-  endif
+  square = mg_usersym(/square, /fill)
+  mg_legend, item_name=types + ' ' + strtrim(sums, 2), $
+             item_color=colors, $
+             item_psym=square, $
+             item_symsize=1.5, $
+             color='000000'x, $
+             charsize=0.85, $
+             position=[0.875, 0.15, 0.95, 0.95]
 
   im = tvrd(true=1)
   tvlct, original_rgb
@@ -120,7 +117,15 @@ end
 
 ; main-level example program
 
-q_dir = '/hao/mahidata1/Data/KCor/raw.test/20170821/q'
-kcor_quality_plot, q_dir, 'quality.png'
+year = '2018'
+month = '01'
+for day = 1, 31 do begin
+  date = string(year, month, day, format='(%"%s%s%02d")')
+  q_dir = string(date, format='(%"/hao/mlsodata1/Data/KCor/raw/%s/q")')
+  if (~file_test(q_dir, /directory)) then continue
+  output_filename = filepath(string(date, format='(%"%s.kcor.quality.png")'), $
+                             root=q_dir)
+  kcor_quality_plot, q_dir, output_filename
+endfor
 
 end
