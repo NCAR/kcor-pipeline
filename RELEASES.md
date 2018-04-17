@@ -158,3 +158,4 @@
 1.4.40
   quality plot
   fixes for putting means/medians in kcor_eng table
+  add kcor_hw reference to kcor_eng

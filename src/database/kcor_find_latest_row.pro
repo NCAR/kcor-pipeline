@@ -1,7 +1,7 @@
 ; docformat = 'rst'
 
 ;+
-; Find the latest `kcor_sw` entry by `proc_date`.
+; Find the latest row of the given table by `proc_date`.
 ;
 ; :Keywords:
 ;   run : in, required, type=object
@@ -11,7 +11,7 @@
 ;   log_name : in, required, type=string
 ;     log name to use for logging, i.e., "kcor/rt", "kcor/eod", etc.
 ;-
-function kcor_find_latest_sw, run=run, database=database, log_name=log_name
+function kcor_find_latest_row, table, run=run, database=database, log_name=log_name
   compile_opt strictarr
 
   if (obj_valid(database)) then begin
@@ -28,8 +28,8 @@ function kcor_find_latest_sw, run=run, database=database, log_name=log_name
     mg_log, 'connected to %s', host, name=log_name, /info
   endelse
 
-  q = 'select * from kcor_sw where proc_date = (select max(proc_date) from kcor_sw)'
-  latest_proc_date = db->query(q, fields=fields)
+  q = 'select * from %s where proc_date = (select max(proc_date) from %s)'
+  latest_proc_date = db->query(q, table, table, fields=fields)
 
   done:
   if (~obj_valid(database)) then obj_destroy, db

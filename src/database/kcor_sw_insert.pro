@@ -4,14 +4,15 @@
 ; Insert values into the MLSO database table: kcor_sw.
 ;
 ; Reads a list of L1 files for a specified date and inserts a row of data into
-; 'kcor_sw' if any of the monitored fields changed from the previous db entry.  This
-; script will check the database against the current data to decide whether a new line 
-; should be added
+; 'kcor_sw' if any of the monitored fields changed from the previous db entry.
+; This script will check the database against the current data to decide whether
+; a new line should be added
 ;
 ; :Params:
 ;   date : in, type=string
 ;     date in the form 'YYYYMMDD'
-;	filelist: in, required, type=array of strings
+;   fits_list: in, required, type=strarr
+;     level 1 FITS filenames
 ;
 ; :Keywords:
 ;   run : in, required, type=object
@@ -28,7 +29,7 @@
 ;                 '20170214_190548_kcor.fts.gz', $
 ;                 '20170214_190604_kcor.fts', $
 ;                 '20170214_190619_kcor.fts']
-;     kcor_sw_insert, date, filelist;
+;     kcor_sw_insert, date, filelist
 ;
 ;
 ; :Author: 
@@ -40,9 +41,9 @@
 ;               Use /hao/mlsodata1/Data/KCor/raw/yyyymmdd for L1 fits files.
 ;   15 Sep 2015 Use /hao/acos/year/month/day directory    for L1 fits files.
 ;   28 Sep 2015 Remove bitpix, xdim, ydim fields.
-;   15 Mar 2017 Edits by D Kolinski to align inserts with kcor_sw db table and to
-;                 check for changes in field values compared to previous database entries to
-;                 determine whether a new entry is needed.
+;   15 Mar 2017 Edits by D Kolinski to align inserts with kcor_sw db table and
+;               to check for changes in field values compared to previous
+;               database entries to determine whether a new entry is needed.
 ;-
 pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_name, $
                     sw_ids=sw_ids
@@ -89,7 +90,7 @@ pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_na
   date_format = '(C(CYI, "-", CMOI2.2, "-", CDI2.2, "T", CHI2.2, ":", CMI2.2, ":", CSI2.2))'
 
   ; get last kcor_sw entry (latest proc_date) to compare to
-  latest_sw = kcor_find_latest_sw(run=run, database=database, log_name=log_name)
+  latest_sw = kcor_find_latest('kcor_sw', run=run, database=database, log_name=log_name)
 
   i = -1
   fts_file = ''
@@ -153,7 +154,22 @@ pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_na
                sky_pol_factor : sky_pol_factor, $   ; from epochs.cfg
                sky_bias       : sky_bias}           ; from epochs.cfg
 
-    update = kcor_compare_sw(latest_sw, file_sw, log_name=log_name) ne 0
+    compare_fields = ['dmodswid', $
+                      'distort', $
+                      'sw_version', $
+                      'bunit', $
+                      'bzero', $
+                      'bscale', $
+                      'labviewid', $
+                      'socketcamid', $
+                      'sw_revision', $
+                      'sky_pol_factor', $
+                      'sky_bias']
+    compare_fields = strupcase(compare_fields)
+
+    update = kcor_compare_rows(latest_sw, file_sw, $
+                               compare_fields=compare_fields, $
+                               log_name=log_name) ne 0
 	
     if (update) then begin
       mg_log, 'inserting a new kcor_sw row', name=log_name, /info
@@ -219,7 +235,7 @@ config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
 
-latest_sw = kcor_find_latest_sw(run=run, database=database, log_name=log_name)
+latest_sw = kcor_find_latest_sw('kcor_sw', run=run, database=database, log_name=log_name)
 help, latest_sw
 
 cd, current=current_dir

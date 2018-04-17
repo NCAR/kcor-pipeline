@@ -79,23 +79,22 @@ if (! $sth)
   }
 
 # Define fields
-$command = "CREATE TABLE kcor_hw 
-  (
-  hw_id    INT (10) AUTO_INCREMENT PRIMARY KEY,
-  date      	DATETIME NOT NULL,
-  diffsrid  	CHAR (8),
-  bopal			FLOAT (11, 7),
-  rcamid    	CHAR (18),
-  tcamid    	CHAR (18),
-  rcamlut   	CHAR (14),
-  tcamlut   	CHAR (14),
-  modltrid  	CHAR (1),
-  o1id      	CHAR (14),
-  occltrid  	CHAR (10),
-  filterid  	CHAR (12),
-  calpolid		CHAR (12),
-  UNIQUE (date)
-  )" ;  # TODO: remove _test when in production
+$command = "create table kcor_hw (
+  hw_id       int(10) auto_increment primary key,
+  date        datetime not null,
+  proc_date   datetime not null,
+  diffsrid    char(8),
+  bopal	      float(11, 7),
+  rcamid      char(18),
+  tcamid      char(18),
+  rcamlut     char(14),
+  tcamlut     char(14),
+  modltrid    char(1),
+  o1id        char(14),
+  occltrid    char(10),
+  filterid    char(12),
+  calpolid    char(12),
+)";
 
 $sth = $dbh->prepare ($command) ;
 $sth->execute () ;
