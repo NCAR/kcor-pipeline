@@ -90,7 +90,7 @@ pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_na
   date_format = '(C(CYI, "-", CMOI2.2, "-", CDI2.2, "T", CHI2.2, ":", CMI2.2, ":", CSI2.2))'
 
   ; get last kcor_sw entry (latest proc_date) to compare to
-  latest_sw = kcor_find_latest('kcor_sw', run=run, database=database, log_name=log_name)
+  latest_sw = kcor_find_latest_row('kcor_sw', run=run, database=database, log_name=log_name)
 
   i = -1
   fts_file = ''
@@ -165,8 +165,6 @@ pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_na
                       'sw_revision', $
                       'sky_pol_factor', $
                       'sky_bias']
-    compare_fields = strupcase(compare_fields)
-
     update = kcor_compare_rows(latest_sw, file_sw, $
                                compare_fields=compare_fields, $
                                log_name=log_name) ne 0
@@ -206,8 +204,8 @@ pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_na
                    status=status, error_message=error_message, sql_statement=sql_cmd
       if (status ne 0L) then begin
         mg_log, '%d, error message: %s', status, error_message, $
-                name=log_name, /debug
-        mg_log, 'sql_cmd: %s', sql_cmd, name=log_name, /debug
+                name=log_name, /error
+        mg_log, 'sql_cmd: %s', sql_cmd, name=log_name, /error
       endif
 
       sw = db->query('select last_insert_id()')
@@ -235,7 +233,7 @@ config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
 
-latest_sw = kcor_find_latest_sw('kcor_sw', run=run, database=database, log_name=log_name)
+latest_sw = kcor_find_latest_row('kcor_sw', run=run, database=database, log_name=log_name)
 help, latest_sw
 
 cd, current=current_dir

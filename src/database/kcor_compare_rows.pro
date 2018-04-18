@@ -12,12 +12,14 @@ function kcor_compare_rows, row1, row2, compare_fields=compare_fields, log_name=
   if (n_elements(row1) eq 0L && n_elements(row2) eq 0L) then return, 0
   if (n_elements(row1) eq 0L || n_elements(row2) eq 0L) then return, 1
 
+  _compare_fields = strupcase(compare_fields)
+
   fields1 = tag_names(row1)
   fields2 = tag_names(row2)
 
-  for f = 0L, n_elements(compare_fields) - 1L do begin
-    ind1 = where(fields1 eq compare_fields[f], count1)
-    ind2 = where(fields2 eq compare_fields[f], count2)
+  for f = 0L, n_elements(_compare_fields) - 1L do begin
+    ind1 = where(fields1 eq _compare_fields[f], count1)
+    ind2 = where(fields2 eq _compare_fields[f], count2)
     if (count1 eq 0 && count2 eq 0L) then continue
     if (count1 eq 0 || count2 eq 0L) then return, 1
     if (row1.(ind1[0]) ne row2.(ind2[0])) then begin

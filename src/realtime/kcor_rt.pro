@@ -239,12 +239,14 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
         if (n_l1_fits_files gt 0L) then begin
           kcor_img_insert, date, l1_fits_files, $
                            sw_ids=sw_ids, $
+                           hw_ids=hw_ids, $
                            run=run, $
                            database=db, $
                            obsday_index=obsday_index, log_name='kcor/rt'
           kcor_eng_insert, date, l1_fits_files, $
                            mean_phase1=mean_phase1, $
                            sw_ids=sw_ids, $
+                           hw_ids=hw_ids, $
                            run=run, $
                            database=db, $
                            obsday_index=obsday_index

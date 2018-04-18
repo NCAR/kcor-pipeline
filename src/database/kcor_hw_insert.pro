@@ -76,7 +76,7 @@ pro kcor_hw_insert, date, fits_list, run=run, database=database, log_name=log_na
   date_format = '(C(CYI, "-", CMOI2.2, "-", CDI2.2, "T", CHI2.2, ":", CMI2.2, ":", CSI2.2))'
 
   ; get last kcor_sw entry (latest proc_date) to compare to
-  latest_hw = kcor_find_latest('kcor_hw', run=run, database=database, log_name=log_name)
+  latest_hw = kcor_find_latest_row('kcor_hw', run=run, database=database, log_name=log_name)
 
   i = -1
   fts_file = ''
@@ -143,8 +143,6 @@ pro kcor_hw_insert, date, fits_list, run=run, database=database, log_name=log_na
                       'occltrid', $
                       'filterid', $
                       'calpolid']
-    compare_fields = strupcase(compare_fields)
-
     update = kcor_compare_rows(latest_hw, file_hw, $
                                compare_fields=compare_fiels, $
                                log_name=log_name) ne 0
@@ -156,7 +154,7 @@ pro kcor_hw_insert, date, fits_list, run=run, database=database, log_name=log_na
                 'proc_date', $
                 compare_fields]
       fields_expr = strjoin(fields, ', ')
-      db->execute, 'INSERT INTO kcor_sw (%s) VALUES (''%s'', ''%s'', ''%s'', ''%s'', %f, ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'') ', $
+      db->execute, 'INSERT INTO kcor_sw (%s) VALUES (''%s'', ''%s'', ''%s'', %f, ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'') ', $
                    fields_expr, $
                    date, $
                    proc_date, $        ; generated
@@ -174,8 +172,8 @@ pro kcor_hw_insert, date, fits_list, run=run, database=database, log_name=log_na
                    status=status, error_message=error_message, sql_statement=sql_cmd
       if (status ne 0L) then begin
         mg_log, '%d, error message: %s', status, error_message, $
-                name=log_name, /debug
-        mg_log, 'sql_cmd: %s', sql_cmd, name=log_name, /debug
+                name=log_name, /error
+        mg_log, 'sql_cmd: %s', sql_cmd, name=log_name, /error
       endif
 
       hw = db->query('select last_insert_id()')
