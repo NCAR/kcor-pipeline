@@ -1,7 +1,7 @@
 ;-------------------------------------------------------------
 ;+
 ; NAME:
-;       SUN
+;       MLSO_SUN
 ; PURPOSE:
 ;       Computes geocentric physical ephemeris of the sun.
 ; CATEGORY:
@@ -51,7 +51,7 @@
 ;-
 ;-------------------------------------------------------------
  
-	pro sun, yr, m, d, et, help=hlp, $
+	pro mlso_sun, yr, m, d, et, help=hlp, $
 	  dist=dist, true_long=true_long, app_long=app_long, $
 	  true_lat=true_lat, app_lat=app_lat, sd=sd, $
 	  true_ra=true_ra, app_ra=app_ra, true_dec=true_dec, $
@@ -62,7 +62,7 @@
  
 	if ((np gt 0) and (np lt 4)) or keyword_set(hlp) then begin
 	  print,' Computes geocentric physical ephemeris of the sun.'
-	  print,' sun, y, m, d, et'
+	  print,' mlso_sun, y, m, d, et'
 	  print,'   y = year.                      in'
 	  print,'   m = month number.              in'
 	  print,'   d = monthday number.           in'
