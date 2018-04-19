@@ -105,6 +105,9 @@
 ;     set to specify the message as informational
 ;   debug : in, optional, type=boolean
 ;     set to specify the message as debug
+;   check_math : in, optional, type=boolean
+;     set to put a message about the current `CHECK_MATH` state in the log, if
+;     the current state is not 0
 ;   last_error : in, optional, type=boolean
 ;     set to place a stack trace for the last error in the log; placed after
 ;     the logging of any normal message in this call
@@ -127,6 +130,7 @@ pro mg_log, msg, $
             name=name, $
             debug=debug, informational=informational, $
             warning=warning, error=error, critical=critical, $
+            check_math=check_math, $
             last_error=lastError, $
             execution_info=execution_info, $
             logger=logger, was_logged=was_logged, quit=quit, _extra=e
@@ -183,8 +187,9 @@ pro mg_log, msg, $
     logger->insert_execution_info, level=_level, back_levels=1
   endif
 
-  ; do after regular messages so that a regular message and the stack trace
-  ; can be logged with one call to MG_LOG
+  ; do after regular messages so that a regular message and the CHECK_MATH
+  ; status/stack trace can be logged with one call to MG_LOG
+  if (keyword_set(check_math)) then logger->insertCheckMath, back_levels=1, level=_level
   if (keyword_set(lastError)) then logger->insertLastError, back_levels=1
 
   ; do last so that a quitting message can be logged at the same time that the
@@ -201,46 +206,32 @@ end
 
 mg_log, logger=logger
 
-logger->setProperty, level=3
+print, 'Top level logger @ LEVEL=5 (DEBUG):'
+mg_log, 'Debugging message', /debug
+mg_log, 'Informational message', /informational
+mg_log, 'Warning message', /warning
+mg_log, 'Error message', /error
+mg_log, 'Critical message', /critical
 
-print, 'Top level logger @ LEVEL=3:'
+logger->setProperty, /warning
+
+print
+print, 'Top level logger @ LEVEL=3 (WARNING):'
 mg_log, 'Debugging message', /debug              ; won't show up since LEVEL=3
 mg_log, 'Informational message', /informational  ; won't show up since LEVEL=3
 mg_log, 'Warning message', /warning
 mg_log, 'Error message', /error
 mg_log, 'Critical message', /critical
 
-mg_log, name='mg_log', logger=mgLogLogger
-mgLogLogger->setProperty, level=1
+logger->setProperty, /critical
 
 print
-print, 'mg_log logger @ LEVEL=1:'
-mg_log, 'Debugging message', name='mg_log', /debug
-mg_log, 'Informational message', name='mg_log', /informational
-mg_log, 'Warning message', name='mg_log', /warning
-mg_log, 'Error message', name='mg_log', /error
-mg_log, 'Critical message', name='mg_log', /critical
-
-mg_log, name='mg_log/example', logger=mgLogExampleLogger
-mgLogExampleLogger->setProperty, level=2
-
-print
-print, 'mg_log/example logger @ LEVEL=2, mg_log logger @ LEVEL=1:'
-mg_log, 'Debugging message', name='mg_log/example', /debug
-mg_log, 'Informational message', name='mg_log/example', /informational
-mg_log, 'Warning message', name='mg_log/example', /warning
-mg_log, 'Error message', name='mg_log/example', /error
-mg_log, 'Critical message', name='mg_log/example', /critical
-
-mgLogLogger->setProperty, level=2
-
-print
-print, 'mg_log/example logger @ LEVEL=2, mg_log logger @ LEVEL=2:'
-mg_log, 'Debugging message', name='mg_log/example', /debug
-mg_log, 'Informational message', name='mg_log/example', /informational
-mg_log, 'Warning message', name='mg_log/example', /warning
-mg_log, 'Error message', name='mg_log/example', /error
-mg_log, 'Critical message', name='mg_log/example', /critical
+print, 'mg_log logger @ LEVEL=1 (CRITICAL):'
+mg_log, 'Debugging message', /debug      ; won't show up since LEVEL=1
+mg_log, 'Informational message', /info   ; won't show up since LEVEL=1
+mg_log, 'Warning message', /warning      ; won't show up since LEVEL=1
+mg_log, 'Error message', /error          ; won't show up since LEVEL=1
+mg_log, 'Critical message', /critical
 
 mg_log, /quit
 
