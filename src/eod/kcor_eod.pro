@@ -31,6 +31,9 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   mg_log, '------------------------------', name='kcor/eod', /info
 
+  ; do not print math errors, we check for them explicitly
+  !except = 0
+
   version = kcor_find_code_version(revision=revision, branch=branch)
   mg_log, 'kcor-pipeline %s (%s) [%s]', version, revision, branch, $
           name='kcor/eod', /info

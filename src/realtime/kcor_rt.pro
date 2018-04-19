@@ -33,7 +33,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
 
   mg_log, '------------------------------', name='kcor/rt', /info
 
-  ; ignore math errors
+  ; do not print math errors, we check for them explicitly
   !except = 0
 
   version = kcor_find_code_version(revision=revision, branch=branch)
