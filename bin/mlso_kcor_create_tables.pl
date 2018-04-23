@@ -184,7 +184,7 @@ if (! $sth)
 $command = "CREATE TABLE kcor_eng 
   (
   eng_id    INT (10) AUTO_INCREMENT PRIMARY KEY,
-  file_name VARCHAR (32) NOT NULL,
+  file_name VARCHAR (40) NOT NULL,
   date      DATETIME NOT NULL,
   rcamfocs  FLOAT (6, 2),
   tcamfocs  FLOAT (6, 2),

@@ -86,7 +86,7 @@ if (! $sth)
 # kcor_sw_id is the id number of the entry in the kcor_sw table relevant to this entry
 $command = "create table kcor_eng (
   eng_id                int(10) auto_increment primary key,
-  file_name             char(32) not null,
+  file_name             char(40) not null,
   date_obs              datetime not null,
   obs_day               mediumint (5) not null,
   rcamfocs              float(6, 2),
