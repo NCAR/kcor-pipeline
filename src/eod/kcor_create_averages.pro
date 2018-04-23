@@ -10,10 +10,6 @@
 ;     for the daily average we will skip the first 8 images (~2 minutes) of data
 ;  4) save the daily average as an annotated gif and a fits image
 ;
-; :Todo:
-;   re-create the nrgf images (FITS and GIF) in a separate routine using the
-;   averaged FITS images created here.
-;
 ; :Author:
 ;   J. Burkepile, Jan 2018
 ;
