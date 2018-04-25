@@ -160,3 +160,5 @@
   fixes for putting means/medians in kcor_eng table
   add kcor_hw reference to kcor_eng
   updated distortion in epochs
+  epochs for changes on 20180406-20180423
+  better ephemeris calculation
