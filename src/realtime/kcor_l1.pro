@@ -401,6 +401,16 @@ pro kcor_l1, date_str, ok_files, $
 
     lclock = tic('Loop_' + strtrim(fnum, 2))
 
+    img = readfits(l0_file, header, /silent)
+
+    type = fxpar(header, 'DATATYPE')
+    mg_log, 'type: %s', strmid(type, 0, 3), name='kcor/rt', /debug
+
+    ; read date of observation
+    date_obs = sxpar(header, 'DATE-OBS')   ; yyyy-mm-ddThh:mm:ss
+    run.time = date_obs
+    date     = strmid(date_obs, 0, 10)     ; yyyy-mm-dd
+
     ; extract information from calibration file
     calpath = filepath(run->epoch('cal_file'), root=run.cal_out_dir)
     if (file_test(calpath)) then begin
@@ -503,21 +513,11 @@ pro kcor_l1, date_str, ok_files, $
     bdate   = bin_date(current_time)
     date_dp = string(bdate, format='(%"%04d-%02d-%02dT%02d:%02d:%02d")')
 
-    img = readfits(l0_file, header, /silent)
-
-    type = fxpar(header, 'DATATYPE')
-    mg_log, 'type: %s', strmid(type, 0, 3), name='kcor/rt', /debug
-
-    ; read date of observation (needed to compute ephemeris info)
-    date_obs = sxpar(header, 'DATE-OBS')   ; yyyy-mm-ddThh:mm:ss
-    run.time = date_obs
-    date     = strmid(date_obs, 0, 10)     ; yyyy-mm-dd
-
     if (cal_epoch_version ne run->epoch('cal_epoch_version')) then begin
       mg_log, 'cal file epoch_version (%s) does not match for time of file %s (%s)', $
               cal_epoch_version, file_basename(l0_file), run->epoch('cal_epoch_version'), $
-              name='kcor/rt', /warn
-      mg_log, 'skipping file %s', file_basename(l0_file), name='kcor/rt', /warn
+              name='kcor/rt', /error
+      mg_log, 'skipping file %s', file_basename(l0_file), name='kcor/rt', /error
       continue
     endif
 
@@ -598,15 +598,15 @@ pro kcor_l1, date_str, ok_files, $
     struct = fitshead2struct(header, dash2underscore=dash2underscore)
 
     if (n_elements(cal_exptime) eq 0L) then begin
-      mg_log, 'calibration exptime not defined', name='kcor/rt', /warn
-      mg_log, 'skipping file %s', file_basename(l0_file), name='kcor/rt', /warn
+      mg_log, 'calibration exptime not defined', name='kcor/rt', /error
+      mg_log, 'skipping file %s', file_basename(l0_file), name='kcor/rt', /error
       continue
     endif else begin
       if (cal_exptime ne struct.exptime) then begin
         mg_log, 'cal file EXPTIME (%0.1f ms) does not match file (%0.1f ms) for %s', $
                 cal_exptime, struct.exptime, file_basename(l0_file), $
-                name='kcor/rt', /warn
-        mg_log, 'skipping file %s', file_basename(l0_file), name='kcor/rt', /warn
+                name='kcor/rt', /error
+        mg_log, 'skipping file %s', file_basename(l0_file), name='kcor/rt', /error
         continue
       endif
     endelse
@@ -615,8 +615,8 @@ pro kcor_l1, date_str, ok_files, $
     if (cal_lyotstop ne file_lyotstop) then begin
       mg_log, 'cal file LYOTSTOP (%s) does not match file (%s) for %s', $
               cal_lyotstop, file_lyotstop, file_basename(l0_file), $
-              name='kcor/rt', /warn
-      mg_log, 'skipping file %s', file_basename(l0_file), name='kcor/rt', /warn
+              name='kcor/rt', /error
+      mg_log, 'skipping file %s', file_basename(l0_file), name='kcor/rt', /error
       continue
     endif
 
