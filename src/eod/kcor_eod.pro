@@ -41,6 +41,11 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
           name='kcor/eod', /info
   mg_log, 'starting end-of-day processing for %s', date, name='kcor/eod', /info
 
+  q_dir = filepath('q', subdir=date, root=run.raw_basedir)
+  quality_plot = filepath(string(date, format='(%"%s.kcor.quality.png")'), $
+                          root=q_dir)
+  kcor_quality_plot, q_dir, quality_plot
+
   date_dir = filepath(date, root=run.raw_basedir)
   if (~file_test(date_dir, /directory)) then begin
     mg_log, '%s does not exist', date_dir, name='kcor/eod', /error
@@ -57,13 +62,10 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   l0_fits_files = file_search(filepath('*_kcor.fts.gz', root=date_dir), $
                               count=n_l0_fits_files)
   if (n_l0_fits_files gt 0L) then begin
-    if (keyword_set(reprocess)) then begin
-      mg_log, 'L0 FITS files exist in %s', date_dir, name='kcor/eod', /error
-      mg_log, 'L1 processing incomplete', name='kcor/eod', /error
-    endif else begin
-      mg_log, 'L0 FITS files exist in %s', date_dir, name='kcor/eod', /info
-      mg_log, 'L1 processing incomplete', name='kcor/eod', /info
-    endelse
+    mg_log, 'L0 FITS files exist in %s', date_dir, name='kcor/eod', $
+            error=keyword_set(reprocess), info=~keyword_set(reprocess)
+    mg_log, 'L1 processing incomplete', name='kcor/eod', $
+            error=keyword_set(reprocess), info=~keyword_set(reprocess)
     goto, done
   endif
 
@@ -131,13 +133,6 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
       kcor_create_animations, date, list=nrgf_files, run=run
     endif
   endif
-
-  q_dir = filepath('q', subdir=date, root=run.raw_basedir)
-  quality_plot = filepath(string(date, format='(%"%s.kcor.quality.png")'), $
-                          root=q_dir)
-
-  kcor_quality_plot, q_dir, quality_plot
-
 
   ok_list = filepath('okfgif.ls', $
                      subdir=[date, 'level1'], $
