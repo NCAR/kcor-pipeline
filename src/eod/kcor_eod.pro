@@ -205,7 +205,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     endif
     if (run.catalog_files) then kcor_catalog, date, list=files, run=run
 
-    if (run.send_to_archive) then kcor_archive, run=run, reprocess=reprocess
+    if (run.send_to_archive) then kcor_archive_l0, run=run, reprocess=reprocess
 
     ; produce calibration for tomorrow
     if (run.reduce_calibration && run->epoch('produce_calibration')) then begin
@@ -213,6 +213,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     endif else begin
       mg_log, 'skipping reducing calibration', name='kcor/eod', /info
     endelse
+
+    if (run.send_to_archive) then kcor_archive_l1, run=run
   endif else begin
     ; t{1,2}.log in level0/ directory indicates eod done
     file_delete, filepath(date + '.kcor.t1.log', root=l0_dir), $

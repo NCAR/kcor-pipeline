@@ -10,12 +10,19 @@
 ;     set to indicate a reprocessing; level 0 files are not distributed in a
 ;     reprocessing
 ;-
-pro kcor_archive, run=run, reprocess=reprocess
+pro kcor_archive_l0, run=run, reprocess=reprocess
   compile_opt strictarr
 
   cd, current=cwd
 
-  l0_dir = filepath('level0', subdir=run.date, root=run.raw_basedir)
+  date_dir = filepath(date, root=run.raw_basedir)
+  l0_dir   = filepath('level0', root=date_dir)
+
+  if (~file_test(l0_dir, /directory)) then begin
+    file_mkdir, l0_dir
+    file_chmod, l0_dir, /a_read, /a_execute, /u_write
+  endif
+
   cd, l0_dir
 
   date = run.date
@@ -31,16 +38,8 @@ pro kcor_archive, run=run, reprocess=reprocess
     goto, done
   endif
 
-  date_dir = filepath(date, root=run.raw_basedir)
-  l0_dir   = filepath('level0', root=date_dir)
   tarfile  = string(date, format='(%"%s_kcor_l0.tgz")')
   tarlist  = string(date, format='(%"%s_kcor_l0.tarlist")')
-  hpssinfo = string(date, format='(%"%s_kcor_l0_tar.ls")')
-
-  if (~file_test(l0_dir, /directory)) then begin
-    file_mkdir, l0_dir
-    file_chmod, l0_dir, /a_read, /a_execute, /u_write
-  endif
 
   if (file_test(tarfile, /regular)) then begin
     mg_log, 'tarfile already exists: %s', tarfile, name='kcor/eod', /warn
@@ -115,7 +114,7 @@ pro kcor_archive, run=run, reprocess=reprocess
     endif
 
     file_link, filepath(tarfile, root=l0_dir), $
-               filepath(tarfile, root=run.hpss_gateway)
+               filepath(tarfile, root=run.hpss_gateway)o
   endif else begin
     mg_log, 'not sending to HPSS', name='kcor/eod', /info
   endelse
@@ -136,7 +135,7 @@ config_filename = filepath('kcor.mgalloy.kaula.production.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
-kcor_archive, run=run
+kcor_archive_l0, run=run
 obj_destroy, run
 
 end
