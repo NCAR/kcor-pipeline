@@ -114,7 +114,7 @@ pro kcor_archive_l0, run=run, reprocess=reprocess
     endif
 
     file_link, filepath(tarfile, root=l0_dir), $
-               filepath(tarfile, root=run.hpss_gateway)o
+               filepath(tarfile, root=run.hpss_gateway)
   endif else begin
     mg_log, 'not sending to HPSS', name='kcor/eod', /info
   endelse
