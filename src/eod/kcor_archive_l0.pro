@@ -15,6 +15,8 @@ pro kcor_archive_l0, run=run, reprocess=reprocess
 
   cd, current=cwd
 
+  date = run.date
+
   date_dir = filepath(date, root=run.raw_basedir)
   l0_dir   = filepath('level0', root=date_dir)
 
@@ -25,7 +27,6 @@ pro kcor_archive_l0, run=run, reprocess=reprocess
 
   cd, l0_dir
 
-  date = run.date
   year   = long(strmid(date, 0, 4))
   month  = long(strmid(date, 4, 2))
   day    = long(strmid(date, 6, 2))
