@@ -10,6 +10,8 @@
 pro kcor_archive_l1, run=run
   compile_opt strictarr
 
+  date = run.date
+
   mg_log, 'sending L1 data to HPSS...', name='kcor/eod', /info
 
   if (~run.send_to_hpss) then begin
@@ -27,8 +29,6 @@ pro kcor_archive_l1, run=run
   endif
 
   cd, l1_dir
-
-  date = run.date
 
   tarfile  = string(date, format='(%"%s_kcor_l1.tgz")')
   tarlist  = string(date, format='(%"%s_kcor_l1.tarlist")')
