@@ -28,8 +28,15 @@ function kcor_find_latest_row, table, run=run, database=database, log_name=log_n
     mg_log, 'connected to %s', host, name=log_name, /info
   endelse
 
-  q = 'select * from %s where proc_date = (select max(proc_date) from %s)'
-  latest_proc_date = db->query(q, table, table, fields=fields)
+  ; "latest" is different for kcor_sw (processing date) and kcor_hw (date
+  ; hardware was installed)
+  case table of
+    'kcor_hw': date_name = 'date'
+    'kcor_sw': date_name = 'proc_date'
+  endcase
+
+  q = 'select * from %s where %s = (select max(%s) from %s)'
+  latest_proc_date = db->query(q, table, date_name, date_name, table, fields=fields)
 
   done:
   if (~obj_valid(database)) then obj_destroy, db
