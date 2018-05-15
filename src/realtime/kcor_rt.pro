@@ -282,7 +282,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
   endelse
 
   done:
-  mg_log, /check_math, name='kcor/rt', /warn
+  mg_log, /check_math, name='kcor/rt', /debug
 
   !null = kcor_state(/unlock, run=run)
   mg_log, 'done with realtime processing run', name='kcor/rt', /info

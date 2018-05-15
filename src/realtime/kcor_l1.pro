@@ -486,9 +486,9 @@ pro kcor_l1, date, ok_files, $
 
     ; find center and radius for gain images
     info_gain0 = kcor_find_image(gain_alfred[*, *, 0], radius_guess, log_name='kcor/rt')
-    mg_log, /check_math, name='kcor/rt', /warn
+    mg_log, /check_math, name='kcor/rt', /debug
     info_gain1 = kcor_find_image(gain_alfred[*, *, 1], radius_guess, log_name='kcor/rt')
-    mg_log, /check_math, name='kcor/rt', /warn
+    mg_log, /check_math, name='kcor/rt', /debug
 
     ; define coordinate arrays for gain images
     gxx0 = findgen(xsize, ysize) mod xsize - info_gain0[0]
@@ -1494,9 +1494,9 @@ pro kcor_l1, date, ok_files, $
     cd, l1_dir
     if (osecond lt 15 and fix(ominute / 2) * 2 eq ominute) then begin
       kcor_nrgf, l1_file, run=run, log_name='kcor/rt'
-      mg_log, /check_math, name='kcor/rt', /warn
+      mg_log, /check_math, name='kcor/rt', /debug
       kcor_nrgf, l1_file, /cropped, run=run, log_name='kcor/rt'
-      mg_log, /check_math, name='kcor/rt', /warn
+      mg_log, /check_math, name='kcor/rt', /debug
     endif
 
     cd, l0_dir
@@ -1521,7 +1521,7 @@ pro kcor_l1, date, ok_files, $
     image_time = 0.0
   endelse
 
-  mg_log, /check_math, name='kcor/rt', /warn
+  mg_log, /check_math, name='kcor/rt', /debug
   mg_log, 'processed %d images in %0.1f sec', nfiles, total_time, $
           name='kcor/rt', /info
   mg_log, 'time/image: %0.1f sec', image_time, name='kcor/rt', /info
