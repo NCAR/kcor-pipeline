@@ -236,9 +236,9 @@ pro kcor_create_averages, date, l1_files, run=run
     mday_leap = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]   ; leap year
 
     if ((year mod 4) eq 0) then begin
-      doy = (mday_leap[month - 1] + day)
+      doy = mday_leap[month - 1] + day
     endif else begin
-      doy = (mday[month - 1]) + day
+      doy = mday[month - 1] + day
     endelse
 
     ; set up device, color table and scaling
