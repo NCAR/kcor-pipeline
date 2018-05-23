@@ -369,7 +369,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
 
   done:
-  mg_log, /check_math, name='kcor/eod', /warn
+  mg_log, /check_math, name='kcor/eod', /debug
   mg_log, 'done', name='kcor/eod', /info
   obj_destroy, run
 end
