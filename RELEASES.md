@@ -162,3 +162,5 @@
   updated distortion in epochs
   epochs for changes on 20180406-20180423
   better ephemeris calculation
+  remove taking absolute value of data
+  use IDL 8.6

@@ -988,7 +988,7 @@ pro kcor_l1, date_str, ok_files, $
     endcase
 
     ; use only corona minus sky polarization background
-    corona = sqrt(umk4_new ^ 2)
+    corona = umk4_new
 
     vdimref = kcor_getsgs(header, 'SGSDIMV', /float)
     mg_log, 'flat DIMV: %0.1f, image DIMV: %0.1f', flat_vdimref, vdimref, $
