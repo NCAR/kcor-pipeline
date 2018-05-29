@@ -315,7 +315,7 @@
 ; All Level 1 files (fits & gif) will be stored in the sub-directory 'level1',
 ; under the date directory.
 ;-
-pro kcor_l1, date_str, ok_files, $
+pro kcor_l1, date, ok_files, $
              append=append, $
              run=run, $
              mean_phase1=mean_phase1, $
@@ -326,9 +326,8 @@ pro kcor_l1, date_str, ok_files, $
 
   error = 0L
 
-  l0_dir  = filepath(date_str, root=run.raw_basedir)
-  l1_dir  = filepath('level1', subdir=date_str, root=run.raw_basedir)
-  l0_file = ''
+  l0_dir  = filepath(date, root=run.raw_basedir)
+  l1_dir  = filepath('level1', subdir=date, root=run.raw_basedir)
 
   if (~file_test(l1_dir, /directory)) then file_mkdir, l1_dir
 
@@ -339,7 +338,7 @@ pro kcor_l1, date_str, ok_files, $
   ; get current date & time
   current_time = systime(/utc)
 
-  mg_log, 'processing %s', date_str, name='kcor/rt', /info
+  mg_log, 'processing %s', date, name='kcor/rt', /info
 
   ; check for empty list of OK files
   nfiles = n_elements(ok_files)
@@ -408,8 +407,8 @@ pro kcor_l1, date_str, ok_files, $
 
     ; read date of observation
     date_obs = sxpar(header, 'DATE-OBS')   ; yyyy-mm-ddThh:mm:ss
+    date_struct = kcor_parse_dateobs(date_obs)
     run.time = date_obs
-    date     = strmid(date_obs, 0, 10)     ; yyyy-mm-dd
 
     ; extract information from calibration file
     calpath = filepath(run->epoch('cal_file'), root=run.cal_out_dir)
@@ -477,7 +476,7 @@ pro kcor_l1, date_str, ok_files, $
       gain_temp = double(reform(gain_alfred[*, *, b]))
       filter = mean_filter(gain_temp, 5, 5, invalid=gain_negative, missing=1)
       bad = where(gain_temp eq gain_negative, nbad)
-        
+
       if (nbad gt 0) then begin
         gain_temp[bad] = filter[bad]
         gain_alfred[*, *, b] = gain_temp
@@ -487,9 +486,9 @@ pro kcor_l1, date_str, ok_files, $
 
     ; find center and radius for gain images
     info_gain0 = kcor_find_image(gain_alfred[*, *, 0], radius_guess, log_name='kcor/rt')
-    mg_log, /check_math, name='kcor/rt', /warn
+    mg_log, /check_math, name='kcor/rt', /debug
     info_gain1 = kcor_find_image(gain_alfred[*, *, 1], radius_guess, log_name='kcor/rt')
-    mg_log, /check_math, name='kcor/rt', /warn
+    mg_log, /check_math, name='kcor/rt', /debug
 
     ; define coordinate arrays for gain images
     gxx0 = findgen(xsize, ysize) mod xsize - info_gain0[0]
@@ -510,8 +509,8 @@ pro kcor_l1, date_str, ok_files, $
 
     ; get current date & time
     current_time = systime(/utc)
-    bdate   = bin_date(current_time)
-    date_dp = string(bdate, format='(%"%04d-%02d-%02dT%02d:%02d:%02d")')
+    date_dp = string(bin_date(current_time), $
+                     format='(%"%04d-%02d-%02dT%02d:%02d:%02d")')
 
     if (cal_epoch_version ne run->epoch('cal_epoch_version')) then begin
       mg_log, 'cal file epoch_version (%s) does not match for time of file %s (%s)', $
@@ -1488,69 +1487,16 @@ pro kcor_l1, date_str, ok_files, $
     ; write FITS image to disk
     writefits, filepath(l1_file, root=l1_dir), corona_int, newheader
   
-    ; Now make low resolution GIF file:
-    ;
-    ; rebin to 768x768 (75% of original size) and crop around center to 512 x
-    ; 512 image
-
-    rebin_img = congrid(corona, 768, 768)
-    crop_img = rebin_img[128:639, 128:639]
-
-    ; window, 0, xsize=512, ysize=512, retain=2
-
-    set_plot, 'Z'
-    erase
-    device, set_resolution=[512,512], decomposed=0, set_colors=256, $
-            z_buffering=0
-    erase
-    tv, bytscl(crop_img ^ run->epoch('display_exp'), $
-               min=run->epoch('display_min'), max=run->epoch('display_max'))
-
-    xyouts, 4, 495, 'MLSO/HAO/KCOR', color=255, charsize=1.2, /device
-    xyouts, 4, 480, 'K-Coronagraph', color=255, charsize=1.2, /device
-    xyouts, 256, 500, 'North', color=255, $
-            charsize=1.0, alignment=0.5, /device
-    xyouts, 507, 495, string(format='(a2)', sday) + ' ' $
-                               + string(format='(a3)', name_month)$
-                               + ' ' + string(format='(a4)', syear), $
-            /device, alignment = 1.0, $
-            charsize=1.0, color=255
-    ;xyouts, 500, 480, 'DOY ' + string(format='(i3)', odoy), $
-    ;        /device, alignment=1.0, charsize=1.0, color=255
-    xyouts, 500, 480, string(format='(a2)', shour) + ':' $
-            + string(format='(a2)', sminute) + ':' $
-            + string(format='(a2)', ssecond) + ' UT', $
-            /device, alignment=1.0, $
-            charsize=1.0, color=255
-    xyouts, 12, 256, 'East', color=255, $
-            charsize=1.0, alignment=0.5, orientation=90.0, /device
-    xyouts, 507, 256, 'West', color=255, $
-            charsize=1.0, alignment=0.5, orientation=90.0, /device
-    ;xyouts, 4, 34, 'Level 1 data', color=255, charsize=1.0, /device
-    xyouts, 4, 20, string(run->epoch('display_min'), run->epoch('display_max'), $
-                          format='("min/max: ", f5.2, ", ", f3.1)'), $
-            color=255, charsize=1.0, /device
-    xyouts, 4, 6, string(run->epoch('display_exp'), $
-                         run->epoch('display_gamma'), $
-                         format='("scaling: Intensity ^ ", f3.1, ", gamma=", f4.2)'), $
-            color=255, charsize=1.0, /device
-    xyouts, 508, 6, 'Circle = photosphere', color=255, $
-            charsize=1.0, /device, alignment=1.0
-
-    r = r_photo * 0.75    ;  image is rebined to 75% of original size
-    tvcircle, r, 255.5, 255.5, color=255, /device
-
-    save = tvrd()
-    cgif_file = strmid(l0_file, 0, 20) + '_l1_cropped.gif'
-    write_gif, filepath(cgif_file, root=l1_dir), save, red, green, blue
+    ; now make cropped GIF file
+    kcor_cropped_gif, corona, date, date_struct, run=run
 
     ; create NRG (normalized, radially-graded) GIF image
     cd, l1_dir
     if (osecond lt 15 and fix(ominute / 2) * 2 eq ominute) then begin
       kcor_nrgf, l1_file, run=run, log_name='kcor/rt'
-      mg_log, /check_math, name='kcor/rt', /warn
+      mg_log, /check_math, name='kcor/rt', /debug
       kcor_nrgf, l1_file, /cropped, run=run, log_name='kcor/rt'
-      mg_log, /check_math, name='kcor/rt', /warn
+      mg_log, /check_math, name='kcor/rt', /debug
     endif
 
     cd, l0_dir
@@ -1564,8 +1510,9 @@ pro kcor_l1, date_str, ok_files, $
     ok_files = ok_files[1:*]
   endif
 
-  ; get system time & compute elapsed time since "TIC" command
+  ; get system time & compute elapsed time since TIC command
   done:
+  cd, start_dir
   total_time = toc()
 
   if (nfiles ne 0) then begin
@@ -1574,7 +1521,7 @@ pro kcor_l1, date_str, ok_files, $
     image_time = 0.0
   endelse
 
-  mg_log, /check_math, name='kcor/rt', /warn
+  mg_log, /check_math, name='kcor/rt', /debug
   mg_log, 'processed %d images in %0.1f sec', nfiles, total_time, $
           name='kcor/rt', /info
   mg_log, 'time/image: %0.1f sec', image_time, name='kcor/rt', /info

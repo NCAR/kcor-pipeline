@@ -90,7 +90,13 @@ pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_na
   date_format = '(C(CYI, "-", CMOI2.2, "-", CDI2.2, "T", CHI2.2, ":", CMI2.2, ":", CSI2.2))'
 
   ; get last kcor_sw entry (latest proc_date) to compare to
-  latest_sw = kcor_find_latest_row('kcor_sw', run=run, database=database, log_name=log_name)
+  latest_sw = kcor_find_latest_row('kcor_sw', run=run, database=database, $
+                                   log_name=log_name, error=error)
+
+  if (error ne 0L) then begin
+    mg_log, 'skipping inserting kcor_sw row', name=log_name, /warn
+    goto, done
+  endif
 
   i = -1
   fts_file = ''

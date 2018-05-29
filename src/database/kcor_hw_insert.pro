@@ -63,7 +63,7 @@ pro kcor_hw_insert, date, fits_list, run=run, database=database, log_name=log_na
   cd, current=start_dir
   cd, archive_dir
 
-  ; loop through fits list
+  ; loop through FITS list
   nfiles = n_elements(fits_list)
 
   if (nfiles eq 0) then begin
@@ -76,7 +76,13 @@ pro kcor_hw_insert, date, fits_list, run=run, database=database, log_name=log_na
   date_format = '(C(CYI, "-", CMOI2.2, "-", CDI2.2, "T", CHI2.2, ":", CMI2.2, ":", CSI2.2))'
 
   ; get last kcor_hw entry (latest proc_date) to compare to
-  latest_hw = kcor_find_latest_row('kcor_hw', run=run, database=database, log_name=log_name)
+  latest_hw = kcor_find_latest_row('kcor_hw', run=run, database=database, $
+                                   log_name=log_name, error=error)
+
+  if (error ne 0L) then begin
+    mg_log, 'skipping inserting kcor_hw row', name=log_name, /warn
+    goto, done
+  endif
 
   i = -1
   fts_file = ''

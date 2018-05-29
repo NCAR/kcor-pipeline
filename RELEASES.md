@@ -162,5 +162,8 @@
   updated distortion in epochs
   epochs for changes on 20180406-20180423
   better ephemeris calculation
+1.4.41
+  always create quality plot
+  send L1 products to HPSS
+  update to IDL 8.6
   remove taking absolute value of data
-  use IDL 8.6
