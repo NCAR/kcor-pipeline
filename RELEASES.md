@@ -166,3 +166,4 @@
   always create quality plot
   send L1 products to HPSS
   update to IDL 8.6
+  remove taking absolute value of data
