@@ -59,7 +59,7 @@ pro kcor_swplot, year, run=run
 
   dates = strmid(dates, 0, 4) + strmid(dates, 5, 2) + strmid(dates, 8, 2)
 
-  mg_calendar_plot, year, dates, versions, start_on=1
+  mg_calendar_plot, year, dates, versions, start_on=0
 
   obj_destroy, db
 end

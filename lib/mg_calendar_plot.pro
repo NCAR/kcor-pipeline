@@ -13,7 +13,11 @@
 ;   start_on : in, optional, type=integer
 ;     day of week to start weeks on: 0=Sunday, 1=Monday, ... 6=Saturday
 ;-
-pro mg_calendar_plot, year, dates, values, start_on=start_on
+pro mg_calendar_plot, year, dates, values, start_on=start_on, $
+                      color_table=color_table, $
+                      ct_number=ct_number, $
+                      n_ct_colors=n_ct_colors, $
+                      labels=labels
   compile_opt strictarr
 
   ;; calendar calculations
@@ -46,15 +50,6 @@ pro mg_calendar_plot, year, dates, values, start_on=start_on
   endif else n_rows = 53
 
 
-  ;; grouping values
-  n_values = n_elements(values)
-  h = mg_str_histogram(values, locations=unique_values, reverse_indices=ri)
-
-  fill_indices = lonarr(n_values)
-  for u = 0L, n_elements(unique_values) - 1L do begin
-    fill_indices[ri[ri[u]:ri[u + 1] - 1]] = u mod 12
-  endfor
-
   ;; graphics
 
   n_rows   += 1   ; add a row for day of week labels
@@ -75,10 +70,32 @@ pro mg_calendar_plot, year, dates, values, start_on=start_on
   device, decomposed=1
 
   tvlct, original_rgb, /get
-  mg_loadct, 27, /brewer   ; there are 12 colors in ColorBrewer Set3
-  tvlct, rgb, /get
 
-  ct = mg_rgb2index(rgb[0:11, *])
+  if (n_elements(color_table) gt 0L) then begin
+    rgb = color_table
+    dims = size(color_table, /dimensions)
+    _n_ct_colors = mg_default(n_ct_colors, dims[0])
+  endif else begin
+    _ct_number   = mg_default(ct_number, 27)
+    mg_loadct, _ct_number, /brewer
+    tvlct, rgb, /get
+    _n_ct_colors = mg_default(n_ct_colors, 12)  ; there are 12 colors in CB Set3
+  endelse
+
+  ct = mg_rgb2index(rgb[0:_n_ct_colors - 1, *])
+
+
+  ;; grouping values
+  n_values = n_elements(values)
+  h = mg_str_histogram(values, locations=unique_values, reverse_indices=ri)
+
+  _labels = n_elements(labels) eq 0L ? unique_values : labels
+
+  fill_indices = lonarr(n_values)
+  for u = 0L, n_elements(unique_values) - 1L do begin
+    fill_indices[ri[ri[u]:ri[u + 1] - 1]] = u mod _n_ct_colors
+  endfor
+
 
   window, xsize=450, ysize=1000, /free, title=year
 
@@ -162,11 +179,13 @@ pro mg_calendar_plot, year, dates, values, start_on=start_on
   legend_line_height = 0.025
   usersym, [-1, 1, 1, -1, -1], [1, 1, -1, -1, 1], /fill
   sorted_indices = sort(unique_values)
+
   for u = 0L, n_elements(unique_values) - 1L do begin
+    i = n_elements(labels) gt 0L ? sorted_indices[u] : u
     x = 1.0 - right_margin + 6 * month_gap
-    y = 1.0 - top_margin - (u + 2) * legend_line_height
+    y = 1.0 - top_margin - (i + 2) * legend_line_height
     plots, x, y, psym=8, symsize=2.0, /normal, color=ct[sorted_indices[u]]
-    xyouts, x + month_gap, y - 0.0025, unique_values[sorted_indices[u]], $
+    xyouts, x + month_gap, y - 0.0025, _labels[sorted_indices[u]], $
             /normal, color=date_color
   endfor
 
