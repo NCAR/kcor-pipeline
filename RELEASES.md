@@ -155,4 +155,15 @@
   indexing fixes for CME detection
   create missing directories in CME detection
   send CME notification from config file "from_email" address
-1.4.40
+1.4.40 [Apr 25, 2018]
+  quality plot
+  fixes for putting means/medians in kcor_eng table
+  add kcor_hw reference to kcor_eng
+  updated distortion in epochs
+  epochs for changes on 20180406-20180423
+  better ephemeris calculation
+1.4.41
+  always create quality plot
+  send L1 products to HPSS
+  update to IDL 8.6
+  remove taking absolute value of data

@@ -98,7 +98,7 @@ def main():
                   for f in args.logfiles]
     follow = args.follow
     if follow and len(logfiles) > 1:
-        print 'cannot follow multiple files'
+        print('cannot follow multiple files')
         return
 
     if args.prune is not None:

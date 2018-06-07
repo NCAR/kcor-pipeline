@@ -15,10 +15,22 @@
 ;     taking the last level and passing the previous ones up to its parent;
 ;     only messages with levels greater than or equal to than the logger
 ;     level will be logged
+;   debug : type=boolean
+;     convenience keyword to set level as debug (5)
+;   informational : type=boolean 
+;     convenience keyword to set level as informational (4)
+;   warning : type=boolean
+;     convenience keyword to set level as warning (3)
+;   error : type=boolean
+;     convenience keyword to set level as error (2)
+;   critical : type=boolean
+;     convenience keyword to set level as critical (1)
+;   color : type=boolean
+;     set to use color for logging to TTY
 ;   time_format : type=string
-;     Fortran style format code to specify the format of the time in the
-;     `FORMAT` property; the default value formats the time/date like
-;     "2003-07-08 16:49:45.891"
+;       Fortran style format code to specify the format of the time in the
+;       `FORMAT` property; the default value formats the time/date like
+;       "2003-07-08 16:49:45.891"
 ;   format : type=string
 ;     format string for messages, default value for format is::
 ;
@@ -43,6 +55,30 @@
 ;   _extra : type=keywords
 ;     any keyword accepted by `MGffLogger::setProperty`
 ;-
+
+
+
+;+
+; Determines if the current terminal is a TTY, calling `MG_TERMISTTY` safely
+; even if `mglib` is not installed.
+;
+; :Private:
+;
+; :Returns:
+;   1 if current term is a TTY, 0 if not (or not sure)
+;-
+function mgfflogger::_is_tty
+  compile_opt strictarr
+
+  catch, error
+  if (error ne 0L) then begin
+    catch, /cancel
+    message, /reset
+    return, 0
+  endif
+
+  return, mg_termIsTty()
+end
 
 
 ;+
@@ -152,6 +188,7 @@ end
 ; Set properties.
 ;-
 pro mgfflogger::getProperty, level=level, $
+                             color=color, $
                              format=format, time_format=time_format, $
                              name=name, $
                              fullname=fullname, $
@@ -160,6 +197,7 @@ pro mgfflogger::getProperty, level=level, $
   compile_opt strictarr
 
   if (arg_present(level)) then level = self.level
+  if (arg_present(color)) then color = self.color
   if (arg_present(children)) then children = self.children
   if (arg_present(format)) then format = self.format
   if (arg_present(time_format)) then time_format = self.time_format
@@ -186,6 +224,12 @@ end
 ; Get properties.
 ;-
 pro mgfflogger::setProperty, level=level, $
+                             debug=debug, $
+                             informational=informational, $
+                             warning=warning, $
+                             error=error, $
+                             critical=critical, $
+                             color=color, $
                              format=format, time_format=time_format, $
                              filename=filename, $
                              widget_identifier=widget_identifier, $
@@ -203,6 +247,17 @@ pro mgfflogger::setProperty, level=level, $
       end
   endcase
 
+  if (keyword_set(debug)) then self.level = 5
+  if (keyword_set(informational)) then self.level = 4
+  if (keyword_set(warning)) then self.level = 3
+  if (keyword_set(error)) then self.level = 2
+  if (keyword_set(critical)) then self.level = 1
+
+  if (n_elements(color) gt 0L) then begin
+    self.color = color
+    self.color_set = 1B
+  endif
+
   if (n_elements(format) gt 0L) then self.format = format
   if (n_elements(time_format) gt 0L) then self.time_format = time_format
   if (n_elements(filename) gt 0L) then self.filename = filename
@@ -212,6 +267,45 @@ pro mgfflogger::setProperty, level=level, $
   if (keyword_set(clobber) && n_elements(filename) gt 0L) then begin
     if (file_test(filename)) then file_delete, filename
   endif
+end
+
+
+;+
+; Insert possibly multiple message about the `CHECK_MATH` status in the
+; log. Does not insert any message if math status is 0.
+;
+; :Keywords:
+;    back_levels : in, optional, private, type=boolean
+;       number of levels to go back in the stack trace beyond the normal ones;
+;       should be set to 1 if calling this routine from `MG_LOG` for example
+;-
+pro mgfflogger::insertCheckMath, back_levels=back_levels, level=level
+  compile_opt strictarr
+
+  _back_levels = n_elements(back_levels) eq 0L ? 0 : back_levels
+  _level = n_elements(level) eq 0L ? 5L : level
+
+  status = check_math()
+  if (status eq 0) then return
+
+  msgs = ['integer divided by zero', $          ; 1
+          'integer overflow', $                 ; 2
+          '', $                                 ; 4
+          '', $                                 ; 8
+          'floating-point divided by zero', $   ; 16
+          'floating-point underflow', $         ; 32
+          'floating-point overflow', $          ; 64
+          'floating-point operand error']       ; 128
+  stack = scope_traceback(/structure, /system)
+  stack = stack[n_elements(s) - 2L - back_levels]
+
+  ind = where(ishft(status, - indgen(n_elements(msgs))) mod 2, n_status_msgs)
+
+  for m = 0L, n_status_msgs - 1L do begin
+    msg = string(msgs[ind[m]], stack.routine, stack.line, $
+                 format='(%"%s on %s line %d")')
+    self->print, msg, level=_level, back_levels=_back_levels + 1L 
+  endfor
 end
 
 
@@ -322,8 +416,20 @@ pro mgfflogger::print, msg, level=msg_level, back_levels=back_levels, $
     if (self.widget_identifier gt 0L) then begin
       widget_control, self.widget_identifier, set_value=s, /append
     endif else begin
+      ; use color if set or display to stdout
+      if ((self.color_set && self.color) || (~self.color_set && self.is_tty && lun lt 0)) then begin
+        case msg_level of
+          1: s = mg_ansicode(s, /red)
+          2: s = mg_ansicode(s, /magenta)
+          3: s = mg_ansicode(s, /yellow)
+          4: s = mg_ansicode(s, /cyan)
+          5:
+        endcase
+      endif
+
       printf, lun, s
     endelse
+
     was_logged = 1B
   endif
 
@@ -360,6 +466,11 @@ function mgfflogger::init, parent=parent, name=name, _extra=e
 
   self.time_format = 'C(CYI4.4, "-", CMOI2.2, "-", CDI2.2, " ", CHI2.2, ":", CMI2.2, ":", CSI2.2)'
   self.format = '%(time)s %(levelshortname)s: %(routine)s: %(message)s'
+
+  ; settings to determine whether to use color
+  self.is_tty = self->_is_tty()
+  self.color = 0B
+  self.color_set = 0B
 
   self.level = 0L
   self.levelNames = ['Critical', 'Error', 'Warning',  'Informational', 'Debug']
@@ -406,6 +517,9 @@ pro mgfflogger__define
              level: 0L, $
              levelNames: strarr(5), $
              levelShortNames: strarr(5), $
+             color: 0B, $
+             color_set: 0B, $
+             is_tty: 0B, $
              filename: '', $
              widget_identifier: 0L, $
              time_format: '', $

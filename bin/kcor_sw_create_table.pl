@@ -73,21 +73,21 @@ if (! $sth) {
 #   If a lot of queries are done, it is best to have VARCHARS at the end of
 #   field list, but this table will not get a lot of queries. I left 'labviewid'
 #   and 'socketcamid' as varchars due to not knowing their actual length
-$command = "CREATE TABLE kcor_sw (
-  sw_id               INT (10) AUTO_INCREMENT PRIMARY KEY,
-  date                DATETIME NOT NULL,
-  proc_date           DATETIME NOT NULL,
-  dmodswid            CHAR (24),
-  distort             CHAR (50),
-  sw_version          CHAR (24),
-  bunit               VARCHAR (12),
-  bzero               FLOAT (6, 3),
-  bscale              FLOAT (6, 3),
-  labviewid           VARCHAR (20),
-  socketcamid         VARCHAR (20),
-  sw_revision         VARCHAR (20),
-  sky_pol_factor      FLOAT (6, 3),
-  sky_bias            FLOAT (7, 4)
+$command = "create table kcor_sw (
+  sw_id            int(10) auto_increment primary key,
+  date             datetime not null,
+  proc_date        datetime not null,
+  dmodswid         char(24),
+  distort          char(50),
+  sw_version       char(24),
+  bunit            varchar(12),
+  bzero            float(6, 3),
+  bscale           float(6, 3),
+  labviewid        varchar(20),
+  socketcamid      varchar(20),
+  sw_revision      varchar(20),
+  sky_pol_factor   float(6, 3),
+  sky_bias         float(7, 4)
 )";
 
 $sth = $dbh->prepare($command);

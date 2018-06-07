@@ -90,7 +90,7 @@ if (! $sth)
 $command = "CREATE TABLE kcor_img
   (
   img_id		INT (10) AUTO_INCREMENT PRIMARY KEY,
-  file_name		CHAR (35) NOT NULL, 
+  file_name		CHAR (40) NOT NULL, 
   date_obs		DATETIME NOT NULL, 
   date_end		DATETIME NOT NULL, 
   obs_day		MEDIUMINT (5) NOT NULL,

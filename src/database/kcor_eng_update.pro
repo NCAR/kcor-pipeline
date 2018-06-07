@@ -65,12 +65,12 @@ pro kcor_eng_update, date, nrgf_files, $
     l1_filename = strmid(file_basename(nrgf_files[f]), 0, 20) + '_l1.fts.gz'
 
     mg_log, 'updating db for %s', l1_filename, name='kcor/eod', /info
-    db->execute, 'UPDATE kcor_eng SET l0inthorizmeancam0=''%d'',l0inthorizmeancam1=''%d'', l0inthorizmediancam0=''%d'', l0inthorizmediancam1=''%d'', l0intazimeancam0=''%d'',l0intazimeancam1=''%d'', l0intazimediancam0=''%d'', l0intazimediancam1=''%d'' WHERE file_name=''%s''', $
+    db->execute, 'UPDATE kcor_eng SET l0inthorizmeancam0=%f,l0inthorizmeancam1=%f, l0inthorizmediancam0=%f, l0inthorizmediancam1=%f, l0intazimeancam0=%f,l0intazimeancam1=%f, l0intazimediancam0=%f, l0intazimediancam1=%f WHERE file_name=''%s''', $
                  line_means[0, f], line_means[1, f], $
                  line_medians[0, f], line_medians[1, f], $
                  azi_means[0, f], azi_means[1, f], $
                  azi_medians[0, f], azi_medians[1, f], $
-                 l1_filename, $
+                 file_basename(l1_filename, '.gz'), $
                  status=status, error_message=error_message, sql_statement=sql_cmd
     if (status ne 0L) then begin
       mg_log, 'error updating values in kcor_eng table for obsday index %d', $

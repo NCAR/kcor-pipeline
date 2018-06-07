@@ -10,15 +10,23 @@
 ;     set to indicate a reprocessing; level 0 files are not distributed in a
 ;     reprocessing
 ;-
-pro kcor_archive, run=run, reprocess=reprocess
+pro kcor_archive_l0, run=run, reprocess=reprocess
   compile_opt strictarr
 
   cd, current=cwd
 
-  l0_dir = filepath('level0', subdir=run.date, root=run.raw_basedir)
+  date = run.date
+
+  date_dir = filepath(date, root=run.raw_basedir)
+  l0_dir   = filepath('level0', root=date_dir)
+
+  if (~file_test(l0_dir, /directory)) then begin
+    file_mkdir, l0_dir
+    file_chmod, l0_dir, /a_read, /a_execute, /u_write
+  endif
+
   cd, l0_dir
 
-  date = run.date
   year   = long(strmid(date, 0, 4))
   month  = long(strmid(date, 4, 2))
   day    = long(strmid(date, 6, 2))
@@ -31,16 +39,8 @@ pro kcor_archive, run=run, reprocess=reprocess
     goto, done
   endif
 
-  date_dir = filepath(date, root=run.raw_basedir)
-  l0_dir   = filepath('level0', root=date_dir)
   tarfile  = string(date, format='(%"%s_kcor_l0.tgz")')
   tarlist  = string(date, format='(%"%s_kcor_l0.tarlist")')
-  hpssinfo = string(date, format='(%"%s_kcor_l0_tar.ls")')
-
-  if (~file_test(l0_dir, /directory)) then begin
-    file_mkdir, l0_dir
-    file_chmod, l0_dir, /a_read, /a_execute, /u_write
-  endif
 
   if (file_test(tarfile, /regular)) then begin
     mg_log, 'tarfile already exists: %s', tarfile, name='kcor/eod', /warn
@@ -136,7 +136,7 @@ config_filename = filepath('kcor.mgalloy.kaula.production.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
-kcor_archive, run=run
+kcor_archive_l0, run=run
 obj_destroy, run
 
 end

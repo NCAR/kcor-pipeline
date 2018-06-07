@@ -10,10 +10,6 @@
 ;     for the daily average we will skip the first 8 images (~2 minutes) of data
 ;  4) save the daily average as an annotated gif and a fits image
 ;
-; :Todo:
-;   re-create the nrgf images (FITS and GIF) in a separate routine using the
-;   averaged FITS images created here.
-;
 ; :Author:
 ;   J. Burkepile, Jan 2018
 ;
@@ -240,9 +236,9 @@ pro kcor_create_averages, date, l1_files, run=run
     mday_leap = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]   ; leap year
 
     if ((year mod 4) eq 0) then begin
-      doy = (mday_leap[month - 1] + day)
+      doy = mday_leap[month - 1] + day
     endif else begin
-      doy = (mday[month - 1]) + day
+      doy = mday[month - 1] + day
     endelse
 
     ; set up device, color table and scaling

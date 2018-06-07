@@ -17,8 +17,13 @@
 ;     error status, 0 if no error
 ;   logger_name : in, optional, type=string
 ;     name of the logger to log to
+;   attachments : in, optional, type=strarr
+;     filenames of attachments
 ;-
-pro kcor_send_mail, address, subject, body, error=error, logger_name=logger_name
+pro kcor_send_mail, address, subject, body, $
+                    attachments=attachments, $
+                    error=error, logger_name=logger_name
+
   compile_opt strictarr
 
   if (n_elements(body) eq 0L) then begin
@@ -34,8 +39,12 @@ pro kcor_send_mail, address, subject, body, error=error, logger_name=logger_name
     free_lun, lun
   endelse
 
-  cmd = string(subject, address, body_filename, $
-               format='(%"mail -s ''%s'' -r $(whoami)@ucar.edu %s < %s")')
+  _attachments = n_elements(attachments) eq 0L $
+                   ? '' $
+                   : (strjoin('-a ' + attachments, ' '))
+
+  cmd = string(subject, _attachments, address, body_filename, $
+               format='(%"mail -s ''%s'' %s -r $(whoami)@ucar.edu %s < %s")')
   spawn, cmd, result, error_result, exit_status=error
   if (error ne 0L) then begin
     mg_log, 'problem with mail command: %s', cmd, name=logger_name, /error

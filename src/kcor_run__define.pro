@@ -139,6 +139,14 @@ function kcor_run::epoch, name, time=time
     'display_max': return, self->_readepoch('display_max', self.date, hst_time, type=4)
     'display_exp': return, self->_readepoch('display_exp', self.date, hst_time, type=4)
     'display_gamma': return, self->_readepoch('display_gamma', self.date, hst_time, type=4)
+
+    'cropped_display_min': return, self->_readepoch('cropped_display_min', $
+                                                    self.date, hst_time, type=4)
+    'cropped_display_max': return, self->_readepoch('cropped_display_max', $
+                                                    self.date, hst_time, type=4)
+    'cropped_display_exp': return, self->_readepoch('cropped_display_exp', $
+                                                    self.date, hst_time, type=4)
+
     'remove_horizontal_artifact': return, self->_readepoch('remove_horizontal_artifact', $
                                                            self.date, hst_time, /boolean)
     'horizontal_artifact_lines': return, self->_readepoch('horizontal_artifact_lines', $
@@ -864,8 +872,11 @@ function kcor_run::init, date, $
   self.pipe_dir = file_expand_path(filepath('..', root=mg_src_root()))
 
   if (~file_test(config_filename)) then message, config_filename + ' not found'
-  self.options = mg_read_config(config_filename)
-  self.epochs = mg_read_config(filepath('epochs.cfg', root=mg_src_root()))
+  self.options = mg_read_config(config_filename, error=error, errmsg=errmsg)
+  if (error ne 0) then message, errmsg
+  self.epochs = mg_read_config(filepath('epochs.cfg', root=mg_src_root()), $
+                               error=error, errmsg=errmsg)
+  if (error ne 0) then message, errmsg
 
   ; rotate the logs if this is a reprocessing
   self->setProperty, mode=mode
