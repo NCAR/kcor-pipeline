@@ -307,8 +307,11 @@ pro kcor_create_averages, date, l1_files, run=run
 
     set_plot, 'Z'
     erase
-    device, set_resolution=[512, 512], decomposed=0, set_colors=256, $
-            z_buffering=0
+    device, set_resolution=[512, 512], $
+            decomposed=0, $
+            set_colors=256, $
+            z_buffering=0, $
+            set_pixel_depth=8
     erase
 
     tv, bytscl((bscale * crop_img)^display_exp, $
@@ -423,7 +426,11 @@ pro kcor_create_averages, date, l1_files, run=run
 
   ; make daily average 1024x1024 GIF ; 512x512 gif; and 1024x1024 FITS image
   set_plot, 'Z'
-  device, set_resolution=[1024, 1024], decomposed=0, set_colors=256, z_buffering=0
+  device, set_resolution=[1024, 1024], $
+          decomposed=0, $
+          set_colors=256, $
+          z_buffering=0, $
+          set_pixel_depth=8
   erase
 
   daily = fltarr(1024, 1024)
