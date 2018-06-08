@@ -91,14 +91,17 @@ pro kcor_archive_l1, run=run
 
   ; remove old links to tarballs
   dst_tarfile = filepath(tarfile, root=run.hpss_gateway)
-  if (file_test(dst_tarfile)) then begin
+  ; need to test for dangling symlink separately because a link to a
+  ; non-existent file will return 0 from FILE_TEST with just /SYMLINK
+  if (file_test(dst_tarfile, /symlink) $
+        || file_test(dst_tarfile, /dangling_symlink)) then begin
     mg_log, 'removing link to tarball in HPSS gateway', name='kcor/eod', /warn
     file_delete, dst_tarfile
   endif
 
   ; link tarball into HPSS directory
   file_link, filepath(tarfile, root=l0_dir), $
-             filepath(tarfile, root=run.hpss_gateway)
+             dst_tarfile
 
   done:
   cd, cwd
