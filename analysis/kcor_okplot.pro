@@ -55,7 +55,7 @@ end
 
 ; main-level example program
 
-year = '2013'
+year = '2018'
 date = year + '0101'
 
 config_filename = filepath('kcor.mgalloy.mahi.analysis.cfg', $
