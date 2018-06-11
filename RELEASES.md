@@ -33,7 +33,7 @@
   remove inventory files on reprocessing
   fix for errors listed in email notifications
 1.3.0 [Jun 2, 2017]
-  after 20121204, use pipeline created calibraton files
+  after 20121204, use pipeline created calibration files
   use new distortion file for 20150619 and later
   add totalpB to science database table
 1.3.1 [Jun 5, 2017]
