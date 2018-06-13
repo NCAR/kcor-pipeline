@@ -1,5 +1,6 @@
 /api-docs
 /ROUTINES
 /build
+/config/kcor.iguana.*.cfg
 /config/kcor.mgalloy.*.cfg
 /cme_detection/ROUTINES
