@@ -118,7 +118,7 @@ end
 ; main-level example program
 
 year = '2018'
-month = '01'
+month = '04'
 for day = 1, 31 do begin
   date = string(year, month, day, format='(%"%s%s%02d")')
   q_dir = string(date, format='(%"/hao/mlsodata1/Data/KCor/raw/%s/q")')

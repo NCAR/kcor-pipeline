@@ -10,10 +10,6 @@
 ;     for the daily average we will skip the first 8 images (~2 minutes) of data
 ;  4) save the daily average as an annotated gif and a fits image
 ;
-; :Todo:
-;   re-create the nrgf images (FITS and GIF) in a separate routine using the
-;   averaged FITS images created here.
-;
 ; :Author:
 ;   J. Burkepile, Jan 2018
 ;
@@ -111,7 +107,7 @@ pro kcor_create_averages, date, l1_files, run=run
           dailyavg[0, 0, dailycount] = imgsave[*, *, last]
           dailytimes[dailycount] = imgtimes[last]
           dailyendtimes[dailycount] = imgendtimes[last]
-	  dailycount += 1
+          dailycount += 1
           daily_savename = strmid(file_basename(l1_file), 0, 23)
         endif
         date_julian[0] = date_julian[last]
@@ -121,7 +117,7 @@ pro kcor_create_averages, date, l1_files, run=run
         if (f ge n_elements(l1_files)) then break
 
         l1_file = file_basename(l1_files[f])
-        savename = strmid(file_basename(l1_file), 0, 23)
+;REMOVE        savename = strmid(file_basename(l1_file), 0, 23)
 
         img = readfits(l1_file, header, /silent, /noscale)
 
@@ -180,7 +176,7 @@ pro kcor_create_averages, date, l1_files, run=run
           if (dailycount lt 48 and date_julian[i] - firsttime lt dailyavgval) then begin
             if (dailycount eq n_skip) then daily_hst = hst
             dailysaveheader = header
-	    dailyavg[0, 0, dailycount] = imgsave[*, *, 0]
+            dailyavg[0, 0, dailycount] = imgsave[*, *, 0]
             dailytimes[dailycount] = imgtimes[0]
             dailyendtimes[dailycount] = imgendtimes[0]
             dailycount += 1
@@ -199,15 +195,16 @@ pro kcor_create_averages, date, l1_files, run=run
 
         if (difftime le avginterval) then begin
           avgimg += imgsave[*, *, i]
-	  saveheader = header   ; save header in case next image is > 3 min. in time
-	  numavg += 1
-	  if (i le 3) then timestring[0] = timestring[0] + ' ' + strmid(imgtimes[i], 11)
-	  if (i gt 3) then timestring[1] = timestring[1] + ' ' + strmid(imgtimes[i], 11)
+          saveheader = header   ; save header in case next image is > 3 min. in time
+          savename = strmid(file_basename(l1_file), 0, 23)
+          numavg += 1
+          if (i le 3) then timestring[0] = timestring[0] + ' ' + strmid(imgtimes[i], 11)
+          if (i gt 3) then timestring[1] = timestring[1] + ' ' + strmid(imgtimes[i], 11)
         endif
 
         if (difftime gt avginterval) then begin
           stopavg = 1  ; set flag to stop averaging
-          last = i   
+          last = i
         endif
 
         if (dailycount lt 48  and  date_julian[i] - firsttime lt dailyavgval) then begin
@@ -223,6 +220,25 @@ pro kcor_create_averages, date, l1_files, run=run
 
       if (stopavg eq 1) then break
     endfor
+
+    ; make sure you use the time from the saved header
+    date_obs = fxpar(saveheader, 'DATE-OBS')    ; yyyy-mm-ddThh:mm:ss
+
+    ; extract fields from DATE_OBS
+    yr   = strmid(date_obs,  0, 4)
+    mon  = strmid(date_obs,  5, 2)
+    dy   = strmid(date_obs,  8, 2)
+    hr   = strmid(date_obs, 11, 2)
+    mnt  = strmid(date_obs, 14, 2)
+    sec  = strmid(date_obs, 17, 2)
+
+    ; convert strings to integers
+    year   = fix(yr)
+    month  = fix(mon)
+    day    = fix(dy)
+    hour   = fix(hr)
+    minute = fix(mnt)
+    second = fix(sec)
 
     ; make averaged image
     avgimg = avgimg / float(numavg)
@@ -240,9 +256,9 @@ pro kcor_create_averages, date, l1_files, run=run
     mday_leap = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]   ; leap year
 
     if ((year mod 4) eq 0) then begin
-      doy = (mday_leap[month - 1] + day)
+      doy = mday_leap[month - 1] + day
     endif else begin
-      doy = (mday[month - 1]) + day
+      doy = mday[month - 1] + day
     endelse
 
     ; set up device, color table and scaling
@@ -273,7 +289,7 @@ pro kcor_create_averages, date, l1_files, run=run
             /device, alignment=1.0, charsize=1.2, color=255 
     xyouts, 1018, 935, string(avgtimes[-1], format='(%"%s UT")'), $
             /device, alignment=1.0, charsize=1.2, color=255 
-   
+
     xyouts, 22, 512, 'East', color=255, charsize=1.2, alignment=0.5, $
             orientation=90., /device
     xyouts, 1012, 512, 'West', color=255, charsize=1.2, alignment=0.5, $
@@ -311,8 +327,11 @@ pro kcor_create_averages, date, l1_files, run=run
 
     set_plot, 'Z'
     erase
-    device, set_resolution=[512, 512], decomposed=0, set_colors=256, $
-            z_buffering=0
+    device, set_resolution=[512, 512], $
+            decomposed=0, $
+            set_colors=256, $
+            z_buffering=0, $
+            set_pixel_depth=8
     erase
 
     tv, bytscl((bscale * crop_img)^display_exp, $
@@ -427,7 +446,11 @@ pro kcor_create_averages, date, l1_files, run=run
 
   ; make daily average 1024x1024 GIF ; 512x512 gif; and 1024x1024 FITS image
   set_plot, 'Z'
-  device, set_resolution=[1024, 1024], decomposed=0, set_colors=256, z_buffering=0
+  device, set_resolution=[1024, 1024], $
+          decomposed=0, $
+          set_colors=256, $
+          z_buffering=0, $
+          set_pixel_depth=8
   erase
 
   daily = fltarr(1024, 1024)

@@ -63,7 +63,7 @@ pro kcor_hw_insert, date, fits_list, run=run, database=database, log_name=log_na
   cd, current=start_dir
   cd, archive_dir
 
-  ; loop through fits list
+  ; loop through FITS list
   nfiles = n_elements(fits_list)
 
   if (nfiles eq 0) then begin
@@ -75,8 +75,17 @@ pro kcor_hw_insert, date, fits_list, run=run, database=database, log_name=log_na
 
   date_format = '(C(CYI, "-", CMOI2.2, "-", CDI2.2, "T", CHI2.2, ":", CMI2.2, ":", CSI2.2))'
 
-  ; get last kcor_sw entry (latest proc_date) to compare to
-  latest_hw = kcor_find_latest('kcor_hw', run=run, database=database, log_name=log_name)
+  ; get last kcor_hw entry (latest proc_date) to compare to
+  latest_hw = kcor_find_latest_row('kcor_hw', run=run, database=database, $
+                                   log_name=log_name, error=error)
+
+  if (error ne 0L) then begin
+    mg_log, 'skipping inserting kcor_hw row', name=log_name, /warn
+    goto, done
+  endif
+
+  mg_log, 'latest hw entry from %s (id=%d)', latest_hw.date, latest_hw.hw_id, $
+          name=log_name, /debug
 
   i = -1
   fts_file = ''
@@ -118,19 +127,19 @@ pro kcor_hw_insert, date, fits_list, run=run, database=database, log_name=log_na
 
     proc_date = string(julday(), format=date_format)
     file_hw = {hw_id          : 0L, $               ; fill in later
-               date           : date, $             ; from file
+               date           : date_obs, $         ; from file
                proc_date      : proc_date, $        ; generated
-               diffsrid       : diffsrid, $
-               bopal          : bopal, $
-               rcamid         : rcamid, $
-               tcamid         : tcamid, $
-               rcamlut        : rcamlut, $
-               tcamlut        : tcamlut, $
-               modltrid       : modltrid, $
-               o1id           : o1id, $
-               occltrid       : occltrid, $
-               filterid       : filterid, $
-               calpolid       : calpolid}
+               diffsrid       : strtrim(diffsrid, 2), $
+               bopal          : float(bopal), $
+               rcamid         : strtrim(rcamid, 2), $
+               tcamid         : strtrim(tcamid, 2), $
+               rcamlut        : strtrim(rcamlut, 2), $
+               tcamlut        : strtrim(tcamlut, 2), $
+               modltrid       : strtrim(modltrid, 2), $
+               o1id           : strtrim(o1id, 2), $
+               occltrid       : strtrim(occltrid, 2), $
+               filterid       : strtrim(filterid, 2), $
+               calpolid       : strtrim(calpolid, 2)}
 
     compare_fields = ['diffsrid', $
                       'bopal', $
@@ -143,10 +152,8 @@ pro kcor_hw_insert, date, fits_list, run=run, database=database, log_name=log_na
                       'occltrid', $
                       'filterid', $
                       'calpolid']
-    compare_fields = strupcase(compare_fields)
-
     update = kcor_compare_rows(latest_hw, file_hw, $
-                               compare_fields=compare_fiels, $
+                               compare_fields=compare_fields, $
                                log_name=log_name) ne 0
 	
     if (update) then begin
@@ -156,9 +163,9 @@ pro kcor_hw_insert, date, fits_list, run=run, database=database, log_name=log_na
                 'proc_date', $
                 compare_fields]
       fields_expr = strjoin(fields, ', ')
-      db->execute, 'INSERT INTO kcor_sw (%s) VALUES (''%s'', ''%s'', ''%s'', ''%s'', %f, ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'') ', $
+      db->execute, 'INSERT INTO kcor_hw (%s) VALUES (''%s'', ''%s'', ''%s'', %11.7f, ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'') ', $
                    fields_expr, $
-                   date, $
+                   date_obs, $
                    proc_date, $        ; generated
                    diffsrid, $
                    bopal, $
@@ -174,8 +181,8 @@ pro kcor_hw_insert, date, fits_list, run=run, database=database, log_name=log_na
                    status=status, error_message=error_message, sql_statement=sql_cmd
       if (status ne 0L) then begin
         mg_log, '%d, error message: %s', status, error_message, $
-                name=log_name, /debug
-        mg_log, 'sql_cmd: %s', sql_cmd, name=log_name, /debug
+                name=log_name, /error
+        mg_log, 'sql_cmd: %s', sql_cmd, name=log_name, /error
       endif
 
       hw = db->query('select last_insert_id()')

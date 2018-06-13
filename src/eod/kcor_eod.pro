@@ -31,12 +31,20 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   mg_log, '------------------------------', name='kcor/eod', /info
 
+  ; do not print math errors, we check for them explicitly
+  !except = 0
+
   version = kcor_find_code_version(revision=revision, branch=branch)
   mg_log, 'kcor-pipeline %s (%s) [%s]', version, revision, branch, $
           name='kcor/eod', /info
   mg_log, 'IDL %s (%s %s)', !version.release, !version.os, !version.arch, $
           name='kcor/eod', /info
   mg_log, 'starting end-of-day processing for %s', date, name='kcor/eod', /info
+
+  q_dir = filepath('q', subdir=date, root=run.raw_basedir)
+  quality_plot = filepath(string(date, format='(%"%s.kcor.quality.png")'), $
+                          root=q_dir)
+  kcor_quality_plot, q_dir, quality_plot
 
   date_dir = filepath(date, root=run.raw_basedir)
   if (~file_test(date_dir, /directory)) then begin
@@ -54,13 +62,10 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   l0_fits_files = file_search(filepath('*_kcor.fts.gz', root=date_dir), $
                               count=n_l0_fits_files)
   if (n_l0_fits_files gt 0L) then begin
-    if (keyword_set(reprocess)) then begin
-      mg_log, 'L0 FITS files exist in %s', date_dir, name='kcor/eod', /error
-      mg_log, 'L1 processing incomplete', name='kcor/eod', /error
-    endif else begin
-      mg_log, 'L0 FITS files exist in %s', date_dir, name='kcor/eod', /info
-      mg_log, 'L1 processing incomplete', name='kcor/eod', /info
-    endelse
+    mg_log, 'L0 FITS files exist in %s', date_dir, name='kcor/eod', $
+            error=keyword_set(reprocess), info=~keyword_set(reprocess)
+    mg_log, 'L1 processing incomplete', name='kcor/eod', $
+            error=keyword_set(reprocess), info=~keyword_set(reprocess)
     goto, done
   endif
 
@@ -128,13 +133,6 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
       kcor_create_animations, date, list=nrgf_files, run=run
     endif
   endif
-
-  q_dir = filepath('q', subdir=date, root=run.raw_basedir)
-  quality_plot = filepath(string(date, format='(%"%s.kcor.quality.png")'), $
-                          root=q_dir)
-
-  kcor_quality_plot, q_dir, quality_plot
-
 
   ok_list = filepath('okfgif.ls', $
                      subdir=[date, 'level1'], $
@@ -207,7 +205,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     endif
     if (run.catalog_files) then kcor_catalog, date, list=files, run=run
 
-    if (run.send_to_archive) then kcor_archive, run=run, reprocess=reprocess
+    if (run.send_to_archive) then kcor_archive_l0, run=run, reprocess=reprocess
 
     ; produce calibration for tomorrow
     if (run.reduce_calibration && run->epoch('produce_calibration')) then begin
@@ -215,6 +213,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     endif else begin
       mg_log, 'skipping reducing calibration', name='kcor/eod', /info
     endelse
+
+    if (run.send_to_archive) then kcor_archive_l1, run=run
   endif else begin
     ; t{1,2}.log in level0/ directory indicates eod done
     file_delete, filepath(date + '.kcor.t1.log', root=l0_dir), $
@@ -369,6 +369,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
 
   done:
+  mg_log, /check_math, name='kcor/eod', /debug
   mg_log, 'done', name='kcor/eod', /info
   obj_destroy, run
 end

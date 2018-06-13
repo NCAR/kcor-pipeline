@@ -33,7 +33,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
 
   mg_log, '------------------------------', name='kcor/rt', /info
 
-  ; ignore math errors
+  ; do not print math errors, we check for them explicitly
   !except = 0
 
   version = kcor_find_code_version(revision=revision, branch=branch)
@@ -239,12 +239,14 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
         if (n_l1_fits_files gt 0L) then begin
           kcor_img_insert, date, l1_fits_files, $
                            sw_ids=sw_ids, $
+                           hw_ids=hw_ids, $
                            run=run, $
                            database=db, $
                            obsday_index=obsday_index, log_name='kcor/rt'
           kcor_eng_insert, date, l1_fits_files, $
                            mean_phase1=mean_phase1, $
                            sw_ids=sw_ids, $
+                           hw_ids=hw_ids, $
                            run=run, $
                            database=db, $
                            obsday_index=obsday_index
@@ -280,6 +282,8 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
   endelse
 
   done:
+  mg_log, /check_math, name='kcor/rt', /debug
+
   !null = kcor_state(/unlock, run=run)
   mg_log, 'done with realtime processing run', name='kcor/rt', /info
 
