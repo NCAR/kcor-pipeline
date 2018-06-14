@@ -179,6 +179,9 @@ pro kcor_nrgf, fits_file, $
 
   mg_log, 'starting NRGF %s', keyword_set(cropped) ? '(cropped)' : '', $
           name=log_name, /debug
+
+  mg_log, '%s', file_basename(fits_file), name=log_name, /debug
+
   mg_log, 'rsun     [arcsec]: %0.4f', rsun, name=log_name, /debug
   mg_log, 'occulter [arcsec]: %0.4f', occulter, name=log_name, /debug
   mg_log, 'r_photo  [pixels]: %0.2f', r_photo, name=log_name, /debug
@@ -291,8 +294,9 @@ pro kcor_nrgf, fits_file, $
   endif
 
   date_end = sxpar(hdu, 'DATE-END')
-  tokens = strsplit(date_end, 'T', /extract)
-  to_time = tokens[1]
+  mg_log, '%s', date_end, name=log_name, /debug
+  tokens = strsplit(date_end, 'T', /extract, count=n_tokens)
+  to_time = n_tokens gt 1 ? tokens[1] : tokens[0]
 
   kcor_nrgf_annotations, year, name_month, day, $
                          long(hour), long(minute), long(second), doy, $

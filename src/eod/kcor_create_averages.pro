@@ -105,10 +105,9 @@ pro kcor_create_averages, date, l1_files, run=run
         if (dailycount lt 48 and date_julian[i] - firsttime lt dailyavgval) then begin
           if (dailycount eq n_skip) then daily_hst = hst
           dailyavg[0, 0, dailycount] = imgsave[*, *, last]
-          dailytimes[dailycount] = strmid(imgtimes[last], 11)
-          dailyendtimes[dailycount] = strmid(imgendtimes[last], 11)
+          dailytimes[dailycount] = imgtimes[last]
+          dailyendtimes[dailycount] = imgendtimes[last]
           dailycount += 1
-;REMOVE          daily_savename = strmid(file_basename(l1_file), 0, 23)
         endif
         date_julian[0] = date_julian[last]
         stopavg = 0
@@ -117,8 +116,6 @@ pro kcor_create_averages, date, l1_files, run=run
         if (f ge n_elements(l1_files)) then break
 
         l1_file = file_basename(l1_files[f])
-;REMOVE        savename = strmid(file_basename(l1_file), 0, 23)
-
         img = readfits(l1_file, header, /silent, /noscale)
 
         f += 1
@@ -173,8 +170,8 @@ pro kcor_create_averages, date, l1_files, run=run
           daily_savename = strmid(file_basename(l1_file), 0, 23)
           dailyavg[0, 0, dailycount] = imgsave[*, *, 0]
           dailysaveheader = header
-          dailytimes[dailycount] = strmid(imgtimes[0], 11)
-          dailyendtimes[dailycount] = strmid(imgendtimes[0], 11)
+          dailytimes[dailycount] = imgtimes[0]
+          dailyendtimes[dailycount] = imgendtimes[0]
           dailycount += 1
         endif
 
@@ -209,14 +206,17 @@ pro kcor_create_averages, date, l1_files, run=run
         if (dailycount lt 48  and  date_julian[i] - firsttime lt dailyavgval) then begin
           if (dailycount eq n_skip) then daily_hst = hst
           dailyavg[0, 0, dailycount] = imgsave[*, *, i]
-          dailytimes[dailycount] = strmid(imgtimes[i], 11)
-          dailyendtimes[dailycount] = strmid(imgendtimes[i], 11)
+          dailytimes[dailycount] = imgtimes[i]
+          dailyendtimes[dailycount] = imgendtimes[i]
           dailycount += 1
         endif
       endif
 
       if (stopavg eq 1) then break
     endfor
+
+    ; clean up extra spaces
+    timestring = strtrim(timestring, 2)
 
     ; make sure you use the time from the saved header
     date_obs = fxpar(saveheader, 'DATE-OBS')    ; yyyy-mm-ddThh:mm:ss
@@ -622,7 +622,7 @@ pro kcor_create_averages, date, l1_files, run=run
   n_keywords = ceil(n_daily_times / float(n_times_per_keyword))
 
   keyword_times = strarr(n_times_per_keyword, n_keywords)
-  keyword_times[0] = dailytimes[n_skip:*]
+  keyword_times[0] = strmid(dailytimes[n_skip:*], 11)
   keyword_times = strjoin(keyword_times, ' ')
 
   for k = 0L, n_keywords - 1L do begin
