@@ -181,6 +181,8 @@
 ;                     to tangential. Removed comments about phase angle. Don't need it 
 ;                     anymore since we are now using Alfred's new calibration (Dec 12, 2016) \
 ;                     that fixed the bugs in the previous versions.
+;   18 Jun 2018 [JI]  Initial edits to write a Helioviewer Project
+;                     compatible JPEG2000 file
 ;
 ;   Make semi-calibrated kcor images.
 ;-------------------------------------------------------------------------------
@@ -1027,9 +1029,10 @@ pro kcor_l1, date, ok_files, $
 
     ; display image, annotate, and save as a full resolution GIF file
 
-    tv, bytscl(corona ^ run->epoch('display_exp'), $
+    scaled_image = bytscl(corona ^ run->epoch('display_exp'), $
                min=run->epoch('display_min'), $
                max=run->epoch('display_max'))
+    tv, scaled_image
 
     xyouts, 4, 990, 'MLSO/HAO/KCOR', color=255, charsize=1.5, /device
     xyouts, 4, 970, 'K-Coronagraph', color=255, charsize=1.5, /device
@@ -1486,7 +1489,11 @@ pro kcor_l1, date, ok_files, $
 
     ; write FITS image to disk
     writefits, filepath(l1_file, root=l1_dir), corona_int, newheader
-  
+
+    ; write Helioviewer JPEG2000 image to a web
+    ; accessible directory
+    hv_kcor_write_jp2, scaled_image, newheader, filename, directory
+    
     ; now make cropped GIF file
     kcor_cropped_gif, corona, date, date_struct, run=run
 
