@@ -612,10 +612,10 @@ pro kcor_create_averages, date, l1_files, run=run
     endif
   endif
 
-  ; create fullres (1024x1024) FITS image
-  ; save times used to make the daily avg. image in the header 
-  ; create 10 fits keywords; each holds 4 image times to accommodate up to 40
-  ; images in the avg.
+  ; create fullres 1024x1024 FITS image
+  ;   - save times used to make the daily average image in the header
+  ;   - create 10 FITS keywords, each holds 4 image times to accommodate up to
+  ;     40 images in the average
 
   n_times_per_keyword = 4
   n_daily_times = n_elements(dailytimes[n_skip:*])
