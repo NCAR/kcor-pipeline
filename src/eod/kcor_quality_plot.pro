@@ -111,6 +111,11 @@ pro kcor_quality_plot, q_dir, output_filename
   im = tvrd(true=1)
   tvlct, original_rgb
   set_plot, original_device
+
+  ; make directory for output file, if it doesn't already exist
+  dir_name = file_dirname(output_filename)
+  if (~file_test(dir_name, /directory)) then file_mkdir, dir_name
+
   write_png, output_filename, im
 end
 

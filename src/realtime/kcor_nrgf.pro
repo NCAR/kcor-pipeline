@@ -31,7 +31,7 @@ pro kcor_nrgf_annotations, year, name_month, day, hour, minute, second, doy, $
   endif
   xyouts, right - 6, top - 29 - line++ * line_height + keyword_set(cropped) * 12, $
           string(hour, minute, second, $
-                 (keyword_set(daily) && ~keyword_set(cropped)) ? ' to' : '', $
+                 (~keyword_set(cropped)) ? ' to' : '', $
                  format='(%"%02d:%02d:%02d UT%s")'), $
           /device, alignment=1.0, charsize=charsize, color=annotation_color
 
@@ -45,12 +45,16 @@ pro kcor_nrgf_annotations, year, name_month, day, hour, minute, second, doy, $
     endelse
 
     if (keyword_set(daily)) then begin
-      text = string(to_time, format='(%"%s UT")')
+      if (keyword_set(cropped)) then begin
+        text = '~10 min avg'
+      endif else begin
+        text = string(to_time, format='(%"%s UT")')
+      endelse
     endif else begin
       if (keyword_set(cropped)) then begin
         text = '2 min avg'
       endif else begin
-        text = '2 to 3 min avg'
+        text = string(to_time, format='(%"%s UT")')
       endelse
     endelse
 
@@ -175,6 +179,9 @@ pro kcor_nrgf, fits_file, $
 
   mg_log, 'starting NRGF %s', keyword_set(cropped) ? '(cropped)' : '', $
           name=log_name, /debug
+
+  mg_log, '%s', file_basename(fits_file), name=log_name, /debug
+
   mg_log, 'rsun     [arcsec]: %0.4f', rsun, name=log_name, /debug
   mg_log, 'occulter [arcsec]: %0.4f', occulter, name=log_name, /debug
   mg_log, 'r_photo  [pixels]: %0.2f', r_photo, name=log_name, /debug
@@ -286,12 +293,10 @@ pro kcor_nrgf, fits_file, $
     tv, save
   endif
 
-  if (keyword_set(daily)) then begin
-    average_times = sxpar(hdu, 'AVGTIME*')
-    tokens = strsplit(average_times[-1], /extract)
-    tokens = strsplit(tokens[-1], 'T', /extract)
-    to_time = tokens[1]
-  endif
+  date_end = sxpar(hdu, 'DATE-END')
+  mg_log, '%s', date_end, name=log_name, /debug
+  tokens = strsplit(date_end, 'T', /extract, count=n_tokens)
+  to_time = n_tokens gt 1 ? tokens[1] : tokens[0]
 
   kcor_nrgf_annotations, year, name_month, day, $
                          long(hour), long(minute), long(second), doy, $
