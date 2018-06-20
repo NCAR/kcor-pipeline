@@ -109,6 +109,7 @@ function kcor_run::epoch, name, time=time
         endelse
       end
     'use_pipeline_calfiles': return, self->_readepoch('use_pipeline_calfiles', self.date, hst_time, /boolean)
+    'use_calibration_data': return, self->_readepoch('use_calibration_data', self.date, hst_time, /boolean)
     'O1id': return, self->_readepoch('O1id', self.date, hst_time, type=7)
     'use_O1id': return, self->_readepoch('use_O1id', self.date, hst_time, /boolean)
     'O1-1': return, self->_readepoch('O1-1', self.date, hst_time, type=7)
