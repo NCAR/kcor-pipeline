@@ -97,13 +97,18 @@ pro kcor_create_averages, date, l1_files, run=run
     for i = 0, 7 do begin
       if (f ge n_elements(l1_files)) then break
 
-      ; If last image was not used in average (i.e. stopavg = 1) then begin with
+      ; if last image was not used in average (i.e. stopavg = 1) then begin with
       ; the last image else read in a new image
       if (stopavg eq 1 ) then begin
         imgsave[0, 0, 0] = imgsave[*, *, last]
         avgimg = imgsave[*, *, last]
         if (dailycount lt 48 and date_julian[i] - firsttime lt dailyavgval) then begin
-          if (dailycount eq n_skip) then daily_hst = hst
+          if (dailycount eq n_skip) then begin
+            daily_hst = hst
+            daily_savename = strmid(file_basename(l1_file), 0, 23)
+            dailysaveheader = header
+          endif
+
           dailyavg[0, 0, dailycount] = imgsave[*, *, last]
           dailytimes[dailycount] = imgtimes[last]
           dailyendtimes[dailycount] = imgendtimes[last]
@@ -636,7 +641,8 @@ pro kcor_create_averages, date, l1_files, run=run
 
   if (n_elements(daily_savename) gt 0L) then begin
     name = strmid(daily_savename, 0, 23)
-    daily_fits_average_filename = string(format='(a23, "_extavg.fts")', name)
+    daily_fits_average_filename = string(name, format='(%"%s_extavg.fts")')
+
     mg_log, 'writing %s', daily_fits_average_filename, name='kcor/eod', /info
     writefits, daily_fits_average_filename, daily, dailysaveheader
     ; remove zipped version if already exists
