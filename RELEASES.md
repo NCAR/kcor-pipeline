@@ -167,7 +167,7 @@
   send L1 products to HPSS
   update to IDL 8.6
   remove taking absolute value of data
-  updated annotations on average GIFS
+  updated annotations on average GIFS and FITS keywords
   fixes for updating kcor_hw table
   add use_calibration_data flag for marking bad calibration data
   new epochs for bad calibration data on 201806{19,20}
