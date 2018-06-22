@@ -209,7 +209,12 @@ pro kcor_create_averages, date, l1_files, run=run
         endif
 
         if (dailycount lt 48  and  date_julian[i] - firsttime lt dailyavgval) then begin
-          if (dailycount eq n_skip) then daily_hst = hst
+          if (dailycount eq n_skip) then begin
+            daily_hst = hst
+            daily_savename = strmid(file_basename(l1_file), 0, 23)
+            dailysaveheader = header
+          endif
+
           dailyavg[0, 0, dailycount] = imgsave[*, *, i]
           dailytimes[dailycount] = imgtimes[i]
           dailyendtimes[dailycount] = imgendtimes[i]
