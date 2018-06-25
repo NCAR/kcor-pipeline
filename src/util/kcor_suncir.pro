@@ -25,15 +25,15 @@
 ;   11 Feb 2005 [ALS]: Do NOT draw a circle at 1.1 Rsun.
 ;   21 May 2015 derived from suncir_mk4.pro.
 ;-
-pro kcor_suncir, xdim, ydim, xcen, ycen, xb, yb, pixrs, roll
+pro kcor_suncir, xdim, ydim, xcen, ycen, xb, yb, pixrs, roll, log_name=log_name
   compile_opt strictarr
 
   mg_log, 'dims=[%d, %d], center=[%0.2f, %0.2f]', $
           xdim, ydim, xcen, ycen, $
-          name='kcor/rt', /debug
+          name=log_name, /debug
   mg_log, 'xb=%d, yb=%d, pixels/R_sun=%0.2f, roll=%0.2f', $
           xb, yb, pixrs, roll, $
-          name='kcor/rt', /debug
+          name=log_name, /debug
 
   white  = 255
   red    = 254

@@ -276,7 +276,7 @@ pro kcor_nrgf, fits_file, $
 
   ; image has been shifted to center of array
   ; draw circle at photosphere
-  kcor_suncir, out_xdim, out_ydim, xcen, ycen, 0, 0, r_photo, 0.0
+  kcor_suncir, out_xdim, out_ydim, xcen, ycen, 0, 0, r_photo, 0.0, log_name=log_name
 
   if (keyword_set(cropped)) then begin
     save = tvrd()
