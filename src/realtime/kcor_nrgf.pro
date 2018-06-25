@@ -8,7 +8,8 @@ pro kcor_nrgf_annotations, year, name_month, day, hour, minute, second, doy, $
                            top=top, right=right, $
                            charsize=charsize, big_charsize=big_charsize, $
                            annotation_color=annotation_color, $
-                           cropped=cropped, averaged=averaged
+                           cropped=cropped, $
+                           averaged=averaged, daily=daily, to_time=to_time
   compile_opt strictarr
 
   big_line_height = keyword_set(cropped) ? 18 : 20
@@ -29,7 +30,9 @@ pro kcor_nrgf_annotations, year, name_month, day, hour, minute, second, doy, $
             /device, alignment=1.0, charsize=charsize, color=annotation_color
   endif
   xyouts, right - 6, top - 29 - line++ * line_height + keyword_set(cropped) * 12, $
-          string(hour, minute, second, format='(a2, ":", a2, ":", a2, " UT")'), $
+          string(hour, minute, second, $
+                 (~keyword_set(cropped)) ? ' to' : '', $
+                 format='(%"%02d:%02d:%02d UT%s")'), $
           /device, alignment=1.0, charsize=charsize, color=annotation_color
 
   ; put avg text label below time in standard size, above "circle = photosphere"
@@ -37,11 +40,24 @@ pro kcor_nrgf_annotations, year, name_month, day, hour, minute, second, doy, $
   if (keyword_set(averaged)) then begin
     if (keyword_set(cropped)) then begin
       y = 6 + line_height
-      text = '2 min avg'
     endif else begin
       y = top - 29 - line++ * line_height + keyword_set(cropped) * 12
-      text = '2 to 3 min avg'
     endelse
+
+    if (keyword_set(daily)) then begin
+      if (keyword_set(cropped)) then begin
+        text = '~10 min avg'
+      endif else begin
+        text = string(to_time, format='(%"%s UT")')
+      endelse
+    endif else begin
+      if (keyword_set(cropped)) then begin
+        text = '2 min avg'
+      endif else begin
+        text = string(to_time, format='(%"%s UT")')
+      endelse
+    endelse
+
     xyouts, right - 6, y, text, $
             /device, alignment=1.0, charsize=charsize, color=annotation_color
   endif
@@ -82,8 +98,12 @@ end
 ;   15 Jul 2015 Add /NOSCALE keyword to readfits.
 ;   04 Mar 2016 Generate a 16 bit fits nrgf image in addition to a gif.
 ;-
-pro kcor_nrgf, fits_file, cropped=cropped, averaged=averaged, daily=daily, $
-               run=run, log_name=log_name
+pro kcor_nrgf, fits_file, $
+               cropped=cropped, $
+               averaged=averaged, $
+               daily=daily, $
+               run=run, $
+               log_name=log_name
   compile_opt strictarr
 
   ; read L1 FITS image
@@ -159,6 +179,9 @@ pro kcor_nrgf, fits_file, cropped=cropped, averaged=averaged, daily=daily, $
 
   mg_log, 'starting NRGF %s', keyword_set(cropped) ? '(cropped)' : '', $
           name=log_name, /debug
+
+  mg_log, '%s', file_basename(fits_file), name=log_name, /debug
+
   mg_log, 'rsun     [arcsec]: %0.4f', rsun, name=log_name, /debug
   mg_log, 'occulter [arcsec]: %0.4f', occulter, name=log_name, /debug
   mg_log, 'r_photo  [pixels]: %0.2f', r_photo, name=log_name, /debug
@@ -218,10 +241,14 @@ pro kcor_nrgf, fits_file, cropped=cropped, averaged=averaged, daily=daily, $
 
   ; graphics device
   set_plot, 'Z'
-  device, set_resolution=[out_xdim, out_ydim], decomposed=0, set_colors=256, z_buffering=0
+  device, set_resolution=[out_xdim, out_ydim], $
+          decomposed=0, $
+          set_colors=256, $
+          z_buffering=0, $
+          set_pixel_depth=8
   erase
 
-  ; load color table
+  ; load color table: quallab is blue->white for 0..249, and then various colors
   lct, filepath('quallab.lut', root=run.resources_dir)
   tvlct, red, green, blue, /get
   annotation_color = 255
@@ -266,12 +293,19 @@ pro kcor_nrgf, fits_file, cropped=cropped, averaged=averaged, daily=daily, $
     tv, save
   endif
 
-  kcor_nrgf_annotations, year, name_month, day, hour, minute, second, doy, $
+  date_end = sxpar(hdu, 'DATE-END')
+  mg_log, '%s', date_end, name=log_name, /debug
+  tokens = strsplit(date_end, 'T', /extract, count=n_tokens)
+  to_time = n_tokens gt 1 ? tokens[1] : tokens[0]
+
+  kcor_nrgf_annotations, year, name_month, day, $
+                         long(hour), long(minute), long(second), doy, $
                          cmin=cmin, cmax=cmax, $
                          top=top, right=right, $
                          charsize=charsize, big_charsize=big_charsize, $
                          annotation_color=annotation_color, $
-                         cropped=cropped, averaged=averaged
+                         cropped=cropped, averaged=averaged, daily=daily, $
+                         to_time=to_time
 
   ; create NRGF GIF file
   save = tvrd()
@@ -348,12 +382,33 @@ end
 
 ; main-level example program
 
-f = '20161127_175011_kcor_l1.fts.gz'
-run = kcor_run('20161127', $
+date = '20180423'
+run = kcor_run(date, $
                config_filename=filepath('kcor.mgalloy.mahi.latest.cfg', $
                                        subdir=['..', '..', 'config'], $
                                        root=mg_src_root()))
-kcor_nrgf, f, /cropped, run=run
+
+f = filepath('20180423_175443_kcor_l1_extavg.fts.gz', $
+             subdir=[date, 'level1'], $
+             root=run.raw_basedir)
+
+kcor_nrgf, f, /average, /daily, run=run
+kcor_nrgf, f, /average, /daily, /cropped, run=run
+
+f = filepath('20180423_175443_kcor_l1_avg.fts.gz', $
+             subdir=[date, 'level1'], $
+             root=run.raw_basedir)
+
+kcor_nrgf, f, /average, run=run
+kcor_nrgf, f, /average, /cropped, run=run
+
+f = filepath('20180423_175443_kcor_l1.fts.gz', $
+             subdir=[date, 'level1'], $
+             root=run.raw_basedir)
+
 kcor_nrgf, f, run=run
+kcor_nrgf, f, /cropped, run=run
+
+obj_destroy, run
 
 end

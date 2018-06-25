@@ -84,6 +84,9 @@ pro kcor_hw_insert, date, fits_list, run=run, database=database, log_name=log_na
     goto, done
   endif
 
+  mg_log, 'latest hw entry from %s (id=%d)', latest_hw.date, latest_hw.hw_id, $
+          name=log_name, /debug
+
   i = -1
   fts_file = ''
   while (++i lt nfiles) do begin

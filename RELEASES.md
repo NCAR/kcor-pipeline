@@ -33,7 +33,7 @@
   remove inventory files on reprocessing
   fix for errors listed in email notifications
 1.3.0 [Jun 2, 2017]
-  after 20121204, use pipeline created calibraton files
+  after 20121204, use pipeline created calibration files
   use new distortion file for 20150619 and later
   add totalpB to science database table
 1.3.1 [Jun 5, 2017]
@@ -162,8 +162,14 @@
   updated distortion in epochs
   epochs for changes on 20180406-20180423
   better ephemeris calculation
-1.4.41
+1.4.41 [Jun 22, 2018]
   always create quality plot
   send L1 products to HPSS
   update to IDL 8.6
   remove taking absolute value of data
+  updated annotations on average GIFS and FITS keywords
+  fixes for updating kcor_hw table
+  add use_calibration_data flag for marking bad calibration data
+  new epochs for bad calibration data on 201806{19,20}
+1.4.42 [Jun 22, 2018]
+  fix epochs file typo
