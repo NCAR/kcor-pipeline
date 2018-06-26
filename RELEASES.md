@@ -167,6 +167,7 @@
   send L1 products to HPSS
   update to IDL 8.6
   remove taking absolute value of data
+  replaced KCor L1 cropped GIF with fullres BW and no gamma correction
   updated annotations on average GIFS and FITS keywords
   fixes for updating kcor_hw table
   add use_calibration_data flag for marking bad calibration data
