@@ -175,3 +175,6 @@
 1.4.42 [Jun 22, 2018]
   fix epochs file typo
 1.4.43
+  fix for standard/cropped mp4s (was showing NRGFs)
+  make avg cropped GIFs like standard cropped GIFs
+  add "North" and "2 min avg" (avg only) to cropped GIFs
