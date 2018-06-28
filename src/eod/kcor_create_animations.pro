@@ -19,6 +19,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
 
   mg_log, 'creating animations', name='kcor/eod', /info
 
+  ; turned off making GIFs right now
   create_gifs = 0B
 
   date_parts = kcor_decompose_date(date)
@@ -36,7 +37,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
   nrgf_gif_filenames = file_basename(nrgf_files, '.fts.gz') + '.gif'
   gif_filenames = file_basename(nrgf_files, '_nrgf.fts.gz') + '.gif'
   cropped_nrgf_gif_filenames = file_basename(nrgf_files, '.fts.gz') + '_cropped.gif'
-  cropped_gif_filenames = file_basename(nrgf_files, '_nrgf_cropped.fts.gz') + '_cropped.gif'
+  cropped_gif_filenames = file_basename(nrgf_files, '_nrgf.fts.gz') + '_cropped.gif'
 
   n_gif_filenames = n_elements(gif_filenames)
 
@@ -70,7 +71,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
 
   ; create daily GIF of L1 files
   if (create_gifs) then begin
-    mg_log, 'creating daily GIF', name='kcor/eod', /info
+    mg_log, 'creating L1 GIF', name='kcor/eod', /info
     kcor_create_animated_gif, gif_filenames, dailygif_filename, $
                               run=run, status=status
     if (status eq 0 && run.distribute) then begin
@@ -79,7 +80,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
   endif
 
   ; create daily mp4 of L1 files
-  mg_log, 'creating daily mp4', name='kcor/eod', /info
+  mg_log, 'creating L1 mp4', name='kcor/eod', /info
   kcor_create_mp4, gif_filenames, dailymp4_filename, run=run, status=status
   if (status eq 0 && run.distribute) then begin
     file_copy, dailymp4_filename, fullres_dir, /overwrite
