@@ -325,65 +325,11 @@ pro kcor_create_averages, date, l1_files, run=run
       file_copy, gif_basename, fullres_dir, /overwrite
     endif
 
-    ; create lowres (512 x 512) GIF images
-
-    ; rebin to 768x768 (75% of original size) and crop around center to 512 x
-    ; 512 image
-    rebin_img = congrid(avgimg, 768, 768)
-    crop_img  = rebin_img[128:639, 128:639]
-
-    set_plot, 'Z'
-    erase
-    device, set_resolution=[512, 512], $
-            decomposed=0, $
-            set_colors=256, $
-            z_buffering=0, $
-            set_pixel_depth=8
-    erase
-
-    tv, bytscl((bscale * crop_img)^display_exp, $
-               min=display_min, max=display_max)
-
-    xyouts, 4, 495, 'MLSO/HAO/KCOR', color=255, charsize=1.2, /device
-    xyouts, 4, 480, 'K-Coronagraph', color=255, charsize=1.2, /device
-    xyouts, 256, 500, 'North', color=255, $
-            charsize=1.0, alignment=0.5, /device
-    xyouts, 500, 495, string(format='(a2)', dy) + ' ' $
-                               + string(format='(a3)', name_month)$
-                               + ' ' + string(format='(a4)', yr), $
-            /device, alignment = 1.0, $
-            charsize=1.0, color=255
-    xyouts, 500, 480, $
-            string(format='(a2)', hr) + ':' $
-              + string(format='(a2)', mnt) + ':' $
-              + string(format='(a2)', sec) + ' UT', $
-            /device, alignment=1.0, $
-            charsize=1.0, color=255
-    xyouts, 12, 256, 'East', color=255, $
-            charsize=1.0, alignment=0.5, orientation=90.0, /device
-    xyouts, 507, 256, 'West', color=255, $
-            charsize=1.0, alignment=0.5, orientation=90.0, /device
-
-    xyouts, 4, 20, string(display_min, display_max, $
-                          format='("min/max: ", f5.2, ", ", f3.1)'), $
-            color=255, charsize=1.0, /device
-
-    xyouts, 4, 6, string(display_exp, $
-                         display_gamma, $
-                         format='("scaling: Intensity ^ ", f3.1, ", gamma=", f4.2)'), $
-            color=255, charsize=1.0, /device
-    xyouts, 500, 21, '2 min. avg', color=255, charsize=1.0, alignment=1.0, /device
-    xyouts, 500, 6, 'Circle = photosphere', color=255, $
-            charsize=1.0, /device, alignment=1.0
-
-    r = r_photo * 0.75    ;  image is rebined to 75% of original size
-    tvcircle, r, 255.5, 255.5, color=255, /device
-
-    save = tvrd()
-    gif_basename = strmid(savename, 0, 23) + '_avg_cropped.gif'
-    write_gif, gif_basename, save, red, green, blue
+    ; create cropped (512 x 512) GIF images
+    kcor_cropped_gif, avgimg, date, date_obs, run=run, /average, $
+                      output=cgif_filename
     if (run.distribute) then begin
-      file_copy, gif_basename, cropped_dir, /overwrite
+      file_copy, cgif_filename, cropped_dir, /overwrite
     endif
 
     ; Create fullres (1024x1024) FITS image
