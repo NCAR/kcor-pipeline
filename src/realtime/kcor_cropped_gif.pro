@@ -38,7 +38,8 @@ pro kcor_cropped_gif, im, date, date_obs, run=run, average=average, $
   device, set_resolution=[width, height], $
           decomposed=0, $
           set_colors=256, $
-          z_buffering=0
+          z_buffering=0, $
+          set_pixel_depth=8
 
   ; load black and white color table
   loadct, 0, /silent
@@ -88,7 +89,8 @@ pro kcor_cropped_gif, im, date, date_obs, run=run, average=average, $
                          date_obs.hour, date_obs.minute, date_obs.second, $
                          keyword_set(average) ? '_avg' : '', $
                          format='(%"%04d%02d%02d_%02d%02d%02d_kcor_l1%s_cropped.gif")')
-  write_gif, filepath(cgif_basename, root=l1_dir), raster, red, green, blue
+  cgif_filename = filepath(cgif_basename, root=l1_dir)
+  write_gif, cgif_filename, raster, red, green, blue
 
   done:
   device, decomposed=original_decomposed
@@ -98,8 +100,10 @@ end
 
 ; main-level example program
 
-date = '20180423'
-l1_basename = '20180424_000420_kcor_l1.fts.gz'
+;date = '20180423'
+date = '20180604'
+;l1_basename = '20180424_000420_kcor_l1.fts.gz'
+l1_basename = '20180605_011443_kcor_l1_avg.fts.gz'
 
 config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
                            subdir='../../config', $
@@ -114,7 +118,7 @@ im = readfits(l1_filename, header, /silent)
 date_obs = sxpar(header, 'DATE-OBS')
 date_obs = kcor_parse_dateobs(date_obs)
 
-kcor_cropped_gif, im, date, date_obs, run=run
+kcor_cropped_gif, im, date, date_obs, run=run, /average
 
 obj_destroy, run
 

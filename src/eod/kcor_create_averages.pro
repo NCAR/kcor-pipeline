@@ -326,8 +326,8 @@ pro kcor_create_averages, date, l1_files, run=run
     endif
 
     ; create cropped (512 x 512) GIF images
-    kcor_cropped_gif, avgimg, date, date_obs, run=run, /average, $
-                      output=cgif_filename
+    kcor_cropped_gif, avgimg, date, kcor_parse_dateobs(date_obs), run=run, $
+                      /average, output_filename=cgif_filename
     if (run.distribute) then begin
       file_copy, cgif_filename, cropped_dir, /overwrite
     endif
