@@ -46,8 +46,8 @@ pro kcor_create_averages, date, l1_files, run=run
 
   ; set up variables and arrays needed
 
-  imgsave     = fltarr(1024,1024,8)
-  avgimg      = fltarr(1024,1024)
+  imgsave     = fltarr(1024, 1024, 8)
+  avgimg      = fltarr(1024, 1024)
   imgtimes    = strarr(8)
   imgendtimes = strarr(8)
   timestring  = strarr(2)
@@ -278,7 +278,7 @@ pro kcor_create_averages, date, l1_files, run=run
     tvlct, red, green, blue, /get
 
     ; create fullres (1024x1024) GIF images
-    tv, bytscl((bscale * avgimg)^display_exp, display_min, display_max)
+    tv, bytscl((bscale * avgimg)^display_exp, min=display_min, max=display_max)
 
     xyouts, 4, 990, 'MLSO/HAO/KCOR', color=255, charsize=1.5, /device
     xyouts, 4, 970, 'K-Coronagraph', color=255, charsize=1.5, /device
@@ -326,8 +326,8 @@ pro kcor_create_averages, date, l1_files, run=run
     endif
 
     ; create cropped (512 x 512) GIF images
-    kcor_cropped_gif, avgimg, date, kcor_parse_dateobs(date_obs), run=run, $
-                      /average, output_filename=cgif_filename
+    kcor_cropped_gif, bscale * avgimg, date, kcor_parse_dateobs(date_obs), $
+                      /average, output_filename=cgif_filename, run=run
     if (run.distribute) then begin
       file_copy, cgif_filename, cropped_dir, /overwrite
     endif
@@ -633,7 +633,7 @@ end
 
 ; main-level example program
 
-date = '20180208'
+date = '20180604'
 config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())

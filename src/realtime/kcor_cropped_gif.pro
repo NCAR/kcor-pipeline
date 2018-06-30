@@ -43,6 +43,7 @@ pro kcor_cropped_gif, im, date, date_obs, run=run, average=average, $
 
   ; load black and white color table
   loadct, 0, /silent
+  gamma_ct, 1.0, /current   ; reset gamma to linear ramp
 
   min = run->epoch('cropped_display_min')
   max = run->epoch('cropped_display_max')
@@ -81,7 +82,7 @@ pro kcor_cropped_gif, im, date, date_obs, run=run, average=average, $
   tvcircle, r_photosphere, 255.5, 255.5, color=255, /device
 
   ; save
-  raster = tvrd(true=0)
+  raster = tvrd()
   tvlct, red, green, blue, /get
 
   l1_dir = filepath('level1', subdir=date, root=run.raw_basedir)
