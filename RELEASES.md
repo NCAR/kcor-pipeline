@@ -167,9 +167,15 @@
   send L1 products to HPSS
   update to IDL 8.6
   remove taking absolute value of data
+  replaced KCor L1 cropped GIF with fullres BW and no gamma correction
   updated annotations on average GIFS and FITS keywords
   fixes for updating kcor_hw table
   add use_calibration_data flag for marking bad calibration data
   new epochs for bad calibration data on 201806{19,20}
 1.4.42 [Jun 22, 2018]
   fix epochs file typo
+1.4.43 [Jun 30, 2018]
+  fix for standard/cropped mp4s (was showing NRGFs)
+  make avg cropped GIFs like standard cropped GIFs
+  add "North" and "2 min avg" (avg only) to cropped GIFs
+  add CSV file of readings in CME report
