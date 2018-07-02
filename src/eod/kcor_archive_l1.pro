@@ -12,11 +12,11 @@ pro kcor_archive_l1, run=run
 
   date = run.date
 
-  mg_log, 'sending L1 data to HPSS...', name='kcor/eod', /info
-
-  if (~run.send_to_hpss) then begin
+  if (run.send_to_hpss) then begin
+    mg_log, 'sending L1 data to HPSS...', name='kcor/eod', /info
+  endif else begin
     mg_log, 'not sending L1 data to HPSS', name='kcor/eod', /info
-  endif
+  endelse
 
   cd, current=cwd
 
@@ -100,7 +100,7 @@ pro kcor_archive_l1, run=run
   endif
 
   ; link tarball into HPSS directory
-  file_link, filepath(tarfile, root=l0_dir), $
+  file_link, filepath(tarfile, root=l1_dir), $
              dst_tarfile
 
   done:
