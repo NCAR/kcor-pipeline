@@ -39,7 +39,14 @@ pro kcor_archive_l1, run=run
   if (~file_test(tarlist, /regular)) then file_delete, tarlist, /quiet
 
   ; create tarball
-  glob = '*.fts* *.gif *.mp4'
+  glob = '*.fts*'
+
+  gifs = file_search('*.gif', count=n_gifs)
+  if (n_gifs gt 0L) then glob += ' *.gif'
+
+  mp4s = file_search('*.mp4', count=n_mp4s)
+  if (n_mp4s gt 0L) then glob += ' *.mp4'
+
   tar_cmd = string(tarfile, glob, format='(%"tar cf %s %s")')
   mg_log, 'creating tarfile %s...', tarfile, name='kcor/eod', /info
   spawn, tar_cmd, result, error_result, exit_status=status
