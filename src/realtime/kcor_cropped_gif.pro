@@ -94,7 +94,9 @@ pro kcor_cropped_gif, im, date, date_obs, $
   l1_dir = filepath('level1', subdir=date, root=run.raw_basedir)
   cgif_basename = string(date_obs.year, date_obs.month, date_obs.day, $
                          date_obs.hour, date_obs.minute, date_obs.second, $
-                         keyword_set(average) ? '_avg' : '', $
+                         keyword_set(average) $
+                           ? (keyword_set(daily) ? '_extavg' : '_avg') $
+                           : '', $
                          format='(%"%04d%02d%02d_%02d%02d%02d_kcor_l1%s_cropped.gif")')
   cgif_filename = filepath(cgif_basename, root=l1_dir)
   write_gif, cgif_filename, raster, red, green, blue

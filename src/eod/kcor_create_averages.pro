@@ -512,7 +512,6 @@ pro kcor_create_averages, date, l1_files, run=run
   ; create extavg cropped GIF image
 
   if (n_elements(daily_savename) gt 0L) then begin
-    cgif_filename = strmid(daily_savename, 0, 23) + '_extavg_cropped.gif'
     kcor_cropped_gif, bscale * daily, date, kcor_parse_dateobs(date_obs), $
                       /daily, /average, output_filename=cgif_filename, run=run
 
