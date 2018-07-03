@@ -197,7 +197,7 @@ pro kcor_plotparams, date, list=list, run=run
                 title=pdate + ' KCor SGS DIM', $
                 xtitle='Hours [UT]', ytitle='DIM [volts]', $
                 xrange=[16.0, 28.0], $
-                /ynozero, yrange=[3.0, 9.0], $
+                /ynozero, ystyle=1, yrange=[3.0, 9.0], $
                 background=255, color=0, charsize=2.0, $
                 clip_thick=2.0
 
@@ -205,7 +205,7 @@ pro kcor_plotparams, date, list=list, run=run
   mg_rangeplot, hours, sgs_scin, $
                 title=pdate + ' KCor SGS Scintillation', $
                 xtitle='Hours [UT]', ytitle='Scintillation [arcsec]', $
-                xrange=[16.0, 28.0], yrange=[0.0, 20.0], $
+                xrange=[16.0, 28.0], ystyle=1, yrange=[0.0, 20.0], $
                 background=255, color=0, charsize=2.0, $
                 clip_thick=2.0
 
@@ -216,7 +216,7 @@ pro kcor_plotparams, date, list=list, run=run
   plot, hours, sgs_rav, $
         title=pdate + ' KCor SGS RA', $
         xtitle='Hours [UT]', ytitle='volts', $
-        xrange=[16.0, 28.0], yrange=[rav_min - gap, rav_max + gap], $
+        xrange=[16.0, 28.0], ystyle=1, yrange=[rav_min - gap, rav_max + gap], $
         background=255, color=0, charsize=2.0
   polyfill, [hours, reverse(hours), hours[0]], $
             [sgs_rav + sgs_ras, $
@@ -232,7 +232,7 @@ pro kcor_plotparams, date, list=list, run=run
   plot, hours, sgs_decv, $
         title=pdate + ' KCor SGS Dec', $
         xtitle='Hours [UT]', ytitle='volts', $
-        xrange=[16.0, 28.0], yrange=[decv_min - gap, decv_max + gap], $
+        xrange=[16.0, 28.0], ystyle=1, yrange=[decv_min - gap, decv_max + gap], $
         background=255, color=0, charsize=2.0 
   polyfill, [hours, reverse(hours), hours[0]], $
             [sgs_decv + sgs_decs, $
@@ -250,7 +250,7 @@ pro kcor_plotparams, date, list=list, run=run
   gap = (razr_max - razr_min) * 0.04
   plot, hours, sgs_razr, title=pdate + ' KCor SGS RA zeropoint offset', $
         xtitle='Hours [UT]', ytitle='arcsec', $
-        xrange=[16.0, 28.0], yrange=[razr_min - gap, razr_max + gap], $
+        xrange=[16.0, 28.0], ystyle=1, yrange=[razr_min - gap, razr_max + gap], $
         background=255, color=0, charsize=2.0 
 
   deczr_min = min(sgs_deczr, max=deczr_max, /nan)
@@ -262,7 +262,7 @@ pro kcor_plotparams, date, list=list, run=run
   gap = (deczr_max - deczr_min) * 0.04
   plot, hours, sgs_deczr, title=pdate + ' KCor SGS Dec zeropoint offset', $
         xtitle='Hours [UT]', ytitle='arcsec', $
-        xrange=[16.0, 28.0], yrange=[deczr_min - gap, deczr_max + gap], $
+        xrange=[16.0, 28.0], ystyle=1, yrange=[deczr_min - gap, deczr_max + gap], $
         background=255, color=0, charsize=2.0 
 
   save = tvrd()
@@ -276,28 +276,28 @@ pro kcor_plotparams, date, list=list, run=run
                 title=pdate + ' KCor Modulator Temperature', $
                 xtitle='Hours [UT]', ytitle='Temperature [deg C]', $
                 background=255, color=0, charsize=2.0, $
-                xrange=[16.0, 28.0], yrange=[28.0, 36.0], $
+                xrange=[16.0, 28.0], ystyle=1, yrange=[28.0, 36.0], $
                 clip_thick=2.0
 
   mg_rangeplot, hours, tcam_focus, $
                 title=pdate + ' KCor T Camera Focus position', $
                 xtitle='Hours [UT]', ytitle='T Camera Focus [mm]', $
                 background=255, color=0, charsize=2.0, $
-                xrange=[16.0, 28.0], yrange=[-1.0, 1.0], $
+                xrange=[16.0, 28.0], ystle=1, yrange=[-1.0, 1.0], $
                 clip_thick=2.0
 
   mg_rangeplot, hours, rcam_focus, $
                 title=pdate + ' KCor R Camera Focus position', $
                 xtitle='Hours [UT]', ytitle='R Camera Focus [mm]', $
                 background=255, color=0, charsize=2.0, $
-                xrange=[16.0, 28.0], yrange=[-1.0, 1.0], $
+                xrange=[16.0, 28.0], ystyle=1, yrange=[-1.0, 1.0], $
                 clip_thick=2.0
 
   mg_rangeplot, hours, o1_focus, $
                 title=pdate + ' KCor O1 Focus position', $
                 xtitle='Hours [UT]', ytitle='O1 Camera Focus [mm]', $
                 background=255, color=0, charsize=2.0, $
-                xrange=[16.0, 28.0], yrange=[110.0, 150.0], $
+                xrange=[16.0, 28.0], ystyle=1, yrange=[110.0, 150.0], $
                 clip_thick=2.0
 
   save = tvrd()
