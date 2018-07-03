@@ -509,66 +509,21 @@ pro kcor_create_averages, date, l1_files, run=run
     mg_log, 'no extended average for this day', name='kcor/eod', /warn
   endelse
 
-  ; create lowres  (512 x 512  gif images
-
-  ; rebin to 768x768 (75% of original size) and crop around center to 512 x
-  ; 512 image
-
-  rebin_img = congrid(daily, 768, 768)
-  crop_img = rebin_img[128:639, 128:639]
-
-  ; window, 0, xsize=512, ysize=512, retain=2
-
-  set_plot, 'Z'
-  erase
-  device, set_resolution=[512,512], decomposed=0, set_colors=256, $
-            z_buffering=0
-  erase
-
-  tv, bytscl((bscale * crop_img)^display_exp, min=display_min, max=display_max)
-
-  xyouts, 4, 495, 'MLSO/HAO/KCOR', color=255, charsize=1.2, /device
-  xyouts, 4, 480, 'K-Coronagraph', color=255, charsize=1.2, /device
-  xyouts, 256, 500, 'North', color=255, $
-            charsize=1.0, alignment=0.5, /device
-  xyouts, 500, 495, string(format='(a2)', dy) + ' ' $
-                             + string(format='(a3)', name_month)$
-                             + ' ' + string(format='(a4)', yr), $
-          /device, alignment = 1.0, $
-          charsize=1.0, color=255
-  xyouts, 500, 480, strmid(dailytimes[dailycount - 1], 11) + ' UT', $
-          /device, alignment=1.0, $
-          charsize=1.0, color=255
-  xyouts, 12, 256, 'East', color=255, $
-          charsize=1.0, alignment=0.5, orientation=90.0, /device
-  xyouts, 507, 256, 'West', color=255, $
-          charsize=1.0, alignment=0.5, orientation=90.0, /device
-  xyouts, 4, 20, string(format='("min/max: ", f5.2, ", ", f5.2)', $
-                        display_min, display_max), $
-          color=255, charsize=1.0, /device
-  xyouts, 4, 6, string(format='("scaling: Intensity ^ ", f3.1, ", gamma=", f4.2)', $
-                       display_exp, display_gamma), $
-          color=255, charsize=1.0, /device
-  xyouts, 500, 21, '~10 min. avg.', color=255, charsize=1.0, alignment=1.0, /device
-  xyouts, 500, 6, 'Circle = photosphere', color=255, $
-          charsize=1.0, /device, alignment=1.0
-
-  r = r_photo * 0.75    ;  image is rebined to 75% of original size
-  tvcircle, r, 255.5, 255.5, color=255, /device
-
-  save = tvrd()
+  ; create extavg cropped GIF image
 
   if (n_elements(daily_savename) gt 0L) then begin
-    gif_filename = strmid(daily_savename, 0, 23) + '_extavg_cropped.gif'
-    write_gif, gif_filename, save, red, green, blue   
+    cgif_filename = strmid(daily_savename, 0, 23) + '_extavg_cropped.gif'
+    kcor_cropped_gif, bscale * daily, date, kcor_parse_dateobs(date_obs), $
+                      /daily, /average, output_filename=cgif_filename, run=run
+
     if (run.distribute) then begin
       mg_log, 'copying cropped extended average GIF to cropped dir', $
               name='kcor/eod', /debug
-      file_copy, gif_filename, cropped_dir, /overwrite
+      file_copy, cgif_filename, cropped_dir, /overwrite
     endif
   endif
 
-  ; create fullres 1024x1024 FITS image
+  ; create extag fullres 1024x1024 FITS
   ;   - save times used to make the daily average image in the header
   ;   - create 10 FITS keywords, each holds 4 image times to accommodate up to
   ;     40 images in the average

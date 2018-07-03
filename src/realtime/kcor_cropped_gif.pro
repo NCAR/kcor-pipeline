@@ -15,11 +15,16 @@
 ;     `kcor_run` object
 ;   average : in, optional, type=boolean
 ;     set to indicate that `im` represents an average image
+;   daily : in, optional, type=boolean
+;     set to indicate that `im` represents a daily image, i.e., along with
+;     `AVERAGE` to indicate the `extavg` image
 ;   output : out, optional, type=string
 ;     set to a named variable to retrieve the filename of the GIF written
 ;-
-pro kcor_cropped_gif, im, date, date_obs, run=run, average=average, $
-                      output_filename=cgif_filename
+pro kcor_cropped_gif, im, date, date_obs, $
+                      daily=daily, average=average, $
+                      output_filename=cgif_filename, $
+                      run=run
   compile_opt strictarr
 
   start_index = 256L
@@ -69,7 +74,8 @@ pro kcor_cropped_gif, im, date, date_obs, run=run, average=average, $
                        format='(%"min/max: %5.2f, %3.1f")'), $
           color=255, charsize=1.0, /device
   if (keyword_set(average)) then begin
-    xyouts, 256, 6, '2 min avg', color=255, charsize=1.0, /device, alignment=0.5
+    avg_type = keyword_set(daily) ? '10 min avg' : '2 min avg'
+    xyouts, 256, 6, avg_type, color=255, charsize=1.0, /device, alignment=0.5
   endif
   xyouts, 507, 6, string(exp, $
                          format='(%"scaling: Intensity ^ %3.1f")'), $
