@@ -181,3 +181,5 @@
   add CSV file of readings in CME report
 1.4.44
   fix for sending L1 tarball to HPSS
+  indicate values outside nominal range in param plots
+  make extavg cropped GIFs like standard cropped GIFs
