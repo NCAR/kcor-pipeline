@@ -270,7 +270,11 @@ pro kcor_create_averages, date, l1_files, run=run
 
     ; set up device, color table and scaling
     set_plot, 'Z'
-    device, set_resolution=[1024, 1024], decomposed=0, set_colors=256, z_buffering=0
+    device, set_resolution=[1024, 1024], $
+            decomposed=0, $
+            set_colors=256, $
+            z_buffering=0, $
+            set_pixel_depth=8
 
     lct, filepath('quallab_ver2.lut', root=run.resources_dir)
 
@@ -316,7 +320,6 @@ pro kcor_create_averages, date, l1_files, run=run
     ; draw circle at photosphere
     tvcircle, r_photo, 511.5, 511.5, color=255, /device
 
-    device, decomposed=1
     save = tvrd()
 
     gif_basename = strmid(savename, 0, 23) + '_avg.gif'
@@ -587,7 +590,7 @@ end
 
 ; main-level example program
 
-date = '20180604'
+date = '20180703'
 config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())
