@@ -1018,7 +1018,6 @@ pro kcor_l1, date, ok_files, $
     r_photo = radsun / run->epoch('plate_scale')
 
     corona[mask] = run->epoch('display_min')
-    corona_int = intarr(1024, 1024)
     corona_int = fix(1000 * corona)   ; multiply by 1000 to store as integer
 
     lct, filepath('quallab_ver2.lut', root=run.resources_dir)
