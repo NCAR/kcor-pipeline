@@ -184,3 +184,4 @@
   indicate values outside nominal range in param plots
   make extavg cropped GIFs like standard cropped GIFs
   fix for first 2 min average GIF
+1.4.45
