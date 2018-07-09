@@ -179,7 +179,8 @@
   make avg cropped GIFs like standard cropped GIFs
   add "North" and "2 min avg" (avg only) to cropped GIFs
   add CSV file of readings in CME report
-1.4.44
+1.4.44 [Jul 8, 2018]
   fix for sending L1 tarball to HPSS
   indicate values outside nominal range in param plots
   make extavg cropped GIFs like standard cropped GIFs
+  fix for first 2 min average GIF
