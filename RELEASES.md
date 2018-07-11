@@ -184,4 +184,6 @@
   indicate values outside nominal range in param plots
   make extavg cropped GIFs like standard cropped GIFs
   fix for first 2 min average GIF
-1.4.45
+1.4.45 [Jul 10, 2018]
+  return only one latest row for hardware/software changes
+  log error messages when reading FITS files for detecting hardware changes
