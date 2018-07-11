@@ -187,3 +187,4 @@
 1.4.45 [Jul 10, 2018]
   return only one latest row for hardware/software changes
   log error messages when reading FITS files for detecting hardware changes
+1.4.46
