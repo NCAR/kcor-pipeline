@@ -100,7 +100,11 @@ pro kcor_hw_insert, date, fits_list, run=run, database=database, log_name=log_na
     mg_log, 'checking %s', file_basename(fts_file), name=log_name, /debug
 
     ; extract desired items from header
-    hdu   = headfits(fts_file, /silent)  ; read FITS header
+    hdu   = headfits(fts_file, /silent, errmsg=errmsg)  ; read FITS header
+    if (errmsg ne '') then begin
+      mg_log, 'error reading %, skipping', fts_file, name=log_name, /error
+      continue
+    endif
 
     date_obs    = sxpar(hdu, 'DATE-OBS', count=qdate_obs)
 
