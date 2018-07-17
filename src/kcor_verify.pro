@@ -1,5 +1,83 @@
 ; docformat = 'rst'
 
+
+;+
+; Verify that the given filename is on the HPSS with correct permissions.
+;
+; :Params:
+;   date : in, required, type=string
+;     date in the form YYYYMMDD
+;   filename : in, required, type=string
+;     HPSS filename to check
+;   filesize : in, required, type=integer
+;     size of given file
+;
+; :Keywords:
+;   run : in, required, type=object
+;     KCor run object
+;-
+pro kcor_verify_hpss, date, filename, filesize, $
+                      logger_name=logger_name, run=run
+  compile_opt strictarr
+
+  hsi_cmd = string(run.hsi, filename, format='(%"%s ls -l %s")')
+
+  spawn, hsi_cmd, hsi_output, hsi_error_output, exit_status=exit_status
+  if (exit_status ne 0L) then begin
+    mg_log, 'problem connecting to HPSS with command: %s', hsi_cmd, $
+            name=logger_name, /error
+    mg_log, '%s', mg_strmerge(hsi_error_output), name=logger_name, /error
+    status = 1
+    goto, hpss_done
+  endif
+
+  ; for some reason, hsi puts its output in stderr
+  matches = stregex(hsi_error_output, $
+                    file_basename(filename, '.tgz') + '\.tgz', $
+                    /boolean)
+  ind = where(matches, count)
+  if (count eq 0L) then begin
+    mg_log, '%s tarball for %s not found on HPSS', $
+            file_basename(filename), date, $
+            name=logger_name, /error
+    status = 1L
+    goto, hpss_done
+  endif else begin
+    status_line = hsi_error_output[ind[0]]
+    tokens = strsplit(status_line, /extract)
+
+    ; check group ownership of tarball on HPSS
+    if (tokens[3] ne 'cordyn') then begin
+      mg_log, 'incorrect group owner %s for tarball on HPSS', $
+              tokens[3], name=logger_name, /error
+      status = 1L
+      goto, hpss_done
+    endif
+
+    ; check protection of tarball on HPSS
+    if (tokens[0] ne '-rw-rw-r--') then begin
+      mg_log, 'incorrect permissions %s for tarball on HPSS', $
+              tokens[0], name=logger_name, /error
+      status = 1L
+      goto, hpss_done
+    endif
+
+    ; check size of tarball on HPSS
+    if (ulong64(tokens[4]) ne filesize) then begin
+      mg_log, 'incorrect size %sB for tarball on HPSS', $
+              mg_float2str(ulong64(tokens[4]), places_sep=','), $
+              name=logger_name, /error
+      status = 1L
+      goto, hpss_done
+    endif
+
+    mg_log, 'verified %s tarball on HPSS', file_basename(filename), $
+            name=logger_name, /info
+    hpss_done:
+  endelse
+end
+
+
 ;+
 ; Verify the integrity of the data for a given date.
 ;
@@ -56,15 +134,18 @@ pro kcor_verify, date, config_filename=config_filename, status=status
           name=logger_name, /info
 
   ; don't check days with no data
-  tarball_filename = filepath(date + '_kcor_l0.tgz', $
-                              subdir=[date, 'level0'], $
-                              root=run.raw_basedir)
+  l0_tarball_filename = filepath(date + '_kcor_l0.tgz', $
+                                 subdir=[date, 'level0'], $
+                                 root=run.raw_basedir)
+  l1_tarball_filename = filepath(date + '_kcor_l1.tgz', $
+                                 subdir=[date, 'level1'], $
+                                 root=run.raw_basedir)
 
   fits_files = file_search(filepath('*.fts.gz', $
                                     subdir=[date, 'level0'], $
                                     root=run.raw_basedir), $
                            count=n_fits_files)
-  if (n_fits_files eq 0L && ~file_test(tarball_filename)) then begin
+  if (n_fits_files eq 0L && ~file_test(l0_tarball_filename)) then begin
     mg_log, 'no FITS files or tarball, skipping', name=logger_name, /info
     goto, done
   endif
@@ -386,9 +467,10 @@ pro kcor_verify, date, config_filename=config_filename, status=status
 
   ; TEST: tgz size
 
-  tarball_size = mg_filesize(tarball_filename)
+  l0_tarball_size = mg_filesize(l0_tarball_filename)
+  l1_tarball_size = mg_filesize(l1_tarball_filename)
 
-  if (~file_test(tarball_filename, /regular)) then begin
+  if (~file_test(l0_tarball_filename, /regular)) then begin
     mg_log, 'no tarball', name=logger_name, /error
     status = 1
     goto, compress_ratio_done
@@ -404,10 +486,10 @@ pro kcor_verify, date, config_filename=config_filename, status=status
     tokens = strsplit(du_output[0], /extract)
     dir_size = ulong64(tokens[0])
 
-    compress_ratio = dir_size / 2.0 / tarball_size
+    compress_ratio = dir_size / 2.0 / l0_tarball_size
 
     mg_log, 'tarball size: %s bytes', $
-            mg_float2str(tarball_size, places_sep=','), $
+            mg_float2str(l0_tarball_size, places_sep=','), $
             name=logger_name, /info
     mg_log, 'dir size: %s bytes', $
             mg_float2str(dir_size, places_sep=','), $
@@ -450,67 +532,25 @@ pro kcor_verify, date, config_filename=config_filename, status=status
 ;
 ;  extra_files_done:
 
-  ; TEST: check HPSS for L0 tarball of correct size, ownership, and protections
+  ; TEST: check HPSS for L0/L1 tarball of correct size, ownership, and
+  ; protections
 
   check_hpss = 1B
   if (check_hpss) then begin
     year = strmid(date, 0, 4)
-    hsi_cmd = string(run.hsi, year, date, $
-                     format='(%"%s ls -l /CORDYN/KCOR/%s/%s_kcor_l0.tgz")')
-    spawn, hsi_cmd, hsi_output, hsi_error_output, exit_status=exit_status
-    if (exit_status ne 0L) then begin
-      mg_log, 'problem connecting to HPSS with command: %s', hsi_cmd, $
-              name=logger_name, /error
-      mg_log, '%s', mg_strmerge(hsi_error_output), name=logger_name, /error
-      status = 1
-      goto, hpss_done
-    endif
-
-    ; for some reason, hsi puts its output in stderr
-    matches = stregex(hsi_error_output, date + '_kcor_l0\.tgz', /boolean)
-    ind = where(matches, count)
-    if (count eq 0L) then begin
-      mg_log, 'L0 tarball for %s not found on HPSS', date, $
-              name=logger_name, /error
-      status = 1L
-      goto, hpss_done
-    endif else begin
-      status_line = hsi_error_output[ind[0]]
-      tokens = strsplit(status_line, /extract)
-
-      ; check group ownership of tarball on HPSS
-      if (tokens[3] ne 'cordyn') then begin
-        mg_log, 'incorrect group owner %s for tarball on HPSS', $
-                tokens[3], name=logger_name, /error
-        status = 1L
-        goto, hpss_done
-      endif
-
-      ; check protection of tarball on HPSS
-      if (tokens[0] ne '-rw-rw-r--') then begin
-        mg_log, 'incorrect permissions %s for tarball on HPSS', $
-                tokens[0], name=logger_name, /error
-        status = 1L
-        goto, hpss_done
-      endif
-
-      ; check size of tarball on HPSS
-      if (ulong64(tokens[4]) ne tarball_size) then begin
-        mg_log, 'incorrect size %sB for tarball on HPSS', $
-                mg_float2str(ulong64(tokens[4]), places_sep=','), $
-                name=logger_name, /error
-        status = 1L
-        goto, hpss_done
-      endif
-
-      mg_log, 'verified tarball on HPSS', $
-              name=logger_name, /info
-    endelse
+    kcor_verify_hpss, date, $
+                      string(year, date, $
+                             format='(%"/CORDYN/KCOR/%s/%s_kcor_l0.tgz")'), $
+                      l0_tarball_size, $
+                      logger_name=logger_name, run=run
+    kcor_verify_hpss, date, $
+                      string(year, date, $
+                             format='(%"/CORDYN/KCOR/%s/%s_kcor_l1.tgz")'), $
+                      l1_tarball_size, $
+                      logger_name=logger_name, run=run
   endif else begin
     mg_log, 'skipping HPSS check', name=logger_name, /info
   endelse
-
-  hpss_done:
 
   done:
 
@@ -530,7 +570,7 @@ logger_name = 'kcor/verify'
 cfile = 'kcor.mgalloy.mlsodata.production.cfg'
 config_filename = filepath(cfile, subdir=['..', 'config'], root=mg_src_root())
 
-dates = ['20180122', '20180123', '20180124']
+dates = ['20180708']
 for d = 0L, n_elements(dates) - 1L do begin
   kcor_verify, dates[d], config_filename=config_filename
 

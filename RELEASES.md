@@ -188,3 +188,4 @@
   return only one latest row for hardware/software changes
   log error messages when reading FITS files for detecting hardware changes
 1.4.46
+  check L1 tarball on HPSS in verification
