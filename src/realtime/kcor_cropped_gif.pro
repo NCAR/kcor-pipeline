@@ -55,7 +55,10 @@ pro kcor_cropped_gif, im, date, date_obs, $
   exp = run->epoch('cropped_display_exp')
 
   ; display image
-  tv, bytscl(crop_image^exp, min=min, max=max)
+  display_factor = 1.0e6
+  tv, bytscl((display_factor * crop_image)^exp, $
+             min=display_factor * min, $
+             max=display_factor * max)
 
   ; print annotations
 

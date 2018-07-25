@@ -1026,10 +1026,10 @@ pro kcor_l1, date, ok_files, $
     tvlct, red, green, blue, /get
 
     ; display image, annotate, and save as a full resolution GIF file
-
-    tv, bytscl(corona ^ run->epoch('display_exp'), $
-               min=run->epoch('display_min'), $
-               max=run->epoch('display_max'))
+    display_factor = 1.0e6
+    tv, bytscl((display_factor * corona) ^ run->epoch('display_exp'), $
+               min=display_factor * run->epoch('display_min'), $
+               max=display_factor * run->epoch('display_max'))
 
     xyouts, 4, 990, 'MLSO/HAO/KCOR', color=255, charsize=1.5, /device
     xyouts, 4, 970, 'K-Coronagraph', color=255, charsize=1.5, /device
