@@ -1054,7 +1054,7 @@ pro kcor_l1, date, ok_files, $
     xyouts, 4, 46, 'Level 1 data', color=255, charsize=1.2, /device
     xyouts, 4, 26, string(run->epoch('display_min'), $
                           run->epoch('display_max'), $
-                          format='(%"min/max: %0.2g, %0.2g")', $
+                          format='(%"min/max: %0.2g, %0.2g")'), $
             color=255, charsize=1.2, /device
     xyouts, 4, 6, $
             string(run->epoch('display_exp'), $
