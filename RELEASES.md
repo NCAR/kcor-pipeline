@@ -189,3 +189,6 @@
   log error messages when reading FITS files for detecting hardware changes
 1.4.46
   check L1 tarball on HPSS in verification
+  change BSCALE to 1.0, units of L1 files are now B/Bsun
+  change L1 fullres GIFs to BW color table and gamma of 1.0
+  change bias to 3.0e-9
