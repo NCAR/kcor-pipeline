@@ -276,13 +276,15 @@ pro kcor_create_averages, date, l1_files, run=run
             z_buffering=0, $
             set_pixel_depth=8
 
-    lct, filepath('quallab_ver2.lut', root=run.resources_dir)
-
+    loadct, 0, /silent
     gamma_ct, display_gamma, /current
     tvlct, red, green, blue, /get
 
     ; create fullres (1024x1024) GIF images
-    tv, bytscl((bscale * avgimg)^display_exp, min=display_min, max=display_max)
+    display_factor = 1.0e6
+    tv, bytscl((display_factor * bscale * avgimg)^display_exp, $
+               min=display_factor * display_min, $
+               max=display_factor * display_max)
 
     xyouts, 4, 990, 'MLSO/HAO/KCOR', color=255, charsize=1.5, /device
     xyouts, 4, 970, 'K-Coronagraph', color=255, charsize=1.5, /device
@@ -307,7 +309,7 @@ pro kcor_create_averages, date, l1_files, run=run
             orientation=90., /device
     xyouts, 4, 46, 'Level 1 Avg', color=255, charsize=1.2, /device
     xyouts, 4, 26, string(display_min, display_max, $
-                          format='("min/max: ", f5.2, ", ", f3.1)'), $
+                          format='(%"min/max: %0.2g, %0.2g")'), $
             color=255, charsize=1.2, /device
     xyouts, 4, 6, string(display_exp, $
                          display_gamma, $
@@ -417,7 +419,10 @@ pro kcor_create_averages, date, l1_files, run=run
 
   daily /= float(dailycount) - 8.0
 
-  tv, bytscl((bscale * daily)^display_exp, display_min, display_max)
+  display_factor = 1.0e6
+  tv, bytscl((display_factor * bscale * daily)^display_exp, $
+             min=display_factor * display_min, $
+             max=display_factor * display_max)
 
   ; make sure you use the time from the daily saved header
   date_obs = fxpar(dailysaveheader, 'DATE-OBS')    ; yyyy-mm-ddThh:mm:ss
