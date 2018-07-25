@@ -71,7 +71,7 @@ pro kcor_cropped_gif, im, date, date_obs, $
 
   ; bottom
   xyouts, 4, 6, string(min, max, $
-                       format='(%"min/max: %5.2f, %3.1f")'), $
+                       format='(%"min/max: %0.2g, %0.2g")'), $
           color=255, charsize=1.0, /device
   if (keyword_set(average)) then begin
     avg_type = keyword_set(daily) ? '10 min avg' : '2 min avg'
