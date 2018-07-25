@@ -181,6 +181,7 @@
 ;                     to tangential. Removed comments about phase angle. Don't need it 
 ;                     anymore since we are now using Alfred's new calibration (Dec 12, 2016) \
 ;                     that fixed the bugs in the previous versions.
+;   25 Jul 2018 [MG]  Change BSCALE back to 1.0 and save data as floats.
 ;
 ;   Make semi-calibrated kcor images.
 ;-------------------------------------------------------------------------------
@@ -431,6 +432,7 @@ pro kcor_l1, date, ok_files, $
 
     ncdf_varget, unit, 'Dark', dark_alfred
     ncdf_varget, unit, 'Gain', gain_alfred
+    gain_alfred /= 1e-6   ; this makes gain_alfred in units of B/Bsun
     ncdf_varget, unit, 'Modulation Matrix', mmat
     ncdf_varget, unit, 'Demodulation Matrix', dmat
     ncdf_varget, unit, 'DIM Reference Voltage', flat_vdimref
@@ -1018,7 +1020,6 @@ pro kcor_l1, date, ok_files, $
     r_photo = radsun / run->epoch('plate_scale')
 
     corona[mask] = run->epoch('display_min')
-    corona_int = fix(1000 * corona)   ; multiply by 1000 to store as integer
 
     lct, filepath('quallab_ver2.lut', root=run.resources_dir)
     gamma_ct, run->epoch('display_gamma'), /current
@@ -1128,7 +1129,7 @@ pro kcor_l1, date, ok_files, $
     endif
     struct.sgsloop = 1   ; SGSLOOP is 1 if image passed quality check
 
-    bscale = 0.001   ; pB * 1000 is stored in FITS image.
+    bscale = 1.0   ; pB is stored in FITS image
     img_quality = 'ok'
     newheader    = strarr(200)
     newheader[0] = header[0]         ; contains SIMPLE keyword
@@ -1225,7 +1226,7 @@ pro kcor_l1, date, ok_files, $
     fxaddpar, newheader, 'OBSSWID', struct.obsswid, $
               ' version of the observing software'
 
-    fxaddpar, newheader, 'BUNIT', '1.0E-6 Bsun', $
+    fxaddpar, newheader, 'BUNIT', 'B/Bsun', $
               ' Brightness with respect to solar disc'
     diffsrid = run->epoch('use_diffsrid') ? struct.diffsrid : run->epoch('diffsrid')
     fxaddpar, newheader, 'BOPAL', $
@@ -1241,8 +1242,8 @@ pro kcor_l1, date, ok_files, $
               ' physical = data * BSCALE + BZERO', format='(F8.3)'
 
     ; data display information
-    fxaddpar, newheader, 'DATAMIN', min(corona_int), ' minimum  value of  data'
-    fxaddpar, newheader, 'DATAMAX', max(corona_int), ' maximum  value of  data'
+    fxaddpar, newheader, 'DATAMIN', min(corona), ' minimum  value of  data'
+    fxaddpar, newheader, 'DATAMAX', max(corona), ' maximum  value of  data'
     fxaddpar, newheader, 'DISPMIN', run->epoch('display_min'), $
               ' minimum  value for display', $
               format='(f10.2)'
@@ -1484,7 +1485,7 @@ pro kcor_l1, date, ok_files, $
     ;----------------------------------------------------------------------------
 
     ; write FITS image to disk
-    writefits, filepath(l1_file, root=l1_dir), corona_int, newheader
+    writefits, filepath(l1_file, root=l1_dir), corona, newheader
   
     ; now make cropped GIF file
     kcor_cropped_gif, corona, date, date_struct, run=run
