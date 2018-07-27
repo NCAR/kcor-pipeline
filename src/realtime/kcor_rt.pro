@@ -102,8 +102,54 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     endif
 
     mg_log, 'checking %d L0 files', n_l0_fits_files, name='kcor/rt', /info
-    ok_files = kcor_quality(date, l0_fits_files, /append, run=run)
+    ok_files = kcor_quality(date, l0_fits_files, /append, $
+                            brt_files=brt_files, $
+                            cal_files=cal_files, $
+                            cld_files=cld_files, $
+                            dev_files=dev_files, $
+                            dim_files=dim_files, $
+                            nsy_files=nsy_files, $
+                            sat_files=sat_files, $
+                            run=run)
     mg_log, '%d OK L0 files', n_elements(ok_files), name='kcor/rt', /info
+
+    if (run.update_database) then begin
+      mg_log, 'updating database with raw files', name='kcor/rt', /info
+
+      obsday_index = mlso_obsday_insert(date, $
+                                        run=run, $
+                                        database=db, $
+                                        status=db_status, $
+                                        log_name='kcor/rt')
+      if (db_status eq 0L) then begin
+        kcor_raw_insert, date, ok_files, 'oka', $
+                         run=run, database=db, obsday_index=obsday_index, $
+                         log_name='kcor/rt'
+        kcor_raw_insert, date, brt_files, 'brt', $
+                         run=run, database=db, obsday_index=obsday_index, $
+                         log_name='kcor/rt'
+        kcor_raw_insert, date, cal_files, 'cal', $
+                         run=run, database=db, obsday_index=obsday_index, $
+                         log_name='kcor/rt'
+        kcor_raw_insert, date, cld_files, 'cld', $
+                         run=run, database=db, obsday_index=obsday_index, $
+                         log_name='kcor/rt'
+        kcor_raw_insert, date, dev_files, 'dev', $
+                         run=run, database=db, obsday_index=obsday_index, $
+                         log_name='kcor/rt'
+        kcor_raw_insert, date, dim_files, 'dim', $
+                         run=run, database=db, obsday_index=obsday_index, $
+                         log_name='kcor/rt'
+        kcor_raw_insert, date, nsy_files, 'nsy', $
+                         run=run, database=db, obsday_index=obsday_index, $
+                         log_name='kcor/rt'
+        kcor_raw_insert, date, sat_files, 'sat', $
+                         run=run, database=db, obsday_index=obsday_index, $
+                         log_name='kcor/rt'
+      endif else begin
+        mg_log, 'skipping database because unable to connect', name='kcor/rt', /warn
+      endelse
+    endif
 
     kcor_l1, date, ok_files, /append, run=run, mean_phase1=mean_phase1, error=error
     if (error ne 0L) then begin

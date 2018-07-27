@@ -24,7 +24,7 @@ if ($#ARGV != 0 ) {
 }
 
 # Warn user of database drop
-print "WARNING!!!! This script will drop the table kcor_level!\nDo you wish to continue? ";
+print "WARNING!!!! This script will drop the table kcor_quality!\nDo you wish to continue? ";
 print "Press <Enter> to continue, or 'q' to quit: ";
 my $input = <STDIN>;
 exit if $input eq "q\n";
@@ -63,10 +63,10 @@ else
   }
 
 #-------------------------------
-# Create new kcor_level table.
+# Create new kcor_quality table.
 #-------------------------------
 
-$command = "DROP TABLE IF EXISTS kcor_level" ;
+$command = "DROP TABLE IF EXISTS kcor_quality" ;
 $sth     = $dbh->prepare ($command) ;
 
 $sth->execute () ;
