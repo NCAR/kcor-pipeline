@@ -137,9 +137,10 @@ pro kcor_img_insert, date, fits_list, $
       quality = 75
     endif
 
-    level      = strtrim(sxpar(hdu, 'LEVEL',    count=qlevel),2)
-    ; TODO: Older NRGF headers have 'NRGF' appended to level string, but newer headers
-    ;   will have another keyword added to header for producttype
+    level      = strtrim(sxpar(hdu, 'LEVEL', count=qlevel), 2)
+
+    ; TODO: Older NRGF headers have 'NRGF' appended to level string, but newer
+    ;       headers will have another keyword added to header for producttype
     os = strpos(level, 'NRGF')
     if (os ne -1) then begin
       level = strmid(level, 0, os)
