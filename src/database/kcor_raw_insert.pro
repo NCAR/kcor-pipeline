@@ -149,7 +149,7 @@ pro kcor_raw_insert, date, fits_list, quality, $
                               level, fields=fields)
     level_num = level_results.level_id	
 
-    quality_count = db->query('SELECT count(level_id) FROM kcor_quality WHERE quality=''%s''', $
+    quality_count = db->query('SELECT count(quality_id) FROM kcor_quality WHERE quality=''%s''', $
                               quality, fields=fields)
     if (quality_count.count_quality_id_ eq 0) then begin
       ; if given quality is not in the kcor_quality table, exit
