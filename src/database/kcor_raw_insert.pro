@@ -78,9 +78,9 @@ pro kcor_raw_insert, date, fits_list, quality, $
   month = strmid(date, 4, 2)   ; mm
   day   = strmid(date, 6, 2)   ; dd
 
-  l0_dir = filepath('level0', subdir=date, root=run.raw_basedir)
+  date_dir = filepath(date, root=run.raw_basedir)
   cd, current=start_dir 
-  cd, l0_dir
+  cd, date_dir
 
   ; step through list of fits files passed in parameter
   n_files = n_elements(fits_list)
@@ -93,10 +93,10 @@ pro kcor_raw_insert, date, fits_list, quality, $
     fts_file = fits_list[i]
 
     if (~file_test(fts_file)) then begin
-      mg_log, '%s not found', fts_file, name=log_name, /warn
+      mg_log, '%s (%s) not found', fts_file, quality, name=log_name, /warn
       continue
     endif else begin
-      mg_log, 'ingesting %s', fts_file, name=log_name, /info
+      mg_log, 'ingesting %s (%s)', fts_file, quality, name=log_name, /info
     endelse
 
     ; extract desired items from header
