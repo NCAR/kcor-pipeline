@@ -1193,7 +1193,7 @@ pro kcor_l1, date, ok_files, $
     ; software information
     fxaddpar, newheader, 'QUALITY', img_quality, ' Image quality'
     fxaddpar, newheader, 'LEVEL', 'L1.5', $
-              ' Level 1.5 intensity is quasi-calibrated'
+              ' Level 1.5 pB Intensity is fully-calibrated'
 
     ; fxaddpar, newheader, 'DATE-L1', kcor_datecal(), ' Level 1 processing date'
     ; fxaddpar, newheader, 'L1SWID',  'kcorl1.pro 10nov2015', $
