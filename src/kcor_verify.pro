@@ -137,7 +137,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   l0_tarball_filename = filepath(date + '_kcor_l0.tgz', $
                                  subdir=[date, 'level0'], $
                                  root=run.raw_basedir)
-  l1_tarball_filename = filepath(date + '_kcor_l1.tgz', $
+  l1_tarball_filename = filepath(date + '_kcor_l1.5.tgz', $
                                  subdir=[date, 'level1'], $
                                  root=run.raw_basedir)
 
@@ -545,7 +545,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
                       logger_name=logger_name, run=run
     kcor_verify_hpss, date, $
                       string(year, date, $
-                             format='(%"/CORDYN/KCOR/%s/%s_kcor_l1.tgz")'), $
+                             format='(%"/CORDYN/KCOR/%s/%s_kcor_l1.5.tgz")'), $
                       l1_tarball_size, $
                       logger_name=logger_name, run=run
   endif else begin

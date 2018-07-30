@@ -24,7 +24,7 @@
 ;   For example::
 ;
 ;     date = '20170204'
-;     files = ['20170214_190402_kcor_l1.fts.gz']
+;     files = ['20170214_190402_kcor_l1.5.fts.gz']
 ;     kcor_sci_insert, date, files, run=run, obsday_index=obsday_index
 ;
 ; :Author:
@@ -163,7 +163,7 @@ run = kcor_run(date, $
 
 obsday_index = mlso_obsday_insert(date, run=run, database=db)
 
-files = ['20170318_205523_kcor_l1.fts.gz']
+files = ['20170318_205523_kcor_l1.5.fts.gz']
 kcor_sci_insert, date, files, run=run, database=db, obsday_index=obsday_index
 
 results = db->query('select * from kcor_sci', sql_statement=cmd, error=error, fields=fields)

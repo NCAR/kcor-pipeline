@@ -388,7 +388,7 @@ pro kcor_l1, date, ok_files, $
             fnum, nfiles, file_basename(l0_file), $
             name='kcor/rt', /info
 
-    l1_file = strmid(l0_file, 0, 20) + '_l1.fts'
+    l1_file = strmid(l0_file, 0, 20) + '_l1.5.fts'
 
     ; skip first good image of the day
     if (~kcor_state(/first_image, run=run)) then begin
@@ -1070,7 +1070,7 @@ pro kcor_l1, date, ok_files, $
 
     device, decomposed=1
     save     = tvrd()
-    gif_file = strmid(l0_file, 0, 20) + '_l1.gif'
+    gif_file = strmid(l0_file, 0, 20) + '_l1.5.gif'
     write_gif, filepath(gif_file, root=l1_dir), save, red, green, blue
 
     ;----------------------------------------------------------------------------
@@ -1192,21 +1192,21 @@ pro kcor_l1, date, ok_files, $
 
     ; software information
     fxaddpar, newheader, 'QUALITY', img_quality, ' Image quality'
-    fxaddpar, newheader, 'LEVEL',    'L1', $
-              ' Level 1 intensity is quasi-calibrated'
+    fxaddpar, newheader, 'LEVEL', 'L1.5', $
+              ' Level 1.5 intensity is quasi-calibrated'
 
     ; fxaddpar, newheader, 'DATE-L1', kcor_datecal(), ' Level 1 processing date'
     ; fxaddpar, newheader, 'L1SWID',  'kcorl1.pro 10nov2015', $
     ;                      ' Level 1 software'
 
-    fxaddpar, newheader, 'DATE_DP', date_dp, ' L1 processing date (UTC)'
+    fxaddpar, newheader, 'DATE_DP', date_dp, ' L1.5 processing date (UTC)'
     version = kcor_find_code_version(revision=revision, date=code_date)
 
     fxaddpar, newheader, 'DPSWID',  $
               string(version, revision, $
                      format='(%"%s [%s]")'), $
               string(code_date, $
-                     format='(%" L1 data processing software (%s)")')
+                     format='(%" L1.5 data processing software (%s)")')
 
     fxaddpar, newheader, 'CALFILE', run->epoch('cal_file'), $
               ' calibration file'

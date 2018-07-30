@@ -64,7 +64,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   if (n_l0_fits_files gt 0L) then begin
     mg_log, 'L0 FITS files exist in %s', date_dir, name='kcor/eod', $
             error=keyword_set(reprocess), info=~keyword_set(reprocess)
-    mg_log, 'L1 processing incomplete', name='kcor/eod', $
+    mg_log, 'L1.5 processing incomplete', name='kcor/eod', $
             error=keyword_set(reprocess), info=~keyword_set(reprocess)
     goto, done
   endif
@@ -108,7 +108,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     n_l1_zipped_files = 0L
   endif else begin
     cd, l1_dir
-    l1_zipped_fits_glob = '*_l1.fts.gz'
+    l1_zipped_fits_glob = '*_l1.5.fts.gz'
     l1_zipped_files = file_search(l1_zipped_fits_glob, count=n_l1_zipped_files)
     cd, l0_dir
   endelse
@@ -119,7 +119,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     kcor_redo_nrgf, date, run=run
   endif
 
-  nrgf_glob = filepath('*_kcor_l1_nrgf.fts.gz', $
+  nrgf_glob = filepath('*_kcor_l1.5_nrgf.fts.gz', $
                        subdir=[date, 'level1'], root=run.raw_basedir)
   nrgf_files = file_search(nrgf_glob, count=n_nrgf_files)
   if (n_nrgf_files gt 0L) then begin
@@ -262,7 +262,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
                          database=db, $
                          obsday_index=obsday_index
       endif else begin
-        mg_log, 'no L1 files for daily science', name='kcor/eod', /warn
+        mg_log, 'no L1.5 files for daily science', name='kcor/eod', /warn
       endelse
     endif else begin
       mg_log, 'error connecting to database', name='kcor/eod', /warn

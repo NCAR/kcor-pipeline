@@ -153,7 +153,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
 
     kcor_l1, date, ok_files, /append, run=run, mean_phase1=mean_phase1, error=error
     if (error ne 0L) then begin
-      mg_log, 'L1 processing failed, quitting', name='kcor/rt', /error
+      mg_log, 'L1.5 processing failed, quitting', name='kcor/rt', /error
       goto, done
     endif
 
@@ -162,10 +162,10 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
 
     cd, l1_dir
 
-    l1_fits_glob = '*l1*fts'
+    l1_fits_glob = '*l1.5*fts'
     l1_fits_files = file_search(l1_fits_glob, count=n_l1_fits_files)
     if (n_l1_fits_files gt 0L) then begin
-      mg_log, 'zipping %d L1 FITS files', n_l1_fits_files, name='kcor/rt', /info
+      mg_log, 'zipping %d L1.5 FITS files', n_l1_fits_files, name='kcor/rt', /info
       gzip_cmd = string(run.gzip, l1_fits_glob, format='(%"%s %s")')
       spawn, gzip_cmd, result, error_result, exit_status=status
       if (status ne 0L) then begin
@@ -174,7 +174,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
         mg_log, '%s', strjoin(error_result, ' '), name='kcor/rt', /error
       endif
     endif else begin
-      mg_log, 'no L1 FITS files to zip', name='kcor/rt', /info
+      mg_log, 'no L1.5 FITS files to zip', name='kcor/rt', /info
     endelse
 
     if (n_elements(ok_files) eq 0L) then begin
@@ -182,7 +182,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       goto, done
     endif else begin
       if (run.distribute) then begin
-        mg_log, 'distributing L1 products of %d raw files', $
+        mg_log, 'distributing L1.5 products of %d raw files', $
                 n_elements(ok_files), $
                 name='kcor/rt', /info
       endif else begin
@@ -200,16 +200,16 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     for f = 0L, n_elements(ok_files) - 1L do begin
       base = file_basename(ok_files[f], '.fts.gz')
 
-      cropped_gif_filename = base + '_l1_cropped.gif'
+      cropped_gif_filename = base + '_l1.5_cropped.gif'
       printf, okcgif_lun, cropped_gif_filename
 
-      gif_filename = base + '_l1.gif'
+      gif_filename = base + '_l1.5.gif'
       printf, okfgif_lun, gif_filename
 
-      l1_filename = base + '_l1.fts.gz'
+      l1_filename = base + '_l1.5.fts.gz'
       printf, okl1gz_lun, l1_filename
 
-      nrgf_filename = base + '_l1_nrgf.fts.gz'
+      nrgf_filename = base + '_l1.5_nrgf.fts.gz'
       if (file_test(nrgf_filename)) then begin
         printf, ok_rg_lun, nrgf_filename
         nrgf_basenames->add, base
@@ -246,8 +246,8 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     n_nrgf_gifs = nrgf_basenames->count()
     if (n_nrgf_gifs gt 0L) then begin
       nrgf_gif_basenames = nrgf_basenames->toArray()
-      nrgf_gifs = nrgf_gif_basenames + '_l1_nrgf.gif'
-      cropped_nrgf_gifs = nrgf_gif_basenames + '_l1_nrgf_cropped.gif'
+      nrgf_gifs = nrgf_gif_basenames + '_l1.5_nrgf.gif'
+      cropped_nrgf_gifs = nrgf_gif_basenames + '_l1.5_nrgf_cropped.gif'
     endif
 
     obj_destroy, nrgf_basenames
@@ -297,7 +297,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
                            database=db, $
                            obsday_index=obsday_index
         endif else begin
-          mg_log, 'no L1 files for img or eng tables', name='kcor/rt', /info
+          mg_log, 'no L1.5 files for img or eng tables', name='kcor/rt', /info
         endelse
 
         if (n_l0_fits_files gt 0L) then begin

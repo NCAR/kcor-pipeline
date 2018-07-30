@@ -287,7 +287,9 @@ end
 ;date = '20170204'
 ;filelist = ['20170204_205610_kcor_l1_nrgf.fts.gz','20170204_205625_kcor_l1.fts.gz','20170204_205640_kcor_l1.fts.gz','20170204_205656_kcor_l1.fts.gz','20170204_205711_kcor_l1.fts.gz']
 date = '20170305'
-filelist = ['20170305_185807_kcor_l1_nrgf.fts.gz','20170305_185822_kcor_l1.fts.gz','20170305_185837_kcor_l1.fts.gz']
+filelist = ['20170305_185807_kcor_l1.5_nrgf.fts.gz', $
+            '20170305_185822_kcor_l1.5.fts.gz', $
+            '20170305_185837_kcor_l1.5.fts.gz']
 
 run = kcor_run(date, $
                config_filename=filepath('kcor.kolinski.mahi.latest.cfg', $

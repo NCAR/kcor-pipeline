@@ -245,7 +245,7 @@ help, latest_sw
 cd, current=current_dir
 l1_dir = filepath('level1', subdir=date, root=run.raw_basedir)
 cd, l1_dir
-l1_files = file_search('*l1.fts*', count=n_l1_files)
+l1_files = file_search('*l1.5.fts*', count=n_l1_files)
 
 ;kcor_sw_insert, date, l1_files, run=run
 

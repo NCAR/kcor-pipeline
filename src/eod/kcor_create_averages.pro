@@ -85,7 +85,7 @@ pro kcor_create_averages, date, l1_files, run=run
   dailycount = 0  ; want to average up to 40 images in < 15 minutes for daily avg.
   stopavg = 0  ; set to 1 if images are more than 3 minutes apart (stop averaging)
 
-  mg_log, 'averaging for %d L1 files', n_elements(l1_files), name='kcor/eod', /info
+  mg_log, 'averaging for %d L1.5 files', n_elements(l1_files), name='kcor/eod', /info
 
   ; read in images and generate subtractions ~10 minutes apart
   f = 0L
@@ -601,7 +601,7 @@ config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
 
-l1_zipped_fits_glob = '*_l1.fts.gz'
+l1_zipped_fits_glob = '*_l1.5.fts.gz'
 l1_zipped_files = file_search(filepath(l1_zipped_fits_glob, $
                                        subdir=[date, 'level1'], $
                                        root=run.raw_basedir), $

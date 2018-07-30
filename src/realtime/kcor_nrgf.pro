@@ -336,8 +336,8 @@ pro kcor_nrgf, fits_file, $
 
     ; modify the FITS header for an NRG FITS image
     rhdu = hdu
-    fxaddpar, rhdu, 'LEVEL', 'L1', $
-              ' Level 1'
+    fxaddpar, rhdu, 'LEVEL', 'L1.5', $
+              ' Level 1.5'
     if (keyword_set(averaged)) then begin
       fxaddpar, rhdu, 'PRODUCT', 'NRGFAVG', $
                 ' Averaged Normalized Radially-Graded Intensity'
@@ -388,21 +388,21 @@ run = kcor_run(date, $
                                        subdir=['..', '..', 'config'], $
                                        root=mg_src_root()))
 
-f = filepath('20180423_175443_kcor_l1_extavg.fts.gz', $
+f = filepath('20180423_175443_kcor_l1.5_extavg.fts.gz', $
              subdir=[date, 'level1'], $
              root=run.raw_basedir)
 
 kcor_nrgf, f, /average, /daily, run=run
 kcor_nrgf, f, /average, /daily, /cropped, run=run
 
-f = filepath('20180423_175443_kcor_l1_avg.fts.gz', $
+f = filepath('20180423_175443_kcor_l1.5_avg.fts.gz', $
              subdir=[date, 'level1'], $
              root=run.raw_basedir)
 
 kcor_nrgf, f, /average, run=run
 kcor_nrgf, f, /average, /cropped, run=run
 
-f = filepath('20180423_175443_kcor_l1.fts.gz', $
+f = filepath('20180423_175443_kcor_l1.5.fts.gz', $
              subdir=[date, 'level1'], $
              root=run.raw_basedir)
 

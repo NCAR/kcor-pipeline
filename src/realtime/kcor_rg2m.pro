@@ -159,8 +159,8 @@ pro kcor_rg2m, fits_list, fits=fits
 
       ; modify the FITS header for an NRG fits image
       rhdu = hdu
-      fxaddpar, rhdu, 'LEVEL',  'L1NRGF', $
-                ' Level 1 Normalized Radially-Graded Intensity'
+      fxaddpar, rhdu, 'LEVEL',  'L1.5NRGF', $
+                ' Level 1.5 Normalized Radially-Graded Intensity'
       fxaddpar, rhdu, 'BSCALE', bscale, $
                 ' Normalized Radially-Graded H.Morgan+S.Fineschi',$
                 format='(f10.3)'

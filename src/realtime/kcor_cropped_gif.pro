@@ -100,7 +100,7 @@ pro kcor_cropped_gif, im, date, date_obs, $
                          keyword_set(average) $
                            ? (keyword_set(daily) ? '_extavg' : '_avg') $
                            : '', $
-                         format='(%"%04d%02d%02d_%02d%02d%02d_kcor_l1%s_cropped.gif")')
+                         format='(%"%04d%02d%02d_%02d%02d%02d_kcor_l1.5%s_cropped.gif")')
   cgif_filename = filepath(cgif_basename, root=l1_dir)
   write_gif, cgif_filename, raster, red, green, blue
 
@@ -114,8 +114,8 @@ end
 
 ;date = '20180423'
 date = '20180604'
-;l1_basename = '20180424_000420_kcor_l1.fts.gz'
-l1_basename = '20180605_011443_kcor_l1_avg.fts.gz'
+;l1_basename = '20180424_000420_kcor_l1.5.fts.gz'
+l1_basename = '20180605_011443_kcor_l1.5_avg.fts.gz'
 
 config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
                            subdir='../../config', $

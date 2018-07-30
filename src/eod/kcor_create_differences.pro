@@ -417,7 +417,7 @@ config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
 
-l1_files = file_search(filepath('*_l1.fts.gz', $
+l1_files = file_search(filepath('*_l1.5.fts.gz', $
                                 subdir=[date, 'level1'], $
                                 root=run.raw_basedir), $
                        count=n_l1_files)

@@ -13,9 +13,9 @@ pro kcor_archive_l1, run=run
   date = run.date
 
   if (run.send_to_hpss) then begin
-    mg_log, 'sending L1 data to HPSS...', name='kcor/eod', /info
+    mg_log, 'sending L1.5 data to HPSS...', name='kcor/eod', /info
   endif else begin
-    mg_log, 'not sending L1 data to HPSS', name='kcor/eod', /info
+    mg_log, 'not sending L1.5 data to HPSS', name='kcor/eod', /info
   endelse
 
   cd, current=cwd
@@ -30,9 +30,9 @@ pro kcor_archive_l1, run=run
 
   cd, l1_dir
 
-  tarfile  = string(date, format='(%"%s_kcor_l1.tgz")')
-  tarlist  = string(date, format='(%"%s_kcor_l1.tarlist")')
-  hpssinfo = string(date, format='(%"%s_kcor_l1_tar.ls")')
+  tarfile  = string(date, format='(%"%s_kcor_l1.5.tgz")')
+  tarlist  = string(date, format='(%"%s_kcor_l1.5.tarlist")')
+  hpssinfo = string(date, format='(%"%s_kcor_l1.5_tar.ls")')
 
   ; delete old tarball, tarlist
   if (~file_test(tarfile, /regular)) then file_delete, tarfile, /quiet
@@ -118,11 +118,11 @@ pro kcor_archive_l1, run=run
                dst_tarfile
 
   endif else begin
-    mg_log, 'no files for L1 tarball/tarlist, not creating', $
+    mg_log, 'no files for L1.5 tarball/tarlist, not creating', $
             name='kcor/eod', /warn
   endelse
 
   done:
   cd, cwd
-  mg_log, 'done sending L1 data to HPSS', name='kcor/eod', /info
+  mg_log, 'done sending L1.5 data to HPSS', name='kcor/eod', /info
 end

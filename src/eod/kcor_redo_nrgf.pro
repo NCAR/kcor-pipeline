@@ -57,7 +57,8 @@ pro kcor_redo_nrgf, date, run=run
   endelse
 
   for d = 0L, n_elements(dirs) - 1L do begin
-    files = file_search(filepath('*_kcor_l1_nrgf*', root=dirs[d]), $
+    ; delete L1 and L1.5 NRGF files
+    files = file_search(filepath('*_kcor_l1*_nrgf*', root=dirs[d]), $
                         count=n_files)
     mg_log, 'removing %d NRGF files from %s dir', n_files, names[d], $
             name='kcor/eod', /info
@@ -77,7 +78,7 @@ pro kcor_redo_nrgf, date, run=run
   endif
 
   ; create new NRGF files corresponding to average files
-  average_files = file_search(filepath('*_kcor_l1_avg.fts.gz', $
+  average_files = file_search(filepath('*_kcor_l1.5_avg.fts.gz', $
                                        subdir=[date, 'level1'], $
                                        root=run.raw_basedir), $
                               count=n_average_files)
@@ -87,7 +88,7 @@ pro kcor_redo_nrgf, date, run=run
   endfor
 
   ; create NRGF daily average file corresponding to daily average file
-  daily_average_files = file_search(filepath('*_kcor_l1_extavg.fts.gz', $
+  daily_average_files = file_search(filepath('*_kcor_l1.5_extavg.fts.gz', $
                                              subdir=[date, 'level1'], $
                                              root=run.raw_basedir), $
                                     count=n_daily_average_files)
