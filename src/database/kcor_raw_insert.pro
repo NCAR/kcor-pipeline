@@ -170,7 +170,7 @@ pro kcor_raw_insert, date, fits_list, quality, $
                  status=status, error_message=error_message, sql_statement=sql_cmd
 
     if (status ne 0L) then begin
-      mg_log, 'error inserting in kcor_img table', name=log_name, /error
+      mg_log, 'error inserting in kcor_raw table', name=log_name, /error
       mg_log, 'status: %d, error message: %s', status, error_message, $
               name=log_name, /error
       mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
