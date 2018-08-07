@@ -137,7 +137,9 @@ ydim_prev = 0		; y-dimension previous image.
    ycen     = fxpar (hdu, 'CRPIX2') + yb - 1
    roll     = fxpar (hdu, 'INST_ROT', count=qinst_rot)
    cdelt1   = fxpar (hdu, 'CDELT1',   count=qcdelt1)
-   rsun     = fxpar (hdu, 'RSUN',     count=qrsun)
+   rsun     = fxpar (hdu, 'RSUN_OBS', count=qrsun)
+   if (qrsun eq 0L) then rsun = fxpar (hdu, 'RSUN', count=qrsun)
+
    pixrs    = rsun / cdelt1	; pixels/Rsun.
 
    print, 'pixrs   : ', pixrs

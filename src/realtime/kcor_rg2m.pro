@@ -78,7 +78,7 @@ pro kcor_rg2m, fits_list, fits=fits
       doy = (mday[fix(month) - 1] + fix(day))
     endelse
 
-    rsun = sxpar(hdu, 'RSUN')   ; radius of photosphere
+    rsun = sxpar(hdu, 'RSUN_OBS')   ; radius of photosphere
 
     ; find size of occulter
     ;   - one occulter has 4 digits; other two have 5

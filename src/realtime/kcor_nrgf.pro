@@ -127,7 +127,7 @@ pro kcor_nrgf, fits_file, $
   ycen       = ydim / 2.0 - 0.5
   date_obs   = sxpar(hdu, 'DATE-OBS')   ; yyyy-mm-ddThh:mm:ss
   platescale = sxpar(hdu, 'CDELT1')     ; arcsec/pixel
-  rsun       = sxpar(hdu, 'RSUN')       ; radius of photosphere [arcsec]
+  rsun       = sxpar(hdu, 'RSUN_OBS')   ; radius of photosphere [arcsec]
 
   ; extract date and time from FITS header
   year   = strmid(date_obs, 0, 4)

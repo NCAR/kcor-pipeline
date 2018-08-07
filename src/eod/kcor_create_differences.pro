@@ -98,7 +98,7 @@ pro kcor_create_differences, date, l1_files, run=run
       imgsave[*, *, i] = float(img)
 
       ; scaling information for quality scans
-      rsun    = fxpar(header, 'RSUN')         ; solar radius [arcsec/Rsun]
+      rsun    = fxpar(header, 'RSUN_OBS')         ; solar radius [arcsec/Rsun]
       cdelt1  = fxpar(header, 'CDELT1')       ; resolution   [arcsec/pixel]
       pixrs   = rsun / cdelt1
       r_photo = rsun / cdelt1

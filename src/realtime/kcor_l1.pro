@@ -357,8 +357,6 @@ pro kcor_l1, date, ok_files, $
   ; set guess for radius - needed to find center
   radius_guess = 178   ; average radius for occulter
 
-  mean_phase1 = fltarr(nfiles)
-
   ; initialize variables
   cal_data_new = dblarr(xsize, ysize, 2, 3)
   gain_shift   = dblarr(xsize, ysize, 2)
@@ -1319,7 +1317,7 @@ pro kcor_l1, date, ok_files, $
               format='(f8.3)'
 
     ; add ephemeris data
-    fxaddpar, newheader, 'RSUN',     radsun, $
+    fxaddpar, newheader, 'RSUN_OBS',     radsun, $
               ' [arcsec] solar radius', format = '(f9.3)'
     fxaddpar, newheader, 'SOLAR_P0', pangle, $
               ' [deg] solar P angle',   format = '(f9.3)'

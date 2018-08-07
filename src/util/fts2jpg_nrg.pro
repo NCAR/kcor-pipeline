@@ -213,7 +213,9 @@ PRO fts2jpg_nrg, fits_list, cm=cm, wmin=wmin, wmax=wmax, wexp=wexp, gif=gif, $
     dispmax  = fxpar (hdu, 'DISPMAX', count=cdispmax)
     dispexp  = fxpar (hdu, 'DISPEXP', count=cdispexp)
 
-    rsun     = fxpar (hdu, 'RSUN',     count=qrsun)
+    rsun     = fxpar (hdu, 'RSUN_OBS', count=qrsun)
+    if (qrsun eq 0L) then rsun = fxpar (hdu, 'RSUN', count=qrsun)
+
     solar_p0 = fxpar (hdu, 'SOLAR_P0')		; p-angle
     crlt_obs = fxpar (hdu, 'CRLT_OBS')		; b-angle
     crln_obs = fxpar (hdu, 'CRLN_OBS')		; l-angle

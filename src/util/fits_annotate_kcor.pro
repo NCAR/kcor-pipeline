@@ -143,8 +143,9 @@ PRO fits_annotate_kcor, hdu, xdim, ydim, xb, yb, $
   dispexp   = fxpar (hdu, 'DISPEXP',  count=qdispexp)
 
   cdelt1    = fxpar (hdu, 'CDELT1',   count=qcdelt1)
-  rsun      = fxpar (hdu, 'RSUN',     count=qrsun)
-
+  rsun      = fxpar (hdu, 'RSUN_OBS', count=n_rsun)
+  if (n_rsun eq 0L) then rsun = fxpar (hdu, 'RSUN', count=n_rsun)
+  
   expdur    = fxpar (hdu, 'EXPTIME')
   roll      = fxpar (hdu, 'INST_ROT')
 

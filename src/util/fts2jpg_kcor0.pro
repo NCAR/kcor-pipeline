@@ -128,7 +128,9 @@ BEGIN	;{
    crpix1   = fxpar (hdu, 'CRPIX1') - 1		; IDL index origin = 0
    crpix2   = fxpar (hdu, 'CRPIX2') - 1		; IDL index origin = 0
    cdelt1   = fxpar (hdu, 'CDELT1')
-   rsun     = fxpar (hdu, 'RSUN')
+   rsun     = fxpar (hdu, 'RSUN_OBS', count=qrsun)
+   if (qrsun eq 0L) then rsun = fxpar (hdu, 'RSUN', count=qrsun)
+
 ;   roll     = fxpar (hdu, 'CROTA1')
    roll     = fxpar (hdu, 'INST_ROLL')
    origin   = fxpar (hdu, 'ORIGIN')

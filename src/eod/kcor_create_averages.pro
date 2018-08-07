@@ -127,7 +127,7 @@ pro kcor_create_averages, date, l1_files, run=run
         imgsave[0, 0, i] = float(img)
 
         ; read in info to draw a circle at photosphere in gif images
-        rsun    = fxpar(header, 'RSUN')         ; solar radius [arcsec/Rsun]
+        rsun    = fxpar(header, 'RSUN_OBS')         ; solar radius [arcsec/Rsun]
         cdelt1  = fxpar(header, 'CDELT1')       ; resolution   [arcsec/pixel]
         pixrs   = rsun / cdelt1
         r_photo = rsun / cdelt1

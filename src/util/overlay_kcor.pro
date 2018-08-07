@@ -34,7 +34,9 @@ PRO overlay_kcor, hdu, xdim, ydim, xb, yb, wmin=dmin, wmax=dmax
   xcen      = fxpar (hdu, 'CRPIX1')
   ycen      = fxpar (hdu, 'CRPIX2')
   cdelt1    = fxpar (hdu, 'CDELT1')
-  rsun      = fxpar (hdu, 'RSUN')
+  rsun     = fxpar (hdu, 'RSUN_OBS', count=qrsun)
+  if (qrsun eq 0L) then rsun = fxpar (hdu, 'RSUN', count=qrsun)
+
   pangle    = fxpar (hdu, 'INST_ROT')
 
   pixrs     = rsun / cdelt1
