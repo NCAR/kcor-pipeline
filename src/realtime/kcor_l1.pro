@@ -1299,28 +1299,28 @@ pro kcor_l1, date, ok_files, $
     ; raw camera occulting center & radius information
     fxaddpar, newheader, 'RCAMXCEN', xcen0 + 1, $
               ' [pixel] camera 0 raw X-coord occulting center', $
-              format='(f8.3)'
+              format='(f8.2)'
     fxaddpar, newheader, 'RCAMYCEN', ycen0 + 1, $
               ' [pixel] camera 0 raw Y-coord occulting center', $
-              format='(f8.3)'
+              format='(f8.2)'
     fxaddpar, newheader, 'RCAM_RAD',  radius_0, $
               ' [pixel] camera 0 raw occulter radius', $
-              format='(f8.3)'
+              format='(f8.2)'
     fxaddpar, newheader, 'TCAMXCEN', xcen1 + 1, $
               ' [pixel] camera 1 raw X-coord occulting center', $
-              format='(f8.3)'
+              format='(f8.2)'
     fxaddpar, newheader, 'TCAMYCEN', ycen1 + 1, $
               ' [pixel] camera 1 raw Y-coord occulting center', $
-              format='(f8.3)'
+              format='(f8.2)'
     fxaddpar, newheader, 'TCAM_RAD',  radius_1, $
               ' [pixel] camera 1 raw occulter radius', $
-              format='(f8.3)'
+              format='(f8.2)'
 
     ; add ephemeris data
     fxaddpar, newheader, 'RSUN_OBS', radsun, $
               ' [arcsec] solar radius', format = '(f9.3)'
     fxaddpar, newheader, 'R_SUN',     radsun / run->epoch('plate_scale'), $
-              ' [pixels] solar radius', format = '(f9.3)'
+              ' [pixel] solar radius', format = '(f9.1)'
     fxaddpar, newheader, 'SOLAR_P0', pangle, $
               ' [deg] solar P angle',   format = '(f9.3)'
     fxaddpar, newheader, 'CRLT_OBS', bangle, $
