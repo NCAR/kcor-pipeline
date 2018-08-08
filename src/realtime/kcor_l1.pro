@@ -1244,10 +1244,10 @@ pro kcor_l1, date, ok_files, $
     fxaddpar, newheader, 'DATAMAX', max(corona), ' maximum  value of  data'
     fxaddpar, newheader, 'DISPMIN', run->epoch('display_min'), $
               ' minimum  value for display', $
-              format='(f10.2)'
+              format='(G0.3)'
     fxaddpar, newheader, 'DISPMAX', run->epoch('display_max'), $
               ' maximum  value for display', $
-              format='(f10.2)'
+              format='(G0.3)'
     fxaddpar, newheader, 'DISPEXP', run->epoch('display_exp'), $
               ' exponent value for display (d=b^DISPEXP)', $
               format='(f10.2)'
