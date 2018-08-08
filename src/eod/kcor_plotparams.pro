@@ -205,7 +205,7 @@ pro kcor_plotparams, date, list=list, run=run
   mg_rangeplot, hours, sgs_scin, $
                 title=pdate + ' KCor SGS Scintillation', $
                 xtitle='Hours [UT]', ytitle='Scintillation [arcsec]', $
-                xrange=[16.0, 28.0], ystyle=1, yrange=[0.0, 20.0], $
+                xrange=[16.0, 28.0], ystyle=1, yrange=[0.0, 10.0], $
                 background=255, color=0, charsize=2.0, $
                 clip_thick=2.0
 
