@@ -194,3 +194,4 @@
   check L1 tarball on HPSS in verification
   populate kcor_raw table
   check level from L1 to L1.5
+  add R_SUN keyword and change RSUN to RSUN_OBS
