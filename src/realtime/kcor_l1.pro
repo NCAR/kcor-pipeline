@@ -1323,6 +1323,8 @@ pro kcor_l1, date, ok_files, $
     ; add ephemeris data
     fxaddpar, newheader, 'RSUN_OBS', radsun, $
               ' [arcsec] solar radius', format = '(f9.3)'
+    fxaddpar, newheader, 'RSUN', radsun, $
+              ' [arcsec] solar radius (old standard keyword)', format = '(f9.3)'
     fxaddpar, newheader, 'R_SUN',     radsun / run->epoch('plate_scale'), $
               ' [pixel] solar radius', format = '(f9.1)'
     fxaddpar, newheader, 'SOLAR_P0', pangle, $
