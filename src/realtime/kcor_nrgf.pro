@@ -286,7 +286,7 @@ pro kcor_nrgf, fits_file, $
     alpha = 0.50
 
     ; lower text boxes
-    save[0:259, 0:49] = alpha * save[0:259, 0:49]
+    save[0:259, 0:37] = alpha * save[0:259, 0:37]
     save[out_xdim - 154:*, 0:37] = alpha * save[out_xdim - 154:*, 0:37]
 
     ; upper text boxes
