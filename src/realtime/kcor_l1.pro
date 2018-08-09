@@ -940,7 +940,7 @@ pro kcor_l1, date, ok_files, $
 
       theta1 = atan(- yy1, - xx1)
       theta1 += !pi
-      theta1 = rot(reverse(theta1), pangle, 1)
+      theta1 = rot(reverse(theta1), pangle + run->epoch('rotation_correction'), 1)
 
       xcc1  = 511.5
       ycc1  = 511.5
