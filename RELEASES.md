@@ -197,3 +197,4 @@
   add R_SUN keyword and change RSUN to RSUN_OBS
   added rotation correction
 1.5.1
+  adds level to kcor_sci database table (determines scale of other fields)
