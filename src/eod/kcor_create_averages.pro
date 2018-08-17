@@ -489,7 +489,7 @@ pro kcor_create_averages, date, l1_files, run=run
           orientation=90., /device
   xyouts, 4, 46, 'Level 1.5 Avg', color=255, charsize=1.2, /device
   xyouts, 4, 26, string(display_min, display_max, $  
-                        format='("min/max: ", f5.2, ", ", f3.1)'), $
+                        format='(%"min/max: %0.2g, %0.2g")'), $
           color=255, charsize=1.2, /device
   xyouts, 4, 6, string(display_exp, $     
                        display_gamma, $
