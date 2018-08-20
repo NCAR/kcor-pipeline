@@ -149,25 +149,27 @@ PRO fits_annotate_comp, hdu, hduext, xdim, ydim, xb, yb, dmin, dmax, dexp
   bunit    = fxpar (hdu, 'BUNIT')
   bscale   = fxpar (hdu, 'BSCALE')
   bzero    = fxpar (hdu, 'BZERO')
-  cdelt1   = fxpar (hdu, 'CDELT1')		; arcsec / pixel
+  cdelt1   = fxpar (hdu, 'CDELT1').  ; arcsec / pixel
 
-  dispmin  = dmin				; display minimum
-  dispmax  = dmax				; display maximum
-  dispexp  = dexp				; display exponent
+  dispmin  = dmin   ; display minimum
+  dispmax  = dmax   ; display maximum
+  dispexp  = dexp   ; display exponent
 
 ;  datamin  = fxpar (hdu, 'DATAMIN')
 ;  datamax  = fxpar (hdu, 'DATAMAX')
 ;  dispmin  = fxpar (hdu, 'DISPMIN')
 ;  dispmax  = fxpar (hdu, 'DISPMAX')
 
-  rsun     = fxpar (hdu, 'RSUN')
+  rsun     = fxpar (hdu, 'RSUN_OBS', count=n_rsun)
+  if (n_rsun eq 0L) then rsun = fxpar (hdu, 'RSUN', count=n_rsun)
+
   dataform = '10^-6 B/Bsun'
 
-  solar_p0 = fxpar (hdu, 'SOLAR_P0')			; P-angle
-  solar_b0 = fxpar (hdu, 'SOLAR_B0')			; B-angle
-  solar_ra = fxpar (hdu, 'SOLAR_RA')			; right ascension
-  solardec = fxpar (hdu, 'SOLARDEC')			; declination 
-  car_rot  = fxpar (hdu, 'CAR_ROT')			; Carrington rotation
+  solar_p0 = fxpar (hdu, 'SOLAR_P0')   ; P-angle
+  solar_b0 = fxpar (hdu, 'SOLAR_B0')   ; B-angle
+  solar_ra = fxpar (hdu, 'SOLAR_RA')   ; right ascension
+  solardec = fxpar (hdu, 'SOLARDEC')   ; declination 
+  car_rot  = fxpar (hdu, 'CAR_ROT')    ; Carrington rotation
 
   waveleng = fxpar (hduext, 'WAVELENG')
   expdur   = fxpar (hduext, 'EXPOSURE')

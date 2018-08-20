@@ -138,6 +138,10 @@ pro kcor_db_clearday, run=run, $
                                  obsday_index=obsday_index, $
                                  database=db, $
                                  log_name=log_name
+    kcor_db_clearday_cleartable, 'kcor_raw', $
+                                 obsday_index=obsday_index, $
+                                 database=db, $
+                                 log_name=log_name
     kcor_db_clearday_cleartable, 'kcor_eng', $
                                  obsday_index=obsday_index, $
                                  database=db, $

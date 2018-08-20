@@ -137,9 +137,10 @@ pro kcor_img_insert, date, fits_list, $
       quality = 75
     endif
 
-    level      = strtrim(sxpar(hdu, 'LEVEL',    count=qlevel),2)
-    ; TODO: Older NRGF headers have 'NRGF' appended to level string, but newer headers
-    ;   will have another keyword added to header for producttype
+    level      = strtrim(sxpar(hdu, 'LEVEL', count=qlevel), 2)
+
+    ; TODO: Older NRGF headers have 'NRGF' appended to level string, but newer
+    ;       headers will have another keyword added to header for producttype
     os = strpos(level, 'NRGF')
     if (os ne -1) then begin
       level = strmid(level, 0, os)
@@ -287,7 +288,9 @@ end
 ;date = '20170204'
 ;filelist = ['20170204_205610_kcor_l1_nrgf.fts.gz','20170204_205625_kcor_l1.fts.gz','20170204_205640_kcor_l1.fts.gz','20170204_205656_kcor_l1.fts.gz','20170204_205711_kcor_l1.fts.gz']
 date = '20170305'
-filelist = ['20170305_185807_kcor_l1_nrgf.fts.gz','20170305_185822_kcor_l1.fts.gz','20170305_185837_kcor_l1.fts.gz']
+filelist = ['20170305_185807_kcor_l1.5_nrgf.fts.gz', $
+            '20170305_185822_kcor_l1.5.fts.gz', $
+            '20170305_185837_kcor_l1.5.fts.gz']
 
 run = kcor_run(date, $
                config_filename=filepath('kcor.kolinski.mahi.latest.cfg', $

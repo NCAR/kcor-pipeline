@@ -46,8 +46,8 @@ pro kcor_create_averages, date, l1_files, run=run
 
   ; set up variables and arrays needed
 
-  imgsave     = fltarr(1024,1024,8)
-  avgimg      = fltarr(1024,1024)
+  imgsave     = fltarr(1024, 1024, 8)
+  avgimg      = fltarr(1024, 1024)
   imgtimes    = strarr(8)
   imgendtimes = strarr(8)
   timestring  = strarr(2)
@@ -85,7 +85,7 @@ pro kcor_create_averages, date, l1_files, run=run
   dailycount = 0  ; want to average up to 40 images in < 15 minutes for daily avg.
   stopavg = 0  ; set to 1 if images are more than 3 minutes apart (stop averaging)
 
-  mg_log, 'averaging for %d L1 files', n_elements(l1_files), name='kcor/eod', /info
+  mg_log, 'averaging for %d L1.5 files', n_elements(l1_files), name='kcor/eod', /info
 
   ; read in images and generate subtractions ~10 minutes apart
   f = 0L
@@ -97,13 +97,18 @@ pro kcor_create_averages, date, l1_files, run=run
     for i = 0, 7 do begin
       if (f ge n_elements(l1_files)) then break
 
-      ; If last image was not used in average (i.e. stopavg = 1) then begin with
+      ; if last image was not used in average (i.e. stopavg = 1) then begin with
       ; the last image else read in a new image
       if (stopavg eq 1 ) then begin
         imgsave[0, 0, 0] = imgsave[*, *, last]
         avgimg = imgsave[*, *, last]
         if (dailycount lt 48 and date_julian[i] - firsttime lt dailyavgval) then begin
-          if (dailycount eq n_skip) then daily_hst = hst
+          if (dailycount eq n_skip) then begin
+            daily_hst = hst
+            daily_savename = strmid(file_basename(l1_file), 0, 25)
+            dailysaveheader = header
+          endif
+
           dailyavg[0, 0, dailycount] = imgsave[*, *, last]
           dailytimes[dailycount] = imgtimes[last]
           dailyendtimes[dailycount] = imgendtimes[last]
@@ -122,7 +127,7 @@ pro kcor_create_averages, date, l1_files, run=run
         imgsave[0, 0, i] = float(img)
 
         ; read in info to draw a circle at photosphere in gif images
-        rsun    = fxpar(header, 'RSUN')         ; solar radius [arcsec/Rsun]
+        rsun    = fxpar(header, 'RSUN_OBS')         ; solar radius [arcsec/Rsun]
         cdelt1  = fxpar(header, 'CDELT1')       ; resolution   [arcsec/pixel]
         pixrs   = rsun / cdelt1
         r_photo = rsun / cdelt1
@@ -167,7 +172,7 @@ pro kcor_create_averages, date, l1_files, run=run
         endif
 
         if (dailycount eq 0L) then begin
-          daily_savename = strmid(file_basename(l1_file), 0, 23)
+          daily_savename = strmid(file_basename(l1_file), 0, 25)
           dailyavg[0, 0, dailycount] = imgsave[*, *, 0]
           dailysaveheader = header
           dailytimes[dailycount] = imgtimes[0]
@@ -176,7 +181,7 @@ pro kcor_create_averages, date, l1_files, run=run
         endif
 
         if (i eq 0) then begin
-          savename = strmid(file_basename(l1_file), 0, 23)
+          savename = strmid(file_basename(l1_file), 0, 25)
           avgimg = imgsave[*, *, 0]
           saveheader = header
           numavg = 1
@@ -204,7 +209,12 @@ pro kcor_create_averages, date, l1_files, run=run
         endif
 
         if (dailycount lt 48  and  date_julian[i] - firsttime lt dailyavgval) then begin
-          if (dailycount eq n_skip) then daily_hst = hst
+          if (dailycount eq n_skip) then begin
+            daily_hst = hst
+            daily_savename = strmid(file_basename(l1_file), 0, 25)
+            dailysaveheader = header
+          endif
+
           dailyavg[0, 0, dailycount] = imgsave[*, *, i]
           dailytimes[dailycount] = imgtimes[i]
           dailyendtimes[dailycount] = imgendtimes[i]
@@ -260,15 +270,21 @@ pro kcor_create_averages, date, l1_files, run=run
 
     ; set up device, color table and scaling
     set_plot, 'Z'
-    device, set_resolution=[1024, 1024], decomposed=0, set_colors=256, z_buffering=0
+    device, set_resolution=[1024, 1024], $
+            decomposed=0, $
+            set_colors=256, $
+            z_buffering=0, $
+            set_pixel_depth=8
 
-    lct, filepath('quallab_ver2.lut', root=run.resources_dir)
-
+    loadct, 0, /silent
     gamma_ct, display_gamma, /current
     tvlct, red, green, blue, /get
 
     ; create fullres (1024x1024) GIF images
-    tv, bytscl((bscale * avgimg)^display_exp, display_min, display_max)
+    display_factor = 1.0e6
+    tv, bytscl((display_factor * bscale * avgimg)^display_exp, $
+               min=display_factor * display_min, $
+               max=display_factor * display_max)
 
     xyouts, 4, 990, 'MLSO/HAO/KCOR', color=255, charsize=1.5, /device
     xyouts, 4, 970, 'K-Coronagraph', color=255, charsize=1.5, /device
@@ -293,7 +309,7 @@ pro kcor_create_averages, date, l1_files, run=run
             orientation=90., /device
     xyouts, 4, 46, 'Level 1 Avg', color=255, charsize=1.2, /device
     xyouts, 4, 26, string(display_min, display_max, $
-                          format='("min/max: ", f5.2, ", ", f3.1)'), $
+                          format='(%"min/max: %0.2g, %0.2g")'), $
             color=255, charsize=1.2, /device
     xyouts, 4, 6, string(display_exp, $
                          display_gamma, $
@@ -306,74 +322,19 @@ pro kcor_create_averages, date, l1_files, run=run
     ; draw circle at photosphere
     tvcircle, r_photo, 511.5, 511.5, color=255, /device
 
-    device, decomposed=1
     save = tvrd()
 
-    gif_basename = strmid(savename, 0, 23) + '_avg.gif'
+    gif_basename = strmid(savename, 0, 25) + '_avg.gif'
     write_gif, gif_basename, save, red, green, blue
     if (run.distribute) then begin
       file_copy, gif_basename, fullres_dir, /overwrite
     endif
 
-    ; create lowres (512 x 512) GIF images
-
-    ; rebin to 768x768 (75% of original size) and crop around center to 512 x
-    ; 512 image
-    rebin_img = congrid(avgimg, 768, 768)
-    crop_img  = rebin_img[128:639, 128:639]
-
-    set_plot, 'Z'
-    erase
-    device, set_resolution=[512, 512], $
-            decomposed=0, $
-            set_colors=256, $
-            z_buffering=0, $
-            set_pixel_depth=8
-    erase
-
-    tv, bytscl((bscale * crop_img)^display_exp, $
-               min=display_min, max=display_max)
-
-    xyouts, 4, 495, 'MLSO/HAO/KCOR', color=255, charsize=1.2, /device
-    xyouts, 4, 480, 'K-Coronagraph', color=255, charsize=1.2, /device
-    xyouts, 256, 500, 'North', color=255, $
-            charsize=1.0, alignment=0.5, /device
-    xyouts, 500, 495, string(format='(a2)', dy) + ' ' $
-                               + string(format='(a3)', name_month)$
-                               + ' ' + string(format='(a4)', yr), $
-            /device, alignment = 1.0, $
-            charsize=1.0, color=255
-    xyouts, 500, 480, $
-            string(format='(a2)', hr) + ':' $
-              + string(format='(a2)', mnt) + ':' $
-              + string(format='(a2)', sec) + ' UT', $
-            /device, alignment=1.0, $
-            charsize=1.0, color=255
-    xyouts, 12, 256, 'East', color=255, $
-            charsize=1.0, alignment=0.5, orientation=90.0, /device
-    xyouts, 507, 256, 'West', color=255, $
-            charsize=1.0, alignment=0.5, orientation=90.0, /device
-
-    xyouts, 4, 20, string(display_min, display_max, $
-                          format='("min/max: ", f5.2, ", ", f3.1)'), $
-            color=255, charsize=1.0, /device
-
-    xyouts, 4, 6, string(display_exp, $
-                         display_gamma, $
-                         format='("scaling: Intensity ^ ", f3.1, ", gamma=", f4.2)'), $
-            color=255, charsize=1.0, /device
-    xyouts, 500, 21, '2 min. avg', color=255, charsize=1.0, alignment=1.0, /device
-    xyouts, 500, 6, 'Circle = photosphere', color=255, $
-            charsize=1.0, /device, alignment=1.0
-
-    r = r_photo * 0.75    ;  image is rebined to 75% of original size
-    tvcircle, r, 255.5, 255.5, color=255, /device
-
-    save = tvrd()
-    gif_basename = strmid(savename, 0, 23) + '_avg_cropped.gif'
-    write_gif, gif_basename, save, red, green, blue
+    ; create cropped (512 x 512) GIF images
+    kcor_cropped_gif, bscale * avgimg, date, kcor_parse_dateobs(date_obs), $
+                      /average, output_filename=cgif_filename, run=run
     if (run.distribute) then begin
-      file_copy, gif_basename, cropped_dir, /overwrite
+      file_copy, cgif_filename, cropped_dir, /overwrite
     endif
 
     ; Create fullres (1024x1024) FITS image
@@ -384,8 +345,8 @@ pro kcor_create_averages, date, l1_files, run=run
     if (numavg gt 3) then begin
       fxaddpar, saveheader, 'AVGTIME1', timestring[1], ' Img times used in avg.'
     endif
-    name = strmid(savename, 0, 23)
-    fits_filename = string(format='(a23, "_avg.fts")', name)
+    name = strmid(savename, 0, 25)
+    fits_filename = string(format='(a25, "_avg.fts")', name)
 
     fxaddpar, saveheader, 'DATE-OBS', imgtimes[0]
     fxaddpar, saveheader, 'DATE-END', imgtimes[numavg - 1]
@@ -458,7 +419,10 @@ pro kcor_create_averages, date, l1_files, run=run
 
   daily /= float(dailycount) - 8.0
 
-  tv, bytscl((bscale * daily)^display_exp, display_min, display_max)
+  display_factor = 1.0e6
+  tv, bytscl((display_factor * bscale * daily)^display_exp, $
+             min=display_factor * display_min, $
+             max=display_factor * display_max)
 
   ; make sure you use the time from the daily saved header
   date_obs = fxpar(dailysaveheader, 'DATE-OBS')    ; yyyy-mm-ddThh:mm:ss
@@ -542,7 +506,7 @@ pro kcor_create_averages, date, l1_files, run=run
   save = tvrd()
 
   if (n_elements(daily_savename) gt 0L) then begin
-    gif_filename = strmid(daily_savename, 0, 23) + '_extavg.gif'
+    gif_filename = strmid(daily_savename, 0, 25) + '_extavg.gif'
     write_gif, gif_filename, save, red, green, blue  
     if (run.distribute) then begin
       mg_log, 'copying extended average GIF to cropped dir', $
@@ -553,66 +517,20 @@ pro kcor_create_averages, date, l1_files, run=run
     mg_log, 'no extended average for this day', name='kcor/eod', /warn
   endelse
 
-  ; create lowres  (512 x 512  gif images
-
-  ; rebin to 768x768 (75% of original size) and crop around center to 512 x
-  ; 512 image
-
-  rebin_img = congrid(daily, 768, 768)
-  crop_img = rebin_img[128:639, 128:639]
-
-  ; window, 0, xsize=512, ysize=512, retain=2
-
-  set_plot, 'Z'
-  erase
-  device, set_resolution=[512,512], decomposed=0, set_colors=256, $
-            z_buffering=0
-  erase
-
-  tv, bytscl((bscale * crop_img)^display_exp, min=display_min, max=display_max)
-
-  xyouts, 4, 495, 'MLSO/HAO/KCOR', color=255, charsize=1.2, /device
-  xyouts, 4, 480, 'K-Coronagraph', color=255, charsize=1.2, /device
-  xyouts, 256, 500, 'North', color=255, $
-            charsize=1.0, alignment=0.5, /device
-  xyouts, 500, 495, string(format='(a2)', dy) + ' ' $
-                             + string(format='(a3)', name_month)$
-                             + ' ' + string(format='(a4)', yr), $
-          /device, alignment = 1.0, $
-          charsize=1.0, color=255
-  xyouts, 500, 480, strmid(dailytimes[dailycount - 1], 11) + ' UT', $
-          /device, alignment=1.0, $
-          charsize=1.0, color=255
-  xyouts, 12, 256, 'East', color=255, $
-          charsize=1.0, alignment=0.5, orientation=90.0, /device
-  xyouts, 507, 256, 'West', color=255, $
-          charsize=1.0, alignment=0.5, orientation=90.0, /device
-  xyouts, 4, 20, string(format='("min/max: ", f5.2, ", ", f5.2)', $
-                        display_min, display_max), $
-          color=255, charsize=1.0, /device
-  xyouts, 4, 6, string(format='("scaling: Intensity ^ ", f3.1, ", gamma=", f4.2)', $
-                       display_exp, display_gamma), $
-          color=255, charsize=1.0, /device
-  xyouts, 500, 21, '~10 min. avg.', color=255, charsize=1.0, alignment=1.0, /device
-  xyouts, 500, 6, 'Circle = photosphere', color=255, $
-          charsize=1.0, /device, alignment=1.0
-
-  r = r_photo * 0.75    ;  image is rebined to 75% of original size
-  tvcircle, r, 255.5, 255.5, color=255, /device
-
-  save = tvrd()
+  ; create extavg cropped GIF image
 
   if (n_elements(daily_savename) gt 0L) then begin
-    gif_filename = strmid(daily_savename, 0, 23) + '_extavg_cropped.gif'
-    write_gif, gif_filename, save, red, green, blue   
+    kcor_cropped_gif, bscale * daily, date, kcor_parse_dateobs(date_obs), $
+                      /daily, /average, output_filename=cgif_filename, run=run
+
     if (run.distribute) then begin
       mg_log, 'copying cropped extended average GIF to cropped dir', $
               name='kcor/eod', /debug
-      file_copy, gif_filename, cropped_dir, /overwrite
+      file_copy, cgif_filename, cropped_dir, /overwrite
     endif
   endif
 
-  ; create fullres 1024x1024 FITS image
+  ; create extag fullres 1024x1024 FITS
   ;   - save times used to make the daily average image in the header
   ;   - create 10 FITS keywords, each holds 4 image times to accommodate up to
   ;     40 images in the average
@@ -635,8 +553,9 @@ pro kcor_create_averages, date, l1_files, run=run
   fxaddpar, dailysaveheader, 'DATE_HST', daily_hst
 
   if (n_elements(daily_savename) gt 0L) then begin
-    name = strmid(daily_savename, 0, 23)
-    daily_fits_average_filename = string(format='(a23, "_extavg.fts")', name)
+    name = strmid(daily_savename, 0, 25)
+    daily_fits_average_filename = string(name, format='(%"%s_extavg.fts")')
+
     mg_log, 'writing %s', daily_fits_average_filename, name='kcor/eod', /info
     writefits, daily_fits_average_filename, daily, dailysaveheader
     ; remove zipped version if already exists
@@ -676,13 +595,13 @@ end
 
 ; main-level example program
 
-date = '20180208'
+date = '20180703'
 config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
 
-l1_zipped_fits_glob = '*_l1.fts.gz'
+l1_zipped_fits_glob = '*_l1.5.fts.gz'
 l1_zipped_files = file_search(filepath(l1_zipped_fits_glob, $
                                        subdir=[date, 'level1'], $
                                        root=run.raw_basedir), $

@@ -61,7 +61,9 @@ PRO fitsdisp_comp, fits_name, xdim_prev, ydim_prev, $
   fradius  = fxpar (hdu, 'FRADIUS')
   frpix1   = fxpar (hdu, 'FRPIX1')
   frpix2   = fxpar (hdu, 'FRPIX2')
-  rsun     = fxpar (hdu, 'RSUN')
+
+  rsun     = fxpar (hdu, 'RSUN_OBS', count=n_rsun)
+  if (n_rsun eq 0L) then rsun = fxpar (hdu, 'RSUN', count=n_rsun)
 
   srsun    = STRING (rsun, FORMAT='(F7.2)')
 

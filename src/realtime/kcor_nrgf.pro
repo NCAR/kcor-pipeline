@@ -127,7 +127,7 @@ pro kcor_nrgf, fits_file, $
   ycen       = ydim / 2.0 - 0.5
   date_obs   = sxpar(hdu, 'DATE-OBS')   ; yyyy-mm-ddThh:mm:ss
   platescale = sxpar(hdu, 'CDELT1')     ; arcsec/pixel
-  rsun       = sxpar(hdu, 'RSUN')       ; radius of photosphere [arcsec]
+  rsun       = sxpar(hdu, 'RSUN_OBS')   ; radius of photosphere [arcsec]
 
   ; extract date and time from FITS header
   year   = strmid(date_obs, 0, 4)
@@ -276,7 +276,7 @@ pro kcor_nrgf, fits_file, $
 
   ; image has been shifted to center of array
   ; draw circle at photosphere
-  kcor_suncir, out_xdim, out_ydim, xcen, ycen, 0, 0, r_photo, 0.0
+  kcor_suncir, out_xdim, out_ydim, xcen, ycen, 0, 0, r_photo, 0.0, log_name=log_name
 
   if (keyword_set(cropped)) then begin
     save = tvrd()
@@ -336,8 +336,8 @@ pro kcor_nrgf, fits_file, $
 
     ; modify the FITS header for an NRG FITS image
     rhdu = hdu
-    fxaddpar, rhdu, 'LEVEL', 'L1', $
-              ' Level 1'
+    fxaddpar, rhdu, 'LEVEL', 'L1.5', $
+              ' Level 1.5'
     if (keyword_set(averaged)) then begin
       fxaddpar, rhdu, 'PRODUCT', 'NRGFAVG', $
                 ' Averaged Normalized Radially-Graded Intensity'
@@ -388,21 +388,21 @@ run = kcor_run(date, $
                                        subdir=['..', '..', 'config'], $
                                        root=mg_src_root()))
 
-f = filepath('20180423_175443_kcor_l1_extavg.fts.gz', $
+f = filepath('20180423_175443_kcor_l1.5_extavg.fts.gz', $
              subdir=[date, 'level1'], $
              root=run.raw_basedir)
 
 kcor_nrgf, f, /average, /daily, run=run
 kcor_nrgf, f, /average, /daily, /cropped, run=run
 
-f = filepath('20180423_175443_kcor_l1_avg.fts.gz', $
+f = filepath('20180423_175443_kcor_l1.5_avg.fts.gz', $
              subdir=[date, 'level1'], $
              root=run.raw_basedir)
 
 kcor_nrgf, f, /average, run=run
 kcor_nrgf, f, /average, /cropped, run=run
 
-f = filepath('20180423_175443_kcor_l1.fts.gz', $
+f = filepath('20180423_175443_kcor_l1.5.fts.gz', $
              subdir=[date, 'level1'], $
              root=run.raw_basedir)
 

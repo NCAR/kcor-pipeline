@@ -102,12 +102,58 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     endif
 
     mg_log, 'checking %d L0 files', n_l0_fits_files, name='kcor/rt', /info
-    ok_files = kcor_quality(date, l0_fits_files, /append, run=run)
+    ok_files = kcor_quality(date, l0_fits_files, /append, $
+                            brt_files=brt_files, $
+                            cal_files=cal_files, $
+                            cld_files=cld_files, $
+                            dev_files=dev_files, $
+                            dim_files=dim_files, $
+                            nsy_files=nsy_files, $
+                            sat_files=sat_files, $
+                            run=run)
     mg_log, '%d OK L0 files', n_elements(ok_files), name='kcor/rt', /info
+
+    if (run.update_database) then begin
+      mg_log, 'updating database with raw files', name='kcor/rt', /info
+
+      obsday_index = mlso_obsday_insert(date, $
+                                        run=run, $
+                                        database=db, $
+                                        status=db_status, $
+                                        log_name='kcor/rt')
+      if (db_status eq 0L) then begin
+        kcor_raw_insert, date, ok_files, 'oka', $
+                         run=run, database=db, obsday_index=obsday_index, $
+                         log_name='kcor/rt'
+        kcor_raw_insert, date, brt_files, 'brt', $
+                         run=run, database=db, obsday_index=obsday_index, $
+                         log_name='kcor/rt'
+        kcor_raw_insert, date, cal_files, 'cal', $
+                         run=run, database=db, obsday_index=obsday_index, $
+                         log_name='kcor/rt'
+        kcor_raw_insert, date, cld_files, 'cld', $
+                         run=run, database=db, obsday_index=obsday_index, $
+                         log_name='kcor/rt'
+        kcor_raw_insert, date, dev_files, 'dev', $
+                         run=run, database=db, obsday_index=obsday_index, $
+                         log_name='kcor/rt'
+        kcor_raw_insert, date, dim_files, 'dim', $
+                         run=run, database=db, obsday_index=obsday_index, $
+                         log_name='kcor/rt'
+        kcor_raw_insert, date, nsy_files, 'nsy', $
+                         run=run, database=db, obsday_index=obsday_index, $
+                         log_name='kcor/rt'
+        kcor_raw_insert, date, sat_files, 'sat', $
+                         run=run, database=db, obsday_index=obsday_index, $
+                         log_name='kcor/rt'
+      endif else begin
+        mg_log, 'skipping database because unable to connect', name='kcor/rt', /warn
+      endelse
+    endif
 
     kcor_l1, date, ok_files, /append, run=run, mean_phase1=mean_phase1, error=error
     if (error ne 0L) then begin
-      mg_log, 'L1 processing failed, quitting', name='kcor/rt', /error
+      mg_log, 'L1.5 processing failed, quitting', name='kcor/rt', /error
       goto, done
     endif
 
@@ -116,10 +162,10 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
 
     cd, l1_dir
 
-    l1_fits_glob = '*l1*fts'
+    l1_fits_glob = '*l1.5*fts'
     l1_fits_files = file_search(l1_fits_glob, count=n_l1_fits_files)
     if (n_l1_fits_files gt 0L) then begin
-      mg_log, 'zipping %d L1 FITS files', n_l1_fits_files, name='kcor/rt', /info
+      mg_log, 'zipping %d L1.5 FITS files', n_l1_fits_files, name='kcor/rt', /info
       gzip_cmd = string(run.gzip, l1_fits_glob, format='(%"%s %s")')
       spawn, gzip_cmd, result, error_result, exit_status=status
       if (status ne 0L) then begin
@@ -128,7 +174,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
         mg_log, '%s', strjoin(error_result, ' '), name='kcor/rt', /error
       endif
     endif else begin
-      mg_log, 'no L1 FITS files to zip', name='kcor/rt', /info
+      mg_log, 'no L1.5 FITS files to zip', name='kcor/rt', /info
     endelse
 
     if (n_elements(ok_files) eq 0L) then begin
@@ -136,7 +182,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       goto, done
     endif else begin
       if (run.distribute) then begin
-        mg_log, 'distributing L1 products of %d raw files', $
+        mg_log, 'distributing L1.5 products of %d raw files', $
                 n_elements(ok_files), $
                 name='kcor/rt', /info
       endif else begin
@@ -154,16 +200,16 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     for f = 0L, n_elements(ok_files) - 1L do begin
       base = file_basename(ok_files[f], '.fts.gz')
 
-      cropped_gif_filename = base + '_l1_cropped.gif'
+      cropped_gif_filename = base + '_l1.5_cropped.gif'
       printf, okcgif_lun, cropped_gif_filename
 
-      gif_filename = base + '_l1.gif'
+      gif_filename = base + '_l1.5.gif'
       printf, okfgif_lun, gif_filename
 
-      l1_filename = base + '_l1.fts.gz'
+      l1_filename = base + '_l1.5.fts.gz'
       printf, okl1gz_lun, l1_filename
 
-      nrgf_filename = base + '_l1_nrgf.fts.gz'
+      nrgf_filename = base + '_l1.5_nrgf.fts.gz'
       if (file_test(nrgf_filename)) then begin
         printf, ok_rg_lun, nrgf_filename
         nrgf_basenames->add, base
@@ -200,8 +246,8 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     n_nrgf_gifs = nrgf_basenames->count()
     if (n_nrgf_gifs gt 0L) then begin
       nrgf_gif_basenames = nrgf_basenames->toArray()
-      nrgf_gifs = nrgf_gif_basenames + '_l1_nrgf.gif'
-      cropped_nrgf_gifs = nrgf_gif_basenames + '_l1_nrgf_cropped.gif'
+      nrgf_gifs = nrgf_gif_basenames + '_l1.5_nrgf.gif'
+      cropped_nrgf_gifs = nrgf_gif_basenames + '_l1.5_nrgf_cropped.gif'
     endif
 
     obj_destroy, nrgf_basenames
@@ -251,7 +297,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
                            database=db, $
                            obsday_index=obsday_index
         endif else begin
-          mg_log, 'no L1 files for img or eng tables', name='kcor/rt', /info
+          mg_log, 'no L1.5 files for img or eng tables', name='kcor/rt', /info
         endelse
 
         if (n_l0_fits_files gt 0L) then begin

@@ -162,11 +162,36 @@
   updated distortion in epochs
   epochs for changes on 20180406-20180423
   better ephemeris calculation
-1.4.41
+1.4.41 [Jun 22, 2018]
   always create quality plot
   send L1 products to HPSS
   update to IDL 8.6
   remove taking absolute value of data
-  updated annotations on average GIFS
+  replaced KCor L1 cropped GIF with fullres BW and no gamma correction
+  updated annotations on average GIFS and FITS keywords
   fixes for updating kcor_hw table
   add use_calibration_data flag for marking bad calibration data
+  new epochs for bad calibration data on 201806{19,20}
+1.4.42 [Jun 22, 2018]
+  fix epochs file typo
+1.4.43 [Jun 30, 2018]
+  fix for standard/cropped mp4s (was showing NRGFs)
+  make avg cropped GIFs like standard cropped GIFs
+  add "North" and "2 min avg" (avg only) to cropped GIFs
+  add CSV file of readings in CME report
+1.4.44 [Jul 8, 2018]
+  fix for sending L1 tarball to HPSS
+  indicate values outside nominal range in param plots
+  make extavg cropped GIFs like standard cropped GIFs
+  fix for first 2 min average GIF
+1.4.45 [Jul 10, 2018]
+  return only one latest row for hardware/software changes
+  log error messages when reading FITS files for detecting hardware changes
+1.5.0
+  change BSCALE to 1.0, units of L1 files are now B/Bsun
+  change L1 fullres GIFs to BW color table and gamma of 1.0
+  change bias to 3.0e-9
+  check L1 tarball on HPSS in verification
+  populate kcor_raw table
+  check level from L1 to L1.5
+  add R_SUN keyword and change RSUN to RSUN_OBS

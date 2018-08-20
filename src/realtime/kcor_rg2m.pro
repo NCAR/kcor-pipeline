@@ -78,7 +78,7 @@ pro kcor_rg2m, fits_list, fits=fits
       doy = (mday[fix(month) - 1] + fix(day))
     endelse
 
-    rsun = sxpar(hdu, 'RSUN')   ; radius of photosphere
+    rsun = sxpar(hdu, 'RSUN_OBS')   ; radius of photosphere
 
     ; find size of occulter
     ;   - one occulter has 4 digits; other two have 5
@@ -159,8 +159,8 @@ pro kcor_rg2m, fits_list, fits=fits
 
       ; modify the FITS header for an NRG fits image
       rhdu = hdu
-      fxaddpar, rhdu, 'LEVEL',  'L1NRGF', $
-                ' Level 1 Normalized Radially-Graded Intensity'
+      fxaddpar, rhdu, 'LEVEL',  'L1.5NRGF', $
+                ' Level 1.5 Normalized Radially-Graded Intensity'
       fxaddpar, rhdu, 'BSCALE', bscale, $
                 ' Normalized Radially-Graded H.Morgan+S.Fineschi',$
                 format='(f10.3)'

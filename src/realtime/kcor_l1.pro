@@ -181,6 +181,7 @@
 ;                     to tangential. Removed comments about phase angle. Don't need it 
 ;                     anymore since we are now using Alfred's new calibration (Dec 12, 2016) \
 ;                     that fixed the bugs in the previous versions.
+;   25 Jul 2018 [MG]  Change BSCALE back to 1.0 and save data as floats.
 ;
 ;   Make semi-calibrated kcor images.
 ;-------------------------------------------------------------------------------
@@ -356,8 +357,6 @@ pro kcor_l1, date, ok_files, $
   ; set guess for radius - needed to find center
   radius_guess = 178   ; average radius for occulter
 
-  mean_phase1 = fltarr(nfiles)
-
   ; initialize variables
   cal_data_new = dblarr(xsize, ysize, 2, 3)
   gain_shift   = dblarr(xsize, ysize, 2)
@@ -387,7 +386,7 @@ pro kcor_l1, date, ok_files, $
             fnum, nfiles, file_basename(l0_file), $
             name='kcor/rt', /info
 
-    l1_file = strmid(l0_file, 0, 20) + '_l1.fts'
+    l1_file = strmid(l0_file, 0, 20) + '_l1.5.fts'
 
     ; skip first good image of the day
     if (~kcor_state(/first_image, run=run)) then begin
@@ -431,6 +430,7 @@ pro kcor_l1, date, ok_files, $
 
     ncdf_varget, unit, 'Dark', dark_alfred
     ncdf_varget, unit, 'Gain', gain_alfred
+    gain_alfred /= 1e-6   ; this makes gain_alfred in units of B/Bsun
     ncdf_varget, unit, 'Modulation Matrix', mmat
     ncdf_varget, unit, 'Demodulation Matrix', dmat
     ncdf_varget, unit, 'DIM Reference Voltage', flat_vdimref
@@ -1018,18 +1018,16 @@ pro kcor_l1, date, ok_files, $
     r_photo = radsun / run->epoch('plate_scale')
 
     corona[mask] = run->epoch('display_min')
-    corona_int = intarr(1024, 1024)
-    corona_int = fix(1000 * corona)   ; multiply by 1000 to store as integer
 
-    lct, filepath('quallab_ver2.lut', root=run.resources_dir)
+    loadct, 0, /silent
     gamma_ct, run->epoch('display_gamma'), /current
     tvlct, red, green, blue, /get
 
     ; display image, annotate, and save as a full resolution GIF file
-
-    tv, bytscl(corona ^ run->epoch('display_exp'), $
-               min=run->epoch('display_min'), $
-               max=run->epoch('display_max'))
+    display_factor = 1.0e6
+    tv, bytscl((display_factor * corona) ^ run->epoch('display_exp'), $
+               min=display_factor * run->epoch('display_min'), $
+               max=display_factor * run->epoch('display_max'))
 
     xyouts, 4, 990, 'MLSO/HAO/KCOR', color=255, charsize=1.5, /device
     xyouts, 4, 970, 'K-Coronagraph', color=255, charsize=1.5, /device
@@ -1054,7 +1052,7 @@ pro kcor_l1, date, ok_files, $
     xyouts, 4, 46, 'Level 1 data', color=255, charsize=1.2, /device
     xyouts, 4, 26, string(run->epoch('display_min'), $
                           run->epoch('display_max'), $
-                          format='("min/max: ", f5.2, ", ", f3.1)'), $
+                          format='(%"min/max: %0.2g, %0.2g")'), $
             color=255, charsize=1.2, /device
     xyouts, 4, 6, $
             string(run->epoch('display_exp'), $
@@ -1070,7 +1068,7 @@ pro kcor_l1, date, ok_files, $
 
     device, decomposed=1
     save     = tvrd()
-    gif_file = strmid(l0_file, 0, 20) + '_l1.gif'
+    gif_file = strmid(l0_file, 0, 20) + '_l1.5.gif'
     write_gif, filepath(gif_file, root=l1_dir), save, red, green, blue
 
     ;----------------------------------------------------------------------------
@@ -1129,7 +1127,7 @@ pro kcor_l1, date, ok_files, $
     endif
     struct.sgsloop = 1   ; SGSLOOP is 1 if image passed quality check
 
-    bscale = 0.001   ; pB * 1000 is stored in FITS image.
+    bscale = 1.0   ; pB is stored in FITS image
     img_quality = 'ok'
     newheader    = strarr(200)
     newheader[0] = header[0]         ; contains SIMPLE keyword
@@ -1192,21 +1190,21 @@ pro kcor_l1, date, ok_files, $
 
     ; software information
     fxaddpar, newheader, 'QUALITY', img_quality, ' Image quality'
-    fxaddpar, newheader, 'LEVEL',    'L1', $
-              ' Level 1 intensity is quasi-calibrated'
+    fxaddpar, newheader, 'LEVEL', 'L1.5', $
+              ' Level 1.5 pB Intensity is fully-calibrated'
 
     ; fxaddpar, newheader, 'DATE-L1', kcor_datecal(), ' Level 1 processing date'
     ; fxaddpar, newheader, 'L1SWID',  'kcorl1.pro 10nov2015', $
     ;                      ' Level 1 software'
 
-    fxaddpar, newheader, 'DATE_DP', date_dp, ' L1 processing date (UTC)'
+    fxaddpar, newheader, 'DATE_DP', date_dp, ' L1.5 processing date (UTC)'
     version = kcor_find_code_version(revision=revision, date=code_date)
 
     fxaddpar, newheader, 'DPSWID',  $
               string(version, revision, $
                      format='(%"%s [%s]")'), $
               string(code_date, $
-                     format='(%" L1 data processing software (%s)")')
+                     format='(%" L1.5 data processing software (%s)")')
 
     fxaddpar, newheader, 'CALFILE', run->epoch('cal_file'), $
               ' calibration file'
@@ -1226,7 +1224,7 @@ pro kcor_l1, date, ok_files, $
     fxaddpar, newheader, 'OBSSWID', struct.obsswid, $
               ' version of the observing software'
 
-    fxaddpar, newheader, 'BUNIT', '1.0E-6 Bsun', $
+    fxaddpar, newheader, 'BUNIT', 'B/Bsun', $
               ' Brightness with respect to solar disc'
     diffsrid = run->epoch('use_diffsrid') ? struct.diffsrid : run->epoch('diffsrid')
     fxaddpar, newheader, 'BOPAL', $
@@ -1242,14 +1240,14 @@ pro kcor_l1, date, ok_files, $
               ' physical = data * BSCALE + BZERO', format='(F8.3)'
 
     ; data display information
-    fxaddpar, newheader, 'DATAMIN', min(corona_int), ' minimum  value of  data'
-    fxaddpar, newheader, 'DATAMAX', max(corona_int), ' maximum  value of  data'
+    fxaddpar, newheader, 'DATAMIN', min(corona), ' minimum  value of  data'
+    fxaddpar, newheader, 'DATAMAX', max(corona), ' maximum  value of  data'
     fxaddpar, newheader, 'DISPMIN', run->epoch('display_min'), $
               ' minimum  value for display', $
-              format='(f10.2)'
+              format='(G0.3)'
     fxaddpar, newheader, 'DISPMAX', run->epoch('display_max'), $
               ' maximum  value for display', $
-              format='(f10.2)'
+              format='(G0.3)'
     fxaddpar, newheader, 'DISPEXP', run->epoch('display_exp'), $
               ' exponent value for display (d=b^DISPEXP)', $
               format='(f10.2)'
@@ -1301,26 +1299,28 @@ pro kcor_l1, date, ok_files, $
     ; raw camera occulting center & radius information
     fxaddpar, newheader, 'RCAMXCEN', xcen0 + 1, $
               ' [pixel] camera 0 raw X-coord occulting center', $
-              format='(f8.3)'
+              format='(f8.2)'
     fxaddpar, newheader, 'RCAMYCEN', ycen0 + 1, $
               ' [pixel] camera 0 raw Y-coord occulting center', $
-              format='(f8.3)'
+              format='(f8.2)'
     fxaddpar, newheader, 'RCAM_RAD',  radius_0, $
               ' [pixel] camera 0 raw occulter radius', $
-              format='(f8.3)'
+              format='(f8.2)'
     fxaddpar, newheader, 'TCAMXCEN', xcen1 + 1, $
               ' [pixel] camera 1 raw X-coord occulting center', $
-              format='(f8.3)'
+              format='(f8.2)'
     fxaddpar, newheader, 'TCAMYCEN', ycen1 + 1, $
               ' [pixel] camera 1 raw Y-coord occulting center', $
-              format='(f8.3)'
+              format='(f8.2)'
     fxaddpar, newheader, 'TCAM_RAD',  radius_1, $
               ' [pixel] camera 1 raw occulter radius', $
-              format='(f8.3)'
+              format='(f8.2)'
 
     ; add ephemeris data
-    fxaddpar, newheader, 'RSUN',     radsun, $
+    fxaddpar, newheader, 'RSUN_OBS', radsun, $
               ' [arcsec] solar radius', format = '(f9.3)'
+    fxaddpar, newheader, 'R_SUN',     radsun / run->epoch('plate_scale'), $
+              ' [pixel] solar radius', format = '(f9.1)'
     fxaddpar, newheader, 'SOLAR_P0', pangle, $
               ' [deg] solar P angle',   format = '(f9.3)'
     fxaddpar, newheader, 'CRLT_OBS', bangle, $
@@ -1485,7 +1485,7 @@ pro kcor_l1, date, ok_files, $
     ;----------------------------------------------------------------------------
 
     ; write FITS image to disk
-    writefits, filepath(l1_file, root=l1_dir), corona_int, newheader
+    writefits, filepath(l1_file, root=l1_dir), corona, newheader
   
     ; now make cropped GIF file
     kcor_cropped_gif, corona, date, date_struct, run=run
