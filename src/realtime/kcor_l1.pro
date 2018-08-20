@@ -940,7 +940,7 @@ pro kcor_l1, date, ok_files, $
 
       theta1 = atan(- yy1, - xx1)
       theta1 += !pi
-      theta1 = rot(reverse(theta1), pangle, 1)
+      theta1 = rot(reverse(theta1), pangle + run->epoch('rotation_correction'), 1)
 
       xcc1  = 511.5
       ycc1  = 511.5
@@ -1049,7 +1049,7 @@ pro kcor_l1, date, ok_files, $
             orientation=90., /device
     xyouts, 1012, 512, 'West', color=255, charsize=1.2, alignment=0.5, $
             orientation=90., /device
-    xyouts, 4, 46, 'Level 1 data', color=255, charsize=1.2, /device
+    xyouts, 4, 46, 'Level 1.5 data', color=255, charsize=1.2, /device
     xyouts, 4, 26, string(run->epoch('display_min'), $
                           run->epoch('display_max'), $
                           format='(%"min/max: %0.2g, %0.2g")'), $
@@ -1217,15 +1217,19 @@ pro kcor_l1, date, ok_files, $
       skytrans = 'NaN'
     endelse
     fxaddpar, newheader, 'SKYTRANS', skytrans, $
-              ' Sky Transmission correction normalized to gain image', $
+              ' sky transmission correction normalized to gain image', $
               format='(F5.3)'
+    fxaddpar, newheader, 'BIASCORR', run->epoch('skypol_bias'), $
+              ' bias added after sky polarization correction', $
+              format='(G0.3)'
+
     fxaddpar, newheader, 'DMODSWID', '2016-05-26', $
               ' date of demodulation software'
     fxaddpar, newheader, 'OBSSWID', struct.obsswid, $
               ' version of the observing software'
 
     fxaddpar, newheader, 'BUNIT', 'B/Bsun', $
-              ' Brightness with respect to solar disc'
+              ' brightness with respect to solar disk'
     diffsrid = run->epoch('use_diffsrid') ? struct.diffsrid : run->epoch('diffsrid')
     fxaddpar, newheader, 'BOPAL', $
               run->epoch(diffsrid) * 1e-6, $
@@ -1319,6 +1323,8 @@ pro kcor_l1, date, ok_files, $
     ; add ephemeris data
     fxaddpar, newheader, 'RSUN_OBS', radsun, $
               ' [arcsec] solar radius', format = '(f9.3)'
+    fxaddpar, newheader, 'RSUN', radsun, $
+              ' [arcsec] solar radius (old standard keyword)', format = '(f9.3)'
     fxaddpar, newheader, 'R_SUN',     radsun / run->epoch('plate_scale'), $
               ' [pixel] solar radius', format = '(f9.1)'
     fxaddpar, newheader, 'SOLAR_P0', pangle, $
@@ -1452,37 +1458,13 @@ pro kcor_l1, date, ok_files, $
               ' from 720 to 750 nm. Nominal time cadence is 15 seconds.'
 
     ; data processing comments
-    sxaddhist, $
-        ' Level 1 processing : dark current subtracted, gain correction,',$
-        newheader
-    sxaddhist, $
-        ' polarimetric demodulation, coordinate transformation from cartesian', $
-        newheader
-    sxaddhist, $
-        ' to tangent/radial, preliminary removal of sky polarization, ',$
-        newheader
-    sxaddhist, $
-        ' image distortion correction, beams combined, platescale calculated.', $
-        newheader
-
-    ;----------------------------------------------------------------------------
-    ; For FULLY CALIBRATED DATA:  Add these when ready.
-    ;----------------------------------------------------------------------------
-    ; sxaddhist, $
-    ; 'Level 2 processing performed: sky polarization removed, alignment to ', $
-    ; newheader
-    ; sxaddhist, $
-    ; 'solar north calculated, polarization split in radial and tangential ', $
-    ;  newheader
-    ; sxaddhist, $
-    ; 'components.  For detailed information see the COSMO K-coronagraph ', $
-    ; newheader
-    ; sxaddhist, 'data reduction paper (reference).', newheader
-    ; fxaddpar, newheader, 'LEVEL', 'L2', ' Processing Level'
-    ; fxaddpar, newheader, 'DATE-L2', kcor_datecal(), ' Level 2 processing date'
-    ; fxaddpar, newheader, 'L2SWID', 'Calib Reduction Mar 31, 2014', $
-    ;           ' Demodulation Software Version'
-    ;----------------------------------------------------------------------------
+    history = ['Level 1.5 calibration and processing steps: dark current subtracted;', $
+               ' gain correction; apply polarization demodulation matrix; apply', $
+               'distortion correction ; align each camera to center, rotate to solar', $
+               'north and combine cameras ; coordinate transformation from cartesian', $
+               'to tangential polarization; remove sky polarization; correct for', $
+               'sky transmission.']
+    for h = 0L, n_elements(history) - 1L do sxaddhist, history[h], newheader
 
     ; write FITS image to disk
     writefits, filepath(l1_file, root=l1_dir), corona, newheader

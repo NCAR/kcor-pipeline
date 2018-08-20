@@ -82,6 +82,8 @@ pro kcor_sci_insert, date, files, $
     cx = sxpar(header, 'CRPIX1') - 1.0   ; convert from FITS convention to
     cy = sxpar(header, 'CRPIX2') - 1.0   ; IDL convention
 
+    level_name = strtrim(sxpar(hdu, 'LEVEL'), 2)
+
     date_obs = sxpar(header, 'DATE-OBS', count=qdate_obs)
 
     ; normalize odd values for date/times
@@ -124,10 +126,14 @@ pro kcor_sci_insert, date, files, $
     r13 = kcor_annulus_gridmeans(image, 1.3, sun_pixels)
     r18 = kcor_annulus_gridmeans(image, 1.8, sun_pixels)
 
-    db->execute, 'INSERT INTO kcor_sci (file_name, date_obs, obs_day, totalpB, intensity, intensity_stddev, r108, r13, r18) VALUES (''%s'', ''%s'', %d, %f, ''%s'', ''%s'', ''%s'', ''%s'', ''%s'')', $
+    level_id = kcor_get_level_id(level_name, database=db, count=level_found)
+    if (level_found eq 0) then mg_log, 'using unknown level', name=log_name, /error
+
+    db->execute, 'INSERT INTO kcor_sci (file_name, date_obs, obs_day, level, totalpB, intensity, intensity_stddev, r108, r13, r18) VALUES (''%s'', ''%s'', %d, %d, %f, ''%s'', ''%s'', ''%s'', ''%s'', ''%s'')', $
                  file_basename(files[f], '.gz'), $
                  date_obs, $
                  obsday_index, $
+                 level_id,
                  total_pb, $
                  db->escape_string(intensity), $
                  db->escape_string(intensity_stddev), $

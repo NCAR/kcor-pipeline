@@ -194,17 +194,8 @@ pro kcor_img_insert, date, fits_list, $
                                  filetype, fields=fields)
     filetype_num = filetype_results.filetype_id	
 
-    level_count = db->query('SELECT count(level_id) FROM kcor_level WHERE level=''%s''', $
-                            level, fields=fields)
-    if (level_count.count_level_id_ eq 0) then begin
-      ; if given level is not in the kcor_level table, set it to 'unknown' and
-      ; log error
-      level = 'unk'
-      mg_log, 'level: %s', level, name=log_name, /error
-    endif
-    level_results = db->query('SELECT * FROM kcor_level WHERE level=''%s''', $
-                              level, fields=fields)
-    level_num = level_results.level_id	
+    level_num = kcor_get_level_id(level, database=db, count=level_found)
+    if (level_found eq 0) then mg_log, 'using unknown level', name=log_name, /error
 
     ; DB insert command
     db->execute, 'INSERT INTO kcor_img (file_name, date_obs, date_end, obs_day, level, quality, producttype, filetype, numsum, exptime) VALUES (''%s'', ''%s'', ''%s'', %d, %d, %d, %d, %d, %d, %f)', $

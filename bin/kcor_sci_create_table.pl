@@ -78,20 +78,21 @@ if (! $sth)
   die () ;
   }
 
-$command = "CREATE TABLE kcor_sci
-  (
+$command = "CREATE TABLE kcor_sci (
   sci_id              INT (10) AUTO_INCREMENT PRIMARY KEY,
   file_name           CHAR (40) NOT NULL,
   date_obs            DATETIME NOT NULL,
   obs_day             MEDIUMINT (5) NOT NULL,
-  totalpB             FLOAT (8, 3),
+  level               TINYINT (2) NOT NULL,
+  totalpB             FLOAT (23, 9),
   intensity           BLOB,
   intensity_stddev    BLOB,
   r108                BLOB,
   r13                 BLOB,
   r18                 BLOB,
-  FOREIGN KEY (obs_day) REFERENCES mlso_numfiles(day_id)
-  )" ;
+  FOREIGN KEY (obs_day) REFERENCES mlso_numfiles(day_id),
+  FOREIGN KEY (level) REFERENCES kcor_level(level_id)
+)" ;
 
 $sth = $dbh->prepare ($command) ;
 $sth->execute () ;

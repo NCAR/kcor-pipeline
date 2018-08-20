@@ -41,18 +41,18 @@ pro kcor_nrgf_annotations, year, name_month, day, hour, minute, second, doy, $
     if (keyword_set(cropped)) then begin
       y = 6 + line_height
     endif else begin
-      y = top - 29 - line++ * line_height + keyword_set(cropped) * 12
+      y = top - 29 - line++ * line_height
     endelse
 
     if (keyword_set(daily)) then begin
       if (keyword_set(cropped)) then begin
-        text = '~10 min avg'
+        text = 'Level 1.5 ~10 min avg'
       endif else begin
         text = string(to_time, format='(%"%s UT")')
       endelse
     endif else begin
       if (keyword_set(cropped)) then begin
-        text = '2 min avg'
+        text = 'Level 1.5 2 min avg'
       endif else begin
         text = string(to_time, format='(%"%s UT")')
       endelse
@@ -62,8 +62,11 @@ pro kcor_nrgf_annotations, year, name_month, day, hour, minute, second, doy, $
             /device, alignment=1.0, charsize=charsize, color=annotation_color
   endif
 
-  xyouts, 4, 6 + 2 * line_height, 'Level 1 data', $
-          color=annotation_color, charsize=charsize, /device
+  if (~keyword_set(cropped)) then begin
+    xyouts, 4, 6 + 2 * line_height, 'Level 1.5 data', $
+            color=annotation_color, charsize=charsize, /device
+  endif
+
   xyouts, 4, 6 + line_height, string(cmin, cmax, format='(%"min/max: %4.1f, %4.1f")'), $
           color=annotation_color, charsize=charsize, /device
   xyouts, 4, 6, 'Intensity: normalized, radially-graded', $
@@ -283,8 +286,8 @@ pro kcor_nrgf, fits_file, $
     alpha = 0.50
 
     ; lower text boxes
-    save[0:259, 0:49] = alpha * save[0:259, 0:49]
-    save[out_xdim - 154:*, 0:37] = alpha * save[out_xdim - 154:*, 0:37]
+    save[0:259, 0:37] = alpha * save[0:259, 0:37]
+    save[out_xdim - 165:*, 0:37] = alpha * save[out_xdim - 165:*, 0:37]
 
     ; upper text boxes
     save[0:144, out_ydim - 49:out_ydim - 1] = alpha * save[0:144, out_ydim - 49:out_ydim - 1]
