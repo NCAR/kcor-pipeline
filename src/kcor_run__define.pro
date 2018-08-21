@@ -692,7 +692,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   if (arg_present(min_compression_ratio)) then begin
     min_compression_ratio = self.options->get('min_compression_ratio', $
                                               section='verification', $
-                                              type=4, default=1.01)
+                                              type=4, default=0.99)
   endif
   if (arg_present(max_compression_ratio)) then begin
     max_compression_ratio = self.options->get('max_compression_ratio', $

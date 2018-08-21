@@ -481,12 +481,14 @@ pro kcor_verify, date, config_filename=config_filename, status=status
     ; test the size of tgz vs. entire directory of raw files
     ; compression factor should be 15-16%
 
-    du_cmd = string(filepath(date, root=run.raw_basedir), format='(%"du -sb %s")')
+    du_cmd = string(filepath('*.{fts.gz,log}', subdir=[date, 'level0'], $
+                             root=run.raw_basedir), $
+                    format='(%"du -scb %s | tail -1")')
     spawn, du_cmd, du_output
     tokens = strsplit(du_output[0], /extract)
     dir_size = ulong64(tokens[0])
 
-    compress_ratio = dir_size / 2.0 / l0_tarball_size
+    compress_ratio = float(dir_size) / float(l0_tarball_size)
 
     mg_log, 'tarball size: %s bytes', $
             mg_float2str(l0_tarball_size, places_sep=','), $
@@ -570,7 +572,7 @@ logger_name = 'kcor/verify'
 cfile = 'kcor.mgalloy.mlsodata.production.cfg'
 config_filename = filepath(cfile, subdir=['..', 'config'], root=mg_src_root())
 
-dates = ['20180708']
+dates = ['20180818']
 for d = 0L, n_elements(dates) - 1L do begin
   kcor_verify, dates[d], config_filename=config_filename
 
