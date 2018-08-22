@@ -102,18 +102,9 @@ pro kcor_sci_insert, date, files, $
     run.time = date_obs
     sun_pixels = rsun / run->epoch('plate_scale')
 
-    n_radii = 90
-    start_radius = 1.05
-    radius_step = 0.02
-    radii = radius_step * findgen(n_radii) + start_radius
-    intensity = fltarr(n_radii)
-    intensity_stddev = fltarr(n_radii)
-    for r = 0L, n_radii - 1L do begin
-      x = sun_pixels * radii[r] * cos(theta) + cx
-      y = sun_pixels * radii[r] * sin(theta) + cy
-      intensity[r] = mean(image[round(x), round(y)])
-      intensity_stddev[r] = stddev(image[round(x), round(y)])
-    endfor
+    intensity = kcor_extract_radial_intensity(files[f], $
+                                              run->epoch('plate_scale'), $
+                                              standard_deviation=intensity_stddev)
 
     x = (rebin(reform(findgen(1024), 1024, 1), 1024, 1024) - cx) / sun_pixels
     y = (rebin(reform(findgen(1024), 1, 1024), 1024, 1024) - cy) / sun_pixels

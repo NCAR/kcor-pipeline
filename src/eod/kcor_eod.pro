@@ -222,6 +222,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
                  /allow_nonexistent
   endelse
 
+  daily_science_file = l1_zipped_files[n_l1_zipped_files ge 20 ? 20 : 0]
+
   ; update databases
   if (run.update_database && success) then begin
     mg_log, 'updating database', name='kcor/eod', /info
@@ -256,7 +258,6 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
       endelse
 
       if (n_l1_zipped_files gt 0L) then begin
-        daily_science_file = l1_zipped_files[n_l1_zipped_files ge 20 ? 20 : 0]
         kcor_sci_insert, date, daily_science_file, $
                          run=run, $
                          database=db, $
@@ -272,6 +273,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   endif else begin
     mg_log, 'skipping updating database', name='kcor/eod', /info
   endelse
+
+  kcor_plotsci, date, daily_science_file, run=run
 
   ; remove zero length files in 'q' sub-directory
   cd, filepath('q', root=date_dir)
