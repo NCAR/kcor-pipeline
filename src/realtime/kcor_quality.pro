@@ -456,7 +456,6 @@ function kcor_quality, date, l0_fits_files, append=append, $
 
       brightave = total(pb0rot[dpx, dpy]) / nray
       brightpix = where(pb0rot[dpx, dpy] ge bmax, n_bright_pixels)
-      nelem = n_elements(brightpix)
 
       ; if too many pixels in circle exceed threshold, set bright = 1
       bright = n_bright_pixels ge (nray / 5)
@@ -473,7 +472,6 @@ function kcor_quality, date, l0_fits_files, append=append, $
 
       satave = total(pb0rot[dpx, dpy]) / nray
       satpix = where(pb0rot[dpx, dpy] ge smax, n_saturated_pixels)
-      nelem  = n_elements(satpix)
 
       ; if too many pixels are saturated, set sat = 1
       sat = n_saturated_pixels ge (nray / 5)
@@ -496,8 +494,6 @@ function kcor_quality, date, l0_fits_files, append=append, $
       cave = total(pb0rot[dpx, dpy]) / nray
       cloudpixlo = where(pb0rot[dpx, dpy] le cmin, n_cloudy_lo)
       cloudpixhi = where(pb0rot[dpx, dpy] ge cmax, n_cloudy_hi)
-      nelemlo    = n_elements(cloudpixlo)
-      nelemhi    = n_elements(cloudpixhi)
 
       ; if too many pixels are below lower limit, set clo = 1
       clo = n_cloudy_lo ge (nray / 5)
