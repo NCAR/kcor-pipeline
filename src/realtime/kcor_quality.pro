@@ -281,8 +281,6 @@ function kcor_quality, date, l0_fits_files, append=append, $
       kcor_correct_horizontal_artifact, img, run->epoch('horizontal_artifact_lines')
     endif
 
-; TODO: flat/dark correct
-
     ; define variables for azimuthal angle "scans"
     nray  = 36
     acirc = !pi * 2.0 / float(nray)
@@ -390,6 +388,18 @@ function kcor_quality, date, l0_fits_files, append=append, $
       cov += 1
     endif
 
+    ; saturation check
+    chksat = 1
+    if (chksat gt 0) then begin
+      sat_pixels = where(img[*, *, 0, 0] ge run->epoch('smax'), n_saturated_pixels)
+      sat = n_saturated_pixels gt run->epoch('smax_max_count')
+
+      if (sat) then begin
+        pb0rot = img[*, *, 0, 0]
+        goto, next
+      endif
+    endif
+
     ; create "raw" pB image
     img = float(img)
     img00 = img[*, *, 0, 0]
@@ -459,22 +469,6 @@ function kcor_quality, date, l0_fits_files, append=append, $
 
       ; if too many pixels in circle exceed threshold, set bright = 1
       bright = n_bright_pixels ge (nray / 5)
-    endif
-
-    ; saturation check
-    chksat = 1
-    if (chksat gt 0) then begin
-      smax = run->epoch('smax') * numsum / 512.0    ; brightness threshold
-      rpixt = run->epoch('rpixt')   ; circle radius [pixels]
-
-      dpx   = fix(cos(dp) * rpixt + axcen + 0.5005)
-      dpy   = fix(sin(dp) * rpixt + aycen + 0.5005)
-
-      satave = total(pb0rot[dpx, dpy]) / nray
-      satpix = where(pb0rot[dpx, dpy] ge smax, n_saturated_pixels)
-
-      ; if too many pixels are saturated, set sat = 1
-      sat = n_saturated_pixels ge (nray / 5)
     endif
 
     ; cloud check
@@ -564,7 +558,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
 
     next:
 
-    if ((cal gt 0) or (dev gt 0)) then begin
+    if ((cal gt 0) or (dev gt 0) or (sat gt 0)) then begin
       pb0m = pb0rot
     endif else if (nx ne xdim or ny ne ydim) then begin
       mg_log, 'image dimensions incompatible with mask: %d, %d, %d, %d', $
