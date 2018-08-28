@@ -1,5 +1,7 @@
 /api-docs
 /ROUTINES
 /build
-/config/kcor.mgalloy.*.cfg
+/config/kcor.*.cfg
 /cme_detection/ROUTINES
+/*configure.sh
+/bin/*db.cfg

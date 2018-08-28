@@ -97,7 +97,7 @@ pro kcor_mission_insert, date, run=run
   ; Create list of fits files in current directory.
   ;------------------------------------------------
 
-  fits_list = file_search('*kcor_l1.fts*', count=nfiles)
+  fits_list = file_search('*kcor_l1.5.fts*', count=nfiles)
 
   if (nfiles eq 0) then begin
     mg_log, 'no images in list file', name='kcor/eod', /info

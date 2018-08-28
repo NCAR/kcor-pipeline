@@ -9,13 +9,13 @@ if [ $? -eq 1 ]; then
 
   # restart process
   script=$(dirname $0)/kcor_realtime_cme.sh
-  echo "Launching automated, real-time pipeline $(date)..."
-  $script
 
   # send notification that process wasn't running and restarting it
-  body="Restarted $script\n\nSent from $0 ($(whoami)@$(hostname))"
+  body="Launching automated, real-time pipeline at $(date)\nScript: $script\n\nSent from $0 ($(whoami)@$(hostname))"
   addresses=mgalloy@ucar.edu
   echo -e $body | mail -s "Restarting automated, real-time CME detection process" \
                     -r $(whoami)@ucar.edu \
                     $addresses
+
+  $script
 fi

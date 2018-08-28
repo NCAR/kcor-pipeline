@@ -60,7 +60,7 @@ function kcor_read_calibration_text, date, process_basedir, $
 
     ; TODO: eventually this quality will be determined by a GBU process, now is
     ; is either 0 or 99
-    quality[i] = 99L * run->epoch('process')
+    quality[i] = 99L * run->epoch('process') * run->epoch('use_calibration_data')
   endfor
 
   return, filenames[where(quality ge run->epoch('min_cal_quality'), n_files, /null)]

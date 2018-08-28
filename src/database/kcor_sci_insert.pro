@@ -24,7 +24,7 @@
 ;   For example::
 ;
 ;     date = '20170204'
-;     files = ['20170214_190402_kcor_l1.fts.gz']
+;     files = ['20170214_190402_kcor_l1.5.fts.gz']
 ;     kcor_sci_insert, date, files, run=run, obsday_index=obsday_index
 ;
 ; :Author:
@@ -82,6 +82,8 @@ pro kcor_sci_insert, date, files, $
     cx = sxpar(header, 'CRPIX1') - 1.0   ; convert from FITS convention to
     cy = sxpar(header, 'CRPIX2') - 1.0   ; IDL convention
 
+    level_name = strtrim(sxpar(hdu, 'LEVEL'), 2)
+
     date_obs = sxpar(header, 'DATE-OBS', count=qdate_obs)
 
     ; normalize odd values for date/times
@@ -100,18 +102,9 @@ pro kcor_sci_insert, date, files, $
     run.time = date_obs
     sun_pixels = rsun / run->epoch('plate_scale')
 
-    n_radii = 90
-    start_radius = 1.05
-    radius_step = 0.02
-    radii = radius_step * findgen(n_radii) + start_radius
-    intensity = fltarr(n_radii)
-    intensity_stddev = fltarr(n_radii)
-    for r = 0L, n_radii - 1L do begin
-      x = sun_pixels * radii[r] * cos(theta) + cx
-      y = sun_pixels * radii[r] * sin(theta) + cy
-      intensity[r] = mean(image[round(x), round(y)])
-      intensity_stddev[r] = stddev(image[round(x), round(y)])
-    endfor
+    intensity = kcor_extract_radial_intensity(files[f], $
+                                              run->epoch('plate_scale'), $
+                                              standard_deviation=intensity_stddev)
 
     x = (rebin(reform(findgen(1024), 1024, 1), 1024, 1024) - cx) / sun_pixels
     y = (rebin(reform(findgen(1024), 1, 1024), 1024, 1024) - cy) / sun_pixels
@@ -124,10 +117,14 @@ pro kcor_sci_insert, date, files, $
     r13 = kcor_annulus_gridmeans(image, 1.3, sun_pixels)
     r18 = kcor_annulus_gridmeans(image, 1.8, sun_pixels)
 
-    db->execute, 'INSERT INTO kcor_sci (file_name, date_obs, obs_day, totalpB, intensity, intensity_stddev, r108, r13, r18) VALUES (''%s'', ''%s'', %d, %f, ''%s'', ''%s'', ''%s'', ''%s'', ''%s'')', $
+    level_id = kcor_get_level_id(level_name, database=db, count=level_found)
+    if (level_found eq 0) then mg_log, 'using unknown level', name=log_name, /error
+
+    db->execute, 'INSERT INTO kcor_sci (file_name, date_obs, obs_day, level, totalpB, intensity, intensity_stddev, r108, r13, r18) VALUES (''%s'', ''%s'', %d, %d, %f, ''%s'', ''%s'', ''%s'', ''%s'', ''%s'')', $
                  file_basename(files[f], '.gz'), $
                  date_obs, $
                  obsday_index, $
+                 level_id,
                  total_pb, $
                  db->escape_string(intensity), $
                  db->escape_string(intensity_stddev), $
@@ -163,7 +160,7 @@ run = kcor_run(date, $
 
 obsday_index = mlso_obsday_insert(date, run=run, database=db)
 
-files = ['20170318_205523_kcor_l1.fts.gz']
+files = ['20170318_205523_kcor_l1.5.fts.gz']
 kcor_sci_insert, date, files, run=run, database=db, obsday_index=obsday_index
 
 results = db->query('select * from kcor_sci', sql_statement=cmd, error=error, fields=fields)

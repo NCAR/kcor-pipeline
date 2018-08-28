@@ -3,9 +3,9 @@
 use DBI;
 
 # ------------------------------------------------------------------------------
-# kcor_sci_create_table.pl
+# kcor_raw_create_table.pl
 # ------------------------------------------------------------------------------
-# Create MLSO db table: kcor_sci (mysql).
+# Create MLSO db table: kcor_raw (mysql).
 # ------------------------------------------------------------------------------
 # Andrew Stanger   MLSO/HAO/NCAR   08 Dec 2015
 # New edits by Don Kolinski Jan 2017
@@ -25,7 +25,7 @@ if ($#ARGV != 0 ) {
 }
 
 # Warn user of database drop
-print "WARNING!!!! This script will drop the table kcor_sci!\nDo you wish to continue? ";
+print "WARNING!!!! This script will drop the table kcor_raw!\nDo you wish to continue? ";
 print "Press <Enter> to continue, or 'q' to quit: ";
 my $input = <STDIN>;
 exit if $input eq "q\n";
@@ -64,10 +64,10 @@ else
   }
 
 #-------------------------------
-# Create new kcor_sci table.
+# Create new kcor_raw table.
 #-------------------------------
 
-$command = "DROP TABLE IF EXISTS kcor_sci" ;
+$command = "DROP TABLE IF EXISTS kcor_raw" ;
 $sth     = $dbh->prepare ($command) ;
 
 $sth->execute () ;
@@ -78,21 +78,36 @@ if (! $sth)
   die () ;
   }
 
-$command = "CREATE TABLE kcor_sci (
-  sci_id              INT (10) AUTO_INCREMENT PRIMARY KEY,
-  file_name           CHAR (40) NOT NULL,
-  date_obs            DATETIME NOT NULL,
-  obs_day             MEDIUMINT (5) NOT NULL,
-  level               TINYINT (2) NOT NULL,
-  totalpB             FLOAT (23, 9),
-  intensity           BLOB,
-  intensity_stddev    BLOB,
-  r108                BLOB,
-  r13                 BLOB,
-  r18                 BLOB,
-  FOREIGN KEY (obs_day) REFERENCES mlso_numfiles(day_id),
-  FOREIGN KEY (level) REFERENCES kcor_level(level_id)
-)" ;
+# Define fields
+$command = "create table kcor_raw(
+  raw_id           INT (10) AUTO_INCREMENT PRIMARY KEY, 
+  file_name        CHAR (40) NOT NULL, 
+  date_obs         DATETIME NOT NULL, 
+  date_end         DATETIME NOT NULL,
+  obs_day          MEDIUMINT (5) NOT NULL,
+  level            TINYINT (2) NOT NULL, 
+  quality_id       TINYINT (2) NOT NULL,
+  mean_int_img0    FLOAT (14, 7),
+  mean_int_img1    FLOAT (14, 7),
+  mean_int_img2    FLOAT (14, 7),
+  mean_int_img3    FLOAT (14, 7),
+  mean_int_img4    FLOAT (14, 7),
+  mean_int_img5    FLOAT (14, 7),
+  mean_int_img6    FLOAT (14, 7),
+  mean_int_img7    FLOAT (14, 7),
+  median_int_img0  FLOAT (14, 7),
+  median_int_img1  FLOAT (14, 7),
+  median_int_img2  FLOAT (14, 7),
+  median_int_img3  FLOAT (14, 7),
+  median_int_img4  FLOAT (14, 7),
+  median_int_img5  FLOAT (14, 7),
+  median_int_img6  FLOAT (14, 7),
+  median_int_img7  FLOAT (14, 7),
+  unique(file_name),
+  index(date_obs),
+  foreign key (level) references kcor_level(level_id),
+  foreign key (obs_day) references mlso_numfiles(day_id)
+)";
 
 $sth = $dbh->prepare ($command) ;
 $sth->execute () ;

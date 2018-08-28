@@ -93,7 +93,7 @@ if (datatype EQ 'FLAT') then $
 print, 'datatype:  ', datatype
 print, 'datalabel: ', datalabel
      
-xyouts, 4, 46, 'Level 1 data', color = 251, charsize = 1.2, /device
+xyouts, 4, 46, 'Level 1.5 data', color = 251, charsize = 1.2, /device
 xyouts, 4, 26, 'min/max:' + string (format = '(f4.1)', dmin) + ', ' $
                            + string (format = '(f4.1)', dmax), $
 	       color = 251, charsize = 1.2, /device

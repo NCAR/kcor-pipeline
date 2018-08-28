@@ -211,7 +211,7 @@ end
 ;date = '20170204'
 date = '20130930'
 ;filelist = ['20170204_205610_kcor_l1_nrgf.fts.gz','20170204_205625_kcor_l1.fts.gz','20170204_205640_kcor_l1.fts.gz','20170204_205656_kcor_l1.fts.gz','20170204_205711_kcor_l1.fts.gz']
-filelist = ['20130930_202422_kcor_l1.fts']
+filelist = ['20130930_202422_kcor_l1.5.fts']
 run = kcor_run(date, $
                config_filename=filepath('kcor.mgalloy.mahi.latest.cfg', $
                                         subdir=['..', '..', 'config'], $

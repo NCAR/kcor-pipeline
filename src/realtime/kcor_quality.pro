@@ -43,7 +43,15 @@
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;-
-function kcor_quality, date, l0_fits_files, append=append, run=run
+function kcor_quality, date, l0_fits_files, append=append, $
+                       brt_files=brt_files, $
+                       cal_files=cal_files, $
+                       cld_files=cld_files, $
+                       dev_files=dev_files, $
+                       dim_files=dim_files, $
+                       nsy_files=nsy_files, $
+                       sat_files=sat_files, $
+                       run=run
   compile_opt strictarr
 
   ; store initial system time
@@ -103,6 +111,14 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
   q_dir_dev = filepath(q_dev, root=q_dir)   ; device images
   q_dir_nsy = filepath(q_nsy, root=q_dir)   ; noisy images
   q_dir_sat = filepath(q_sat, root=q_dir)   ; saturated images
+
+  brt_list = list()
+  cal_list = list()
+  cld_list = list()
+  dim_list = list()
+  dev_list = list()
+  nsy_list = list()
+  sat_list = list()
 
   ;q_dir_unk    = q_path + 'unk/'    ; unknown images
   ;q_dir_eng    = q_path + 'eng/'    ; engineering images
@@ -265,8 +281,6 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
       kcor_correct_horizontal_artifact, img, run->epoch('horizontal_artifact_lines')
     endif
 
-; TODO: flat/dark correct
-
     ; define variables for azimuthal angle "scans"
     nray  = 36
     acirc = !pi * 2.0 / float(nray)
@@ -374,6 +388,18 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
       cov += 1
     endif
 
+    ; saturation check
+    chksat = 1
+    if (chksat gt 0) then begin
+      sat_pixels = where(img[*, *, 0, 0] ge run->epoch('smax'), n_saturated_pixels)
+      sat = n_saturated_pixels gt run->epoch('smax_max_count')
+
+      if (sat) then begin
+        pb0rot = img[*, *, 0, 0]
+        goto, next
+      endif
+    endif
+
     ; create "raw" pB image
     img = float(img)
     img00 = img[*, *, 0, 0]
@@ -440,27 +466,9 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
 
       brightave = total(pb0rot[dpx, dpy]) / nray
       brightpix = where(pb0rot[dpx, dpy] ge bmax, n_bright_pixels)
-      nelem = n_elements(brightpix)
 
       ; if too many pixels in circle exceed threshold, set bright = 1
       bright = n_bright_pixels ge (nray / 5)
-    endif
-
-    ; saturation check
-    chksat = 1
-    if (chksat gt 0) then begin
-      smax = run->epoch('smax') * numsum / 512.0    ; brightness threshold
-      rpixt = run->epoch('rpixt')   ; circle radius [pixels]
-
-      dpx   = fix(cos(dp) * rpixt + axcen + 0.5005)
-      dpy   = fix(sin(dp) * rpixt + aycen + 0.5005)
-
-      satave = total(pb0rot[dpx, dpy]) / nray
-      satpix = where(pb0rot[dpx, dpy] ge smax, n_saturated_pixels)
-      nelem  = n_elements(satpix)
-
-      ; if too many pixels are saturated, set sat = 1
-      sat = n_saturated_pixels ge (nray / 5)
     endif
 
     ; cloud check
@@ -480,8 +488,6 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
       cave = total(pb0rot[dpx, dpy]) / nray
       cloudpixlo = where(pb0rot[dpx, dpy] le cmin, n_cloudy_lo)
       cloudpixhi = where(pb0rot[dpx, dpy] ge cmax, n_cloudy_hi)
-      nelemlo    = n_elements(cloudpixlo)
-      nelemhi    = n_elements(cloudpixhi)
 
       ; if too many pixels are below lower limit, set clo = 1
       clo = n_cloudy_lo ge (nray / 5)
@@ -552,7 +558,7 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
 
     next:
 
-    if ((cal gt 0) or (dev gt 0)) then begin
+    if ((cal gt 0) or (dev gt 0) or (sat gt 0)) then begin
       pb0m = pb0rot
     endif else if (nx ne xdim or ny ne ydim) then begin
       mg_log, 'image dimensions incompatible with mask: %d, %d, %d, %d', $
@@ -613,42 +619,49 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
       qual = q_cal
       ncal += 1
       printf, ucal, l0_file
+      cal_list->add, l0_file
       file_copy, l0_file, cdate_dir, /overwrite   ; copy l0 file to cdate_dir
     endif else if (dev gt 0) then begin   ; device obscuration
       gif_file = strmid(l0_basename, 0, fitsloc) + '_m.gif' 
       qual = q_dev
       ndev += 1
       printf, udev, l0_file
+      dev_list->add, l0_file
     endif else if (bright gt 0) then begin   ; bright image
       tvcircle, rpixb, axcen, aycen, red, /device   ; bright circle
       gif_file = strmid(l0_basename, 0, fitsloc) + '_b.gif' 
       qual = q_brt
       nbrt += 1
       printf, ubrt, l0_file
+      brt_list->add, l0_file
     endif else if (clo gt 0) then begin   ; dim image
       tvcircle, rpixc, axcen, aycen, green,  /device   ; cloud circle
       gif_file = strmid(l0_basename, 0, fitsloc) + '_d.gif'
       qual = q_dim
       ndim += 1
       printf, udim, l0_file
+      dim_list->add, l0_file
     endif else if (chi gt 0) then begin   ; cloudy image
       tvcircle, rpixc, axcen, aycen, green,  /device   ; cloud circle
       gif_file = strmid(l0_basename, 0, fitsloc) + '_o.gif' 
       qual = q_cld
       ncld += 1
       printf, ucld, l0_file
+      cld_list->add, l0_file
     endif else  if (sat gt 0) then begin   ; saturation
       tvcircle, rpixt, axcen, aycen, blue, /device   ; sat circle
       gif_file = strmid(l0_basename, 0, fitsloc) + '_t.gif' 
       qual = q_sat
       nsat += 1
       printf, usat, l0_file
+      sat_list->add, l0_file
     endif else if (noise gt 0) then begin   ; noisy
       tvcircle, rpixn, axcen, aycen, yellow, /device   ; noise circle
       gif_file = strmid (l0_basename, 0, fitsloc) + '_n.gif' 
       qual = q_nsy
       nnsy += 1
       printf, unsy, l0_file
+      nsy_list->add, l0_file
     endif else begin   ; good image
       if (eng gt 0) then begin   ; engineering
         gif_file = strmid(l0_basename, 0, fitsloc) + '_e.gif' 
@@ -695,6 +708,17 @@ function kcor_quality, date, l0_fits_files, append=append, run=run
   free_lun, unsy
   free_lun, uokf
   free_lun, uoka
+
+  brt_files = brt_list->toArray()
+  cal_files = cal_list->toArray()
+  cld_files = cld_list->toArray()
+  dim_files = dim_list->toArray()
+  dev_files = dev_list->toArray()
+  nsy_files = nsy_list->toArray()
+  sat_files = sat_list->toArray()
+
+  obj_destroy, [brt_list, cal_list, cld_list, dim_list, dev_list, nsy_list, $
+                sat_list]
 
   ; delete empty files
   ; if (ncal eq 0) then file_delete, cal_qpath else printf, ulog, 'ncal: ', ncal

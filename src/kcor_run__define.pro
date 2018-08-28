@@ -94,6 +94,7 @@ function kcor_run::epoch, name, time=time
     'skypol_bias': return, self->_readepoch('skypol_bias', self.date, hst_time, type=4)
     'skypol_factor': return, self->_readepoch('skypol_factor', self.date, hst_time, type=4) 
     'bias': return, self->_readepoch('bias', self.date, hst_time, type=4) 
+    'rotation_correction': return, self->_readepoch('rotation_correction', self.date, hst_time, type=4)
     'distortion_correction_filename': begin
         return, self->_readepoch('distortion_correction_filename', $
                                  self.date, hst_time, type=7)
@@ -109,6 +110,7 @@ function kcor_run::epoch, name, time=time
         endelse
       end
     'use_pipeline_calfiles': return, self->_readepoch('use_pipeline_calfiles', self.date, hst_time, /boolean)
+    'use_calibration_data': return, self->_readepoch('use_calibration_data', self.date, hst_time, /boolean)
     'O1id': return, self->_readepoch('O1id', self.date, hst_time, type=7)
     'use_O1id': return, self->_readepoch('use_O1id', self.date, hst_time, /boolean)
     'O1-1': return, self->_readepoch('O1-1', self.date, hst_time, type=7)
@@ -180,7 +182,8 @@ function kcor_run::epoch, name, time=time
     'OC-1006.': return, self->_readepoch('OC-1006.', self.date, hst_time, type=4)
     'OC-1018.': return, self->_readepoch('OC-1018.', self.date, hst_time, type=4)
     'bmax': return, self->_readepoch('bmax', self.date, hst_time, type=4)
-    'smax': return, self->_readepoch('smax', self.date, hst_time, type=4)
+    'smax': return, self->_readepoch('smax', self.date, hst_time, type=13)
+    'smax_max_count': return, self->_readepoch('smax_max_count', self.date, hst_time, type=3)
     'cmax': return, self->_readepoch('cmax', self.date, hst_time, type=4)
     'cmin': return, self->_readepoch('cmin', self.date, hst_time, type=4)
     'check_noise': return, self->_readepoch('check_noise', self.date, hst_time, /boolean)
@@ -198,145 +201,6 @@ function kcor_run::epoch, name, time=time
                                                 self.date, hst_time, type=3)
     else: mg_log, 'epoch value %s not found', name, name=self.log_name, /error
   endcase
-end
-
-
-;+
-; Write the values used from the epochs file to the given filename.
-;
-; :Params:
-;   filename : in, optional, type=string, default=stdout
-;     filename to write epoch values to, default is to print to stdout
-;-
-pro kcor_run::write_epochs, filename, time=time
-  compile_opt strictarr
-
-  if (n_elements(filename) gt 0L) then begin
-    openw, lun, filename, /get_lun
-  endif else begin
-    lun = -1   ; stdout
-  endelse
-
-  printf, lun, $
-          'mlso_url', self->epoch('mlso_url', time=time), $
-          format='(%"%-30s : %s")'
-  printf, lun, $
-          'doi_url', self->epoch('doi_url', time=time), $
-          format='(%"%-30s : %s")'
-
-  printf, lun, $
-          'plate_scale', self->epoch('plate_scale', time=time), $
-          format='(%"%-30s : %0.3f")'
-  printf, lun, $
-          'use_default_darks', $
-          self->epoch('use_default_darks', time=time) ? 'YES' : 'NO', $
-          format='(%"%-30s : %s")'
-  printf, lun, $
-          'gbuparams_filename', $
-          self->epoch('gbuparams_filename', time=time), $
-          format='(%"%-30s : %s")'
-  printf, lun, $
-          'skypol_bias', self->epoch('skypol_bias', time=time), $
-          format='(%"%-30s : %f")'
-  printf, lun, $
-          'skypol_factor', self->epoch('skypol_factor', time=time), $
-          format='(%"%-30s : %f")'
-  printf, lun, $
-          'bias', self->epoch('bias', time=time), $
-          format='(%"%-30s : %f")'
-  printf, lun, $
-          'distortion_correction_filename', $
-          self->epoch('distortion_correction_filename', time=time), $
-          format='(%"%-30s : %s")'
-  printf, lun, $
-          'cal_file', self->epoch('cal_file', time=time), $
-          format='(%"%-30s : %s")'
-  printf, lun, $
-          'use_pipeline_calfiles', $
-          self->epoch('use_pipeline_calfiles', time=time) ? 'YES' : 'NO', $
-          format='(%"%-30s : %s")'
-  printf, lun, $
-          '01id', self->epoch('01id', time=time), $
-          format='(%"%-30s : %s")'
-  printf, lun, $
-          'mk4-opal', self->epoch('mk4-opal', time=time), $
-          format='(%"%-30s : %f")'
-  printf, lun, $
-          'POC-L10P6-10-1', self->epoch('POC-L10P6-10-1', time=time), $
-          format='(%"%-30s : %f")'
-
-  printf, lun, $
-          'use_camera_prefix', $
-          self->epoch('use_camera_prefix', time=time) ? 'YES' : 'NO', $
-          format='(%"%-30s : %s")'
-  printf, lun, $
-          'camera_prefix', self->epoch('camera_prefix', time=time), $
-          format='(%"%-30s : %s")'
-  printf, lun, $
-          'camera_lut_date', self->epoch('camera_lut_date', time=time), $
-          format='(%"%-30s : %s")'
-  printf, lun, $
-          'display_min', self->epoch('display_min', time=time), $
-          format='(%"%-30s : %f")'
-  printf, lun, $
-          'display_max', self->epoch('display_max', time=time), $
-          format='(%"%-30s : %f")'
-  printf, lun, $
-          'display_exp', self->epoch('display_exp', time=time), $
-          format='(%"%-30s : %f")'
-  printf, lun, $
-          'display_gamma', self->epoch('display_gamma', time=time), $
-          format='(%"%-30s : %f")'
-
-  printf, lun, $
-          'remove_horizontal_artifact', $
-          self->epoch('remove_horizontal_artifact', time=time) ? 'YES' : 'NO', $
-          format='(%"%-30s : %s")'
-  if (self->epoch('remove_horizontal_artifact', time=time)) then begin
-    printf, lun, $
-            'horizontal_artifact_lines', $
-            strjoin(strtrim(self->epoch('horizontal_artifact_lines', $
-                                        time=time), $
-                            2), $
-                    ', '), $
-            format='(%"%-30s : [%s]")'
-  endif
-
-  printf, lun, $
-          'produce_calibration', $
-          self->epoch('produce_calibration', time=time) ? 'YES' : 'NO', $
-          format='(%"%-30s : %s")'
-
-  printf, lun, 'bmax', self->epoch('bmax', time=time), $
-          format='(%"%-30s : %f")'
-  printf, lun, 'smax', self->epoch('smax', time=time), $
-          format='(%"%-30s : %f")'
-  printf, lun, 'cmax', self->epoch('cmax', time=time), $
-          format='(%"%-30s : %f")'
-  printf, lun, 'cmin', self->epoch('cmin', time=time), $
-          format='(%"%-30s : %f")'
-  printf, lun, $
-          'check_noise', $
-          self->epoch('check_noise', time=time) ? 'YES' : 'NO', $
-          format='(%"%-30s : %s")'
-
-  printf, lun, 'rpixb', self->epoch('rpixb', time=time), $
-          format='(%"%-30s : %d")'
-  printf, lun, 'rpixt', self->epoch('rpixt', time=time), $
-          format='(%"%-30s : %d")'
-  printf, lun, 'rpixc', self->epoch('rpixc', time=time), $
-          format='(%"%-30s : %d")'
-
-  printf, lun, 'cal_epoch_version', self->epoch('cal_epoch_version', time=time), $
-          format='(%"%-30s : %s")'
-
-  printf, lun, 'lyotstop', self->epoch('lyotstop', time=time), $
-          format='(%"%-30s : %s")'
-  printf, lun, 'use_lyotstop_keyword', $
-          self->epoch('use_lyotstop_keyword', time=time) ? 'YES' : 'NO', $
-          format='(%"%-30s : %s")'
-
-  if (n_elements(filename) gt 0L) then free_lun, lun
 end
 
 
@@ -829,12 +693,12 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   if (arg_present(min_compression_ratio)) then begin
     min_compression_ratio = self.options->get('min_compression_ratio', $
                                               section='verification', $
-                                              type=4, default=1.01)
+                                              type=4, default=0.99)
   endif
   if (arg_present(max_compression_ratio)) then begin
     max_compression_ratio = self.options->get('max_compression_ratio', $
                                               section='verification', $
-                                              type=4, default=1.09)
+                                              type=4, default=1.01)
   endif
 end
 

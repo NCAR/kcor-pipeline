@@ -3,12 +3,11 @@
 use DBI;
 
 # ------------------------------------------------------------------------------
-# kcor_img_create_table.pl
+# kcor_quality_create_table.pl
 # ------------------------------------------------------------------------------
-# Create MLSO db table: kcor_img (mysql).
+# Create MLSO db table: kcor_quality (mysql).
 # ------------------------------------------------------------------------------
-# Andrew Stanger   MLSO/HAO/NCAR   08 Dec 2015
-# New edits by Don Kolinski Jan 2017
+# Don Kolinski April 2017
 #	Added new argument containing path/configfile:
 #		config file format:
 #		username = <value>
@@ -25,7 +24,7 @@ if ($#ARGV != 0 ) {
 }
 
 # Warn user of database drop
-print "WARNING!!!! This script will drop the table kcor_img!\nDo you wish to continue? ";
+print "WARNING!!!! This script will drop the table kcor_quality!\nDo you wish to continue? ";
 print "Press <Enter> to continue, or 'q' to quit: ";
 my $input = <STDIN>;
 exit if $input eq "q\n";
@@ -63,11 +62,11 @@ else
   print "DB connection successful.\n" ;
   }
 
-#----------------------------
-# Create new kcor_img table.
-#----------------------------
+#-------------------------------
+# Create new kcor_quality table.
+#-------------------------------
 
-$command = "DROP TABLE IF EXISTS kcor_img" ;  # TODO: remove _test when in production
+$command = "DROP TABLE IF EXISTS kcor_quality" ;
 $sth     = $dbh->prepare ($command) ;
 
 $sth->execute () ;
@@ -79,37 +78,12 @@ if (! $sth)
   }
 
 # Define fields
-#	Notes:
-#	Removing 'instrument' field for now (unless I hear that VSO needs it in this table)
-#	'level' type changed to char(4), but could also be float(4,1) like xxx.x
-#	'quality' type changed to tinyint, and will be stored as a number between 0-99
-#	Added 'datatype' and 'filetype' fields at end, because VARCHAR slows down queries if there are fields after it
-#	Changed field 'datatype' to 'producttype' to avoid confusion with header field (20170213 DJK)
-#	Alterting data types of level, producttype, and filetype to normalize with level, producttype, and filetype mysql tables (20170213)
-# TODO: define other indices.
-$command = "CREATE TABLE kcor_img
+$command = "CREATE TABLE kcor_quality
   (
-  img_id                INT (10) AUTO_INCREMENT PRIMARY KEY,
-  file_name             CHAR (50) NOT NULL, 
-  date_obs              DATETIME NOT NULL, 
-  date_end              DATETIME NOT NULL, 
-  obs_day               MEDIUMINT (5) NOT NULL,
-  level                 TINYINT (2) NOT NULL,
-  quality               TINYINT (2),
-  producttype           TINYINT (2),
-  filetype              TINYINT (2),
-  numsum                SMALLINT (4), 
-  exptime               FLOAT (7, 4),  
-  UNIQUE (file_name),
-  INDEX (date_obs),
-  INDEX (obs_day),
-  INDEX (quality),
-  INDEX (producttype),
-  FOREIGN KEY (level) REFERENCES kcor_level(level_id),
-  FOREIGN KEY (producttype) REFERENCES mlso_producttype(producttype_id),
-  FOREIGN KEY (filetype) REFERENCES mlso_filetype(filetype_id),
-  FOREIGN KEY (obs_day) REFERENCES mlso_numfiles(day_id)
-  )" ;
+  quality_id            TINYINT (2) AUTO_INCREMENT PRIMARY KEY,
+  quality               CHAR (5) NOT NULL,
+  description           VARCHAR (512)
+  )" ; 
 
 $sth = $dbh->prepare ($command) ;
 $sth->execute () ;
@@ -119,6 +93,40 @@ if (! $sth)
   print "mysql error: $dbh->errstr\n" ;
   die () ;
   }
+
+# populate
+$command = "INSERT INTO kcor_quality (quality, description) VALUES ('oka', 'OK quality images')";
+$sth = $dbh->prepare ($command) ;
+$sth->execute () ;
+
+$command = "INSERT INTO kcor_quality (quality, description) VALUES ('cal', 'calibration images')";
+$sth = $dbh->prepare ($command) ;
+$sth->execute () ;
+
+$command = "INSERT INTO kcor_quality (quality, description) VALUES ('dev', 'device images')";
+$sth = $dbh->prepare ($command) ;
+$sth->execute () ;
+
+$command = "INSERT INTO kcor_quality (quality, description) VALUES ('brt', 'bright images')";
+$sth = $dbh->prepare ($command) ;
+$sth->execute () ;
+
+$command = "INSERT INTO kcor_quality (quality, description) VALUES ('dim', 'dim images')";
+$sth = $dbh->prepare ($command) ;
+$sth->execute () ;
+
+$command = "INSERT INTO kcor_quality (quality, description) VALUES ('cld', 'cloudy images')";
+$sth = $dbh->prepare ($command) ;
+$sth->execute () ;
+
+$command = "INSERT INTO kcor_quality (quality, description) VALUES ('nsy', 'noisy images')";
+$sth = $dbh->prepare ($command) ;
+$sth->execute () ;
+
+$command = "INSERT INTO kcor_quality (quality, description) VALUES ('sat', 'saturated images')";
+$sth = $dbh->prepare ($command) ;
+$sth->execute () ;
+
 
 #----------------------------------------
 # Terminate connection to mysql database.

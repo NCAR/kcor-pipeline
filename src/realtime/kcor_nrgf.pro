@@ -41,18 +41,18 @@ pro kcor_nrgf_annotations, year, name_month, day, hour, minute, second, doy, $
     if (keyword_set(cropped)) then begin
       y = 6 + line_height
     endif else begin
-      y = top - 29 - line++ * line_height + keyword_set(cropped) * 12
+      y = top - 29 - line++ * line_height
     endelse
 
     if (keyword_set(daily)) then begin
       if (keyword_set(cropped)) then begin
-        text = '~10 min avg'
+        text = 'Level 1.5 ~10 min avg'
       endif else begin
         text = string(to_time, format='(%"%s UT")')
       endelse
     endif else begin
       if (keyword_set(cropped)) then begin
-        text = '2 min avg'
+        text = 'Level 1.5 2 min avg'
       endif else begin
         text = string(to_time, format='(%"%s UT")')
       endelse
@@ -62,8 +62,11 @@ pro kcor_nrgf_annotations, year, name_month, day, hour, minute, second, doy, $
             /device, alignment=1.0, charsize=charsize, color=annotation_color
   endif
 
-  xyouts, 4, 6 + 2 * line_height, 'Level 1 data', $
-          color=annotation_color, charsize=charsize, /device
+  if (~keyword_set(cropped)) then begin
+    xyouts, 4, 6 + 2 * line_height, 'Level 1.5 data', $
+            color=annotation_color, charsize=charsize, /device
+  endif
+
   xyouts, 4, 6 + line_height, string(cmin, cmax, format='(%"min/max: %4.1f, %4.1f")'), $
           color=annotation_color, charsize=charsize, /device
   xyouts, 4, 6, 'Intensity: normalized, radially-graded', $
@@ -127,7 +130,7 @@ pro kcor_nrgf, fits_file, $
   ycen       = ydim / 2.0 - 0.5
   date_obs   = sxpar(hdu, 'DATE-OBS')   ; yyyy-mm-ddThh:mm:ss
   platescale = sxpar(hdu, 'CDELT1')     ; arcsec/pixel
-  rsun       = sxpar(hdu, 'RSUN')       ; radius of photosphere [arcsec]
+  rsun       = sxpar(hdu, 'RSUN_OBS')   ; radius of photosphere [arcsec]
 
   ; extract date and time from FITS header
   year   = strmid(date_obs, 0, 4)
@@ -276,15 +279,15 @@ pro kcor_nrgf, fits_file, $
 
   ; image has been shifted to center of array
   ; draw circle at photosphere
-  kcor_suncir, out_xdim, out_ydim, xcen, ycen, 0, 0, r_photo, 0.0
+  kcor_suncir, out_xdim, out_ydim, xcen, ycen, 0, 0, r_photo, 0.0, log_name=log_name
 
   if (keyword_set(cropped)) then begin
     save = tvrd()
     alpha = 0.50
 
     ; lower text boxes
-    save[0:259, 0:49] = alpha * save[0:259, 0:49]
-    save[out_xdim - 154:*, 0:37] = alpha * save[out_xdim - 154:*, 0:37]
+    save[0:259, 0:37] = alpha * save[0:259, 0:37]
+    save[out_xdim - 165:*, 0:37] = alpha * save[out_xdim - 165:*, 0:37]
 
     ; upper text boxes
     save[0:144, out_ydim - 49:out_ydim - 1] = alpha * save[0:144, out_ydim - 49:out_ydim - 1]
@@ -336,8 +339,8 @@ pro kcor_nrgf, fits_file, $
 
     ; modify the FITS header for an NRG FITS image
     rhdu = hdu
-    fxaddpar, rhdu, 'LEVEL', 'L1', $
-              ' Level 1'
+    fxaddpar, rhdu, 'LEVEL', 'L1.5', $
+              ' Level 1.5'
     if (keyword_set(averaged)) then begin
       fxaddpar, rhdu, 'PRODUCT', 'NRGFAVG', $
                 ' Averaged Normalized Radially-Graded Intensity'
@@ -388,21 +391,21 @@ run = kcor_run(date, $
                                        subdir=['..', '..', 'config'], $
                                        root=mg_src_root()))
 
-f = filepath('20180423_175443_kcor_l1_extavg.fts.gz', $
+f = filepath('20180423_175443_kcor_l1.5_extavg.fts.gz', $
              subdir=[date, 'level1'], $
              root=run.raw_basedir)
 
 kcor_nrgf, f, /average, /daily, run=run
 kcor_nrgf, f, /average, /daily, /cropped, run=run
 
-f = filepath('20180423_175443_kcor_l1_avg.fts.gz', $
+f = filepath('20180423_175443_kcor_l1.5_avg.fts.gz', $
              subdir=[date, 'level1'], $
              root=run.raw_basedir)
 
 kcor_nrgf, f, /average, run=run
 kcor_nrgf, f, /average, /cropped, run=run
 
-f = filepath('20180423_175443_kcor_l1.fts.gz', $
+f = filepath('20180423_175443_kcor_l1.5.fts.gz', $
              subdir=[date, 'level1'], $
              root=run.raw_basedir)
 

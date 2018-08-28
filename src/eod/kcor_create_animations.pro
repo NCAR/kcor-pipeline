@@ -19,6 +19,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
 
   mg_log, 'creating animations', name='kcor/eod', /info
 
+  ; turned off making GIFs right now
   create_gifs = 0B
 
   date_parts = kcor_decompose_date(date)
@@ -34,21 +35,21 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
   cd, l1_dir
 
   nrgf_gif_filenames = file_basename(nrgf_files, '.fts.gz') + '.gif'
-  gif_filenames = file_basename(nrgf_files, '.fts.gz') + '.gif'
+  gif_filenames = file_basename(nrgf_files, '_nrgf.fts.gz') + '.gif'
   cropped_nrgf_gif_filenames = file_basename(nrgf_files, '.fts.gz') + '_cropped.gif'
-  cropped_gif_filenames = file_basename(nrgf_files, '.fts.gz') + '_cropped.gif'
+  cropped_gif_filenames = file_basename(nrgf_files, '_nrgf.fts.gz') + '_cropped.gif'
 
   n_gif_filenames = n_elements(gif_filenames)
 
-  nrgf_dailygif_filename = string(date, format='(%"%s_kcor_l1_nrgf.gif")')
-  nrgf_dailymp4_filename = string(date, format='(%"%s_kcor_l1_nrgf.mp4")')
-  cropped_nrgf_dailygif_filename = string(date, format='(%"%s_kcor_l1_nrgf_cropped.gif")')
-  cropped_nrgf_dailymp4_filename = string(date, format='(%"%s_kcor_l1_nrgf_cropped.mp4")')
+  nrgf_dailygif_filename = string(date, format='(%"%s_kcor_l1.5_nrgf.gif")')
+  nrgf_dailymp4_filename = string(date, format='(%"%s_kcor_l1.5_nrgf.mp4")')
+  cropped_nrgf_dailygif_filename = string(date, format='(%"%s_kcor_l1.5_nrgf_cropped.gif")')
+  cropped_nrgf_dailymp4_filename = string(date, format='(%"%s_kcor_l1.5_nrgf_cropped.mp4")')
 
-  dailygif_filename = string(date, format='(%"%s_kcor_l1.gif")')
-  dailymp4_filename = string(date, format='(%"%s_kcor_l1.mp4")')
-  cropped_dailygif_filename = string(date, format='(%"%s_kcor_l1_cropped.gif")')
-  cropped_dailymp4_filename = string(date, format='(%"%s_kcor_l1_cropped.mp4")')
+  dailygif_filename = string(date, format='(%"%s_kcor_l1.5.gif")')
+  dailymp4_filename = string(date, format='(%"%s_kcor_l1.5.mp4")')
+  cropped_dailygif_filename = string(date, format='(%"%s_kcor_l1.5_cropped.gif")')
+  cropped_dailymp4_filename = string(date, format='(%"%s_kcor_l1.5_cropped.mp4")')
 
   ; create daily GIF of NRGF files
   if (create_gifs) then begin
@@ -70,7 +71,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
 
   ; create daily GIF of L1 files
   if (create_gifs) then begin
-    mg_log, 'creating daily GIF', name='kcor/eod', /info
+    mg_log, 'creating L1.5 GIF', name='kcor/eod', /info
     kcor_create_animated_gif, gif_filenames, dailygif_filename, $
                               run=run, status=status
     if (status eq 0 && run.distribute) then begin
@@ -79,7 +80,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
   endif
 
   ; create daily mp4 of L1 files
-  mg_log, 'creating daily mp4', name='kcor/eod', /info
+  mg_log, 'creating L1.5 mp4', name='kcor/eod', /info
   kcor_create_mp4, gif_filenames, dailymp4_filename, run=run, status=status
   if (status eq 0 && run.distribute) then begin
     file_copy, dailymp4_filename, fullres_dir, /overwrite
@@ -106,7 +107,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
 
   ; create daily GIF of cropped L1 GIF files
   if (create_gifs) then begin
-    mg_log, 'creating cropped L1 GIF', name='kcor/eod', /info
+    mg_log, 'creating cropped L1.5 GIF', name='kcor/eod', /info
     kcor_create_animated_gif, cropped_gif_filenames, $
                               cropped_dailygif_filename, $
                               run=run, status=status 
@@ -116,7 +117,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
   endif
 
   ; create daily mp4 of cropped L1 GIF files
-  mg_log, 'creating cropped L1 mp4', name='kcor/eod', /info
+  mg_log, 'creating cropped L1.5 mp4', name='kcor/eod', /info
   kcor_create_mp4, cropped_gif_filenames, cropped_dailymp4_filename, $
                    run=run, status=status
   if (status eq 0 && run.distribute) then begin

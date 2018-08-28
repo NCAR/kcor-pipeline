@@ -91,6 +91,17 @@ pro kcor_cme_det_report, time, widget=widget
 
     !p.multi = 0
 
+    ; create file of data values from plot
+    plotvalues_file = filepath(string(simple_date, format='(%"%s.cme.plot.csv")'), $
+                               root=eng_dir)
+    openw, lun, plotvalues_file, /get_lun
+    printf, lun, 'date (seconds from 79/1/1), velocity, position, radius'
+    for i = 0L, n_elements(date_diff.date_avg) - 1L do begin
+      printf, lun, date_diff.date_avg, velocity, position, radius, $
+              format='(%"%f, %f, %f, %f")'
+    endfor
+    free_lun, lun
+
     ; create a temporary file for the message
     mailfile = mk_temp_file(dir=get_temp_dir(), 'cme_mail.txt', /random)
 
@@ -125,9 +136,10 @@ pro kcor_cme_det_report, time, widget=widget
     cmd = string(subject, $
                  from_email, $
                  plot_file, $
+                 plotvalues_file, $
                  addresses, $
                  mailfile, $
-                 format='(%"mail -s \"%s\" -r %s -a %s %s < %s")')
+                 format='(%"mail -s \"%s\" -r %s -a %s -a %s %s < %s")')
     spawn, cmd, result, error_result, exit_status=status
     if (status eq 0L) then begin
       mg_log, 'report sent to %s', addresses, name='kcor/cme', /info

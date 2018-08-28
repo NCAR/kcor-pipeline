@@ -137,9 +137,10 @@ pro kcor_img_insert, date, fits_list, $
       quality = 75
     endif
 
-    level      = strtrim(sxpar(hdu, 'LEVEL',    count=qlevel),2)
-    ; TODO: Older NRGF headers have 'NRGF' appended to level string, but newer headers
-    ;   will have another keyword added to header for producttype
+    level      = strtrim(sxpar(hdu, 'LEVEL', count=qlevel), 2)
+
+    ; TODO: Older NRGF headers have 'NRGF' appended to level string, but newer
+    ;       headers will have another keyword added to header for producttype
     os = strpos(level, 'NRGF')
     if (os ne -1) then begin
       level = strmid(level, 0, os)
@@ -193,17 +194,8 @@ pro kcor_img_insert, date, fits_list, $
                                  filetype, fields=fields)
     filetype_num = filetype_results.filetype_id	
 
-    level_count = db->query('SELECT count(level_id) FROM kcor_level WHERE level=''%s''', $
-                            level, fields=fields)
-    if (level_count.count_level_id_ eq 0) then begin
-      ; if given level is not in the kcor_level table, set it to 'unknown' and
-      ; log error
-      level = 'unk'
-      mg_log, 'level: %s', level, name=log_name, /error
-    endif
-    level_results = db->query('SELECT * FROM kcor_level WHERE level=''%s''', $
-                              level, fields=fields)
-    level_num = level_results.level_id	
+    level_num = kcor_get_level_id(level, database=db, count=level_found)
+    if (level_found eq 0) then mg_log, 'using unknown level', name=log_name, /error
 
     ; DB insert command
     db->execute, 'INSERT INTO kcor_img (file_name, date_obs, date_end, obs_day, level, quality, producttype, filetype, numsum, exptime) VALUES (''%s'', ''%s'', ''%s'', %d, %d, %d, %d, %d, %d, %f)', $
@@ -287,7 +279,9 @@ end
 ;date = '20170204'
 ;filelist = ['20170204_205610_kcor_l1_nrgf.fts.gz','20170204_205625_kcor_l1.fts.gz','20170204_205640_kcor_l1.fts.gz','20170204_205656_kcor_l1.fts.gz','20170204_205711_kcor_l1.fts.gz']
 date = '20170305'
-filelist = ['20170305_185807_kcor_l1_nrgf.fts.gz','20170305_185822_kcor_l1.fts.gz','20170305_185837_kcor_l1.fts.gz']
+filelist = ['20170305_185807_kcor_l1.5_nrgf.fts.gz', $
+            '20170305_185822_kcor_l1.5.fts.gz', $
+            '20170305_185837_kcor_l1.5.fts.gz']
 
 run = kcor_run(date, $
                config_filename=filepath('kcor.kolinski.mahi.latest.cfg', $
