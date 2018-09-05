@@ -649,7 +649,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
       printf, ucld, l0_file
       cld_list->add, l0_file
     endif else  if (sat gt 0) then begin   ; saturation
-      tvcircle, rpixt, axcen, aycen, blue, /device   ; sat circle
+      tvcircle, run->epoch('rpixt'), axcen, aycen, blue, /device   ; sat circle
       gif_file = strmid(l0_basename, 0, fitsloc) + '_t.gif' 
       qual = q_sat
       nsat += 1
