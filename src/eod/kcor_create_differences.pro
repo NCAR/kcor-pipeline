@@ -314,10 +314,13 @@ pro kcor_create_differences, date, l1_files, run=run
       set_plot, 'Z'
       device, set_resolution=[1024, 1024], decomposed=0, set_colors=256, $
               z_buffering=0
-      display_min = -0.02
-      display_max =  0.02
-    
-      tv, bytscl(bscale * subimg, display_min, display_max)
+      display_min = -2.0e-8
+      display_max =  2.0e-8
+      display_factor = 1.0e6
+
+      tv, bytscl(display_factor * bscale * subimg, $
+                 min=display_factor * display_min, $
+                 max=display_factor * display_max)
 
       xyouts, 4, 990, 'MLSO/HAO/KCOR', color=255, charsize=1.5, /device
       xyouts, 4, 970, 'K-Coronagraph', color=255, charsize=1.5, /device
