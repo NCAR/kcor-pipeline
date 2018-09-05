@@ -801,7 +801,7 @@ pro kcor_l1, date, ok_files, $
     img0 = reform(img[*, *, 0, 0])    ; camera 0 [reflected]
     img0 = reverse(img0, 2)           ; y-axis inversion
     img1 = reform(img[*, *, 0, 1])    ; camera 1 [transmitted]
-    
+
     ; epoch values like distortion correction filename can change during the day
     dc_path = filepath(run->epoch('distortion_correction_filename'), $
                        root=run.resources_dir)
@@ -1265,7 +1265,7 @@ pro kcor_l1, date, ok_files, $
     fxaddpar, newheader, 'CTYPE1',   'HPLN-TAN', $
               ' [deg] helioprojective west angle: solar X'
     fxaddpar, newheader, 'CRPIX1',   xcen, $
-              ' [pixel]  solar X sun center (origin=1)', $
+              ' [pixel]  solar X center (index origin=1)', $
               format='(f9.2)'
     fxaddpar, newheader, 'CRVAL1',   0.00, ' [arcsec] solar X sun center', $
               format='(f9.2)'
@@ -1276,7 +1276,7 @@ pro kcor_l1, date, ok_files, $
     fxaddpar, newheader, 'CTYPE2',   'HPLT-TAN', $
               ' [deg] helioprojective north angle: solar Y'
     fxaddpar, newheader, 'CRPIX2',   ycen, $
-              ' [pixel]  solar Y sun center (origin=1)', $
+              ' [pixel]  solar Y center (index origin=1)', $
               format='(f9.2)'
     fxaddpar, newheader, 'CRVAL2',   0.00, ' [arcsec] solar Y sun center', $
               format='(f9.2)'
