@@ -85,7 +85,7 @@ pro kcor_raw_insert, date, fits_list, quality, $
   ; step through list of fits files passed in parameter
   n_files = n_elements(fits_list)
   if (n_files eq 0) then begin
-    mg_log, 'no images in fits list for %s', quality, name=log_name, /info
+    mg_log, 'no images in FITS list for %s', quality, name=log_name, /info
     goto, done
   endif
 
