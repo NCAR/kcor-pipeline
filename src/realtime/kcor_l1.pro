@@ -1326,7 +1326,7 @@ pro kcor_l1, date, ok_files, $
     fxaddpar, newheader, 'RSUN', radsun, $
               ' [arcsec] solar radius (old standard keyword)', format = '(f9.3)'
     fxaddpar, newheader, 'R_SUN',     radsun / run->epoch('plate_scale'), $
-              ' [pixel] solar radius', format = '(f9.1)'
+              ' [pixel] solar radius', format = '(f9.2)'
     fxaddpar, newheader, 'SOLAR_P0', pangle, $
               ' [deg] solar P angle',   format = '(f9.3)'
     fxaddpar, newheader, 'CRLT_OBS', bangle, $
