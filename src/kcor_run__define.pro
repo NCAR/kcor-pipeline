@@ -668,7 +668,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   if (arg_present(diff_threshold_intensity)) then begin
     diff_threshold_intensity = self.options->get('threshold_intensity', $
                                                  section='differences', $
-                                                 type=4, default=0.01)
+                                                 type=4, default=1.0e-8)
   endif
 
   ; averages
