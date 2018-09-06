@@ -997,7 +997,7 @@ pro kcor_l1, date, ok_files, $
     endif
 
     ; use mask to build final image
-    r_in  = fix(occulter / run->epoch('plate_scale')) + 5.0
+    r_in  = fix(occulter / run->epoch('plate_scale')) + 0.0  ; TODO: was + 5.0
     r_out = 504.0
 
     mask = where(rad1 lt r_in or rad1 ge r_out)   ; pixels beyond field of view
@@ -1222,6 +1222,9 @@ pro kcor_l1, date, ok_files, $
     fxaddpar, newheader, 'BIASCORR', run->epoch('skypol_bias'), $
               ' bias added after sky polarization correction', $
               format='(G0.3)'
+    fxaddpar, newheader, 'ROLLCORR', run->epoch('rotation_correction'), $
+              ' [deg] clockwise offset for spar polar axis alignment', $
+              format='(G0.1)'
 
     fxaddpar, newheader, 'DMODSWID', '2016-05-26', $
               ' date of demodulation software'
