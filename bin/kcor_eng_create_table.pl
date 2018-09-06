@@ -96,7 +96,7 @@ $command = "create table kcor_eng (
   kcor_sgsdimv          float(7, 4),
   kcor_sgsdims          float(8, 5),
   level                 tinyint(2),
-  bunit                 varshar(15),
+  bunit                 varchar(15),
   bzero                 int(10),
   bscale                float(5, 4),
   rcamxcen              float(9, 3),

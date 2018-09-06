@@ -93,7 +93,7 @@ $command = "create table kcor_hw (
   o1id        char(14),
   occltrid    char(10),
   filterid    char(12),
-  calpolid    char(12),
+  calpolid    char(12)
 )";
 
 $sth = $dbh->prepare ($command) ;
