@@ -462,7 +462,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   ; calibration
   if (arg_present(npick)) then begin
     npick = self.options->get('npick', section='calibration', $
-                              type=3, default=10000L)
+                              type=3, default=50000L)
   endif
   if (arg_present(cal_basedir)) then begin
     cal_basedir = self.options->get('basedir', section='calibration')
