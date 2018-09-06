@@ -82,7 +82,7 @@ pro kcor_sci_insert, date, files, $
     cx = sxpar(header, 'CRPIX1') - 1.0   ; convert from FITS convention to
     cy = sxpar(header, 'CRPIX2') - 1.0   ; IDL convention
 
-    level_name = strtrim(sxpar(hdu, 'LEVEL'), 2)
+    level_name = strtrim(sxpar(header, 'LEVEL'), 2)
 
     date_obs = sxpar(header, 'DATE-OBS', count=qdate_obs)
 
