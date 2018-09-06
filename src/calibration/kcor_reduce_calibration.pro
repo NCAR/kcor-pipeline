@@ -105,6 +105,7 @@ pro kcor_reduce_calibration, date, $
 
   ; number of points in the field
   npick = run.npick
+  mg_log, 'sampling %d points', npick, name='kcor/cal', /info
 
   ; fit the calibration data
   for beam = 0, 1 do begin
