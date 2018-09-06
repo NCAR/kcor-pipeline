@@ -198,5 +198,6 @@
   added rotation correction
 1.5.1
   adds level to kcor_sci database table (determines scale of other fields)
+    - need to add level to kcor_sci production database
   fix check for saturated images
   apply distortion in double precision
