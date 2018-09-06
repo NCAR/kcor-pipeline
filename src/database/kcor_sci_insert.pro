@@ -124,7 +124,7 @@ pro kcor_sci_insert, date, files, $
                  file_basename(files[f], '.gz'), $
                  date_obs, $
                  obsday_index, $
-                 level_id,
+                 level_id, $
                  total_pb, $
                  db->escape_string(intensity), $
                  db->escape_string(intensity_stddev), $
