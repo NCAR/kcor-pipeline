@@ -84,8 +84,13 @@ pro kcor_hw_insert, date, fits_list, run=run, database=database, log_name=log_na
     goto, done
   endif
 
-  mg_log, 'latest hw entry from %s (id=%d)', latest_hw.date, latest_hw.hw_id, $
-          name=log_name, /debug
+  if (n_elements(latest_hw) eq 0L) then begin
+    mg_log, 'first hw entry, no existing entries', $
+            name=log_name, /debug
+  endif else begin
+    mg_log, 'latest hw entry from %s (id=%d)', latest_hw.date, latest_hw.hw_id, $
+            name=log_name, /debug
+  endelse
 
   i = -1
   fts_file = ''
