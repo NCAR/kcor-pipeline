@@ -58,7 +58,7 @@ pro kcor_archive_l0, run=run, reprocess=reprocess
 
   if (run.send_to_hpss && ~keyword_set(reprocess)) then begin
     tar_cmd = string(tarfile, $
-                     format='(%"tar cf %s *_kcor.fts.gz *t1.log *t2.log *machine.log")')
+                     format='(%"tar cf %s *_kcor.fts.gz *.log")')
     mg_log, 'creating tarfile %s...', tarfile, name='kcor/eod', /info
     spawn, tar_cmd, result, error_result, exit_status=status
     if (status ne 0L) then begin
