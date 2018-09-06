@@ -54,7 +54,7 @@ function kcor_find_latest_row, table, run=run, database=database, $
   done:
   if (~obj_valid(database)) then obj_destroy, db
 
-  return, latest_proc_date[0]
+  return, n_elements(latest_proc_date) eq 0L ? !null : latest_proc_date[0]
 end
 
 
