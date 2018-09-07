@@ -510,7 +510,7 @@ pro hv_write_jp2_lwg, file, image, $
       image_new_with_transparency[1, *, *] = temp_alpha[*, *]
 
       if (have_tag(details.details,'palette')) then begin
-        oJP2 = obj_new('IDLffJPEG2000',file + '.jp2', /write, $
+        oJP2 = obj_new('IDLffJPEG2000',file, /write, $
                        bit_rate=bit_rate, $
                        n_layers=n_layers, $
                        n_levels=n_levels, $
@@ -518,7 +518,7 @@ pro hv_write_jp2_lwg, file, image, $
                        palette=obsdet.palette, $
                        xml=xh)
       endif else begin
-        oJP2 = obj_new('IDLffJPEG2000',file + '.jp2', /write, $
+        oJP2 = obj_new('IDLffJPEG2000',file, /write, $
                        bit_rate=bit_rate, $
                        n_layers=n_layers, $
                        n_levels=n_levels, $
@@ -535,7 +535,7 @@ pro hv_write_jp2_lwg, file, image, $
       oJP2->SetData, image_new_with_transparency
       obj_destroy, oJP2
 
-      mg_log, 'created %s', file_basename(file + '.jp2'), name=log_name, /debug
+      mg_log, 'created %s', file_basename(file), name=log_name, /debug
 
       ; Change the permissions on the file
     endif else begin
@@ -544,7 +544,7 @@ pro hv_write_jp2_lwg, file, image, $
       ; implementation of JPEG2000 in IDL 7.0 does not support alpha channel
       ; No transparencey mask was passed, so just use normal IDL routines.
       if (have_tag(details.details, 'palette')) then begin
-        oJP2 = obj_new('IDLffJPEG2000', file + '.jp2', /write, $
+        oJP2 = obj_new('IDLffJPEG2000', file, /write, $
                        bit_rate=bit_rate, $
                        n_layers=n_layers, $
                        n_levels=n_levels, $
@@ -552,7 +552,7 @@ pro hv_write_jp2_lwg, file, image, $
                        palette=obsdet.palette, $
                        xml=xh)
       endif else begin
-        oJP2 = OBJ_NEW('IDLffJPEG2000', file + '.jp2', /write, $
+        oJP2 = OBJ_NEW('IDLffJPEG2000', file, /write, $
                        bit_rate=bit_rate, $
                        n_layers=n_layers, $
                        n_levels=n_levels, $
@@ -563,7 +563,7 @@ pro hv_write_jp2_lwg, file, image, $
       oJP2->setData, image_new
       obj_destroy, oJP2
 
-      mg_log, 'created %s', file_basename(file + '.jp2'), name=log_name, /debug
+      mg_log, 'created %s', file_basename(file), name=log_name, /debug
     endelse
   endif
 end
