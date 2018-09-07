@@ -41,38 +41,33 @@
 ;            bit_rate: [I,J]}
 ;
 ;-
+function hvs_kcor
+  compile_opt strictarr
 
-FUNCTION HVS_KCOR
-;
-; Each measurement requires some details to control the creation of
-; JP2 files
-;
-  d = {measurement: "", n_levels: 8, n_layers: 8, idl_bitdepth: 8, bit_rate: [8.0,0.01]}
-;
-; In this case, each LASCO-C3 measurement requires the same type of details
-;
-  a = replicate( d , 1 )
-;
-; Full description
-;
-  b = {details:a,$  ; REQUIRED
-       observatory:'MLSO',$ ; REQUIRED
-       instrument:'MLSO',$ ; REQUIRED
-       detector:'KCOR',$ ; REQUIRED
-       nickname:'KCOR',$ ; REQUIRED
-       hvs_details_filename:'hvs_kcor',$ ; REQUIRED
-       hvs_details_filename_version:'1.0',$ ; REQUIRED
-       rocc_inner:1.05,$                    ; in solar radii
-       rocc_outer:3.0}                       ; in solar radii
+  ; each measurement requires some details to control the creation of
+  ; JP2 files
+  d = {measurement: '', n_levels: 8, n_layers: 8, idl_bitdepth: 8, bit_rate: [8.0,0.01]}
 
-;
-; white-light
-;
-  b.details[0].measurement = 'white-light'; REQUIRED
-  b.details[0].n_levels = 8 ; REQUIRED
-  b.details[0].n_layers = 8 ; REQUIRED
-  b.details[0].idl_bitdepth = 8 ; REQUIRED
-  b.details[0].bit_rate = [8.0,0.01] ; REQUIRED
+  ; in this case, each LASCO-C3 measurement requires the same type of details
+  a = replicate(d , 1)
 
-  return,b
+  ; full description
+  b = {details: a, $                            ; required
+       observatory: 'MLSO', $                   ; required
+       instrument: 'MLSO', $                    ; required
+       detector: 'KCOR', $                      ; required
+       nickname: 'KCOR', $                      ; required
+       hvs_details_filename: 'hvs_kcor', $      ; required
+       hvs_details_filename_version: '1.0', $   ; required
+       rocc_inner: 1.05,$                       ; in solar radii
+       rocc_outer: 3.0}                         ; in solar radii
+
+  ; white-light
+  b.details[0].measurement = 'white-light'   ; required
+  b.details[0].n_levels = 8                  ; required
+  b.details[0].n_layers = 8                  ; required
+  b.details[0].idl_bitdepth = 8              ; required
+  b.details[0].bit_rate = [8.0,0.01]         ; required
+
+  return, b
 end 
