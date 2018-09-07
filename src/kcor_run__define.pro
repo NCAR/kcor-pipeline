@@ -376,6 +376,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            archive_basedir=archive_basedir, $
                            fullres_basedir=fullres_basedir, $
                            croppedgif_basedir=croppedgif_basedir, $
+                           hv_basedir=hv_basedir, $
                            nrgf_basedir=nrgf_basedir, $
                            nrgf_remote_dir=nrgf_remote_dir, $
                            nrgf_remote_server=nrgf_remote_server, $
@@ -496,6 +497,9 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   endif
   if (arg_present(croppedgif_basedir)) then begin
     croppedgif_basedir = self.options->get('croppedgif_basedir', section='results')
+  endif
+  if (arg_present(hv_basedir)) then begin
+    hv_basedir = self.options->get('hv_basedir', section='results', default='')
   endif
   if (arg_present(nrgf_basedir)) then begin
     nrgf_basedir = self.options->get('nrgf_basedir', section='results')

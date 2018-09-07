@@ -117,7 +117,7 @@ pro hv_write_jp2_lwg, file, image, $
   if (keyword_set(reversible)) then reversible = 1 else reversible = 0
 
   ; get the header information
-  if (not keyword_set(fitsheader)) then begin
+  if (n_elements(fitsheader) eq 0L) then begin
     print, 'No FITS header provided - no meta information included in JP2 file.'
     image_new = bytscl(image)
     sz = size(image_new, /dimensions)
@@ -157,8 +157,7 @@ pro hv_write_jp2_lwg, file, image, $
     if not(supported_yn) then begin
       print, 'Unsupported observer.  Contining.'
     endif else begin
-      ; Get contact details
-      ; TODO: HV_WRITTENBY is not in our codebase
+      ; get contact details
       wby = hv_writtenby()
 
       ; set the JP2 compression details, override defaults if set from

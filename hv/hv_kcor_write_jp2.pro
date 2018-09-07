@@ -33,7 +33,7 @@ pro hv_kcor_write_jp2, image, header, root_directory
   measurement = 'white-light'
 
   ; nice way to get the times out of the date
-  ext = anytim2utc(header.date_obs, /ext)
+  ext = anytim2utc(sxpar(header, 'DATE-OBS'), /ext)
 
   ; construct the JPEG2000 filename
   jp2_filename = string(ext.year, ext.month, ext.day, $
@@ -42,12 +42,12 @@ pro hv_kcor_write_jp2, image, header, root_directory
                         measurement, $
                         format='(%"%04d_%02d_%02d__%02d_%02d_%02d__%s_%s_%s_%s.jp2")')
 
-  ; construct the Helioviewer sub-directory name and create the subdirectory on
-  ; the filesystem if required
+  ; construct the Helioviewer directory name and create the directory on the
+  ; filesystem if required
   subdirs = ['jp2', details.nickname, $
-             string(ext.year, format='(%"%04d")'),
-             string(ext.month, format='(%"%02d")'),
-             string(ext.day, format='(%"%02d")'),
+             string(ext.year, format='(%"%04d")'), $
+             string(ext.month, format='(%"%02d")'), $
+             string(ext.day, format='(%"%02d")'), $
              measurement]
   jp2_dir = filepath('', subdir=subdirs, root=root_directory)
   file_mkdir, jp2_dir
