@@ -22,7 +22,7 @@
 ;   root_directory : in, required, type=string
 ;     the root directory where the JPEG2000 files are stored
 ;-
-pro hv_kcor_write_jp2, image, header, root_directory
+pro hv_kcor_write_jp2, image, header, root_directory, log_name=log_name
   compile_opt strictarr
 
   ; details file
@@ -54,5 +54,6 @@ pro hv_kcor_write_jp2, image, header, root_directory
 
   ; write the JPEG2000 file
   hv_write_jp2_lwg, filepath(jp2_filename, root=jp2_dir), image, $
-                    fitsheader=header, details=details, measurement=measurement
+                    fitsheader=header, details=details, measurement=measurement, $
+                    log_name=log_name
 end

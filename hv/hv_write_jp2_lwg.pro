@@ -90,6 +90,7 @@ pro hv_write_jp2_lwg, file, image, $
                       details=details, $
                       measurement=measurement, $
                       reversible=reversible, $
+                      log_name=log_name, $
                       _extra=_extra
 
   progname = 'HV_WRITE_JP2_LWG'
@@ -118,7 +119,8 @@ pro hv_write_jp2_lwg, file, image, $
 
   ; get the header information
   if (n_elements(fitsheader) eq 0L) then begin
-    print, 'No FITS header provided - no meta information included in JP2 file.'
+    mg_log, 'no FITS header provided - no meta information included in JP2 file', $
+            name=log_name, /warn
     image_new = bytscl(image)
     sz = size(image_new, /dimensions)
     nx = sz[0]
@@ -146,8 +148,8 @@ pro hv_write_jp2_lwg, file, image, $
     w = where(details.details.measurement eq measurement)
     if (w[0] eq -1) then begin
       supported_yn = 0
-      print, 'Nickname = ' + details.nickname + ' with measurement = ' + $
-             'not explicitly supported. Continuing.'
+      mg_log, 'Nickname = %s with measurement = not explicitly supported. Continuing.', $
+              details.nickname, name=log_name, /warn
     endif else begin
       supported_yn = 1
       obsdet = details.details[w]
@@ -155,7 +157,7 @@ pro hv_write_jp2_lwg, file, image, $
 
     ; is this observer supported? 
     if not(supported_yn) then begin
-      print, 'Unsupported observer.  Contining.'
+      mg_log, 'unsupported observer, contining.', name=log_name, /warn
     endif else begin
       ; get contact details
       wby = hv_writtenby()
@@ -532,8 +534,8 @@ pro hv_write_jp2_lwg, file, image, $
       ;               xml=xh)
       oJP2->SetData, image_new_with_transparency
       obj_destroy, oJP2
-      print, ' '
-      print, progname + ' created ' + file + '.jp2'
+
+      mg_log, 'created %s', file_basename(file + '.jp2'), name=log_name, /debug
 
       ; Change the permissions on the file
     endif else begin
@@ -560,8 +562,8 @@ pro hv_write_jp2_lwg, file, image, $
 
       oJP2->setData, image_new
       obj_destroy, oJP2
-      print, ' '
-      print, progname + ' created ' + file + '.jp2'
+
+      mg_log, 'created %s', file_basename(file + '.jp2'), name=log_name, /debug
     endelse
   endif
 end

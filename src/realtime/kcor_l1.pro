@@ -1478,7 +1478,7 @@ pro kcor_l1, date, ok_files, $
 
     ; write Helioviewer JPEG2000 image to a web accessible directory
     if (run.hv_basedir ne '') then begin
-      hv_kcor_write_jp2, scaled_image, newheader, run.hv_basedir
+      hv_kcor_write_jp2, scaled_image, newheader, run.hv_basedir, log_name='kcor/rt'
     endif
 
     ; now make cropped GIF file
