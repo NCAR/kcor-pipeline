@@ -182,6 +182,8 @@
 ;                     anymore since we are now using Alfred's new calibration (Dec 12, 2016) \
 ;                     that fixed the bugs in the previous versions.
 ;   25 Jul 2018 [MG]  Change BSCALE back to 1.0 and save data as floats.
+;   28 Aug 2018 [JI]  Initial edits to write a Helioviewer Project
+;                     compatible JPEG2000 file
 ;
 ;   Make semi-calibrated kcor images.
 ;-------------------------------------------------------------------------------
@@ -1024,10 +1026,12 @@ pro kcor_l1, date, ok_files, $
     tvlct, red, green, blue, /get
 
     ; display image, annotate, and save as a full resolution GIF file
+
     display_factor = 1.0e6
-    tv, bytscl((display_factor * corona) ^ run->epoch('display_exp'), $
+    scaled_image = bytscl((display_factor * corona) ^ run->epoch('display_exp'), $
                min=display_factor * run->epoch('display_min'), $
                max=display_factor * run->epoch('display_max'))
+    tv, scaled_image
 
     xyouts, 4, 990, 'MLSO/HAO/KCOR', color=255, charsize=1.5, /device
     xyouts, 4, 970, 'K-Coronagraph', color=255, charsize=1.5, /device
@@ -1471,7 +1475,11 @@ pro kcor_l1, date, ok_files, $
 
     ; write FITS image to disk
     writefits, filepath(l1_file, root=l1_dir), corona, newheader
-  
+
+    ; write Helioviewer JPEG2000 image to a web
+    ; accessible directory
+    hv_kcor_write_jp2, scaled_image, newheader, filename, directory
+
     ; now make cropped GIF file
     kcor_cropped_gif, corona, date, date_struct, run=run
 
