@@ -201,3 +201,4 @@
     - need to add level to kcor_sci production database
   fix check for saturated images
   apply distortion in double precision
+  fix for finding L1.5 files for CME detection

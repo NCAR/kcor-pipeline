@@ -45,8 +45,8 @@ CONFIG_FILENAME=$KCOR_ROOT/config/kcor.$(whoami).$SHORT_HOSTNAME.$FLAGS.cfg
 
 
 # run a range of days as a job
-date='20171122'
-end_date='20171123'
+date='20180907'
+end_date='20180908'
 while [ $date != $end_date ]; do
   echo "processing $date..."
   ${IDL} -IDL_PATH ${KCOR_CME_PATH} -IDL_STARTUP '' -e "kcor_cme_detection_job, '$date', config_filename='$CONFIG_FILENAME'"
