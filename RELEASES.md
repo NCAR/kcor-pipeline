@@ -202,3 +202,5 @@
   fix check for saturated images
   apply distortion in double precision
   fix for finding L1.5 files for CME detection
+  creating JPEG2000 images for Helioviewer
+  reduced over masking of occulter from 5 pixels to no over masking
