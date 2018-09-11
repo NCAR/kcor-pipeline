@@ -96,7 +96,7 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
         ; form the running difference maps
         name = name + '_rd'
         diff_out_file = concat_dir(diff_out_dir, name + ext)
-        kcor_cme_det_rdiff, hmap, maps, date_orig, diff_out_file, $
+        kcor_cme_det_rdiff, hmap, double(maps), date_orig, diff_out_file, $
                             hdiff, mdiff, store=store
 
         ; keep track of the begin, end, and average times of the running

@@ -65,7 +65,7 @@ pro kcor_cme_det_rdiff, hmap, maps, date_orig, outfile, hdiff, mdiff, $
 
     ; If one of the other wasn't found, then simply return -1 for the
     ; difference map.
-    if ((count1 eq 0) or (count2 eq 0)) then mdiff = -1 else begin
+    if ((count1 eq 0) or (count2 eq 0)) then mdiff = -1.0D else begin
       ; Otherwise, form the running difference image.
       if (count1 eq 1) then map1 = maps[*, *, w1] else begin
         map1 = average(maps[*,*,w1], 3)
