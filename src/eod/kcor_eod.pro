@@ -290,6 +290,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   cd, filepath('', root=date_dir)
   file_delete, 'list_okf', /allow_nonexistent
 
+  kcor_save_results, date, run=run
+
   if (run.send_notifications && run.notification_email ne '') then begin
     msg = [string(date, $
                   format='(%"KCor end-of-day processing for %s")'), $

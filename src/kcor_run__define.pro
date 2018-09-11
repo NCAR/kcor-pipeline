@@ -386,6 +386,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            max_compression_ratio=max_compression_ratio, $
                            ssh_key=ssh_key, $
                            hpss_gateway=hpss_gateway, $
+                           save_basedir=save_basedir, $
                            log_dir=log_dir, $
                            log_level=log_level, $
                            max_log_version=max_log_version, $
@@ -515,6 +516,9 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   endif
   if (arg_present(hpss_gateway)) then begin
     hpss_gateway = self.options->get('hpss_gateway', section='results', default='')
+  endif
+  if (arg_present(save_basedir)) then begin
+    save_basedir = self.options->get('save_basedir', section='results', default='')
   endif
 
   ; logging
