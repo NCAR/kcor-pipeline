@@ -999,7 +999,9 @@ pro kcor_l1, date, ok_files, $
     endif
 
     ; use mask to build final image
-    r_in  = fix(occulter / run->epoch('plate_scale')) + 0.0  ; TODO: was + 5.0
+    ; TODO: put this back
+    ;r_in  = fix(occulter / run->epoch('plate_scale')) + 0.0
+    r_in  = 0.0
     r_out = 504.0
 
     mask = where(rad1 lt r_in or rad1 ge r_out)   ; pixels beyond field of view

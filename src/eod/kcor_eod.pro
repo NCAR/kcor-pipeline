@@ -100,6 +100,14 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     mg_log, 't2 log does not exist in %s', date_dir, name='kcor/eod', /warn
   endelse
 
+  machine_log_file = filepath(date + '.kcor.machine.log', root=date_dir)
+  if (file_test(machine_log_file, /regular)) then begin
+    mg_log, 'copying machine log to level0/', name='kcor/eod', /info
+    file_copy, machine_log_file, l0_dir, /overwrite
+  endif else begin
+    mg_log, 'machine log does not exist in %s', date_dir, name='kcor/eod', /warn
+  endelse
+
   cd, l0_dir
 
   l1_dir = filepath('level1', root=date_dir)
