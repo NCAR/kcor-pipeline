@@ -30,7 +30,7 @@ pro kcor_save_results, date, run=run
                                         root=run.raw_basedir), $
                                count=n_diff_filenames)
   if (n_diff_filenames gt 0L) then begin
-    file_copy, diff_filenames, filepath('difference', save_dir)
+    file_copy, diff_filenames, filepath('difference', root=save_dir)
   endif
 
   ; extended average files
@@ -39,7 +39,7 @@ pro kcor_save_results, date, run=run
                                           root=run.raw_basedir), $
                                  count=n_extavg_filenames)
   if (n_extavg_filenames gt 0L) then begin
-    file_copy, extavg_filenames, filepath('extavg', save_dir)
+    file_copy, extavg_filenames, filepath('extavg', root=save_dir)
   endif
 
   ; p and q directories
