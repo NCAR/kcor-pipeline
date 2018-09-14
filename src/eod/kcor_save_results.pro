@@ -23,6 +23,7 @@ pro kcor_save_results, date, run=run
   endelse
 
   save_dir = filepath(date, root=run.save_basedir)
+  if (~file_test(save_dir, /directory)) then file_mkdir, save_dir
 
   ; difference images
   diff_filenames = file_search(filepath('*minus*', $
@@ -30,7 +31,9 @@ pro kcor_save_results, date, run=run
                                         root=run.raw_basedir), $
                                count=n_diff_filenames)
   if (n_diff_filenames gt 0L) then begin
-    file_copy, diff_filenames, filepath('difference', root=save_dir)
+    diff_dir = filepath('difference', root=save_dir)
+    if (~file_test(diff_dir, /directory)) then file_mkdir, diff_dir
+    file_copy, diff_filenames, diff_dir
   endif
 
   ; extended average files
@@ -39,7 +42,9 @@ pro kcor_save_results, date, run=run
                                           root=run.raw_basedir), $
                                  count=n_extavg_filenames)
   if (n_extavg_filenames gt 0L) then begin
-    file_copy, extavg_filenames, filepath('extavg', root=save_dir)
+    extavg_dir = filepath('extavg', root=save_dir)
+    if (~file_test(extavg_dir, /directory)) then file_mkdir, extavg_dir
+    file_copy, extavg_filenames, extavg_dir
   endif
 
   ; p and q directories
