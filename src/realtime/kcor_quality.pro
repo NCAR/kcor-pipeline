@@ -693,6 +693,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
     calpang_str  = string(format='(f7.2)', calpang)
     qual_str     = string(format='(a4)', qual)
 
+    mg_log, 'type: %s, quality: %s', datatype, qual, name='kcor/rt', /info
     mg_log, '%s%s%s%s%s%s%s%s%s', $
             file_basename(l0_file), datatype_str, exptime_str, cover_str, darkshut_str, $
             diffuser_str, calpol_str, calpang_str, qual_str, $
