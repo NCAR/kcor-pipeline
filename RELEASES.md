@@ -196,7 +196,7 @@
   check level from L1 to L1.5
   add R_SUN keyword and change RSUN to RSUN_OBS
   added rotation correction
-1.5.1
+1.5.1 [Sep 19, 2018]
   adds level to kcor_sci database table (determines scale of other fields)
   fix check for saturated images
   apply distortion in double precision
