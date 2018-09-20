@@ -230,7 +230,9 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
                  /allow_nonexistent
   endelse
 
-  daily_science_file = l1_zipped_files[n_l1_zipped_files ge 20 ? 20 : 0]
+  if (n_l1_zipped_files gt 0L) then begin
+    daily_science_file = l1_zipped_files[n_l1_zipped_files ge 20 ? 20 : 0]
+  endif
 
   ; update databases
   if (run.update_database && success) then begin
@@ -282,7 +284,9 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     mg_log, 'skipping updating database', name='kcor/eod', /info
   endelse
 
-  kcor_plotsci, date, daily_science_file, run=run
+  if (n_l1_zipped_files gt 0L) then begin
+    kcor_plotsci, date, daily_science_file, run=run
+  endif
 
   ; remove zero length files in 'q' sub-directory
   cd, filepath('q', root=date_dir)

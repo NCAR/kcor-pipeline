@@ -17,6 +17,7 @@ pro kcor_plotsci, date, daily_science_file, run=run
   compile_opt strictarr
 
   mg_log, 'starting', name='kcor/eod', /info
+  mg_log, '%s', file_basename(daily_science_file), name='kcor/eod', /info
 
   cd, current=orig_dir
   cd, filepath('', subdir=[date, 'level1'], root=run.raw_basedir)
