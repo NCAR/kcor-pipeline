@@ -1,70 +1,62 @@
 ; docformat = 'rst'
 
-;= helper methods
-
-function mgffspecoptions::_type_code, name
-  compile_opt strictarr
-
-  switch strlowcase(name) of
-    'float': begin
-        type = 4
-        break
-      end
-    'long': begin
-        type = 3
-        break
-      end
-    '7':
-    'str':
-    'string': begin
-        type = 7
-        break
-      end
-    else:
-  endswitch
-
-  return, type
-end
+;= API
 
 
 ;+
-;   [logging]
-;   log_dir         : type=str
-;   level           : default=DEBUG, type=str
-;   max_log_version : type=long
+; Determine if the options are valid by the specification.
+;
+; :Returns:
+;   1 if valid, 0 if not
 ;-
-pro mgffspecoptions::_parse_spec_line, spec_line, $
-                                       type=type, $
-                                       extract=extract, $
-                                       default=default
+function mgffspecoptions::is_valid, error_msg=error_msg
   compile_opt strictarr
 
-  type = 7
-  default_found = 0B
-  extract = 0B
+  error_msg = ''
 
-  expressions = strtrim(strsplit(spec_line, ',', $
-                                 /extract, $
-                                 count=n_expressions), $
-                        2)
-  for e = 0L, n_expressions - 1L do begin
-    tokens = strsplit(expressions[e], '=', /extract, count=n_tokens)
-    case strlowcase(tokens[0]) of
-      'type': type = self->_type_code(tokens[1])
-      'default': begin
-          default = tokens[1]
-          default_found = 1B
-        end
-      'extract': extract = 1B
-      else:
-    endcase
+  ; check that every option is in the spec
+  self->mgffoptions::getProperty, sections=sections
+  for s = 0L, n_elements(sections) - 1L do begin
+    if (sections[s] eq 'DEFAULT' || sections[s] eq '') then continue
+    options = self->mgffoptions::options(section=sections[s], count=n_options)
+    if (n_options gt 0L) then begin
+      for o = 0L, n_options - 1L do begin
+        spec_line = self.spec->get(options[o], section=sections[s], found=found)
+        if (~found) then begin
+          error_msg = string(sections[s], options[o], $
+                             format='(%"option %s/%s not found in specification")')
+          return, 0B
+        endif
+      endfor
+    endif
   endfor
 
-  if (default_found) then default = fix(default, type=type)
+  ; check that every spec without a default is given
+  self.spec->getProperty, sections=spec_sections
+  for s = 0L, n_elements(spec_sections) - 1L do begin
+    spec_options = self.spec->options(section=spec_sections[s], count=n_options)
+    for o = 0L, n_options - 1L do begin
+      spec_line = self.spec->get(spec_options[o], section=spec_sections[s])
+      mg_parse_spec_line, spec_line, $
+                          type=type, $
+                          extract=extract, $
+                          default=default
+      if (n_elements(default) eq 0L) then begin
+        value = self->mgffoptions::get(spec_options[o], $
+                                       section=spec_sections[s], $
+                                       found=found)
+        if (~found) then begin
+          error_msg = string(spec_sections[s], spec_options[o], $
+                             format='(%"option %s/%s not found and no default in specification")')
+          return, 0B
+        endif
+      endif
+    endfor
+  endfor
+
+  return, 1B
 end
 
-
-;= API
 
 ;+
 ; Return value for a given option.
@@ -109,10 +101,10 @@ function mgffspecoptions::get, option, $
 
   spec_line = self.spec->get(option, section=section, found=found)
   if (found) then begin
-    self->_parse_spec_line, spec_line, $
-                            type=type, $
-                            extract=extract, $
-                            default=default
+    mg_parse_spec_line, spec_line, $
+                        type=type, $
+                        extract=extract, $
+                        default=default
   endif else begin
     type = 7
     extract = 0B
@@ -131,6 +123,13 @@ end
 
 
 ;= lifecycle methods
+
+pro mgffspecoptions::cleanup
+  compile_opt strictarr
+
+  obj_destroy, self.spec
+end
+
 
 function mgffspecoptions::init, spec=spec, _extra=e
   compile_opt strictarr
