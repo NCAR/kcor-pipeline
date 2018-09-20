@@ -590,7 +590,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
     ; Annotate image
     ; Skip annotation (except file name) for calibration images
 
-    if (cal eq 0 and dev eq 0) then begin
+    if (cal eq 0 and dev eq 0 and sat eq 0) then begin
       ; draw circle at 1.0 Rsun
       tvcircle, rdisc_pix, axcen, aycen, grey, /device, /fill  ; occulter disc 
       tvcircle, rsunpix, axcen, aycen, yellow, /device         ; 1.0 Rsun circle
@@ -627,7 +627,14 @@ function kcor_quality, date, l0_fits_files, append=append, $
       ndev += 1
       printf, udev, l0_file
       dev_list->add, l0_file
-    endif else if (bright gt 0) then begin   ; bright image
+    endif else if (sat gt 0) then begin   ; saturation
+      tvcircle, run->epoch('rpixt'), axcen, aycen, blue, /device   ; sat circle
+      gif_file = strmid(l0_basename, 0, fitsloc) + '_t.gif' 
+      qual = q_sat
+      nsat += 1
+      printf, usat, l0_file
+      sat_list->add, l0_file
+    endif else if (bright gt 0) then begin     ; bright image
       tvcircle, rpixb, axcen, aycen, red, /device   ; bright circle
       gif_file = strmid(l0_basename, 0, fitsloc) + '_b.gif' 
       qual = q_brt
@@ -648,13 +655,6 @@ function kcor_quality, date, l0_fits_files, append=append, $
       ncld += 1
       printf, ucld, l0_file
       cld_list->add, l0_file
-    endif else  if (sat gt 0) then begin   ; saturation
-      tvcircle, run->epoch('rpixt'), axcen, aycen, blue, /device   ; sat circle
-      gif_file = strmid(l0_basename, 0, fitsloc) + '_t.gif' 
-      qual = q_sat
-      nsat += 1
-      printf, usat, l0_file
-      sat_list->add, l0_file
     endif else if (noise gt 0) then begin   ; noisy
       tvcircle, rpixn, axcen, aycen, yellow, /device   ; noise circle
       gif_file = strmid (l0_basename, 0, fitsloc) + '_n.gif' 

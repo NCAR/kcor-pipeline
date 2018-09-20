@@ -205,3 +205,4 @@
   reduced over masking of occulter from 5 pixels to 2 pixels
 1.5.2
   handle no L1 files for daily science file
+  fixes for handling saturated images
