@@ -33,6 +33,7 @@ pro kcor_reduce_calibration_write, data, metadata, $
 
   dark = data.dark
   gain = data.gain
+  npick = run.npick
   vdimref = metadata.vdimref
   date = metadata.date
   file_list = metadata.file_list
@@ -57,6 +58,7 @@ pro kcor_reduce_calibration_write, data, metadata, $
   beamdim = ncdf_dimdef(cid, 'beam', 2)
   stokesdim = ncdf_dimdef(cid, 'Stokes IQU', 3)
   statedim = ncdf_dimdef(cid, 'state', 4)
+  npickdim = ncdf_dimdef(cid, 'NPick', 3)
 
   ; define variables
   filelistvar = ncdf_vardef(cid, 'Input File List', [filesdim], /string)
@@ -88,6 +90,7 @@ pro kcor_reduce_calibration_write, data, metadata, $
   dmatvar = ncdf_vardef(cid, 'Demodulation Matrix', $
                         [xdim, ydim, beamdim, statedim, stokesdim], /float)
   lyotstop_var = ncdf_vardef(cid, 'lyotstop', [scalardim], /string)
+  npick_var = ncdf_vardef(cid, 'NPick', [scalardim], /long)
 
   if filelistvar eq -1 or filetypesvar eq -1 or darkvar eq -1 or gainvar eq -1 or $
       dimrefvar eq -1 or fits0var eq -1 or fits1var eq -1 or $
@@ -114,6 +117,7 @@ pro kcor_reduce_calibration_write, data, metadata, $
   ncdf_varput, cid, pixels1var, pixels1
   ncdf_varput, cid, fits1var, fits1
   ncdf_varput, cid, fiterrors1var, fiterrors1
+  ncdf_varput, cid, npick_var, npick
 
   ; close the file
   ncdf_close, cid
