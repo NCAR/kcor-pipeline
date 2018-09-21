@@ -380,6 +380,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
   done:
   cd, start_dir
+  !p.multi = 0
   set_plot, 'X'
 
   ; get elapsed time since TIC

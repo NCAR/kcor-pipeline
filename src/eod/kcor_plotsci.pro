@@ -31,12 +31,13 @@ pro kcor_plotsci, date, daily_science_file, run=run
 
   ; save original plotting environment to restore later
   orig_device = !d.name
-  device, get_decomposed=orig_decomposed
-  tvlct, orig_rgb, /get
 
   ; set up plotting environment
   set_plot, 'Z'
-  device, set_resolution=[772, 250], decomposed=0, set_colors=256, z_buffering=0
+  device, get_decomposed=orig_decomposed
+  tvlct, orig_rgb, /get
+
+  device, set_resolution=[772, 772], decomposed=0, set_colors=256, z_buffering=0
   loadct, 0, /silent
   tvlct, red, green, blue, /get
 
@@ -61,9 +62,9 @@ pro kcor_plotsci, date, daily_science_file, run=run
   cd, orig_dir
 
   ; restore original plotting environment
-  set_plot, orig_device
   device, decomposed=orig_decomposed
   tvlct, orig_rgb
+  set_plot, orig_device
 
   mg_log, 'done', name='kcor/eod', /info
 end

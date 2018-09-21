@@ -304,6 +304,7 @@ pro kcor_plotparams, date, list=list, run=run
   write_gif, foc_gif_filename, save
 
   cd, start_dir
+  !p.multi = 0
   set_plot, 'X'
 
   mg_log, 'done', name='kcor/eod', /info

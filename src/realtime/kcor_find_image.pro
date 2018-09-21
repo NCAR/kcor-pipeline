@@ -106,12 +106,12 @@ function kcor_find_image, data, radius_guess, $
     if abs(ycen_guess-ycen) ge 40 then ycen_guess = ycen
 
     if (debug eq 1) then begin 
-      !p.multi=[0,1,4]
+      !p.multi = [0, 1, 4]
       plot, xtest, charsize=2
       plot, xtest3, charsize=2
       plot, ytest, charsize=2
       plot, ytest2, charsize=2
-      !p.multi = [0, 1, 1]
+      !p.multi = 0
       wait, 1
     endif
   endif else begin

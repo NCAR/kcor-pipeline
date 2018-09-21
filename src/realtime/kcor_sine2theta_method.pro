@@ -127,7 +127,7 @@ pro kcor_sine2theta_method, umk4, qmk4, intensity, radsun, theta1, rr1, $
 
       wait, 0.4
       loadct, 0
-
+      !p.multi = 0
       pause
     endif
   endfor

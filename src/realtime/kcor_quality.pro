@@ -538,6 +538,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
           plot, knoise, title = l0_file + ' noise'
           plot, kdiff,  title = l0_file + ' diff noise'
           cursor, _x, _y, 3, /normal
+          !p.multi = 0
           set_plot, 'Z'
           device, set_resolution = [xdim, ydim], set_colors=256, z_buffering=0
         endif
