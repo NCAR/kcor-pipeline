@@ -694,13 +694,14 @@ function kcor_quality, date, l0_fits_files, append=append, $
     calpang_str  = string(format='(f7.2)', calpang)
     qual_str     = string(format='(a4)', qual)
 
-    mg_log, '%d/%d: %s [%s] (%s)', $
-            num_img, n_l0_fits_files, file_basename(l0_file), datatype, qual, $
-            name='kcor/rt', /info
     mg_log, '%s%s%s%s%s%s%s%s%s', $
             file_basename(l0_file), datatype_str, exptime_str, cover_str, darkshut_str, $
             diffuser_str, calpol_str, calpang_str, qual_str, $
             name='kcor/noformat', /debug
+    mg_log, '%d/%d: %s [%s] (%s)', $
+            num_img, n_l0_fits_files, file_basename(l0_file), $
+            strmid(datatype, 0, 3), qual, $
+            name='kcor/rt', /info
   endforeach   ; end of image loop
 
   free_lun, ucal
