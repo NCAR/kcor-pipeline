@@ -820,12 +820,12 @@ pro kcor_l1, date, ok_files, $
     info_dc0 = kcor_find_image(cimg0, radius_guess, /center_guess, log_name='kcor/rt')
     xcc0     = info_dc0[0]
     ycc0     = info_dc0[1]
-    radius_0 = info_dc0[2]
+    distcor_radius_0 = info_dc0[2]
 
     if (doplot eq 1) then begin
       tv, bytscl(cimg0, 0, 20000)
       loadct, 39
-      draw_circle, xcc0, ycc0, radius_0, /dev, color=250
+      draw_circle, xcc0, ycc0, distcor_radius_0, /dev, color=250
       loadct, 0
       print, 'center camera 0 ', info_dc0
       wait, 1
@@ -835,7 +835,7 @@ pro kcor_l1, date, ok_files, $
     info_dc1 = kcor_find_image(cimg1, radius_guess, /center_guess, log_name='kcor/rt')
     xcc1     = info_dc1[0]
     ycc1     = info_dc1[1]
-    radius_1 = info_dc1[2]
+    distcor_radius_1 = info_dc1[2]
 
     xx1 = dindgen(xsize, ysize) mod xsize - xcc1
     yy1 = transpose(dindgen(ysize, xsize) mod ysize) - ycc1
@@ -847,7 +847,7 @@ pro kcor_l1, date, ok_files, $
     if (doplot eq 1) then begin
       tv, bytscl(cimg1, 0, 20000)
       loadct, 39
-      draw_circle, xcc1, ycc1, radius_1, /dev, color=250
+      draw_circle, xcc1, ycc1, distcor_radius_1, /dev, color=250
       loadct, 0
       print, 'center camera 1 ', info_dc1
       wait, 1  
@@ -855,7 +855,7 @@ pro kcor_l1, date, ok_files, $
 
     ; combine I, Q, U images from camera 0 and camera 1
 
-    radius = (radius_0 + radius_1) * 0.5
+    radius = (distcor_radius_0 + distcor_radius_1) * 0.5
 
     ; to shift camera 0 to canera 1:
     deltax = xcc1 - xcc0
@@ -1317,6 +1317,16 @@ pro kcor_l1, date, ok_files, $
     fxaddpar, newheader, 'RCAM_RAD',  radius_0, $
               ' [pixel] camera 0 raw occulter radius', $
               format='(f8.2)'
+    fxaddpar, newheader, 'RCAM_DCX', xcc0 + 1, $
+              ' [pixel] camera 0 dist cor occulter X center', $
+              format='(f8.2)'
+    fxaddpar, newheader, 'RCAM_DCY', yccc0 + 1, $
+              ' [pixel] camera 0 dist cor occulter Y center', $
+              format='(f8.2)'
+    fxaddpar, newheader, 'RCAM_DCR',  distcor_radius_0, $
+              ' [pixel] camera 0 dist corrected occulter radius', $
+              format='(f8.2)'
+
     fxaddpar, newheader, 'TCAMXCEN', xcen1 + 1, $
               ' [pixel] camera 1 raw X-coord occulting center', $
               format='(f8.2)'
@@ -1325,6 +1335,15 @@ pro kcor_l1, date, ok_files, $
               format='(f8.2)'
     fxaddpar, newheader, 'TCAM_RAD',  radius_1, $
               ' [pixel] camera 1 raw occulter radius', $
+              format='(f8.2)'
+    fxaddpar, newheader, 'TCAM_DCX', xcc1 + 1, $
+              ' [pixel] camera 1 dist cor occulter X center', $
+              format='(f8.2)'
+    fxaddpar, newheader, 'TCAM_DCY', yccc1 + 1, $
+              ' [pixel] camera 1 dist cor occulter Y center', $
+              format='(f8.2)'
+    fxaddpar, newheader, 'TCAM_DCR',  distcor_radius_1, $
+              ' [pixel] camera 1 dist corrected occulter radius', $
               format='(f8.2)'
 
     ; add ephemeris data

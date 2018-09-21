@@ -206,3 +206,5 @@
 1.5.2 [Sep 21, 2018]
   handle no L1 files for daily science file
   fixes for handling saturated images
+1.5.3 [Sep 21, 2018]
+  fixes to and additional keyword raw/dist cor centering FITS keywords
