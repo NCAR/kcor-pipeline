@@ -203,6 +203,6 @@
   fix for finding L1.5 files for CME detection
   creating JPEG2000 images for Helioviewer
   reduced over masking of occulter from 5 pixels to 2 pixels
-1.5.2
+1.5.2 [Sep 21, 2018]
   handle no L1 files for daily science file
   fixes for handling saturated images
