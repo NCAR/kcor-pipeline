@@ -208,3 +208,5 @@
   fixes for handling saturated images
 1.5.3 [Sep 21, 2018]
   fixes to and additional keyword raw/dist cor centering FITS keywords
+1.5.4 [Sep 21, 2018]
+  added library routine
