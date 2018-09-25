@@ -44,14 +44,14 @@ pro kcor_plotsci, date, daily_science_file, run=run
   plot, radii, intensity, $
         title=string(date, time, format='(%"Radial intensity for %s @ %s UT")'), $
         xtitle='radius [R_sun]', xstyle=9, xrange=[1.0, 3.0], $
-        ytitle='intensity [B/B_sun]', /ylog, yrange=[1.0e-9, 2.0e-6], ystyle=9, $
+        ytitle='calibrarted pB [B/B_sun]', /ylog, yrange=[1.0e-9, 2.0e-6], ystyle=9, $
         color=0, background=255
   oplot, radii, intensity + intensity_stddev, linestyle=1, color=0
   oplot, radii, intensity - intensity_stddev, linestyle=1, color=0
 
   plot_image = tvrd()
 
-  sci_intensity_plot_basename = string(date, format='(%"%s.kcor.daily.intensity.gif")')
+  sci_intensity_plot_basename = string(date, format='(%"%s.kcor.radial.intensity.gif")')
   sci_intensity_plot_filename = filepath(sci_intensity_plot_basename, $
                                          subdir=[date, 'p'], $
                                          root=run.raw_basedir)

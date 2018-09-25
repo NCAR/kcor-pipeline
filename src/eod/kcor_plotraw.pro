@@ -173,7 +173,7 @@ pro kcor_plotraw, date, list=list, run=run, $
             xticks=8, xtickv=findgen(9) * 45.0, $
             xstyle=1, xtickformat='(I)', xtitle='Angle (degrees)', $
             ytickformat='kcor_plotraw_ytickformat', $
-            yrange=[0, 40000], ytitle='Raw pixel value', $
+            yrange=[0, 70000], ytitle='Raw pixel value', $
             yticks=8, yminor=1, yticklen=1.0, ygridstyle=1
     endfor
 

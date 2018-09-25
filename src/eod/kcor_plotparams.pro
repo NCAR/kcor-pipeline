@@ -33,11 +33,9 @@ pro kcor_plotparams, date, list=list, run=run
   mg_log, 'plotting parameters for %s', date, name='kcor/eod', /info
 
   ; establish directory paths
-  l0_base = run.raw_basedir
-  l0_dir  = filepath('level0', subdir=date, root=l0_base)
-
-  ; TODO: change p/ directory to engineering or plots
-  plots_dir   = filepath('p', subdir=date, root=l0_base)
+  l0_base   = run.raw_basedir
+  l0_dir    = filepath('level0', subdir=date, root=l0_base)
+  plots_dir = filepath('p', subdir=date, root=l0_base)
 
   ; create sub-directory for plots
   file_mkdir, plots_dir
@@ -46,8 +44,6 @@ pro kcor_plotparams, date, list=list, run=run
   cd, current=start_dir   ; save current directory.
   cd, l0_dir              ; move to raw (l0) kcor directory.
 
-  doview = 0
-
   ; establish list of files to process
 
   ; determine the number of files to process
@@ -55,19 +51,18 @@ pro kcor_plotparams, date, list=list, run=run
   mg_log, '%d L0 images to plot', nimg, name='kcor/eod', /debug
 
   ; declare storage for plot arrays
+  mod_temp   = fltarr(nimg)
 
-  mod_temp = fltarr(nimg)
+  sgs_dimv   = fltarr(nimg)
+  sgs_scin   = fltarr(nimg)
+  sgs_rav    = fltarr(nimg)
+  sgs_ras    = fltarr(nimg)
+  sgs_decv   = fltarr(nimg)
+  sgs_decs   = fltarr(nimg)
+  sgs_razr   = fltarr(nimg)
+  sgs_deczr  = fltarr(nimg)
 
-  sgs_dimv = fltarr(nimg)
-  sgs_scin = fltarr(nimg)
-  sgs_rav = fltarr(nimg)
-  sgs_ras = fltarr(nimg)
-  sgs_decv = fltarr(nimg)
-  sgs_decs = fltarr(nimg)
-  sgs_razr = fltarr(nimg)
-  sgs_deczr = fltarr(nimg)
-
-  hours    = fltarr(nimg)
+  hours      = fltarr(nimg)
 
   tcam_focus = fltarr(nimg)
   rcam_focus = fltarr(nimg)
@@ -182,16 +177,14 @@ pro kcor_plotparams, date, list=list, run=run
   endfor
 
   eng_gif_filename  = filepath(date + '.sgs.eng.gif', root=plots_dir)
-  foc_gif_filename  = filepath(date + '.kcor.eng.gif', root=plots_dir)
 
   mg_log, 'eng gif: %s', file_basename(eng_gif_filename), name='kcor/eod', /debug
-  mg_log, 'foc gif: %s', file_basename(foc_gif_filename), name='kcor/eod', /debug
 
   ; set up graphics window & color table for sgs.eng.gif
   set_plot, 'Z'
   device, set_resolution=[772, 1000], decomposed=0, set_colors=256, $
           z_buffering=0
-  !p.multi = [0, 1, 6]
+  !p.multi = [0, 1, 2]
 
   mg_rangeplot, hours, sgs_dimv, $
                 title=pdate + ' KCor SGS DIM', $
@@ -205,41 +198,17 @@ pro kcor_plotparams, date, list=list, run=run
   mg_rangeplot, hours, sgs_scin, $
                 title=pdate + ' KCor SGS Scintillation', $
                 xtitle='Hours [UT]', ytitle='Scintillation [arcsec]', $
-                xrange=[16.0, 28.0], ystyle=1, yrange=[0.0, 10.0], $
+                xrange=[16.0, 28.0], ystyle=1, yrange=[0.0, 8.0], $
                 background=255, color=0, charsize=2.0, $
                 clip_thick=2.0
 
   rav_min = min(sgs_rav - sgs_ras, /nan)
   rav_max = max(sgs_rav + sgs_ras, /nan)
   mg_log, 'SGSRAV min=%f, max=%f', rav_min, rav_max, name='kcor/eod', /debug
-  gap = (rav_max - rav_min) * 0.05
-  plot, hours, sgs_rav, $
-        title=pdate + ' KCor SGS RA', $
-        xtitle='Hours [UT]', ytitle='volts', $
-        xrange=[16.0, 28.0], ystyle=1, yrange=[rav_min - gap, rav_max + gap], $
-        background=255, color=0, charsize=2.0
-  polyfill, [hours, reverse(hours), hours[0]], $
-            [sgs_rav + sgs_ras, $
-             reverse(sgs_rav - sgs_ras), $
-             sgs_rav[0] + sgs_ras[0]], $
-            color=200
-  oplot, hours, sgs_rav, color=0
 
   decv_min = min(sgs_decv - sgs_decs, /nan)
   decv_max = max(sgs_decv + sgs_decs, /nan)
   mg_log, 'SGSDECV min=%f, max=%f', decv_min, decv_max, name='kcor/eod', /debug
-  gap = (decv_max - decv_min) * 0.05
-  plot, hours, sgs_decv, $
-        title=pdate + ' KCor SGS Dec', $
-        xtitle='Hours [UT]', ytitle='volts', $
-        xrange=[16.0, 28.0], ystyle=1, yrange=[decv_min - gap, decv_max + gap], $
-        background=255, color=0, charsize=2.0 
-  polyfill, [hours, reverse(hours), hours[0]], $
-            [sgs_decv + sgs_decs, $
-             reverse(sgs_decv - sgs_decs), $
-             sgs_decv[0] + sgs_decs[0]], $
-            color=200
-  oplot, hours, sgs_decv, color=0
 
   razr_min = min(sgs_razr, max=razr_max, /nan)
   if (~finite(razr_min)) then begin
@@ -247,11 +216,6 @@ pro kcor_plotparams, date, list=list, run=run
     razr_max =  20.0
   endif
   mg_log, 'SGSRAZR min=%f, max=%f', razr_min, razr_max, name='kcor/eod', /debug
-  gap = (razr_max - razr_min) * 0.04
-  plot, hours, sgs_razr, title=pdate + ' KCor SGS RA zeropoint offset', $
-        xtitle='Hours [UT]', ytitle='arcsec', $
-        xrange=[16.0, 28.0], ystyle=1, yrange=[razr_min - gap, razr_max + gap], $
-        background=255, color=0, charsize=2.0 
 
   deczr_min = min(sgs_deczr, max=deczr_max, /nan)
   if (~finite(deczr_min)) then begin
@@ -259,50 +223,11 @@ pro kcor_plotparams, date, list=list, run=run
     deczr_max = 100.0
   endif
   mg_log, 'SGSDECZR min=%f, max=%f', deczr_min, deczr_max, name='kcor/eod', /debug
-  gap = (deczr_max - deczr_min) * 0.04
-  plot, hours, sgs_deczr, title=pdate + ' KCor SGS Dec zeropoint offset', $
-        xtitle='Hours [UT]', ytitle='arcsec', $
-        xrange=[16.0, 28.0], ystyle=1, yrange=[deczr_min - gap, deczr_max + gap], $
-        background=255, color=0, charsize=2.0 
 
   save = tvrd()
   write_gif, eng_gif_filename, save
 
-  erase
-
-  !p.multi = [0, 1, 4]
-
-  mg_rangeplot, hours, mod_temp, $
-                title=pdate + ' KCor Modulator Temperature', $
-                xtitle='Hours [UT]', ytitle='Temperature [deg C]', $
-                background=255, color=0, charsize=2.0, $
-                xrange=[16.0, 28.0], ystyle=1, yrange=[28.0, 36.0], $
-                clip_thick=2.0
-
-  mg_rangeplot, hours, tcam_focus, $
-                title=pdate + ' KCor T Camera Focus position', $
-                xtitle='Hours [UT]', ytitle='T Camera Focus [mm]', $
-                background=255, color=0, charsize=2.0, $
-                xrange=[16.0, 28.0], ystle=1, yrange=[-1.0, 1.0], $
-                clip_thick=2.0
-
-  mg_rangeplot, hours, rcam_focus, $
-                title=pdate + ' KCor R Camera Focus position', $
-                xtitle='Hours [UT]', ytitle='R Camera Focus [mm]', $
-                background=255, color=0, charsize=2.0, $
-                xrange=[16.0, 28.0], ystyle=1, yrange=[-1.0, 1.0], $
-                clip_thick=2.0
-
-  mg_rangeplot, hours, o1_focus, $
-                title=pdate + ' KCor O1 Focus position', $
-                xtitle='Hours [UT]', ytitle='O1 Camera Focus [mm]', $
-                background=255, color=0, charsize=2.0, $
-                xrange=[16.0, 28.0], ystyle=1, yrange=[110.0, 150.0], $
-                clip_thick=2.0
-
-  save = tvrd()
-  write_gif, foc_gif_filename, save
-
+  done:
   cd, start_dir
   !p.multi = 0
   set_plot, 'X'

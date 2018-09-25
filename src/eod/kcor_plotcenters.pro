@@ -113,6 +113,8 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
   fycen1 = fltarr(n_images)
   frocc1 = fltarr(n_images)
 
+  dcr_figg = fltarr(n_images)
+
   n_digits = floor(alog10(n_images)) + 1L   ; for formatting
 
   ; image file loop
@@ -121,8 +123,18 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     img = readfits (l0_file, hdu, /silent)   ; read fits image & header
 
     img0 = reform(img[*, *, 0, 0])
-    ; img0 = reverse(img0, 2)  ; y-axis inversion
+    img0 = reverse(img0, 2)  ; y-axis inversion
     img1 = reform(img[*, *, 0, 1])
+
+    ; epoch values like distortion correction filename can change during the day
+    dc_path = filepath(run->epoch('distortion_correction_filename'), $
+                       root=run.resources_dir)
+    restore, dc_path   ; distortion correction file
+
+
+    dc_img0 = img0
+    dc_img1 = img1
+    kcor_apply_dist, dc_img0, dc_img1, dx1_c, dy1_c, dx2_c, dy2_c
 
     cal  = 0
     eng  = 0
@@ -274,10 +286,16 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     fycen1[i] = ycen1
     frocc1[i] = rocc1
 
+
+    dc_cen0_info = kcor_find_image(dc_img0, chisq=chisq, radius_guess, $
+                                   /center_guess, log_name='kcor/eod')
+    dc_cen1_info = kcor_find_image(dc_img1, chisq=chisq, radius_guess, $
+                                   /center_guess, log_name='kcor/eod')
+    dcr_diff[i] = dc_cen0_info[2] - dc_cen1_info[2]
+
+
     ; determine type of image
-
     qual     = 'unk'
-
     if (eng gt 0) then begin              ; engineering
       qual  = q_eng
       neng += 1
@@ -358,7 +376,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
   device, set_resolution=[772, 500], decomposed=0, set_colors=256, $
           z_buffering=0
-  !p.multi = [0, 1, 2]
+  !p.multi = [0, 1, 3]
 
   erase
 
@@ -371,6 +389,12 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
         xtitle='Hours [UT]', ytitle='X center', $
         background=255, color=0, charsize=1.0, $
         yrange = [170.0, 200.0]
+
+  plot, hours, dcr_diff, $
+        title=string(pdate, format='(%""%s Difference in Distortion Corrected Radii)'), $
+        xtitle='Hours [UT]', ytitle='r_cam0 - r_cam1 [pixels]', $
+        background=255, color=0, charsize=1.0, $
+        yrange = [-2.0, 2.0]
 
   rocc_gif_filename = string(date, format='(%"%s.kcor.rocc.gif")')
   save     = tvrd()
