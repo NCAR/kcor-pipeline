@@ -17,7 +17,8 @@
 ;     KCor run object
 ;-
 pro kcor_verify_hpss, date, filename, filesize, $
-                      logger_name=logger_name, run=run
+                      logger_name=logger_name, run=run, $
+                      status=status
   compile_opt strictarr
 
   hsi_cmd = string(run.hsi, filename, format='(%"%s ls -l %s")')
@@ -73,8 +74,9 @@ pro kcor_verify_hpss, date, filename, filesize, $
 
     mg_log, 'verified %s tarball on HPSS', file_basename(filename), $
             name=logger_name, /info
-    hpss_done:
   endelse
+
+  hpss_done:
 end
 
 
@@ -544,11 +546,13 @@ pro kcor_verify, date, config_filename=config_filename, status=status
                       string(year, date, $
                              format='(%"/CORDYN/KCOR/%s/%s_kcor_l0.tgz")'), $
                       l0_tarball_size, $
+                      status=status, $
                       logger_name=logger_name, run=run
     kcor_verify_hpss, date, $
                       string(year, date, $
                              format='(%"/CORDYN/KCOR/%s/%s_kcor_l1.5.tgz")'), $
                       l1_tarball_size, $
+                      status=status, $
                       logger_name=logger_name, run=run
   endif else begin
     mg_log, 'skipping HPSS check', name=logger_name, /info
