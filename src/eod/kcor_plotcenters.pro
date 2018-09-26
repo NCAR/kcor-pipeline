@@ -349,22 +349,22 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
   plot, hours, fxcen0, title=pdate + '  Camera 0 occulter raw X center', $
         xtitle='Hours [UT]', ytitle='X center', $
         background=255, color=0, charsize=2.0, $
-        yrange = [460.0, 540.0]
+        yrange=[480.0, 540.0]
 
   plot, hours, fycen0, title=pdate + '  Camera 0 occulter raw Y center', $
         xtitle='Hours [UT]', ytitle='Y center', $
         background=255, color=0, charsize=2.0, $
-        yrange = [460.0, 550.0]
+        yrange=[480.0, 540.0]
 
   plot, hours, fxcen1, title=pdate + '  Camera 1 occulter X raw center', $
         xtitle='Hours [UT]', ytitle='X center', $
         background=255, color=0, charsize=2.0, $
-        yrange = [460.0, 540.0]
+        yrange=[480.0, 540.0]
 
   plot, hours, fycen1, title=pdate + '  Camera 1 occulter Y raw center', $
         xtitle='Hours [UT]', ytitle='Y center', $
         background=255, color=0, charsize=2.0, $
-        yrange = [460.0, 540.0]
+        yrange=[480.0, 540.0]
    
   ocen_gif_filename = string(date, format='(%"%s.kcor.ocen.gif")')
   save = tvrd()
@@ -372,7 +372,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
   ; plot occulter radius [pixels]
 
-  device, set_resolution=[772, 750], decomposed=0, set_colors=256, $
+  device, set_resolution=[772, 1000], decomposed=0, set_colors=256, $
           z_buffering=0
   !p.multi = [0, 1, 3]
 
@@ -380,19 +380,19 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
   plot, hours, frocc0, title=pdate + '  Camera 0 occulter raw radius (pixels)', $
         xtitle='Hours [UT]', ytitle='X center', $
-        background=255, color=0, charsize=1.0, $
-        yrange = [170.0, 200.0]
+        background=255, color=0, charsize=2.0, $
+        yrange=[175.0, 185.0]
 
   plot, hours, frocc1, title=pdate + '  Camera 1 occulter raw radius (pixels)', $
         xtitle='Hours [UT]', ytitle='X center', $
-        background=255, color=0, charsize=1.0, $
-        yrange = [170.0, 200.0]
+        background=255, color=0, charsize=2.0, $
+        yrange=[175.0, 185.0]
 
   plot, hours, dcr_diff, $
         title=string(pdate, format='(%"%s Difference in Distortion Corrected Radii")'), $
         xtitle='Hours [UT]', ytitle='r_cam0 - r_cam1 [pixels]', $
-        background=255, color=0, charsize=1.0, $
-        yrange = [-2.0, 2.0]
+        background=255, color=0, charsize=2.0, $
+        yrange=[-1.0, 1.0]
 
   rocc_gif_filename = string(date, format='(%"%s.kcor.rocc.gif")')
   save     = tvrd()
