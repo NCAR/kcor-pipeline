@@ -125,7 +125,13 @@ pro kcor_hw_insert, date, fits_list, run=run, database=database, log_name=log_na
     tcamlut     = sxpar(hdu, 'TCAMLUT',  count=n_tcamlut)
     modltrid    = sxpar(hdu, 'MODLTRID', count=n_modltrid)
     o1id        = sxpar(hdu, 'O1ID',     count=n_o1id)
-    occltrid    = sxpar(hdu, 'OCCLTRID', count=n_occltrid)
+
+    if (run->epoch('use_occulter_id') then begin
+      occltrid = sxpar(hdu, 'OCCLTRID', count=n_occltrid)
+    endif else begin
+      occltrid = run->epoch('occulter_id')
+    endelse
+
     filterid    = sxpar(hdu, 'FILTERID', count=n_filterid)
     calpolid    = sxpar(hdu, 'CALPOLID', count=n_calpolid)
 

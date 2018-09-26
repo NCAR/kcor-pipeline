@@ -640,7 +640,12 @@ pro kcor_l1, date, ok_files, $
     sol_ra = sol_ra * 15.0   ; convert from hours to degrees
     carrington_rotnum = fix(carrington)
 
-    occulter = kcor_get_occulter_size(struct.occltrid, run=run)  ; arcsec
+    if (run->epoch('use_occulter_id') then begin
+      occltrid = struct.occltrid
+    endif else begin
+      occltrid = run->epoch('occulter_id')
+    endelse
+    occulter = kcor_get_occulter_size(occltrid, run=run)  ; arcsec
     radius_guess = occulter / run->epoch('plate_scale')          ; pixels
 
     ; correct camera nonlinearity
@@ -1446,7 +1451,7 @@ pro kcor_l1, date, ok_files, $
                 ' Specifies if the 2nd lyot stop is in the beam'
     endif
 
-    fxaddpar, newheader, 'OCCLTRID', struct.occltrid, ' ID occulter'
+    fxaddpar, newheader, 'OCCLTRID', occltrid, ' ID occulter'
     fxaddpar, newheader, 'MODLTRID', struct.modltrid, ' ID modulator'
 
     if (run->epoch('use_camera_info')) then begin

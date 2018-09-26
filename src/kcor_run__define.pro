@@ -119,6 +119,9 @@ function kcor_run::epoch, name, time=time
                                                        self.date, hst_time, type=4)
     'use_default_occulter_size': return, self->_readepoch('use_default_occulter_size', $
                                                           self.date, hst_time, /boolean)
+    'use_occulter_id': return, self->_readepoch('use_occulter_id', $
+                                                self.date, hst_time, /boolean)
+    'occulter_id': return, self->_readepoch('occulter_id', self.date, hst_time)
     'header_changes': return, self->_readepoch('header_changes', $
                                                self.date, hst_time, /boolean)
     'use_diffsrid': return, self->_readepoch('use_diffsrid', self.date, hst_time, /boolean)

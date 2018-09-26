@@ -125,7 +125,12 @@ pro kcor_plotraw, date, list=list, run=run, $
     run.time = date_obs
     sun_pixels = rsun / run->epoch('plate_scale')
 
-    occulter = kcor_get_occulter_size(fxpar(header, 'OCCLTRID'), run=run)
+    if (run->epoch('use_occulter_id') then begin
+      occltrid = sxpar(header, 'OCCLTRID', count=qoccltrid)
+    endif else begin
+      occltrid = run->epoch('occulter_id')
+    endelse
+    occulter = kcor_get_occulter_size(occltrid, run=run)
     radius_guess = occulter / run->epoch('plate_scale')   ; pixels
 
     for c = 0, 1 do begin

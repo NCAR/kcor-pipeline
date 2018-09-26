@@ -146,7 +146,13 @@ pro kcor_cal_insert, date, fits_list, quality, $
     endif
     modltrid    = strtrim(sxpar(hdu, 'MODLTRID', count=qmodltrid), 2)
     modltrt     =         sxpar(hdu, 'MODLTRT',  count=qmodltrt)
-    occltrid    = strtrim(sxpar(hdu, 'OCCLTRID', count=qoccltrid), 2)
+
+    if (run->epoch('use_occulter_id') then begin
+      occltrid = strtrim(sxpar(hdu, 'OCCLTRID', count=qoccltrid), 2)
+    endif else begin
+      occltrid = run->epoch('occulter_id')
+    endelse
+
     o1id        = strtrim(sxpar(hdu, 'O1ID',     count=qo1id),2)
     o1focs      =         sxpar(hdu, 'O1FOCS',   count=qo1focs)
     calpolid    = strtrim(sxpar(hdu, 'CALPOLID', count=qcalpolid), 2)

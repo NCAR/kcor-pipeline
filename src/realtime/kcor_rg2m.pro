@@ -21,7 +21,7 @@
 ;   15 Jul 2015 Add /NOSCALE keyword to readfits.
 ;   04 Mar 2016 Add fits option.
 ;-
-pro kcor_rg2m, fits_list, fits=fits
+pro kcor_rg2m, fits_list, fits=fits, run=run
   compile_opt strictarr
 
   tic
@@ -84,12 +84,12 @@ pro kcor_rg2m, fits_list, fits=fits
     ;   - one occulter has 4 digits; other two have 5
     ;   - only read in 4 digits to avoid confusion
 
-    occulter_id = ''
-    occulter_id = sxpar(hdu, 'OCCLTRID')
-    occulter = strmid(occulter_id, 3, 5)
-    occulter = float(occulter)
-    if (occulter eq 1018.0) then occulter = 1018.9
-    if (occulter eq 1006.0) then occulter = 1006.9
+    if (run->epoch('use_occulter_id') then begin
+      occulter_id = sxpar(hdu, 'OCCLTRID', count=qoccltrid)
+    endif else begin
+      occulter_id = run->epoch('occulter_id')
+    endelse
+    occulter = kcor_get_occulter_size(occulter_id, run=run)
 
     radius_guess = 178
     img_info = kcor_find_image(img, radius_guess, log_name='kcor/rt')

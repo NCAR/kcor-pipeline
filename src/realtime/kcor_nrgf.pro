@@ -158,7 +158,12 @@ pro kcor_nrgf, fits_file, $
   endelse
 
   ; find size of occulter
-  occulter_id = sxpar(hdu, 'OCCLTRID')
+
+  if (run->epoch('use_occulter_id') then begin
+    occulter_id = sxpar(hdu, 'OCCLTRID', count=qoccltrid)
+  endif else begin
+    occulter_id = run->epoch('occulter_id')
+  endelse
   occulter = kcor_get_occulter_size(occulter_id, run=run)  ; arcsec
 
   radius_guess = 178
