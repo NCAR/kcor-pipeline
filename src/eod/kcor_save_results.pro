@@ -33,7 +33,7 @@ pro kcor_save_results, date, run=run
   if (n_diff_filenames gt 0L) then begin
     diff_dir = filepath('difference', root=save_dir)
     if (~file_test(diff_dir, /directory)) then file_mkdir, diff_dir
-    file_copy, diff_filenames, diff_dir
+    file_copy, diff_filenames, diff_dir, /overwrite
   endif
 
   ; extended average files
@@ -44,17 +44,17 @@ pro kcor_save_results, date, run=run
   if (n_extavg_filenames gt 0L) then begin
     extavg_dir = filepath('extavg', root=save_dir)
     if (~file_test(extavg_dir, /directory)) then file_mkdir, extavg_dir
-    file_copy, extavg_filenames, extavg_dir
+    file_copy, extavg_filenames, extavg_dir, /overwrite
   endif
 
   ; p and q directories
   file_copy, filepath('p', subdir=date, root=run.raw_basedir), $
              save_dir, $
-             /recursive
+             /recursive, /overwrite
 
   file_copy, filepath('q', subdir=date, root=run.raw_basedir), $
              save_dir, $
-             /recursive
+             /recursive, /overwrite
 
   done:
   mg_log, 'done', name='kcor/eod', /info
