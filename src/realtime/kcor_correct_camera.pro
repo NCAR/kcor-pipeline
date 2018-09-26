@@ -51,8 +51,18 @@ pro kcor_correct_camera, im, header, run=run, logger_name=logger_name
   fmt = '(%"camera_calibration_%s%s_%07.4f_lut%s.ncdf")'
   prefix = run->epoch('use_camera_prefix') ? run->epoch('camera_prefix') : ''
 
+  if (run->epoch('use_camera_info')) then begin
+    tcam_lut = sxpar(header, 'TCAMLUT')
+    tcam_lut_date = (strsplit(tcam_lut, '_', /extract))[1]
+    rcam_lut = sxpar(header, 'RCAMLUT')
+    rcam_lut_date = (strsplit(rcam_lut, '_', /extract))[1]
+  endif else begin
+    rcam_lut_date = run->epoch('camera_lut_date')
+    tcam_lut_date = run->epoch('camera_lut_date')
+  endelse
+
   rcam_cor_filename = filepath(string(prefix, rcamid, exposure, $
-                                      run->epoch('camera_lut_date'), $
+                                      rcam_lut_date, $
                                       format=fmt), $
                                root=run.camera_correction_dir)
   if (file_test(rcam_cor_filename)) then begin
@@ -64,7 +74,7 @@ pro kcor_correct_camera, im, header, run=run, logger_name=logger_name
   fp[*, *, *, 0] = kcor_read_camera_correction(rcam_cor_filename)
 
   tcam_cor_filename = filepath(string(prefix, tcamid, exposure, $
-                                      run->epoch('camera_lut_date'), $
+                                      tcam_lut_date, $
                                       format=fmt), $
                                root=run.camera_correction_dir)
   if (file_test(tcam_cor_filename)) then begin
