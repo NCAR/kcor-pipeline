@@ -38,13 +38,12 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
   pyear  = strmid(date, 0, 4)
   pmonth = strmid(date, 4, 2)
   pday   = strmid(date, 6, 2)
-  pdate = string(pyear, pmonth, pday, format='(%"%s-%s-%s")')
+  pdate  = string(pyear, pmonth, pday, format='(%"%s-%s-%s")')
 
   ; define directory names
-  base_dir = run.raw_basedir
-  date_dir = filepath(date, root=base_dir)
+  base_dir  = run.raw_basedir
+  date_dir  = filepath(date, root=base_dir)
 
-  ; TODO: change p/ directory to engineering or plots
   plots_dir = filepath('p', root=date_dir)
   l0_dir    = filepath('level0', root=date_dir)
 
@@ -113,7 +112,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
   fycen1 = fltarr(n_images)
   frocc1 = fltarr(n_images)
 
-  dcr_figg = fltarr(n_images)
+  dcr_diff = fltarr(n_images)
 
   n_digits = floor(alog10(n_images)) + 1L   ; for formatting
 
@@ -130,7 +129,6 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     dc_path = filepath(run->epoch('distortion_correction_filename'), $
                        root=run.resources_dir)
     restore, dc_path   ; distortion correction file
-
 
     dc_img0 = img0
     dc_img1 = img1
@@ -374,7 +372,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
   ; plot occulter radius [pixels]
 
-  device, set_resolution=[772, 500], decomposed=0, set_colors=256, $
+  device, set_resolution=[772, 750], decomposed=0, set_colors=256, $
           z_buffering=0
   !p.multi = [0, 1, 3]
 
@@ -391,7 +389,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
         yrange = [170.0, 200.0]
 
   plot, hours, dcr_diff, $
-        title=string(pdate, format='(%""%s Difference in Distortion Corrected Radii)'), $
+        title=string(pdate, format='(%"%s Difference in Distortion Corrected Radii")'), $
         xtitle='Hours [UT]', ytitle='r_cam0 - r_cam1 [pixels]', $
         background=255, color=0, charsize=1.0, $
         yrange = [-2.0, 2.0]
