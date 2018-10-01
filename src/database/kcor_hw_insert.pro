@@ -126,7 +126,7 @@ pro kcor_hw_insert, date, fits_list, run=run, database=database, log_name=log_na
     modltrid    = sxpar(hdu, 'MODLTRID', count=n_modltrid)
     o1id        = sxpar(hdu, 'O1ID',     count=n_o1id)
 
-    if (run->epoch('use_occulter_id') then begin
+    if (run->epoch('use_occulter_id')) then begin
       occltrid = sxpar(hdu, 'OCCLTRID', count=n_occltrid)
     endif else begin
       occltrid = run->epoch('occulter_id')

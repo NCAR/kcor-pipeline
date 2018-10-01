@@ -256,7 +256,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
     exptime  = sxpar(hdu, 'EXPTIME',  count=qexptime)
     cover    = sxpar(hdu, 'COVER',    count=qcover)
 
-    if (run->epoch('use_occulter_id') then begin
+    if (run->epoch('use_occulter_id')) then begin
       occltrid = sxpar(hdu, 'OCCLTRID', count=qoccltrid)
     endif else begin
       occltrid = run->epoch('occulter_id')
@@ -265,7 +265,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
     numsum = sxpar(hdu, 'NUMSUM', count=qnumsum)
 
     ; determine occulter size in pixels
-    occulter = kcor_get_occulter_size(occulterid)
+    occulter = kcor_get_occulter_size(occltrid, run=run)
     radius_guess = occulter / run->epoch('plate_scale')   ; occulter size [pixels]
 
     kcor_correct_camera, img, hdu, run=run, logger_name='kcor/rt'

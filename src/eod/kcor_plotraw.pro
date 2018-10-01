@@ -125,7 +125,7 @@ pro kcor_plotraw, date, list=list, run=run, $
     run.time = date_obs
     sun_pixels = rsun / run->epoch('plate_scale')
 
-    if (run->epoch('use_occulter_id') then begin
+    if (run->epoch('use_occulter_id')) then begin
       occltrid = sxpar(header, 'OCCLTRID', count=qoccltrid)
     endif else begin
       occltrid = run->epoch('occulter_id')

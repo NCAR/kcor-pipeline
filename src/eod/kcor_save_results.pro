@@ -56,6 +56,11 @@ pro kcor_save_results, date, run=run
              save_dir, $
              /recursive, /overwrite
 
+  ; *.log files
+  log_files = file_search(filepath('*.log', root=run.raw_basedir), $
+                          count=n_log_files)
+  if (n_log_files gt 0L) then file_copy, log_files, save_dir
+
   done:
   mg_log, 'done', name='kcor/eod', /info
 end

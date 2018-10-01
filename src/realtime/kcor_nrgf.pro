@@ -159,7 +159,7 @@ pro kcor_nrgf, fits_file, $
 
   ; find size of occulter
 
-  if (run->epoch('use_occulter_id') then begin
+  if (run->epoch('use_occulter_id')) then begin
     occulter_id = sxpar(hdu, 'OCCLTRID', count=qoccltrid)
   endif else begin
     occulter_id = run->epoch('occulter_id')

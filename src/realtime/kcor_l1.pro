@@ -640,7 +640,7 @@ pro kcor_l1, date, ok_files, $
     sol_ra = sol_ra * 15.0   ; convert from hours to degrees
     carrington_rotnum = fix(carrington)
 
-    if (run->epoch('use_occulter_id') then begin
+    if (run->epoch('use_occulter_id')) then begin
       occltrid = struct.occltrid
     endif else begin
       occltrid = run->epoch('occulter_id')
@@ -949,14 +949,11 @@ pro kcor_l1, date, ok_files, $
       theta1 += !pi
       theta1 = rot(reverse(theta1), pangle + run->epoch('rotation_correction'), 1)
 
-      xcc1  = 511.5
-      ycc1  = 511.5
-
       if (doplot eq 1) then begin
         window, 1, xsize=xsize, ysize=ysize, retain=2
         wset, 1
         tv, bytscl(cal_data_combined_center[*, *, 0], 0, 100)
-        draw_circle, xcc1, ycc1, radius, /dev, color=0
+        draw_circle, 511.5, 511.5, radius, /dev, color=0
         wset, 1
       endif
 

@@ -84,7 +84,7 @@ pro kcor_rg2m, fits_list, fits=fits, run=run
     ;   - one occulter has 4 digits; other two have 5
     ;   - only read in 4 digits to avoid confusion
 
-    if (run->epoch('use_occulter_id') then begin
+    if (run->epoch('use_occulter_id')) then begin
       occulter_id = sxpar(hdu, 'OCCLTRID', count=qoccltrid)
     endif else begin
       occulter_id = run->epoch('occulter_id')

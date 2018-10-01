@@ -169,7 +169,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
     cover    = sxpar(hdu, 'COVER',    count=qcover)
 
-    if (run->epoch('use_occulter_id') then begin
+    if (run->epoch('use_occulter_id')) then begin
       occltrid = sxpar(hdu, 'OCCLTRID', count=qoccltrid)
     endif else begin
       occltrid = run->epoch('occulter_id')
