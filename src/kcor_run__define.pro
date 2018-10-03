@@ -412,6 +412,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            skypol_method=skypol_method, $
                            sine2theta_nparams=sine2theta_nparams, $
                            cameras=cameras, $
+                           shift_center=shift_center, $
                            distribute=distribute, $
                            diagnostics=diagnostics, $
                            reduce_calibration=reduce_calibration, $
@@ -610,6 +611,10 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   if (arg_present(cameras)) then begin
     cameras = self.options->get('cameras', section='realtime', $
                                 type=7, default='both')
+  endif
+  if (arg_present(shift_center)) then begin
+    shift_center = self.options->get('shift_center', section='realtime', $
+                                     /boolean, default=1B)
   endif
   if (arg_present(distribute)) then begin
     distribute = self.options->get('distribute', section='realtime', $

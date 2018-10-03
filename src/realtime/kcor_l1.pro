@@ -848,6 +848,7 @@ pro kcor_l1, date, ok_files, $
 
     theta1 = atan(- yy1, - xx1)
     theta1 += !pi
+    theta1 = rot(reverse(theta1), pangle + run->epoch('rotation_correction'), 1)
 
     if (doplot eq 1) then begin
       tv, bytscl(cimg1, 0, 20000)
@@ -889,6 +890,7 @@ pro kcor_l1, date, ok_files, $
     for s = 0, 2 do begin
       camera_0 = kcor_fshift(cal_data[*, *, 0, s], deltax, deltay)
       camera_1 = cal_data[*, *, 1, s]
+      mg_log, 'cameras used: %s', run.cameras, name='kcor/rt', /debug
       case run.cameras of
         '0': cal_data_combined[*, *, s] = camera_0
         '1': cal_data_combined[*, *, s] = camera_1
@@ -909,6 +911,8 @@ pro kcor_l1, date, ok_files, $
              + cal_data_combined[*, *, 2] * sin(2.0 * theta1)
 
     intensity = cal_data_combined[*, *, 0]
+    mg_log, 'performing polarization coord transformation', $
+            name='kcor/rt', /debug
 
     if (doplot eq 1) then begin
       tv, bytscl(umk4, -0.5, 0.5)
@@ -919,9 +923,7 @@ pro kcor_l1, date, ok_files, $
     xcen = 511.5 + 1     ; x center of FITS array equals one plus IDL center
     ycen = 511.5 + 1     ; y center of FITS array equals one plus IDL center
 
-    shift_center = 0
-    shift_center = 1
-    if (shift_center eq 1) then begin
+    if (run.shift_center) then begin
       cal_data_combined_center = dblarr(xsize, ysize, 3)
 
       for s = 0, 2 do begin
@@ -937,8 +939,12 @@ pro kcor_l1, date, ok_files, $
                                        xsize - 1 - xcc1, $
                                        ycc1, $
                                        cubic=-0.5)
-        cal_data_combined_center[*, *, s] = (cal_data_new[*, *, 0, s]  $
-                                             + cal_data_new[*, *, 1, s]) * 0.5
+        case run.cameras of
+          '0': cal_data_combined_center[*, *, s] = cal_data_new[*, *, 0, s]
+          '1': cal_data_combined_center[*, *, s] = cal_data_new[*, *, 1, s]
+          else: cal_data_combined_center[*, *, s] = (cal_data_new[*, *, 0, s]  $
+                                                       + cal_data_new[*, *, 1, s]) * 0.5
+        endcase
       endfor
 
       xx1    = dindgen(xsize, ysize) mod xsize - 511.5
@@ -969,7 +975,9 @@ pro kcor_l1, date, ok_files, $
       if (doplot eq 1) then begin
         tv, bytscl(umk4, -0.5, 0.5)
       endif
-    endif
+    endif else begin
+      mg_log, 'skipping shfting image to center', name='kcor/rt', /debug
+    endelse
 
     ; sky polarization removal on coordinate-transformed data
     case strlowcase(run.skypol_method) of
@@ -987,7 +995,7 @@ pro kcor_l1, date, ok_files, $
                                   q_new=qmk3_new, u_new=umk4_new, $
                                   run=run
         end
-      else:
+      else: mg_log, 'no sky polarization correction', name='kcor/rt', /debug
     endcase
 
     ; use only corona minus sky polarization background
