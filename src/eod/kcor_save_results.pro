@@ -34,6 +34,8 @@ pro kcor_save_results, date, run=run
     diff_dir = filepath('difference', root=save_dir)
     if (~file_test(diff_dir, /directory)) then file_mkdir, diff_dir
     file_copy, diff_filenames, diff_dir, /overwrite
+    mg_log, 'saving %d difference files', n_diff_filenames, $
+            name='kcor/eod', /debug
   endif
 
   ; extended average files
@@ -45,21 +47,29 @@ pro kcor_save_results, date, run=run
     extavg_dir = filepath('extavg', root=save_dir)
     if (~file_test(extavg_dir, /directory)) then file_mkdir, extavg_dir
     file_copy, extavg_filenames, extavg_dir, /overwrite
+    mg_log, 'saving %d extended average files', n_extavg_filenames, $
+            name='kcor/eod', /debug
   endif
 
   ; p and q directories
   file_copy, filepath('p', subdir=date, root=run.raw_basedir), $
              save_dir, $
              /recursive, /overwrite
+  mg_log, 'saving p directory', name='kcor/eod', /debug
 
   file_copy, filepath('q', subdir=date, root=run.raw_basedir), $
              save_dir, $
              /recursive, /overwrite
+  mg_log, 'saving q directory', name='kcor/eod', /debug
 
   ; *.log files
-  log_files = file_search(filepath('*.log', root=run.raw_basedir), $
+  log_files = file_search(filepath('*.log', subdir=date, root=run.raw_basedir), $
                           count=n_log_files)
-  if (n_log_files gt 0L) then file_copy, log_files, save_dir
+  if (n_log_files gt 0L) then begin
+    file_copy, log_files, save_dir
+    mg_log, 'saving %d logfiles', n_log_files, $
+            name='kcor/eod', /debug
+  endif
 
   done:
   mg_log, 'done', name='kcor/eod', /info
