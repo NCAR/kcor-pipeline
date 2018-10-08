@@ -51,6 +51,19 @@ pro kcor_save_results, date, run=run
             name='kcor/eod', /debug
   endif
 
+  ; no mask files
+  nomask_filenames = file_search(filepath('*nomask*', $
+                                          subdir=[date, 'level1'], $
+                                          root=run.raw_basedir), $
+                                 count=n_nomask_filenames)
+  if (n_nomask_filenames gt 0L) then begin
+    nomask_dir = filepath('nomask', root=save_dir)
+    if (~file_test(nomask_dir, /directory)) then file_mkdir, nomask_dir
+    file_copy, nomask_filenames, nomask_dir, /overwrite
+    mg_log, 'saving %d nomask FITS/GIF files', n_nomask_filenames, $
+            name='kcor/eod', /debug
+  endif
+
   ; p and q directories
   file_copy, filepath('p', subdir=date, root=run.raw_basedir), $
              save_dir, $
