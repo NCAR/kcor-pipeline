@@ -287,6 +287,9 @@
 ; :Keywords:
 ;   append : in, optional, type=boolean
 ;     if set, append log output to existing log file
+;   nomask : in, optional, type=boolean
+;     set to not apply a mask to the FITS or GIF files, adding a "nomask" to the
+;     filenames
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;   mean_phase1 : out, optional, type=fltarr
@@ -320,6 +323,7 @@
 ;-
 pro kcor_l1, date, ok_files, $
              append=append, $
+             nomask=nomask, $
              run=run, $
              mean_phase1=mean_phase1, $
              error=error
@@ -1008,12 +1012,15 @@ pro kcor_l1, date, ok_files, $
       corona *= flat_vdimref / vdimref
     endif
 
-    ; use mask to build final image
-    r_in  = fix(occulter / run->epoch('plate_scale')) + 2.0
-    r_out = 504.0
+    if (~keyword_set(nomask)) then begin
+      ; create mask for final image
+      r_in  = fix(occulter / run->epoch('plate_scale')) + 2.0
+      r_out = 504.0
 
-    mask = where(rad1 lt r_in or rad1 ge r_out)   ; pixels beyond field of view
-    corona[mask] = 0
+      ; mask pixels beyond field of view
+      mask = where(rad1 lt r_in or rad1 ge r_out, /null)
+      corona[mask] = run->epoch('display_min')
+    endif
 
     if (doplot eq 1) then begin
       wset, 0
@@ -1028,8 +1035,6 @@ pro kcor_l1, date, ok_files, $
     ;                    * radius of occulter [pixels] :
 
     r_photo = radsun / run->epoch('plate_scale')
-
-    corona[mask] = run->epoch('display_min')
 
     loadct, 0, /silent
     gamma_ct, run->epoch('display_gamma'), /current
