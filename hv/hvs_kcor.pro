@@ -54,20 +54,20 @@ function hvs_kcor
   ; full description
   b = {details: a, $                            ; required
        observatory: 'MLSO', $                   ; required
-       instrument: 'MLSO', $                    ; required
+       instrument: 'KCOR', $                    ; required
        detector: 'KCOR', $                      ; required
-       nickname: 'KCOR', $                      ; required
+       nickname: 'kcor', $                      ; required
        hvs_details_filename: 'hvs_kcor', $      ; required
        hvs_details_filename_version: '1.0', $   ; required
        rocc_inner: 1.05,$                       ; in solar radii
        rocc_outer: 3.0}                         ; in solar radii
 
   ; white-light
-  b.details[0].measurement = 'white-light'   ; required
-  b.details[0].n_levels = 8                  ; required
-  b.details[0].n_layers = 8                  ; required
-  b.details[0].idl_bitdepth = 8              ; required
-  b.details[0].bit_rate = [8.0,0.01]         ; required
+  b.details[0].measurement = 'white-light-pB'   ; required
+  b.details[0].n_levels = 8                     ; required
+  b.details[0].n_layers = 8                     ; required
+  b.details[0].idl_bitdepth = 8                 ; required
+  b.details[0].bit_rate = [8.0, 0.01]           ; required
 
   return, b
 end 

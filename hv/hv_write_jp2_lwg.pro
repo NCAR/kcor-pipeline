@@ -205,7 +205,7 @@ pro hv_write_jp2_lwg, file, image, $
 
       ; finish up the Helioviewer comment by adding in any existing comment
       if tag_exist(header,'hv_comment') then begin
-        hv_comment = HV_XML_COMPLIANCE(header.hv_comment) + lf + hv_comment
+        hv_comment = hv_xml_compliance(header.hv_comment) + lf + hv_comment
       endif
 
       ; Write the XML tags
