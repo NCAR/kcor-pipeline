@@ -349,7 +349,7 @@ pro kcor_create_differences, date, l1_files, run=run
               orientation=90., /device
       xyouts, 4, 46, 'Subtraction', color=255, charsize=1.2, /device
       xyouts, 4, 26, string(display_min, display_max, $
-                            format='("min/max: ", f6.3, ", ", f6.3)'), $
+                            format='("min/max: ", e0.1, ", ", e0.1)'), $
               color=255, charsize=1.2, /device
       xyouts, 1018, 6, 'Circle = photosphere.', $
               color=255, charsize=1.2, /device, alignment=1.0
