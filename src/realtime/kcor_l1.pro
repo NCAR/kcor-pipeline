@@ -285,8 +285,6 @@
 ;     array containing FITS level 0 filenames
 ;
 ; :Keywords:
-;   append : in, optional, type=boolean
-;     if set, append log output to existing log file
 ;   nomask : in, optional, type=boolean
 ;     set to not apply a mask to the FITS or GIF files, adding a "nomask" to the
 ;     filenames
@@ -322,10 +320,10 @@
 ; under the date directory.
 ;-
 pro kcor_l1, date, ok_files, $
-             append=append, $
              nomask=nomask, $
              run=run, $
              mean_phase1=mean_phase1, $
+             log_name=log_name, $
              error=error
   compile_opt strictarr
 
@@ -345,12 +343,12 @@ pro kcor_l1, date, ok_files, $
   ; get current date & time
   current_time = systime(/utc)
 
-  mg_log, 'processing %s', date, name='kcor/rt', /info
+  mg_log, 'processing %s', date, name=log_name, /info
 
   ; check for empty list of OK files
   nfiles = n_elements(ok_files)
   if (nfiles eq 0) then begin
-    mg_log, 'no files to process', name='kcor/rt', /info
+    mg_log, 'no files to process', name=log_name, /info
     goto, done
   endif
 
@@ -381,8 +379,8 @@ pro kcor_l1, date, ok_files, $
     catch, error_status
     if (error_status ne 0L) then begin
       mg_log, 'error processing %s, skipping', file_basename(l0_file), $
-              name='kcor/rt', /error
-      mg_log, /last_error, name='kcor/rt', /error
+              name=log_name, /error
+      mg_log, /last_error, name=log_name, /error
       continue
     endif
 
@@ -390,7 +388,7 @@ pro kcor_l1, date, ok_files, $
 
     mg_log, 'processing %d/%d: %s', $
             fnum, nfiles, file_basename(l0_file), $
-            name='kcor/rt', /info
+            name=log_name, /info
 
     l1_file = string(strmid(l0_file, 0, 20), $
                      keyword_set(nomask) ? '_nomask' : '', $
@@ -400,7 +398,7 @@ pro kcor_l1, date, ok_files, $
     if (~kcor_state(/first_image, run=run)) then begin
       mg_log, 'skipping first good science image %d/%d: %s', $
               fnum, nfiles, file_basename(l0_file), $
-              name='kcor/rt', /info
+              name=log_name, /info
       first_skipped = 1B
       continue
     endif
@@ -410,7 +408,7 @@ pro kcor_l1, date, ok_files, $
     img = readfits(l0_file, header, /silent)
 
     type = fxpar(header, 'DATATYPE')
-    mg_log, 'type: %s', strmid(type, 0, 3), name='kcor/rt', /debug
+    mg_log, 'type: %s', strmid(type, 0, 3), name=log_name, /debug
 
     ; read date of observation
     date_obs = sxpar(header, 'DATE-OBS')   ; yyyy-mm-ddThh:mm:ss
@@ -420,10 +418,10 @@ pro kcor_l1, date, ok_files, $
     ; extract information from calibration file
     calpath = filepath(run->epoch('cal_file'), root=run.cal_out_dir)
     if (file_test(calpath)) then begin
-      mg_log, 'cal file: %s', file_basename(calpath), name='kcor/rt', /debug
+      mg_log, 'cal file: %s', file_basename(calpath), name=log_name, /debug
     endif else begin
-      mg_log, 'cal file does not exist', name='kcor/rt', /error
-      mg_log, 'cal file: %s', file_basename(calpath), name='kcor/rt', /error
+      mg_log, 'cal file does not exist', name=log_name, /error
+      mg_log, 'cal file: %s', file_basename(calpath), name=log_name, /error
       error = 1L
       goto, done
     endelse
@@ -431,7 +429,7 @@ pro kcor_l1, date, ok_files, $
     unit = ncdf_open(calpath)
     if (unit lt 0L) then begin
       mg_log, 'unable to open cal file %s', file_basename(calpath), $
-              name='kcor/rt', /error
+              name=log_name, /error
       error = 1L
       goto, done
     endif
@@ -493,10 +491,10 @@ pro kcor_l1, date, ok_files, $
     gain_temp = 0
 
     ; find center and radius for gain images
-    info_gain0 = kcor_find_image(gain_alfred[*, *, 0], radius_guess, log_name='kcor/rt')
-    mg_log, /check_math, name='kcor/rt', /debug
-    info_gain1 = kcor_find_image(gain_alfred[*, *, 1], radius_guess, log_name='kcor/rt')
-    mg_log, /check_math, name='kcor/rt', /debug
+    info_gain0 = kcor_find_image(gain_alfred[*, *, 0], radius_guess, log_name=log_name)
+    mg_log, /check_math, name=log_name, /debug
+    info_gain1 = kcor_find_image(gain_alfred[*, *, 1], radius_guess, log_name=log_name)
+    mg_log, /check_math, name=log_name, /debug
 
     ; define coordinate arrays for gain images
     gxx0 = findgen(xsize, ysize) mod xsize - info_gain0[0]
@@ -511,9 +509,9 @@ pro kcor_l1, date, ok_files, $
     grr1 = sqrt(gxx1 ^ 2.0 + gyy1 ^ 2.0)
 
     mg_log, 'gain 0 center: %0.1f, %0.1f and radius: %0.1f', $
-            info_gain0, name='kcor/rt', /debug
+            info_gain0, name=log_name, /debug
     mg_log, 'gain 1 center: %0.1f, %0.1f and radius: %0.1f', $
-            info_gain1, name='kcor/rt', /debug
+            info_gain1, name=log_name, /debug
 
     ; get current date & time
     current_time = systime(/utc)
@@ -523,8 +521,8 @@ pro kcor_l1, date, ok_files, $
     if (cal_epoch_version ne run->epoch('cal_epoch_version')) then begin
       mg_log, 'cal file epoch_version (%s) does not match for time of file %s (%s)', $
               cal_epoch_version, file_basename(l0_file), run->epoch('cal_epoch_version'), $
-              name='kcor/rt', /error
-      mg_log, 'skipping file %s', file_basename(l0_file), name='kcor/rt', /error
+              name=log_name, /error
+      mg_log, 'skipping file %s', file_basename(l0_file), name=log_name, /error
       continue
     endif
 
@@ -599,21 +597,21 @@ pro kcor_l1, date, ok_files, $
     date_hst = hst_year + '-' + hst_month  + '-' + hst_day + 'T' + $
                  hst_hour + ':' + hst_minute + ':' + hst_second
 
-    mg_log, 'obs UT: %s, HST: %s', date_obs, date_hst, name='kcor/rt', /debug
+    mg_log, 'obs UT: %s, HST: %s', date_obs, date_hst, name=log_name, /debug
 
     ; put the Level-0 FITS header into a structure
     struct = fitshead2struct(header, dash2underscore=dash2underscore)
 
     if (n_elements(cal_exptime) eq 0L) then begin
-      mg_log, 'calibration exptime not defined', name='kcor/rt', /error
-      mg_log, 'skipping file %s', file_basename(l0_file), name='kcor/rt', /error
+      mg_log, 'calibration exptime not defined', name=log_name, /error
+      mg_log, 'skipping file %s', file_basename(l0_file), name=log_name, /error
       continue
     endif else begin
       if (cal_exptime ne struct.exptime) then begin
         mg_log, 'cal file EXPTIME (%0.1f ms) does not match file (%0.1f ms) for %s', $
                 cal_exptime, struct.exptime, file_basename(l0_file), $
-                name='kcor/rt', /error
-        mg_log, 'skipping file %s', file_basename(l0_file), name='kcor/rt', /error
+                name=log_name, /error
+        mg_log, 'skipping file %s', file_basename(l0_file), name=log_name, /error
         continue
       endif
     endelse
@@ -622,8 +620,8 @@ pro kcor_l1, date, ok_files, $
     if (cal_lyotstop ne file_lyotstop) then begin
       mg_log, 'cal file LYOTSTOP (%s) does not match file (%s) for %s', $
               cal_lyotstop, file_lyotstop, file_basename(l0_file), $
-              name='kcor/rt', /error
-      mg_log, 'skipping file %s', file_basename(l0_file), name='kcor/rt', /error
+              name=log_name, /error
+      mg_log, 'skipping file %s', file_basename(l0_file), name=log_name, /error
       continue
     endif
 
@@ -655,7 +653,7 @@ pro kcor_l1, date, ok_files, $
     radius_guess = occulter / run->epoch('plate_scale')          ; pixels
 
     ; correct camera nonlinearity
-    kcor_correct_camera, img, header, run=run, logger_name='kcor/rt'
+    kcor_correct_camera, img, header, run=run, logger_name=log_name
 
     if (run.diagnostics) then begin
       save, img, header, filename=strmid(l0_file, 0, 20) + '_cam.sav'
@@ -664,7 +662,7 @@ pro kcor_l1, date, ok_files, $
     if (run->epoch('remove_horizontal_artifact')) then begin
       mg_log, 'correcting horizontal artifacts at lines: %s', $
               strjoin(strtrim(run->epoch('horizontal_artifact_lines'), 2), ', '), $
-              name='kcor/rt', /debug
+              name=log_name, /debug
       kcor_correct_horizontal_artifact, img, run->epoch('horizontal_artifact_lines')
     endif
 
@@ -672,7 +670,7 @@ pro kcor_l1, date, ok_files, $
 
     ; camera 0 (reflected)
     info_raw  = kcor_find_image(img[*, *, 0, 0], $
-                                radius_guess, /center_guess, log_name='kcor/rt')
+                                radius_guess, /center_guess, log_name=log_name)
 
     xcen0    = info_raw[0]
     ycen0    = info_raw[1]
@@ -692,7 +690,7 @@ pro kcor_l1, date, ok_files, $
 
     ; camera 1 (transmitted)
     info_raw = kcor_find_image(img[*, *, 0, 1], $
-                               radius_guess, /center_guess, log_name='kcor/rt')
+                               radius_guess, /center_guess, log_name=log_name)
 
     xcen1    = info_raw[0]
     ycen1    = info_raw[1]
@@ -711,21 +709,21 @@ pro kcor_l1, date, ok_files, $
     ; mask_occulter1[pick1] = 1.0
 
     mg_log, 'camera 0 center: %0.1f, %0.1f and radius: %0.1f', $
-            xcen0, ycen0, radius_0, name='kcor/rt', /debug
+            xcen0, ycen0, radius_0, name=log_name, /debug
     mg_log, 'camera 1 center: %0.1f, %0.1f and radius: %0.1f', $
-            xcen1, ycen1, radius_1, name='kcor/rt', /debug
+            xcen1, ycen1, radius_1, name=log_name, /debug
 
     if (xcen0 lt 512 - 100 || xcen0 gt 512 + 100) then begin
-      mg_log, 'camera 0 x-coordinate center out of bounds', name='kcor/rt', /warn
+      mg_log, 'camera 0 x-coordinate center out of bounds', name=log_name, /warn
     endif
     if (ycen0 lt 512 - 100 || ycen0 gt 512 + 100) then begin
-      mg_log, 'camera 0 y-coordinate center out of bounds', name='kcor/rt', /warn
+      mg_log, 'camera 0 y-coordinate center out of bounds', name=log_name, /warn
     endif
     if (xcen1 lt 512 - 100 || xcen1 gt 512 + 100) then begin
-      mg_log, 'camera 1 x-coordinate center out of bounds', name='kcor/rt', /warn
+      mg_log, 'camera 1 x-coordinate center out of bounds', name=log_name, /warn
     endif
     if (ycen1 lt 512 - 100 || ycen1 gt 512 + 100) then begin
-      mg_log, 'camera 1 y-coordinate center out of bounds', name='kcor/rt', /warn
+      mg_log, 'camera 1 y-coordinate center out of bounds', name=log_name, /warn
     endif
 
     ; create new gain to account for image shift
@@ -808,7 +806,7 @@ pro kcor_l1, date, ok_files, $
     demod_time = toc(dclock)
 
     mg_log, 'elapsed time for demod_matrix: %0.1f sec', demod_time, $
-            name='kcor/rt', /debug
+            name=log_name, /debug
 
     ; apply distortion correction for raw images
     img0 = reform(img[*, *, 0, 0])    ; camera 0 [reflected]
@@ -828,7 +826,7 @@ pro kcor_l1, date, ok_files, $
 
     ; find image centers of distortion-corrected images
     ; camera 0:
-    info_dc0 = kcor_find_image(cimg0, radius_guess, /center_guess, log_name='kcor/rt')
+    info_dc0 = kcor_find_image(cimg0, radius_guess, /center_guess, log_name=log_name)
     xcc0     = info_dc0[0]
     ycc0     = info_dc0[1]
     distcor_radius_0 = info_dc0[2]
@@ -843,7 +841,7 @@ pro kcor_l1, date, ok_files, $
     endif
 
     ; camera 1:
-    info_dc1 = kcor_find_image(cimg1, radius_guess, /center_guess, log_name='kcor/rt')
+    info_dc1 = kcor_find_image(cimg1, radius_guess, /center_guess, log_name=log_name)
     xcc1     = info_dc1[0]
     ycc1     = info_dc1[1]
     distcor_radius_1 = info_dc1[2]
@@ -896,7 +894,7 @@ pro kcor_l1, date, ok_files, $
     for s = 0, 2 do begin
       camera_0 = kcor_fshift(cal_data[*, *, 0, s], deltax, deltay)
       camera_1 = cal_data[*, *, 1, s]
-      mg_log, 'cameras used: %s', run.cameras, name='kcor/rt', /debug
+      mg_log, 'cameras used: %s', run.cameras, name=log_name, /debug
       case run.cameras of
         '0': cal_data_combined[*, *, s] = camera_0
         '1': cal_data_combined[*, *, s] = camera_1
@@ -918,7 +916,7 @@ pro kcor_l1, date, ok_files, $
 
     intensity = cal_data_combined[*, *, 0]
     mg_log, 'performing polarization coord transformation', $
-            name='kcor/rt', /debug
+            name=log_name, /debug
 
     if (doplot eq 1) then begin
       tv, bytscl(umk4, -0.5, 0.5)
@@ -982,26 +980,26 @@ pro kcor_l1, date, ok_files, $
         tv, bytscl(umk4, -0.5, 0.5)
       endif
     endif else begin
-      mg_log, 'skipping shfting image to center', name='kcor/rt', /debug
+      mg_log, 'skipping shfting image to center', name=log_name, /debug
     endelse
 
     ; sky polarization removal on coordinate-transformed data
     case strlowcase(run.skypol_method) of
       'subtraction': begin
           mg_log, 'correcting sky polarization with subtraction method', $
-                  name='kcor/rt', /debug
+                  name=log_name, /debug
           qmk4_new = float(qmk4)
           ; umk4 contains the corona
           umk4_new = float(umk4) - float(rot(qmk4, 45.0)) + run->epoch('skypol_bias')
         end
       'sine2theta': begin
           mg_log, 'correcting sky polarization with sine2theta (%d params) method', $
-                  run->epoch('sine2theta_nparams'), name='kcor/rt', /debug
+                  run->epoch('sine2theta_nparams'), name=log_name, /debug
           kcor_sine2theta_method, umk4, qmk4, intensity, radsun, theta1, rr1, $
                                   q_new=qmk3_new, u_new=umk4_new, $
                                   run=run
         end
-      else: mg_log, 'no sky polarization correction', name='kcor/rt', /debug
+      else: mg_log, 'no sky polarization correction', name=log_name, /debug
     endcase
 
     ; use only corona minus sky polarization background
@@ -1009,7 +1007,7 @@ pro kcor_l1, date, ok_files, $
 
     vdimref = kcor_getsgs(header, 'SGSDIMV', /float)
     mg_log, 'flat DIMV: %0.1f, image DIMV: %0.1f', flat_vdimref, vdimref, $
-            name='kcor/rt', /debug
+            name=log_name, /debug
     if (finite(vdimref) && finite(flat_vdimref)) then begin
       corona *= flat_vdimref / vdimref
     endif
@@ -1517,7 +1515,7 @@ pro kcor_l1, date, ok_files, $
 
     ; write Helioviewer JPEG2000 image to a web accessible directory
     if (run.hv_basedir ne '') then begin
-      hv_kcor_write_jp2, scaled_image, newheader, run.hv_basedir, log_name='kcor/rt'
+      hv_kcor_write_jp2, scaled_image, newheader, run.hv_basedir, log_name=log_name
     endif
 
     ; now make cropped GIF file
@@ -1526,16 +1524,16 @@ pro kcor_l1, date, ok_files, $
     ; create NRG (normalized, radially-graded) GIF image
     cd, l1_dir
     if (osecond lt 15 and fix(ominute / 2) * 2 eq ominute) then begin
-      kcor_nrgf, l1_file, run=run, log_name='kcor/rt'
-      mg_log, /check_math, name='kcor/rt', /debug
-      kcor_nrgf, l1_file, /cropped, run=run, log_name='kcor/rt'
-      mg_log, /check_math, name='kcor/rt', /debug
+      kcor_nrgf, l1_file, run=run, log_name=log_name
+      mg_log, /check_math, name=log_name, /debug
+      kcor_nrgf, l1_file, /cropped, run=run, log_name=log_name
+      mg_log, /check_math, name=log_name, /debug
     endif
 
     cd, l0_dir
 
     loop_time = toc(lclock)   ; save loop time.
-    mg_log, '%0.1f sec to process %s', loop_time, l0_file, name='kcor/rt', /debug
+    mg_log, '%0.1f sec to process %s', loop_time, l0_file, name=log_name, /debug
   endforeach   ; end file loop
 
   ; drop the first file from OK files if skipped
@@ -1554,8 +1552,8 @@ pro kcor_l1, date, ok_files, $
     image_time = 0.0
   endelse
 
-  mg_log, /check_math, name='kcor/rt', /debug
+  mg_log, /check_math, name=log_name, /debug
   mg_log, 'processed %d images in %0.1f sec', nfiles, total_time, $
-          name='kcor/rt', /info
-  mg_log, 'time/image: %0.1f sec', image_time, name='kcor/rt', /info
+          name=log_name, /info
+  mg_log, 'time/image: %0.1f sec', image_time, name=log_name, /info
 end

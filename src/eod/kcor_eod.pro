@@ -127,6 +127,12 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     kcor_redo_nrgf, date, run=run
   endif
 
+  if (n_l0_fits_files gt 0L) then begin
+    nomask_l0_filenames = l0_fits_files[0:*:60]
+    kcor_l1, date, nomask_l0_filenames, /nomask, run=run, $
+             log_name='kcor/eod', error=error
+  endif
+
   nrgf_glob = filepath('*_kcor_l1.5_nrgf.fts.gz', $
                        subdir=[date, 'level1'], root=run.raw_basedir)
   nrgf_files = file_search(nrgf_glob, count=n_nrgf_files)
