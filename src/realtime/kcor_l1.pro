@@ -392,7 +392,9 @@ pro kcor_l1, date, ok_files, $
             fnum, nfiles, file_basename(l0_file), $
             name='kcor/rt', /info
 
-    l1_file = strmid(l0_file, 0, 20) + '_l1.5.fts'
+    l1_file = string(strmid(l0_file, 0, 20), $
+                     keyword_set(nomask) ? '_nomask' : '', $
+                     format='(%"%s_l1.5%s.fts")')
 
     ; skip first good image of the day
     if (~kcor_state(/first_image, run=run)) then begin
@@ -1088,6 +1090,9 @@ pro kcor_l1, date, ok_files, $
     device, decomposed=1
     save     = tvrd()
     gif_file = strmid(l0_file, 0, 20) + '_l1.5.gif'
+    gif_file = string(strmid(l0_file, 0, 20), $
+                      keyword_set(nomask) ? '_nomask' : '', $
+                      format='(%"%s_l1.5%s.gif")')
     write_gif, filepath(gif_file, root=l1_dir), save, red, green, blue
 
     ;----------------------------------------------------------------------------
