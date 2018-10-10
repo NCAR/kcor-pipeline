@@ -148,15 +148,15 @@ pro hv_write_jp2_lwg, file, image, $
     w = where(details.details.measurement eq measurement)
     if (w[0] eq -1) then begin
       supported_yn = 0
-      mg_log, 'Nickname = %s with measurement = not explicitly supported. Continuing.', $
-              details.nickname, name=log_name, /warn
+      mg_log, 'Nickname = %s with measurement = %s not explicitly supported. Continuing.', $
+              details.nickname, measurement, name=log_name, /warn
     endif else begin
       supported_yn = 1
       obsdet = details.details[w]
     endelse
 
     ; is this observer supported? 
-    if not(supported_yn) then begin
+    if (~supported_yn) then begin
       mg_log, 'unsupported observer, contining.', name=log_name, /warn
     endif else begin
       ; get contact details

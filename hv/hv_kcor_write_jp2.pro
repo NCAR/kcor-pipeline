@@ -30,7 +30,7 @@ pro hv_kcor_write_jp2, image, header, root_directory, log_name=log_name
 
   ; define the measurement name as used in Helioviewer; only one measurement
   ; type from KCor
-  measurement = 'white-light'
+  measurement = 'white-light-pB'
 
   ; nice way to get the times out of the date
   ext = anytim2utc(sxpar(header, 'DATE-OBS'), /ext)

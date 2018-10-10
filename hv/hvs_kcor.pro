@@ -46,7 +46,11 @@ function hvs_kcor
 
   ; each measurement requires some details to control the creation of
   ; JP2 files
-  d = {measurement: '', n_levels: 8, n_layers: 8, idl_bitdepth: 8, bit_rate: [8.0,0.01]}
+  d = {measurement: '', $
+       n_levels: 8, $
+       n_layers: 8, $
+       idl_bitdepth: 8, $
+       bit_rate: [8.0, 0.01]}
 
   ; in this case, each LASCO-C3 measurement requires the same type of details
   a = replicate(d , 1)
@@ -62,7 +66,7 @@ function hvs_kcor
        rocc_inner: 1.05,$                       ; in solar radii
        rocc_outer: 3.0}                         ; in solar radii
 
-  ; white-light
+  ; white-light-pB
   b.details[0].measurement = 'white-light-pB'   ; required
   b.details[0].n_levels = 8                     ; required
   b.details[0].n_layers = 8                     ; required
