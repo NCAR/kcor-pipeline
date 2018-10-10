@@ -79,7 +79,7 @@ pro kcor_save_results, date, run=run
   log_files = file_search(filepath('*.log', subdir=date, root=run.raw_basedir), $
                           count=n_log_files)
   if (n_log_files gt 0L) then begin
-    file_copy, log_files, save_dir
+    file_copy, log_files, save_dir, /overwrite
     mg_log, 'saving %d logfiles', n_log_files, $
             name='kcor/eod', /debug
   endif

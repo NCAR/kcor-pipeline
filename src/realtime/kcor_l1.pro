@@ -390,7 +390,7 @@ pro kcor_l1, date, ok_files, $
             fnum, nfiles, file_basename(l0_file), $
             name=log_name, /info
 
-    l1_file = string(strmid(l0_file, 0, 20), $
+    l1_file = string(strmid(file_basename(l0_file), 0, 20), $
                      keyword_set(nomask) ? '_nomask' : '', $
                      format='(%"%s_l1.5%s.fts")')
 
@@ -656,7 +656,7 @@ pro kcor_l1, date, ok_files, $
     kcor_correct_camera, img, header, run=run, logger_name=log_name
 
     if (run.diagnostics) then begin
-      save, img, header, filename=strmid(l0_file, 0, 20) + '_cam.sav'
+      save, img, header, filename=strmid(file_basename(l0_file), 0, 20) + '_cam.sav'
     endif
 
     if (run->epoch('remove_horizontal_artifact')) then begin
@@ -1087,8 +1087,7 @@ pro kcor_l1, date, ok_files, $
 
     device, decomposed=1
     save     = tvrd()
-    gif_file = strmid(l0_file, 0, 20) + '_l1.5.gif'
-    gif_file = string(strmid(l0_file, 0, 20), $
+    gif_file = string(strmid(file_basename(l0_file), 0, 20), $
                       keyword_set(nomask) ? '_nomask' : '', $
                       format='(%"%s_l1.5%s.gif")')
     write_gif, filepath(gif_file, root=l1_dir), save, red, green, blue
@@ -1523,7 +1522,8 @@ pro kcor_l1, date, ok_files, $
 
     ; create NRG (normalized, radially-graded) GIF image
     cd, l1_dir
-    if (osecond lt 15 and fix(ominute / 2) * 2 eq ominute) then begin
+    if (osecond lt 15 and fix(ominute / 2) * 2 eq ominute $
+          and ~keyword_set(nomask)) then begin
       kcor_nrgf, l1_file, run=run, log_name=log_name
       mg_log, /check_math, name=log_name, /debug
       kcor_nrgf, l1_file, /cropped, run=run, log_name=log_name
