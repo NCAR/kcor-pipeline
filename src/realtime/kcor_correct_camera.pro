@@ -15,7 +15,7 @@
 ;   logger_name : in, optional, type=string
 ;     name of the logger to log to
 ;-
-pro kcor_correct_camera, im, header, run=run, logger_name=logger_name
+pro kcor_correct_camera, im, header, run=run, logger_name=logger_name, xoffset=xoffset
   compile_opt strictarr
 
   im = float(im)
@@ -71,7 +71,13 @@ pro kcor_correct_camera, im, header, run=run, logger_name=logger_name
     mg_log, '%s not found', rcam_cor_filename, name=logger_name, /error
     return
   endelse
-  fp[*, *, *, 0] = kcor_read_camera_correction(rcam_cor_filename)
+  fp[*, *, *, 0] = kcor_read_camera_correction(rcam_cor_filename, $
+                                               bad_columns=rbad_columns, $
+                                               n_bad_columns=n_rbad_columns, $
+                                               bad_values=rbad_values, $
+                                               n_bad_values=n_rbad_values)
+  mg_log, 'RCAM fit: %d bad cols, %d bad values', n_rbad_columns, n_rbad_values, $
+          name=logger_name, /debug
 
   tcam_cor_filename = filepath(string(prefix, tcamid, exposure, $
                                       tcam_lut_date, $
@@ -83,7 +89,15 @@ pro kcor_correct_camera, im, header, run=run, logger_name=logger_name
     mg_log, '%s not found', tcam_cor_filename, name=logger_name, /error
     return
   endelse
-  fp[*, *, *, 1] = kcor_read_camera_correction(tcam_cor_filename)
+  fp[*, *, *, 1] = kcor_read_camera_correction(tcam_cor_filename, $
+                                               bad_columns=tbad_columns, $
+                                               n_bad_columns=n_tbad_columns, $
+                                               bad_values=tbad_values, $
+                                               n_bad_values=n_tbad_values)
+  mg_log, 'TCAM fit: %d bad cols, %d bad values', n_tbad_columns, n_tbad_values, $
+          name=logger_name, /debug
+
+  if (n_elements(xoffset) gt 0L) then fp = shift(fp, xoffset, 0, 0, 0)
 
   ; scale the data to 0..1
   bitpix = sxpar(header, 'BITPIX')
@@ -106,19 +120,105 @@ end
 
 ; main-level example program
 
-date = '20170607'
+;date = '20170409'
+;date = '20170521'
+date = '20170523'
 
-run = kcor_run(date, config_filename='../../config/kcor.mgalloy.mahi.reprocess-new.cfg')
+run = kcor_run(date, config_filename='../../config/kcor.mgalloy.twilight.caltest.cfg')
+run_nocamcor = kcor_run(date, config_filename='../../config/kcor.mgalloy.twilight.caltest-nocamcor.cfg')
 
-f = '20170607_192612_kcor.fts'
+;= For 20170409
+;f = '20170410_004543_kcor.fts.gz'   ; dev
+;ok_file = '20170409_171825_kcor.fts.gz'   ; ok
+;dark_file = '20170409_190638_kcor.fts.gz'   ; dark
+;f = '20170409_190941_kcor.fts.gz'   ; cal pol 0.0
+;flat_file = '20170409_190810_kcor.fts.gz'   ; flat
 
-im = readfits(filepath(f, subdir=[date], root=run.raw_basedir), header, /silent)
-original_im = im
-kcor_correct_camera, im, header, run=run
 
-mg_image, im[*, *, 0, 0], /new, title='Corrected'
-mg_image, original_im[*, *, 0, 0], /new, title='Original'
+;= For 20170521
+;ok_file = '20170521_165619_kcor.fts.gz'   ; ok
+;ok_file = '20170521_170208_kcor.fts.gz'   ; ok
+;dark_file = '20170521_183511_kcor.fts.gz'   ; dark
+;flat_file = '20170521_183657_kcor.fts.gz'   ; flat
 
-obj_destroy, run
+ok_files = file_search(filepath('*.fts.gz', subdir=[date, 'level0'], root=run.raw_basedir), count=n_ok_files)
+
+camcor_dir = filepath('', subdir=[date, 'camcor'], root=run.raw_basedir)
+if (~file_test(camcor_dir, /directory)) then file_mkdir, camcor_dir
+nocamcor_dir = filepath('', subdir=[date, 'nocamcor'], root=run_nocamcor.raw_basedir)
+if (~file_test(nocamcor_dir, /directory)) then file_mkdir, nocamcor_dir
+
+for i = 0L, n_ok_files - 1L do begin
+  ok_file = ok_files[i]
+
+  print, i + 1, n_ok_files, file_basename(ok_file), format='(%"%d/%d: %s")'
+
+  im = readfits(ok_file, header, /silent)
+  original_im = float(im)
+  kcor_correct_camera, im, header, run=run, xoffset=0
+
+  cal_file = filepath(run->epoch('cal_file'), root=run.cal_out_dir)
+  cal_file_nocamcor = filepath(run->epoch('cal_file'), root=run_nocamcor.cal_out_dir)
+
+  ;print, cal_file
+  ;print, cal_file_nocamcor
+
+  cals = kcor_read_calibration(cal_file)
+  cals_nocamcor = kcor_read_calibration(cal_file_nocamcor)
+
+  flat = cals.gain[*, *, *]
+  dark = cals.dark[*, *, *]
+
+  flat_nocamcor = cals_nocamcor.gain[*, *, *]
+  dark_nocamcor = cals_nocamcor.dark[*, *, *]
+
+  ;flat = readfits(filepath(flat_file, subdir=[date, 'level0'], root=run.raw_basedir), header, /silent)
+  original_flat = float(flat)
+  ;kcor_correct_camera, flat, header, run=run, xoffset=0
+
+  ;dark = readfits(filepath(dark_file, subdir=[date, 'level0'], root=run.raw_basedir), header, /silent)
+  original_dark = float(dark)
+  ;kcor_correct_camera, dark, header, run=run, xoffset=0
+
+  ;print, mg_range(im)
+  ;print, mg_range(original_im)
+
+  camera = 1
+
+  corona = (im - rebin(reform(dark, 1024, 1024, 1, 2), 1024, 1024, 4, 2) / rebin(reform(flat, 1024, 1024, 1, 2), 1024, 1024, 4, 2))
+  corona_nocamcor = (original_im - rebin(reform(dark_nocamcor, 1024, 1024, 1, 2), 1024, 1024, 4, 2) / rebin(reform(flat_nocamcor, 1024, 1024, 1, 2), 1024, 1024, 4, 2))
+
+  pB = sqrt((corona[*, *, 1, camera] - corona[*, *, 2, camera])^2 + (corona[*, *, 0, camera] - corona[*, *, 3, camera])^2)
+  pB_nocamcor = sqrt((corona_nocamcor[*, *, 1, camera] - corona_nocamcor[*, *, 2, camera])^2 + (corona_nocamcor[*, *, 0, camera] - corona_nocamcor[*, *, 3, camera])^2)
+
+  y = 512
+  ;device, decomposed=1
+  ;window, xsize=1000, ysize=400, /free, title='I corona'
+  ;plot, corona[*, y, 0, camera], xstyle=9, ystyle=9, yrange=[-1000.0, 20000.0], /nodata
+
+  ;oplot, corona_nocamcor[*, y, 0, 0], color='aaaaaa'x
+  ;oplot, corona[*, y, 0, camera], color='0000ff'x
+
+  ;window, xsize=1000, ysize=400, /free, title='Raw'
+  ;plot, original_l1[*, y, 0, 0], xstyle=9, ystyle=9, yrange=[-1000.0, 20000.0], /nodata
+
+  ;oplot, original_im[*, y, 0, 0], color='aaaaaa'x
+  ;oplot, im[*, y, 0, 0], color='0000ff'x
+
+  writefits, filepath(file_basename(ok_file, '.fts.gz') + '-camcor.fts', $
+                      root=camcor_dir), $
+             pB, header
+  writefits, filepath(file_basename(ok_file, '.fts.gz') + '-nocamcor.fts', $
+                      root=nocamcor_dir), $
+             pB_nocamcor, header
+
+  ;window, xsize=1024, ysize=1024, title='pB (with camera correction)', /free
+  ;tv, bytscl(pB, 0.0, 100.0)
+
+  ;window, xsize=1024, ysize=1024, title='pB (without camera correction)', /free
+  ;tv, bytscl(pB_nocamcor, 0.0, 100.0)
+endfor
+
+obj_destroy, [run, run_nocamcor]
 
 end
