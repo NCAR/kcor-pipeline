@@ -26,6 +26,8 @@
 pro kcor_plotcenters, date, list=list, append=append, run=run
   compile_opt strictarr
 
+  cd, current=start_dir   ; save current directory
+
   ; store initial system time
   tic
 
@@ -64,12 +66,10 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     goto, done
   endif
 
+  cd, l0_dir              ; move to date directory
+
   ; create p sub-directory, if needed
   if (~file_test(plots_dir, /directory)) then file_mkdir, plots_dir
-
-  ; move to 'L0' directory
-  cd, current=start_dir   ; save current directory.
-  cd, l0_dir              ; move to date directory.
 
   doview = 0
 
@@ -102,23 +102,39 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
   ; declare storage for occulting centers
 
-  hours  = fltarr(n_images)
+  hours  = fltarr(n_images) + !values.f_nan
 
-  fxcen0 = fltarr(n_images)
-  fycen0 = fltarr(n_images)
-  frocc0 = fltarr(n_images)
+  fxcen0 = fltarr(n_images) + !values.f_nan
+  fycen0 = fltarr(n_images) + !values.f_nan
+  frocc0 = fltarr(n_images) + !values.f_nan
 
-  fxcen1 = fltarr(n_images)
-  fycen1 = fltarr(n_images)
-  frocc1 = fltarr(n_images)
+  fxcen1 = fltarr(n_images) + !values.f_nan
+  fycen1 = fltarr(n_images) + !values.f_nan
+  frocc1 = fltarr(n_images) + !values.f_nan
 
-  dcr_diff = fltarr(n_images)
+  dcr_diff = fltarr(n_images) + !values.f_nan
 
   n_digits = floor(alog10(n_images)) + 1L   ; for formatting
+
+  ; corresponding L1.5 files
+  l1_basenames = string(strmid(file_basename(list), 0, 15), $
+                        format='(%"%s_kcor_l1.5.fts.gz")')
+  l1_filenames = filepath(l1_basenames, $
+                          subdir=[date, 'level1'], $
+                          root=run.raw_basedir)
 
   ; image file loop
   for i = 0L, n_images - 1L do begin
     l0_file = list[i]
+
+    if (~file_test(l1_filenames[i], /regular)) then begin
+      mg_log, 'no corresponding L1.5 file', $
+              name='kcor/eod', /debug
+      mg_log, 'skipping %s', file_basename(l0_file), $
+              name='kcor/eod', /debug
+      continue
+    endif
+
     img = readfits (l0_file, hdu, /silent)   ; read fits image & header
 
     img0 = reform(img[*, *, 0, 0])
@@ -351,22 +367,22 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
   erase
 
   plot, hours, fxcen0, title=pdate + '  Camera 0 occulter raw X center', $
-        xtitle='Hours [UT]', ytitle='X center', $
+        xtitle='Hours [UT]', ytitle='X center pixel location', $
         background=255, color=0, charsize=2.0, $
         yrange=[480.0, 540.0]
 
   plot, hours, fycen0, title=pdate + '  Camera 0 occulter raw Y center', $
-        xtitle='Hours [UT]', ytitle='Y center', $
+        xtitle='Hours [UT]', ytitle='Y center pixel location', $
         background=255, color=0, charsize=2.0, $
         yrange=[480.0, 540.0]
 
   plot, hours, fxcen1, title=pdate + '  Camera 1 occulter X raw center', $
-        xtitle='Hours [UT]', ytitle='X center', $
+        xtitle='Hours [UT]', ytitle='X center pixel location', $
         background=255, color=0, charsize=2.0, $
         yrange=[480.0, 540.0]
 
   plot, hours, fycen1, title=pdate + '  Camera 1 occulter Y raw center', $
-        xtitle='Hours [UT]', ytitle='Y center', $
+        xtitle='Hours [UT]', ytitle='Y center pixel location', $
         background=255, color=0, charsize=2.0, $
         yrange=[480.0, 540.0]
    
@@ -383,12 +399,12 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
   erase
 
   plot, hours, frocc0, title=pdate + '  Camera 0 occulter raw radius (pixels)', $
-        xtitle='Hours [UT]', ytitle='X center', $
+        xtitle='Hours [UT]', ytitle='radius [pixels]', $
         background=255, color=0, charsize=2.0, $
         yrange=[175.0, 185.0]
 
   plot, hours, frocc1, title=pdate + '  Camera 1 occulter raw radius (pixels)', $
-        xtitle='Hours [UT]', ytitle='X center', $
+        xtitle='Hours [UT]', ytitle='radius [pixels]', $
         background=255, color=0, charsize=2.0, $
         yrange=[175.0, 185.0]
 
@@ -404,15 +420,34 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
   cd, l0_dir
 
-  done:
-  cd, start_dir
-  !p.multi = 0
-  set_plot, 'X'
-
   ; get elapsed time since TIC
   qtime = toc()
 
   mg_log, '%d images plotted in %0.1f sec', n_images, qtime, $
           name='kcor/eod', /info
   mg_log, '%0.1f sec/image', qtime / n_images, name='kcor/eod', /info
+
+  done:
+  cd, start_dir
+  !p.multi = 0
+  set_plot, 'X'
+end
+
+
+; main-level example program
+
+date = '20180728'
+config_file = filepath('kcor.mgalloy.twilight.latest.cfg', $
+                       subdir=['..', '..', 'config'], $
+                       root=mg_src_root())
+run = kcor_run(date, config_file=config_file)
+
+glob = filepath('*_kcor.fts.gz', $
+                subdir=[date, 'level0'], $
+                root=run.raw_basedir)
+files = file_search(glob, count=n_files)
+kcor_plotcenters, date, list=files, run=run
+
+obj_destroy, run
+
 end

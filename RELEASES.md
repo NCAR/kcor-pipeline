@@ -214,3 +214,4 @@
 1.5.5 [Sep 21, 2018]
   bug fix
 1.5.6
+  engineering plot fixes
