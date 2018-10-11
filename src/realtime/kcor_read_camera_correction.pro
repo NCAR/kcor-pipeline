@@ -20,12 +20,16 @@
 ;     1024 by 1024 array
 ;   n_bad_values : out, optional, type=long
 ;     number of individual bad values
+;   interpolate : in, optional, type=boolean
+;     set to interpolate over bad values (not bad columns)
 ;-
 function kcor_read_camera_correction, filename, $
                                       bad_columns=bad_columns, $
                                       n_bad_columns=n_bad_columns, $
                                       bad_values=bad_values, $
-                                      n_bad_values=n_bad_values
+                                      n_bad_values=n_bad_values, $
+                                      mask=bad_pixel_mask, $
+                                      interpolate=interpolate
   compile_opt strictarr
 
   id = ncdf_open(filename)
@@ -39,10 +43,14 @@ function kcor_read_camera_correction, filename, $
   ncdf_close, id
 
   compute_bad_columns = arg_present(bad_columns) || arg_present(n_bad_columns)
-  compute_bad_values = arg_present(bad_values) || arg_present(n_bad_values)
+  compute_bad_values = arg_present(bad_values) $
+                         || arg_present(n_bad_values) $
+                         || keyword_set(interpolate)
 
   if (compute_bad_columns || compute_bad_values) then begin
     dims = size(bad_pixel_mask, /dimensions)
+
+    bad_pixel_mask or= (fit_params[*, *, 4] gt 1.0) or (fit_params[*, *, 4] lt -1.0)
 
     ; number of bad pixels in a column to call it a bad column
     bad_column_max = dims[1]
@@ -62,5 +70,48 @@ function kcor_read_camera_correction, filename, $
     endif
   endif
 
+  if (keyword_set(interpolate)) then begin
+    fit_dims = size(fit_params, /dimensions)
+
+    width = 21
+    kernel = fltarr(width, width) + 1.0
+    c = width / 2
+    kernel[c - 2:c + 2, c - 2:c + 2] = 0.0
+
+    for f = 0L, fit_dims[2] - 1L do begin
+      k = reform(fit_params[*, *, f])
+      k1 = convol(k, kernel, /center, /normalize, /edge_truncate)
+      k[bad_values] = k1[bad_values]
+      fit_params[*, *, f] = k
+    endfor
+  endif
+
   return, fit_params
+end
+
+
+; main-level example program
+
+basename = 'camera_calibration_MV-D1024E-CL-13890_02.5000_lut20160716-13890.ncdf'
+filename = filepath(basename, root='/home/mgalloy/Downloads')
+print, 'reading uncorrected camera correction...'
+uncorrected_fit = kcor_read_camera_correction(filename, bad_values=bad_values, mask=mask)
+print, 'reading corrected camera correction...'
+corrected_fit = kcor_read_camera_correction(filename, /interpolate)
+
+uncorrected_k0 = reform(uncorrected_fit[*, *, 4])
+corrected_k0 = reform(corrected_fit[*, *, 4])
+
+mg_image, bytscl(corrected_k0, -10.0, 10.0), /new, title='Corrected'
+write_png, 'corrected.png', tvrd(true=1)
+
+mg_image, bytscl(uncorrected_k0, -10.0, 10.0), /new, title='Uncorrected'
+write_png, 'uncorrected.png', tvrd(true=1)
+
+mg_image, bytscl(uncorrected_k0, -10.0, 10.0), /new, title='Bad values'
+b_values = where(mask)
+xy = array_indices(corrected_k0, b_values)
+plots, xy[0, *], xy[1, *], /device, color='0000ff'x, psym=3
+write_png, 'bad.png', tvrd(true=1)
+
 end

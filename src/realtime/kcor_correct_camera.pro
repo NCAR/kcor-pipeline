@@ -75,7 +75,8 @@ pro kcor_correct_camera, im, header, run=run, logger_name=logger_name, xoffset=x
                                                bad_columns=rbad_columns, $
                                                n_bad_columns=n_rbad_columns, $
                                                bad_values=rbad_values, $
-                                               n_bad_values=n_rbad_values)
+                                               n_bad_values=n_rbad_values, $
+                                               /interpolate)
   mg_log, 'RCAM fit: %d bad cols, %d bad values', n_rbad_columns, n_rbad_values, $
           name=logger_name, /debug
 
@@ -93,7 +94,8 @@ pro kcor_correct_camera, im, header, run=run, logger_name=logger_name, xoffset=x
                                                bad_columns=tbad_columns, $
                                                n_bad_columns=n_tbad_columns, $
                                                bad_values=tbad_values, $
-                                               n_bad_values=n_tbad_values)
+                                               n_bad_values=n_tbad_values, $
+                                               /interpolate)
   mg_log, 'TCAM fit: %d bad cols, %d bad values', n_tbad_columns, n_tbad_values, $
           name=logger_name, /debug
 
