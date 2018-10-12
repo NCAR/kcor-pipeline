@@ -563,7 +563,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
     cme_email = self.options->get('email', section='cme')
   endif
   if (arg_present(cme_from_email)) then begin
-    cme_from_email = self.options->get('from_email', section='cme')
+    cme_from_email = self.options->get('from_email', section='cme', default='')
   endif
 
   ; database
