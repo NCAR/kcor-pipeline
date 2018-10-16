@@ -411,8 +411,8 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   ssh_key_str = run.ssh_key eq '' ? '' : string(run.ssh_key, format='(%"-i %s")')
   cmd = string(ssh_key_str, run.raw_remote_server, run.raw_remote_dir, date, $
                format='(%"ssh %s %s ls %s/%s/*.fts | wc -l")')
-  spawn, cmd, output, error_output, exit_status=status
-  if (status ne 0L) then begin
+  spawn, cmd, output, error_output, exit_status=exit_status
+  if (exit_status ne 0L) then begin
     mg_log, 'problem checking raw files on %s:%s', $
             run.raw_remote_server, run.raw_remote_dir, $
             name=logger_name, /error
