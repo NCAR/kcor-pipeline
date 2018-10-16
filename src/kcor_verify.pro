@@ -200,8 +200,8 @@ pro kcor_verify, date, config_filename=config_filename, status=status
           file_basename(list_filename), n_list_lines, $
           name=logger_name, /info
 
-  ; subtract t1 and t2 logs from tarlist file, i.e., -2 below
-  if ((n_log_lines ne n_list_lines - 2) || (n_list_lines eq 0)) then begin 
+  ; subtract t1, t2, and machine logs from tarlist file, i.e., -3 below
+  if ((n_log_lines ne n_list_lines - 3) || (n_list_lines eq 0)) then begin 
     mg_log, '# of lines in t1.log and tarlist do not match', $
             name=logger_name, /error
     status = 1L
@@ -217,12 +217,12 @@ pro kcor_verify, date, config_filename=config_filename, status=status
 
   ; TEST: match sizes of files to log
 
-  list_names = strarr(n_list_lines - 2L)
-  list_sizes = lonarr(n_list_lines - 2L)
+  list_names = strarr(n_list_lines - 3L)
+  list_sizes = lonarr(n_list_lines - 3L)
 
   line = ''
   openr, lun, list_filename, /get_lun
-  for i = 0L, n_list_lines - 3L do begin 
+  for i = 0L, n_list_lines - 4L do begin 
     readf, lun, line
     tokens = strsplit(line, /extract)
     list_names[i] = tokens[5]
@@ -359,7 +359,9 @@ pro kcor_verify, date, config_filename=config_filename, status=status
 
   tempf = ''
   openr, lun, list_filename, /get_lun
-  for j = 0L, n_list_lines - 3L do begin 
+
+  ; last three lines are t1, t2, and machine logs
+  for j = 0L, n_list_lines - 4L do begin
     readf, lun, tempf
 
     ; read files and size in the tar list 
