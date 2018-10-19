@@ -55,7 +55,7 @@ function kcor_find_image, data, radius_guess, $
   data = double(data)
 
   if (debug eq 1) then begin
-    datamax = 25000 
+    datamax = 25000
     if (max(data) lt datamax) then datamax = 2000
     window, xsize=1024, ysize=1024, retain=2
     loadct, 0
