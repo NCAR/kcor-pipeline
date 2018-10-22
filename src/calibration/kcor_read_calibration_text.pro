@@ -82,7 +82,6 @@ function kcor_read_calibration_text, date, process_basedir, $
 
       dark = tokens[6] eq 'in'                              ; dark in
       flat = (tokens[8] eq 'in') && (tokens[10] eq 'out')   ; diff in, cal out
-      angle = float(tokens[12])
 
       means = reform(float(tokens[14:21]) * sunearth_dist^2, 4, 2)
 
@@ -112,6 +111,7 @@ function kcor_read_calibration_text, date, process_basedir, $
             endfor
           end
         else: begin
+            angle = float(tokens[12])
             !null = min(angle_values - angle, calpol_angle_index)
             calpol_angle_index mod= 8   ; 180.0 degrees is same as 0.0 degrees
             for p = 0, 3, do begin
