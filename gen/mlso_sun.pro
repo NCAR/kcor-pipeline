@@ -81,7 +81,7 @@
 	  print,'   TRUE_RA = true RA (hours).'
 	  print,'   TRUE_DEC = true Dec (deg).'
 	  print,'   APP_RA = apparent RA (hours).'
-	  print,'   APP_DEC = apparent Dec (deg).
+	  print,'   APP_DEC = apparent Dec (deg).'
 	  print,'   LAT0 = latitude at center of disk (deg).'
 	  print,'   LONG0 = longitude at center of disk (deg).'
 	  print,'   PA = position angle of rotation axis (deg).'
