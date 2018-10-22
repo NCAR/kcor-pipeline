@@ -89,7 +89,8 @@ function kcor_run::epoch, name, time=time
         return, self->_readepoch('use_default_darks', self.date, hst_time, /boolean)
       end
     'gbuparams_filename': begin
-        return, self->_readepoch('gbuparams_filename', self.date, hst_time, type=7)
+        return, self->_readepoch('gbuparams_filename', self.date, hst_time, $
+                                 type=7, default='')
       end
     'skypol_bias': return, self->_readepoch('skypol_bias', self.date, hst_time, type=4)
     'skypol_factor': return, self->_readepoch('skypol_factor', self.date, hst_time, type=4) 

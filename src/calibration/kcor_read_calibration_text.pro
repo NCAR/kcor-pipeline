@@ -21,10 +21,12 @@
 ;-
 function kcor_read_calibration_text, date, process_basedir, $
                                      exposures=exposures, $
-                                     n_files=n_files, run=run, $
+                                     n_files=n_files, $
                                      all_files=filenames, $
                                      n_all_files=n_all_files, $
-                                     quality=quality
+                                     quality=quality, $
+                                     run=run
+
   compile_opt strictarr
 
   cal_file = filepath('calibration_files.txt', $
@@ -51,16 +53,80 @@ function kcor_read_calibration_text, date, process_basedir, $
   exposures = strarr(n_files)
   quality   = lonarr(n_files)
 
+  angle_values = findgen(9) / 8.0 * 180.0
+
   for i = 0L, n_files - 1L do begin
     tokens = strsplit(text[i], /extract)
     filenames[i] = tokens[0]
     exposures[i] = tokens[1]
 
-    run.time = strmid(tokens[0], 9, 6)
+    file_date = strmid(tokens[0], 0, 8)
+    file_time = strmid(tokens[0], 9, 6)
+    run.time = file_time
 
-    ; TODO: eventually this quality will be determined by a GBU process, now is
-    ; is either 0 or 99
-    quality[i] = 99L * run->epoch('process') * run->epoch('use_calibration_data')
+    ; use GBU params file, if specified for epoch
+    gbuparams_basename = run->epoch('gbuparams_filename')
+    if (gbuparams_basename eq '') then begin
+      quality[i] = 99L * run->epoch('process') * run->epoch('use_calibration_data')
+    endif else begin
+      date_parts = long(kcor_decompose_date(file_date))
+      time_parts = long(kcor_decompose_time(file_time))
+
+      mlso_sun, date_parts[0], $
+                date_parts[1], $
+                date_parts[2], $
+                time_parts[0], $
+                time_parts[1] / 60.0, $
+                time_parts[2] / 3600.0, $
+                dist=sunearth_dist
+
+      dark = tokens[6] eq 'in'                              ; dark in
+      flat = (tokens[8] eq 'in') && (tokens[10] eq 'out')   ; diff in, cal out
+      angle = float(tokens[12])
+
+      means = reform(float(tokens[14:21]) * sunearth_dist^2, 4, 2)
+
+      gbuparams_filename = filepath(gbuparams_basename, subdir='..', root=mg_src_root())
+      restore, filename=gbuparams_filename
+
+      quality[i] = 99.0
+      case 1 of
+        dark: begin
+            for p = 0, 3 do begin
+              for c = 0, 1 do begin
+                range = dark_mean_stddev[c, 0] + 2.0 * [-1.0, 1.0] * dark_mean_stddev[c, 1]
+                if ((means[p, c] lt range[0]) || (means[p, c] gt range[1])) then begin
+                  quality[i] = 0.0
+                endif
+              endfor
+            endfor
+          end
+        flat: begin
+            for p = 0, 3 do begin
+              for c = 0, 1 do begin
+                range = flat_mean_stddev[c, 0] + 2.0 * [-1.0, 1.0] * flat_mean_stddev[c, 1]
+                if ((means[p, c] lt range[0]) || (means[p, c] gt range[1])) then begin
+                  quality[i] = 0.0
+                endif
+              endfor
+            endfor
+          end
+        else: begin
+            !null = min(angle_values - angle, calpol_angle_index)
+            calpol_angle_index mod= 8   ; 180.0 degrees is same as 0.0 degrees
+            for p = 0, 3, do begin
+              for c = 0, 1 do begin
+                gbu_mean = calpol_mean_stddev[c, calpol_angle_index, p, 0]
+                gbu_stddev = calpol_mean_stddev[c, calpol_angle_index, p, 1]
+                range = gbu_mean + 2.0 * [-1.0, 1.0] * gbu_stddev
+                if ((means[p, c] lt range[0]) || (means[p, c] gt range[1])) then begin
+                  quality[i] = 0.0
+                endif
+              endfor
+            endfor
+          end
+      endcase
+    endelse
   endfor
 
   return, filenames[where(quality ge run->epoch('min_cal_quality'), n_files, /null)]
