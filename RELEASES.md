@@ -219,3 +219,4 @@
   [RT]CAMCORR FITS keywords in L1.5 files
   epochs file updated for bad cals
   calibration GBU check if GBU params file given in epochs (not given yet)
+1.5.7
