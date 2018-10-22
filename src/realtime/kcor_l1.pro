@@ -653,7 +653,9 @@ pro kcor_l1, date, ok_files, $
     radius_guess = occulter / run->epoch('plate_scale')          ; pixels
 
     ; correct camera nonlinearity
-    kcor_correct_camera, img, header, run=run, logger_name=log_name
+    kcor_correct_camera, img, header, run=run, logger_name=log_name, $
+                         rcam_cor_filename=rcam_cor_filename, $
+                         tcam_cor_filename=tcam_cor_filename
 
     if (run.diagnostics) then begin
       save, img, header, filename=strmid(file_basename(l0_file), 0, 20) + '_cam.sav'
@@ -801,18 +803,18 @@ pro kcor_l1, date, ok_files, $
     a = transpose(dmat, [3, 4, 0, 1, 2])
     b = transpose(img_cor, [2, 0, 1, 3])
 
-    use_double = 0B
-    if (use_double) then begin
-      a = double(a)
-      b = double(b)
-    endif
+    ;use_double = 0B
+    ;if (use_double) then begin
+    ;  a = double(a)
+    ;  b = double(b)
+    ;endif
 
     result = kcor_batched_matrix_vector_multiply(a, b, 4, 3, xsize * ysize * 2)
-
     cal_data = reform(transpose(result), xsize, ysize, 2, 3)
-    if (use_double) then begin
-      cal_data = float(cal_data)
-    endif
+
+    ;if (use_double) then begin
+    ;  cal_data = float(cal_data)
+    ;endif
 
     demod_time = toc(dclock)
 
@@ -1237,7 +1239,16 @@ pro kcor_l1, date, ok_files, $
                      format='(%"%s [%s]")'), $
               string(code_date, $
                      format='(%" L1.5 data processing software (%s)")')
-    ; TODO: put something in for camera correction
+
+    if (rcam_cor_filename ne '') then begin
+      fxaddpar, newheader, 'RCAMCORR', file_basename(rcam_cor_filename), $
+                ''
+    endif
+    if (tcam_cor_filename ne '') then begin
+      fxaddpar, newheader, 'TCAMCORR', file_basename(tcam_cor_filename), $
+                ''
+    endif
+
     fxaddpar, newheader, 'CALFILE', run->epoch('cal_file'), $
               ' calibration file'
     ;                        ' calibration file:dark, opal, 4 pol.states'

@@ -66,7 +66,7 @@ function kcor_read_calibration_text, date, process_basedir, $
 
     ; use GBU params file, if specified for epoch
     gbuparams_basename = run->epoch('gbuparams_filename')
-    if (gbuparams_basename eq '') then begin
+    if (n_elements(gbuparams_basename) eq 0L) then begin
       quality[i] = 99L * run->epoch('process') * run->epoch('use_calibration_data')
     endif else begin
       date_parts = long(kcor_decompose_date(file_date))
@@ -75,9 +75,7 @@ function kcor_read_calibration_text, date, process_basedir, $
       mlso_sun, date_parts[0], $
                 date_parts[1], $
                 date_parts[2], $
-                time_parts[0], $
-                time_parts[1] / 60.0, $
-                time_parts[2] / 3600.0, $
+                time_parts[0] + time_parts[1] / 60.0 + time_parts[2] / 3600.0, $
                 dist=sunearth_dist
 
       dark = tokens[6] eq 'in'                              ; dark in
@@ -95,6 +93,9 @@ function kcor_read_calibration_text, date, process_basedir, $
               for c = 0, 1 do begin
                 range = dark_mean_stddev[c, 0] + 2.0 * [-1.0, 1.0] * dark_mean_stddev[c, 1]
                 if ((means[p, c] lt range[0]) || (means[p, c] gt range[1])) then begin
+                  mg_log, 'mean (%0.1f) outside of range [%0.1f, %0.1f]', $
+                          means[p, c], range[0], range[1], $
+                          name='kcor/eod', /debug
                   quality[i] = 0.0
                 endif
               endfor
@@ -105,6 +106,9 @@ function kcor_read_calibration_text, date, process_basedir, $
               for c = 0, 1 do begin
                 range = flat_mean_stddev[c, 0] + 2.0 * [-1.0, 1.0] * flat_mean_stddev[c, 1]
                 if ((means[p, c] lt range[0]) || (means[p, c] gt range[1])) then begin
+                  mg_log, 'mean (%0.1f) outside of range [%0.1f, %0.1f]', $
+                          means[p, c], range[0], range[1], $
+                          name='kcor/eod', /debug
                   quality[i] = 0.0
                 endif
               endfor
@@ -114,12 +118,15 @@ function kcor_read_calibration_text, date, process_basedir, $
             angle = float(tokens[12])
             !null = min(angle_values - angle, calpol_angle_index)
             calpol_angle_index mod= 8   ; 180.0 degrees is same as 0.0 degrees
-            for p = 0, 3, do begin
+            for p = 0, 3 do begin
               for c = 0, 1 do begin
                 gbu_mean = calpol_mean_stddev[c, calpol_angle_index, p, 0]
                 gbu_stddev = calpol_mean_stddev[c, calpol_angle_index, p, 1]
                 range = gbu_mean + 2.0 * [-1.0, 1.0] * gbu_stddev
                 if ((means[p, c] lt range[0]) || (means[p, c] gt range[1])) then begin
+                  mg_log, 'mean (%0.1f) outside of range [%0.1f, %0.1f]', $
+                          means[p, c], range[0], range[1], $
+                          name='kcor/eod', /debug
                   quality[i] = 0.0
                 endif
               endfor
@@ -135,12 +142,14 @@ end
 
 ; main-level example program
 
-config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
+date = '20181021'
+config_filename = filepath('kcor.mgalloy.kaula.production.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())
-run = kcor_run(config_filename=config_filename)
-filenames = kcor_read_calibration_text('20161127', run.process_basedir, $
-                                       exposures=exposures, n_files=n_files, run=run)
-obj_destroy, run
+run = kcor_run(date, config_filename=config_filename)
+help, run->epoch('gbuparams_filename')
+;filenames = kcor_read_calibration_text(date, run.process_basedir, $
+;                                       exposures=exposures, n_files=n_files, run=run)
+;obj_destroy, run
 
 end

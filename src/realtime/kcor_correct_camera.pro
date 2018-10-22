@@ -15,8 +15,16 @@
 ;   logger_name : in, optional, type=string
 ;     name of the logger to log to
 ;-
-pro kcor_correct_camera, im, header, run=run, logger_name=logger_name, xoffset=xoffset
+pro kcor_correct_camera, im, header, $
+                         xoffset=xoffset, $
+                         rcam_cor_filename=rcam_cor_filename, $
+                         tcam_cor_filename=tcam_cor_filename, $
+                         logger_name=logger_name, $
+                         run=run
   compile_opt strictarr
+
+  rcam_cor_filename = ''
+  tcam_cor_filename = ''
 
   im = float(im)
 
@@ -69,16 +77,17 @@ pro kcor_correct_camera, im, header, run=run, logger_name=logger_name, xoffset=x
     mg_log, 'RCAM correction: %s', rcam_cor_filename, name=logger_name, /debug
   endif else begin
     mg_log, '%s not found', rcam_cor_filename, name=logger_name, /error
+    rcam_cor_filename = ''
     return
   endelse
-  fp[*, *, *, 0] = kcor_read_camera_correction(rcam_cor_filename, $
-                                               bad_columns=rbad_columns, $
-                                               n_bad_columns=n_rbad_columns, $
-                                               bad_values=rbad_values, $
-                                               n_bad_values=n_rbad_values, $
-                                               /interpolate)
-  mg_log, 'RCAM fit: %d bad cols, %d bad values', n_rbad_columns, n_rbad_values, $
-          name=logger_name, /debug
+  fp[*, *, *, 0] = kcor_read_camera_correction(rcam_cor_filename);, $
+;                                               bad_columns=rbad_columns, $
+;                                               n_bad_columns=n_rbad_columns, $
+;                                               bad_values=rbad_values, $
+;                                               n_bad_values=n_rbad_values, $
+;                                               /interpolate)
+;  mg_log, 'RCAM fit: %d bad cols, %d bad values', n_rbad_columns, n_rbad_values, $
+;          name=logger_name, /debug
 
   tcam_cor_filename = filepath(string(prefix, tcamid, exposure, $
                                       tcam_lut_date, $
@@ -88,16 +97,17 @@ pro kcor_correct_camera, im, header, run=run, logger_name=logger_name, xoffset=x
     mg_log, 'TCAM correction: %s', tcam_cor_filename, name=logger_name, /debug
   endif else begin
     mg_log, '%s not found', tcam_cor_filename, name=logger_name, /error
+    tcam_cor_filename = ''
     return
   endelse
-  fp[*, *, *, 1] = kcor_read_camera_correction(tcam_cor_filename, $
-                                               bad_columns=tbad_columns, $
-                                               n_bad_columns=n_tbad_columns, $
-                                               bad_values=tbad_values, $
-                                               n_bad_values=n_tbad_values, $
-                                               /interpolate)
-  mg_log, 'TCAM fit: %d bad cols, %d bad values', n_tbad_columns, n_tbad_values, $
-          name=logger_name, /debug
+  fp[*, *, *, 1] = kcor_read_camera_correction(tcam_cor_filename);, $
+;                                               bad_columns=tbad_columns, $
+;                                               n_bad_columns=n_tbad_columns, $
+;                                               bad_values=tbad_values, $
+;                                               n_bad_values=n_tbad_values, $
+;                                               /interpolate)
+;  mg_log, 'TCAM fit: %d bad cols, %d bad values', n_tbad_columns, n_tbad_values, $
+;          name=logger_name, /debug
 
   if (n_elements(xoffset) gt 0L) then fp = shift(fp, xoffset, 0, 0, 0)
 
@@ -122,12 +132,12 @@ end
 
 ; main-level example program
 
-;date = '20170409'
+date = '20170409'
 ;date = '20170521'
-date = '20170523'
+;date = '20170523'
 
 run = kcor_run(date, config_filename='../../config/kcor.mgalloy.twilight.caltest.cfg')
-run_nocamcor = kcor_run(date, config_filename='../../config/kcor.mgalloy.twilight.caltest-nocamcor.cfg')
+;run_nocamcor = kcor_run(date, config_filename='../../config/kcor.mgalloy.twilight.caltest-nocamcor.cfg')
 
 ;= For 20170409
 ;f = '20170410_004543_kcor.fts.gz'   ; dev
@@ -147,8 +157,8 @@ ok_files = file_search(filepath('*.fts.gz', subdir=[date, 'level0'], root=run.ra
 
 camcor_dir = filepath('', subdir=[date, 'camcor'], root=run.raw_basedir)
 if (~file_test(camcor_dir, /directory)) then file_mkdir, camcor_dir
-nocamcor_dir = filepath('', subdir=[date, 'nocamcor'], root=run_nocamcor.raw_basedir)
-if (~file_test(nocamcor_dir, /directory)) then file_mkdir, nocamcor_dir
+;nocamcor_dir = filepath('', subdir=[date, 'nocamcor'], root=run_nocamcor.raw_basedir)
+;if (~file_test(nocamcor_dir, /directory)) then file_mkdir, nocamcor_dir
 
 for i = 0L, n_ok_files - 1L do begin
   ok_file = ok_files[i]
@@ -160,19 +170,19 @@ for i = 0L, n_ok_files - 1L do begin
   kcor_correct_camera, im, header, run=run, xoffset=0
 
   cal_file = filepath(run->epoch('cal_file'), root=run.cal_out_dir)
-  cal_file_nocamcor = filepath(run->epoch('cal_file'), root=run_nocamcor.cal_out_dir)
+;  cal_file_nocamcor = filepath(run->epoch('cal_file'), root=run_nocamcor.cal_out_dir)
 
   ;print, cal_file
   ;print, cal_file_nocamcor
 
   cals = kcor_read_calibration(cal_file)
-  cals_nocamcor = kcor_read_calibration(cal_file_nocamcor)
+;  cals_nocamcor = kcor_read_calibration(cal_file_nocamcor)
 
   flat = cals.gain[*, *, *]
   dark = cals.dark[*, *, *]
 
-  flat_nocamcor = cals_nocamcor.gain[*, *, *]
-  dark_nocamcor = cals_nocamcor.dark[*, *, *]
+;  flat_nocamcor = cals_nocamcor.gain[*, *, *]
+;  dark_nocamcor = cals_nocamcor.dark[*, *, *]
 
   ;flat = readfits(filepath(flat_file, subdir=[date, 'level0'], root=run.raw_basedir), header, /silent)
   original_flat = float(flat)
@@ -188,10 +198,10 @@ for i = 0L, n_ok_files - 1L do begin
   camera = 1
 
   corona = (im - rebin(reform(dark, 1024, 1024, 1, 2), 1024, 1024, 4, 2) / rebin(reform(flat, 1024, 1024, 1, 2), 1024, 1024, 4, 2))
-  corona_nocamcor = (original_im - rebin(reform(dark_nocamcor, 1024, 1024, 1, 2), 1024, 1024, 4, 2) / rebin(reform(flat_nocamcor, 1024, 1024, 1, 2), 1024, 1024, 4, 2))
+;  corona_nocamcor = (original_im - rebin(reform(dark_nocamcor, 1024, 1024, 1, 2), 1024, 1024, 4, 2) / rebin(reform(flat_nocamcor, 1024, 1024, 1, 2), 1024, 1024, 4, 2))
 
   pB = sqrt((corona[*, *, 1, camera] - corona[*, *, 2, camera])^2 + (corona[*, *, 0, camera] - corona[*, *, 3, camera])^2)
-  pB_nocamcor = sqrt((corona_nocamcor[*, *, 1, camera] - corona_nocamcor[*, *, 2, camera])^2 + (corona_nocamcor[*, *, 0, camera] - corona_nocamcor[*, *, 3, camera])^2)
+;  pB_nocamcor = sqrt((corona_nocamcor[*, *, 1, camera] - corona_nocamcor[*, *, 2, camera])^2 + (corona_nocamcor[*, *, 0, camera] - corona_nocamcor[*, *, 3, camera])^2)
 
   y = 512
   ;device, decomposed=1
@@ -210,9 +220,9 @@ for i = 0L, n_ok_files - 1L do begin
   writefits, filepath(file_basename(ok_file, '.fts.gz') + '-camcor.fts', $
                       root=camcor_dir), $
              pB, header
-  writefits, filepath(file_basename(ok_file, '.fts.gz') + '-nocamcor.fts', $
-                      root=nocamcor_dir), $
-             pB_nocamcor, header
+;  writefits, filepath(file_basename(ok_file, '.fts.gz') + '-nocamcor.fts', $
+;                      root=nocamcor_dir), $
+;             pB_nocamcor, header
 
   ;window, xsize=1024, ysize=1024, title='pB (with camera correction)', /free
   ;tv, bytscl(pB, 0.0, 100.0)
@@ -221,6 +231,8 @@ for i = 0L, n_ok_files - 1L do begin
   ;tv, bytscl(pB_nocamcor, 0.0, 100.0)
 endfor
 
-obj_destroy, [run, run_nocamcor]
+obj_destroy, run
+
+;obj_destroy, [run, run_nocamcor]
 
 end

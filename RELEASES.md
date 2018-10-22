@@ -213,6 +213,9 @@
   added library routine
 1.5.5 [Sep 21, 2018]
   bug fix
-1.5.6
+1.5.6 [Oct 22, 2018]
   engineering plot fixes
-  calibration GBU check
+  saving extended averages, p/q dirs, difference, and unmasked images and logs
+  [RT]CAMCORR FITS keywords in L1.5 files
+  epochs file updated for bad cals
+  calibration GBU check if GBU params file given in epochs (not given yet)
