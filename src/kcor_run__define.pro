@@ -414,6 +414,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            sine2theta_nparams=sine2theta_nparams, $
                            cameras=cameras, $
                            shift_center=shift_center, $
+                           center_offset=center_offset, $
                            distribute=distribute, $
                            diagnostics=diagnostics, $
                            reduce_calibration=reduce_calibration, $
@@ -616,6 +617,10 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   if (arg_present(shift_center)) then begin
     shift_center = self.options->get('shift_center', section='realtime', $
                                      /boolean, default=1B)
+  endif
+  if (arg_present(center_offset)) then begin
+    center_offset = self.options->get('center_offset', section='realtime', $
+                                      /float, /extract, default=fltarr(2))
   endif
   if (arg_present(distribute)) then begin
     distribute = self.options->get('distribute', section='realtime', $
