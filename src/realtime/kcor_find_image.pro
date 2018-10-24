@@ -26,6 +26,13 @@
 ;     set to a named variable to retrieve the chi^2
 ;   log_name : in, required, type=string
 ;     name of log to send log messages to
+;   xoffset : in, optional, type=float, default=0.0
+;     optional offset for x-value of center
+;   yoffset : in, optional, type=float, default=0.0
+;     optional offset for y-value of center
+;   offset : out, optional, type=fltarr(3)
+;     set to a named variable to retrieve the center offset by `XOFFSET` and
+;     `YOFFSET`
 ;
 ; :Uses:
 ;   kcor_radial_der, fitcircle
@@ -45,6 +52,9 @@ function kcor_find_image, data, radius_guess, $
                           drad=drad, $
                           chisq=chisq, $
                           debug=debug, $
+                          xoffset=xoffset, $
+                          yoffset=yoffset, $
+                          offset=offset, $
                           log_name=log_name
   compile_opt strictarr
 
@@ -169,6 +179,12 @@ function kcor_find_image, data, radius_guess, $
     print, xcen_guess, ycen_guess, radius_guess
     print, xc, yc, r
     print, a 
+  endif
+
+  if (arg_present(offset)) then begin
+    offset = a
+    offset[0] += n_elements(xoffset) gt 0L ? xoffset : 0.0
+    offset[1] += n_elements(yoffset) gt 0L ? yoffset : 0.0
   endif
 
   return, a
