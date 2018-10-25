@@ -959,7 +959,7 @@ pro kcor_l1, date, ok_files, $
         cal_data_new[*, *, 1, s] = rot(reverse(cal_data[*, *, 1, s], 1), $
                                        pangle, $
                                        1, $
-                                       xsize - 1 - sun_xyz1[0], $
+                                       xsize - 1 - sun_xyr1[0], $
                                        sun_xyr1[1], $
                                        cubic=-0.5)
         case run.cameras of
