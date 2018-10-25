@@ -95,6 +95,8 @@ function kcor_run::epoch, name, time=time
     'skypol_bias': return, self->_readepoch('skypol_bias', self.date, hst_time, type=4)
     'skypol_factor': return, self->_readepoch('skypol_factor', self.date, hst_time, type=4) 
     'bias': return, self->_readepoch('bias', self.date, hst_time, type=4) 
+    'r_in_offset' : return, self->_readepoch('r_in_offset', self.date, hst_time, type=4)
+    'r_out' : return, self->_readepoch('r_out', self.date, hst_time, type=4)
     'rotation_correction': return, self->_readepoch('rotation_correction', self.date, hst_time, type=4)
     'distortion_correction_filename': begin
         return, self->_readepoch('distortion_correction_filename', $
