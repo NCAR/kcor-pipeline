@@ -843,7 +843,7 @@ pro kcor_l1, date, ok_files, $
     ; camera 0:
     info_dc0 = kcor_find_image(cimg0, radius_guess, /center_guess, log_name=log_name, $
                                xoffset=center_offset[0], yoffset=center_offset[1], $
-                               offset_xyr=sun_xyr1)
+                               offset_xyr=sun_xyr0)
 
     sun_xx0 = dindgen(xsize, ysize) mod xsize - sun_xyr0[0]
     sun_yy0 = transpose(dindgen(ysize, xsize) mod ysize) - sun_xyr0[1]
