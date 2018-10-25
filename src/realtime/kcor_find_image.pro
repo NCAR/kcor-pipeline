@@ -181,7 +181,7 @@ function kcor_find_image, data, radius_guess, $
     print, a 
   endif
 
-  if (arg_present(offset)) then begin
+  if (arg_present(offset_xyr)) then begin
     offset_xyr = a
     offset_xyr[0] += n_elements(xoffset) gt 0L ? xoffset : 0.0
     offset_xyr[1] += n_elements(yoffset) gt 0L ? yoffset : 0.0
