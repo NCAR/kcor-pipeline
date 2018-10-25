@@ -622,7 +622,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   endif
   if (arg_present(center_offset)) then begin
     center_offset = self.options->get('center_offset', section='realtime', $
-                                      /float, /extract, default=fltarr(2))
+                                      type=4, /extract, default=fltarr(2))
   endif
   if (arg_present(distribute)) then begin
     distribute = self.options->get('distribute', section='realtime', $
