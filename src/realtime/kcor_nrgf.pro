@@ -169,10 +169,11 @@ pro kcor_nrgf, fits_file, $
   radius_guess = 178
   if (keyword_set(cropped)) then radius_guess *= scale
 
-  img_info = kcor_find_image(img, radius_guess, log_name=log_name)
-  xc   = img_info[0]
-  yc   = img_info[1]
-  r    = img_info[2]
+  ; TODO: do we need the below?
+  ;img_info = kcor_find_image(img, radius_guess, log_name=log_name)
+  ;xc   = img_info[0]
+  ;yc   = img_info[1]
+  ;r    = img_info[2]
 
   rocc    = occulter / platescale   ; occulter radius [pixels]
   r_photo = rsun / platescale       ; photosphere radius [pixels]
@@ -229,8 +230,8 @@ pro kcor_nrgf, fits_file, $
   rad1 = sqrt(xx1 ^ 2.0 + yy1 ^ 2.0)
 
   ; set masking limits
-  r_in  = fix(rocc) + 5.0
-  r_out = 504.0
+  r_in  = fix(rocc) + run->epoch('r_in_offset')
+  r_out = run->epoch('r_out')
   if (keyword_set(cropped)) then r_out *= scale
 
   mg_log, 'masking limits r_in: %0.2f, r_out: %0.2f', $

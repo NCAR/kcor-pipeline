@@ -837,12 +837,16 @@ pro kcor_l1, date, ok_files, $
     cimg0 = dat1
     cimg1 = dat2
 
+    center_offset = run.center_offset
+
     ; find image centers of distortion-corrected images
     ; camera 0:
-    info_dc0 = kcor_find_image(cimg0, radius_guess, /center_guess, log_name=log_name)
-    xcc0     = info_dc0[0]
-    ycc0     = info_dc0[1]
-    distcor_radius_0 = info_dc0[2]
+    info_dc0 = kcor_find_image(cimg0, radius_guess, /center_guess, log_name=log_name, $
+                               xoffset=center_offset[0], yoffset=center_offset[1], $
+                               offset_xyr=sun_xyr1)
+
+    sun_xx0 = dindgen(xsize, ysize) mod xsize - sun_xyr0[0]
+    sun_yy0 = transpose(dindgen(ysize, xsize) mod ysize) - sun_xyr0[1]
 
     if (doplot eq 1) then begin
       tv, bytscl(cimg0, 0, 20000)
@@ -854,16 +858,18 @@ pro kcor_l1, date, ok_files, $
     endif
 
     ; camera 1:
-    info_dc1 = kcor_find_image(cimg1, radius_guess, /center_guess, log_name=log_name)
-    xcc1     = info_dc1[0]
-    ycc1     = info_dc1[1]
-    distcor_radius_1 = info_dc1[2]
+    info_dc1 = kcor_find_image(cimg1, radius_guess, /center_guess, log_name=log_name, $
+                               xoffset=center_offset[0], yoffset=center_offset[1], $
+                               offset_xyr=sun_xyr1)
 
-    xx1 = dindgen(xsize, ysize) mod xsize - xcc1
-    yy1 = transpose(dindgen(ysize, xsize) mod ysize) - ycc1
+    sun_xx1 = dindgen(xsize, ysize) mod xsize - sun_xyr1[0]
+    sun_yy1 = transpose(dindgen(ysize, xsize) mod ysize) - sun_xyr1[1]
+
+    xx1 = dindgen(xsize, ysize) mod xsize - info_dc1[0]
+    yy1 = transpose(dindgen(ysize, xsize) mod ysize) - info_dc1[1]
     rad1 = sqrt(xx1 ^ 2.0 + yy1 ^ 2.0)
 
-    theta1 = atan(- yy1, - xx1)
+    theta1 = atan(- sun_yy1, - sun_xx1)
     theta1 += !pi
     theta1 = rot(reverse(theta1), pangle + run->epoch('rotation_correction'), 1)
 
@@ -878,11 +884,11 @@ pro kcor_l1, date, ok_files, $
 
     ; combine I, Q, U images from camera 0 and camera 1
 
-    radius = (distcor_radius_0 + distcor_radius_1) * 0.5
+    radius = (sun_xyr0[2] + sun_xyr1[2]) * 0.5
 
     ; to shift camera 0 to canera 1:
-    deltax = xcc1 - xcc0
-    deltay = ycc1 - ycc0
+    deltax = sun_xyr1[0] - sun_xyr0[0]
+    deltay = sun_xyr1[1] - sun_xyr0[1]
 
     ; invert calibrated data for camera 0 in Y-axis
 
@@ -947,14 +953,14 @@ pro kcor_l1, date, ok_files, $
         cal_data_new[*, *, 0, s] = rot(reverse(cal_data[*, *, 0, s], 1), $
                                        pangle, $
                                        1, $
-                                       xsize - 1 - xcc0, $
-                                       ycc0, $
+                                       xsize - 1 - sun_xyr0[0], $
+                                       sun_xyr0[1], $
                                        cubic=-0.5)
         cal_data_new[*, *, 1, s] = rot(reverse(cal_data[*, *, 1, s], 1), $
                                        pangle, $
                                        1, $
-                                       xsize - 1 - xcc1, $
-                                       ycc1, $
+                                       xsize - 1 - sun_xyz1[0], $
+                                       sun_xyr1[1], $
                                        cubic=-0.5)
         case run.cameras of
           '0': cal_data_combined_center[*, *, s] = cal_data_new[*, *, 0, s]
@@ -966,7 +972,7 @@ pro kcor_l1, date, ok_files, $
 
       xx1    = dindgen(xsize, ysize) mod xsize - 511.5
       yy1    = transpose(dindgen(ysize, xsize) mod ysize) - 511.5
-      rad1   = sqrt(xx1 ^ 2.0 + yy1 ^ 2.0)
+      rad1   = sqrt((xx1 - center_offset[0])^ 2.0 + (yy1 - center_offset[1]) ^ 2.0)
 
       theta1 = atan(- yy1, - xx1)
       theta1 += !pi
@@ -1027,8 +1033,8 @@ pro kcor_l1, date, ok_files, $
 
     if (~keyword_set(nomask)) then begin
       ; create mask for final image
-      r_in  = fix(occulter / run->epoch('plate_scale')) + 2.0
-      r_out = 504.0
+      r_in  = fix(occulter / run->epoch('plate_scale')) + run->epoch('r_in_offset')
+      r_out = run->epoch('r_out')
 
       ; mask pixels beyond field of view
       mask = where(rad1 lt r_in or rad1 ge r_out, /null)
@@ -1356,13 +1362,13 @@ pro kcor_l1, date, ok_files, $
     fxaddpar, newheader, 'RCAM_RAD',  radius_0, $
               ' [pixel] camera 0 raw occulter radius', $
               format='(f8.2)'
-    fxaddpar, newheader, 'RCAM_DCX', xcc0 + 1, $
+    fxaddpar, newheader, 'RCAM_DCX', info_dc0[0] + 1, $
               ' [pixel] camera 0 dist cor occulter X center', $
               format='(f8.2)'
-    fxaddpar, newheader, 'RCAM_DCY', ycc0 + 1, $
+    fxaddpar, newheader, 'RCAM_DCY', info_dc0[1] + 1, $
               ' [pixel] camera 0 dist cor occulter Y center', $
               format='(f8.2)'
-    fxaddpar, newheader, 'RCAM_DCR',  distcor_radius_0, $
+    fxaddpar, newheader, 'RCAM_DCR',  info_dc0[2], $
               ' [pixel] camera 0 dist corrected occulter radius', $
               format='(f8.2)'
 
@@ -1375,15 +1381,22 @@ pro kcor_l1, date, ok_files, $
     fxaddpar, newheader, 'TCAM_RAD',  radius_1, $
               ' [pixel] camera 1 raw occulter radius', $
               format='(f8.2)'
-    fxaddpar, newheader, 'TCAM_DCX', xcc1 + 1, $
+    fxaddpar, newheader, 'TCAM_DCX', info_dc1[0] + 1, $
               ' [pixel] camera 1 dist cor occulter X center', $
               format='(f8.2)'
-    fxaddpar, newheader, 'TCAM_DCY', ycc1 + 1, $
+    fxaddpar, newheader, 'TCAM_DCY', info_dc1[1] + 1, $
               ' [pixel] camera 1 dist cor occulter Y center', $
               format='(f8.2)'
-    fxaddpar, newheader, 'TCAM_DCR',  distcor_radius_1, $
+    fxaddpar, newheader, 'TCAM_DCR',  info_dc1[2], $
               ' [pixel] camera 1 dist corrected occulter radius', $
               format='(f8.2)'
+
+    if (~array_equal(center_offset, [0.0, 0.0])) then begin
+      fxaddpar, newheader, 'XOFFSET', center_offset[0], $
+                ' [pixel] x-offset between occulter and sun centers'
+      fxaddpar, newheader, 'YOFFSET', center_offset[1], $
+                ' [pixel] y-offset between occulter and sun centers'
+    endif
 
     ; add ephemeris data
     fxaddpar, newheader, 'RSUN_OBS', radsun, $

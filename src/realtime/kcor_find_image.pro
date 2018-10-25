@@ -30,7 +30,7 @@
 ;     optional offset for x-value of center
 ;   yoffset : in, optional, type=float, default=0.0
 ;     optional offset for y-value of center
-;   offset : out, optional, type=fltarr(3)
+;   offset_xyr : out, optional, type=fltarr(3)
 ;     set to a named variable to retrieve the center offset by `XOFFSET` and
 ;     `YOFFSET`
 ;
@@ -54,7 +54,7 @@ function kcor_find_image, data, radius_guess, $
                           debug=debug, $
                           xoffset=xoffset, $
                           yoffset=yoffset, $
-                          offset=offset, $
+                          offset_xyr=offset_xyr, $
                           log_name=log_name
   compile_opt strictarr
 
@@ -182,9 +182,9 @@ function kcor_find_image, data, radius_guess, $
   endif
 
   if (arg_present(offset)) then begin
-    offset = a
-    offset[0] += n_elements(xoffset) gt 0L ? xoffset : 0.0
-    offset[1] += n_elements(yoffset) gt 0L ? yoffset : 0.0
+    offset_xyr = a
+    offset_xyr[0] += n_elements(xoffset) gt 0L ? xoffset : 0.0
+    offset_xyr[1] += n_elements(yoffset) gt 0L ? yoffset : 0.0
   endif
 
   return, a
