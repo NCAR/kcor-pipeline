@@ -13,6 +13,8 @@
 ;     array of FITS files to insert into the database
 ;
 ; :Keywords:
+;   level1 : in, optional, type=boolean
+;     set to indicate that the `fits_list` files are L1.5 files
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;   obsday_index : in, required, type=integer
@@ -45,6 +47,7 @@
 ;               changes to come (search for TODO)
 ;-
 pro kcor_img_insert, date, fits_list, $
+                     level1=level1, $
                      run=run, $
                      database=database, $
                      obsday_index=obsday_index, $
@@ -54,10 +57,12 @@ pro kcor_img_insert, date, fits_list, $
   compile_opt strictarr
   on_error, 2
 
-  kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_name, $
-                  sw_ids=sw_ids
-  kcor_hw_insert, date, fits_list, run=run, database=database, log_name=log_name, $
-                  hw_ids=hw_ids
+  if (keyword_set(level1)) then begin
+    kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_name, $
+                    sw_ids=sw_ids
+    kcor_hw_insert, date, fits_list, run=run, database=database, log_name=log_name, $
+                    hw_ids=hw_ids
+  endif
 
   ; connect to MLSO database
 

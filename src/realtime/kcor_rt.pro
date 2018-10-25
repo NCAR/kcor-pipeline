@@ -285,6 +285,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
         ; update databases that use L1 files
         if (n_l1_fits_files gt 0L) then begin
           kcor_img_insert, date, l1_fits_files, $
+                           /level1, $
                            sw_ids=sw_ids, $
                            hw_ids=hw_ids, $
                            run=run, $
