@@ -92,10 +92,11 @@ pro kcor_rg2m, fits_list, fits=fits, run=run
     occulter = kcor_get_occulter_size(occulter_id, run=run)
 
     radius_guess = 178
-    img_info = kcor_find_image(img, radius_guess, log_name='kcor/rt')
-    xc   = img_info[0]
-    yc   = img_info[1]
-    r    = img_info[2]
+    ; TODO: do we need this
+    ;img_info = kcor_find_image(img, radius_guess, log_name='kcor/rt')
+    ;xc   = img_info[0]
+    ;yc   = img_info[1]
+    ;r    = img_info[2]
     arcpix = run->epoch('plate_scale')   ; arcsec / pixel = platescale
 
     rocc    = occulter / arcpix   ; occulter radius [pixels]
