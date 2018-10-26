@@ -803,18 +803,8 @@ pro kcor_l1, date, ok_files, $
     a = transpose(dmat, [3, 4, 0, 1, 2])
     b = transpose(img_cor, [2, 0, 1, 3])
 
-    ;use_double = 0B
-    ;if (use_double) then begin
-    ;  a = double(a)
-    ;  b = double(b)
-    ;endif
-
     result = kcor_batched_matrix_vector_multiply(a, b, 4, 3, xsize * ysize * 2)
     cal_data = reform(transpose(result), xsize, ysize, 2, 3)
-
-    ;if (use_double) then begin
-    ;  cal_data = float(cal_data)
-    ;endif
 
     demod_time = toc(dclock)
 
