@@ -138,6 +138,9 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     readf, lun, oka_files
     free_lun, lun
 
+    oka_files = filepath(oka_files, $
+                         subdir=[date, 'level0'], $
+                         root=run.raw_basedir)
     kcor_l1, date, oka_files[0:*:60], /nomask, run=run, $
              log_name='kcor/eod', error=error
   endif else begin
