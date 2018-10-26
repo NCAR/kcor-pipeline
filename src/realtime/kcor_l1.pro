@@ -1540,12 +1540,12 @@ pro kcor_l1, date, ok_files, $
     writefits, filepath(l1_file, root=l1_dir), corona, newheader
 
     ; write Helioviewer JPEG2000 image to a web accessible directory
-    if (run.hv_basedir ne '') then begin
+    if (run.hv_basedir ne '' && ~keyword_set(nomask)) then begin
       hv_kcor_write_jp2, scaled_image, newheader, run.hv_basedir, log_name=log_name
     endif
 
     ; now make cropped GIF file
-    kcor_cropped_gif, corona, date, date_struct, run=run
+    kcor_cropped_gif, corona, date, date_struct, run=run, nomask=nomask
 
     ; create NRG (normalized, radially-graded) GIF image
     cd, l1_dir

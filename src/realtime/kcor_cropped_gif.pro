@@ -11,6 +11,9 @@
 ;     and month_name
 ;
 ; :Keywords:
+;   nomask : in, optional, type=boolean
+;     set to not apply a mask to the FITS or GIF files, adding a "nomask" to the
+;     filenames
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;   average : in, optional, type=boolean
@@ -22,6 +25,7 @@
 ;     set to a named variable to retrieve the filename of the GIF written
 ;-
 pro kcor_cropped_gif, im, date, date_obs, $
+                      nomask=nomask, $
                       daily=daily, average=average, $
                       output_filename=cgif_filename, $
                       run=run
@@ -100,7 +104,8 @@ pro kcor_cropped_gif, im, date, date_obs, $
                          keyword_set(average) $
                            ? (keyword_set(daily) ? '_extavg' : '_avg') $
                            : '', $
-                         format='(%"%04d%02d%02d_%02d%02d%02d_kcor_l1.5%s_cropped.gif")')
+                         keyword_set(nomask) ? '_nomask' : '', $
+                         format='(%"%04d%02d%02d_%02d%02d%02d_kcor_l1.5%s_cropped%s.gif")')
   cgif_filename = filepath(cgif_basename, root=l1_dir)
   write_gif, cgif_filename, raster, red, green, blue
 
