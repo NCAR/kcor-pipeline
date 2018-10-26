@@ -962,7 +962,7 @@ pro kcor_l1, date, ok_files, $
 
       xx1    = dindgen(xsize, ysize) mod xsize - 511.5
       yy1    = transpose(dindgen(ysize, xsize) mod ysize) - 511.5
-      rad1   = sqrt((xx1 - center_offset[0])^ 2.0 + (yy1 - center_offset[1]) ^ 2.0)
+      rad1   = sqrt((xx1 + center_offset[0])^ 2.0 + (yy1 + center_offset[1]) ^ 2.0)
 
       theta1 = atan(- yy1, - xx1)
       theta1 += !pi
