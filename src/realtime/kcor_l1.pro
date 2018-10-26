@@ -1393,9 +1393,11 @@ pro kcor_l1, date, ok_files, $
 
     if (~array_equal(center_offset, [0.0, 0.0])) then begin
       fxaddpar, newheader, 'XOFFSET', center_offset[0], $
-                ' [pixel] x-offset between occulter and sun centers'
+                ' [pixel] x-offset between occulter and sun centers', $
+                format='(f8.2)'
       fxaddpar, newheader, 'YOFFSET', center_offset[1], $
-                ' [pixel] y-offset between occulter and sun centers'
+                ' [pixel] y-offset between occulter and sun centers', $
+                format='(f8.2)'
     endif
 
     ; add ephemeris data
