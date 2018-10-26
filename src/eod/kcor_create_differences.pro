@@ -390,7 +390,7 @@ pro kcor_create_differences, date, l1_files, run=run
   endwhile
 
   ; create mp4 of difference images
-  difference_gif_filenames = file_search('*minus*', $
+  difference_gif_filenames = file_search('*minus*good*.gif', $
                                          count=n_difference_gif_files)
   if (n_difference_gif_files gt 0L) then begin
     mg_log, 'creating difference mp4', name='kcor/eod', /info
