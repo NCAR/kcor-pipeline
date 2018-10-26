@@ -129,6 +129,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   endif
 
   if (n_l0_fits_files gt 0L) then begin
+    mg_log, 'producing nomask files...', name='kcor/eod', /info
     nomask_l0_filenames = l0_fits_files[0:*:60]
     kcor_l1, date, nomask_l0_filenames, /nomask, run=run, $
              log_name='kcor/eod', error=error
