@@ -84,6 +84,10 @@ pro kcor_save_results, date, run=run
             name='kcor/eod', /debug
   endif
 
+  ; config file
+  file_copy, run.config_filename, save_dir, /overwrite
+  mg_log, 'saving config file', name='kcor/eod', /debug
+
   done:
   mg_log, 'done', name='kcor/eod', /info
 end

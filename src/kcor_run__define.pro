@@ -363,6 +363,7 @@ end
 ;-
 pro kcor_run::getProperty, config_contents=config_contents, $
                            date=date, $
+                           config_filename=config_filename, $
                            pipe_dir=pipe_dir, $
                            resources_dir=resources_dir, $
                            gzip=gzip, $
@@ -442,6 +443,8 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   endif
 
   if (arg_present(date)) then date = self.date
+  if (arg_present(config_filename)) then config_filename = config_filename
+
   if (arg_present(pipe_dir)) then pipe_dir = self.pipe_dir
   if (arg_present(resources_dir)) then begin
     resources_dir = filepath('resources', root=self.pipe_dir)
@@ -760,8 +763,10 @@ function kcor_run::init, date, $
   self.pipe_dir = file_expand_path(filepath('..', root=mg_src_root()))
 
   if (~file_test(config_filename)) then message, config_filename + ' not found'
+  self.config_filename = config_filename
   self.options = mg_read_config(config_filename, error=error, errmsg=errmsg)
   if (error ne 0) then message, errmsg
+
   self.epochs = mg_read_config(filepath('epochs.cfg', root=mg_src_root()), $
                                error=error, errmsg=errmsg)
   if (error ne 0) then message, errmsg
@@ -782,13 +787,14 @@ pro kcor_run__define
   compile_opt strictarr
 
   !null = {kcor_run, inherits IDL_Object, $
-           date: '', $
-           time: '', $   ; UT time
-           mode: '', $   ; realtime or eod
-           log_name: '', $
-           pipe_dir: '', $
-           options: obj_new(), $
-           epochs: obj_new()}
+           date:            '', $
+           config_filename: '', $
+           time:            '', $   ; UT time
+           mode:            '', $   ; realtime or eod
+           log_name:        '', $
+           pipe_dir:        '', $
+           options:         obj_new(), $
+           epochs:          obj_new()}
 end
 
 
