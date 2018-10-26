@@ -443,7 +443,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   endif
 
   if (arg_present(date)) then date = self.date
-  if (arg_present(config_filename)) then config_filename = config_filename
+  if (arg_present(config_filename)) then config_filename = self.config_filename
 
   if (arg_present(pipe_dir)) then pipe_dir = self.pipe_dir
   if (arg_present(resources_dir)) then begin
