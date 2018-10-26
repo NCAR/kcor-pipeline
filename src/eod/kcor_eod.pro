@@ -128,12 +128,21 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     kcor_redo_nrgf, date, run=run
   endif
 
-  if (n_l0_fits_files gt 0L) then begin
+  oka_filename = filepath('oka.ls', subdir=[date, 'q'], root=run.raw_basedir)
+  n_oka_files = file_lines(oka_filename)
+  if (file_test(oka_filename, /regular) && n_oka_files gt 0L) then begin
     mg_log, 'producing nomask files...', name='kcor/eod', /info
-    nomask_l0_filenames = l0_fits_files[0:*:60]
-    kcor_l1, date, nomask_l0_filenames, /nomask, run=run, $
+
+    oka_files = strarr(n_oka_files)
+    openr, lun, oka_filename, /get_lun
+    readf, lun, oka_files
+    free_lun, lun
+
+    kcor_l1, date, oka_files[0:*:60], /nomask, run=run, $
              log_name='kcor/eod', error=error
-  endif
+  endif else begin
+    mg_log, 'no OK L0 files to produce nomask files for', name='kcor/eod', /info
+  endelse
 
   nrgf_glob = filepath('*_kcor_l1.5_nrgf.fts.gz', $
                        subdir=[date, 'level1'], root=run.raw_basedir)
