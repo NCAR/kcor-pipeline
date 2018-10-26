@@ -343,7 +343,8 @@ pro kcor_l1, date, ok_files, $
   ; get current date & time
   current_time = systime(/utc)
 
-  mg_log, 'processing %s', date, name=log_name, /info
+  mg_log, 'processing %s%s', date, keyword_set(nomask) ? ' (nomask)' : '', $
+          name=log_name, /info
 
   ; check for empty list of OK files
   nfiles = n_elements(ok_files)
