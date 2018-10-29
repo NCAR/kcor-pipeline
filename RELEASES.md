@@ -220,3 +220,10 @@
   epochs file updated for bad cals
   calibration GBU check if GBU params file given in epochs (not given yet)
 1.5.7
+  add option to specify sun-occulter offset in pixels
+  using only good quality L0 files for files chosen to be nomask L1 files
+  fix filenames for nomask cropped GIF files
+  add config file to saved results
+  add r_in_offset and r_out to epoch values (and used in NRGF files as well as L1)
+  fix bug adding many extra KCOR_SW rows, only adding new rows for L1.5 files
+  wait for machine log before running end-of-day processing
