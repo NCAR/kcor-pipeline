@@ -828,6 +828,8 @@ pro kcor_l1, date, ok_files, $
     cimg0 = dat1
     cimg1 = dat2
 
+; TODO: save cimg{0,1}
+
     center_offset = run.center_offset
 
     ; find image centers of distortion-corrected images
@@ -904,6 +906,9 @@ pro kcor_l1, date, ok_files, $
     for s = 0, 2 do begin
       camera_0 = kcor_fshift(cal_data[*, *, 0, s], deltax, deltay)
       camera_1 = cal_data[*, *, 1, s]
+
+; TODO:
+
       mg_log, 'cameras used: %s', run.cameras, name=log_name, /debug
       case run.cameras of
         '0': cal_data_combined[*, *, s] = camera_0
@@ -1584,4 +1589,19 @@ pro kcor_l1, date, ok_files, $
   mg_log, 'processed %d images in %0.1f sec', nfiles, total_time, $
           name=log_name, /info
   mg_log, 'time/image: %0.1f sec', image_time, name=log_name, /info
+end
+
+
+; main-level example program
+
+date = '20181030'
+config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
+                           subdir=['..', 'config'], $
+                           root=mg_src_root())
+run = kcor_run(date, config_filename=config_filename)
+
+l1_files = ['20181030_000000_kcor.fts.gz']
+
+kcor_l1, date, l1_files, run=run, log_name='kcor/rt'
+
 end
