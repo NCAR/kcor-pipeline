@@ -105,9 +105,7 @@ function kcor_run::epoch, name, time=time
     'cal_file': begin
         if (self->_readepoch('use_pipeline_calfiles', self.date, hst_time, /boolean)) then begin
           calfile = self->_find_calfile(self.date, hst_time)
-          return, calfile eq '' $
-                    ? self->_readepoch('cal_file', self.date, hst_time, type=7) $
-                    : calfile
+          return, calfile
         endif else begin
           return, self->_readepoch('cal_file', self.date, hst_time, type=7)
         endelse
