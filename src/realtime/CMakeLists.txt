@@ -1,6 +1,8 @@
 get_filename_component(DIRNAME "${CMAKE_CURRENT_SOURCE_DIR}" NAME)
 set(DLM_NAME kcor)
 
+configure_file(kcor.dlm.in kcor.dlm @ONLY)
+
 add_library("${DLM_NAME}" SHARED "kcor.c")
 
 if (UNIX)
@@ -26,3 +28,5 @@ install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/${DLM_NAME}.dlm" DESTINATION src/${DI
 file(GLOB PRO_FILES "*.pro")
 install(FILES ${PRO_FILES} DESTINATION src/${DIRNAME})
 install(FILES kcor_mask.img DESTINATION src/${DIRNAME})
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/kcor.dlm
+	DESTINATION src/${DIRNAME})
