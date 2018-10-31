@@ -227,3 +227,4 @@
   add r_in_offset and r_out to epoch values (and used in NRGF files as well as L1)
   fix bug adding many extra KCOR_SW rows, only adding new rows for L1.5 files
   wait for machine log before running end-of-day processing
+  remove old saved results and JPEG2000 files when reprocessing

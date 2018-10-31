@@ -126,6 +126,25 @@ pro kcor_reprocess, date, run=run, error=error
     endfor
   endif
 
+  ; remove JPEG2000 files
+  if (run.hv_basedir eq '') then begin
+    mg_log, 'no jp2 directory to remove', name='kcor/reprocess', /info
+  endif else begin
+    mg_log, 'removing jp2 results...', name='kcor/reproess', /info
+    date_parts = kcor_decompose_date(date)
+    file_delete, filepath('', subdir=date_parts, root=run.hv_basedir), $
+                 /allow_nonexistent
+  endelse
+
+  ; remove old saved results
+  if (run.save_basedir eq '') then begin
+    mg_log, 'no save directory to remove', name='kcor/reprocess', /info
+  endif else begin
+    mg_log, 'removing save results...', name='kcor/reproess', /info
+    file_delete, filepath(date, root=run.save_basedir), $
+                 /recursive, /allow_nonexistent
+  endelse
+
   if (run.reprocess) then begin
     p_dir = filepath('p', subdir=date, root=run.raw_basedir)
     mg_log, 'removing p dir', name='kcor/reprocess', /info
