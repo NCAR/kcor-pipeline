@@ -133,8 +133,10 @@ pro kcor_reprocess, date, run=run, error=error
     endif else begin
       mg_log, 'removing jp2 dir', name='kcor/reprocess', /info
       date_parts = kcor_decompose_date(date)
-      file_delete, filepath('', subdir=date_parts, root=run.hv_basedir), $
-                   /allow_nonexistent
+      file_delete, filepath('', $
+                            subdir=['jp2', 'kcor', date_parts], $
+                            root=run.hv_basedir), $
+                   /recursive, /allow_nonexistent
     endelse
 
     ; remove old saved results
