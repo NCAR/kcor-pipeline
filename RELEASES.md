@@ -228,3 +228,5 @@
   fix bug adding many extra KCOR_SW rows, only adding new rows for L1.5 files
   wait for machine log before running end-of-day processing
   remove old saved results and JPEG2000 files when reprocessing
+  increased over masking of occulter from 2 pixels to 3 pixels
+  remove circle annotation of photosphere on nomask GIFs
