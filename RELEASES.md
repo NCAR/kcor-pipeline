@@ -219,7 +219,7 @@
   [RT]CAMCORR FITS keywords in L1.5 files
   epochs file updated for bad cals
   calibration GBU check if GBU params file given in epochs (not given yet)
-1.5.7
+1.5.7 [Nov 6, 2018]
   add option to specify sun-occulter offset in pixels
   using only good quality L0 files for files chosen to be nomask L1 files
   fix filenames for nomask cropped GIF files
