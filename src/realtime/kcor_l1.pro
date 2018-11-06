@@ -1098,7 +1098,9 @@ pro kcor_l1, date, ok_files, $
 
     ; image has been shifted to center of array
     ; draw circle at photosphere
-    tvcircle, r_photo, 511.5, 511.5, color=255, /device
+    if (~keyword_set(nomask)) then begin
+      tvcircle, r_photo, 511.5, 511.5, color=255, /device
+    endif
 
     device, decomposed=1
     save     = tvrd()
