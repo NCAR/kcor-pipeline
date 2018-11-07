@@ -230,4 +230,5 @@
   remove old saved results and JPEG2000 files when reprocessing
   increased over masking of occulter from 2 pixels to 3 pixels
   remove circle annotation of photosphere on nomask GIFs
-1.5.8
+1.5.8 [Nov 7, 2018]
+  add epoch value for when to require a machine log file
