@@ -73,31 +73,31 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   l0_fits_files = file_search(filepath('*_kcor.fts.gz', root=l0_dir), $
                               count=n_l0_fits_files)
 
+  ; determine end-of-day is already done if t1.log has already been copied to
+  ; the level0 directory
   t1_log_file = filepath(date + '.kcor.t1.log', root=l0_dir)
   if (file_test(t1_log_file, /regular)) then begin
     mg_log, 't1 log in level0/, validation already done', name='kcor/eod', /info
     goto, done
   endif
 
-  machine_log_file = filepath(date + '.kcor.machine.log', root=date_dir)
-  if (file_test(machine_log_file, /regular)) then begin
-    mg_log, 'copying machine log to level0/', name='kcor/eod', /info
-    file_copy, machine_log_file, l0_dir, /overwrite
-  endif else begin
-    mg_log, 'machine log does not exist in %s', date_dir, name='kcor/eod', /warn
-    if (~keyword_set(reprocess)) then goto, done
-  endelse
+  if (run->epoch('require_machine_log')) then begin
+    machine_log_file = filepath(date + '.kcor.machine.log', root=date_dir)
+    if (file_test(machine_log_file, /regular)) then begin
+      mg_log, 'copying machine log to level0/', name='kcor/eod', /info
+      file_copy, machine_log_file, l0_dir, /overwrite
+    endif else begin
+      mg_log, 'machine log does not exist in %s', date_dir, name='kcor/eod', /info
+      goto, done
+    endelse
+  endif
 
   t1_log_file = filepath(date + '.kcor.t1.log', root=date_dir)
   if (file_test(t1_log_file, /regular)) then begin
     mg_log, 'copying t1 log to level0/', name='kcor/eod', /info
     file_copy, t1_log_file, l0_dir, /overwrite
   endif else begin
-    if (keyword_set(reprocess)) then begin
-      mg_log, 't1 log does not exist in %s', date_dir, name='kcor/eod', /error
-    endif else begin
-      mg_log, 't1 log does not exist in %s', date_dir, name='kcor/eod', /info
-    endelse
+    mg_log, 't1 log does not exist in %s', date_dir, name='kcor/eod', /info
     goto, done
   endelse
 

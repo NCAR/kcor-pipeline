@@ -203,6 +203,8 @@ function kcor_run::epoch, name, time=time
                                              self.date, hst_time, type=3)
     'min_cal_quality': return, self->_readepoch('min_cal_quality', $
                                                 self.date, hst_time, type=3)
+    'require_machine_log': return, self->_readepoch('require_machine_log', $
+                                                    self.date, hst_time, /boolean)
     else: mg_log, 'epoch value %s not found', name, name=self.log_name, /error
   endcase
 end
