@@ -232,3 +232,4 @@
   remove circle annotation of photosphere on nomask GIFs
 1.5.8 [Nov 7, 2018]
   add epoch value for when to require a machine log file
+1.5.9
