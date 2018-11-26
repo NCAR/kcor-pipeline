@@ -405,8 +405,6 @@ pro hv_write_jp2_lwg, file, image, $
     endelse
   endelse   ; end of FITS header loop
 
-print, xh
-
   ; If the image has an alpha channel transparency mask supplied with
   ; it, then we need to use the KDU library.  If not, then we just use
   ; the inbuilt IDL methods for writing JP2
