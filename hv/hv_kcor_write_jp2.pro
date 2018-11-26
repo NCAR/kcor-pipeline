@@ -57,3 +57,17 @@ pro hv_kcor_write_jp2, image, header, root_directory, log_name=log_name
                     fitsheader=header, details=details, measurement=measurement, $
                     log_name=log_name
 end
+
+
+; main-level example program
+
+basename = '20181124_212325_kcor_l1.5.fts.gz'
+dir = '/Data/KCor/raw/20181124/level1'
+filename = filepath(basename, root=dir)
+
+im = readfits(filename, header)
+
+hv_kcor_write_jp2, im, header, '.', log_name='kcor/rt'
+
+end
+
