@@ -212,16 +212,23 @@ pro hv_write_jp2_lwg, file, image, $
       ;  FITS header into string in XML format:  
       xh = ''
       ntags = n_tags(header)
-      tagnames = tag_names(header) 
+      tagnames = tag_names(header)
       tagnames = hv_xml_compliance(tagnames)
+
       jcomm = where(tagnames eq 'COMMENT')
       jhist = where(tagnames eq 'HISTORY')
       jhv = where(strupcase(strmid(tagnames[*], 0, 3)) eq 'HV_')
       jhva = where(strupcase(strmid(tagnames[*], 0, 4)) eq 'HVA_')
+
       indf1 = where(tagnames eq 'TIME_D$OBS', ni1)
       if (ni1 eq 1) then tagnames[indf1] = 'TIME-OBS'
-      indf2 = where(tagnames eq 'DATE_D$OBS',ni2)
-      if (ni2 eq 1) then tagnames[indf2] = 'DATE-OBS'     
+
+      indf2 = where(tagnames eq 'DATE_D$OBS', ni2)
+      if (ni2 eq 1) then tagnames[indf2] = 'DATE-OBS'
+
+      indf3 = where(tagnames eq 'DATE_D$END', ni3)
+      if (ni3 eq 1) then tagnames[indf3] = 'DATE-END'
+
       xh = '<?xml version="1.0" encoding="UTF-8"?>' + lf
 
       ; Enclose all the FITS keywords in their own container
@@ -234,7 +241,8 @@ pro hv_write_jp2_lwg, file, image, $
             (where(j eq jhist) eq -1) and $
             (where(j eq jhv) eq -1) and $
             (where(j eq jhva) eq -1)) then begin      
-          ;            xh+='<'+tagnames[j]+' descr="">'+strtrim(string(header.(j)),2)+'</'+tagnames[j]+'>'+lf
+          ;            xh+='<'+tagnames[j]+'
+          ;            descr="">'+strtrim(string(header.(j)),2)+'</'+tagnames[j]+'>'+lf
           value = hv_xml_compliance(strtrim(string(header.(j)), 2))
           xh += '<' + tagnames[j] + '>' + value + '</' + tagnames[j] + '>' + lf
         endif
@@ -396,6 +404,8 @@ pro hv_write_jp2_lwg, file, image, $
       xh += '</meta>' + lf
     endelse
   endelse   ; end of FITS header loop
+
+print, xh
 
   ; If the image has an alpha channel transparency mask supplied with
   ; it, then we need to use the KDU library.  If not, then we just use
