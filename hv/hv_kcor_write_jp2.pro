@@ -61,13 +61,29 @@ end
 
 ; main-level example program
 
+date = '20181124'
+
+config_basename = 'kcor.mgalloy.mlsodata.production.cfg'
+config_filename = filepath(config_basename, $
+                           subdir=['..', 'config'], $
+                           root=mg_src_root())
+run = kcor_run(date, config_filename=config_filename)
+
 basename = '20181124_212325_kcor_l1.5.fts.gz'
-dir = '/Data/KCor/raw/20181124/level1'
-filename = filepath(basename, root=dir)
+filename = filepath(basename, $
+                    subdir=[date, 'level1'], $
+                    root=run.raw_basedir)
 
-im = readfits(filename, header)
+corona = readfits(filename, header)
 
-hv_kcor_write_jp2, im, header, '.', log_name='kcor/rt'
+display_factor = 1.0e6
+scaled_image = bytscl((display_factor * corona) ^ run->epoch('display_exp'), $
+                      min=display_factor * run->epoch('display_min'), $
+                      max=display_factor * run->epoch('display_max'))
+
+hv_kcor_write_jp2, scaled_image, header, '.', log_name='kcor/rt'
+
+obj_destroy, run
 
 end
 
