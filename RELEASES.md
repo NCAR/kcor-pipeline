@@ -234,3 +234,4 @@
   add epoch value for when to require a machine log file
 1.5.9 [Nov 28, 2018]
   fix for invalid XML in JP2 files
+1.5.10
