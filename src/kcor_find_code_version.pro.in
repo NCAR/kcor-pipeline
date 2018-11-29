@@ -4,11 +4,13 @@
 ; Determines the version of the code.
 ;
 ; :Returns:
-;   string verion number, such as '1.0.0'
+;   string verion number, such as '1.0.0'; versions with commits since tag are
+;   indicated with a trailing '*'
 ;
 ; :Keywords:
 ;   revision : out, optional, type=string
-;     code repo revision value, such as '8207' or 'afc6d0'
+;     code repo revision value, such as '8207' or 'afc6d0'; revisions with
+;     changes are indicated with a trailing '*'
 ;   branch : out, optional, type=string
 ;     current branch, such as 'master', 'production', etc.
 ;   date : out, optional, type=string
