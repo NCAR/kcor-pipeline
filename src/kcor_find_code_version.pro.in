@@ -21,5 +21,5 @@ function kcor_find_code_version, revision=revision, branch=branch, date=date
   if (arg_present(branch)) then branch = '${GIT_BRANCH}'
   if (arg_present(date)) then date = '${GIT_SHORTDATE}'
 
-  return, '${VERSION}'
+  return, '${GIT_VERSION}'
 end
