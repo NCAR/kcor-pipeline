@@ -1,5 +1,5 @@
 Source directory    : @CMAKE_SOURCE_DIR@
-Version             : @VERSION@
+Version             : @GIT_VERSION@
 Revision            : @GIT_REVISION@
 Date                : @GIT_SHORTDATE@
 Branch              : @GIT_BRANCH@
