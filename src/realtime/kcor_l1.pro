@@ -947,13 +947,13 @@ pro kcor_l1, date, ok_files, $
 
       for s = 0, 2 do begin
         cal_data_new[*, *, 0, s] = rot(reverse(cal_data[*, *, 0, s], 1), $
-                                       pangle, $
+                                       pangle + run->epoch('rotation_correction'), $
                                        1, $
                                        xsize - 1 - sun_xyr0[0], $
                                        sun_xyr0[1], $
                                        cubic=-0.5)
         cal_data_new[*, *, 1, s] = rot(reverse(cal_data[*, *, 1, s], 1), $
-                                       pangle, $
+                                       pangle + run->epoch('rotation_correction'), $
                                        1, $
                                        xsize - 1 - sun_xyr1[0], $
                                        sun_xyr1[1], $
