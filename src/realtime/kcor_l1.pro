@@ -1235,6 +1235,11 @@ pro kcor_l1, date, ok_files, $
     ; fxaddpar, newheader, 'L1SWID',  'kcorl1.pro 10nov2015', $
     ;                      ' Level 1 software'
 
+    check_socketcam = tag_exist(struct, 'SOCKETCA')
+    if (check_socketcam) then begin
+      fxaddpar, newheader, 'SOCKETCA', struct.socketca, ' Socketcam filename'
+    endif
+
     fxaddpar, newheader, 'DATE_DP', date_dp, ' L1.5 processing date (UTC)'
     version = kcor_find_code_version(revision=revision, date=code_date)
 
