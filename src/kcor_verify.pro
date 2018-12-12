@@ -475,7 +475,13 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   l1_tarball_size = mg_filesize(l1_tarball_filename)
 
   if (~file_test(l0_tarball_filename, /regular)) then begin
-    mg_log, 'no tarball', name=logger_name, /error
+    mg_log, 'no L0 tarball', name=logger_name, /error
+    status = 1
+    goto, compress_ratio_done
+  endif
+
+  if (~file_test(l1_tarball_filename, /regular)) then begin
+    mg_log, 'no L1.5 tarball', name=logger_name, /error
     status = 1
     goto, compress_ratio_done
   endif
