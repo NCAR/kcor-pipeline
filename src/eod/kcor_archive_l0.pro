@@ -71,7 +71,7 @@ pro kcor_archive_l0, run=run, reprocess=reprocess
       file_chmod, tarfile, /a_read, /g_write
     endif else begin
       !null = file_test(tarfile, get_mode=mode)
-      if (mode and '664' ne '664') then begin
+      if (mode and '664'o ne '664'o) then begin
         mg_log, 'bad permissions on %s', tarfile, name='kcor/eod', /warn
       endif
     endelse
