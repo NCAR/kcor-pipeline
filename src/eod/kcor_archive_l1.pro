@@ -32,7 +32,6 @@ pro kcor_archive_l1, run=run
 
   tarfile  = string(date, format='(%"%s_kcor_l1.5.tgz")')
   tarlist  = string(date, format='(%"%s_kcor_l1.5.tarlist")')
-  hpssinfo = string(date, format='(%"%s_kcor_l1.5_tar.ls")')
 
   ; delete old tarball, tarlist
   if (~file_test(tarfile, /regular)) then file_delete, tarfile, /quiet
