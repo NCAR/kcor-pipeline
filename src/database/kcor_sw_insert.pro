@@ -132,8 +132,7 @@ pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_na
 
 ;TODO: Replace with new header var for labview sw
     labviewid   = sxpar(hdu, 'OBSSWID', count=qlabviewid)
-;TODO: Replace with new header var for socketcam sw
-    socketcamid	= sxpar(hdu, 'OBSSWID', count=qsocketcamid)
+    socketcamid	= sxpar(hdu, 'SOCKETCA', count=qsocketcamid)
 
     sw_version     = kcor_find_code_version(revision=sw_revision)
     sky_pol_factor = run->epoch('skypol_factor')
