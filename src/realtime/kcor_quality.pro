@@ -225,6 +225,18 @@ function kcor_quality, date, l0_fits_files, append=append, $
             num_img, n_l0_fits_files, file_basename(l0_file), $
             name='kcor/rt', /debug
 
+    ; catch problems where file is not completely written yet
+    n_dims = size(img, /n_dimensions)
+    if (n_dims ne 4) then begin
+      mg_log, 'wrong number of dimensions for image: %d', n_dims, $
+              name='kcor/rt', /warn
+      delay_time = 1.0   ; seconds
+      mg_log, 'attempting another read after %0.2f s delay', delay_time, $
+              name='kcor/rt', /warn
+      wait, delay_time
+      img = readfits(l0_file, hdu, /silent)
+    endif
+
     ; extract keyword parameters from FITS header
     naxis    = sxpar(hdu, 'NAXIS',    count=qnaxis)
     naxis1   = sxpar(hdu, 'NAXIS1',   count=qnaxis1)
