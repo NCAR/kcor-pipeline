@@ -238,3 +238,4 @@
   L1.5 tarballs will be updated on reprocessing if send_to_hpss is set
   include traceback for error in crash notification
   re-read image in quality check if it is not 4-dimensional
+  recording socket cam ID
