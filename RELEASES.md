@@ -236,3 +236,4 @@
   fix for invalid XML in JP2 files
 1.5.10
   L1.5 tarballs will be updated on reprocessing if send_to_hpss is set
+  include traceback for error in crash notification

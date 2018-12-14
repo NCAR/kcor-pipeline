@@ -10,20 +10,23 @@
 pro kcor_crash_notification, run=run, realtime=realtime, eod=eod
   compile_opt strictarr
 
+  help, /last_message, output=help_output
+  body = [help_output, '']
+
   case 1 of
     keyword_set(realtime): begin
         logger_name = 'kcor/rt'
         rt_log_filename = filepath(run.date + '.realtime.log', root=run.log_dir)
         rt_errors = kcor_filter_log(rt_log_filename, /error, n_messages=n_rt_errors)
         name = 'real-time'
-        body = [rt_log_filename, '', rt_errors]
+        body = [body, rt_log_filename, '', rt_errors]
       end
     keyword_set(eod): begin
         logger_name = 'kcor/eod'
         eod_log_filename = filepath(run.date + '.eod.log', root=run.log_dir)
         eod_errors = kcor_filter_log(eod_log_filename, /error, n_messages=n_eod_errors)
         name = 'end-of-day'
-        body = [eod_log_filename, '', eod_errors]
+        body = [body, eod_log_filename, '', eod_errors]
       end
   endcase
 
