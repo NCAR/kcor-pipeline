@@ -74,20 +74,20 @@ if (! $sth) {
 #   field list, but this table will not get a lot of queries. I left 'labviewid'
 #   and 'socketcamid' as varchars due to not knowing their actual length
 $command = "create table kcor_sw (
-  sw_id            int(10) auto_increment primary key,
-  date             datetime not null,
-  proc_date        datetime not null,
-  dmodswid         char(24),
-  distort          char(50),
-  sw_version       char(24),
-  bunit            varchar(12),
-  bzero            float(6, 3),
-  bscale           float(6, 3),
-  labviewid        varchar(20),
-  socketcamid      varchar(20),
-  sw_revision      varchar(20),
-  sky_pol_factor   float(6, 3),
-  sky_bias         float(7, 4)
+  sw_id             int(10) auto_increment primary key,
+  date              datetime not null,
+  proc_date         datetime not null,
+  dmodswid          char(24),
+  distort           char(50),
+  sw_version        char(24),
+  sw_revision       varchar(20),
+  sky_pol_factor    float(6, 3),
+  sky_bias          float(7, 4),
+  bunit             varchar(12),
+  bzero             float(6, 3),
+  bscale            float(6, 3),
+  labviewid         varchar(20),
+  socketcamid       varchar(20)
 )";
 
 $sth = $dbh->prepare($command);
