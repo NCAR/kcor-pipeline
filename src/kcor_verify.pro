@@ -49,23 +49,29 @@ pro kcor_verify_hpss, date, filename, filesize, $
 
     ; check group ownership of tarball on HPSS
     if (tokens[3] ne 'cordyn') then begin
-      mg_log, 'incorrect group owner %s for tarball on HPSS', $
-              tokens[3], name=logger_name, /error
+      mg_log, 'incorrect group owner %s for %s on HPSS', $
+              tokens[3], $
+              file_basename(filename), $
+              name=logger_name, /error
       status = 1L
       goto, hpss_done
     endif
 
     ; check protection of tarball on HPSS
     if (tokens[0] ne '-rw-rw-r--') then begin
-      mg_log, 'incorrect permissions %s for tarball on HPSS', $
-              tokens[0], name=logger_name, /error
+      mg_log, 'incorrect permissions %s for %s on HPSS', $
+              tokens[0], $
+              file_basename(filename), $
+              name=logger_name, /error
       status = 1L
       goto, hpss_done
     endif
 
     ; check size of tarball on HPSS
     if (ulong64(tokens[4]) ne filesize) then begin
-      mg_log, 'incorrect size %sB for tarball on HPSS', $
+      mg_log, '%s local size (%s B) does not match size on HPSS (%s B)', $
+              file_basename(filename), $
+              mg_float2str(filesize, places_sep=','), $
               mg_float2str(ulong64(tokens[4]), places_sep=','), $
               name=logger_name, /error
       status = 1L
@@ -418,7 +424,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
     mg_log, 'problem checking raw files on %s:%s', $
             run.raw_remote_server, run.raw_remote_dir, $
             name=logger_name, /error
-    mg_log, 'Command: %s', cmd, name=logger_name, /error
+    mg_log, 'command: %s', cmd, name=logger_name, /error
     mg_log, '%s', strjoin(error_output, ' '), name=logger_name, /error
     status = 1L
     goto, mlso_server_test_done
