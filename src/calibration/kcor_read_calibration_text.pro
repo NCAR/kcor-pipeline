@@ -72,11 +72,11 @@ function kcor_read_calibration_text, date, process_basedir, $
       date_parts = long(kcor_decompose_date(file_date))
       time_parts = long(kcor_decompose_time(file_time))
 
-      mlso_sun, date_parts[0], $
-                date_parts[1], $
-                date_parts[2], $
-                time_parts[0] + time_parts[1] / 60.0 + time_parts[2] / 3600.0, $
-                dist=sunearth_dist
+      sun, date_parts[0], $
+           date_parts[1], $
+           date_parts[2], $
+           time_parts[0] + time_parts[1] / 60.0 + time_parts[2] / 3600.0, $
+           dist=sunearth_dist
 
       dark = tokens[6] eq 'in'                              ; dark in
       flat = (tokens[8] eq 'in') && (tokens[10] eq 'out')   ; diff in, cal out

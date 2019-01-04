@@ -97,7 +97,7 @@ pro kcor_sci_insert, date, files, $
     second = long(strmid(date_obs, 17, 2))
 
     fhour = hour + minute / 60.0 + second / 60.0 / 60.0
-    mlso_sun, year, month, day, fhour, sd=rsun, pa=pangle, la=bangle
+    sun, year, month, day, fhour, sd=rsun, pa=pangle, la=bangle
 
     run.time = date_obs
     sun_pixels = rsun / run->epoch('plate_scale')

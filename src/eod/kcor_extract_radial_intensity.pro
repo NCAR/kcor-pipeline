@@ -38,7 +38,7 @@ function kcor_extract_radial_intensity, filename, plate_scale, $
   second = long(strmid(date_obs, 17, 2))
 
   fhour = hour + minute / 60.0 + second / 60.0 / 60.0
-  mlso_sun, year, month, day, fhour, sd=rsun, pa=pangle, la=bangle
+  sun, year, month, day, fhour, sd=rsun, pa=pangle, la=bangle
 
   sun_pixels = rsun / plate_scale
   

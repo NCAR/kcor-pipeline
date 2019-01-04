@@ -89,8 +89,8 @@ pro kcor_cropped_gif, im, date, date_obs, $
           color=255, charsize=1.0, /device, alignment=1.0
 
   ; solar radius outline
-  mlso_sun, date_obs.year, date_obs.month, date_obs.day, date_obs.ehour, $
-            sd=radsun
+  sun, date_obs.year, date_obs.month, date_obs.day, date_obs.ehour, $
+       sd=radsun
   r_photosphere = radsun / run->epoch('plate_scale')
   tvcircle, r_photosphere, 255.5, 255.5, color=255, /device
 

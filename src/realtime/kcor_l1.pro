@@ -638,9 +638,9 @@ pro kcor_l1, date, ok_files, $
     erase
 
     ; ephemeris data
-    mlso_sun, oyear, omonth, oday, ehour, sd=radsun, pa=pangle, lat0=bangle, $
-              true_ra=sol_ra, true_dec=sol_dec, $
-              carrington=carrington, long0=carrington_long
+    sun, oyear, omonth, oday, ehour, sd=radsun, pa=pangle, lat0=bangle, $
+         true_ra=sol_ra, true_dec=sol_dec, $
+         carrington=carrington, long0=carrington_long
 
     sol_ra = sol_ra * 15.0   ; convert from hours to degrees
     carrington_rotnum = fix(carrington)
