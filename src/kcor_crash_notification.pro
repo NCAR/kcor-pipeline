@@ -13,6 +13,13 @@ pro kcor_crash_notification, run=run, realtime=realtime, eod=eod
   help, /last_message, output=help_output
   body = [help_output, '']
 
+  if (~obj_valid(run)) then begin
+    if (n_elements(helpOutput) gt 1L && help_output[0] ne '') then begin
+      print, transpose(help_output)
+    endif
+    return
+  endif
+
   case 1 of
     keyword_set(realtime): begin
         logger_name = 'kcor/rt'
