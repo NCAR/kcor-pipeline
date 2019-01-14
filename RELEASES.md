@@ -240,3 +240,4 @@
   re-read image in quality check if it is not 4-dimensional
   recording socket cam ID
   correction applied to rotation of image to solar North (in addition to QU transform)
+1.5.11
