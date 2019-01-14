@@ -234,7 +234,7 @@
   add epoch value for when to require a machine log file
 1.5.9 [Nov 28, 2018]
   fix for invalid XML in JP2 files
-1.5.10
+1.5.10 [Jan 14, 2019]
   L1.5 tarballs will be updated on reprocessing if send_to_hpss is set
   include traceback for error in crash notification
   re-read image in quality check if it is not 4-dimensional
