@@ -93,6 +93,9 @@ function kcor_read_camera_correction, filename, $
     endif
 
     if (cache_filename ne '') then begin
+      cache_dirname = file_dirname(cache_filename)
+      if (~file_test(cache_dirname, /directory)) then file_mkdir, cache_dirname
+
       save, fit_params, $
             bad_columns, $
             n_bad_columns, $
