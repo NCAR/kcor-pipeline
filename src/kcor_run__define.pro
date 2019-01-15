@@ -377,6 +377,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            cal_out_dir=cal_out_dir, $
                            correct_camera=correct_camera, $
                            camera_correction_dir=camera_correction_dir, $
+                           camera_correction_cache_dir=camera_correction_cache_dir, $
                            raw_basedir=raw_basedir, $
                            process_basedir=process_basedir, $
                            lock_raw=lock_raw, $
@@ -486,6 +487,10 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   if (arg_present(camera_correction_dir)) then begin
     camera_correction_dir = self.options->get('camera_correction_dir', $
                                               section='calibration')
+  endif
+  if (arg_present(camera_correction_cache_dir)) then begin
+    camera_correction_cache_dir = self.options->get('camera_correction_cache_dir', $
+                                                    section='calibration')
   endif
 
   ; processing

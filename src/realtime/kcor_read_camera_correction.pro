@@ -8,7 +8,9 @@
 ;
 ; :Params:
 ;   filename : in, required, type=string
-;     camera correction filename
+;     camera correction filename for netCDF file
+;   cache_filename : in, required, type=string
+;     cache of mask info `.sav` file corresponding to the `filename`
 ;
 ; :Keywords:
 ;   bad_columns : out, optional, type=lonarr
@@ -24,6 +26,7 @@
 ;     set to interpolate over bad values (not bad columns)
 ;-
 function kcor_read_camera_correction, filename, $
+                                      cache_filename, $
                                       bad_columns=bad_columns, $
                                       n_bad_columns=n_bad_columns, $
                                       bad_values=bad_values, $
@@ -32,59 +35,73 @@ function kcor_read_camera_correction, filename, $
                                       interpolate=interpolate
   compile_opt strictarr
 
-  id = ncdf_open(filename)
+  if (file_test(cache_filename, /regular)) then begin
+    restore, filename=cache_filename
+  endif else begin
+    id = ncdf_open(filename)
 
-  fit_params_varid = ncdf_varid(id, 'Fit Parameters')
-  ncdf_varget, id, fit_params_varid, fit_params
+    fit_params_varid = ncdf_varid(id, 'Fit Parameters')
+    ncdf_varget, id, fit_params_varid, fit_params
 
-  bad_pixel_mask_varid = ncdf_varid(id, 'Bad Pixel Mask')
-  ncdf_varget, id, bad_pixel_mask_varid, bad_pixel_mask
+    bad_pixel_mask_varid = ncdf_varid(id, 'Bad Pixel Mask')
+    ncdf_varget, id, bad_pixel_mask_varid, bad_pixel_mask
 
-  ncdf_close, id
+    ncdf_close, id
 
-  compute_bad_columns = arg_present(bad_columns) || arg_present(n_bad_columns)
-  compute_bad_values = arg_present(bad_values) $
-                         || arg_present(n_bad_values) $
-                         || keyword_set(interpolate)
+    compute_bad_columns = arg_present(bad_columns) || arg_present(n_bad_columns)
+    compute_bad_values = arg_present(bad_values) $
+                           || arg_present(n_bad_values) $
+                           || keyword_set(interpolate)
 
-  if (compute_bad_columns || compute_bad_values) then begin
-    dims = size(bad_pixel_mask, /dimensions)
+    if (compute_bad_columns || compute_bad_values) then begin
+      dims = size(bad_pixel_mask, /dimensions)
 
-    bad_pixel_mask or= (fit_params[*, *, 4] gt 1.0) or (fit_params[*, *, 4] lt -1.0)
+      bad_pixel_mask or= (fit_params[*, *, 4] gt 1.0) or (fit_params[*, *, 4] lt -1.0)
 
-    ; number of bad pixels in a column to call it a bad column
-    bad_column_max = dims[1]
+      ; number of bad pixels in a column to call it a bad column
+      bad_column_max = dims[1]
 
-    bad_pixels_by_column = total(bad_pixel_mask, 2, /integer)
-    bad_columns = where(bad_pixels_by_column ge bad_column_max, $
-                        n_bad_columns)
+      bad_pixels_by_column = total(bad_pixel_mask, 2, /integer)
+      bad_columns = where(bad_pixels_by_column ge bad_column_max, $
+                          n_bad_columns)
 
-    ; find individual bad values if needed
-    if (compute_bad_values) then begin
-      fixable_column_mask = bytarr(dims[0]) + 1B
-      fixable_column_mask[bad_columns] = 0B
-      fixable_column_mask = rebin(reform(fixable_column_mask, dims[0], 1), $
-                                  dims[0], dims[1])
+      ; find individual bad values if needed
+      if (compute_bad_values) then begin
+        fixable_column_mask = bytarr(dims[0]) + 1B
+        fixable_column_mask[bad_columns] = 0B
+        fixable_column_mask = rebin(reform(fixable_column_mask, dims[0], 1), $
+                                    dims[0], dims[1])
 
-      bad_values = where(bad_pixel_mask and fixable_column_mask, n_bad_values)
+        bad_values = where(bad_pixel_mask and fixable_column_mask, n_bad_values)
+      endif
     endif
-  endif
 
-  if (keyword_set(interpolate)) then begin
-    fit_dims = size(fit_params, /dimensions)
+    if (keyword_set(interpolate)) then begin
+      fit_dims = size(fit_params, /dimensions)
 
-    width = 21
-    kernel = fltarr(width, width) + 1.0
-    c = width / 2
-    kernel[c - 2:c + 2, c - 2:c + 2] = 0.0
+      width = 21
+      kernel = fltarr(width, width) + 1.0
+      c = width / 2
+      kernel[c - 2:c + 2, c - 2:c + 2] = 0.0
 
-    for f = 0L, fit_dims[2] - 1L do begin
-      k = reform(fit_params[*, *, f])
-      k1 = convol(k, kernel, /center, /normalize, /edge_truncate)
-      k[bad_values] = k1[bad_values]
-      fit_params[*, *, f] = k
-    endfor
-  endif
+      for f = 0L, fit_dims[2] - 1L do begin
+        k = reform(fit_params[*, *, f])
+        k1 = convol(k, kernel, /center, /normalize, /edge_truncate)
+        k[bad_values] = k1[bad_values]
+        fit_params[*, *, f] = k
+      endfor
+    endif
+
+    if (cache_filename ne '') then begin
+      save, fit_params, $
+            bad_columns, $
+            n_bad_columns, $
+            bad_values, $
+            n_bad_values, $
+            bad_pixel_mask, $
+            filename=cache_filename
+    endif
+  endelse
 
   return, fit_params
 end
