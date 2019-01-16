@@ -26,6 +26,10 @@ pro kcor_correct_camera, im, header, $
   rcam_cor_filename = ''
   tcam_cor_filename = ''
 
+  ; note: if we decide to change whether we interpolate around some bad pixles,
+  ; we will have to clear the camera correction cache directory
+  interpolate = 1B
+
   im = float(im)
 
   if (~run->epoch('correct_camera')) then begin
@@ -81,24 +85,19 @@ pro kcor_correct_camera, im, header, $
     return
   endelse
 
-  if (run.camera_correction_cache_dir eq '') then begin
-    rcam_cor_cache_filename = ''
-  endif else begin
-    rcam_cor_cache_filename = filepath(string(prefix, rcamid, exposure, $
-                                              rcam_lut_date, 'sav', $
-                                              format=fmt), $
-                                       root=run.camera_correction_cache_dir)
-  endelse
+  rcam_cor_cache_filename = filepath(string(prefix, rcamid, exposure, $
+                                            rcam_lut_date, 'sav', $
+                                            format=fmt), $
+                                     subdir='.cache', $
+                                     root=run.camera_correction_dir)
 
-  ; note: if we decide to change whether we use the /INTERPOLATE below, we will
-  ; have to clear the camera correction cache directory
   fp[*, *, *, 0] = kcor_read_camera_correction(rcam_cor_filename, $
                                                rcam_cor_cache_filename, $
                                                bad_columns=rbad_columns, $
                                                n_bad_columns=n_rbad_columns, $
                                                bad_values=rbad_values, $
                                                n_bad_values=n_rbad_values, $
-                                               /interpolate)
+                                               interpolate=interpolate)
   mg_log, 'RCAM fit: %d bad cols, %d bad values', n_rbad_columns, n_rbad_values, $
           name=logger_name, /debug
 
@@ -114,24 +113,19 @@ pro kcor_correct_camera, im, header, $
     return
   endelse
 
-  if (run.camera_correction_cache_dir eq '') then begin
-    tcam_cor_cache_filename = ''
-  endif else begin
-    tcam_cor_cache_filename = filepath(string(prefix, tcamid, exposure, $
-                                              tcam_lut_date, 'sav', $
-                                              format=fmt), $
-                                       root=run.camera_correction_cache_dir)
-  endelse
+  tcam_cor_cache_filename = filepath(string(prefix, tcamid, exposure, $
+                                            tcam_lut_date, 'sav', $
+                                            format=fmt), $
+                                     subdir='.cache', $
+                                     root=run.camera_correction_dir)
 
-  ; note: if we decide to change whether we use the /INTERPOLATE below, we will
-  ; have to clear the camera correction cache directory
   fp[*, *, *, 1] = kcor_read_camera_correction(tcam_cor_filename, $
                                                tcam_cor_cache_filename, $
                                                bad_columns=tbad_columns, $
                                                n_bad_columns=n_tbad_columns, $
                                                bad_values=tbad_values, $
                                                n_bad_values=n_tbad_values, $
-                                               /interpolate)
+                                               interpolate=interpolate)
   mg_log, 'TCAM fit: %d bad cols, %d bad values', n_tbad_columns, n_tbad_values, $
           name=logger_name, /debug
 
