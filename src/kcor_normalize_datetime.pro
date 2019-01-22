@@ -19,8 +19,13 @@
 ;     0 for no error, 1 for an error
 ;   add_15 : in, optional, type=boolean
 ;     set to return the given time plus 15 seconds (normalized)
+;   components : out, optional, type=lonarr
+;     components of the date/time: year, month, day, hour, minute, second
 ;-
-function kcor_normalize_datetime, datetime, error=error, add_15=add_15
+function kcor_normalize_datetime, datetime, $
+                                  error=error, $
+                                  add_15=add_15, $
+                                  components=dt_comp
   compile_opt strictarr
 
   error = 0L

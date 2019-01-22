@@ -128,19 +128,24 @@ pro kcor_img_insert, date, fits_list, $
 
     ; normalize odd values for date/times, particularly "60" as minute value in
     ; DATE-END
-    date_obs = kcor_normalize_datetime(date_obs, error=error)
+    date_obs = kcor_normalize_datetime(date_obs, $
+                                       components=img_date_parts, $
+                                       error=error)
     date_end = kcor_normalize_datetime(date_end, error=error)
     if (error ne 0L) then begin
       date_end = kcor_normalize_datetime(date_obs, error=error, /add_15)
     endif
 
+    sun, img_date_parts[0], img_date_parts[1], img_date_parts[2], $
+         img_date_parts[3] + img_date_parts[4] / 60.0 + img_date_parts[5] / 3600., $
+         carrington=carrington
+    carrington_rotation = long(carrington)
+
     exptime    = sxpar(hdu, 'EXPTIME',  count=qexptime)
     numsum     = sxpar(hdu, 'NUMSUM',   count=qnumsum)
     quality    = sxpar(hdu, 'QUALITY',  count=qquality)
 
-    if (strtrim(quality, 2) eq 'ok') then begin 
-      quality = 75
-    endif
+    if (strtrim(quality, 2) eq 'ok') then quality = 75
 
     level      = strtrim(sxpar(hdu, 'LEVEL', count=qlevel), 2)
 
@@ -203,8 +208,9 @@ pro kcor_img_insert, date, fits_list, $
     if (level_found eq 0) then mg_log, 'using unknown level', name=log_name, /error
 
     ; DB insert command
-    db->execute, 'INSERT INTO kcor_img (file_name, date_obs, date_end, obs_day, level, quality, producttype, filetype, numsum, exptime) VALUES (''%s'', ''%s'', ''%s'', %d, %d, %d, %d, %d, %d, %f)', $
-                 fits_file, date_obs, date_end, obsday_index, level_num, quality, producttype_num, $
+    db->execute, 'INSERT INTO kcor_img (file_name, date_obs, date_end, obs_day, carrington_rotation, level, quality, producttype, filetype, numsum, exptime) VALUES (''%s'', ''%s'', ''%s'', %d, %d, %d, %d, %d, %d, %f)', $
+                 fits_file, date_obs, date_end, obsday_index, carrington_rotation, $
+                 level_num, quality, producttype_num, $
                  filetype_num, numsum, exptime, $
                  status=status, error_message=error_message, sql_statement=sql_cmd
 

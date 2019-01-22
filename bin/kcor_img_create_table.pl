@@ -87,13 +87,13 @@ if (! $sth)
 #	Changed field 'datatype' to 'producttype' to avoid confusion with header field (20170213 DJK)
 #	Alterting data types of level, producttype, and filetype to normalize with level, producttype, and filetype mysql tables (20170213)
 # TODO: define other indices.
-$command = "CREATE TABLE kcor_img
-  (
+$command = "CREATE TABLE kcor_img (
   img_id                INT (10) AUTO_INCREMENT PRIMARY KEY,
   file_name             CHAR (50) NOT NULL, 
   date_obs              DATETIME NOT NULL, 
   date_end              DATETIME NOT NULL, 
   obs_day               MEDIUMINT (5) NOT NULL,
+  carrington_rotation   MEDIUMINT (5),
   level                 TINYINT (2) NOT NULL,
   quality               TINYINT (2),
   producttype           TINYINT (2),

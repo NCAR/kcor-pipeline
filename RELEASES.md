@@ -241,3 +241,6 @@
   recording socket cam ID
   correction applied to rotation of image to solar North (in addition to QU transform)
 1.5.11
+  use interpolated fit_params for camera correction
+  caching camera correction parameters
+  add Carrington rotation to kcor_img database table
