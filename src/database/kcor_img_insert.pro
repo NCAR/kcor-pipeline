@@ -208,7 +208,7 @@ pro kcor_img_insert, date, fits_list, $
     if (level_found eq 0) then mg_log, 'using unknown level', name=log_name, /error
 
     ; DB insert command
-    db->execute, 'INSERT INTO kcor_img (file_name, date_obs, date_end, obs_day, carrington_rotation, level, quality, producttype, filetype, numsum, exptime) VALUES (''%s'', ''%s'', ''%s'', %d, %d, %d, %d, %d, %d, %f)', $
+    db->execute, 'INSERT INTO kcor_img (file_name, date_obs, date_end, obs_day, carrington_rotation, level, quality, producttype, filetype, numsum, exptime) VALUES (''%s'', ''%s'', ''%s'', %d, %d, %d, %d, %d, %d, %d, %f)', $
                  fits_file, date_obs, date_end, obsday_index, carrington_rotation, $
                  level_num, quality, producttype_num, $
                  filetype_num, numsum, exptime, $
@@ -289,15 +289,20 @@ end
 
 ;date = '20170204'
 ;filelist = ['20170204_205610_kcor_l1_nrgf.fts.gz','20170204_205625_kcor_l1.fts.gz','20170204_205640_kcor_l1.fts.gz','20170204_205656_kcor_l1.fts.gz','20170204_205711_kcor_l1.fts.gz']
-date = '20170305'
-filelist = ['20170305_185807_kcor_l1.5_nrgf.fts.gz', $
-            '20170305_185822_kcor_l1.5.fts.gz', $
-            '20170305_185837_kcor_l1.5.fts.gz']
+;date = '20170305'
+;filelist = ['20170305_185807_kcor_l1.5_nrgf.fts.gz', $
+;            '20170305_185822_kcor_l1.5.fts.gz', $
+;            '20170305_185837_kcor_l1.5.fts.gz']
+
+date = '20180802'
+filelist = ['20180802_204107_kcor_l1.5.fts']
 
 run = kcor_run(date, $
-               config_filename=filepath('kcor.kolinski.mahi.latest.cfg', $
+               config_filename=filepath('kcor.mgalloy.twilight.latest.cfg', $
                                         subdir=['..', '..', 'config'], $
                                         root=mg_src_root()))
-kcor_img_insert, date, filelist, run=run
+obsday_index = mlso_obsday_insert(date, run=run)
+kcor_img_insert, date, filelist, run=run, obsday_index=obsday_index
+obj_destroy, run
 
 end
