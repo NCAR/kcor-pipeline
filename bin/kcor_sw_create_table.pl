@@ -81,8 +81,6 @@ $command = "create table kcor_sw (
   distort           char(50),
   sw_version        char(24),
   sw_revision       varchar(20),
-  sky_pol_factor    float(6, 3),
-  sky_bias          float(7, 4),
   labviewid         varchar(20),
   socketcamid       varchar(20)
 )";

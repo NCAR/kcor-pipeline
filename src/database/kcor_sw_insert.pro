@@ -128,8 +128,6 @@ pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_na
     socketcamid	= sxpar(hdu, 'SOCKETCA', count=qsocketcamid)
 
     sw_version     = kcor_find_code_version(revision=sw_revision)
-    sky_pol_factor = run->epoch('skypol_factor')
-    sky_bias       = run->epoch('skypol_bias')
 
     ; TODO: Test for changes from previous db entry
     ; TODO: From 20170315 meeting: We will wait for older data to be completely
@@ -145,18 +143,14 @@ pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_na
                sw_version     : sw_version, $       ; from KCOR_FIND_CODE_VERSION
                labviewid      : labviewid, $        ; from file
                socketcamid    : socketcamid, $      ; from file
-               sw_revision    : sw_revision, $      ; from KCOR_FIND_CODE_VERSION
-               sky_pol_factor : sky_pol_factor, $   ; from epochs.cfg
-               sky_bias       : sky_bias}           ; from epochs.cfg
+               sw_revision    : sw_revision}        ; from KCOR_FIND_CODE_VERSION
 
     compare_fields = ['dmodswid', $
                       'distort', $
                       'sw_version', $
                       'labviewid', $
                       'socketcamid', $
-                      'sw_revision', $
-                      'sky_pol_factor', $
-                      'sky_bias']
+                      'sw_revision']
     update = kcor_compare_rows(latest_sw, file_sw, $
                                compare_fields=compare_fields, $
                                log_name=log_name) ne 0
@@ -171,11 +165,9 @@ pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_na
                 'sw_version', $
                 'labviewid', $
                 'socketcamid', $
-                'sw_revision', $
-                'sky_pol_factor', $
-                'sky_bias']
+                'sw_revision']
       fields_expr = strjoin(fields, ', ')
-      db->execute, 'INSERT INTO kcor_sw (%s) VALUES (''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', %f, %f) ', $
+      db->execute, 'INSERT INTO kcor_sw (%s) VALUES (''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'') ', $
                    fields_expr, $
                    date, $
                    proc_date, $        ; generated
@@ -185,8 +177,6 @@ pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_na
                    labviewid, $
                    socketcamid, $
                    sw_revision, $      ; from KCOR_FIND_CODE_VERSION
-                   sky_pol_factor, $   ; from epochs.cfg
-                   sky_bias, $         ; from epochs.cfg
                    status=status, error_message=error_message, sql_statement=sql_cmd
       if (status ne 0L) then begin
         mg_log, '%d, error message: %s', status, error_message, $
