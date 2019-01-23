@@ -122,13 +122,6 @@ pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_na
     dmodswid    = sxpar(hdu, 'DMODSWID', count=qdmodswid)
     distort     = sxpar(hdu, 'DISTORT', count=qdistort)
 
-;TODO: Replace with new header var for processing sw version?
-    bunit       = sxpar(hdu, 'BUNIT', count=n_bunit)
-    if (n_bunit eq 0) then bunit = 'quasi-pB'
-
-    bzero       = sxpar(hdu, 'BZERO', count=qbzero)
-    bscale      = sxpar(hdu, 'BSCALE', count=qbscale)
-    if (qbscale eq 0) then bscale = 0.001
 
 ;TODO: Replace with new header var for labview sw
     labviewid   = sxpar(hdu, 'OBSSWID', count=qlabviewid)
@@ -150,9 +143,6 @@ pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_na
                dmodswid       : dmodswid, $         ; from file
                distort        : distort, $          ; from file
                sw_version     : sw_version, $       ; from KCOR_FIND_CODE_VERSION
-               bunit          : bunit, $            ; from file
-               bzero          : bzero, $            ; from file
-               bscale         : bscale, $           ; from file
                labviewid      : labviewid, $        ; from file
                socketcamid    : socketcamid, $      ; from file
                sw_revision    : sw_revision, $      ; from KCOR_FIND_CODE_VERSION
@@ -162,9 +152,6 @@ pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_na
     compare_fields = ['dmodswid', $
                       'distort', $
                       'sw_version', $
-                      'bunit', $
-                      'bzero', $
-                      'bscale', $
                       'labviewid', $
                       'socketcamid', $
                       'sw_revision', $
@@ -182,25 +169,19 @@ pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_na
                 'dmodswid', $
                 'distort', $
                 'sw_version', $
-                'bunit', $
-                'bzero', $
-                'bscale', $
                 'labviewid', $
                 'socketcamid', $
                 'sw_revision', $
                 'sky_pol_factor', $
                 'sky_bias']
       fields_expr = strjoin(fields, ', ')
-      db->execute, 'INSERT INTO kcor_sw (%s) VALUES (''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, ''%s'', ''%s'', ''%s'', %f, %f) ', $
+      db->execute, 'INSERT INTO kcor_sw (%s) VALUES (''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', %f, %f) ', $
                    fields_expr, $
                    date, $
                    proc_date, $        ; generated
                    dmodswid, $
                    distort, $
                    sw_version, $       ; from KCOR_FIND_CODE_VERSION
-                   bunit, $
-                   bzero, $
-                   bscale, $
                    labviewid, $
                    socketcamid, $
                    sw_revision, $      ; from KCOR_FIND_CODE_VERSION
