@@ -77,12 +77,11 @@ $command = "create table kcor_sw (
   sw_id             int(10) auto_increment primary key,
   date              datetime not null,
   proc_date         datetime not null,
-  dmodswid          char(24),
-  distort           char(50),
+  obs_day           mediumint (5) not null,
   sw_version        char(24),
   sw_revision       varchar(20),
-  labviewid         varchar(20),
-  socketcamid       varchar(20)
+  index (obs_day),
+  foreign key (obs_day) references mlso_numfiles(day_id)
 )";
 
 $sth = $dbh->prepare($command);

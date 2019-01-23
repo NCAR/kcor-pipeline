@@ -1,35 +1,29 @@
 ; docformat = 'rst'
 
 ;+
-; Insert values into the MLSO database table: kcor_sw.
-;
-; Reads a list of L1 files for a specified date and inserts a row of data into
-; 'kcor_sw' if any of the monitored fields changed from the previous db entry.
-; This script will check the database against the current data to decide whether
-; a new line should be added
+; Insert a value into the MLSO kcor_sw database table.
 ;
 ; :Params:
 ;   date : in, type=string
 ;     date in the form 'YYYYMMDD'
-;   fits_list: in, required, type=strarr
-;     level 1 FITS filenames
 ;
 ; :Keywords:
 ;   run : in, required, type=object
 ;     `kcor_run` object
-;   sw_ids : out, optional, type=lonarr
-;     set to a named variable to retrieve the sw_id's of the list of files
+;   database : in, optional, type=MGdbMySql object
+;     database connection to use
+;   obsday_index : in, required, type=integer
+;     index into mlso_numfiles database table
+;   log_name : in, required, type=string
+;     log name to use for logging, i.e., "kcor/rt", "kcor/eod", etc.
+;   sw_index : out, optional, type=long
+;     set to a named variable to retrieve the kcor_sw table index of the entry
+;     just added
 ;
 ; :Examples:
 ;   For example::
 ;
-;     date = '20170204'
-;     filelist = ['20170214_190402_kcor.fts.gz', $
-;                 '20170214_190417_kcor.fts.gz', $
-;                 '20170214_190548_kcor.fts.gz', $
-;                 '20170214_190604_kcor.fts', $
-;                 '20170214_190619_kcor.fts']
-;     kcor_sw_insert, date, filelist
+;     kcor_sw_insert, '20170204', run=run, obsday_index=obsday_index
 ;
 ;
 ; :Author: 
@@ -45,8 +39,11 @@
 ;               to check for changes in field values compared to previous
 ;               database entries to determine whether a new entry is needed.
 ;-
-pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_name, $
-                    sw_ids=sw_ids
+pro kcor_sw_insert, date, run=run, $
+                    database=database, $
+                    obsday_index=obsday_index, $
+                    sw_index=sw_index, $
+                    log_name=log_name
   compile_opt strictarr
   on_error, 2
 
@@ -70,132 +67,48 @@ pro kcor_sw_insert, date, fits_list, run=run, database=database, log_name=log_na
     mg_log, 'connected to %s', host, name=log_name, /info
   endelse
 
-  ; change to proper processing directory
-  archive_dir = filepath('', subdir=kcor_decompose_date(date), root=run.archive_basedir)
-
-  ; move to archive dir
-  cd, current=start_dir
-  cd, archive_dir
-
-  ; loop through fits list
-  nfiles = n_elements(fits_list)
-
-  if (nfiles eq 0) then begin
-    mg_log, 'no images in list file', name=log_name, /info
-    goto, done
-  endif
-
-  sw_ids = lonarr(nfiles)
+  sw_index = 0L   ; updated with correct index if all goes well
+  sw_version = kcor_find_code_version(revision=sw_revision)
 
   date_format = '(C(CYI, "-", CMOI2.2, "-", CDI2.2, "T", CHI2.2, ":", CMI2.2, ":", CSI2.2))'
+  proc_date = string(julday(), format=date_format)
 
-  ; get last kcor_sw entry (latest proc_date) to compare to
-  latest_sw = kcor_find_latest_row('kcor_sw', run=run, database=database, $
-                                   log_name=log_name, error=error)
+  ; check to see if passed observation day date is already in the kcor_sw table
+  obsday_results = db->query('SELECT count(obs_day) FROM kcor_sw WHERE obs_day=%d', $
+                             obsday_index, fields=fields)
+  obsday_count = obsday_results.count_obs_day_
 
-  if (error ne 0L) then begin
-    mg_log, 'skipping inserting kcor_sw row', name=log_name, /warn
-    goto, done
-  endif
+  if (obsday_count eq 0L) then begin
+    mg_log, 'inserting a new kcor_sw row', name=log_name, /info
 
-  i = -1
-  fts_file = ''
-  while (++i lt nfiles) do begin
-    fts_file = fits_list[i]
-    if (~file_test(fts_file)) then fts_file += '.gz'
-    if (~file_test(fts_file)) then begin
-      mg_log, 'cannot find %s', fts_file, name=log_name, /warn
-      continue
+    fields = ['date', $
+              'proc_date', $
+              'obs_day', $
+              'sw_version', $
+              'sw_revision']
+    db->execute, 'INSERT INTO kcor_sw (%s) VALUES (''%s'', ''%s'', %d, ''%s'', ''%s'') ', $
+                 strjoin(fields, ', '), $
+                 date, $
+                 proc_date, $
+                 obsday_index, $
+                 sw_version, $
+                 sw_revision, $
+                 status=status, error_message=error_message, sql_statement=sql_cmd
+    if (status ne 0L) then begin
+      mg_log, '%d, error message: %s', status, error_message, $
+              name=log_name, /error
+      mg_log, 'sql_cmd: %s', sql_cmd, name=log_name, /error
     endif
 
-    mg_log, 'checking %s', file_basename(fts_file), name=log_name, /debug
-
-    ; extract desired items from header
-    hdu   = headfits(fts_file, /silent)  ; read FITS header
-
-    date_obs    = sxpar(hdu, 'DATE-OBS', count=qdate_obs)
-
-    ; normalize odd values for date/times
-    date_obs = kcor_normalize_datetime(date_obs)
-    run.time = date_obs
-
-    dmodswid    = sxpar(hdu, 'DMODSWID', count=qdmodswid)
-    distort     = sxpar(hdu, 'DISTORT', count=qdistort)
-
-
-;TODO: Replace with new header var for labview sw
-    labviewid   = sxpar(hdu, 'OBSSWID', count=qlabviewid)
-    socketcamid	= sxpar(hdu, 'SOCKETCA', count=qsocketcamid)
-
-    sw_version     = kcor_find_code_version(revision=sw_revision)
-
-    ; TODO: Test for changes from previous db entry
-    ; TODO: From 20170315 meeting: We will wait for older data to be completely
-    ;       reprocessed to avoid problems caused by trying to update this table
-    ;       out of order.
-
-    proc_date = string(julday(), format=date_format)
-    file_sw = {sw_id          : 0L, $               ; fill in later
-               date           : date, $             ; from file
-               proc_date      : proc_date, $        ; generated
-               dmodswid       : dmodswid, $         ; from file
-               distort        : distort, $          ; from file
-               sw_version     : sw_version, $       ; from KCOR_FIND_CODE_VERSION
-               labviewid      : labviewid, $        ; from file
-               socketcamid    : socketcamid, $      ; from file
-               sw_revision    : sw_revision}        ; from KCOR_FIND_CODE_VERSION
-
-    compare_fields = ['dmodswid', $
-                      'distort', $
-                      'sw_version', $
-                      'labviewid', $
-                      'socketcamid', $
-                      'sw_revision']
-    update = kcor_compare_rows(latest_sw, file_sw, $
-                               compare_fields=compare_fields, $
-                               log_name=log_name) ne 0
-	
-    if (update) then begin
-      mg_log, 'inserting a new kcor_sw row', name=log_name, /info
-
-      fields = ['date', $
-                'proc_date', $
-                'dmodswid', $
-                'distort', $
-                'sw_version', $
-                'labviewid', $
-                'socketcamid', $
-                'sw_revision']
-      fields_expr = strjoin(fields, ', ')
-      db->execute, 'INSERT INTO kcor_sw (%s) VALUES (''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'') ', $
-                   fields_expr, $
-                   date, $
-                   proc_date, $        ; generated
-                   dmodswid, $
-                   distort, $
-                   sw_version, $       ; from KCOR_FIND_CODE_VERSION
-                   labviewid, $
-                   socketcamid, $
-                   sw_revision, $      ; from KCOR_FIND_CODE_VERSION
-                   status=status, error_message=error_message, sql_statement=sql_cmd
-      if (status ne 0L) then begin
-        mg_log, '%d, error message: %s', status, error_message, $
-                name=log_name, /error
-        mg_log, 'sql_cmd: %s', sql_cmd, name=log_name, /error
-      endif
-
-      sw = db->query('select last_insert_id()')
-      sw_ids[i] = sw.last_insert_id__
-
-      file_sw.sw_id = sw_ids[i]
-      latest_sw = file_sw
-    endif else begin
-      sw_ids[i] = latest_sw.sw_id
-    endelse
-  endwhile
+    sw_index  = db->query('select last_insert_id()')
+  endif else begin
+    ; if it is in the database, get the corresponding sw_id
+    sw_results = db->query('SELECT sw_id FROM kcor_sw WHERE obs_day=''%s''', $
+                           obs_day)	
+    sw_index = sw_results.sw_id
+  endelse
 
   done:
-  cd, start_dir
   if (~obj_valid(database)) then obj_destroy, db
   mg_log, 'done', name=log_name, /info
 end
@@ -209,16 +122,9 @@ config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
 
-latest_sw = kcor_find_latest_row('kcor_sw', run=run, database=database, log_name=log_name)
-help, latest_sw
+obsday_index = mlso_obsday_insert(date, run=run, database=db)
+kcor_sw_insert, date, l1_files, run=run, database=db, obsday_index=obsday_index
 
-cd, current=current_dir
-l1_dir = filepath('level1', subdir=date, root=run.raw_basedir)
-cd, l1_dir
-l1_files = file_search('*l1.5.fts*', count=n_l1_files)
-
-;kcor_sw_insert, date, l1_files, run=run
-
-cd, current_dir
+obj_destroy, run
 
 end

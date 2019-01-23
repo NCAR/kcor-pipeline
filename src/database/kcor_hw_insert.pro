@@ -76,7 +76,7 @@ pro kcor_hw_insert, date, fits_list, run=run, database=database, log_name=log_na
   date_format = '(C(CYI, "-", CMOI2.2, "-", CDI2.2, "T", CHI2.2, ":", CMI2.2, ":", CSI2.2))'
 
   ; get last kcor_hw entry (latest proc_date) to compare to
-  latest_hw = kcor_find_latest_row('kcor_hw', run=run, database=database, $
+  latest_hw = kcor_find_latest_row(run=run, database=database, $
                                    log_name=log_name, error=error)
 
   if (error ne 0L) then begin
@@ -225,7 +225,7 @@ config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
 
-latest_hw = kcor_find_latest_row('kcor_hw', run=run, database=database, log_name=log_name)
+latest_hw = kcor_find_latest_row(run=run, database=database, log_name=log_name)
 help, latest_hw
 
 cd, current=current_dir

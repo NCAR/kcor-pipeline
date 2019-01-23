@@ -1260,7 +1260,6 @@ pro kcor_l1, date, ok_files, $
 
     fxaddpar, newheader, 'CALFILE', run->epoch('cal_file'), $
               ' calibration file'
-    ;                        ' calibration file:dark, opal, 4 pol.states'
     fxaddpar, newheader, 'DISTORT', run->epoch('distortion_correction_filename'), $
               ' distortion file'
     if (finite(vdimref) && finite(flat_vdimref) && vdimref ne 0.0) then begin

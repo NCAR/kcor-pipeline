@@ -1,7 +1,7 @@
 ; docformat = 'rst'
 
 ;+
-; Find the latest row of the given table by `proc_date`.
+; Find the latest row of the kcor_hw table.
 ;
 ; :Keywords:
 ;   run : in, required, type=object
@@ -11,7 +11,7 @@
 ;   log_name : in, required, type=string
 ;     log name to use for logging, i.e., "kcor/rt", "kcor/eod", etc.
 ;-
-function kcor_find_latest_row, table, run=run, database=database, $
+function kcor_find_latest_row, run=run, database=database, $
                                log_name=log_name, $
                                error=error
   compile_opt strictarr
@@ -32,16 +32,8 @@ function kcor_find_latest_row, table, run=run, database=database, $
     mg_log, 'connected to %s', host, name=log_name, /info
   endelse
 
-  ; "latest" is different for kcor_sw (processing date) and kcor_hw (date
-  ; hardware was installed)
-  case table of
-    'kcor_hw': date_name = 'date'
-    'kcor_sw': date_name = 'proc_date'
-  endcase
-
-  q = 'select * from %s where %s = (select max(%s) from %s)'
-  latest_proc_date = db->query(q, table, date_name, date_name, table, fields=fields, $
-                               status=status, error_message=error_msg)
+  q = 'select * from kcor_hw where date = (select max(date) from kcor_hw)'
+  latest_proc_date = db->query(q, status=status, error_message=error_msg)
 
   if (status ne 0L) then begin
     error = 1L
