@@ -12,8 +12,6 @@
 ;     `kcor_run` object
 ;   database : in, optional, type=MGdbMySql object
 ;     database connection to use
-;   obsday_index : in, required, type=integer
-;     index into mlso_numfiles database table
 ;   log_name : in, required, type=string
 ;     log name to use for logging, i.e., "kcor/rt", "kcor/eod", etc.
 ;   sw_index : out, optional, type=long
@@ -41,7 +39,6 @@
 ;-
 pro kcor_sw_insert, date, run=run, $
                     database=database, $
-                    obsday_index=obsday_index, $
                     sw_index=sw_index, $
                     log_name=log_name
   compile_opt strictarr
@@ -74,23 +71,21 @@ pro kcor_sw_insert, date, run=run, $
   proc_date = string(julday(), format=date_format)
 
   ; check to see if passed observation day date is already in the kcor_sw table
-  obsday_results = db->query('SELECT count(obs_day) FROM kcor_sw WHERE obs_day=%d', $
-                             obsday_index, fields=fields)
-  obsday_count = obsday_results.count_obs_day_
+  q = 'select count(sw_id) from kcor_sw where sw_version=''%s'' and sw_revision=''%s'''
+  sw_id_results = db->query(q, sw_version, sw_revision)
+  sw_id_count = sw_id_results.count_sw_id_
 
-  if (obsday_count eq 0L) then begin
+  if (sw_id_count eq 0L) then begin
     mg_log, 'inserting a new kcor_sw row', name=log_name, /info
 
     fields = ['date', $
               'proc_date', $
-              'obs_day', $
               'sw_version', $
               'sw_revision']
-    db->execute, 'INSERT INTO kcor_sw (%s) VALUES (''%s'', ''%s'', %d, ''%s'', ''%s'') ', $
+    db->execute, 'INSERT INTO kcor_sw (%s) VALUES (''%s'', ''%s'', ''%s'', ''%s'') ', $
                  strjoin(fields, ', '), $
                  date, $
                  proc_date, $
-                 obsday_index, $
                  sw_version, $
                  sw_revision, $
                  status=status, error_message=error_message, sql_statement=sql_cmd

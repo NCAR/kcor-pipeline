@@ -123,7 +123,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
                                         log_name='kcor/rt')
       if (db_status eq 0L) then begin
         kcor_sw_insert, date, $
-                        run=run, database=database, obsday_index=obsday_index, $
+                        run=run, database=database, $
                         sw_index=sw_index, $
                         log_name='kcor/rt'
 
