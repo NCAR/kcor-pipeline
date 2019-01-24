@@ -98,8 +98,8 @@ pro kcor_sw_insert, date, run=run, $
     sw_index  = db->query('select last_insert_id()')
   endif else begin
     ; if it is in the database, get the corresponding sw_id
-    sw_results = db->query('SELECT sw_id FROM kcor_sw WHERE obs_day=''%s''', $
-                           obs_day)	
+    q = 'select sw_id from kcor_sw where sw_version=''%s'' and sw_revision=''%s'''
+    sw_results = db->query(q, sw_version, sw_revision)
     sw_index = sw_results.sw_id
   endelse
 
