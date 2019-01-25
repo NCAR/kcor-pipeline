@@ -150,12 +150,6 @@ pro kcor_db_clearday, run=run, $
                                  obsday_index=obsday_index, $
                                  database=db, $
                                  log_name=log_name
-
-    ; kcor_sw (must do after kcor_eng)
-    kcor_db_clearday_cleartable, 'kcor_sw', $
-                                 obsday_index=obsday_index, $
-                                 database=db, $
-                                 log_name=log_name
   endif
 
   kcor_db_clearday_cleartable, 'kcor_cal', $
