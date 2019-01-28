@@ -109,6 +109,17 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     mg_log, 't2 log does not exist in %s', date_dir, name='kcor/eod', /warn
   endelse
 
+  ; check for logs from other days -- sometimes the machine.log comes in late
+  ; and is placed in the next day
+  all_logs = file_search(filepath('*.log', root=date_dir), count=n_all_logs)
+  misplaced_log_indices = where(strpos(file_basename(all_logs), date), $
+                                 n_misplaced_logs)
+  for i = 0L, n_misplaced_logs - 1L do begin
+    mg_log, 'found misplaced log: %s', $
+            file_basename(all_logs[misplaced_log_indices[i]]), $
+            name='kcor/eod', /error
+  endfor
+
   cd, l0_dir
 
   l1_dir = filepath('level1', root=date_dir)
