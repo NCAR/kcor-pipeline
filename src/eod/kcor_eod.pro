@@ -84,7 +84,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   ; check for logs from other days -- sometimes the machine.log comes in late
   ; and is placed in the next day
   all_logs = file_search(filepath('*.log', root=date_dir), count=n_all_logs)
-  misplaced_log_indices = where(strpos(file_basename(all_logs) eq -1, date), $
+  misplaced_log_indices = where(strpos(file_basename(all_logs), date) eq -1, $
                                  n_misplaced_logs)
   for i = 0L, n_misplaced_logs - 1L do begin
     mg_log, 'found misplaced log: %s', $
