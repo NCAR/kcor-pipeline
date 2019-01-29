@@ -245,3 +245,4 @@
   caching camera correction parameters
   add Carrington rotation to kcor_img database table
   simplify kcor_sw table and add an entry only when version/revision has changed
+1.5.12
