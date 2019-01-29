@@ -244,4 +244,4 @@
   use interpolated fit_params for camera correction
   caching camera correction parameters
   add Carrington rotation to kcor_img database table
-  add exactly one entry to kcor_sw per day
+  simplify kcor_sw table and add an entry only when version/revision has changed
