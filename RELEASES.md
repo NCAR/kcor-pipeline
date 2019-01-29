@@ -240,7 +240,7 @@
   re-read image in quality check if it is not 4-dimensional
   recording socket cam ID
   correction applied to rotation of image to solar North (in addition to QU transform)
-1.5.11
+1.5.11 [Jan 29, 2019]
   use interpolated fit_params for camera correction
   caching camera correction parameters
   add Carrington rotation to kcor_img database table
