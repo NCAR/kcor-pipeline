@@ -73,8 +73,10 @@ end
 function kcor_run::epoch, name, time=time
   compile_opt strictarr
 
-  hst_time = kcor_hst2ut(time)
-  datetime = self.date + hst_time
+  if (n_elements(time) gt 0L) then begin
+    hst_time = kcor_ut2hst(time)
+    datetime = self.date + '.' + hst_time
+  endif
   value = self.epochs->get(name, datetime=datetime)
 
   return, value
@@ -168,13 +170,13 @@ pro kcor_run::setProperty, time=time, mode=mode
 
   if (n_elements(time) gt 0L) then begin
     if (strlen(time) eq 6) then begin
-      self.epochs->setProperty, datetime=self.date + kcor_ut2hst(time)
+      self.epochs->setProperty, datetime=self.date + '.' + kcor_ut2hst(time)
     endif else begin
       hour   = strmid(time, 11, 2)
       minute = strmid(time, 14, 2)
       second = strmid(time, 17, 2)
       hst_time  = kcor_ut2hst(hour + minute + second)
-      self.epochs->setProperty, datetime=self.date + hst_time
+      self.epochs->setProperty, datetime=self.date + '.' + hst_time
     endelse
   endif
 end
@@ -600,6 +602,7 @@ function kcor_run::init, date, $
     mg_log, '%s', error_msg, name=logger_name, /critical
     return, 0
   endif
+  self.epochs->setProperty, datetime=date + '.000000'
 
   ; rotate the logs if this is a reprocessing
   self->setProperty, mode=mode

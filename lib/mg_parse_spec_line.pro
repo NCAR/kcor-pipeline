@@ -11,11 +11,13 @@
 ;-
 pro mg_parse_spec_line, spec_line, $
                         type=type, $
+                        boolean=boolean, $
                         extract=extract, $
                         default=default
   compile_opt strictarr
 
-  type = 7
+  type = 7L
+  boolean = 0B
   default_found = 0B
   extract = 0B
   default = !null
@@ -36,9 +38,9 @@ pro mg_parse_spec_line, spec_line, $
   for e = 0L, n_elements(expressions) - 1L do begin
     tokens = strsplit(expressions[e], '=', /extract, count=n_tokens)
     case strlowcase(tokens[0]) of
-      'type': type = mg_get_type(tokens[1])
+      'type': type = mg_get_type(tokens[1], boolean=boolean)
       'default': begin
-          default = tokens[1]
+          default = n_tokens gt 1L ? tokens[1] : ''
           default_found = 1B
         end
       'extract': begin
