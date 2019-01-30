@@ -73,194 +73,15 @@ end
 function kcor_run::epoch, name, time=time
   compile_opt strictarr
 
-  ; times in the epoch file are in HST (observing days)
-  if (n_elements(time) eq 0L) then begin
-    hst_time = self.time eq '' ? '000000' : self.time
-  endif else begin
-    hst_time = kcor_ut2hst(time)
-  endelse
+  hst_time = kcor_hst2ut(time)
+  datetime = self.date + hst_time
+  value = self.epochs->get(name, datetime=datetime)
 
-  case name of
-    'mlso_url': return, self->_readepoch('mlso_url', self.date, hst_time, type=7) 
-    'doi_url': return, self->_readepoch('doi_url', self.date, hst_time, type=7)
-    'process': return, self->_readepoch('process', self.date, hst_time, /boolean)
-    'plate_scale': return, self->_readepoch('plate_scale', self.date, hst_time, type=4)
-    'use_default_darks': begin
-        return, self->_readepoch('use_default_darks', self.date, hst_time, /boolean)
-      end
-    'gbuparams_filename': begin
-        return, self->_readepoch('gbuparams_filename', self.date, hst_time, $
-                                 type=7)
-      end
-    'skypol_bias': return, self->_readepoch('skypol_bias', self.date, hst_time, type=4)
-    'skypol_factor': return, self->_readepoch('skypol_factor', self.date, hst_time, type=4) 
-    'bias': return, self->_readepoch('bias', self.date, hst_time, type=4) 
-    'r_in_offset' : return, self->_readepoch('r_in_offset', self.date, hst_time, type=4)
-    'r_out' : return, self->_readepoch('r_out', self.date, hst_time, type=4)
-    'rotation_correction': return, self->_readepoch('rotation_correction', self.date, hst_time, type=4)
-    'distortion_correction_filename': begin
-        return, self->_readepoch('distortion_correction_filename', $
-                                 self.date, hst_time, type=7)
-      end
-    'cal_file': begin
-        if (self->_readepoch('use_pipeline_calfiles', self.date, hst_time, /boolean)) then begin
-          calfile = self->_find_calfile(self.date, hst_time)
-          return, calfile
-        endif else begin
-          return, self->_readepoch('cal_file', self.date, hst_time, type=7)
-        endelse
-      end
-    'use_pipeline_calfiles': return, self->_readepoch('use_pipeline_calfiles', self.date, hst_time, /boolean)
-    'use_calibration_data': return, self->_readepoch('use_calibration_data', self.date, hst_time, /boolean)
-    'O1id': return, self->_readepoch('O1id', self.date, hst_time, type=7)
-    'use_O1id': return, self->_readepoch('use_O1id', self.date, hst_time, /boolean)
-    'O1-1': return, self->_readepoch('O1-1', self.date, hst_time, type=7)
-    'O1-2': return, self->_readepoch('O1-2', self.date, hst_time, type=7)
-    'default_occulter_size' : return, self->_readepoch('default_occulter_size', $
-                                                       self.date, hst_time, type=4)
-    'use_default_occulter_size': return, self->_readepoch('use_default_occulter_size', $
-                                                          self.date, hst_time, /boolean)
-    'use_occulter_id': return, self->_readepoch('use_occulter_id', $
-                                                self.date, hst_time, /boolean)
-    'occulter_id': return, self->_readepoch('occulter_id', self.date, hst_time)
-    'header_changes': return, self->_readepoch('header_changes', $
-                                               self.date, hst_time, /boolean)
-    'use_diffsrid': return, self->_readepoch('use_diffsrid', self.date, hst_time, /boolean)
-    'diffsrid': return, self->_readepoch('diffsrid', self.date, hst_time, type=7)
-    'diffsrid_comment': return, self->_readepoch('diffsrid_comment', self.date, hst_time, type=7)
-
-    'mk4-opal': return, self->_readepoch('mk4-opal', self.date, hst_time, type=4)
-    'mk4-opal_comment': return, self->_readepoch('mk4-opal_comment', self.date, hst_time, type=7)
-    'POC-L10P6-10-1': return, self->_readepoch('POC-L10P6-10-1', self.date, hst_time, type=4)
-    'POC-L10P6-10-1_comment': return, self->_readepoch('POC-L10P6-10-1_comment', self.date, hst_time, type=7)
-    'use_camera_prefix': return, self->_readepoch('use_camera_prefix', $
-                                                  self.date, hst_time, /boolean)
-    'camera_prefix': return, self->_readepoch('camera_prefix', $
-                                                  self.date, hst_time, type=7)
-    'camera_lut_date': return, self->_readepoch('camera_lut_date', $
-                                                self.date, hst_time, type=7)
-    'correct_camera' : return, self->_readepoch('correct_camera', $
-                                                self.date, hst_time, /boolean)
-    'display_min': return, self->_readepoch('display_min', self.date, hst_time, type=4)
-    'display_max': return, self->_readepoch('display_max', self.date, hst_time, type=4)
-    'display_exp': return, self->_readepoch('display_exp', self.date, hst_time, type=4)
-    'display_gamma': return, self->_readepoch('display_gamma', self.date, hst_time, type=4)
-
-    'cropped_display_min': return, self->_readepoch('cropped_display_min', $
-                                                    self.date, hst_time, type=4)
-    'cropped_display_max': return, self->_readepoch('cropped_display_max', $
-                                                    self.date, hst_time, type=4)
-    'cropped_display_exp': return, self->_readepoch('cropped_display_exp', $
-                                                    self.date, hst_time, type=4)
-
-    'remove_horizontal_artifact': return, self->_readepoch('remove_horizontal_artifact', $
-                                                           self.date, hst_time, /boolean)
-    'horizontal_artifact_lines': return, self->_readepoch('horizontal_artifact_lines', $
-                                                          self.date, hst_time, $
-                                                          /extract, type=3)
-    'use_camera_info': return, self->_readepoch('use_camera_info', $
-                                                self.date, hst_time, /boolean)
-    'tcamid': return, self->_readepoch('tcamid', self.date, hst_time, type=7)
-    'rcamid': return, self->_readepoch('rcamid', self.date, hst_time, type=7)
-    'tcamlut': return, self->_readepoch('tcamlut', self.date, hst_time, type=7)
-    'rcamlut': return, self->_readepoch('rcamlut', self.date, hst_time, type=7)
-
-    'tcamid_comment': return, self->_readepoch('tcamid_comment', self.date, hst_time, type=7)
-    'rcamid_comment': return, self->_readepoch('rcamid_comment', self.date, hst_time, type=7)
-    'tcamlut_comment': return, self->_readepoch('tcamlut_comment', self.date, hst_time, type=7)
-    'rcamlut_comment': return, self->_readepoch('rcamlut_comment', self.date, hst_time, type=7)
-
-    'use_bzero': return, self->_readepoch('use_bzero', self.date, hst_time, /boolean)
-    'bzero': return, self->_readepoch('bzero', self.date, hst_time, type=14)
-
-    'use_exptime': return, self->_readepoch('use_exptime', self.date, hst_time, /boolean)
-    'exptime': return, self->_readepoch('exptime', self.date, hst_time, type=4)
-
-    'use_numsum': return, self->_readepoch('use_numsum', self.date, hst_time, /boolean)
-    'numsum': return, self->_readepoch('numsum', self.date, hst_time, type=3)
-
-    'produce_calibration': return, self->_readepoch('produce_calibration', $
-                                                    self.date, hst_time, /boolean)
-    'OC-1': return, self->_readepoch('OC-1', self.date, hst_time, type=4)
-    'OC-991.6': return, self->_readepoch('OC-991.6', self.date, hst_time, type=4)
-    'OC-1006.': return, self->_readepoch('OC-1006.', self.date, hst_time, type=4)
-    'OC-1018.': return, self->_readepoch('OC-1018.', self.date, hst_time, type=4)
-    'bmax': return, self->_readepoch('bmax', self.date, hst_time, type=4)
-    'smax': return, self->_readepoch('smax', self.date, hst_time, type=13)
-    'smax_max_count': return, self->_readepoch('smax_max_count', self.date, hst_time, type=3)
-    'cmax': return, self->_readepoch('cmax', self.date, hst_time, type=4)
-    'cmin': return, self->_readepoch('cmin', self.date, hst_time, type=4)
-    'check_noise': return, self->_readepoch('check_noise', self.date, hst_time, /boolean)
-    'rpixb': return, self->_readepoch('rpixb', self.date, hst_time, type=3)
-    'rpixt': return, self->_readepoch('rpixt', self.date, hst_time, type=3)
-    'rpixc': return, self->_readepoch('rpixc', self.date, hst_time, type=3)
-    'cal_epoch_version': return, self->_readepoch('cal_epoch_version', $
-                                                  self.date, hst_time, type=7)
-    'lyotstop': return, self->_readepoch('lyotstop', self.date, hst_time, type=7)
-    'use_lyotstop_keyword': return, self->_readepoch('use_lyotstop_keyword', $
-                                                     self.date, hst_time, /boolean)
-    'raw_filesize': return, self->_readepoch('raw_filesize', $
-                                             self.date, hst_time, type=3)
-    'min_cal_quality': return, self->_readepoch('min_cal_quality', $
-                                                self.date, hst_time, type=3)
-    'require_machine_log': return, self->_readepoch('require_machine_log', $
-                                                    self.date, hst_time, /boolean)
-    else: mg_log, 'epoch value %s not found', name, name=self.log_name, /error
-  endcase
+  return, value
 end
 
 
 ;= helper methods
-
-;+
-; Lookup a value for a single parameter based on the date in the `epochs.cfg`
-; configuration file.
-;
-; :Private:
-;
-; :Returns:
-;   returns a string by default, unless `TYPE` (or `BOOLEAN`, `FLOAT`, etc.) is
-;   specified
-;
-; :Params:
-;   option : in, required, type=string
-;     option name
-;   date : in, required, type=string
-;     date on which to check for the value in the form "YYYYMMDD"
-;   time : in, required, type=string
-;     time on which to check for the value in the form "HHMMSS"
-;
-; :Keywords:
-;   found : out, optional, type=boolean
-;     set to a named variable to retrieve whether the option was found
-;   type : in, optional, type=integer
-;     `SIZE` type to retrieve value as
-;   _extra : in, optional, type=keywords
-;     keywords to `MGffOptions::get` such as `BOOLEAN` and `EXTRACT`
-;-
-function kcor_run::_readepoch, option, date, time, $
-                               found=found, $
-                               type=type, $
-                               _extra=e
-  compile_opt strictarr
-
-  found = 1B
-  dates = self.epochs->sections()
-  dates = dates[sort(dates)]
-  date_index = value_locate(dates, date + '.' + time)
-
-  for d = date_index, 0L, -1L do begin
-    option_value = self.epochs->get(option, section=dates[d], $
-                                    found=option_found, type=type, _extra=e)
-    if (option_found) then begin
-      return, option_value
-    endif
-  endfor
-
-  found = 0B
-  return, !null
-end
-
 
 ;+
 ; Setup logging.
@@ -347,12 +168,13 @@ pro kcor_run::setProperty, time=time, mode=mode
 
   if (n_elements(time) gt 0L) then begin
     if (strlen(time) eq 6) then begin
-      self.time = kcor_ut2hst(time)
+      self.epochs->setProperty, datetime=self.date + kcor_ut2hst(time)
     endif else begin
       hour   = strmid(time, 11, 2)
       minute = strmid(time, 14, 2)
       second = strmid(time, 17, 2)
-      self.time = kcor_ut2hst(hour + minute + second)
+      hst_time  = kcor_ut2hst(hour + minute + second)
+      self.epochs->setProperty, datetime=self.date + hst_time
     endelse
   endif
 end
@@ -767,9 +589,17 @@ function kcor_run::init, date, $
   self.options = mg_read_config(config_filename, error=error, errmsg=errmsg)
   if (error ne 0) then message, errmsg
 
-  self.epochs = mg_read_config(filepath('epochs.cfg', root=mg_src_root()), $
-                               error=error, errmsg=errmsg)
-  if (error ne 0) then message, errmsg
+  ; setup epoch reading
+  epochs_filename = filepath('epochs.cfg', root=mg_src_root())
+  epochs_spec_filename = filepath('epochs.spec.cfg', root=mg_src_root())
+
+  self.epochs = mgffepochparser(epochs_filename, epochs_spec_filename)
+  epochs_valid = self.epochs->is_valid(error_msg=error_msg)
+  if (~epochs_valid) then begin
+    mg_log, 'invalid epochs file', name=logger_name, /critical
+    mg_log, '%s', error_msg, name=logger_name, /critical
+    return, 0
+  endif
 
   ; rotate the logs if this is a reprocessing
   self->setProperty, mode=mode
@@ -789,7 +619,6 @@ pro kcor_run__define
   !null = {kcor_run, inherits IDL_Object, $
            date:            '', $
            config_filename: '', $
-           time:            '', $   ; UT time
            mode:            '', $   ; realtime or eod
            log_name:        '', $
            pipe_dir:        '', $
