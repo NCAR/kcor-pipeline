@@ -76,9 +76,10 @@ def calibrate_list(filelist, dates, flags, no_wait):
         return
 
     cmd = [os.path.join(PIPELINE_DIR, 'bin', 'runkcor_calibrate_list.sh'),
-           filelist,
+           flags,
            dates,
-           flags]
+           filelist]
+
 
     process = subprocess.Popen(cmd, stdout=None, stderr=subprocess.PIPE)
     print('[%d] %s' % (process.pid, ' '.join(cmd)))
@@ -91,8 +92,8 @@ def calibrate_dates(dates, flags, no_wait):
     for d in dates.split(','):
         if d.find('-') < 0:
             cmd = [os.path.join(PIPELINE_DIR, 'bin', 'runkcor_calibrate.sh'),
-                   d,
-                   flags]
+                   flags,
+                   d]
 
             process = subprocess.Popen(cmd, stdout=None, stderr=subprocess.PIPE)
             print('[%d] %s' % (process.pid, ' '.join(cmd)))
@@ -103,8 +104,9 @@ def calibrate_dates(dates, flags, no_wait):
         else:
             r = d.split('-')
             cmd = [os.path.join(PIPELINE_DIR, 'bin', 'runkcor_calibrate_range.sh'),
-                   r[0], r[1],
-                   flags]
+                   flags,
+                   r[0],
+                   r[1]]
 
             process = subprocess.Popen(cmd, stdout=None, stderr=subprocess.PIPE)
             print('[%d] %s' % (process.pid, ' '.join(cmd)))
@@ -119,8 +121,9 @@ def process_dates(dates, flags, no_wait):
             cmd = [os.path.join(PIPELINE_DIR,
                                 'bin', 
                                 'runkcor_process.sh'),
-                   d,
-                   flags]
+                   flags,
+                   d]
+
 
             process = subprocess.Popen(cmd, stdout=None, stderr=subprocess.PIPE)
             print('[%d] %s' % (process.pid, ' '.join(cmd)))
@@ -163,8 +166,8 @@ if __name__ == '__main__':
                         type=str,
                         default='latest',
                         help='''FLAGS section of config filename, i.e., file in
-                                config/ directory matching kcor.user.machine.FLAGS.cfg
-                                will be used''')
+                                config/ directory matching kcor.FLAGS.cfg will
+                                be used''')
 
     parser.add_argument('--no-wait',
                         action='store_true',

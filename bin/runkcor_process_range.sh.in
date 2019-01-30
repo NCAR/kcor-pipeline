@@ -2,9 +2,6 @@
 
 # This script launches the runkcor_process.sh script for a series of days.
 
-# u=rwx,g=rwx,o=rx
-umask 0002
-
 canonicalpath() {
   if [ -d $1 ]; then
     pushd $1 > /dev/null 2>&1
@@ -34,14 +31,13 @@ if [[ $# -lt 3 ]]; then
   exit
 fi
 
-START_DATE=$1
-END_DATE=$2
-CONFIG_FLAG=$3
+source ${BIN_DIR}/kcor_include.sh
 
-d=$START_DATE
+END_DATE=$3
+d=$DATE
 
 while [ $d != $END_DATE ]; do
-  cmd="$PROCESS_SCRIPT $d $CONFIG_FLAG"
+  cmd="$PROCESS_SCRIPT $CONFIG_FLAG $d"
   echo "$cmd"
   $cmd
   d=$(date +"%Y%m%d" -d "$d + 1 day")

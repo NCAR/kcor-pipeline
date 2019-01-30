@@ -1,0 +1,32 @@
+# u=rwx,g=rwx,o=rx
+umask 0002
+
+PIPE_DIR=$(dirname ${BIN_DIR})
+
+if [[ $# -lt 1 ]]; then
+  echo "missing configuration file FLAGS"
+  exit 1
+else
+  CONFIG=${PIPE_DIR}/config/kcor.${1}.cfg
+fi
+
+# use today if date not passed to script
+if [[ $# -lt 2 ]]; then
+  DATE=$(date +"%Y%m%d")
+else
+  DATE=$2
+fi
+
+IDL=@IDL_EXECUTABLE@
+
+# IDL_DEFAULT will be wrong if IDL_DIR is set
+unset IDL_DIR
+
+# setup IDL paths
+SSW_DIR=${PIPE_DIR}/ssw
+HV_DIR=${PIPE_DIR}/hv
+GEN_DIR=${PIPE_DIR}/gen
+LIB_DIR=${PIPE_DIR}/lib
+SRC_DIR=${PIPE_DIR}/src
+KCOR_PATH=+${SRC_DIR}:${SSW_DIR}:${HV_DIR}:${GEN_DIR}:+${LIB_DIR}:"<IDL_DEFAULT>"
+KCOR_DLM_PATH=+${SRC_DIR}:+${LIB_DIR}:"<IDL_DEFAULT>"
