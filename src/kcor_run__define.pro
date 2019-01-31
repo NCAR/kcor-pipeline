@@ -27,6 +27,7 @@ function kcor_run::_find_calfile, date, hst_time
   cal_format = '(%"*kcor_cal_v%s_*.ncdf")'
   cal_search_spec = filepath(string(epoch_version, format=cal_format), $
                              root=cal_out_dir)
+
   calfiles = file_basename(file_search(cal_search_spec, count=n_calfiles))
 
   now_date = long(kcor_decompose_date(date))
@@ -77,7 +78,42 @@ function kcor_run::epoch, name, time=time
     hst_time = kcor_ut2hst(time)
     datetime = self.date + '.' + hst_time
   endif
+
+  if (strlowcase(name) eq 'cal_file') then begin
+    if (self.epochs->get('use_pipeline_calfiles', datetime=datetime)) then begin
+      if (n_elements(datetime) eq 0L) then begin
+        dt = self.epochs.datetime
+        datetime = dt->strftime('%Y%m%d.%H%M%S')
+      endif
+
+      return, self->_find_calfile(self.date, hst_time)
+    endif
+  endif
+
   value = self.epochs->get(name, datetime=datetime)
+
+  return, value
+end
+
+
+;+
+; Get a config file value.
+;
+; :Returns:
+;   value of the correct type
+;
+; :Params:
+;   name : in, required, type=string
+;     section and option name in the form "section/option"
+;-
+function kcor_run::config, name
+  compile_opt strictarr
+  on_error, 2
+
+  tokens = strsplit(name, '/', /extract, count=n_tokens)
+  if (n_tokens ne 2) then message, 'bad format for config option name'
+
+  value = self.options->get(tokens[1], section=tokens[0], found=found)
 
   return, value
 end
@@ -190,6 +226,8 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            config_filename=config_filename, $
                            pipe_dir=pipe_dir, $
                            resources_dir=resources_dir, $
+                           mode=mode, $
+
                            gzip=gzip, $
                            gunzip=gunzip, $
                            convert=convert, $
@@ -258,8 +296,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            diff_pass_max=diff_pass_max, $
                            diff_threshold_intensity=diff_threshold_intensity, $
                            average_interval=average_interval, $
-                           daily_average_interval=daily_average_interval, $
-                           mode=mode
+                           daily_average_interval=daily_average_interval
   compile_opt strictarr
 
   if (arg_present(config_contents)) then begin
@@ -525,13 +562,13 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   ; averages
   if (arg_present(average_interval)) then begin
     average_interval = self.options->get('interval', $
-                                              section='averaging', $
-                                              type=4, default=180.0)
+                                         section='averaging', $
+                                         type=4, default=180.0)
   endif
   if (arg_present(daily_average_interval)) then begin
     daily_average_interval = self.options->get('daily_interval', $
-                                              section='averaging', $
-                                              type=4, default=900.0)
+                                               section='averaging', $
+                                               type=4, default=900.0)
   endif
 
   ; verification
@@ -588,8 +625,24 @@ function kcor_run::init, date, $
 
   if (~file_test(config_filename)) then message, config_filename + ' not found'
   self.config_filename = config_filename
+
   self.options = mg_read_config(config_filename, error=error, errmsg=errmsg)
   if (error ne 0) then message, errmsg
+
+  ; setup config options
+  ;config_spec_filename = filepath('ucomp.spec.cfg', $
+  ;                                subdir=['..', 'config'], $
+  ;                                root=mg_src_root())
+
+  ;self.options = mg_read_config(config_filename, spec=config_spec_filename, $
+  ;                              error=error, errmsg=errmsg)
+  ;if (error ne 0) then message, errmsg
+  ;config_valid = self.options->is_valid(error_msg=error_msg)
+  ;if (~config_valid) then begin
+  ;  mg_log, 'invalid configuration file', name=logger_name, /critical
+  ;  mg_log, '%s', error_msg, name=logger_name, /critical
+  ;  return, 0
+  ;endif
 
   ; setup epoch reading
   epochs_filename = filepath('epochs.cfg', root=mg_src_root())
