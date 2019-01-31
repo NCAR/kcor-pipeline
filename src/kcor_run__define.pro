@@ -74,22 +74,21 @@ end
 function kcor_run::epoch, name, time=time
   compile_opt strictarr
 
-  if (n_elements(time) gt 0L) then begin
-    hst_time = kcor_ut2hst(time)
-    datetime = self.date + '.' + hst_time
-  endif
-
   if (strlowcase(name) eq 'cal_file') then begin
     if (self.epochs->get('use_pipeline_calfiles', datetime=datetime)) then begin
-      if (n_elements(datetime) eq 0L) then begin
+      if (n_elements(time) eq 0L) then begin
         dt = self.epochs.datetime
-        datetime = dt->strftime('%Y%m%d.%H%M%S')
-      endif
+        hst_time = dt->strftime('%H%M%S')
+      endif else hst_time = kcor_ut2hst(time)
 
       return, self->_find_calfile(self.date, hst_time)
     endif
   endif
 
+  if (n_elements(time) gt 0L) then begin
+    hst_time = kcor_ut2hst(time)
+    datetime = self.date + '.' + hst_time
+  endif
   value = self.epochs->get(name, datetime=datetime)
 
   return, value
