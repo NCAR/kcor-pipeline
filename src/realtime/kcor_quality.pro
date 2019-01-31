@@ -60,10 +60,10 @@ function kcor_quality, date, l0_fits_files, append=append, $
   maskfile = filepath('kcor_mask.img', root=mg_src_root())
 
   ; L0 fits files
-  date_dir   = filepath(date, root=run.raw_basedir)
+  date_dir   = filepath(date, root=run->config('processing/raw_basedir'))
 
   ; calibration date directory
-  cdate_dir  = filepath(date, root=run.cal_basedir)
+  cdate_dir  = filepath(date, root=run->config('calibration/basedir'))
 
   ; quality directory
   q_dir      = filepath('q', root=date_dir)

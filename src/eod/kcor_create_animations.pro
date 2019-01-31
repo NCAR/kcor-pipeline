@@ -23,13 +23,15 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
   create_gifs = 0B
 
   date_parts = kcor_decompose_date(date)
-  fullres_dir = filepath('', subdir=date_parts, root=run.fullres_basedir)
-  cropped_dir = filepath('', subdir=date_parts, root=run.croppedgif_basedir)
-  if (run.distribute) then begin
+  fullres_dir = filepath('', subdir=date_parts, $
+                         root=run->config('results/fullres_basedir'))
+  cropped_dir = filepath('', subdir=date_parts, $
+                         root=run->config('results/croppedgif_basedir'))
+  if (run->config('realtime/distribute')) then begin
     if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
   endif
 
-  l1_dir   = filepath('level1', subdir=date, root=run.raw_basedir)
+  l1_dir   = filepath('level1', subdir=date, root=run->config('processing/raw_basedir'))
 
   cd, current=current
   cd, l1_dir
@@ -56,7 +58,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
     mg_log, 'creating NRGF GIF', name='kcor/eod', /info
     kcor_create_animated_gif, nrgf_gif_filenames, nrgf_dailygif_filename, $
                               run=run, status=status
-    if (status eq 0 && run.distribute) then begin
+    if (status eq 0 && run->config('realtime/distribute')) then begin
       file_copy, nrgf_dailygif_filename, fullres_dir, /overwrite
     endif
   endif
@@ -65,7 +67,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
   mg_log, 'creating NRGF mp4', name='kcor/eod', /info
   kcor_create_mp4, nrgf_gif_filenames, nrgf_dailymp4_filename, $
                    run=run, status=status
-  if (status eq 0 && run.distribute) then begin
+  if (status eq 0 && run->config('realtime/distribute')) then begin
     file_copy, nrgf_dailymp4_filename, fullres_dir, /overwrite
   endif
 
@@ -74,7 +76,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
     mg_log, 'creating L1.5 GIF', name='kcor/eod', /info
     kcor_create_animated_gif, gif_filenames, dailygif_filename, $
                               run=run, status=status
-    if (status eq 0 && run.distribute) then begin
+    if (status eq 0 && run->config('realtime/distribute')) then begin
       file_copy, dailygif_filename, fullres_dir, /overwrite
     endif
   endif
@@ -82,7 +84,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
   ; create daily mp4 of L1 files
   mg_log, 'creating L1.5 mp4', name='kcor/eod', /info
   kcor_create_mp4, gif_filenames, dailymp4_filename, run=run, status=status
-  if (status eq 0 && run.distribute) then begin
+  if (status eq 0 && run->config('realtime/distribute')) then begin
     file_copy, dailymp4_filename, fullres_dir, /overwrite
   endif
 
@@ -92,7 +94,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
     kcor_create_animated_gif, cropped_nrgf_gif_filenames, $
                               cropped_nrgf_dailygif_filename, $
                               run=run, status=status
-    if (status eq 0 && run.distribute) then begin
+    if (status eq 0 && run->config('realtime/distribute')) then begin
       file_copy, cropped_nrgf_dailygif_filename, cropped_dir, /overwrite
     endif
   endif
@@ -101,7 +103,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
   mg_log, 'creating cropped NRGF mp4', name='kcor/eod', /info
   kcor_create_mp4, cropped_nrgf_gif_filenames, cropped_nrgf_dailymp4_filename, $
                    run=run, status=status
-  if (status eq 0 && run.distribute) then begin
+  if (status eq 0 && run->config('realtime/distribute')) then begin
     file_copy, cropped_nrgf_dailymp4_filename, cropped_dir, /overwrite
   endif
 
@@ -111,7 +113,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
     kcor_create_animated_gif, cropped_gif_filenames, $
                               cropped_dailygif_filename, $
                               run=run, status=status 
-    if (status eq 0 && run.distribute) then begin
+    if (status eq 0 && run->config('realtime/distribute')) then begin
       file_copy, cropped_dailygif_filename, cropped_dir, /overwrite
     endif
   endif
@@ -120,7 +122,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
   mg_log, 'creating cropped L1.5 mp4', name='kcor/eod', /info
   kcor_create_mp4, cropped_gif_filenames, cropped_dailymp4_filename, $
                    run=run, status=status
-  if (status eq 0 && run.distribute) then begin
+  if (status eq 0 && run->config('realtime/distribute')) then begin
     file_copy, cropped_dailymp4_filename, cropped_dir, /overwrite
   endif
 
@@ -140,7 +142,7 @@ run = kcor_run(date, config_filename=filepath('kcor.mgalloy.mahi.latest.cfg', $
 
 nrgf_list = filepath('oknrgf.ls', $
                      subdir=[date, 'level1'], $
-                     root=run.raw_basedir)
+                     root=run->config('processing/raw_basedir'))
 
 n_nrgf_files = file_test(nrgf_list) ? file_lines(nrgf_list) : 0L
 

@@ -50,8 +50,8 @@ pro kcor_mission_insert, date, run=run
   ;       group of data to use.
 
   db = mgdbmysql()
-  db->connect, config_filename=run.database_config_filename, $
-               config_section=run.database_config_section
+  db->connect, config_filename=run->config('database/config_filename'), $
+               config_section=run->config('database/config_section')
 
   db->getProperty, host_name=host
   mg_log, 'connected to %s', host, name='kcor/eod', /info
@@ -84,7 +84,7 @@ pro kcor_mission_insert, date, run=run
   ; Directory definitions.
   ;-----------------------
 
-  fts_dir = filepath('', subdir=[year, month, day], root=run.archive_dir)
+  fts_dir = filepath('', subdir=[year, month, day], root=run->config('results/archive_dir'))
 
   ;----------------
   ; Move to fts_dir.

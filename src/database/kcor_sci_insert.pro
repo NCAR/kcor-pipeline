@@ -54,14 +54,14 @@ pro kcor_sci_insert, date, files, $
     mg_log, 'using connection to %s', host, name='kcor/eod', /debug
   endif else begin
     db = mgdbmysql()
-    db->connect, config_filename=run.database_config_filename, $
-                 config_section=run.database_config_section
+    db->connect, config_filename=run->config('database/config_filename'), $
+                 config_section=run->config('database/config_section')
 
     db->getProperty, host_name=host
     mg_log, 'connected to %s', host, name='kcor/eod', /info
   endelse
 
-  l1_dir = filepath('level1', subdir=date, root=run.raw_basedir)
+  l1_dir = filepath('level1', subdir=date, root=run->config('processing/raw_basedir'))
   cd, current=start_dir
   cd, l1_dir
 

@@ -37,7 +37,9 @@ function kcor_zipsize, filenames, run=run, logger_name=logger_name, block_size=b
     return, sizes
   endif
 
-  cmd = string(run.gunzip, strjoin(filenames, ' '), format='(%"%s -l %s")')
+  cmd = string(run->config('externals/gunzip'), $
+               strjoin(filenames, ' '), $
+               format='(%"%s -l %s")')
   spawn, cmd, result, error_result, exit_status=status
   if (status ne 0L) then begin
     _logger_name = n_elements(logger_name) eq 0L $
@@ -69,7 +71,7 @@ run = kcor_run(date, config_filename=config_filename)
 
 files = file_search(filepath('*.fts.gz', $
                              subdir=[date, 'level0'], $
-                             root=run.raw_basedir), $
+                             root=run->config('processing/raw_basedir')), $
                     count=nfiles)
 
 tic

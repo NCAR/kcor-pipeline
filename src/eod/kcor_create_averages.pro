@@ -29,17 +29,17 @@ pro kcor_create_averages, date, l1_files, run=run
   mg_log, 'creating average movies', name='kcor/eod', /info
 
   date_parts = kcor_decompose_date(date)
-  archive_dir = filepath('', subdir=date_parts, root=run.archive_basedir)
-  fullres_dir = filepath('', subdir=date_parts, root=run.fullres_basedir)
-  cropped_dir = filepath('', subdir=date_parts, root=run.croppedgif_basedir)
+  archive_dir = filepath('', subdir=date_parts, root=run->config('results/archive_basedir'))
+  fullres_dir = filepath('', subdir=date_parts, root=run->config('results/fullres_basedir'))
+  cropped_dir = filepath('', subdir=date_parts, root=run->config('results/croppedgif_basedir'))
 
-  if (run.distribute) then begin
+  if (run->config('realtime/distribute')) then begin
     if (~file_test(archive_dir, /directory)) then file_mkdir, archive_dir
     if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
     if (~file_test(cropped_dir, /directory)) then file_mkdir, cropped_dir
   endif
 
-  l1_dir = filepath('level1', subdir=date, root=run.raw_basedir)
+  l1_dir = filepath('level1', subdir=date, root=run->config('processing/raw_basedir'))
 
   cd, current=current
   cd, l1_dir
@@ -73,8 +73,8 @@ pro kcor_create_averages, date, l1_files, run=run
   ; ** NOTE:10 minutes in julian date units = 6.94445e-03
   ; ** NOTE:15 minutes in julian date units = 1.04167e-02
 
-  avginterval = run.average_interval / 60.0D / 60.0D / 24.0D
-  dailyavgval = run.daily_average_interval / 60.0D / 60.0D / 24.0D
+  avginterval = run->config('averaging/interval') / 60.0D / 60.0D / 24.0D
+  dailyavgval = run->config('averaging/daily_interval') / 60.0D / 60.0D / 24.0D
 
   display_min   = run->epoch('display_min')
   display_max   = run->epoch('display_max')
@@ -326,14 +326,14 @@ pro kcor_create_averages, date, l1_files, run=run
 
     gif_basename = strmid(savename, 0, 25) + '_avg.gif'
     write_gif, gif_basename, save, red, green, blue
-    if (run.distribute) then begin
+    if (run->config('realtime/distribute')) then begin
       file_copy, gif_basename, fullres_dir, /overwrite
     endif
 
     ; create cropped (512 x 512) GIF images
     kcor_cropped_gif, bscale * avgimg, date, kcor_parse_dateobs(date_obs), $
                       /average, output_filename=cgif_filename, run=run
-    if (run.distribute) then begin
+    if (run->config('realtime/distribute')) then begin
       file_copy, cgif_filename, cropped_dir, /overwrite
     endif
 
@@ -366,7 +366,8 @@ pro kcor_create_averages, date, l1_files, run=run
   if (n_avg_files gt 0L) then begin
     mg_log, 'zipping %d average FITS files...', n_avg_files, $
             name='kcor/eod', /info
-    gzip_cmd = string(run.gzip, unzipped_avg_glob, format='(%"%s %s")')
+    gzip_cmd = string(run->config('externals/gzip'), unzipped_avg_glob, $
+                      format='(%"%s %s")')
     spawn, gzip_cmd, result, error_result, exit_status=status
     if (status ne 0L) then begin
       mg_log, 'problem zipping average files with command: %s', gzip_cmd, $
@@ -375,13 +376,13 @@ pro kcor_create_averages, date, l1_files, run=run
     endif
   endif
  
-  if (run.distribute && n_avg_files gt 0L) then begin
+  if (run->config('realtime/distribute') && n_avg_files gt 0L) then begin
     mg_log, 'copying %d average files to archive dir', n_avg_files, $
             name='kcor/eod', /info
     file_copy, unzipped_avg_files + '.gz', archive_dir, /overwrite
   endif
 
-  if (run.update_database) then begin
+  if (run->config('database/update_database')) then begin
     obsday_index = mlso_obsday_insert(date, $
                                       run=run, $
                                       database=db, $
@@ -508,7 +509,7 @@ pro kcor_create_averages, date, l1_files, run=run
   if (n_elements(daily_savename) gt 0L) then begin
     gif_filename = strmid(daily_savename, 0, 25) + '_extavg.gif'
     write_gif, gif_filename, save, red, green, blue  
-    if (run.distribute) then begin
+    if (run->config('realtime/distribute')) then begin
       mg_log, 'copying extended average GIF to cropped dir', $
               name='kcor/eod', /debug
       file_copy, gif_filename, fullres_dir, /overwrite
@@ -523,7 +524,7 @@ pro kcor_create_averages, date, l1_files, run=run
     kcor_cropped_gif, bscale * daily, date, kcor_parse_dateobs(date_obs), $
                       /daily, /average, output_filename=cgif_filename, run=run
 
-    if (run.distribute) then begin
+    if (run->config('realtime/distribute')) then begin
       mg_log, 'copying cropped extended average GIF to cropped dir', $
               name='kcor/eod', /debug
       file_copy, cgif_filename, cropped_dir, /overwrite
@@ -562,7 +563,8 @@ pro kcor_create_averages, date, l1_files, run=run
     file_delete,  daily_fits_average_filename + '.gz', /allow_nonexistent
 
     mg_log, 'zipping daily FITS average file...', name='kcor/eod', /info
-    gzip_cmd = string(run.gzip, daily_fits_average_filename, format='(%"%s %s")')
+    gzip_cmd = string(run->config('externals/gzip'), daily_fits_average_filename, $
+                      format='(%"%s %s")')
     spawn, gzip_cmd, result, error_result, exit_status=status
     if (status ne 0L) then begin
       mg_log, 'problem zipping daily average file with command: %s', gzip_cmd, $
@@ -570,14 +572,14 @@ pro kcor_create_averages, date, l1_files, run=run
       mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
     endif
 
-    if (run.distribute) then begin
+    if (run->config('realtime/distribute')) then begin
       mg_log, 'copying daily average file to archive', name='kcor/eod', /info
       file_copy, daily_fits_average_filename + '.gz', archive_dir, /overwrite
     endif else begin
       mg_log, 'not copying daily average file to archive', name='kcor/eod', /info
     endelse
 
-    if (run.update_database) then begin
+    if (run->config('database/update')) then begin
       mg_log, 'adding daily average file to database', name='kcor/eod', /info
       kcor_img_insert, date, daily_fits_average_filename, run=run, $
                        database=db, obsday_index=obsday_index, log_name='kcor/eod'
@@ -604,7 +606,7 @@ run = kcor_run(date, config_filename=config_filename)
 l1_zipped_fits_glob = '*_l1.5.fts.gz'
 l1_zipped_files = file_search(filepath(l1_zipped_fits_glob, $
                                        subdir=[date, 'level1'], $
-                                       root=run.raw_basedir), $
+                                       root=run->config('processing/raw_basedir')), $
                               count=n_l1_zipped_files)
 
 kcor_create_averages, date, l1_zipped_files, run=run

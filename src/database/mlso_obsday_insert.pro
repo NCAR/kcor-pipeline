@@ -40,8 +40,8 @@ function mlso_obsday_insert, date, $
   ;       which group of data to use.
 
   db = mgdbmysql()
-  db->connect, config_filename=run.database_config_filename, $
-               config_section=run.database_config_section, $
+  db->connect, config_filename=run->config('database/config_filename'), $
+               config_section=run->config('database/config_section'), $
                status=status, error_message=error_message
   if (status ne 0L) then begin
     mg_log, 'failed to connect to database', name=log_name, /error

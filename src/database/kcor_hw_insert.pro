@@ -49,15 +49,16 @@ pro kcor_hw_insert, date, fits_list, run=run, database=database, log_name=log_na
     mg_log, 'using connection to %s', host, name=log_name, /debug
   endif else begin
     db = mgdbmysql()
-    db->connect, config_filename=run.database_config_filename, $
-                 config_section=run.database_config_section
+    db->connect, config_filename=run->config('database/config_filename'), $
+                 config_section=run->config('database/config_section')
 
     db->getProperty, host_name=host
     mg_log, 'connected to %s', host, name=log_name, /info
   endelse
 
   ; change to proper processing directory
-  archive_dir = filepath('', subdir=kcor_decompose_date(date), root=run.archive_basedir)
+  archive_dir = filepath('', subdir=kcor_decompose_date(date), $
+                         root=run->config('results/archive_basedir'))
 
   ; move to archive dir
   cd, current=start_dir
@@ -229,7 +230,7 @@ latest_hw = kcor_find_latest_row(run=run, database=database, log_name=log_name)
 help, latest_hw
 
 cd, current=current_dir
-l1_dir = filepath('level1', subdir=date, root=run.raw_basedir)
+l1_dir = filepath('level1', subdir=date, root=run->config('processing/raw_basedir'))
 cd, l1_dir
 l1_files = file_search('*l1.fts*', count=n_l1_files)
 

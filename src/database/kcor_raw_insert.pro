@@ -67,8 +67,8 @@ pro kcor_raw_insert, date, fits_list, quality, $
     mg_log, 'using connection to %s', host, name=log_name, /debug
   endif else begin
     db = mgdbmysql()
-    db->connect, config_filename=run.database_config_filename, $
-                 config_section=run.database_config_section
+    db->connect, config_filename=run->config('database/config_filename'), $
+                 config_section=run->config('database/config_section')
 
     db->getProperty, host_name=host
     mg_log, 'connected to %s', host, name=log_name, /info
@@ -78,7 +78,7 @@ pro kcor_raw_insert, date, fits_list, quality, $
   month = strmid(date, 4, 2)   ; mm
   day   = strmid(date, 6, 2)   ; dd
 
-  date_dir = filepath(date, root=run.raw_basedir)
+  date_dir = filepath(date, root=run->config('processing/raw_basedir'))
   cd, current=start_dir 
   cd, date_dir
 

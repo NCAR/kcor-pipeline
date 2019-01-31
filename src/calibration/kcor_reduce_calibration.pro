@@ -36,7 +36,8 @@ pro kcor_reduce_calibration, date, $
   endif
 
   _catalog_dir = n_elements(catalog_dir) eq 0L $
-                   ? filepath('level0', subdir=date, root=run.raw_basedir) $
+                   ? filepath('level0', subdir=date, $
+                              root=run->config('processing/raw_basedir')) $
                    : catalog_dir
 
   if (n_elements(filelist) gt 0L) then begin
@@ -46,7 +47,7 @@ pro kcor_reduce_calibration, date, $
     exposures = strarr(n_files)
 
     cd, current=current_dir
-    cd, filepath('level0', subdir=date, root=run.raw_basedir)
+    cd, filepath('level0', subdir=date, root=run->config('processing/raw_basedir'))
 
     ; extract exposures from files
     for f = 0L, n_files - 1L do begin
@@ -67,7 +68,8 @@ pro kcor_reduce_calibration, date, $
     cd, current_dir
   endif else begin
     mg_log, 'reading calibration files list...', name='kcor/cal', /debug
-    file_list = kcor_read_calibration_text(date, run.process_basedir, $
+    file_list = kcor_read_calibration_text(date, $
+                                           run->config('processing/process_basedir'), $
                                            exposures=exposures, $
                                            n_files=n_files, run=run)
   endelse
@@ -104,7 +106,7 @@ pro kcor_reduce_calibration, date, $
   dmat = fltarr(sz[0], sz[1], 2, 4, 3)
 
   ; number of points in the field
-  npick = run.npick
+  npick = run->config('calibration/npick')
   mg_log, 'sampling %d points', npick, name='kcor/cal', /info
 
   ; fit the calibration data
@@ -217,9 +219,11 @@ pro kcor_reduce_calibration, date, $
                             kcor_find_code_version(), $
                             float(exposures[0]), $
                             format='(%"%s_%s_kcor_cal_v%s_%s_%0.1fms.ncdf")')
-  outfile = filepath(outfile_basename, root=run.cal_out_dir)
+  outfile = filepath(outfile_basename, root=run->config('calibration/out_dir'))
 
-  if (~file_test(run.cal_out_dir, /directory)) then file_mkdir, run.cal_out_dir
+  if (~file_test(run->config('calibration/out_dir'), /directory)) then begin
+    file_mkdir, run->config('calibration/out_dir')
+  endif
 
   kcor_reduce_calibration_write, data, metadata, $
                                  mmat, dmat, outfile, $
@@ -245,7 +249,8 @@ config_filename = filepath('kcor.iguana.mahi.calibration.cfg', $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
 
-callist_filename = filepath('callist', subdir=date, root=run.raw_basedir)
+callist_filename = filepath('callist', subdir=date, $
+                            root=run->config('processing/raw_basedir'))
 
 if (file_test(callist_filename)) then begin
   n_files = file_lines(callist_filename)

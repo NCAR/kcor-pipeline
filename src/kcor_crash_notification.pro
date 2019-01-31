@@ -23,22 +23,22 @@ pro kcor_crash_notification, run=run, realtime=realtime, eod=eod
   case 1 of
     keyword_set(realtime): begin
         logger_name = 'kcor/rt'
-        rt_log_filename = filepath(run.date + '.realtime.log', root=run.log_dir)
+        rt_log_filename = filepath(run.date + '.realtime.log', root=run->config('loging/dir'))
         rt_errors = kcor_filter_log(rt_log_filename, /error, n_messages=n_rt_errors)
         name = 'real-time'
         body = [body, rt_log_filename, '', rt_errors]
       end
     keyword_set(eod): begin
         logger_name = 'kcor/eod'
-        eod_log_filename = filepath(run.date + '.eod.log', root=run.log_dir)
+        eod_log_filename = filepath(run.date + '.eod.log', root=run->config('logging/dir'))
         eod_errors = kcor_filter_log(eod_log_filename, /error, n_messages=n_eod_errors)
         name = 'end-of-day'
         body = [body, eod_log_filename, '', eod_errors]
       end
   endcase
 
-  if (run.send_notifications) then begin
-    mg_log, 'sending crash notification to %s', run.notification_email, $
+  if (run->config('notifications/send')) then begin
+    mg_log, 'sending crash notification to %s', run->config('notifications/email'), $
             name=logger_name, /info
   endif else begin
     mg_log, 'not sending crash notification', name=logger_name, /info
@@ -54,7 +54,7 @@ pro kcor_crash_notification, run=run, realtime=realtime, eod=eod
 
   credit = string(mg_src_root(/filename), who, format='(%"Sent from %s (%s)")')
 
-  address = run.notification_email
+  address = run->config('notifications/email')
   subject = string(name, run.date, $
                    format='(%"KCor crash during %s processing for %s")')
   body = [body, '', credit]

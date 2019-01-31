@@ -33,7 +33,7 @@ pro kcor_plotparams, date, list=list, run=run
   mg_log, 'plotting parameters for %s', date, name='kcor/eod', /info
 
   ; establish directory paths
-  l0_base   = run.raw_basedir
+  l0_base   = run->config('processing/raw_basedir')
   l0_dir    = filepath('level0', subdir=date, root=l0_base)
   plots_dir = filepath('p', subdir=date, root=l0_base)
 
@@ -245,7 +245,7 @@ run = kcor_run(date, $
                                         root=mg_src_root()))
 list = file_search(filepath('*.fts.gz', $
                             subdir=[date, 'level0'], $
-                            root=run.raw_basedir))
+                            root=run->config('processing/raw_basedir')))
 kcor_plotparams, date, list=list, run=run
 
 end

@@ -331,8 +331,9 @@ pro kcor_l1, date, ok_files, $
 
   error = 0L
 
-  l0_dir  = filepath(date, root=run.raw_basedir)
-  l1_dir  = filepath('level1', subdir=date, root=run.raw_basedir)
+  l0_dir  = filepath(date, root=run->config('processing/raw_basedir'))
+  l1_dir  = filepath('level1', subdir=date, $
+                     root=run->config('processing/raw_basedir'))
 
   if (~file_test(l1_dir, /directory)) then file_mkdir, l1_dir
 
@@ -417,7 +418,7 @@ pro kcor_l1, date, ok_files, $
     run.time = date_obs
 
     ; extract information from calibration file
-    calpath = filepath(run->epoch('cal_file'), root=run.cal_out_dir)
+    calpath = filepath(run->epoch('cal_file'), root=run->config('calibration/out_dir'))
     if (file_test(calpath)) then begin
       mg_log, 'cal file: %s', file_basename(calpath), name=log_name, /debug
     endif else begin
@@ -658,7 +659,7 @@ pro kcor_l1, date, ok_files, $
                          rcam_cor_filename=rcam_cor_filename, $
                          tcam_cor_filename=tcam_cor_filename
 
-    if (run.diagnostics) then begin
+    if (run->config('realtime/diagnostics')) then begin
       save, img, header, filename=strmid(file_basename(l0_file), 0, 20) + '_cam.sav'
     endif
 
@@ -830,7 +831,7 @@ pro kcor_l1, date, ok_files, $
 
 ; TODO: save cimg{0,1}
 
-    center_offset = run.center_offset
+    center_offset = run->config('realtime/center_offset')
 
     ; find image centers of distortion-corrected images
     ; camera 0:
@@ -909,8 +910,8 @@ pro kcor_l1, date, ok_files, $
 
 ; TODO:
 
-      mg_log, 'cameras used: %s', run.cameras, name=log_name, /debug
-      case run.cameras of
+      mg_log, 'cameras used: %s', run->config('realtime/cameras'), name=log_name, /debug
+      case run->config('realtime/cameras') of
         '0': cal_data_combined[*, *, s] = camera_0
         '1': cal_data_combined[*, *, s] = camera_1
         else: cal_data_combined[*, *, s] = (camera_0 + camera_1) / 2.0
@@ -942,7 +943,7 @@ pro kcor_l1, date, ok_files, $
     xcen = 511.5 + 1     ; x center of FITS array equals one plus IDL center
     ycen = 511.5 + 1     ; y center of FITS array equals one plus IDL center
 
-    if (run.shift_center) then begin
+    if (run->config('realtime/shift_center')) then begin
       cal_data_combined_center = dblarr(xsize, ysize, 3)
 
       for s = 0, 2 do begin
@@ -958,7 +959,7 @@ pro kcor_l1, date, ok_files, $
                                        xsize - 1 - sun_xyr1[0], $
                                        sun_xyr1[1], $
                                        cubic=-0.5)
-        case run.cameras of
+        case run->config('realtime/cameras') of
           '0': cal_data_combined_center[*, *, s] = cal_data_new[*, *, 0, s]
           '1': cal_data_combined_center[*, *, s] = cal_data_new[*, *, 1, s]
           else: cal_data_combined_center[*, *, s] = (cal_data_new[*, *, 0, s]  $
@@ -999,7 +1000,7 @@ pro kcor_l1, date, ok_files, $
     endelse
 
     ; sky polarization removal on coordinate-transformed data
-    case strlowcase(run.skypol_method) of
+    case strlowcase(run->config('realtime/skypol_method')) of
       'subtraction': begin
           mg_log, 'correcting sky polarization with subtraction method', $
                   name=log_name, /debug
@@ -1552,8 +1553,10 @@ pro kcor_l1, date, ok_files, $
     writefits, filepath(l1_file, root=l1_dir), corona, newheader
 
     ; write Helioviewer JPEG2000 image to a web accessible directory
-    if (run.hv_basedir ne '' && ~keyword_set(nomask)) then begin
-      hv_kcor_write_jp2, scaled_image, newheader, run.hv_basedir, log_name=log_name
+    if (run->config('results/hv_basedir') ne '' && ~keyword_set(nomask)) then begin
+      hv_kcor_write_jp2, scaled_image, newheader, $
+                         run->config('results/hv_basedir'), $
+                         log_name=log_name
     endif
 
     ; now make cropped GIF file

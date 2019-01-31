@@ -17,13 +17,13 @@ pro kcor_redo_nrgf, date, run=run
 
   mg_log, 'Redoing NRGFs', name='kcor/eod', /info
 
-  l1_dir = filepath('level1', subdir=date, root=run.raw_basedir)
+  l1_dir = filepath('level1', subdir=date, root=run->config('processing/raw_basedir'))
   cd, current=current_dir
   cd, l1_dir
 
   ; remove existing NRGF from database and archive
 
-  if (run.update_database) then begin
+  if (run->config('database/update')) then begin
     obsday_index = mlso_obsday_insert(date, $
                                       run=run, $
                                       database=db, $
@@ -44,11 +44,14 @@ pro kcor_redo_nrgf, date, run=run
   ; remove NRGF files from level1, archive, nrgf, and cropped dirs
 
   date_parts = kcor_decompose_date(date)
-  archive_dir = filepath('', subdir=date_parts, root=run.archive_basedir)
-  nrgf_dir    = filepath('', subdir=date_parts, root=run.nrgf_basedir)
-  cropped_dir = filepath('', subdir=date_parts, root=run.croppedgif_basedir)
+  archive_dir = filepath('', subdir=date_parts, $
+                         root=run->config('results/archive_basedir'))
+  nrgf_dir    = filepath('', subdir=date_parts, $
+                         root=run->config('results/nrgf_basedir'))
+  cropped_dir = filepath('', subdir=date_parts, $
+                         root=run->config('results/croppedgif_basedir'))
 
-  if (run.distribute) then begin
+  if (run->config('realtime/distribute')) then begin
     dirs = [l1_dir, archive_dir, nrgf_dir, cropped_dir]
     names = ['level1', 'archive', 'NRGF', 'cropped']
   endif else begin
@@ -72,7 +75,7 @@ pro kcor_redo_nrgf, date, run=run
     endfor
   endfor
 
-  if (~run.distribute) then begin
+  if (~run->config('realtime/distribute')) then begin
     mg_log, 'not removing NRGF from archive, fullres, cropped dirs', $
             name='kcor/eod', /info
   endif
@@ -80,7 +83,7 @@ pro kcor_redo_nrgf, date, run=run
   ; create new NRGF files corresponding to average files
   average_files = file_search(filepath('*_kcor_l1.5_avg.fts.gz', $
                                        subdir=[date, 'level1'], $
-                                       root=run.raw_basedir), $
+                                       root=run->config('processing/raw_basedir')), $
                               count=n_average_files)
   for f = 0L, n_average_files - 1L do begin
     kcor_nrgf, average_files[f], run=run, /averaged, log_name='kcor/eod'
@@ -90,7 +93,7 @@ pro kcor_redo_nrgf, date, run=run
   ; create NRGF daily average file corresponding to daily average file
   daily_average_files = file_search(filepath('*_kcor_l1.5_extavg.fts.gz', $
                                              subdir=[date, 'level1'], $
-                                             root=run.raw_basedir), $
+                                             root=run->config('processing/raw_basedir')), $
                                     count=n_daily_average_files)
   for f = 0L, n_daily_average_files - 1L do begin   ; only 1 right now
     kcor_nrgf, daily_average_files[f], run=run, /averaged, /daily, log_name='kcor/eod'
@@ -103,7 +106,8 @@ pro kcor_redo_nrgf, date, run=run
   if (n_nrgf_files gt 0L) then begin
     mg_log, 'zipping %d NRGF FITS files...', n_nrgf_files, $
             name='kcor/eod', /info
-    gzip_cmd = string(run.gzip, unzipped_nrgf_glob, format='(%"%s %s")')
+    gzip_cmd = string(run->config('externals/gzip'), unzipped_nrgf_glob, $
+                      format='(%"%s %s")')
     spawn, gzip_cmd, result, error_result, exit_status=status
     if (status ne 0L) then begin
       mg_log, 'problem zipping NRGF FITS files with command: %s', gzip_cmd, $
@@ -115,7 +119,7 @@ pro kcor_redo_nrgf, date, run=run
   zipped_nrgf_files = unzipped_nrgf_files + '.gz'
 
   ; distribute new NRGF files
-  if (run.distribute) then begin
+  if (run->config('realtime/distribute')) then begin
     if (n_nrgf_files gt 0L) then begin
       mg_log, 'copying %d NRGF files to archive dir', n_nrgf_files, $
               name='kcor/eod', /info
@@ -148,7 +152,7 @@ pro kcor_redo_nrgf, date, run=run
   endelse
 
   ; add new NRGF files to database
-  if (run.update_database) then begin
+  if (run->config('database/update')) then begin
     if (n_nrgf_files gt 0L) then begin
       mg_log, 'adding %d NRGF files to database', n_nrgf_files, $
               name='kcor/eod', /info
@@ -162,7 +166,7 @@ pro kcor_redo_nrgf, date, run=run
   endelse
 
   ; distribute NRGF daily average GIFs
-  if (run.distribute) then begin
+  if (run->config('realtime/distribute')) then begin
     nrgf_dailyavg_files = file_search('*nrgf_extavg.gif', $
                                       count=n_nrgf_dailyavg_files)
     if (n_nrgf_dailyavg_files gt 0L) then begin

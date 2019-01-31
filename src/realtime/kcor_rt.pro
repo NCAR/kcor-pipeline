@@ -43,7 +43,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
           name='kcor/rt', /info
   mg_log, 'starting realtime processing for %s', date, name='kcor/rt', /info
 
-  raw_dir = filepath('', subdir=date, root=run.raw_basedir)
+  raw_dir = filepath('', subdir=date, root=run->config('processing/raw_basedir'))
   l0_dir = filepath('level0', root=raw_dir)
   l1_dir = filepath('level1', root=raw_dir)
   q_dir = filepath('q', root=raw_dir)
@@ -55,11 +55,14 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
 
   date_parts = kcor_decompose_date(date)
 
-  croppedgif_dir = filepath('', subdir=date_parts, root=run.croppedgif_basedir)
-  fullres_dir = filepath('', subdir=date_parts, root=run.fullres_basedir)
-  archive_dir = filepath('', subdir=date_parts, root=run.archive_basedir)
+  croppedgif_dir = filepath('', subdir=date_parts, $
+                            root=run->config('results/croppedgif_basedir'))
+  fullres_dir = filepath('', subdir=date_parts, $
+                         root=run->config('results/fullres_basedir'))
+  archive_dir = filepath('', subdir=date_parts, $
+                         root=run->config('results/archive_basedir'))
 
-  if (run.distribute) then begin
+  if (run->config('realtime/distribute')) then begin
     if (~file_test(croppedgif_dir, /directory)) then file_mkdir, croppedgif_dir
     if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
     if (~file_test(archive_dir, /directory)) then file_mkdir, archive_dir
@@ -70,7 +73,8 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
   available = kcor_state(/lock, run=run)
 
   if (available) then begin
-    if (run.reprocess || run.update_processing) then begin
+    if (run->config('realtime/reprocess') $
+          || run->config('realtime/update_processing')) then begin
       kcor_reprocess, date, run=run, error=error
       if (error ne 0L) then begin
         mg_log, 'error in reprocessing setup, exiting', name='kcor/rt', /error
@@ -86,7 +90,8 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     unzipped_files = file_search(unzipped_glob, count=n_unzipped_files)
     if (n_unzipped_files gt 0L) then begin
       mg_log, 'zipping %d FITS files...', n_unzipped_files, name='kcor/rt', /info
-      gzip_cmd = string(run.gzip, unzipped_glob, format='(%"%s %s")')
+      gzip_cmd = string(run->config('externals/gzip'), unzipped_glob, $
+                        format='(%"%s %s")')
       spawn, gzip_cmd, result, error_result, exit_status=status
       if (status ne 0L) then begin
         mg_log, 'problem zipping files with command: %s', gzip_cmd, $
@@ -113,7 +118,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
                             run=run)
     mg_log, '%d OK L0 files', n_elements(ok_files), name='kcor/rt', /info
 
-    if (run.update_database) then begin
+    if (run->config('database/update')) then begin
       mg_log, 'updating database with raw files', name='kcor/rt', /info
 
       obsday_index = mlso_obsday_insert(date, $
@@ -172,7 +177,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     l1_fits_files = file_search(l1_fits_glob, count=n_l1_fits_files)
     if (n_l1_fits_files gt 0L) then begin
       mg_log, 'zipping %d L1.5 FITS files', n_l1_fits_files, name='kcor/rt', /info
-      gzip_cmd = string(run.gzip, l1_fits_glob, format='(%"%s %s")')
+      gzip_cmd = string(run->config('externals/gzip'), l1_fits_glob, format='(%"%s %s")')
       spawn, gzip_cmd, result, error_result, exit_status=status
       if (status ne 0L) then begin
         mg_log, 'problem zipping files with command: %s', gzip_cmd, $
@@ -187,7 +192,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       mg_log, 'no files to archive', name='kcor/rt', /info
       goto, done
     endif else begin
-      if (run.distribute) then begin
+      if (run->config('realtime/distribute')) then begin
         mg_log, 'distributing L1.5 products of %d raw files', $
                 n_elements(ok_files), $
                 name='kcor/rt', /info
@@ -221,7 +226,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
         nrgf_basenames->add, base
       endif
 
-      if (run.distribute) then begin
+      if (run->config('realtime/distribute')) then begin
         if (file_test(nrgf_filename)) then begin
           file_copy, nrgf_filename, archive_dir, /overwrite
         endif
@@ -244,8 +249,8 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     free_lun, ok_rg_lun
 
     ; find the NRGF files now, will copy them after updating database
-    if (run.distribute) then begin
-      nrgf_dir = filepath('', subdir=date_parts, root=run.nrgf_basedir)
+    if (run->config('realtime/distribute')) then begin
+      nrgf_dir = filepath('', subdir=date_parts, root=run->config('results/nrgf_basedir'))
       if (~file_test(nrgf_dir, /directory)) then file_mkdir, nrgf_dir
     endif
 
@@ -258,12 +263,17 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
 
     obj_destroy, nrgf_basenames
 
-    if (run.update_remote_server && ~keyword_set(reprocess)) then begin
+    if (run->config('realtime/update_remote_server') $
+          && ~keyword_set(reprocess)) then begin
       if (n_nrgf_gifs gt 0L) then begin
         mg_log, 'transferring %d NRGF GIFs to remote server', n_nrgf_gifs, $
                 name='kcor/rt', /info
-        ssh_key_str = run.ssh_key eq '' ? '' : string(run.ssh_key, format='(%"-i %s")')
-        spawn_cmd = string(ssh_key_str, run.nrgf_remote_server, run.nrgf_remote_dir, $
+        ssh_key_str = run->config('results/ssh_key') eq '' $
+                        ? '' $
+                      : string(run->config('results/ssh_key'), format='(%"-i %s")')
+        spawn_cmd = string(ssh_key_str, $
+                           run->config('results/nrgf_remote_server'), $
+                           run->config('results/nrgf_remote_dir'), $
                            format='(%"scp %s -B -r -p *nrgf.gif %s:%s")')
         spawn, spawn_cmd, result, error_result, exit_status=status
         if (status ne 0L) then begin
@@ -278,7 +288,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       mg_log, 'skipping updating remote server with NRGF images', name='kcor/rt', /info
     endelse
 
-    if (run.update_database) then begin
+    if (run->config('database/update')) then begin
       mg_log, 'updating database', name='kcor/rt', /info
 
       obsday_index = mlso_obsday_insert(date, $
@@ -325,7 +335,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     endelse
 
     ; now move NRGF files
-    if (n_nrgf_gifs gt 0L && run.distribute) then begin
+    if (n_nrgf_gifs gt 0L && run->config('realtime/distribute')) then begin
       file_copy, nrgf_gifs, nrgf_dir, /overwrite
       file_copy, cropped_nrgf_gifs, croppedgif_dir, /overwrite
     endif

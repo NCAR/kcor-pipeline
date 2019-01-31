@@ -20,7 +20,7 @@ pro kcor_plotsci, date, daily_science_file, run=run
   mg_log, '%s', file_basename(daily_science_file), name='kcor/eod', /info
 
   cd, current=orig_dir
-  cd, filepath('', subdir=[date, 'level1'], root=run.raw_basedir)
+  cd, filepath('', subdir=[date, 'level1'], root=run->config('processing/raw_basedir'))
 
   time = strmid(file_basename(daily_science_file), 9, 6)
 
@@ -54,7 +54,7 @@ pro kcor_plotsci, date, daily_science_file, run=run
   sci_intensity_plot_basename = string(date, format='(%"%s.kcor.radial.intensity.gif")')
   sci_intensity_plot_filename = filepath(sci_intensity_plot_basename, $
                                          subdir=[date, 'p'], $
-                                         root=run.raw_basedir)
+                                         root=run->config('processing/raw_basedir'))
   write_gif, sci_intensity_plot_filename, plot_image, red, green, blue
 
   done:

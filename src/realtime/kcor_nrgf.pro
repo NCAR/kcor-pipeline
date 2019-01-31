@@ -399,21 +399,21 @@ run = kcor_run(date, $
 
 f = filepath('20180423_175443_kcor_l1.5_extavg.fts.gz', $
              subdir=[date, 'level1'], $
-             root=run.raw_basedir)
+             root=run->config('processing/raw_basedir'))
 
 kcor_nrgf, f, /average, /daily, run=run
 kcor_nrgf, f, /average, /daily, /cropped, run=run
 
 f = filepath('20180423_175443_kcor_l1.5_avg.fts.gz', $
              subdir=[date, 'level1'], $
-             root=run.raw_basedir)
+             root=run->config('processing/raw_basedir'))
 
 kcor_nrgf, f, /average, run=run
 kcor_nrgf, f, /average, /cropped, run=run
 
 f = filepath('20180423_175443_kcor_l1.5.fts.gz', $
              subdir=[date, 'level1'], $
-             root=run.raw_basedir)
+             root=run->config('processing/raw_basedir'))
 
 kcor_nrgf, f, run=run
 kcor_nrgf, f, /cropped, run=run

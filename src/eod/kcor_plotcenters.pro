@@ -43,7 +43,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
   pdate  = string(pyear, pmonth, pday, format='(%"%s-%s-%s")')
 
   ; define directory names
-  base_dir  = run.raw_basedir
+  base_dir  = run->config('processing/raw_basedir')
   date_dir  = filepath(date, root=base_dir)
 
   plots_dir = filepath('p', root=date_dir)
@@ -121,7 +121,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
                         format='(%"%s_kcor_l1.5.fts.gz")')
   l1_filenames = filepath(l1_basenames, $
                           subdir=[date, 'level1'], $
-                          root=run.raw_basedir)
+                          root=run->config('processing/raw_basedir'))
 
   ; image file loop
   for i = 0L, n_images - 1L do begin
@@ -444,7 +444,7 @@ run = kcor_run(date, config_file=config_file)
 
 glob = filepath('*_kcor.fts.gz', $
                 subdir=[date, 'level0'], $
-                root=run.raw_basedir)
+                root=run->config('processing/raw_basedir'))
 files = file_search(glob, count=n_files)
 kcor_plotcenters, date, list=files, run=run
 

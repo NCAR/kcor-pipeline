@@ -41,12 +41,12 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
           name='kcor/eod', /info
   mg_log, 'starting end-of-day processing for %s', date, name='kcor/eod', /info
 
-  q_dir = filepath('q', subdir=date, root=run.raw_basedir)
+  q_dir = filepath('q', subdir=date, root=run->config('processing/raw_basedir'))
   quality_plot = filepath(string(date, format='(%"%s.kcor.quality.png")'), $
                           root=q_dir)
   kcor_quality_plot, q_dir, quality_plot
 
-  date_dir = filepath(date, root=run.raw_basedir)
+  date_dir = filepath(date, root=run->config('processing/raw_basedir'))
   if (~file_test(date_dir, /directory)) then begin
     mg_log, '%s does not exist', date_dir, name='kcor/eod', /error
     goto, done
@@ -135,13 +135,14 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     cd, l0_dir
   endelse
 
-  if (run.create_daily_movies && n_l1_zipped_files gt 0L) then begin
+  if (run->config('eod/create_daily_movies') && n_l1_zipped_files gt 0L) then begin
     kcor_create_differences, date, l1_zipped_files, run=run
     kcor_create_averages, date, l1_zipped_files, run=run
     kcor_redo_nrgf, date, run=run
   endif
 
-  oka_filename = filepath('oka.ls', subdir=[date, 'q'], root=run.raw_basedir)
+  oka_filename = filepath('oka.ls', subdir=[date, 'q'], $
+                          root=run->config('processing/raw_basedir'))
   n_oka_files = file_lines(oka_filename)
   if (file_test(oka_filename, /regular) && n_oka_files gt 0L) then begin
     mg_log, 'producing nomask files...', name='kcor/eod', /info
@@ -153,7 +154,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
     oka_files = filepath(oka_files, $
                          subdir=[date, 'level0'], $
-                         root=run.raw_basedir)
+                         root=run->config('processing/raw_basedir'))
     kcor_l1, date, oka_files[0:*:60], /nomask, run=run, $
              log_name='kcor/eod', error=error
   endif else begin
@@ -161,29 +162,30 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   endelse
 
   nrgf_glob = filepath('*_kcor_l1.5_nrgf.fts.gz', $
-                       subdir=[date, 'level1'], root=run.raw_basedir)
+                       subdir=[date, 'level1'], $
+                       root=run->config('processing/raw_basedir'))
   nrgf_files = file_search(nrgf_glob, count=n_nrgf_files)
   if (n_nrgf_files gt 0L) then begin
-    if (run.produce_plots) then begin
+    if (run->config('eod/produce_plots')) then begin
       kcor_plotraw, date, list=nrgf_files, run=run, $
                     line_means=line_means, line_medians=line_medians, $
                     azi_means=azi_means, azi_medians=azi_medians
     endif
 
-    if (run.create_daily_movies) then begin
+    if (run->config('eod/create_daily_movies')) then begin
       kcor_create_animations, date, list=nrgf_files, run=run
     endif
   endif
 
   ok_list = filepath('okfgif.ls', $
                      subdir=[date, 'level1'], $
-                     root=run.raw_basedir)
+                     root=run->config('processing/raw_basedir'))
   n_ok_files = file_test(ok_list) ? file_lines(ok_list) : 0L
 
   n_missing = 0L
   n_wrongsize = 0L
 
-  if (run.validate_t1) then begin
+  if (run->config('eod/validate_t1')) then begin
     mg_log, 'validating t1.log', name='kcor/eod', /info
     n_lines = file_lines(t1_log_file)
     lines = strarr(n_lines)
@@ -240,16 +242,22 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     ; TODO: should really check process flag from epochs file here to filter
     ;       out L0 files that should not be processed
 
-    if (run.produce_plots) then begin
+    if (run->config('eod/produce_plots')) then begin
       kcor_plotparams, date, list=files, run=run
       kcor_plotcenters, date, list=files, run=run
     endif
-    if (run.catalog_files) then kcor_catalog, date, list=files, run=run
 
-    if (run.send_to_archive) then kcor_archive_l0, run=run, reprocess=reprocess
+    if (run->config('eod/catalog_files')) then begin
+      kcor_catalog, date, list=files, run=run
+    endif
+
+    if (run->config('eod/send_to_archive')) then begin
+      kcor_archive_l0, run=run, reprocess=reprocess
+    endif
 
     ; produce calibration for tomorrow
-    if (run.reduce_calibration && run->epoch('produce_calibration')) then begin
+    if (run->config('eod/reduce_calibration') $
+          && run->epoch('produce_calibration')) then begin
       kcor_reduce_calibration, date, run=run
     endif else begin
       mg_log, 'skipping reducing calibration', name='kcor/eod', /info
@@ -268,9 +276,10 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   endif
 
   ; update databases
-  if (run.update_database && success) then begin
+  if (run->config('database/update') && success) then begin
     mg_log, 'updating database', name='kcor/eod', /info
-    cal_files = kcor_read_calibration_text(date, run.process_basedir, $
+    cal_files = kcor_read_calibration_text(date, $
+                                           run->config('processing/process_basedir'), $
                                            exposures=exposures, $
                                            run=run, $
                                            all_files=all_cal_files, $
@@ -337,7 +346,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   kcor_save_results, date, run=run
 
-  if (run.send_notifications && run.notification_email ne '') then begin
+  if (run->config('notifications/send') $
+        && run->config('notifications/email') ne '') then begin
     msg = [string(date, $
                   format='(%"KCor end-of-day processing for %s")'), $
            '', $
@@ -405,7 +415,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
                      : string(n_rt_errors, n_eod_errors, $
                               format='(%" - %d rt, %d eod errors")')
 
-    kcor_send_mail, run.notification_email, $
+    kcor_send_mail, run->config('notifications/email'), $
                     string(date, $
                            success ? 'success' : 'problems', $
                            n_errors_msg, $

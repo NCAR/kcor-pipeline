@@ -21,7 +21,7 @@ pro kcor_verify_hpss, date, filename, filesize, $
                       status=status
   compile_opt strictarr
 
-  hsi_cmd = string(run.hsi, filename, format='(%"%s ls -l %s")')
+  hsi_cmd = string(run->config('externals/hsi'), filename, format='(%"%s ls -l %s")')
 
   spawn, hsi_cmd, hsi_output, hsi_error_output, exit_status=exit_status
   if (exit_status ne 0L) then begin
@@ -138,20 +138,20 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   ;       has one extra line 
 
   mg_log, 'verifying %s', date, name=logger_name, /info
-  mg_log, 'raw directory %s', filepath(date, root=run.raw_basedir), $
+  mg_log, 'raw directory %s', filepath(date, root=run->config('processing/raw_basedir')), $
           name=logger_name, /info
 
   ; don't check days with no data
   l0_tarball_filename = filepath(date + '_kcor_l0.tgz', $
                                  subdir=[date, 'level0'], $
-                                 root=run.raw_basedir)
+                                 root=run->config('processing/raw_basedir'))
   l1_tarball_filename = filepath(date + '_kcor_l1.5.tgz', $
                                  subdir=[date, 'level1'], $
-                                 root=run.raw_basedir)
+                                 root=run->config('processing/raw_basedir'))
 
   fits_files = file_search(filepath('*.fts.gz', $
                                     subdir=[date, 'level0'], $
-                                    root=run.raw_basedir), $
+                                    root=run->config('processing/raw_basedir')), $
                            count=n_fits_files)
   if (n_fits_files eq 0L && ~file_test(l0_tarball_filename)) then begin
     mg_log, 'no FITS files or tarball, skipping', name=logger_name, /info
@@ -160,13 +160,13 @@ pro kcor_verify, date, config_filename=config_filename, status=status
 
   log_filename = filepath(date + '.kcor.t1.log', $
                           subdir=[date, 'level0'], $
-                          root=run.raw_basedir)
+                          root=run->config('processing/raw_basedir'))
   machine_log_filename = filepath(date + '.kcor.machine.log', $
                                   subdir=[date], $
-                                  root=run.raw_basedir)
+                                  root=run->config('processing/raw_basedir'))
   list_filename = filepath(date + '_kcor_l0.tarlist', $
                            subdir=[date, 'level0'], $
-                           root=run.raw_basedir)
+                           root=run->config('processing/raw_basedir'))
 
   ; TEST: check if log/list files exist
 
@@ -238,7 +238,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
 
   unzipped_sizes = kcor_zipsize(filepath(list_names, $
                                          subdir=[date, 'level0'], $
-                                         root=run.raw_basedir), $
+                                         root=run->config('processing/raw_basedir')), $
                                 run=run, logger_name=logger_name)
   kcor_raw_size = run->epoch('raw_filesize')   ; bytes
   ind = where(unzipped_sizes ne kcor_raw_size, n_bad_sizes)
@@ -416,13 +416,19 @@ pro kcor_verify, date, config_filename=config_filename, status=status
 
   ; TEST: compare t1/t2 log vs. what is present on MLSO server
 
-  ssh_key_str = run.ssh_key eq '' ? '' : string(run.ssh_key, format='(%"-i %s")')
-  cmd = string(ssh_key_str, run.raw_remote_server, run.raw_remote_dir, date, $
+  ssh_key_str = run->config('results/ssh_key') eq '' $
+                  ? '' $
+                  : string(run->config('results/ssh_key'), format='(%"-i %s")')
+  cmd = string(ssh_key_str, $
+               run->config('results/raw_remote_server'), $
+               run->config('results/raw_remote_dir'), $
+               date, $
                format='(%"ssh %s %s ls %s/%s/*.fts | wc -l")')
   spawn, cmd, output, error_output, exit_status=exit_status
   if (exit_status ne 0L) then begin
     mg_log, 'problem checking raw files on %s:%s', $
-            run.raw_remote_server, run.raw_remote_dir, $
+            run->config('results/raw_remote_server'), $
+            run->config('results/raw_remote_dir'), $
             name=logger_name, /error
     mg_log, 'command: %s', cmd, name=logger_name, /error
     mg_log, '%s', strjoin(error_output, ' '), name=logger_name, /error
@@ -434,11 +440,11 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   if (n_elements(n_log_lines) gt 0L) then begin
     if (n_log_lines eq n_raw_files) then begin
       mg_log, '# of L0 on %s (%d) matches t1.log (%d)', $
-              run.raw_remote_server, n_raw_files, n_log_lines, $
+              run->config('results/raw_remote_server'), n_raw_files, n_log_lines, $
               name=logger_name, /info
     endif else begin
       mg_log, '# of L0 on %s (%d) does not match t1.log (%d)', $
-              run.raw_remote_server, n_raw_files, n_log_lines, $
+              run->config('results/raw_remote_server'), n_raw_files, n_log_lines, $
               name=logger_name, /error
       status = 1L
       goto, mlso_server_test_done
@@ -446,18 +452,18 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   endif else if (n_elements(n_list_lines) gt 0L) then begin
     if (n_list_lines - 2L eq n_raw_files) then begin
       mg_log, '# of L0 on %s (%d) matches tarlist (%d)', $
-              run.raw_remote_server, n_raw_files, n_list_lines - 2L, $
+              run->config('results/raw_remote_server'), n_raw_files, n_list_lines - 2L, $
               name=logger_name, /info
     endif else begin
       mg_log, '# of L0 on %s (%d) does not match tarlist (%d)', $
-              run.raw_remote_server, n_raw_files, n_list_lines - 2L, $
+              run->config('results/raw_remote_server'), n_raw_files, n_list_lines - 2L, $
               name=logger_name, /error
       status = 1L
       goto, mlso_server_test_done
     endelse
   endif else begin
     mg_log, 'nothing to compare number of files on %s to', $
-            run.raw_remote_server, $
+            run->config('results/raw_remote_server'), $
             name=logger_name, /error
   endelse
 
@@ -467,7 +473,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   ; skip tarball and HPSS checks if there were no good quality files
   oka_filename = filepath('oka.ls', $
                           subdir=[date, 'q'], $
-                          root=run.raw_basedir)
+                          root=run->config('processing/raw_basedir'))
   if (~file_test(oka_filename, /regular) || file_lines(oka_filename) eq 0L) then begin
     mg_log, 'no good quality files, skipping tarball and HPSS checks', $
             name=logger_name, /info
@@ -498,7 +504,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
     ; compression factor should be 15-16%
 
     du_cmd = string(filepath('*.{fts.gz,log}', subdir=[date, 'level0'], $
-                             root=run.raw_basedir), $
+                             root=run->config('processing/raw_basedir')), $
                     format='(%"du -scb %s | tail -1")')
     spawn, du_cmd, du_output
     tokens = strsplit(du_output[0], /extract)
@@ -514,8 +520,8 @@ pro kcor_verify, date, config_filename=config_filename, status=status
             name=logger_name, /info
     mg_log, 'compression ratio: %0.2f', compress_ratio, name=logger_name, /info
 
-    if ((compress_ratio lt run.min_compression_ratio) $
-          or (compress_ratio gt run.max_compression_ratio)) then begin
+    if ((compress_ratio lt run->config('verification/min_compression_ratio')) $
+          or (compress_ratio gt run->config('verifcation/max_compression_ratio'))) then begin
       mg_log, 'unusual compression ratio %0.2f', compress_ratio, $
               name=logger_name, /warn
       status = 1L
@@ -529,7 +535,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
 
   ; TEST: check if there are files in the directory that should not be there 
 
-;  files = file_search(filepath('*', subdir=date, root=run.raw_basedir), count=n_files)
+;  files = file_search(filepath('*', subdir=date, root=run->config('processing/raw_basedir')), count=n_files)
 ;  if (n_log_lines lt n_files - 3L) then begin
 ;    n_extra = n_files - 3L - n_log_files
 ;    mg_log, 'extra %d file%s in raw dir: %d in log, %d in dir', $

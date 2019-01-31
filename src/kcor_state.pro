@@ -28,7 +28,7 @@ function kcor_state, lock=lock, unlock=unlock, processed=processed, $
   on_error, 2
 
   if (keyword_set(first_image)) then begin
-    raw_dir = filepath(run.date, root=run.raw_basedir)
+    raw_dir = filepath(run.date, root=run->config('processing/raw_basedir'))
     state_file = filepath('.first_image', root=raw_dir)
 
     if (~file_test(state_file)) then begin
@@ -41,8 +41,8 @@ function kcor_state, lock=lock, unlock=unlock, processed=processed, $
     endelse
   endif
 
-  if (run.lock_raw) then begin
-    raw_dir = filepath(run.date, root=run.raw_basedir)
+  if (run->config('processing/lock_raw')) then begin
+    raw_dir = filepath(run.date, root=run->config('processing/raw_basedir'))
     lock_file = filepath('.lock', root=raw_dir)
     processed_file = filepath('.processed', root=raw_dir)
 

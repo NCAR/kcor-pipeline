@@ -17,7 +17,7 @@ pro kcor_archive_l0, run=run, reprocess=reprocess
 
   date = run.date
 
-  date_dir = filepath(date, root=run.raw_basedir)
+  date_dir = filepath(date, root=run->config('processing/raw_basedir'))
   l0_dir   = filepath('level0', root=date_dir)
 
   if (~file_test(l0_dir, /directory)) then begin
@@ -56,7 +56,7 @@ pro kcor_archive_l0, run=run, reprocess=reprocess
             name='kcor/eod', /info
   endelse
 
-  if (run.send_to_hpss && ~keyword_set(reprocess)) then begin
+  if (run->config('eod/send_to_hpss') && ~keyword_set(reprocess)) then begin
     tar_cmd = string(tarfile, $
                      format='(%"tar cf %s *_kcor.fts.gz *.log")')
     mg_log, 'creating tarfile %s...', tarfile, name='kcor/eod', /info
@@ -100,15 +100,16 @@ pro kcor_archive_l0, run=run, reprocess=reprocess
     mg_log, 'not creating tarfile or tarlist', name='kcor/eod', /info
   endelse
 
-  if (run.send_to_hpss && ~keyword_set(reprocess)) then begin
+  if (run->config('eod/send_to_hpss') && ~keyword_set(reprocess)) then begin
     ; create HPSS gateway directory if needed
-    if (~file_test(run.hpss_gateway, /directory)) then begin
-      file_mkdir, run.hpss_gateway
-      file_chmod, run.hpss_gateway, /a_read, /a_execute, /u_write, /g_write
+    hpss_gateway = run->config('results/hpss_gateway')
+    if (~file_test(hpss_gateway, /directory)) then begin
+      file_mkdir, hpss_gateway
+      file_chmod, hpss_gateway, /a_read, /a_execute, /u_write, /g_write
     endif
 
     ; remove old links to tarballs
-    dst_tarfile = filepath(tarfile, root=run.hpss_gateway)
+    dst_tarfile = filepath(tarfile, root=hpss_gateway)
     ; need to test for dangling symlink separately because a link to a
     ; non-existent file will return 0 from FILE_TEST with just /SYMLINK
     if (file_test(dst_tarfile, /symlink) $

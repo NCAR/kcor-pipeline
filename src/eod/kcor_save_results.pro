@@ -14,7 +14,7 @@
 pro kcor_save_results, date, run=run
   compile_opt strictarr
 
-  if (run.save_basedir eq '') then begin
+  if (run->config('results/save_basedir') eq '') then begin
     mg_log, 'no save_basedir specified, skipping saving results', $
             name='kcor/eod', /info
     goto, done
@@ -22,13 +22,13 @@ pro kcor_save_results, date, run=run
     mg_log, 'saving results...', name='kcor/eod', /info
   endelse
 
-  save_dir = filepath(date, root=run.save_basedir)
+  save_dir = filepath(date, root=run->config('results/save_basedir'))
   if (~file_test(save_dir, /directory)) then file_mkdir, save_dir
 
   ; difference images
   diff_filenames = file_search(filepath('*minus*', $
                                         subdir=[date, 'level1'], $
-                                        root=run.raw_basedir), $
+                                        root=run->config('processing/raw_basedir')), $
                                count=n_diff_filenames)
   if (n_diff_filenames gt 0L) then begin
     diff_dir = filepath('difference', root=save_dir)
@@ -41,7 +41,7 @@ pro kcor_save_results, date, run=run
   ; extended average files
   extavg_filenames = file_search(filepath('*extavg*', $
                                           subdir=[date, 'level1'], $
-                                          root=run.raw_basedir), $
+                                          root=run->config('processing/raw_basedir')), $
                                  count=n_extavg_filenames)
   if (n_extavg_filenames gt 0L) then begin
     extavg_dir = filepath('extavg', root=save_dir)
@@ -54,7 +54,7 @@ pro kcor_save_results, date, run=run
   ; no mask files
   nomask_filenames = file_search(filepath('*nomask*', $
                                           subdir=[date, 'level1'], $
-                                          root=run.raw_basedir), $
+                                          root=run->config('processing/raw_basedir')), $
                                  count=n_nomask_filenames)
   if (n_nomask_filenames gt 0L) then begin
     nomask_dir = filepath('nomask', root=save_dir)
@@ -65,18 +65,19 @@ pro kcor_save_results, date, run=run
   endif
 
   ; p and q directories
-  file_copy, filepath('p', subdir=date, root=run.raw_basedir), $
+  file_copy, filepath('p', subdir=date, root=run->config('processing/raw_basedir')), $
              save_dir, $
              /recursive, /overwrite
   mg_log, 'saving p directory', name='kcor/eod', /debug
 
-  file_copy, filepath('q', subdir=date, root=run.raw_basedir), $
+  file_copy, filepath('q', subdir=date, root=run->config('processing/raw_basedir')), $
              save_dir, $
              /recursive, /overwrite
   mg_log, 'saving q directory', name='kcor/eod', /debug
 
   ; *.log files
-  log_files = file_search(filepath('*.log', subdir=date, root=run.raw_basedir), $
+  log_files = file_search(filepath('*.log', subdir=date, $
+                                   root=run->config('processing/raw_basedir')), $
                           count=n_log_files)
   if (n_log_files gt 0L) then begin
     file_copy, log_files, save_dir, /overwrite

@@ -38,7 +38,7 @@ pro kcor_create_mp4, gif_filenames, mp4_filename, run=run, status=status
   cmd_format = '(%"%s -r 20 -i tmp-%%*.gif -y -loglevel error ' $
                  + '-vcodec libx264 -passlogfile kcor_tmp -r 20 %s")'
 
-  cmd = string(run.ffmpeg, mp4_filename, format=cmd_format)
+  cmd = string(run->config('externals/ffmpeg'), mp4_filename, format=cmd_format)
   spawn, cmd, result, error_result, exit_status=status
   if (status ne 0L) then begin
     mg_log, 'problem creating mp4 with command: %s', cmd, $

@@ -98,7 +98,7 @@ pro kcor_cropped_gif, im, date, date_obs, $
   raster = tvrd()
   tvlct, red, green, blue, /get
 
-  l1_dir = filepath('level1', subdir=date, root=run.raw_basedir)
+  l1_dir = filepath('level1', subdir=date, root=run->config('processing/raw_basedir'))
   cgif_basename = string(date_obs.year, date_obs.month, date_obs.day, $
                          date_obs.hour, date_obs.minute, date_obs.second, $
                          keyword_set(average) $
@@ -129,7 +129,7 @@ run = kcor_run(date, config_filename=config_filename)
 
 l1_filename = filepath(l1_basename, $
                        subdir=[date, 'level1'], $
-                       root=run.raw_basedir)
+                       root=run->config('processing/raw_basedir'))
 
 im = readfits(l1_filename, header, /silent)
 date_obs = sxpar(header, 'DATE-OBS')

@@ -19,7 +19,7 @@ pro kcor_sine2theta_method, umk4, qmk4, intensity, radsun, theta1, rr1, $
   degrees = findgen(numdeg) * stepdeg + 0.5 * stepdeg
   degrees = double(degrees) / !radeg
 
-  case run.sine2theta_nparams of
+  case run->config('realtime/sine2theta_nparams') of
     2: begin
         a = dblarr(2)
         a[0] = 0.0033
@@ -42,7 +42,7 @@ pro kcor_sine2theta_method, umk4, qmk4, intensity, radsun, theta1, rr1, $
       end
     else: begin
         mg_log, 'invalid number of parameters for sine2theta fit: %d', $
-                run.sine2theta_nparams, name='kcor/rt', /error
+                run->config('realtime/sine2theta_nparams'), name='kcor/rt', /error
       end
   endcase
 

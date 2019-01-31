@@ -1,13 +1,78 @@
 ; docformat = 'rst'
 
-;= API
+;= helper methods
 
+;+
+; Create a string representation of the config file.
+;
+; :Returns:
+;   `strarr`
+;
+; :Keywords:
+;   substitute : in, optional, type=boolean
+;     set to perform substitutions
+;-
+function mgffspecoptions::_toString, substitute=substitute
+  compile_opt strictarr
+
+  first_line = 1B
+  output_list = list()
+
+  max_width = 0L
+  foreach sec, self.sections do begin
+    foreach option, sec, o do begin
+      max_width >= strlen(o)
+    endforeach
+  endforeach
+
+  format = string(max_width, format='(%"(\%\"\%-%ds \%s \%s\"\)")')
+
+  if (self.sections->hasKey('')) then begin
+    default_sec = (self.sections)['']
+    foreach option, default_sec, o do begin
+      first_line = 0B
+      output_list->add, string(o, self.output_separator, option, format=format)
+    endforeach
+  endif
+
+  foreach sec, self.sections, s do begin
+    if (s eq '') then continue
+    if (~first_line) then output_list->add, '' else first_line = 0B
+
+    output_list->add, string(s, format='(%"[%s]")')
+    foreach option, sec, o do begin
+      option_value = keyword_set(substitute) ? self->get(o, section=s) : option
+
+      if (s ne 'DEFAULT') then begin
+        spec_line = self.spec->get(o, section=s)
+        mg_parse_spec_line, spec_line, boolean=boolean
+        if (keyword_set(boolean)) then option_value = long(option_value) ? 'YES' : 'NO'
+      endif
+
+      option_value = strtrim(option_value, 2)
+
+      output_list->add, string(o, self.output_separator, option_value, format=format)
+    endforeach
+  endforeach
+
+  output = transpose(output_list->toArray())
+  obj_destroy, output_list
+  return, output
+end
+
+
+;= API
 
 ;+
 ; Determine if the options are valid by the specification.
 ;
 ; :Returns:
 ;   1 if valid, 0 if not
+;
+; :Keywords:
+;   error_msg : out, optional, type=string
+;     set to a named variable to retrieve an error message, empty string if
+;     valid
 ;-
 function mgffspecoptions::is_valid, error_msg=error_msg
   compile_opt strictarr
@@ -103,9 +168,14 @@ function mgffspecoptions::get, option, $
   if (found) then begin
     mg_parse_spec_line, spec_line, $
                         type=type, $
+                        boolean=boolean, $
                         extract=extract, $
                         default=default
   endif else begin
+    if (strlowcase(section) ne 'default') then begin
+      message, string(option, section, $
+                      format='(%"option=%s, section=%s not found in spec")')
+    endif
     type = 7
     extract = 0B
     default = ''
@@ -114,10 +184,12 @@ function mgffspecoptions::get, option, $
   value = self->mgffoptions::get(option, $
                                  section=section, $
                                  type=type, $
+                                 boolean=boolean, $
                                  extract=extract, $
                                  default=default, $
                                  found=found, $
                                  count=count)
+
   return, value
 end
 

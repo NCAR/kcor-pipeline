@@ -57,9 +57,10 @@ pro kcor_calibration, date, $
 
     free_lun, lun
   endif else begin
-    if (run.catalog_files) then begin
+    if (run->config('eod/catalog_files')) then begin
       ; clear inventory files before catalog'ing
-      txt_glob = filepath('*.txt', subdir=date, root=run.process_basedir)
+      txt_glob = filepath('*.txt', subdir=date, $
+                          root=run->config('processing/process_basedir'))
       txt_files = file_search(txt_glob, count=n_files)
       if (n_files gt 0L) then begin
         mg_log, 'deleting %d old inventory files', n_files, $
@@ -76,9 +77,10 @@ pro kcor_calibration, date, $
   kcor_reduce_calibration, date, run=run, filelist=filelist, catalog_dir=catalog_dir
 
   ; update databases
-  if (run.update_database && (n_elements(filelist_filename) eq 0L)) then begin
+  if (run->config('database/update') && (n_elements(filelist_filename) eq 0L)) then begin
     mg_log, 'updating database', name='kcor/eod', /info
-    cal_files = kcor_read_calibration_text(date, run.process_basedir, $
+    cal_files = kcor_read_calibration_text(date, $
+                                           run->config('processing/process_basedir'), $
                                            exposures=exposures, $
                                            n_files=n_cal_files, run=run, $
                                            quality=cal_quality)

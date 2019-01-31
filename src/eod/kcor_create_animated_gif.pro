@@ -21,7 +21,7 @@ pro kcor_create_animated_gif, gif_filenames, animated_gif_filename, $
   compile_opt strictarr
 
   cmd_format = '(%"%s -delay 10 -loop 0 %s %s")'
-  cmd = string(run.convert, $
+  cmd = string(run->config('externals/convert'), $
                strjoin(gif_filenames, ' '), $
                animated_gif_filename, $
                format=cmd_format)

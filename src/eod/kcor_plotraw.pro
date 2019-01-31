@@ -73,8 +73,8 @@ pro kcor_plotraw, date, list=list, run=run, $
   azi_means    = fltarr(2, n_nrgf_files)
   azi_medians  = fltarr(2, n_nrgf_files)
 
-  l0_dir   = filepath('level0', subdir=date, root=run.raw_basedir)
-  plot_dir = filepath('p', subdir=date, root=run.raw_basedir)
+  l0_dir   = filepath('level0', subdir=date, root=run->config('processing/raw_basedir'))
+  plot_dir = filepath('p', subdir=date, root=run->config('processing/raw_basedir'))
   if (~file_test(plot_dir, /directory)) then file_mkdir, plot_dir
 
   cd, current=orig_dir

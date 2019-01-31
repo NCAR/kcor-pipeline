@@ -23,10 +23,10 @@
 pro kcor_catalog, date, list=list, run=run, catalog_dir=catalog_dir
   compile_opt strictarr
 
-  l0_dir = filepath('level0', subdir=date, root=run.raw_basedir)
+  l0_dir = filepath('level0', subdir=date, root=run->config('processing/raw_basedir'))
 
   ; if date directory does not exist in 'process_basedir', create it
-  process_datedir = filepath(date, root=run.process_basedir)
+  process_datedir = filepath(date, root=run->config('processing/process_basedir'))
   if (~file_test (process_datedir, /directory)) then begin
     file_mkdir, process_datedir
   endif
@@ -35,7 +35,7 @@ pro kcor_catalog, date, list=list, run=run, catalog_dir=catalog_dir
   if (file_test(l0_dir, /directory)) then begin
     catalog_dir = l0_dir
   endif else begin
-    catalog_dir = filepath(date, root=run.raw_basedir)
+    catalog_dir = filepath(date, root=run->config('processing/raw_basedir'))
   endelse
 
   cd, catalog_dir

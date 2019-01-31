@@ -76,7 +76,7 @@ pro kcor_correct_camera, im, header, $
   rcam_cor_filename = filepath(string(prefix, rcamid, exposure, $
                                       rcam_lut_date, 'ncdf', $
                                       format=fmt), $
-                               root=run.camera_correction_dir)
+                               root=run->config('calibration/camera_correction_dir'))
   if (file_test(rcam_cor_filename)) then begin
     mg_log, 'RCAM correction: %s', rcam_cor_filename, name=logger_name, /debug
   endif else begin
@@ -89,7 +89,7 @@ pro kcor_correct_camera, im, header, $
                                             rcam_lut_date, 'sav', $
                                             format=fmt), $
                                      subdir='.cache', $
-                                     root=run.camera_correction_dir)
+                                     root=run->config('calibration/camera_correction_dir'))
 
   fp[*, *, *, 0] = kcor_read_camera_correction(rcam_cor_filename, $
                                                rcam_cor_cache_filename, $
@@ -104,7 +104,7 @@ pro kcor_correct_camera, im, header, $
   tcam_cor_filename = filepath(string(prefix, tcamid, exposure, $
                                       tcam_lut_date, 'ncdf', $
                                       format=fmt), $
-                               root=run.camera_correction_dir)
+                               root=run->config('calibration/camera_correction_dir'))
   if (file_test(tcam_cor_filename)) then begin
     mg_log, 'TCAM correction: %s', tcam_cor_filename, name=logger_name, /debug
   endif else begin
@@ -117,7 +117,7 @@ pro kcor_correct_camera, im, header, $
                                             tcam_lut_date, 'sav', $
                                             format=fmt), $
                                      subdir='.cache', $
-                                     root=run.camera_correction_dir)
+                                     root=run->config('calibration/camera_correction_dir'))
 
   fp[*, *, *, 1] = kcor_read_camera_correction(tcam_cor_filename, $
                                                tcam_cor_cache_filename, $
@@ -173,9 +173,12 @@ run = kcor_run(date, config_filename='../../config/kcor.mgalloy.twilight.caltest
 ;dark_file = '20170521_183511_kcor.fts.gz'   ; dark
 ;flat_file = '20170521_183657_kcor.fts.gz'   ; flat
 
-ok_files = file_search(filepath('*.fts.gz', subdir=[date, 'level0'], root=run.raw_basedir), count=n_ok_files)
+ok_files = file_search(filepath('*.fts.gz', subdir=[date, 'level0'], $
+                                root=run->config('processing/raw_basedir')), $
+                       count=n_ok_files)
 
-camcor_dir = filepath('', subdir=[date, 'camcor'], root=run.raw_basedir)
+camcor_dir = filepath('', subdir=[date, 'camcor'], $
+                      root=run->config('processing/raw_basedir'))
 if (~file_test(camcor_dir, /directory)) then file_mkdir, camcor_dir
 ;nocamcor_dir = filepath('', subdir=[date, 'nocamcor'], root=run_nocamcor.raw_basedir)
 ;if (~file_test(nocamcor_dir, /directory)) then file_mkdir, nocamcor_dir
@@ -189,7 +192,7 @@ for i = 0L, n_ok_files - 1L do begin
   original_im = float(im)
   kcor_correct_camera, im, header, run=run, xoffset=0
 
-  cal_file = filepath(run->epoch('cal_file'), root=run.cal_out_dir)
+  cal_file = filepath(run->epoch('cal_file'), root=run->config('calibration/out_dir'))
 ;  cal_file_nocamcor = filepath(run->epoch('cal_file'), root=run_nocamcor.cal_out_dir)
 
   ;print, cal_file
@@ -204,11 +207,11 @@ for i = 0L, n_ok_files - 1L do begin
 ;  flat_nocamcor = cals_nocamcor.gain[*, *, *]
 ;  dark_nocamcor = cals_nocamcor.dark[*, *, *]
 
-  ;flat = readfits(filepath(flat_file, subdir=[date, 'level0'], root=run.raw_basedir), header, /silent)
+  ;flat = readfits(filepath(flat_file, subdir=[date, 'level0'], root=run->config('processing/raw_basedir')), header, /silent)
   original_flat = float(flat)
   ;kcor_correct_camera, flat, header, run=run, xoffset=0
 
-  ;dark = readfits(filepath(dark_file, subdir=[date, 'level0'], root=run.raw_basedir), header, /silent)
+  ;dark = readfits(filepath(dark_file, subdir=[date, 'level0'], root=run->config('processing/raw_basedir')), header, /silent)
   original_dark = float(dark)
   ;kcor_correct_camera, dark, header, run=run, xoffset=0
 

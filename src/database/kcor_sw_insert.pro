@@ -57,8 +57,8 @@ pro kcor_sw_insert, date, run=run, $
     mg_log, 'using connection to %s', host, name=log_name, /debug
   endif else begin
     db = mgdbmysql()
-    db->connect, config_filename=run.database_config_filename, $
-                 config_section=run.database_config_section
+    db->connect, config_filename=run->config('database/config_filename'), $
+                 config_section=run->config('database/config_section')
 
     db->getProperty, host_name=host
     mg_log, 'connected to %s', host, name=log_name, /info

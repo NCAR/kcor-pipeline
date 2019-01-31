@@ -32,14 +32,14 @@ pro kcor_create_differences, date, l1_files, run=run
   mg_log, 'creating difference movies', name='kcor/eod', /info
 
   date_parts = kcor_decompose_date(date)
-  fullres_dir = filepath('', subdir=date_parts, root=run.fullres_basedir)
-  cropped_dir = filepath('', subdir=date_parts, root=run.croppedgif_basedir)
-  if (run.distribute) then begin
+  fullres_dir = filepath('', subdir=date_parts, root=run->config('results/fullres_basedir'))
+  cropped_dir = filepath('', subdir=date_parts, root=run->config('results/croppedgif_basedir'))
+  if (run->config('realtime/distribute')) then begin
     if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
     if (~file_test(cropped_dir, /directory)) then file_mkdir, fullres_dir
   endif
 
-  l1_dir = filepath('level1', subdir=date, root=run.raw_basedir)
+  l1_dir = filepath('level1', subdir=date, root=run->config('processing/raw_basedir'))
 
   cd, current=current
   cd, l1_dir
@@ -69,9 +69,9 @@ pro kcor_create_differences, date, l1_files, run=run
   ;             create a subtraction image every 5 minutes	
   ;             create subtractions using averaged images 10 minutes apart
 
-  avginterval = run.diff_average_interval / 60.0D / 60.0D / 24.0D
-  time_between_subs = run.diff_cadence / 60.0D / 60.0D / 24.0D
-  subinterval = run.diff_interval / 60.0D / 60.0D / 24.0D
+  avginterval = run->config('differences/average_interval') / 60.0D / 60.0D / 24.0D
+  time_between_subs = run->config('differences/cadence') / 60.0D / 60.0D / 24.0D
+  subinterval = run->config('differences/interval') / 60.0D / 60.0D / 24.0D
 
   ; set up counting variables
 
@@ -275,9 +275,9 @@ pro kcor_create_differences, date, l1_files, run=run
     theta_increment = 0.5
     radius          = 1.15
 
-    good_value  = run.diff_good_max
-    pass_value  = run.diff_pass_max
-    threshold_intensity = run.diff_threshold_intensity
+    good_value  = run->config('differences/good_max')
+    pass_value  = run->config('differences/pass_max')
+    threshold_intensity = run->config('differences/threshold_intensity')
 
     pointing_ck = 0
 
@@ -379,7 +379,7 @@ pro kcor_create_differences, date, l1_files, run=run
       fits_basename = string(name, timestring, status, format='(%"%s_minus_%s_%s.fts")')
       writefits, fits_basename, subimg, goodheader
 
-      if (run.distribute) then begin
+      if (run->config('realtime/distribute')) then begin
         ; TODO: eventually these will be distributed
         ;file_copy, gif_basename, fullres_dir, /overwrite
         ;file_copy, fits_basename, fullres_dir, /overwrite
@@ -397,7 +397,7 @@ pro kcor_create_differences, date, l1_files, run=run
     difference_mp4_filename = string(date, format='(%"%s_kcor_minus.mp4")')
     kcor_create_mp4, difference_gif_filenames, difference_mp4_filename, $
                      run=run, status=status
-    if (status eq 0 && run.distribute) then begin
+    if (status eq 0 && run->config('realtime/distribute')) then begin
       ; TODO: distribute when the quality of these is correct
       ;file_copy, difference_mp4_filename, fullres_dir, /overwrite
     endif
@@ -422,7 +422,7 @@ run = kcor_run(date, config_filename=config_filename)
 
 l1_files = file_search(filepath('*_l1.5.fts.gz', $
                                 subdir=[date, 'level1'], $
-                                root=run.raw_basedir), $
+                                root=run->config('processing/raw_basedir')), $
                        count=n_l1_files)
 
 kcor_create_differences, date, l1_files, run=run
