@@ -104,16 +104,16 @@ pro kcor_cme_detection, date, store=k_store, timerange=k_timerange, $
 
   ; the top of the directory tree containing the KCor data is given by
   ; archive_basedir
-  kcor_dir = run.archive_basedir
+  kcor_dir = run->config('results/archive_basedir')
 
   ; hpr_dir points to the top of the directory tree used for storing images
   ; converted into helioprojective-radial (HPR) coordinates
-  kcor_hpr_dir = run.hpr_dir
+  kcor_hpr_dir = run->config('cme/hpr_dir')
   if (~file_test(kcor_hpr_dir, /directory)) then file_mkdir, kcor_hpr_dir
 
   ; hpr_diff_dir points to the top of the directory tree used for storing
   ; running difference maps in helioprojective-radial (HPR) coordinates
-  kcor_hpr_diff_dir = run.hpr_diff_dir
+  kcor_hpr_diff_dir = run->config('cme/hpr_diff_dir')
   if (~file_test(kcor_hpr_diff_dir, /directory)) then begin
     file_mkdir, kcor_hpr_diff_dir
   endif

@@ -40,25 +40,27 @@ pro kcor_cme_detection_job, date, $
 
   ; the top of the directory tree containing the KCor data is given by
   ; archive_basedir
-  kcor_dir = run.archive_basedir
+  kcor_dir = run->config('results/archive_basedir')
 
   ; hpr_dir points to the top of the directory tree used for storing images
   ; converted into helioprojective-radial (HPR) coordinates
-  kcor_hpr_dir = run.hpr_dir
+  kcor_hpr_dir = run->config('cme/hpr_dir')
   if (~file_test(kcor_hpr_dir, /directory)) then file_mkdir, kcor_hpr_dir
 
   ; hpr_diff_dir points to the top of the directory tree used for storing
   ; running difference maps in helioprojective-radial (HPR) coordinates
-  kcor_hpr_diff_dir = run.hpr_diff_dir
+  kcor_hpr_diff_dir = run->config('cme/hpr_diff_dir')
   if (~file_test(kcor_hpr_diff_dir, /directory)) then begin
     file_mkdir, kcor_hpr_diff_dir
   endif
 
-  if (~file_test(run.log_dir, /directory)) then file_mkdir, run.log_dir
+  if (~file_test(run->config('logging/dir'), /directory)) then begin
+    file_mkdir, run->config('logging/dir')
+  endif
   mg_log, logger=logger, name='kcor/cme'
   logger->setProperty, filename=filepath(string(date, $
                                                 format='(%"%s.cme.log")'), $
-                                         root=run.log_dir)
+                                         root=run->config('logging/dir'))
 
   kcor_cme_det_setdate, date
   kcor_cme_det_reset
@@ -101,13 +103,14 @@ pro kcor_cme_detection_job, date, $
 
       if (keyword_set(realtime)) then begin
         current_time = string(julday(), format='(C(CHI2.2, CMI2.2, CSI2.2))')
-        if (current_time gt run.cme_stop_time) then begin
+        if (current_time gt run->config('cme/stop_time')) then begin
           mg_log, 'current time %s later than stop time %s', $
-                  current_time, run.cme_stop_time, name='kcor/cme', /info
+                  current_time, run->config('cme/stop_time'), name='kcor/cme', /info
           break
         endif
-        mg_log, 'waiting %0.1f seconds...', run.cme_wait_time, name='kcor/cme', /info
-        wait, run.cme_wait_time
+        mg_log, 'waiting %0.1f seconds...', run->config('cme/wait_time'), $
+                name='kcor/cme', /info
+        wait, run->config('cme/wait_time')
       endif else begin
         break
       endelse

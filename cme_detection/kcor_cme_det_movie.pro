@@ -81,7 +81,7 @@ pro kcor_cme_det_movie
   sz = size(frames)
 
   ; define the name of the output file, the file extension is added later
-  moviedir = run.cme_movie_dir
+  moviedir = run->config('cme/movie_dir')
   if (~file_test(moviedir, /directory)) then file_mkdir, moviedir
   moviefile = filepath(string(simple_date, $
                               format='(%"%s_kcor_cme_detection")'), $

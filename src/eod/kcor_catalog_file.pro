@@ -17,7 +17,7 @@
 pro kcor_catalog_file, filename, run=run
   compile_opt strictarr
 
-  process_dir = filepath(run.date, root=run.process_basedir)
+  process_dir = filepath(run.date, root=run->config('processing/process_basedir'))
 
   ; read FITS header and read selected keyword parameters
   header = headfits(filename)

@@ -52,7 +52,7 @@ pro kcor_cme_det_email, time, edge, operator=operator
   compile_opt strictarr
   @kcor_cme_det_common
 
-  addresses = run.cme_email
+  addresses = run->config('cme/email')
   if (addresses eq '') then begin
     mg_log, 'no cme.email specified, not sending email', $
             name='kcor/cme', /warn
@@ -60,13 +60,13 @@ pro kcor_cme_det_email, time, edge, operator=operator
   endif
 
   ; create filename for plot file
-  if (~file_test(run.engineering_dir, /directory)) then begin
-    file_mkdir, run.engineering_dir
+  if (~file_test(run->config('engineering/dir'), /directory)) then begin
+    file_mkdir, run->config('engineering/dir')
   endif
 
   eng_dir = filepath('', $
                      subdir=kcor_decompose_date(simple_date), $
-                     root=run.engineering_dir)
+                     root=run->config('engineering/dir'))
   if (~file_test(eng_dir, /directory)) then file_mkdir, eng_dir
 
   plot_file = filepath(string(simple_date, format='(%"%s.cme.profile.png")'), $
@@ -156,7 +156,9 @@ pro kcor_cme_det_email, time, edge, operator=operator
   subject = string(simple_date, time, $
                    format='(%"MLSO K-Cor possible CME on %s at %s UT")')
 
-  from_email = run.cme_from_email eq '' ? '$(whoami)@ucar.edu' : run.cme_from_email
+  from_email = run->config('cme/from_email') eq '' $
+                 ? '$(whoami)@ucar.edu' $
+                 : run->config('cme/from_email')
   cmd = string(subject, from_email, plot_file, addresses, mailfile, $
                format='(%"mail -s \"%s\" -r %s -a %s %s < %s")')
   spawn, cmd, result, error_result, exit_status=status
