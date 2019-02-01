@@ -1,18 +1,21 @@
 configure_file(kcor_include.sh.in kcor_include.sh @ONLY)
 
-configure_file(runkcor_eod.sh.in runkcor_eod.sh @ONLY)
 configure_file(runkcor_rt.sh.in runkcor_rt.sh @ONLY)
+configure_file(runkcor_rt_range.sh.in runkcor_rt_range.sh @ONLY)
+
 configure_file(runkcor_calibrate.sh.in runkcor_calibrate.sh @ONLY)
-configure_file(runkcor_calibrate_range.sh.in runkcor_calibrate_range.sh @ONLY)
 configure_file(runkcor_calibrate_list.sh.in runkcor_calibrate_list.sh @ONLY)
+configure_file(runkcor_calibrate_range.sh.in runkcor_calibrate_range.sh @ONLY)
+
+configure_file(runkcor_eod.sh.in runkcor_eod.sh @ONLY)
+configure_file(runkcor_eod_range.sh.in runkcor_eod_range.sh @ONLY)
+
+configure_file(runkcor_process.sh.in runkcor_process.sh @ONLY)
+configure_file(runkcor_process_range.sh.in runkcor_process_range.sh @ONLY)
 
 configure_file(kcor.in kcor @ONLY)
 configure_file(kcorlog.in kcorlog @ONLY)
 configure_file(kcorcat.in kcorcat @ONLY)
-
-configure_file(runkcor_process.sh.in runkcor_process.sh @ONLY)
-configure_file(runkcor_process_range.sh.in runkcor_process_range.sh @ONLY)
-configure_file(runkcor_process_list.sh.in runkcor_process_list.sh @ONLY)
 
 configure_file(kcor_simulate.in kcor_simulate @ONLY)
 configure_file(kcor_simulate_data.in kcor_simulate_data @ONLY)
@@ -26,14 +29,15 @@ configure_file(runkcor_cme_batch.sh.in runkcor_cme_batch.sh @ONLY)
 
 install(PROGRAMS
           ${CMAKE_CURRENT_BINARY_DIR}/kcor_include.sh
-          ${CMAKE_CURRENT_BINARY_DIR}/runkcor_eod.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_rt.sh
+          ${CMAKE_CURRENT_BINARY_DIR}/runkcor_rt_range.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_calibrate.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_calibrate_range.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_calibrate_list.sh
+          ${CMAKE_CURRENT_BINARY_DIR}/runkcor_eod.sh
+          ${CMAKE_CURRENT_BINARY_DIR}/runkcor_eod_range.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_process.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_process_range.sh
-          ${CMAKE_CURRENT_BINARY_DIR}/runkcor_process_list.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_env.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_cme_batch.sh
 	  ${CMAKE_CURRENT_BINARY_DIR}/kcor

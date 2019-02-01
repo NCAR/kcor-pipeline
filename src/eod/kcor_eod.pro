@@ -382,7 +382,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
       who = 'unknown'
     endelse
 
-    run->getProperty, log_dir=log_dir, date=date
+    log_dir = run->config('logging/dir')
 
     realtime_logfile = filepath(run.date + '.realtime.log', root=log_dir)
     eod_logfile = filepath(run.date + '.eod.log', root=log_dir)
@@ -416,7 +416,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
                               format='(%" - %d rt, %d eod errors")')
 
     kcor_send_mail, run->config('notifications/email'), $
-                    string(date, $
+                    string(run.date, $
                            success ? 'success' : 'problems', $
                            n_errors_msg, $
                            format='(%"KCor end-of-day processing for %s (%s%s)")'), $

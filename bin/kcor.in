@@ -7,6 +7,9 @@ import psutil
 import subprocess
 
 
+# set to True to not launch real scripts
+TEST = False
+
 DEVNULL = open(os.devnull, 'w')
 PIPELINE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
@@ -36,7 +39,8 @@ def format_timedelta(timedelta):
     return(display_time(int(timedelta.total_seconds()), granularity=len(intervals)))
 
 
-def list_processes():
+# list sub-command
+def list_processes(args):
     kcor_processes = []
     for p in psutil.process_iter():
         cmdline = p.cmdline()
@@ -53,16 +57,27 @@ def list_processes():
 
     for p in kcor_processes:
         started = datetime.datetime.fromtimestamp(p['start_time'])
-        time_running = now - started
+        time_running = format_timedelta(now - started)
         start_time = started.strftime("%Y-%m-%d %H:%M:%S")
-        print('[%d] (%s running %s): %s' % (p['pid'], start_time, format_timedelta(time_running), p['cmdline']))
+        pid = p['pid']
+        cmdline = p['cmdline']
+        print(f'[{pid}] ({start_time} running {time_running}): {cmdline}')
+
+
+# validate sub-command
+def validate(args):
+    print('not implemented')
+
+
+# log sub-command
+def filter_log(args):
+    print('not implemented')
 
 
 def wait_for(process):
     try:
         out, err = process.communicate()
-        print(err)
-        #process.wait()
+        if err != '': print(err)
         return 0
     except KeyboardInterrupt:
         print('killing process %d' % process.pid)
@@ -70,9 +85,40 @@ def wait_for(process):
         return 1
 
 
-def calibrate_list(filelist, dates, flags, no_wait):
+class FakeProcess():
+    def __init__(self, pid):
+        self.pid = pid
+
+    def kill(self):
+        pass
+
+    def communicate(self):
+        return ('', '')
+
+
+def launch_process(cmd, **kwargs):
+    if TEST:
+        process = FakeProcess(0)
+    else:
+        process = subprocess.Popen(cmd, encoding='utf-8', **kwargs)
+    return process
+
+
+# calibrate (cal) sub-command
+def process_cal(args):
+    if args.list is not None:
+        if len(args.dates) > 1:
+            args.parser.error('only a single date allowed when using list for calibration')
+        calibrate_list(args.list, args.dates[0], args.flags, args.no_wait, args.parser)
+        return
+
+    for d in args.dates:
+        calibrate_dates(d, args.flags, args.no_wait)
+
+
+def calibrate_list(filelist, dates, flags, no_wait, parser):
     if dates.find(',') >= 0 or dates.find('-') >= 0:
-        print('only a single date allowed when using a cal list')
+        parser.error('only a single date allowed when using list for calibration')
         return
 
     cmd = [os.path.join(PIPELINE_DIR, 'bin', 'runkcor_calibrate_list.sh'),
@@ -80,8 +126,7 @@ def calibrate_list(filelist, dates, flags, no_wait):
            dates,
            filelist]
 
-
-    process = subprocess.Popen(cmd, stdout=None, stderr=subprocess.PIPE)
+    process = launch_process(cmd, stdout=None, stderr=subprocess.PIPE)
     print('[%d] %s' % (process.pid, ' '.join(cmd)))
             
     if not no_wait:
@@ -95,7 +140,7 @@ def calibrate_dates(dates, flags, no_wait):
                    flags,
                    d]
 
-            process = subprocess.Popen(cmd, stdout=None, stderr=subprocess.PIPE)
+            process = launch_process(cmd, stdout=None, stderr=subprocess.PIPE)
             print('[%d] %s' % (process.pid, ' '.join(cmd)))
             
             if not no_wait:
@@ -108,101 +153,212 @@ def calibrate_dates(dates, flags, no_wait):
                    r[0],
                    r[1]]
 
-            process = subprocess.Popen(cmd, stdout=None, stderr=subprocess.PIPE)
+            process = launch_process(cmd, stdout=None, stderr=subprocess.PIPE)
             print('[%d] %s' % (process.pid, ' '.join(cmd)))
+
             if not no_wait:
                 terminated = wait_for(process)
                 if terminated: break
 
 
-def process_dates(dates, flags, no_wait):
+# process (both rt and eod) sub-command
+def process(args):
+    for d in args.dates:
+        process_dates(d, 'process', args.flags, args.no_wait)
+
+
+# realtime (rt) sub-command
+def process_rt(args):
+    print('not implemented')
+    #for d in args.dates:
+    #    process_dates(d, 'rt', args.flags, args.no_wait)
+
+
+# end-of-day (eod) sub-command
+def process_eod(args):
+    for d in args.dates:
+        process_dates(d, 'eod', args.flags, args.no_wait)
+
+
+def process_dates(dates, script, flags, no_wait):
     for d in dates.split(','):
         if d.find('-') < 0:
-            cmd = [os.path.join(PIPELINE_DIR,
-                                'bin', 
-                                'runkcor_process.sh'),
+            cmd = [os.path.join(PIPELINE_DIR, 'bin', f'runkcor_{script}.sh'),
                    flags,
                    d]
 
-
-            process = subprocess.Popen(cmd, stdout=None, stderr=subprocess.PIPE)
+            process = launch_process(cmd, stdout=None, stderr=subprocess.PIPE)
             print('[%d] %s' % (process.pid, ' '.join(cmd)))
             if not no_wait:
                 terminated = wait_for(process)
                 if terminated: break
         else:
             r = d.split('-')
-            script = 'runkcor_process_range.sh'
-            cmd = [os.path.join(PIPELINE_DIR, 'bin', script),
-                   r[0], r[1],
-                   flags]
+            cmd = [os.path.join(PIPELINE_DIR, 'bin', f'runkcor_{script}_range.sh'),
+                   flags,
+                   r[0], r[1]]
 
-            process = subprocess.Popen(cmd, stdout=None, stderr=subprocess.PIPE)
+            process = launch_process(cmd, stdout=None, stderr=subprocess.PIPE)
             print('[%d] %s' % (process.pid, ' '.join(cmd)))
             if not no_wait:
                 terminated = wait_for(process)
                 if terminated: break
 
 
+# archive sub-command
+def archive(args):
+    print('not implemented')
+
+
+# simulate sub-command
+def simulate(args):
+    print('not implemented')
+
+
+def print_help(args):
+    args.parser.print_help()
+
+
 if __name__ == '__main__':
-    name = 'KCor pipeline @VERSION@'
+    name = 'KCor pipeline @GIT_VERSION@ [@GIT_REVISION@] (@GIT_BRANCH@)'
 
     parser = argparse.ArgumentParser(description=name)
 
-    date_help = '''Dates to run on in the form YYYYMMDD including lists (using
-                   commas) and ranges (using hyphens). Note that the beginning
-                   of a range is inclusive and the end is exclusive. For
-                   example, '20170101-20170201' represents all of January 2017,
-                   '20170201,20170202' represents the first two days of February
-                   2017, and '20170101-20170201,20170201,20170202' represents
-                   all of January and the first two days of February 2017.
-                '''
-    parser.add_argument('dates', type=str, nargs='*', help=date_help)
-
-    parser.add_argument('-l', '--list', action='store_true',
-                        help='set to list kcor processes')
-
-    parser.add_argument('-f', '--flags',
-                        type=str,
-                        default='latest',
-                        help='''FLAGS section of config filename, i.e., file in
-                                config/ directory matching kcor.FLAGS.cfg will
-                                be used''')
-
-    parser.add_argument('--no-wait',
-                        action='store_true',
-                        help='set to run all dates simultaneously')
-
-    parser.add_argument('--cal-list',
-                        type=str,
-                        metavar='FILENAME',
-                        help='''set to a filename containing a list of files
-                                to use to produce the calibration''')
-
-    parser.add_argument('-c', '--calibrate',
-                        action='store_true',
-                        help='set to just produce calibration')
-
+    # top-level arguments
     parser.add_argument('-v', '--version',
                         action='version',
                         version=name)
 
+    # show help if no sub-command given
+    parser.set_defaults(func=print_help, parser=parser)
+
+    subparsers = parser.add_subparsers(help='sub-command help')
+
+    date_help = '''dates to run on in the form YYYYMMDD including lists (using
+                   commas) and ranges (using hyphens where end date is not
+                   included)
+                '''
+    flags_help = '''FLAGS section of config filename, i.e., file in config/
+                    directory matching ucomp.FLAGS.cfg will be used'''
+
+
+    # list sub-command
+    list_parser = subparsers.add_parser('list',
+                                        help='list UCoMP processes')
+    list_parser.set_defaults(func=list_processes, parser=list_parser)
+
+
+    # validate sub-command
+    validate_parser = subparsers.add_parser('validate',
+                                            help='validate previously processed dates')
+    validate_parser.add_argument('dates', type=str, nargs='*', help=date_help,
+                                 metavar='date-expr')
+
+    validate_parser.add_argument('-f', '--flags', type=str, help=flags_help,
+                                 default='latest')
+    validate_parser.set_defaults(func=validate, parser=validate_parser)
+
+
+    # log sub-command
+    log_parser = subparsers.add_parser('log',
+                                       help='filter/display log output')
+    log_parser.add_argument('logfiles', nargs='+',
+                            help='UCoMP log filename or date',
+                            metavar='logfile')
+    level_help = 'filter level: DEBUG INFO WARN ERROR CRITICAL (default DEBUG)'
+    log_parser.add_argument('-l', '--level',
+                            help=level_help)
+    prune_help = 'prune rotated logs with versions higher than MAX_VERSION'
+    log_parser.add_argument('-p', '--prune',
+                            help=prune_help,
+                            metavar='MAX_VERSION')
+    log_parser.add_argument('-f', '--follow',
+                            help='output appended data as file grows',
+                            action='store_true')
+    log_parser.add_argument('-d', '--debug',
+                            help='DEBUG filter level',
+                            action='store_true')
+    log_parser.add_argument('-i', '--info',
+                            help='INFO filter level',
+                            action='store_true')
+    log_parser.add_argument('-w', '--warn',
+                            help='WARN filter level',
+                            action='store_true')
+    log_parser.add_argument('-e', '--error',
+                            help='ERROR filter level',
+                            action='store_true')
+    log_parser.add_argument('-c', '--critical',
+                            help='CRITICAL filter level',
+                            action='store_true')
+    log_parser.set_defaults(func=filter_log, parser=log_parser)
+
+
+    # process, eod, rt, cal sub-commands
+    process_parser = subparsers.add_parser('process',
+                                           help='run realtime/end-of-day pipelines')
+    eod_parser = subparsers.add_parser('end-of-day', aliases=['eod'],
+                                       help='run end-of-day pipeline')
+    rt_parser = subparsers.add_parser('realtime', aliases=['rt'],
+                                      help='run realtime pipeline')
+    cal_parser = subparsers.add_parser('calibration', aliases=['cal'],
+                                       help='run calibration')
+
+    process_parser.add_argument('dates', type=str, nargs='*', help=date_help,
+                                metavar='date-expr')
+    eod_parser.add_argument('dates', type=str, nargs='*', help=date_help,
+                            metavar='date-expr')
+    rt_parser.add_argument('dates', type=str, nargs='*', help=date_help,
+                            metavar='date-expr')
+    cal_parser.add_argument('dates', type=str, nargs='*', help=date_help,
+                            metavar='date-expr')
+
+    process_parser.add_argument('-f', '--flags', type=str, help=flags_help,
+                                default='latest')
+    eod_parser.add_argument('-f', '--flags', type=str, help=flags_help,
+                            default='latest')
+    rt_parser.add_argument('-f', '--flags', type=str, help=flags_help,
+                           default='latest')
+    cal_parser.add_argument('-f', '--flags', type=str, help=flags_help,
+                            default='latest')
+
+    nowait_help = 'set to run all dates simultaneously'
+    process_parser.add_argument('--no-wait', action='store_true', help=nowait_help)
+    eod_parser.add_argument('--no-wait', action='store_true', help=nowait_help)
+    rt_parser.add_argument('--no-wait', action='store_true', help=nowait_help)
+    cal_parser.add_argument('--no-wait', action='store_true', help=nowait_help)
+
+    cal_parser.add_argument('-l', '--list',
+                            type=str,
+                            metavar='LIST_FILENAME',
+                            help='''set to a filename containing a list of files
+                                    to use to produce the calibration''')
+
+    process_parser.set_defaults(func=process, parser=eod_parser)
+    eod_parser.set_defaults(func=process_eod, parser=eod_parser)
+    rt_parser.set_defaults(func=process_rt, parser=rt_parser)
+    cal_parser.set_defaults(func=process_cal, parser=cal_parser)
+
+    # archive sub-command
+    archive_parser = subparsers.add_parser('archive',
+                                           help='archive files to HPSS')
+    archive_parser.add_argument('dates', type=str, nargs='*', help=date_help,
+                                metavar='date-expr')
+    archive_parser.add_argument('-f', '--flags', type=str, help=flags_help,
+                                default='latest')
+    archive_parser.set_defaults(func=archive, parser=archive_parser)
+
+    # simulate sub-command
+    simulate_parser = subparsers.add_parser('simulate',
+                                            help='simulate realtime processing')
+    simulate_parser.add_argument('dates', type=str, nargs='*',
+                                 help='date to run on in the form YYYYMMDD',
+                                 metavar='date')
+    simulate_parser.add_argument('-f', '--flags', type=str, help=flags_help,
+                                default='latest')
+    simulate_parser.add_argument('--no-eod', action='store_true',
+                                 help='set to not launch end-of-day processing')
+    simulate_parser.set_defaults(func=simulate, parser=simulate_parser)
+
+    # parse args and call appropriate sub-command
     args = parser.parse_args()
-
-    if args.list:
-        list_processes()
-        parser.exit(status=0)
-
-    # only allow no date arguments if doing a listing
-    if len(args.dates) == 0:
-        parser.error('too few arguments')
-
-    dates = ''.join(args.dates)
-
-    if args.calibrate or args.cal_list:
-        if args.cal_list:
-            calibrate_list(args.cal_list, dates, args.flags, args.no_wait)
-        else:
-            calibrate_dates(dates, args.flags, args.no_wait)
-    else:
-        process_dates(dates, args.flags, args.no_wait)
+    args.func(args)
