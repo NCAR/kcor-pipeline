@@ -382,7 +382,7 @@ pro kcor_create_averages, date, l1_files, run=run
     file_copy, unzipped_avg_files + '.gz', archive_dir, /overwrite
   endif
 
-  if (run->config('database/update_database')) then begin
+  if (run->config('database/update')) then begin
     obsday_index = mlso_obsday_insert(date, $
                                       run=run, $
                                       database=db, $
