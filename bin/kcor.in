@@ -169,9 +169,8 @@ def process(args):
 
 # realtime (rt) sub-command
 def process_rt(args):
-    print('not implemented')
-    #for d in args.dates:
-    #    process_dates(d, 'rt', args.flags, args.no_wait)
+    for d in args.dates:
+        process_dates(d, 'rt', args.flags, args.no_wait)
 
 
 # end-of-day (eod) sub-command
