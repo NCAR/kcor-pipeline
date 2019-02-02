@@ -1,0 +1,44 @@
+#!/bin/sh
+
+# This script launches the runkcor_rt.sh script for a series of days.
+
+canonicalpath() {
+  if [ -d $1 ]; then
+    pushd $1 > /dev/null 2>&1
+    echo $PWD
+  elif [ -f $1 ]; then
+    pushd $(dirname $1) > /dev/null 2>&1
+    echo $PWD/$(basename $1)
+  else
+    echo "Invalid path $1"
+  fi
+  popd > /dev/null 2>&1
+}
+
+printhelp() {
+  echo "syntax: runkcor_archive_l1_range.sh config_flag start_date end_date"
+  echo "note: start_date is inclusive, but end_date is not"
+}
+
+# find locations relative to this script
+SCRIPT_LOC=$(canonicalpath $0)
+BIN_DIR=$(dirname ${SCRIPT_LOC})
+PROCESS_SCRIPT=$BIN_DIR/runkcor_archive_l1.sh
+
+if [[ $# -lt 3 ]]; then
+  echo "required arguments not present"
+  printhelp
+  exit
+fi
+
+source ${BIN_DIR}/kcor_include.sh
+
+END_DATE=$3
+d=$DATE
+
+while [ $d != $END_DATE ]; do
+  cmd="$PROCESS_SCRIPT $CONFIG_FLAG $d"
+  echo "$cmd"
+  $cmd
+  d=$(date +"%Y%m%d" -d "$d + 1 day")
+done

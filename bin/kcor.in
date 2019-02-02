@@ -179,6 +179,13 @@ def process_eod(args):
         process_dates(d, 'eod', args.flags, args.no_wait)
 
 
+# archive sub-command
+def archive(args):
+    script = f'archive_l{args.level}'
+    for d in args.dates:
+        process_dates(d, script, args.flags, args.no_wait)
+
+
 def process_dates(dates, script, flags, no_wait):
     for d in dates.split(','):
         if d.find('-') < 0:
@@ -202,11 +209,6 @@ def process_dates(dates, script, flags, no_wait):
             if not no_wait:
                 terminated = wait_for(process)
                 if terminated: break
-
-
-# archive sub-command
-def archive(args):
-    print('not implemented')
 
 
 # simulate sub-command
@@ -344,6 +346,10 @@ if __name__ == '__main__':
                                 metavar='date-expr')
     archive_parser.add_argument('-f', '--flags', type=str, help=flags_help,
                                 default='latest')
+    archive_parser.add_argument('-l', '--level', type=str,
+                                help='level to archive, 0 or 1 (1.5), default=0',
+                                default='0')
+    archive_parser.add_argument('--no-wait', action='store_true', help=nowait_help)
     archive_parser.set_defaults(func=archive, parser=archive_parser)
 
     # simulate sub-command

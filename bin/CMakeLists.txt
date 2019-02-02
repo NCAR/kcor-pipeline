@@ -13,6 +13,12 @@ configure_file(runkcor_eod_range.sh.in runkcor_eod_range.sh @ONLY)
 configure_file(runkcor_process.sh.in runkcor_process.sh @ONLY)
 configure_file(runkcor_process_range.sh.in runkcor_process_range.sh @ONLY)
 
+configure_file(runkcor_archive_l0.sh.in runkcor_archive_l0.sh @ONLY)
+configure_file(runkcor_archive_l0_range.sh.in runkcor_archive_l0_range.sh @ONLY)
+
+configure_file(runkcor_archive_l1.sh.in runkcor_archive_l1.sh @ONLY)
+configure_file(runkcor_archive_l1_range.sh.in runkcor_archive_l1_range.sh @ONLY)
+
 configure_file(kcor.in kcor @ONLY)
 configure_file(kcorlog.in kcorlog @ONLY)
 configure_file(kcorcat.in kcorcat @ONLY)
@@ -38,6 +44,10 @@ install(PROGRAMS
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_eod_range.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_process.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_process_range.sh
+          ${CMAKE_CURRENT_BINARY_DIR}/runkcor_archive_l0.sh
+          ${CMAKE_CURRENT_BINARY_DIR}/runkcor_archive_l0_range.sh
+          ${CMAKE_CURRENT_BINARY_DIR}/runkcor_archive_l1.sh
+          ${CMAKE_CURRENT_BINARY_DIR}/runkcor_archive_l1_range.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_env.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_cme_batch.sh
 	  ${CMAKE_CURRENT_BINARY_DIR}/kcor
