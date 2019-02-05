@@ -55,6 +55,11 @@ KCOR_CME_PATH=+${KCOR_ROOT}/cme_detection:+${KCOR_ROOT}/lib:+${KCOR_ROOT}/src:"<
 DATE=${START_DATE}
 while [ ${DATE} != ${END_DATE} ]; do
   echo "processing ${DATE}..."
-  ${IDL} -IDL_PATH ${KCOR_CME_PATH} -IDL_STARTUP '' -e "kcor_cme_detection_job, '${DATE}', config_filename='$CONFIG_FILENAME'"
+  ${IDL} -quiet \
+    -IDL_QUIET 1 \
+    -IDL_PATH ${KCOR_CME_PATH} \
+    -IDL_STARTUP '' \
+    -e "kcor_cme_detection_job, '${DATE}', config_filename='$CONFIG_FILENAME'" \
+    2>&1 | tail -n +3
   DATE=$(date +"%Y-%m-%d" -d "${DATE} +1 day")
 done

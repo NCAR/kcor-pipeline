@@ -36,7 +36,8 @@ pro kcor_crash_notification, run=run, realtime=realtime, eod=eod
   case 1 of
     keyword_set(realtime): begin
         logger_name = 'kcor/rt'
-        rt_log_filename = filepath(run.date + '.realtime.log', root=run->config('loging/dir'))
+        rt_log_filename = filepath(run.date + '.realtime.log', $
+                                   root=run->config('logging/dir'))
         rt_errors = kcor_filter_log(rt_log_filename, /error, n_messages=n_rt_errors)
         name = 'real-time'
         body = [body, rt_log_filename, '', rt_errors]

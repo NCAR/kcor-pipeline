@@ -42,12 +42,12 @@ def download_loop(depot_dir, raw_dir, batch_time):
     logging.info('starting KCor realtime data simulator...')
     logging.info('depot directory   : %s', depot_dir)
     logging.info('raw directory     : %s', raw_dir)
-    logging.info('batch time        : %d minutes', batch_time)
+    logging.info('batch time        : %0.1f seconds', batch_time)
     logging.info('download time     : %0.1f seconds', DOWNLOAD_TIME)
 
     start_time = datetime.datetime.now()
     catalog, logs = catalog_depot(depot_dir)
-    delta = start_time - catalog[0]['date'] - datetime.timedelta(minutes=batch_time)
+    delta = start_time - catalog[0]['date'] - datetime.timedelta(seconds=batch_time)
 
     logging.info('%d files in depot...', len(catalog))
     logging.info('%s to %s (duration: %s)',
@@ -82,11 +82,11 @@ def download_loop(depot_dir, raw_dir, batch_time):
             return
 
         downloading_time = (datetime.datetime.now() - now).total_seconds()
-        time.sleep(60 * batch_time - downloading_time)
+        time.sleep(batch_time - downloading_time)
 
 
 if __name__ == '__main__':
-    name = 'Realtime KCor pipeline data simulator @VERSION@'
+    name = 'Realtime KCor pipeline data simulator @GIT_VERSION@ [@GIT_REVISION@] (@GIT_BRANCH@)'
 
     parser = argparse.ArgumentParser(description=name)
     depot_dir_help = '''source directory of data files'''
@@ -94,12 +94,12 @@ if __name__ == '__main__':
     raw_dir_help = '''destination for copying, the default is the
                       current directory'''
     parser.add_argument('-r', '--raw-dir', type=str, help=raw_dir_help)
-    batch_time_help = '''number of minutes between copies, default is 3
-                         minutes'''
+    batch_time_help = '''number of seconds between copies, default is 60.0
+                         seconds'''
     parser.add_argument('-b', '--batch-time',
-                        type=int,
+                        type=float,
                         help=batch_time_help,
-                        default=3)
+                        default=60.0)
     parser.add_argument('-v', '--version',
                         action='version',
                         version=name)

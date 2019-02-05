@@ -7,7 +7,7 @@ import subprocess
 import time
 
 # wait after RT pipeline is launched to launch EOD pipeline
-EOD_WAIT = 30   # seconds
+EOD_WAIT = 30.0   # seconds
 
 
 # setup the logging mechanism
@@ -19,16 +19,16 @@ logging.basicConfig(format='%(asctime)s %(message)s',
 def launch_loop(date, config_flags, frequency, no_eod):
     logging.info('starting KCor realtime runner...')
     logging.info('config flags  : %s', config_flags)
-    logging.info('frequency     : %d minutes', frequency)
+    logging.info('frequency     : %0.1f secs', frequency)
 
     pipeline_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
     realtime_cmd = [os.path.join(pipeline_dir, 'bin', 'runkcor_rt.sh'),
-                    date,
-                    config_flags]
+                    config_flags,
+                    date]
     eod_cmd = [os.path.join(pipeline_dir, 'bin', 'runkcor_eod.sh'),
-               date,
-               config_flags]
+               config_flags,
+               date]
 
     while True:
         logging.info(' '.join(realtime_cmd))
@@ -39,11 +39,11 @@ def launch_loop(date, config_flags, frequency, no_eod):
             logging.info(' '.join(eod_cmd))
             eod_pid = subprocess.Popen(eod_cmd).pid
             logging.info('launched KCor end-of-day pipeline with pid %d', eod_pid)
-            time.sleep(60.0 * frequency - EOD_WAIT)
+            time.sleep(frequency - EOD_WAIT)
 
 
 if __name__ == '__main__':
-    name = 'Realtime KCor pipeline processing simulator @VERSION@'
+    name = 'Realtime KCor pipeline processing simulator @GIT_VERSION@ [@GIT_REVISION@] (@GIT_BRANCH@)'
 
     parser = argparse.ArgumentParser(description=name)
     config_flags_help = '''FLAGS section of config filename'''
@@ -53,14 +53,14 @@ if __name__ == '__main__':
                         type=str,
                         default='latest',
                         help='''FLAGS section of config filename, i.e., file in
-                                config/ directory matching kcor.user.machine.FLAGS.cfg
-                                will be used''')
-    frequency_help = '''number of minutes between launches of realtime
-                        pipeline, default is 10 minutes'''
+                                config/ directory matching kcor.FLAGS.cfg will
+                                be used''')
+    frequency_help = '''number of seconds between launches of realtime
+                        pipeline, default is 60.0 seconds'''
     parser.add_argument('--frequency',
-                        type=int,
+                        type=float,
                         help=frequency_help,
-                        default=10)
+                        default=60.0)
     parser.add_argument('--no-eod',
                         action='store_true',
                         help='set to not launch end-of-day processing')

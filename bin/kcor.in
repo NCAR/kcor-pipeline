@@ -7,8 +7,15 @@ import os
 import psutil
 import re
 import subprocess
+import sys
 import time
 
+PY3 = sys.version_info[0] == 3
+
+if PY3:
+    import configparser
+else:
+    import ConfigParser as configparser
 
 # set to True to not launch real scripts
 TEST = False
@@ -319,7 +326,51 @@ def process_dates(dates, script, flags, no_wait):
 
 # simulate sub-command
 def simulate(args):
-    print('not implemented')
+    if len(args.dates) > 1:
+        args.parser.error('only a single date allowed when using the simulator')
+
+    config_basename = f'kcor.{args.flags}.cfg'
+
+    # construct config file filename
+    config_filename = os.path.join(PIPELINE_DIR, 'config', config_basename)
+
+    # read config file to get arguments to launch data/processing simulators
+    config = configparser.ConfigParser()
+    config.read(config_filename)
+
+    depot_basedir = config.get('simulator', 'depot_dir')
+
+    raw_basedir = config.get('processing', 'raw_basedir')
+    raw_dir = os.path.join(raw_basedir, args.dates[0])
+
+    launch_interval = config.get('simulator', 'launch_interval')
+    arrival_interval = config.get('simulator', 'arrival_interval')
+
+    # launch processing simulator
+    processing_cmd = [os.path.join(PIPELINE_DIR, 'bin', 'kcor_simulate_processing'),
+                      '-f', args.flags,
+                      '--frequency', launch_interval,
+                      args.dates[0]]
+    if args.no_eod:
+        processing_cmd.insert(2, '--no-eod')
+    processing_process = subprocess.Popen(processing_cmd)
+
+    time.sleep(5.0)
+
+    # launch incoming data simulator
+    data_cmd = [os.path.join(PIPELINE_DIR, 'bin', 'kcor_simulate_data'),
+                '-r', raw_dir,
+                '-b', arrival_interval,
+                os.path.join(depot_basedir, args.dates[0])]
+    data_process = subprocess.Popen(data_cmd)
+
+    try:
+        while True:
+            time.sleep(1.0)
+    except KeyboardInterrupt:
+        print(f'killing data ({data_process.pid}) and processing ({processing_process.pid}) processes...')
+        processing_process.kill()
+        data_process.kill()
 
 
 def print_help(args):
@@ -346,12 +397,12 @@ if __name__ == '__main__':
                    included)
                 '''
     flags_help = '''FLAGS section of config filename, i.e., file in config/
-                    directory matching ucomp.FLAGS.cfg will be used'''
+                    directory matching kcor.FLAGS.cfg will be used'''
 
 
     # list sub-command
     list_parser = subparsers.add_parser('list',
-                                        help='list UCoMP processes')
+                                        help='list KCor processes')
     list_parser.set_defaults(func=list_processes, parser=list_parser)
 
 
@@ -370,7 +421,7 @@ if __name__ == '__main__':
     log_parser = subparsers.add_parser('log',
                                        help='filter/display log output')
     log_parser.add_argument('logfiles', nargs='+',
-                            help='UCoMP log filename or date',
+                            help='KCor log filename or date',
                             metavar='logfile')
     level_help = 'filter level: DEBUG INFO WARN ERROR CRITICAL (default DEBUG)'
     log_parser.add_argument('-l', '--level',

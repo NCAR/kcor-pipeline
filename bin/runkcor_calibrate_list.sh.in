@@ -28,4 +28,10 @@ fi
 
 source ${BIN_DIR}/kcor_include.sh
 
-${IDL} -quiet -IDL_QUIET 1 -IDL_STARTUP "" -IDL_PATH ${KCOR_PATH} -IDL_DLM_PATH ${KCOR_DLM_PATH} -e "kcor_calibration, '${DATE}', config_filename='${CONFIG}', filelist_filename='${FILELIST_FILENAME}'"
+${IDL} -quiet \
+    -IDL_QUIET 1 \
+    -IDL_STARTUP "" \
+    -IDL_PATH ${KCOR_PATH} \
+    -IDL_DLM_PATH ${KCOR_DLM_PATH} \
+    -e "kcor_calibration, '${DATE}', config_filename='${CONFIG}', filelist_filename='${FILELIST_FILENAME}'" \
+    2>&1 | tail -n +3
