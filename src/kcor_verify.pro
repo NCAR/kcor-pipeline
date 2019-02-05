@@ -124,6 +124,11 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   endif
 
   run = kcor_run(date, config_filename=_config_filename)
+  if (~obj_valid(run)) then begin
+    mg_log, 'invalid run', name=logger_name, /error
+    status = 1L
+    goto, done
+  endif
 
   mg_log, name=logger_name, logger=logger
   logger->setProperty, format='%(time)s %(levelshortname)s: %(message)s'
@@ -420,15 +425,15 @@ pro kcor_verify, date, config_filename=config_filename, status=status
                   ? '' $
                   : string(run->config('results/ssh_key'), format='(%"-i %s")')
   cmd = string(ssh_key_str, $
-               run->config('results/raw_remote_server'), $
-               run->config('results/raw_remote_dir'), $
+               run->config('verification/raw_remote_server'), $
+               run->config('verification/raw_remote_dir'), $
                date, $
                format='(%"ssh %s %s ls %s/%s/*.fts | wc -l")')
   spawn, cmd, output, error_output, exit_status=exit_status
   if (exit_status ne 0L) then begin
     mg_log, 'problem checking raw files on %s:%s', $
-            run->config('results/raw_remote_server'), $
-            run->config('results/raw_remote_dir'), $
+            run->config('verification/raw_remote_server'), $
+            run->config('verification/raw_remote_dir'), $
             name=logger_name, /error
     mg_log, 'command: %s', cmd, name=logger_name, /error
     mg_log, '%s', strjoin(error_output, ' '), name=logger_name, /error
@@ -440,11 +445,11 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   if (n_elements(n_log_lines) gt 0L) then begin
     if (n_log_lines eq n_raw_files) then begin
       mg_log, '# of L0 on %s (%d) matches t1.log (%d)', $
-              run->config('results/raw_remote_server'), n_raw_files, n_log_lines, $
+              run->config('verification/raw_remote_server'), n_raw_files, n_log_lines, $
               name=logger_name, /info
     endif else begin
       mg_log, '# of L0 on %s (%d) does not match t1.log (%d)', $
-              run->config('results/raw_remote_server'), n_raw_files, n_log_lines, $
+              run->config('verification/raw_remote_server'), n_raw_files, n_log_lines, $
               name=logger_name, /error
       status = 1L
       goto, mlso_server_test_done
@@ -452,18 +457,18 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   endif else if (n_elements(n_list_lines) gt 0L) then begin
     if (n_list_lines - 2L eq n_raw_files) then begin
       mg_log, '# of L0 on %s (%d) matches tarlist (%d)', $
-              run->config('results/raw_remote_server'), n_raw_files, n_list_lines - 2L, $
+              run->config('verification/raw_remote_server'), n_raw_files, n_list_lines - 2L, $
               name=logger_name, /info
     endif else begin
       mg_log, '# of L0 on %s (%d) does not match tarlist (%d)', $
-              run->config('results/raw_remote_server'), n_raw_files, n_list_lines - 2L, $
+              run->config('verification/raw_remote_server'), n_raw_files, n_list_lines - 2L, $
               name=logger_name, /error
       status = 1L
       goto, mlso_server_test_done
     endelse
   endif else begin
     mg_log, 'nothing to compare number of files on %s to', $
-            run->config('results/raw_remote_server'), $
+            run->config('verification/raw_remote_server'), $
             name=logger_name, /error
   endelse
 
@@ -521,7 +526,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
     mg_log, 'compression ratio: %0.2f', compress_ratio, name=logger_name, /info
 
     if ((compress_ratio lt run->config('verification/min_compression_ratio')) $
-          or (compress_ratio gt run->config('verifcation/max_compression_ratio'))) then begin
+          or (compress_ratio gt run->config('verification/max_compression_ratio'))) then begin
       mg_log, 'unusual compression ratio %0.2f', compress_ratio, $
               name=logger_name, /warn
       status = 1L
@@ -586,7 +591,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
     mg_log, 'verification failed', name=logger_name, /error
   endelse
 
-  obj_destroy, run
+  if (obj_valid(run)) then obj_destroy, run
 end
 
 
