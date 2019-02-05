@@ -53,7 +53,7 @@ pro kcor_cme_det_email, time, edge, operator=operator
   @kcor_cme_det_common
 
   addresses = run->config('cme/email')
-  if (addresses eq '') then begin
+  if (n_elements(addresses) eq 0L) then begin
     mg_log, 'no cme.email specified, not sending email', $
             name='kcor/cme', /warn
     return
@@ -156,7 +156,7 @@ pro kcor_cme_det_email, time, edge, operator=operator
   subject = string(simple_date, time, $
                    format='(%"MLSO K-Cor possible CME on %s at %s UT")')
 
-  from_email = run->config('cme/from_email') eq '' $
+  from_email = n_elements(run->config('cme/from_email')) eq 0L $
                  ? '$(whoami)@ucar.edu' $
                  : run->config('cme/from_email')
   cmd = string(subject, from_email, plot_file, addresses, mailfile, $

@@ -10,6 +10,19 @@
 pro kcor_crash_notification, run=run, realtime=realtime, eod=eod
   compile_opt strictarr
 
+  if (run->config('notifications/send')) then begin
+    if (n_elements(run->config('notifications/email')) eq 0L) then begin
+      mg_log, 'no email specified to send notification to', name=logger_name, /info
+      goto, done
+    endif else begin
+      mg_log, 'sending crash notification to %s', run->config('notifications/email'), $
+              name=logger_name, /info
+    endelse
+  endif else begin
+    mg_log, 'not sending crash notification', name=logger_name, /info
+    goto, done
+  endelse
+
   help, /last_message, output=help_output
   body = [help_output, '']
 
@@ -37,14 +50,6 @@ pro kcor_crash_notification, run=run, realtime=realtime, eod=eod
       end
   endcase
 
-  if (run->config('notifications/send')) then begin
-    mg_log, 'sending crash notification to %s', run->config('notifications/email'), $
-            name=logger_name, /info
-  endif else begin
-    mg_log, 'not sending crash notification', name=logger_name, /info
-    return
-  endelse
-
   spawn, 'echo $(whoami)@$(hostname)', who, error_result, exit_status=status
   if (status eq 0L) then begin
     who = who[0]
@@ -60,4 +65,6 @@ pro kcor_crash_notification, run=run, realtime=realtime, eod=eod
   body = [body, '', credit]
 
   kcor_send_mail, address, subject, body, error=error, logger_name=logger_name
+
+  done:
 end

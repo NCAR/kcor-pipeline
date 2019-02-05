@@ -17,7 +17,7 @@ pro kcor_cme_det_report, time, widget=widget
 
   if (n_elements(speed_history) gt 0L) then begin
     addresses = run->config('cme/email')
-    if (addresses eq '') then begin
+    if (n_elements(addresses) eq 0L) then begin
       mg_log, 'no cme.email specified, not sending email', $
               name='kcor/cme', /warn
       return
@@ -132,7 +132,7 @@ pro kcor_cme_det_report, time, widget=widget
     subject = string(simple_date, time, $
                      format='(%"MLSO K-Cor report for CME on %s ending at %s UT")')
 
-    from_email = run->config('cme/from_email') eq '' $
+    from_email = n_elements(run->config('cme/from_email')) eq 0L $
                    ? '$(whoami)@ucar.edu' $
                    : run->config('cme/from_email')
     cmd = string(subject, $

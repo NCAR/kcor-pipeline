@@ -347,7 +347,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   kcor_save_results, date, run=run
 
   if (run->config('notifications/send') $
-        && run->config('notifications/email') ne '') then begin
+        && n_elements(run->config('notifications/email')) gt 0L) then begin
     msg = [string(date, $
                   format='(%"KCor end-of-day processing for %s")'), $
            '', $
