@@ -114,6 +114,15 @@ function kcor_run::config, name
 
   value = self.options->get(tokens[1], section=tokens[0], found=found)
 
+  if (name eq 'processing/raw_basedir' && n_elements(value) eq 0L) then begin
+    routing_file = self.options->get('routing_file', section='processing')
+    if (n_elements(routing_file) eq 0L) then message, 'processing/raw_basedir not set'
+    value = kcor_get_route(routing_file, self.date)
+    if (n_elements(value) eq 0L) then begin
+      message, string(self.date, format='(%"%s not found in routing file")')
+    endif
+  endif
+
   return, value
 end
 
