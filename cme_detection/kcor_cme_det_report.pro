@@ -23,14 +23,21 @@ pro kcor_cme_det_report, time, widget=widget
       return
     endif
 
+    engineering_basedir = run->config('engineering/basedir')
+    if (n_elements(engineering_basedir) gt 0L) then begin
+      mg_log, 'no engineeering basedir specified, no sending email', $
+              name='kcor/cme', /warn
+      return
+    endif
+
     ; create filename for plot file
-    if (~file_test(run->config('engineering/dir'), /directory)) then begin
-      file_mkdir, run->config('engineering/dir')
+    if (~file_test(engineering_basedir, /directory)) then begin
+      file_mkdir, engineering_basedir
     endif
 
     eng_dir = filepath('', $
                        subdir=kcor_decompose_date(simple_date), $
-                       root=run->config('engineering/dir'))
+                       root=engineering_basedir)
     if (~file_test(eng_dir, /directory)) then file_mkdir, eng_dir
 
     plot_file = filepath(string(simple_date, format='(%"%s.cme.plot.png")'), $
