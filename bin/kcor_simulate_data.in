@@ -10,7 +10,7 @@ import time
 
 
 KCOR_L0_RE = '^\d{8}_\d{6}_kcor\.fts\.gz$'
-KCOR_LOG_RE = '^\d{8}\.kcor\.t\d\.log$'
+KCOR_LOG_RE = '^\d{8}\.kcor\.(machine|t1|t2)\.log$'
 
 DOWNLOAD_TIME = 3.0  # in seconds
 
