@@ -246,3 +246,5 @@
   add Carrington rotation to kcor_img database table
   simplify kcor_sw table and add an entry only when version/revision has changed
 1.5.12
+  internal changes: sub-commands for kcor command, specification for config files
+  uses camera calibration files with camera ID + date for LUT name
