@@ -26,7 +26,7 @@ pro kcor_correct_camera, im, header, $
   rcam_cor_filename = ''
   tcam_cor_filename = ''
 
-  ; note: if we decide to change whether we interpolate around some bad pixles,
+  ; note: if we decide to change whether we interpolate around some bad pixels,
   ; we will have to clear the camera correction cache directory
   interpolate = 1B
 
