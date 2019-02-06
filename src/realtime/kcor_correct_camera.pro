@@ -64,17 +64,20 @@ pro kcor_correct_camera, im, header, $
   prefix = run->epoch('use_camera_prefix') ? run->epoch('camera_prefix') : ''
 
   if (run->epoch('use_camera_info')) then begin
-    tcam_lut = sxpar(header, 'TCAMLUT')
-    tcam_lut_date = (strsplit(tcam_lut, '_', /extract))[1]
     rcam_lut = sxpar(header, 'RCAMLUT')
-    rcam_lut_date = (strsplit(rcam_lut, '_', /extract))[1]
+    tokens = strsplit(rcam_lut, '_', /extract)
+    rcam_lut = string(tokens[0], tokens[1], format='(%"%s-%s")')
+
+    tcam_lut = sxpar(header, 'TCAMLUT')
+    tokens = strsplit(tcam_lut, '_', /extract)
+    tcam_lut = string(tokens[0], tokens[1], format='(%"%s-%s")')
   endif else begin
-    rcam_lut_date = run->epoch('camera_lut_date')
-    tcam_lut_date = run->epoch('camera_lut_date')
+    rcam_lut = run->epoch('rcam_lut')
+    tcam_lut = run->epoch('tcam_lut')
   endelse
 
   rcam_cor_filename = filepath(string(prefix, rcamid, exposure, $
-                                      rcam_lut_date, 'ncdf', $
+                                      rcam_lut, 'ncdf', $
                                       format=fmt), $
                                root=run->config('calibration/camera_correction_dir'))
   if (file_test(rcam_cor_filename)) then begin
