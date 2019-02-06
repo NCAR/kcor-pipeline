@@ -55,7 +55,7 @@ def download_loop(depot_dir, raw_dir, batch_time):
                  catalog[-1]['date'],
                  catalog[-1]['date'] - catalog[0]['date'])
 
-    if not len(logs) == 2:
+    if len(logs) < 2 or len(logs) > 3:
         logging.error('%d t1/t2 logs present, exiting...', len(logs))
         return
 
