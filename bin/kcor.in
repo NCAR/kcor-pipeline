@@ -346,8 +346,8 @@ def simulate(args):
     raw_basedir = config.get('processing', 'raw_basedir')
     raw_dir = os.path.join(raw_basedir, args.dates[0])
 
-    launch_interval = config.get('simulator', 'launch_interval', '60.0')
-    arrival_interval = config.get('simulator', 'arrival_interval', '60.0')
+    launch_interval = config.get('simulator', 'launch_interval', fallback='60.0')
+    arrival_interval = config.get('simulator', 'arrival_interval', fallback='60.0')
 
     # launch processing simulator
     processing_cmd = [os.path.join(PIPELINE_DIR, 'bin', 'kcor_simulate_processing'),
