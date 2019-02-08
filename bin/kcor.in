@@ -352,7 +352,9 @@ def simulate(args):
     raw_dir = os.path.join(raw_basedir, args.dates[0])
 
     launch_interval = config.get('simulator', 'launch_interval', fallback='60.0')
+
     arrival_interval = config.get('simulator', 'arrival_interval', fallback='60.0')
+    speedup_factor   = config.get('simulator', 'speedup_factor', fallback='1.0')
 
     # launch processing simulator
     processing_cmd = [os.path.join(PIPELINE_DIR, 'bin', 'kcor_simulate_processing'),
@@ -369,6 +371,7 @@ def simulate(args):
     data_cmd = [os.path.join(PIPELINE_DIR, 'bin', 'kcor_simulate_data'),
                 '-r', raw_dir,
                 '-b', arrival_interval,
+                '-s', speedup_factor,
                 os.path.join(depot_basedir, args.dates[0])]
     data_process = subprocess.Popen(data_cmd)
 
@@ -376,7 +379,9 @@ def simulate(args):
         while True:
             time.sleep(1.0)
     except KeyboardInterrupt:
-        print(f'killing data ({data_process.pid}) and processing ({processing_process.pid}) processes...')
+        data_pid = data_process.pid
+        proc_pid = processing_process.pid
+        print(f'killing data ({data_pid}) and processing ({proc_pid}) processes...')
         processing_process.kill()
         data_process.kill()
 

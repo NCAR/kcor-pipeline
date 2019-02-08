@@ -30,24 +30,32 @@ def catalog_depot(depot_dir):
     '''KCor raw data filenames are of the form `20170131_022253_kcor.fts`; log
        files are of the form `20170131.kcor.t1.log`.'''
     files = os.listdir(depot_dir)
+
     l0_re = re.compile(KCOR_L0_RE)
     log_re = re.compile(KCOR_LOG_RE)
+
     data_files = [f for f in sorted(files) if l0_re.match(f)]
     dates = [datetime.datetime(*decompose_filename(f)) for f in data_files]
+    catalog = [{'filename': f, 'date': d} for f, d in zip(data_files, dates)]
+
     logs = [f for f in files if log_re.match(f)]
-    return [{'filename': f, 'date': d} for f, d in zip(data_files, dates)], logs
+
+    return catalog, logs
 
 
-def download_loop(depot_dir, raw_dir, batch_time):
+def download_loop(depot_dir, raw_dir, batch_time, speedup_factor=1.0):
     logging.info('starting KCor realtime data simulator...')
-    logging.info('depot directory   : %s', depot_dir)
-    logging.info('raw directory     : %s', raw_dir)
-    logging.info('batch time        : %0.1f seconds', batch_time)
-    logging.info('download time     : %0.1f seconds', DOWNLOAD_TIME)
+    logging.info(f'depot directory   : {depot_dir}')
+    logging.info(f'raw directory     : {raw_dir}')
+    logging.info(f'batch time        : {batch_time:0.1f} seconds')
+    logging.info(f'download time     : {DOWNLOAD_TIME:0.1f} seconds')
+    logging.info(f'speedup factor    : {speedup_factor:0.1f}x')
 
     start_time = datetime.datetime.now()
     catalog, logs = catalog_depot(depot_dir)
-    delta = start_time - catalog[0]['date'] - datetime.timedelta(seconds=batch_time)
+
+    start_offset = speedup_factor * datetime.timedelta(seconds=batch_time)
+    delta = start_time - catalog[0]['date'] - start_offset
 
     logging.info('%d files in depot...', len(catalog))
     logging.info('%s to %s (duration: %s)',
@@ -64,25 +72,35 @@ def download_loop(depot_dir, raw_dir, batch_time):
         os.makedirs(raw_dir)
 
     while True:
+        actual_now = datetime.datetime.now()
+        now = start_time - speedup_factor * (start_time - actual_now)
+
+        logging.info(f'now = {datetime.datetime.now()}')
+        logging.info(f'sped up now = {now}')
+        logging.info(f'running = {actual_now - start_time}')
+        logging.info(f'sped up running = {speedup_factor * (actual_now - start_time)}')
+
+        # date of next catalog file to copy
+        next_date = catalog[0]['date']
+
         # copy files before now - delta that are still in catalog
-        now = datetime.datetime.now()
-        d = catalog[0]['date']
-        while catalog and d < now - delta:
+        while catalog and next_date < now - delta:
             c = catalog.pop(0)
-            d = None if not catalog else catalog[0]['date']
+            next_date = None if not catalog else catalog[0]['date']
             logging.info('copying %s...' % c['filename'])
             shutil.copy(os.path.join(depot_dir, c['filename']), raw_dir)
             time.sleep(DOWNLOAD_TIME)
 
+        # if nothing left in catalog, copy the logs and finish
         if not catalog:
-            for f in logs:
-                logging.info('copying %s...', f)
-                shutil.copy(os.path.join(depot_dir, f), raw_dir)
+            for log_filename in logs:
+                logging.info('copying %s...', log_filename)
+                shutil.copy(os.path.join(depot_dir, log_filename), raw_dir)
             logging.info('done copying files')
             return
 
-        downloading_time = (datetime.datetime.now() - now).total_seconds()
-        time.sleep(batch_time - downloading_time)
+        downloading_time = (datetime.datetime.now() - actual_now).total_seconds()
+        time.sleep(max(batch_time - downloading_time, 0.0))
 
 
 if __name__ == '__main__':
@@ -91,15 +109,25 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=name)
     depot_dir_help = '''source directory of data files'''
     parser.add_argument('depot_dir', type=str, help=depot_dir_help)
+
     raw_dir_help = '''destination for copying, the default is the
                       current directory'''
     parser.add_argument('-r', '--raw-dir', type=str, help=raw_dir_help)
+
     batch_time_help = '''number of seconds between copies, default is 60.0
                          seconds'''
     parser.add_argument('-b', '--batch-time',
                         type=float,
                         help=batch_time_help,
                         default=60.0)
+
+    speedup_factor_help = '''factor to speedup copying by, i.e., -s 2 will run
+                             twice as fast'''
+    parser.add_argument('-s', '--speedup-factor',
+                        type=float,
+                        help=speedup_factor_help,
+                        default=1.0)
+
     parser.add_argument('-v', '--version',
                         action='version',
                         version=name)
@@ -108,6 +136,7 @@ if __name__ == '__main__':
     raw_dir = args.raw_dir if args.raw_dir else os.getcwd()
 
     try:
-        download_loop(args.depot_dir, raw_dir.lstrip(), args.batch_time)
+        download_loop(args.depot_dir, raw_dir.lstrip(), args.batch_time,
+                      speedup_factor=args.speedup_factor)
     except KeyboardInterrupt:
         logging.info('quitting...')
