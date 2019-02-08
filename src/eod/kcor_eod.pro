@@ -36,15 +36,10 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   version = kcor_find_code_version(revision=revision, branch=branch)
   mg_log, 'kcor-pipeline %s (%s) [%s]', version, revision, branch, $
-          name='kcor/eod', /info
+          name='kcor/eod', /debug
   mg_log, 'IDL %s (%s %s)', !version.release, !version.os, !version.arch, $
-          name='kcor/eod', /info
+          name='kcor/eod', /debug
   mg_log, 'starting end-of-day processing for %s', date, name='kcor/eod', /info
-
-  q_dir = filepath('q', subdir=date, root=run->config('processing/raw_basedir'))
-  quality_plot = filepath(string(date, format='(%"%s.kcor.quality.png")'), $
-                          root=q_dir)
-  kcor_quality_plot, q_dir, quality_plot
 
   date_dir = filepath(date, root=run->config('processing/raw_basedir'))
   if (~file_test(date_dir, /directory)) then begin
@@ -57,6 +52,19 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     mg_log, '%s does not exist', l0_dir, name='kcor/eod', /error
     goto, done
   endif
+
+  ; determine end-of-day is already done if t1.log has already been copied to
+  ; the level0 directory
+  t1_log_file = filepath(date + '.kcor.t1.log', root=l0_dir)
+  if (file_test(t1_log_file, /regular)) then begin
+    mg_log, 't1 log in level0/, validation already done', name='kcor/eod', /info
+    goto, done
+  endif
+
+  q_dir = filepath('q', subdir=date, root=run->config('processing/raw_basedir'))
+  quality_plot = filepath(string(date, format='(%"%s.kcor.quality.png")'), $
+                          root=q_dir)
+  kcor_quality_plot, q_dir, quality_plot
 
   ; level 0 files still in root
   l0_fits_files = file_search(filepath('*_kcor.fts.gz', root=date_dir), $
@@ -72,14 +80,6 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   ; level 0 files in the level0/ directory
   l0_fits_files = file_search(filepath('*_kcor.fts.gz', root=l0_dir), $
                               count=n_l0_fits_files)
-
-  ; determine end-of-day is already done if t1.log has already been copied to
-  ; the level0 directory
-  t1_log_file = filepath(date + '.kcor.t1.log', root=l0_dir)
-  if (file_test(t1_log_file, /regular)) then begin
-    mg_log, 't1 log in level0/, validation already done', name='kcor/eod', /info
-    goto, done
-  endif
 
   ; check for logs from other days -- sometimes the machine.log comes in late
   ; and is placed in the next day
