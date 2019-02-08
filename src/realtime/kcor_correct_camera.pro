@@ -89,7 +89,7 @@ pro kcor_correct_camera, im, header, $
   endelse
 
   rcam_cor_cache_filename = filepath(string(prefix, rcamid, exposure, $
-                                            rcam_lut_date, 'sav', $
+                                            rcam_lut, 'sav', $
                                             format=fmt), $
                                      subdir='.cache', $
                                      root=run->config('calibration/camera_correction_dir'))
@@ -105,7 +105,7 @@ pro kcor_correct_camera, im, header, $
           name=logger_name, /debug
 
   tcam_cor_filename = filepath(string(prefix, tcamid, exposure, $
-                                      tcam_lut_date, 'ncdf', $
+                                      tcam_lut, 'ncdf', $
                                       format=fmt), $
                                root=run->config('calibration/camera_correction_dir'))
   if (file_test(tcam_cor_filename)) then begin
@@ -117,7 +117,7 @@ pro kcor_correct_camera, im, header, $
   endelse
 
   tcam_cor_cache_filename = filepath(string(prefix, tcamid, exposure, $
-                                            tcam_lut_date, 'sav', $
+                                            tcam_lut, 'sav', $
                                             format=fmt), $
                                      subdir='.cache', $
                                      root=run->config('calibration/camera_correction_dir'))
