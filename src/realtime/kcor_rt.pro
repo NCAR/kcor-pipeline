@@ -263,6 +263,54 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
 
     obj_destroy, nrgf_basenames
 
+    if (keyword_set(reprocess)) then begin
+      mg_log, 'skipping updating NRGF gallery', name='kcor/rt', /info
+    endif else begin
+      if (n_nrgf_gifs eq 0L) then begin
+        mg_log, 'no NRGF images to transfer to NRGF gallery', name='kcor/rt', /info
+      endif else begin
+        method = run->config('realtime/update_nrgf_gallery_method')
+        case strlowcase(method) of
+          'none': mg_log, 'no update NRGF gallery method', name='kcor/rt', /info
+          'cp': begin
+              mg_log, 'copying %d NRGF GIFs to local gallery', n_nrgf_gifs, $
+                      name='kcor/rt', /info
+              file_copy, '*nrgf.gif', run->config('results/nrgf_gallery_dir'), $
+                         /overwrite
+            end
+          'scp': begin
+              mg_log, 'transferring %d NRGF GIFs to remote gallery', n_nrgf_gifs, $
+                      name='kcor/rt', /info
+              gallery_server = run->config('results/nrgf_gallery_server')
+              gallery_dir    = run->config('results/nrgf_gallery_dir')
+              if (n_elements(gallery_server) eq 0L $
+                    || n_elements(gallery_dir) eq 0L) then begin
+                mg_log, 'NRGF gallery server/dir not specified', $
+                        name='kcor/rt', /warn 
+              endif else begin
+                key = run->config('results/ssh_key')
+                ssh_key_str = n_elements(key) eq 0L $
+                                ? '' $
+                                : string(key, format='(%"-i %s")')
+                spawn_cmd = string(ssh_key_str, $
+                                   gallery_server, gallery_dir, $
+                                   format='(%"scp %s -B -r -p *nrgf.gif %s:%s")')
+                spawn, spawn_cmd, result, error_result, exit_status=status
+                if (status ne 0L) then begin
+                  mg_log, 'problem scp-ing NRGF files with command: %s', spawn_cmd, $
+                          name='kcor/rt', /error
+                  mg_log, '%s', strjoin(error_result, ' '), name='kcor/rt', /error
+                endif
+              endelse
+            end
+          else: begin
+            mg_log, 'unknown update NRGF gallery method: %s', method, $
+                    name='kcor/rt', /info
+          end
+        endcase
+      endelse
+    endelse
+
     if (run->config('realtime/update_remote_server') $
           && ~keyword_set(reprocess)) then begin
       if (n_nrgf_gifs gt 0L) then begin
@@ -285,7 +333,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
         mg_log, 'no NRGF images to transfer to remote server', name='kcor/rt', /info
       endelse
     endif else begin
-      mg_log, 'skipping updating remote server with NRGF images', name='kcor/rt', /info
+      
     endelse
 
     if (run->config('database/update')) then begin
