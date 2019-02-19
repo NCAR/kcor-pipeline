@@ -4,7 +4,8 @@
 ; Lock/unlock a raw directory.
 ;
 ; :Returns:
-;   1 if lock/unlock successful, 0 if not
+;   availability before operations, i.e., if `available = kcor_state(/lock)`
+;   returns whether the raw directory was available before trying to lock it
 ;
 ; :Keywords:
 ;   lock : in, optional, type=boolean
@@ -21,8 +22,11 @@
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;-
-function kcor_state, lock=lock, unlock=unlock, processed=processed, $
-                     first_image=first_image, set_first_image=set_first_image, $
+function kcor_state, lock=lock, $
+                     unlock=unlock, $
+                     processed=processed, $
+                     first_image=first_image, $
+                     set_first_image=set_first_image, $
                      run=run
   compile_opt strictarr, logical_predicate
   on_error, 2
@@ -33,7 +37,7 @@ function kcor_state, lock=lock, unlock=unlock, processed=processed, $
 
     if (~file_test(state_file)) then begin
       openw, lun, state_file, /get_lun
-      printf, lun, 1L, format='(%"%d")'
+      printf, lun, mg_pid()
       free_lun, lun
       return, 0B
     endif else begin
@@ -51,6 +55,7 @@ function kcor_state, lock=lock, unlock=unlock, processed=processed, $
     if (keyword_set(lock)) then begin
       if (available) then begin
         openw, lun, lock_file, /get_lun
+        printf, lun, mg_pid()
         free_lun, lun
       endif
       return, available
@@ -66,6 +71,7 @@ function kcor_state, lock=lock, unlock=unlock, processed=processed, $
 
     if (keyword_set(processed)) then begin
       openw, lun, processed_file, /get_lun
+      printf, lun, mg_pid()
       free_lun, lun
       return, 1B
     endif
