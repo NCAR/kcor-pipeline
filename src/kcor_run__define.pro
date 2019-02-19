@@ -140,7 +140,7 @@ pro kcor_run::setup_loggers, rotate_logs=rotate_logs
   compile_opt strictarr
 
   ; setup logging
-  log_fmt = '%(time)s %(levelshortname)s: %(routine)s: %(message)s'
+  log_fmt = '[%(pid)s] %(time)s %(levelshortname)s: %(routine)s: %(message)s'
   log_time_fmt = '(C(CYI4, "-", CMOI2.2, "-", CDI2.2, " " CHI2.2, ":", CMI2.2, ":", CSI2.2))'
 
   log_level = self->config('logging/level')
