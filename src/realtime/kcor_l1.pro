@@ -641,10 +641,14 @@ pro kcor_l1, date, ok_files, $
     ; ephemeris data
     sun, oyear, omonth, oday, ehour, sd=radsun, pa=pangle, lat0=bangle, $
          true_ra=sol_ra, true_dec=sol_dec, $
-         carrington=carrington, long0=carrington_long
+         carrington=sun_carrington_rotnum, long0=carrington_long
 
     sol_ra = sol_ra * 15.0   ; convert from hours to degrees
-    carrington_rotnum = fix(carrington)
+
+    tim2carr_carrington_rotnum = tim2carr(date_obs)
+    mg_log, 'carrington rot SUN: %0.3f, TIM2CARR: %0.3f', $
+            sun_carrington_rotnum, tim2carr_carrington_rotnum, $
+            name=log_name, /debug
 
     if (run->epoch('use_occulter_id')) then begin
       occltrid = struct.occltrid
@@ -1418,7 +1422,7 @@ pro kcor_l1, date, ok_files, $
     fxaddpar, newheader, 'CRLN_OBS', carrington_long, $
               ' [deg] solar L angle: Carrington longitude', $
               format='(f9.3)'
-    fxaddpar, newheader, 'CAR_ROT',  carrington_rotnum, $
+    fxaddpar, newheader, 'CAR_ROT',  fix(tim2carr_carrington_rotnum), $
               ' Carrington rotation number', format = '(i4)'
     fxaddpar, newheader, 'SOLAR_RA', sol_ra, $
               ' [h]   solar Right Ascension (hours)', $
