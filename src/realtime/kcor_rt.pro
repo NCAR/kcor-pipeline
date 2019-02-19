@@ -19,9 +19,6 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
 
   rt_clock = tic('rt')
 
-  run = kcor_run(date, config_filename=config_filename, mode='realtime')
-  if (~obj_valid(run)) then message, 'problem creating run object'
-
   ; catch and log any crashes
   catch, error
   if (error ne 0L) then begin
@@ -30,6 +27,9 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     kcor_crash_notification, /realtime, run=run
     goto, done
   endif
+
+  run = kcor_run(date, config_filename=config_filename, mode='realtime')
+  if (~obj_valid(run)) then message, 'problem creating run object'
 
   mg_log, '------------------------------', name='kcor/rt', /info
 
@@ -43,36 +43,36 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
           name='kcor/rt', /debug
   mg_log, 'starting realtime processing for %s', date, name='kcor/rt', /info
 
-  raw_dir = filepath('', subdir=date, root=run->config('processing/raw_basedir'))
-  l0_dir = filepath('level0', root=raw_dir)
-  l1_dir = filepath('level1', root=raw_dir)
-  q_dir = filepath('q', root=raw_dir)
-
-  if (~file_test(raw_dir, /directory)) then file_mkdir, raw_dir
-  if (~file_test(l0_dir, /directory)) then file_mkdir, l0_dir
-  if (~file_test(l1_dir, /directory)) then file_mkdir, l1_dir
-  if (~file_test(q_dir, /directory)) then file_mkdir, q_dir
-
-  date_parts = kcor_decompose_date(date)
-
-  croppedgif_dir = filepath('', subdir=date_parts, $
-                            root=run->config('results/croppedgif_basedir'))
-  fullres_dir = filepath('', subdir=date_parts, $
-                         root=run->config('results/fullres_basedir'))
-  archive_dir = filepath('', subdir=date_parts, $
-                         root=run->config('results/archive_basedir'))
-
-  if (run->config('realtime/distribute')) then begin
-    if (~file_test(croppedgif_dir, /directory)) then file_mkdir, croppedgif_dir
-    if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
-    if (~file_test(archive_dir, /directory)) then file_mkdir, archive_dir
-  endif
-
-  cd, raw_dir
-
   available = kcor_state(/lock, run=run)
 
   if (available) then begin
+    raw_dir = filepath('', subdir=date, root=run->config('processing/raw_basedir'))
+    l0_dir = filepath('level0', root=raw_dir)
+    l1_dir = filepath('level1', root=raw_dir)
+    q_dir = filepath('q', root=raw_dir)
+
+    if (~file_test(raw_dir, /directory)) then file_mkdir, raw_dir
+    if (~file_test(l0_dir, /directory)) then file_mkdir, l0_dir
+    if (~file_test(l1_dir, /directory)) then file_mkdir, l1_dir
+    if (~file_test(q_dir, /directory)) then file_mkdir, q_dir
+
+    date_parts = kcor_decompose_date(date)
+
+    croppedgif_dir = filepath('', subdir=date_parts, $
+                              root=run->config('results/croppedgif_basedir'))
+    fullres_dir = filepath('', subdir=date_parts, $
+                           root=run->config('results/fullres_basedir'))
+    archive_dir = filepath('', subdir=date_parts, $
+                           root=run->config('results/archive_basedir'))
+
+    if (run->config('realtime/distribute')) then begin
+      if (~file_test(croppedgif_dir, /directory)) then file_mkdir, croppedgif_dir
+      if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
+      if (~file_test(archive_dir, /directory)) then file_mkdir, archive_dir
+    endif
+
+    cd, raw_dir
+
     if (run->config('realtime/reprocess') $
           || run->config('realtime/update_processing')) then begin
       kcor_reprocess, date, run=run, error=error
@@ -275,6 +275,11 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
           'cp': begin
               mg_log, 'copying %d NRGF GIFs to local gallery', n_nrgf_gifs, $
                       name='kcor/rt', /info
+              if (~file_test(run->config('results/nrgf_gallery_dir'), /directory)) then begin
+                mg_log, 'creating %s', run->config('results/nrgf_gallery_dir'), $
+                        name='kcor/rt', /info
+                file_mkdir, run->config('results/nrgf_gallery_dir')
+              endif
               file_copy, '*nrgf.gif', run->config('results/nrgf_gallery_dir'), $
                          /overwrite
             end
@@ -309,31 +314,6 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
           end
         endcase
       endelse
-    endelse
-
-    if (run->config('realtime/update_remote_server') $
-          && ~keyword_set(reprocess)) then begin
-      if (n_nrgf_gifs gt 0L) then begin
-        mg_log, 'transferring %d NRGF GIFs to remote server', n_nrgf_gifs, $
-                name='kcor/rt', /info
-        ssh_key_str = run->config('results/ssh_key') eq '' $
-                        ? '' $
-                      : string(run->config('results/ssh_key'), format='(%"-i %s")')
-        spawn_cmd = string(ssh_key_str, $
-                           run->config('results/nrgf_remote_server'), $
-                           run->config('results/nrgf_remote_dir'), $
-                           format='(%"scp %s -B -r -p *nrgf.gif %s:%s")')
-        spawn, spawn_cmd, result, error_result, exit_status=status
-        if (status ne 0L) then begin
-          mg_log, 'problem scp-ing NRGF files with command: %s', spawn_cmd, $
-                  name='kcor/rt', /error
-          mg_log, '%s', strjoin(error_result, ' '), name='kcor/rt', /error
-        endif
-      endif else begin
-        mg_log, 'no NRGF images to transfer to remote server', name='kcor/rt', /info
-      endelse
-    endif else begin
-      
     endelse
 
     if (run->config('database/update')) then begin
@@ -394,7 +374,9 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
   done:
   mg_log, /check_math, name='kcor/rt', /debug
 
-  !null = kcor_state(/unlock, run=run)
+  if (n_elements(available) gt 0L && available) then begin
+    !null = kcor_state(/unlock, run=run)
+  endif
   mg_log, 'done with realtime processing run', name='kcor/rt', /info
 
   rt_time = toc(rt_clock)
