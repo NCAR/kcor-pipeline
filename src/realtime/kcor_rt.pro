@@ -377,10 +377,9 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
   if (n_elements(available) gt 0L && available) then begin
     !null = kcor_state(/unlock, run=run)
   endif
-  mg_log, 'done with realtime processing run', name='kcor/rt', /info
 
   rt_time = toc(rt_clock)
-  mg_log, 'total realtime processing time: %0.1f sec', rt_time, name='kcor/rt', /info
+  mg_log, 'done, total realtime processing time: %0.1f sec', rt_time, name='kcor/rt', /info
 
   obj_destroy, run
 end
