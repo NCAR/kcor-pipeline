@@ -645,7 +645,7 @@ pro kcor_l1, date, ok_files, $
 
     sol_ra = sol_ra * 15.0   ; convert from hours to degrees
 
-    tim2carr_carrington_rotnum = tim2carr(date_obs)
+    tim2carr_carrington_rotnum = (tim2carr(date_obs, /dc))[0]
     mg_log, 'carrington rot SUN: %0.3f, TIM2CARR: %0.3f', $
             sun_carrington_rotnum, tim2carr_carrington_rotnum, $
             name=log_name, /debug
