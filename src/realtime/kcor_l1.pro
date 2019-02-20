@@ -1183,11 +1183,11 @@ pro kcor_l1, date, ok_files, $
     ; image array information
     fxaddpar, newheader, 'BITPIX',   struct.bitpix, ' bits per pixel'
     fxaddpar, newheader, 'NAXIS', 2, ' number of dimensions; FITS image' 
-    fxaddpar, newheader, 'NAXIS1',   struct.naxis1, ' (pixels) x dimension'
-    fxaddpar, newheader, 'NAXIS2',   struct.naxis2, ' (pixels) y dimension'
+    fxaddpar, newheader, 'NAXIS1',   struct.naxis1, ' [pixels] x dimension'
+    fxaddpar, newheader, 'NAXIS2',   struct.naxis2, ' [pixels] y dimension'
     if (struct.extend eq 0) then val_extend = 'F'
     if (struct.extend eq 1) then val_extend = 'T'
-    fxaddpar, newheader, 'EXTEND', 'F', ' No FITS extensions'
+    fxaddpar, newheader, 'EXTEND', 'F', ' no FITS extensions'
 
     ; normalize odd values for date/times, particularly "60" as minute value in
     ; DATE-END
@@ -1220,7 +1220,7 @@ pro kcor_l1, date, ok_files, $
 
     ; mechanism positions
     fxaddpar, newheader, 'DARKSHUT', struct.darkshut, $
-              ' dark shutter open(out) or closed(in)'
+              ' dark shutter open (out) or closed (in)'
     fxaddpar, newheader, 'COVER',    struct.cover, $
               ' cover in or out of the light beam'
     fxaddpar, newheader, 'DIFFUSER', struct.diffuser, $
@@ -1237,9 +1237,9 @@ pro kcor_l1, date, ok_files, $
               ' # frames summed per L0 img for each pol state'
 
     ; software information
-    fxaddpar, newheader, 'QUALITY', img_quality, ' Image quality'
+    fxaddpar, newheader, 'QUALITY', img_quality, ' image quality'
     fxaddpar, newheader, 'LEVEL', 'L1.5', $
-              ' Level 1.5 pB Intensity is fully-calibrated'
+              ' level 1.5 pB Intensity is fully-calibrated'
 
     ; fxaddpar, newheader, 'DATE-L1', kcor_datecal(), ' Level 1 processing date'
     ; fxaddpar, newheader, 'L1SWID',  'kcorl1.pro 10nov2015', $
@@ -1324,43 +1324,43 @@ pro kcor_l1, date, ok_files, $
               format='(f10.2)'
 
     ; coordinate system information
-    fxaddpar, newheader, 'WCSNAME',  'helioprojective-cartesian', $
-              'World Coordinate System (WCS) name'
-    fxaddpar, newheader, 'CTYPE1',   'HPLN-TAN', $
+    fxaddpar, newheader, 'WCSNAME', 'helioprojective-cartesian', $
+              ' World Coordinate System (WCS) name'
+    fxaddpar, newheader, 'CTYPE1', 'HPLN-TAN', $
               ' [deg] helioprojective west angle: solar X'
-    fxaddpar, newheader, 'CRPIX1',   xcen, $
-              ' [pixel]  solar X center (index origin=1)', $
+    fxaddpar, newheader, 'CRPIX1', xcen, $
+              ' [pixel] solar X center (index origin=1)', $
               format='(f9.2)'
-    fxaddpar, newheader, 'CRVAL1',   0.00, ' [arcsec] solar X sun center', $
+    fxaddpar, newheader, 'CRVAL1', 0.00, ' [arcsec] solar X sun center', $
               format='(f9.2)'
-    fxaddpar, newheader, 'CDELT1',   run->epoch('plate_scale'), $
+    fxaddpar, newheader, 'CDELT1', run->epoch('plate_scale'), $
               ' [arcsec/pix] solar X increment = platescale', $
               format='(f9.4)'
-    fxaddpar, newheader, 'CUNIT1',   'arcsec'
-    fxaddpar, newheader, 'CTYPE2',   'HPLT-TAN', $
+    fxaddpar, newheader, 'CUNIT1', 'arcsec'
+    fxaddpar, newheader, 'CTYPE2', 'HPLT-TAN', $
               ' [deg] helioprojective north angle: solar Y'
-    fxaddpar, newheader, 'CRPIX2',   ycen, $
+    fxaddpar, newheader, 'CRPIX2', ycen, $
               ' [pixel]  solar Y center (index origin=1)', $
               format='(f9.2)'
-    fxaddpar, newheader, 'CRVAL2',   0.00, ' [arcsec] solar Y sun center', $
+    fxaddpar, newheader, 'CRVAL2', 0.00, ' [arcsec] solar Y sun center', $
               format='(f9.2)'
-    fxaddpar, newheader, 'CDELT2',   run->epoch('plate_scale'), $
+    fxaddpar, newheader, 'CDELT2', run->epoch('plate_scale'), $
               ' [arcsec/pix] solar Y increment = platescale', $
               format='(f9.4)'
-    fxaddpar, newheader, 'CUNIT2',   'arcsec'
+    fxaddpar, newheader, 'CUNIT2', 'arcsec'
     fxaddpar, newheader, 'INST_ROT', 0.00, $
               ' [deg] rotation of the image wrt solar north', $
               format='(f9.3)'
-    fxaddpar, newheader, 'PC1_1',    1.00, $
+    fxaddpar, newheader, 'PC1_1', 1.00, $
               ' coord transform matrix element (1, 1) WCS std.', $
               format='(f9.3)'
-    fxaddpar, newheader, 'PC1_2',    0.00, $
+    fxaddpar, newheader, 'PC1_2', 0.00, $
               ' coord transform matrix element (1, 2) WCS std.', $
               format='(f9.3)'
-    fxaddpar, newheader, 'PC2_1',    0.00, $
+    fxaddpar, newheader, 'PC2_1', 0.00, $
               ' coord transform matrix element (2, 1) WCS std.', $
               format='(f9.3)'
-    fxaddpar, newheader, 'PC2_2',    1.00, $
+    fxaddpar, newheader, 'PC2_2', 1.00, $
               ' coord transform matrix element (2, 2) WCS std.', $
               format='(f9.3)'
 
@@ -1371,7 +1371,7 @@ pro kcor_l1, date, ok_files, $
     fxaddpar, newheader, 'RCAMYCEN', ycen0 + 1, $
               ' [pixel] camera 0 raw Y-coord occulting center', $
               format='(f8.2)'
-    fxaddpar, newheader, 'RCAM_RAD',  radius_0, $
+    fxaddpar, newheader, 'RCAM_RAD', radius_0, $
               ' [pixel] camera 0 raw occulter radius', $
               format='(f8.2)'
     fxaddpar, newheader, 'RCAM_DCX', info_dc0[0] + 1, $
@@ -1380,7 +1380,7 @@ pro kcor_l1, date, ok_files, $
     fxaddpar, newheader, 'RCAM_DCY', info_dc0[1] + 1, $
               ' [pixel] camera 0 dist cor occulter Y center', $
               format='(f8.2)'
-    fxaddpar, newheader, 'RCAM_DCR',  info_dc0[2], $
+    fxaddpar, newheader, 'RCAM_DCR', info_dc0[2], $
               ' [pixel] camera 0 dist corrected occulter radius', $
               format='(f8.2)'
 
@@ -1390,7 +1390,7 @@ pro kcor_l1, date, ok_files, $
     fxaddpar, newheader, 'TCAMYCEN', ycen1 + 1, $
               ' [pixel] camera 1 raw Y-coord occulting center', $
               format='(f8.2)'
-    fxaddpar, newheader, 'TCAM_RAD',  radius_1, $
+    fxaddpar, newheader, 'TCAM_RAD', radius_1, $
               ' [pixel] camera 1 raw occulter radius', $
               format='(f8.2)'
     fxaddpar, newheader, 'TCAM_DCX', info_dc1[0] + 1, $
@@ -1399,7 +1399,7 @@ pro kcor_l1, date, ok_files, $
     fxaddpar, newheader, 'TCAM_DCY', info_dc1[1] + 1, $
               ' [pixel] camera 1 dist cor occulter Y center', $
               format='(f8.2)'
-    fxaddpar, newheader, 'TCAM_DCR',  info_dc1[2], $
+    fxaddpar, newheader, 'TCAM_DCR', info_dc1[2], $
               ' [pixel] camera 1 dist corrected occulter radius', $
               format='(f8.2)'
 
@@ -1433,14 +1433,14 @@ pro kcor_l1, date, ok_files, $
     fxaddpar, newheader, 'CAR_ROT',  fix(tim2carr_carrington_rotnum), $
               ' Carrington rotation number', format = '(i4)'
     fxaddpar, newheader, 'SOLAR_RA', sol_ra, $
-              ' [h]   solar Right Ascension (hours)', $
+              ' [h] solar right ascension (hours)', $
               format='(f9.3)'
     fxaddpar, newheader, 'SOLARDEC', sol_dec, $
-              ' [deg] solar Declination (deg)', format = '(f9.3)'
+              ' [deg] solar declination', format = '(f9.3)'
 
     ; wavelength information
     fxaddpar, newheader, 'WAVELNTH', 735, $
-              ' [nm] center wavelength   of bandpass filter', $
+              ' [nm] center wavelength of bandpass filter', $
               format='(i4)'
     fxaddpar, newheader, 'WAVEFWHM', 30, $
               ' [nm] full width half max of bandpass filter', $
@@ -1512,7 +1512,7 @@ pro kcor_l1, date, ok_files, $
 
     if (check_lyotstop ne 0) then begin
       fxaddpar, newheader, 'LYOTSTOP', struct.lyotstop, $ 
-                ' Specifies if the 2nd lyot stop is in the beam'
+                ' specifies if the 2nd lyot stop is in the beam'
     endif
 
     fxaddpar, newheader, 'OCCLTRID', occltrid, ' ID occulter'
@@ -1543,22 +1543,23 @@ pro kcor_l1, date, ok_files, $
     ; fxaddpar, newheader, 'CHECKSUM', checksum, ' HDU  checksum'
 
     ; instrument comments
-    fxaddpar, newheader, 'COMMENT', $
-              ' The COSMO K-coronagraph is a 20-cm aperture, internally occulted'
-    fxaddpar, newheader, 'COMMENT', $
-              ' coronagraph, which observes the polarization brightness of the corona'
-    fxaddpar, newheader, 'COMMENT', $
-              ' with a field-of-view from ~1.05 to 3 solar radii in a wavelength range'
-    fxaddpar, newheader, 'COMMENT', $
-              ' from 720 to 750 nm. Nominal time cadence is 15 seconds.'
+    comments = ['The COSMO K-coronagraph is a 20-cm aperture, internally occulted', $
+                'coronagraph, which observes the polarization brightness of the corona', $
+                'with a field-of-view from ~1.05 to 3 solar radii in a wavelength range', $
+                'from 720 to 750 nm. Nominal time cadence is 15 seconds.']
+    comments = mg_strwrap(strjoin(comments, ' '), width=72)
+    for c = 0L, n_elements(comments) - 1L do begin
+      fxaddpar, newheader, 'COMMENT', comments[c]
+    endfor
 
     ; data processing comments
     history = ['Level 1.5 calibration and processing steps: dark current subtracted;', $
-               ' gain correction; apply polarization demodulation matrix; apply', $
-               'distortion correction ; align each camera to center, rotate to solar', $
+               'gain correction; apply polarization demodulation matrix; apply', $
+               'distortion correction; align each camera to center, rotate to solar', $
                'north and combine cameras ; coordinate transformation from cartesian', $
                'to tangential polarization; remove sky polarization; correct for', $
                'sky transmission.']
+    history = mg_strwrap(strjoin(history, ' '), width=72)
     for h = 0L, n_elements(history) - 1L do sxaddhist, history[h], newheader
 
     ; write FITS image to disk
