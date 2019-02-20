@@ -1308,13 +1308,13 @@ pro kcor_l1, date, ok_files, $
               ' physical = data * BSCALE + BZERO', format='(F8.3)'
 
     ; data display information
-    fxaddpar, newheader, 'DATAMIN', min(corona), ' minimum  value of  data'
-    fxaddpar, newheader, 'DATAMAX', max(corona), ' maximum  value of  data'
+    fxaddpar, newheader, 'DATAMIN', min(corona), ' minimum value of data'
+    fxaddpar, newheader, 'DATAMAX', max(corona), ' maximum value of data'
     fxaddpar, newheader, 'DISPMIN', run->epoch('display_min'), $
-              ' minimum  value for display', $
+              ' minimum value for display', $
               format='(G0.3)'
     fxaddpar, newheader, 'DISPMAX', run->epoch('display_max'), $
-              ' maximum  value for display', $
+              ' maximum value for display', $
               format='(G0.3)'
     fxaddpar, newheader, 'DISPEXP', run->epoch('display_exp'), $
               ' exponent value for display (d=b^DISPEXP)', $
