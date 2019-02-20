@@ -1334,9 +1334,9 @@ pro kcor_l1, date, ok_files, $
     fxaddpar, newheader, 'CRVAL1', 0.00, ' [arcsec] solar X sun center', $
               format='(f9.2)'
     fxaddpar, newheader, 'CDELT1', run->epoch('plate_scale'), $
-              ' [arcsec/pix] solar X increment = platescale', $
+              ' [arcsec/pixel] solar X increment = platescale', $
               format='(f9.4)'
-    fxaddpar, newheader, 'CUNIT1', 'arcsec'
+    fxaddpar, newheader, 'CUNIT1', 'arcsec', ' unit of CRVAL1'
     fxaddpar, newheader, 'CTYPE2', 'HPLT-TAN', $
               ' [deg] helioprojective north angle: solar Y'
     fxaddpar, newheader, 'CRPIX2', ycen, $
@@ -1345,9 +1345,9 @@ pro kcor_l1, date, ok_files, $
     fxaddpar, newheader, 'CRVAL2', 0.00, ' [arcsec] solar Y sun center', $
               format='(f9.2)'
     fxaddpar, newheader, 'CDELT2', run->epoch('plate_scale'), $
-              ' [arcsec/pix] solar Y increment = platescale', $
+              ' [arcsec/pixel] solar Y increment = platescale', $
               format='(f9.4)'
-    fxaddpar, newheader, 'CUNIT2', 'arcsec'
+    fxaddpar, newheader, 'CUNIT2', 'arcsec', ' unit of CRVAL2'
     fxaddpar, newheader, 'INST_ROT', 0.00, $
               ' [deg] rotation of the image wrt solar north', $
               format='(f9.3)'
@@ -1512,7 +1512,7 @@ pro kcor_l1, date, ok_files, $
 
     if (check_lyotstop ne 0) then begin
       fxaddpar, newheader, 'LYOTSTOP', struct.lyotstop, $ 
-                ' specifies if the 2nd lyot stop is in the beam'
+                ' specifies if the 2nd Lyot stop is in the beam'
     endif
 
     fxaddpar, newheader, 'OCCLTRID', occltrid, ' ID occulter'
