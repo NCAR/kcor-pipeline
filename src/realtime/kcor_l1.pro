@@ -639,15 +639,20 @@ pro kcor_l1, date, ok_files, $
     erase
 
     ; ephemeris data
-    sun, oyear, omonth, oday, ehour, sd=radsun, pa=pangle, lat0=bangle, $
+    sun, oyear, omonth, oday, ehour, $
+         sd=radsun, dist=dist_au, pa=pangle, lat0=bangle, $
          true_ra=sol_ra, true_dec=sol_dec, $
-         carrington=sun_carrington_rotnum, long0=carrington_long
+         carrington=sun_carrington_rotnum, long0=sun_carrington_long
 
     sol_ra = sol_ra * 15.0   ; convert from hours to degrees
 
     tim2carr_carrington_rotnum = (tim2carr(date_obs, /dc))[0]
+    tim2carr_carrington_long   = (tim2carr(date_obs))[0]
     mg_log, 'carrington rot SUN: %0.3f, TIM2CARR: %0.3f', $
             sun_carrington_rotnum, tim2carr_carrington_rotnum, $
+            name=log_name, /debug
+    mg_log, 'carrington long SUN: %0.3f, TIM2CARR: %0.3f', $
+            sun_carrington_long, tim2carr_carrington_long, $
             name=log_name, /debug
 
     if (run->epoch('use_occulter_id')) then begin
@@ -1409,17 +1414,20 @@ pro kcor_l1, date, ok_files, $
 
     ; add ephemeris data
     fxaddpar, newheader, 'RSUN_OBS', radsun, $
-              ' [arcsec] solar radius', format = '(f9.3)'
+              string(dist_au * radsun, $
+                     '(%" [arcsec] solar radius using ref radius %0.2f\"")'), $
+              format='(f8.2)'
     fxaddpar, newheader, 'RSUN', radsun, $
-              ' [arcsec] solar radius (old standard keyword)', format = '(f9.3)'
-    fxaddpar, newheader, 'R_SUN',     radsun / run->epoch('plate_scale'), $
+              ' [arcsec] solar radius (old standard keyword)', $
+              format='(f8.2)'
+    fxaddpar, newheader, 'R_SUN', radsun / run->epoch('plate_scale'), $
               ' [pixel] solar radius', format = '(f9.2)'
     fxaddpar, newheader, 'SOLAR_P0', pangle, $
-              ' [deg] solar P angle',   format = '(f9.3)'
+              ' [deg] solar P angle', format='(f9.3)'
     fxaddpar, newheader, 'CRLT_OBS', bangle, $
               ' [deg] solar B angle: Carrington latitude ', $
               format='(f8.3)'
-    fxaddpar, newheader, 'CRLN_OBS', carrington_long, $
+    fxaddpar, newheader, 'CRLN_OBS', tim2carr_carrington_long, $
               ' [deg] solar L angle: Carrington longitude', $
               format='(f9.3)'
     fxaddpar, newheader, 'CAR_ROT',  fix(tim2carr_carrington_rotnum), $
