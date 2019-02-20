@@ -151,7 +151,7 @@ def prune_logfiles(files, max_version):
 def filter_file(logfile, level_index, follow):
     loglevel_filter = '|'.join(LEVELS[level_index:])
     loglevel_prog = re.compile('.*(%s):.*' % loglevel_filter)
-    logstart_prog = re.compile('\[\d*\] \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}')
+    logstart_prog = re.compile('(\[\d*\] )?\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}')
 
     matched_last_line = False
 
