@@ -1221,10 +1221,6 @@ pro kcor_l1, date, ok_files, $
               ' name of Mauna Loa observer'
 
     ; mechanism positions
-    fxaddpar, newheader, 'COMMENT', $
-              comment_padding + 'Hardware mechanism positions', $
-              after='OBSERVER'
-
     fxaddpar, newheader, 'DARKSHUT', struct.darkshut, $
               ' dark shutter open (out) or closed (in)'
     fxaddpar, newheader, 'COVER',    struct.cover, $
@@ -1243,8 +1239,6 @@ pro kcor_l1, date, ok_files, $
               ' # frames summed per L0 img for each pol state'
 
     ; software information
-    fxaddpar, newheader, 'COMMENT', comment_padding + 'Processing software', $
-              after='NUMSUM'
     fxaddpar, newheader, 'QUALITY', img_quality, ' image quality'
     fxaddpar, newheader, 'LEVEL', 'L1.5', $
               ' level 1.5 pB Intensity is fully-calibrated'
@@ -1309,8 +1303,6 @@ pro kcor_l1, date, ok_files, $
                      format='(%" %s")'), $
               format='(G0.3)'
 
-    fxaddpar, newheader, 'COMMENT', comment_padding + 'Scaling', $
-              after='BOPAL'
     fxaddpar, newheader, 'BZERO', $
               run->epoch('use_bzero') ? struct.bzero : run->epoch('bzero'), $
               ' offset for unsigned integer data'
@@ -1336,9 +1328,6 @@ pro kcor_l1, date, ok_files, $
               format='(f10.2)'
 
     ; coordinate system information
-    fxaddpar, newheader, 'COMMENT', $
-              comment_padding + 'Coordinate system information', $
-              after='DISPGAM'
     fxaddpar, newheader, 'WCSNAME', 'helioprojective-cartesian', $
               ' World Coordinate System (WCS) name'
     fxaddpar, newheader, 'CTYPE1', 'HPLN-TAN', $
@@ -1380,9 +1369,6 @@ pro kcor_l1, date, ok_files, $
               format='(f9.3)'
 
     ; raw camera occulting center & radius information
-    fxaddpar, newheader, 'COMMENT', $
-              comment_padding + 'Camera occulting information', $
-              after='PC2_2'
     fxaddpar, newheader, 'RCAMXCEN', xcen0 + 1, $
               ' [pixel] camera 0 raw X-coord occulting center', $
               format='(f8.2)'
@@ -1435,8 +1421,6 @@ pro kcor_l1, date, ok_files, $
               string(dist_au * radsun, $
                      '(%" [arcsec] solar radius using ref radius %0.2f\"")'), $
               format='(f8.2)'
-    fxaddpar, newheader, 'COMMENT', comment_padding + 'Ephemeral information', $
-              before='RSUN_OBS'
     fxaddpar, newheader, 'RSUN', radsun, $
               ' [arcsec] solar radius (old standard keyword)', $
               format='(f8.2)'
@@ -1467,8 +1451,6 @@ pro kcor_l1, date, ok_files, $
               format='(i3)'
 
     ; engineering data
-    fxaddpar, newheader, 'COMMENT', comment_padding + 'Engineering data', $
-              after='WAVEFWHM'
     rcamfocs = struct.rcamfocs
     srcamfocs = strmid(string(struct.rcamfocs), 0, 3)
     if (srcamfocs eq 'NaN') then rcamfocs = 0.0
@@ -1523,9 +1505,6 @@ pro kcor_l1, date, ok_files, $
     fxaddpar, newheader, 'RCAMLUT', rcamlut, ' ' + run->epoch('rcamlut_comment')
     fxaddpar, newheader, 'TCAMLUT', tcamlut, ' ' + run->epoch('tcamlut_comment')
 
-    fxaddpar, newheader, 'COMMENT', $
-              comment_padding + 'Spare Guider System information', $
-              after='TCAMLUT'
     fxaddpar, newheader, 'SGSDIMV', finite(struct.sgsdimv) ? struct.sgsdimv : 'NaN', $
               ' [V] SGS DIM signal mean', $
               format='(f9.4)'
@@ -1564,8 +1543,30 @@ pro kcor_l1, date, ok_files, $
     ; data citation URL
     fxaddpar, newheader, 'DATACITE', run->epoch('doi_url'), ' URL for DOI'
 
-    ; fxaddpar, newheader, 'DATASUM', datasum,   ' data checksum'
-    ; fxaddpar, newheader, 'CHECKSUM', checksum, ' HDU  checksum'
+    ; add headings
+    fxaddpar, newheader, 'COMMENT', $
+              comment_padding + 'Hardware mechanism positions', $
+              after='OBSERVER'
+    fxaddpar, newheader, 'COMMENT', comment_padding + 'Processing software', $
+              after='NUMSUM'
+    fxaddpar, newheader, 'COMMENT', comment_padding + 'Scaling', $
+              after='BOPAL'
+    fxaddpar, newheader, 'COMMENT', $
+              comment_padding + 'Coordinate system information', $
+              after='DISPGAM'
+    fxaddpar, newheader, 'COMMENT', $
+              comment_padding + 'Camera occulting information', $
+              after='PC2_2'
+    fxaddpar, newheader, 'COMMENT', comment_padding + 'Ephemeral information', $
+              before='RSUN_OBS'
+    fxaddpar, newheader, 'COMMENT', comment_padding + 'Engineering data', $
+              after='WAVEFWHM'
+    fxaddpar, newheader, 'COMMENT', $
+              comment_padding + 'Spare Guider System information', $
+              after='TCAMLUT'
+
+    ; fxaddpar, newheader, 'DATASUM', datasum, ' data checksum'
+    ; fxaddpar, newheader, 'CHECKSUM', checksum, ' HDU checksum'
 
     ; instrument comments
     comments = ['The COSMO K-coronagraph is a 20-cm aperture, internally occulted', $
