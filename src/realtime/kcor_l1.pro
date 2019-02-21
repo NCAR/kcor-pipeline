@@ -1292,7 +1292,7 @@ pro kcor_l1, date, ok_files, $
               ' bias added after sky polarization correction', $
               format='(G0.3)'
     fxaddpar, newheader, 'ROLLCORR', run->epoch('rotation_correction'), $
-              ' [deg] clockwise offset for spar polar axis alignment', $
+              ' [deg] clockwise offset: spar polar axis align.', $
               format='(G0.1)'
 
     fxaddpar, newheader, 'DMODSWID', '2016-05-26', $
