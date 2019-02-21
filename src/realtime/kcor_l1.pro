@@ -1180,6 +1180,8 @@ pro kcor_l1, date, ok_files, $
     newheader    = strarr(200)
     newheader[0] = header[0]         ; contains SIMPLE keyword
 
+    comment_padding = strjoin(strarr(25) + ' ')
+
     ; image array information
     fxaddpar, newheader, 'BITPIX',   struct.bitpix, ' bits per pixel'
     fxaddpar, newheader, 'NAXIS', 2, ' number of dimensions; FITS image' 
@@ -1219,6 +1221,10 @@ pro kcor_l1, date, ok_files, $
               ' name of Mauna Loa observer'
 
     ; mechanism positions
+    fxaddpar, newheader, 'COMMENT', $
+              comment_padding + 'Hardware mechanism positions', $
+              after='OBSERVER'
+
     fxaddpar, newheader, 'DARKSHUT', struct.darkshut, $
               ' dark shutter open (out) or closed (in)'
     fxaddpar, newheader, 'COVER',    struct.cover, $
@@ -1237,6 +1243,8 @@ pro kcor_l1, date, ok_files, $
               ' # frames summed per L0 img for each pol state'
 
     ; software information
+    fxaddpar, newheader, 'COMMENT', comment_padding + 'Processing software', $
+              after='NUMSUM'
     fxaddpar, newheader, 'QUALITY', img_quality, ' image quality'
     fxaddpar, newheader, 'LEVEL', 'L1.5', $
               ' level 1.5 pB Intensity is fully-calibrated'
@@ -1290,7 +1298,7 @@ pro kcor_l1, date, ok_files, $
     fxaddpar, newheader, 'DMODSWID', '2016-05-26', $
               ' date of demodulation software'
     fxaddpar, newheader, 'OBSSWID', struct.obsswid, $
-              ' version of the observing software'
+              ' version of the LabVIEW observing software'
 
     fxaddpar, newheader, 'BUNIT', 'B/Bsun', $
               ' brightness with respect to solar disk'
@@ -1301,6 +1309,8 @@ pro kcor_l1, date, ok_files, $
                      format='(%" %s")'), $
               format='(G0.3)'
 
+    fxaddpar, newheader, 'COMMENT', comment_padding + 'Scaling', $
+              after='BOPAL'
     fxaddpar, newheader, 'BZERO', $
               run->epoch('use_bzero') ? struct.bzero : run->epoch('bzero'), $
               ' offset for unsigned integer data'
@@ -1308,8 +1318,10 @@ pro kcor_l1, date, ok_files, $
               ' physical = data * BSCALE + BZERO', format='(F8.3)'
 
     ; data display information
-    fxaddpar, newheader, 'DATAMIN', min(corona), ' minimum value of data'
-    fxaddpar, newheader, 'DATAMAX', max(corona), ' maximum value of data'
+    fxaddpar, newheader, 'DATAMIN', min(corona), ' minimum value of data', $
+              format='(E0.4)'
+    fxaddpar, newheader, 'DATAMAX', max(corona), ' maximum value of data', $
+              format='(E0.4)'
     fxaddpar, newheader, 'DISPMIN', run->epoch('display_min'), $
               ' minimum value for display', $
               format='(G0.3)'
@@ -1324,6 +1336,9 @@ pro kcor_l1, date, ok_files, $
               format='(f10.2)'
 
     ; coordinate system information
+    fxaddpar, newheader, 'COMMENT', $
+              comment_padding + 'Coordinate system information', $
+              after='DISPGAM'
     fxaddpar, newheader, 'WCSNAME', 'helioprojective-cartesian', $
               ' World Coordinate System (WCS) name'
     fxaddpar, newheader, 'CTYPE1', 'HPLN-TAN', $
@@ -1340,7 +1355,7 @@ pro kcor_l1, date, ok_files, $
     fxaddpar, newheader, 'CTYPE2', 'HPLT-TAN', $
               ' [deg] helioprojective north angle: solar Y'
     fxaddpar, newheader, 'CRPIX2', ycen, $
-              ' [pixel]  solar Y center (index origin=1)', $
+              ' [pixel] solar Y center (index origin=1)', $
               format='(f9.2)'
     fxaddpar, newheader, 'CRVAL2', 0.00, ' [arcsec] solar Y sun center', $
               format='(f9.2)'
@@ -1365,6 +1380,9 @@ pro kcor_l1, date, ok_files, $
               format='(f9.3)'
 
     ; raw camera occulting center & radius information
+    fxaddpar, newheader, 'COMMENT', $
+              comment_padding + 'Camera occulting information', $
+              after='PC2_2'
     fxaddpar, newheader, 'RCAMXCEN', xcen0 + 1, $
               ' [pixel] camera 0 raw X-coord occulting center', $
               format='(f8.2)'
@@ -1417,6 +1435,8 @@ pro kcor_l1, date, ok_files, $
               string(dist_au * radsun, $
                      '(%" [arcsec] solar radius using ref radius %0.2f\"")'), $
               format='(f8.2)'
+    fxaddpar, newheader, 'COMMENT', comment_padding + 'Ephemeral information', $
+              before='RSUN_OBS'
     fxaddpar, newheader, 'RSUN', radsun, $
               ' [arcsec] solar radius (old standard keyword)', $
               format='(f8.2)'
@@ -1447,6 +1467,8 @@ pro kcor_l1, date, ok_files, $
               format='(i3)'
 
     ; engineering data
+    fxaddpar, newheader, 'COMMENT', comment_padding + 'Engineering data', $
+              after='WAVEFWHM'
     rcamfocs = struct.rcamfocs
     srcamfocs = strmid(string(struct.rcamfocs), 0, 3)
     if (srcamfocs eq 'NaN') then rcamfocs = 0.0
@@ -1463,41 +1485,6 @@ pro kcor_l1, date, ok_files, $
               ' [mm] camera 1 focus position', format='(f9.3)'
     fxaddpar, newheader, 'MODLTRT',  struct.modltrt, $
               ' [deg C] modulator temperature', format = '(f8.3)'
-
-    fxaddpar, newheader, 'SGSDIMV', finite(struct.sgsdimv) ? struct.sgsdimv : 'NaN', $
-              ' [V] mean Spar Guider Sys. (SGS) DIM signal', $
-              format='(f9.4)'
-    fxaddpar, newheader, 'SGSDIMS', finite(struct.sgsdims) ? struct.sgsdims : 'NaN', $
-              ' [V] SGS DIM signal standard deviation', $
-              format='(e11.3)'
-    fxaddpar, newheader, 'SGSSUMV', finite(struct.sgssumv) ? struct.sgssumv : 'NaN', $
-              ' [V] mean SGS sum signal', format = '(f9.4)'
-    fxaddpar, newheader, 'SGSRAV', finite(struct.sgsrav) ? struct.sgsrav : 'NaN', $
-              ' [V] mean SGS RA error signal', format = '(e11.3)'
-    fxaddpar, newheader, 'SGSRAS', finite(struct.sgsras) ? struct.sgsras : 'NaN', $
-              ' [V] mean SGS RA error standard deviation', $
-              format='(e11.3)'
-    if (check_sgsrazr ne 0) then begin
-      fxaddpar, newheader, 'SGSRAZR', finite(struct.sgsrazr) ? struct.sgsrazr : 'NaN', $
-                ' [arcsec] SGS RA zeropoint offset', format='(f9.4)'
-    endif
-    fxaddpar, newheader, 'SGSDECV', finite(struct.sgsdecv) ? struct.sgsdecv : 'NaN', $
-              ' [V] mean SGS DEC error signal', format='(e11.3)'
-    fxaddpar, newheader, 'SGSDECS',  finite(struct.sgsdecs) ? struct.sgsdecs : 'NaN', $
-              ' [V] mean SGS DEC error standard deviation', $
-              format='(e11.3)'
-    if (check_sgsdeczr ne 0) then begin
-      fxaddpar, newheader, 'SGSDECZR', $
-                finite(struct.sgsdeczr) ? struct.sgsdeczr : 'NaN', $
-                ' [arcsec] SGS DEC zeropoint offset', format = '(f9.4)'
-    endif
-    fxaddpar, newheader, 'SGSSCINT', finite(struct.sgsscint) ? struct.sgsscint : 'NaN', $
-              ' [arcsec] SGS scintillation seeing estimate', $
-              format='(f9.4)'
-    fxaddpar, newheader, 'SGSLOOP',  struct.sgsloop, ' SGS loop closed fraction'
-    fxaddpar, newheader, 'SGSSUMS',  finite(struct.sgssums) ? struct.sgssums : 'NaN', $
-              ' [V] SGS sum signal standard deviation', $
-              format='(e11.3)'
 
     ; component identifiers
     fxaddpar, newheader, 'CALPOLID', struct.calpolid, $
@@ -1536,6 +1523,44 @@ pro kcor_l1, date, ok_files, $
     fxaddpar, newheader, 'RCAMLUT', rcamlut, ' ' + run->epoch('rcamlut_comment')
     fxaddpar, newheader, 'TCAMLUT', tcamlut, ' ' + run->epoch('tcamlut_comment')
 
+    fxaddpar, newheader, 'COMMENT', $
+              comment_padding + 'Spare Guider System information', $
+              after='TCAMLUT'
+    fxaddpar, newheader, 'SGSDIMV', finite(struct.sgsdimv) ? struct.sgsdimv : 'NaN', $
+              ' [V] SGS DIM signal mean', $
+              format='(f9.4)'
+    fxaddpar, newheader, 'SGSDIMS', finite(struct.sgsdims) ? struct.sgsdims : 'NaN', $
+              ' [V] SGS DIM signal standard deviation', $
+              format='(e11.3)'
+    fxaddpar, newheader, 'SGSSUMV', finite(struct.sgssumv) ? struct.sgssumv : 'NaN', $
+              ' [V] mean SGS sum signal', format = '(f9.4)'
+    fxaddpar, newheader, 'SGSRAV', finite(struct.sgsrav) ? struct.sgsrav : 'NaN', $
+              ' [V] mean SGS RA error signal', format = '(e11.3)'
+    fxaddpar, newheader, 'SGSRAS', finite(struct.sgsras) ? struct.sgsras : 'NaN', $
+              ' [V] mean SGS RA error standard deviation', $
+              format='(e11.3)'
+    if (check_sgsrazr ne 0) then begin
+      fxaddpar, newheader, 'SGSRAZR', finite(struct.sgsrazr) ? struct.sgsrazr : 'NaN', $
+                ' [arcsec] SGS RA zeropoint offset', format='(f9.4)'
+    endif
+    fxaddpar, newheader, 'SGSDECV', finite(struct.sgsdecv) ? struct.sgsdecv : 'NaN', $
+              ' [V] mean SGS DEC error signal', format='(e11.3)'
+    fxaddpar, newheader, 'SGSDECS',  finite(struct.sgsdecs) ? struct.sgsdecs : 'NaN', $
+              ' [V] mean SGS DEC error standard deviation', $
+              format='(e11.3)'
+    if (check_sgsdeczr ne 0) then begin
+      fxaddpar, newheader, 'SGSDECZR', $
+                finite(struct.sgsdeczr) ? struct.sgsdeczr : 'NaN', $
+                ' [arcsec] SGS DEC zeropoint offset', format = '(f9.4)'
+    endif
+    fxaddpar, newheader, 'SGSSCINT', finite(struct.sgsscint) ? struct.sgsscint : 'NaN', $
+              ' [arcsec] SGS scintillation seeing estimate', $
+              format='(f9.4)'
+    fxaddpar, newheader, 'SGSLOOP',  struct.sgsloop, ' SGS loop closed fraction'
+    fxaddpar, newheader, 'SGSSUMS',  finite(struct.sgssums) ? struct.sgssums : 'NaN', $
+              ' [V] SGS sum signal standard deviation', $
+              format='(e11.3)'
+
     ; data citation URL
     fxaddpar, newheader, 'DATACITE', run->epoch('doi_url'), ' URL for DOI'
 
@@ -1547,7 +1572,7 @@ pro kcor_l1, date, ok_files, $
                 'coronagraph, which observes the polarization brightness of the corona', $
                 'with a field-of-view from ~1.05 to 3 solar radii in a wavelength range', $
                 'from 720 to 750 nm. Nominal time cadence is 15 seconds.']
-    comments = mg_strwrap(strjoin(comments, ' '), width=72)
+    comments = [mg_strwrap(strjoin(comments, ' '), width=72), '']
     for c = 0L, n_elements(comments) - 1L do begin
       fxaddpar, newheader, 'COMMENT', comments[c]
     endfor
@@ -1556,7 +1581,7 @@ pro kcor_l1, date, ok_files, $
     history = ['Level 1.5 calibration and processing steps: dark current subtracted;', $
                'gain correction; apply polarization demodulation matrix; apply', $
                'distortion correction; align each camera to center, rotate to solar', $
-               'north and combine cameras ; coordinate transformation from cartesian', $
+               'north and combine cameras; coordinate transformation from cartesian', $
                'to tangential polarization; remove sky polarization; correct for', $
                'sky transmission.']
     history = mg_strwrap(strjoin(history, ' '), width=72)
