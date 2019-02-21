@@ -1214,6 +1214,15 @@ pro kcor_l1, date, ok_files, $
     fxaddpar, newheader, 'TELESCOP', 'COSMO K-Coronagraph', $
               ' COSMO: COronal Solar Magnetism Observatory' 
     fxaddpar, newheader, 'INSTRUME', 'COSMO K-Coronagraph'
+
+    ; wavelength information
+    fxaddpar, newheader, 'WAVELNTH', 735, $
+              ' [nm] center wavelength of bandpass filter', $
+              format='(i4)'
+    fxaddpar, newheader, 'WAVEFWHM', 30, $
+              ' [nm] full width half max of bandpass filter', $
+              format='(i3)'
+
     fxaddpar, newheader, 'OBJECT',   struct.object, $
               ' white light polarization brightness'
     fxaddpar, newheader, 'DATATYPE', struct.datatype, ' type of data acquired'
@@ -1442,14 +1451,6 @@ pro kcor_l1, date, ok_files, $
     fxaddpar, newheader, 'SOLARDEC', sol_dec, $
               ' [deg] solar declination', format = '(f9.3)'
 
-    ; wavelength information
-    fxaddpar, newheader, 'WAVELNTH', 735, $
-              ' [nm] center wavelength of bandpass filter', $
-              format='(i4)'
-    fxaddpar, newheader, 'WAVEFWHM', 30, $
-              ' [nm] full width half max of bandpass filter', $
-              format='(i3)'
-
     ; engineering data
     rcamfocs = struct.rcamfocs
     srcamfocs = strmid(string(struct.rcamfocs), 0, 3)
@@ -1545,24 +1546,28 @@ pro kcor_l1, date, ok_files, $
 
     ; add headings
     fxaddpar, newheader, 'COMMENT', $
-              comment_padding + 'Hardware mechanism positions', $
+              comment_padding + 'HARDWARE MECHANISM KEYWORDS GROUPED BELOW', $
               after='OBSERVER'
-    fxaddpar, newheader, 'COMMENT', comment_padding + 'Processing software', $
+    fxaddpar, newheader, 'COMMENT', $
+              comment_padding + 'PROCESSING SOFTWARE KEYWORDS GROUPED BELOW', $
               after='NUMSUM'
-    fxaddpar, newheader, 'COMMENT', comment_padding + 'Scaling', $
+    fxaddpar, newheader, 'COMMENT', $
+              comment_padding + 'SCALING KEYWORDS GROUPED BELOW', $
               after='BOPAL'
     fxaddpar, newheader, 'COMMENT', $
-              comment_padding + 'Coordinate system information', $
+              comment_padding + 'COORDINATE SYSTEM KEYWORDS GROUPED BELOW', $
               after='DISPGAM'
     fxaddpar, newheader, 'COMMENT', $
-              comment_padding + 'Camera occulting information', $
+              comment_padding + 'CAMERA OCCULTING KEYWORDS GROUPED BELOW', $
               after='PC2_2'
-    fxaddpar, newheader, 'COMMENT', comment_padding + 'Ephemeral information', $
-              before='RSUN_OBS'
-    fxaddpar, newheader, 'COMMENT', comment_padding + 'Engineering data', $
-              after='WAVEFWHM'
     fxaddpar, newheader, 'COMMENT', $
-              comment_padding + 'Spare Guider System information', $
+              comment_padding + 'EPHEMERAL KEYWORDS GROUPED BELOW', $
+              before='RSUN_OBS'
+    fxaddpar, newheader, 'COMMENT', $
+              comment_padding + 'ENGINEERING KEYWORDS GROUPED BELOW', $
+              after='SOLARDEC'
+    fxaddpar, newheader, 'COMMENT', $
+              comment_padding + 'SPARE GUIDER SYSTEM KEYWORDS GROUPED BELOW', $
               after='TCAMLUT'
 
     ; fxaddpar, newheader, 'DATASUM', datasum, ' data checksum'
@@ -1574,7 +1579,8 @@ pro kcor_l1, date, ok_files, $
                 'with a field-of-view from ~1.05 to 3 solar radii in a wavelength range', $
                 'from 720 to 750 nm. Nominal time cadence is 15 seconds.']
     comments = [mg_strwrap(strjoin(comments, ' '), width=72), '']
-    for c = 0L, n_elements(comments) - 1L do begin
+    fxaddpar, newheader, 'COMMENT', comments[0], after='DATACITE'
+    for c = 1L, n_elements(comments) - 1L do begin
       fxaddpar, newheader, 'COMMENT', comments[c]
     endfor
 
