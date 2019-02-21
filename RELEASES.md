@@ -246,5 +246,16 @@
   add Carrington rotation to kcor_img database table
   simplify kcor_sw table and add an entry only when version/revision has changed
 1.5.12
-  internal changes: sub-commands for kcor command, specification for config files
+  changed syntax for kcor command, added sub-commands
+  added validate and archive subcommands to kcor command
+  specification for config file and epoch file
   uses camera calibration files with camera ID + date for LUT name
+  formatting in FITS keyword comments
+  more accurate calculation of Carrington rotation number fro FITS keyword CAR_ROT
+  fixes to make simulator work with machine log file
+  add speedup factor to realtime simulator
+  fix bug that realtime processes unlocked raw directory even if they didn't get lock
+  added option to put PID in log messages
+  option to specify NRGF gallery update method via cp or scp (or none)
+  removed extraneous error messages when checking for extra log files in raw directory
+  routing files to specify raw basedir locations
