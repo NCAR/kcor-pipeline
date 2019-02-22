@@ -245,7 +245,7 @@
   caching camera correction parameters
   add Carrington rotation to kcor_img database table
   simplify kcor_sw table and add an entry only when version/revision has changed
-1.5.12
+1.5.12 [Feb 22, 2019]
   changed syntax for kcor command, added sub-commands
   added validate and archive subcommands to kcor command
   specification for config file and epoch file
