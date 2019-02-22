@@ -19,13 +19,13 @@ SCRIPT_LOC=$(canonicalpath $0)
 KCOR_CME_ROOT=$(dirname $SCRIPT_LOC)
 KCOR_ROOT=$(dirname $KCOR_CME_ROOT)
 KCOR_CME_PATH=+${KCOR_CME_ROOT}:+${KCOR_ROOT}/lib:+${KCOR_ROOT}/src:"<IDL_DEFAULT>"
-SHORT_HOSTNAME=$(hostname | sed -e 's/\..*$//')
 
 FLAGS=cme
 
 SCRIPT_NAME=kcor_cme_detection_job
 
-CONFIG_FILENAME=$KCOR_ROOT/config/kcor.$(whoami).$SHORT_HOSTNAME.$FLAGS.cfg
+CONFIG_FILENAME=$KCOR_ROOT/config/kcor.$FLAGS.cfg
 
 IDL_CMD="$SCRIPT_NAME, config_filename='$CONFIG_FILENAME', /realtime"
+
 ${IDL} -IDL_PATH ${KCOR_CME_PATH} -IDL_STARTUP '' -e "${IDL_CMD}"
