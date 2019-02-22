@@ -38,7 +38,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
 
   version = kcor_find_code_version(revision=revision, branch=branch)
   mg_log, 'kcor-pipeline %s (%s) [%s]', version, revision, branch, $
-          name='kcor/rt', /debug
+          name='kcor/rt', /info
   mg_log, 'IDL %s (%s %s)', !version.release, !version.os, !version.arch, $
           name='kcor/rt', /debug
   mg_log, 'starting realtime processing for %s', date, name='kcor/rt', /info
@@ -81,7 +81,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
         goto, done
       endif
     endif else begin
-      mg_log, 'skipping updating/reprocessing', name='kcor/rt', /info
+      mg_log, 'skipping updating/reprocessing', name='kcor/rt', /debug
     endelse
 
     ; need to run on machine at MLSO since data are not zipped there, should not
