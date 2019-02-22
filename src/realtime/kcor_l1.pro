@@ -1247,62 +1247,6 @@ pro kcor_l1, date, ok_files, $
     fxaddpar, newheader, 'NUMSUM', numsum, $
               ' # frames summed per L0 img for each pol state'
 
-    ; software information
-    fxaddpar, newheader, 'QUALITY', img_quality, ' image quality'
-    fxaddpar, newheader, 'LEVEL', 'L1.5', $
-              ' level 1.5 pB Intensity is fully-calibrated'
-
-    ; fxaddpar, newheader, 'DATE-L1', kcor_datecal(), ' Level 1 processing date'
-    ; fxaddpar, newheader, 'L1SWID',  'kcorl1.pro 10nov2015', $
-    ;                      ' Level 1 software'
-
-    check_socketcam = tag_exist(struct, 'SOCKETCA')
-    if (check_socketcam) then begin
-      fxaddpar, newheader, 'SOCKETCA', struct.socketca, ' Socketcam filename'
-    endif
-
-    fxaddpar, newheader, 'DATE_DP', date_dp, ' L1.5 processing date (UTC)'
-    version = kcor_find_code_version(revision=revision, date=code_date)
-
-    fxaddpar, newheader, 'DPSWID',  $
-              string(version, revision, $
-                     format='(%"%s [%s]")'), $
-              string(code_date, $
-                     format='(%" L1.5 data processing software (%s)")')
-
-    if (rcam_cor_filename ne '') then begin
-      fxaddpar, newheader, 'RCAMCORR', file_basename(rcam_cor_filename), $
-                ''
-    endif
-    if (tcam_cor_filename ne '') then begin
-      fxaddpar, newheader, 'TCAMCORR', file_basename(tcam_cor_filename), $
-                ''
-    endif
-
-    fxaddpar, newheader, 'CALFILE', run->epoch('cal_file'), $
-              ' calibration file'
-    fxaddpar, newheader, 'DISTORT', run->epoch('distortion_correction_filename'), $
-              ' distortion file'
-    if (finite(vdimref) && finite(flat_vdimref) && vdimref ne 0.0) then begin
-      skytrans = flat_vdimref / vdimref
-    endif else begin
-      skytrans = 'NaN'
-    endelse
-    fxaddpar, newheader, 'SKYTRANS', skytrans, $
-              ' sky transmission correction normalized to gain image', $
-              format='(F5.3)'
-    fxaddpar, newheader, 'BIASCORR', run->epoch('skypol_bias'), $
-              ' bias added after sky polarization correction', $
-              format='(G0.3)'
-    fxaddpar, newheader, 'ROLLCORR', run->epoch('rotation_correction'), $
-              ' [deg] clockwise offset: spar polar axis align.', $
-              format='(G0.1)'
-
-    fxaddpar, newheader, 'DMODSWID', '2016-05-26', $
-              ' date of demodulation software'
-    fxaddpar, newheader, 'OBSSWID', struct.obsswid, $
-              ' version of the LabVIEW observing software'
-
     fxaddpar, newheader, 'BUNIT', 'B/Bsun', $
               ' brightness with respect to solar disk'
     diffsrid = run->epoch('use_diffsrid') ? struct.diffsrid : run->epoch('diffsrid')
@@ -1376,6 +1320,63 @@ pro kcor_l1, date, ok_files, $
     fxaddpar, newheader, 'PC2_2', 1.00, $
               ' coord transform matrix element (2, 2) WCS std.', $
               format='(f9.3)'
+
+    ; software information
+    fxaddpar, newheader, 'QUALITY', img_quality, ' image quality'
+    fxaddpar, newheader, 'LEVEL', 'L1.5', $
+              ' level 1.5 pB Intensity is fully-calibrated'
+
+    ; fxaddpar, newheader, 'DATE-L1', kcor_datecal(), ' Level 1 processing date'
+    ; fxaddpar, newheader, 'L1SWID',  'kcorl1.pro 10nov2015', $
+    ;                      ' Level 1 software'
+
+    check_socketcam = tag_exist(struct, 'SOCKETCA')
+    if (check_socketcam) then begin
+      fxaddpar, newheader, 'SOCKETCA', struct.socketca, $
+                ' camera interface software filename'
+    endif
+
+    fxaddpar, newheader, 'DATE_DP', date_dp, ' L1.5 processing date (UTC)'
+    version = kcor_find_code_version(revision=revision, date=code_date)
+
+    fxaddpar, newheader, 'DPSWID',  $
+              string(version, revision, $
+                     format='(%"%s [%s]")'), $
+              string(code_date, $
+                     format='(%" L1.5 data processing software (%s)")')
+
+    if (rcam_cor_filename ne '') then begin
+      fxaddpar, newheader, 'RCAMCORR', file_basename(rcam_cor_filename), $
+                ''
+    endif
+    if (tcam_cor_filename ne '') then begin
+      fxaddpar, newheader, 'TCAMCORR', file_basename(tcam_cor_filename), $
+                ''
+    endif
+
+    fxaddpar, newheader, 'CALFILE', run->epoch('cal_file'), $
+              ' calibration file'
+    fxaddpar, newheader, 'DISTORT', run->epoch('distortion_correction_filename'), $
+              ' distortion file'
+    if (finite(vdimref) && finite(flat_vdimref) && vdimref ne 0.0) then begin
+      skytrans = flat_vdimref / vdimref
+    endif else begin
+      skytrans = 'NaN'
+    endelse
+    fxaddpar, newheader, 'SKYTRANS', skytrans, $
+              ' sky transmission correction normalized to gain image', $
+              format='(F5.3)'
+    fxaddpar, newheader, 'BIASCORR', run->epoch('skypol_bias'), $
+              ' bias added after sky polarization correction', $
+              format='(G0.3)'
+    fxaddpar, newheader, 'ROLLCORR', run->epoch('rotation_correction'), $
+              ' [deg] clockwise offset: spar polar axis align.', $
+              format='(G0.1)'
+
+    fxaddpar, newheader, 'DMODSWID', '2016-05-26', $
+              ' date of demodulation software'
+    fxaddpar, newheader, 'OBSSWID', struct.obsswid, $
+              ' version of the LabVIEW observing software'
 
     ; raw camera occulting center & radius information
     fxaddpar, newheader, 'RCAMXCEN', xcen0 + 1, $
@@ -1544,31 +1545,33 @@ pro kcor_l1, date, ok_files, $
     ; data citation URL
     fxaddpar, newheader, 'DATACITE', run->epoch('doi_url'), ' URL for DOI'
 
+    fxaddpar, newheader, 'DUMMY', 1.0
+
     ; add headings
     fxaddpar, newheader, 'COMMENT', $
               comment_padding + 'HARDWARE MECHANISM KEYWORDS GROUPED BELOW', $
-              after='OBSERVER'
-    fxaddpar, newheader, 'COMMENT', $
-              comment_padding + 'PROCESSING SOFTWARE KEYWORDS GROUPED BELOW', $
-              after='NUMSUM'
-    fxaddpar, newheader, 'COMMENT', $
-              comment_padding + 'SCALING KEYWORDS GROUPED BELOW', $
-              after='BOPAL'
+              before='DARKSHUT'
     fxaddpar, newheader, 'COMMENT', $
               comment_padding + 'COORDINATE SYSTEM KEYWORDS GROUPED BELOW', $
-              after='DISPGAM'
+              before='WCSNAME'
+    fxaddpar, newheader, 'COMMENT', $
+              comment_padding + 'PROCESSING SOFTWARE KEYWORDS GROUPED BELOW', $
+              before='QUALITY'
+    fxaddpar, newheader, 'COMMENT', $
+              comment_padding + 'SCALING KEYWORDS GROUPED BELOW', $
+              before='BUNIT'
     fxaddpar, newheader, 'COMMENT', $
               comment_padding + 'CAMERA OCCULTING KEYWORDS GROUPED BELOW', $
-              after='PC2_2'
+              before='RCAMXCEN'
     fxaddpar, newheader, 'COMMENT', $
               comment_padding + 'EPHEMERAL KEYWORDS GROUPED BELOW', $
               before='RSUN_OBS'
     fxaddpar, newheader, 'COMMENT', $
               comment_padding + 'ENGINEERING KEYWORDS GROUPED BELOW', $
-              after='SOLARDEC'
+              before='O1FOCS'
     fxaddpar, newheader, 'COMMENT', $
-              comment_padding + 'SPARE GUIDER SYSTEM KEYWORDS GROUPED BELOW', $
-              after='TCAMLUT'
+              comment_padding + 'SPAR GUIDER SYSTEM KEYWORDS GROUPED BELOW', $
+              before='SGSDIMV'
 
     ; fxaddpar, newheader, 'DATASUM', datasum, ' data checksum'
     ; fxaddpar, newheader, 'CHECKSUM', checksum, ' HDU checksum'
@@ -1579,6 +1582,7 @@ pro kcor_l1, date, ok_files, $
                 'with a field-of-view from ~1.05 to 3 solar radii in a wavelength range', $
                 'from 720 to 750 nm. Nominal time cadence is 15 seconds.']
     comments = [mg_strwrap(strjoin(comments, ' '), width=72), '']
+
     fxaddpar, newheader, 'COMMENT', comments[0], after='DATACITE'
     for c = 1L, n_elements(comments) - 1L do begin
       fxaddpar, newheader, 'COMMENT', comments[c]
@@ -1593,6 +1597,8 @@ pro kcor_l1, date, ok_files, $
                'sky transmission.']
     history = mg_strwrap(strjoin(history, ' '), width=72)
     for h = 0L, n_elements(history) - 1L do sxaddhist, history[h], newheader
+
+    sxdelpar, newheader, 'DUMMY'
 
     ; write FITS image to disk
     writefits, filepath(l1_file, root=l1_dir), corona, newheader
