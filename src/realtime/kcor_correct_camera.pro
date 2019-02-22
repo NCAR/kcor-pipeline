@@ -72,8 +72,8 @@ pro kcor_correct_camera, im, header, $
     tokens = strsplit(tcam_lut, '_', /extract)
     tcam_lut = string(tokens[0], tokens[1], format='(%"%s-%s")')
   endif else begin
-    rcam_lut = run->epoch('rcam_lut')
-    tcam_lut = run->epoch('tcam_lut')
+    rcam_lut = run->epoch('rcamlut')
+    tcam_lut = run->epoch('tcamlut')
   endelse
 
   rcam_cor_filename = filepath(string(prefix, rcamid, exposure, $
