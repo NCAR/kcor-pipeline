@@ -260,3 +260,4 @@
   removed extraneous error messages when checking for extra log files in raw directory
   routing files to specify raw basedir locations
   epoch file updated to apply camera correction starting 20131122
+1.5.13
