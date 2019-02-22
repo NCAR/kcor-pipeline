@@ -264,3 +264,4 @@
   change how config filename is specified to new style for realtime cme detection
 1.5.14 [Feb 22, 2019]
   extra release to get mlso release version to match up
+1.5.15
