@@ -33,7 +33,7 @@ pro kcor_reduce_calibration_write, data, metadata, $
 
   dark = data.dark
   gain = data.gain
-  npick = run.npick
+  npick = run->config('calibration/npick')
   vdimref = metadata.vdimref
   date = metadata.date
   file_list = metadata.file_list
