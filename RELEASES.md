@@ -269,3 +269,4 @@
   fix for config parameter retrieval using old style
 1.5.16 [Feb 23, 2019]
   fix for DLM build date
+1.5.17
