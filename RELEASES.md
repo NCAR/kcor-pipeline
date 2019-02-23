@@ -264,4 +264,6 @@
   change how config filename is specified to new style for realtime cme detection
 1.5.14 [Feb 22, 2019]
   extra release to get mlso release version to match up
-1.5.15
+1.5.15 [Feb 23, 2019]
+  fix when trying to lock raw directory that wasn't created yet
+  fix for config parameter retrieval using old style
