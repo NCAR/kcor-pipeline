@@ -267,4 +267,5 @@
 1.5.15 [Feb 23, 2019]
   fix when trying to lock raw directory that wasn't created yet
   fix for config parameter retrieval using old style
-1.5.16
+1.5.16 [Feb 23, 2019]
+  fix for DLM build date
