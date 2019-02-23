@@ -43,15 +43,16 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
           name='kcor/rt', /debug
   mg_log, 'starting realtime processing for %s', date, name='kcor/rt', /info
 
+  raw_dir = filepath('', subdir=date, root=run->config('processing/raw_basedir'))
+  if (~file_test(raw_dir, /directory)) then file_mkdir, raw_dir
+
   available = kcor_state(/lock, run=run)
 
   if (available) then begin
-    raw_dir = filepath('', subdir=date, root=run->config('processing/raw_basedir'))
     l0_dir = filepath('level0', root=raw_dir)
     l1_dir = filepath('level1', root=raw_dir)
     q_dir = filepath('q', root=raw_dir)
 
-    if (~file_test(raw_dir, /directory)) then file_mkdir, raw_dir
     if (~file_test(l0_dir, /directory)) then file_mkdir, l0_dir
     if (~file_test(l1_dir, /directory)) then file_mkdir, l1_dir
     if (~file_test(q_dir, /directory)) then file_mkdir, q_dir
