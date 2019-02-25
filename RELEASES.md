@@ -269,4 +269,5 @@
   fix for config parameter retrieval using old style
 1.5.16 [Feb 23, 2019]
   fix for DLM build date
-1.5.17
+1.5.17 [Feb 25, 2019]
+  update library routine for handling routing file
