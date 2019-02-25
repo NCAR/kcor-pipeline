@@ -131,6 +131,8 @@ function mg_read_config, filename, $
 
   ; read file
   nlines = file_lines(filename)
+  if (nlines eq 0) then return, h
+
   lines = strarr(nlines)
   openr, lun, filename, /get_lun
   readf, lun, lines
@@ -144,7 +146,7 @@ function mg_read_config, filename, $
     is_comment = stregex(line, '^[[:space:]]*[;#]', /boolean)
     is_section = stregex(line, '^\[', /boolean)
     is_blank = stregex(line, '^[[:space:]]*$', /boolean)
-    is_variable = stregex(line, '^[-.[:alnum:]_$]+[[:space:]]*[=:]', /boolean)
+    is_variable = stregex(line, '^[^=:]+[[:space:]]*[=:]', /boolean)
     is_continuation = stregex(line, '^[[:space:]]+', /boolean)
 
     case 1 of
@@ -170,9 +172,9 @@ function mg_read_config, filename, $
             h->put, name, value, section=section_name
           endif
 
-          tokens = stregex(line, '^([-.[:alnum:]_$]+)[[:space:]]*[=:](.*)', $
+          tokens = stregex(line, '^([^=:]+)[[:space:]]*[=:](.*)', $
                            /extract, /subexpr)
-          name = tokens[1]
+          name = strtrim(tokens[1], 2)
           value = strtrim(tokens[2], 2)
 
           continuing = 1B
