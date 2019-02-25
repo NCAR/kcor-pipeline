@@ -272,3 +272,4 @@
 1.5.17 [Feb 25, 2019]
   update library routine for handling routing file
 1.5.18
+  add epochs to not process bad cal files
