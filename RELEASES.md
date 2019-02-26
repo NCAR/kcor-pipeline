@@ -271,5 +271,7 @@
   fix for DLM build date
 1.5.17 [Feb 25, 2019]
   update library routine for handling routing file
-1.5.18
+1.5.18 [Feb 26, 2019]
   add epochs to not process bad cal files
+  fixed use_camera_info (set too early when [RT]CAMID was OK, but [RC]CAMLUT was not)
+  camera correction doesn't trust [RT]CAMID if use_camera_info is false
