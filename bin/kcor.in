@@ -95,8 +95,10 @@ def validate(args):
 
 # log sub-command
 def filter_log(args):
-    logfiles = [f if f.endswith('.log') else os.path.join(LOG_DIR, f'{f}.{args.type}.log')
-                  for f in args.logfiles]
+    date_prog = re.compile('^\d{8}$')
+    logfiles = [os.path.join(LOG_DIR, f'{f}.{args.type}.log') if date_prog.match(f) else f
+                for f in args.logfiles]
+
     follow = args.follow
     if follow and len(logfiles) > 1:
         print('cannot follow multiple files')
