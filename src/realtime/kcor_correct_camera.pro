@@ -56,22 +56,33 @@ pro kcor_correct_camera, im, header, $
   exposure = sxpar(header, 'EXPTIME')
   if (~run->epoch('use_exptime')) then exposure = run->epoch('exptime')
 
-  tcamid = sxpar(header, 'TCAMID')
-  rcamid = sxpar(header, 'RCAMID')
-
   ; camera calibration filename format
   fmt = '(%"camera_calibration_%s%s_%07.4f_lut%s.%s")'
   prefix = run->epoch('use_camera_prefix') ? run->epoch('camera_prefix') : ''
 
   if (run->epoch('use_camera_info')) then begin
+    tcamid = sxpar(header, 'TCAMID')
+    rcamid = sxpar(header, 'RCAMID')
+
     rcam_lut = sxpar(header, 'RCAMLUT')
-    tokens = strsplit(rcam_lut, '_', /extract)
+    tokens = strsplit(rcam_lut, '_-', /extract, count=n_tokens)
+    if (n_tokens lt 2L) then begin
+      mg_log, 'invalid format for RCAMLUT: %s', rcam_lut, name=logger_name, /warn
+      return
+    endif
+
     rcam_lut = string(tokens[0], tokens[1], format='(%"%s-%s")')
 
     tcam_lut = sxpar(header, 'TCAMLUT')
-    tokens = strsplit(tcam_lut, '_', /extract)
+    tokens = strsplit(tcam_lut, '_-', /extract, count=n_tokens)
+    if (n_tokens lt 2L) then begin
+      mg_log, 'invalid format for TCAMLUT: %s', tcam_lut, name=logger_name, /warn
+      return
+    endif
     tcam_lut = string(tokens[0], tokens[1], format='(%"%s-%s")')
   endif else begin
+    rcamid = run->epoch('rcamid')
+    tcamid = run->epoch('tcamid')
     rcam_lut = run->epoch('rcamlut')
     tcam_lut = run->epoch('tcamlut')
   endelse
