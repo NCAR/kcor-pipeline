@@ -8,7 +8,7 @@ pro kcor_validate_l0, l0_fits_files, spec, logger_name=logger_name, run=run
   body = list()
 
   for f = 0L, n_elements(l0_fits_files) - 1L do begin
-    is_valid = kcor_validate_l0_file(l0_fits_files[f), spec, $
+    is_valid = kcor_validate_l0_file(l0_fits_files[f], spec, $
                                      error_msg=error_msg)
     if (~is_valid) then begin
       body->add, string(l0_fits_files[f], format='(%"%s")')
