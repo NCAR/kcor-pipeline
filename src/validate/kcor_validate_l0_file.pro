@@ -195,9 +195,7 @@ function kcor_validate_l0_file, filename, validation_spec, $
     goto, done
   endif
 
-  fits_open, filename, fcb
-  fits_read, fcb, primary_data, primary_header, exten_no=0
-  fits_close, fcb
+  primary_date = readfits(filename, primary_header, /silent)
 
   ; check primary data
   is_valid = kcor_validate_l0_file_checkdata(primary_data, $
