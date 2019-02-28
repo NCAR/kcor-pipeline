@@ -415,6 +415,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
                      : string(n_rt_errors, n_eod_errors, $
                               format='(%" - %d rt, %d eod errors")')
 
+    mg_log, 'sending notification to %s', run->config('notifications/email'), $
+            name='kcor/eod', /info
     kcor_send_mail, run->config('notifications/email'), $
                     string(run.date, $
                            success ? 'success' : 'problems', $
