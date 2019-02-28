@@ -181,6 +181,7 @@ function kcor_validate_l0_file, filename, validation_spec, $
   compile_opt strictarr
 
   error_list = list()
+  is_valid = 1B
 
   catch, error
   if (error ne 0L) then begin
@@ -195,28 +196,27 @@ function kcor_validate_l0_file, filename, validation_spec, $
     goto, done
   endif
 
-  primary_date = readfits(filename, primary_header, /silent)
+  fits_open, filename, fcb
+  fits_read, fcb, primary_data, primary_header, exten_no=0
+  fits_close, fcb
 
   ; check primary data
-  is_valid = kcor_validate_l0_file_checkdata(primary_data, $
-                                             type=12, $
-                                             n_dimensions=4, $
-                                             dimensions=[1024, 1024, 4, 2], $
-                                             error_list=error_list)
-  if (~is_valid) then goto, done
+  is_data_valid = kcor_validate_l0_file_checkdata(primary_data, $
+                                                  type=12, $
+                                                  n_dimensions=4, $
+                                                  dimensions=[1024, 1024, 4, 2], $
+                                                  error_list=error_list)
+  if (~is_data_valid) then is_valid = 0B
 
   ; read spec
   l0_header_spec = mg_read_config(validation_spec)
 
   ; check primary header against header spec
-  is_valid = kcor_validate_l0_file_checkheader(primary_header, $
-                                               'primary', $
-                                               l0_header_spec, $
-                                               error_list=error_list)
-  if (~is_valid) then goto, done
-
-  ; it's valid if it makes it to here
-  is_valid = 1B
+  is_header_valid = kcor_validate_l0_file_checkheader(primary_header, $
+                                                      'primary', $
+                                                      l0_header_spec, $
+                                                      error_list=error_list)
+  if (~is_header_valid) then is_valid = 0B
 
   done:
 
