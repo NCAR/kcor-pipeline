@@ -276,3 +276,4 @@
   fixed use_camera_info (set too early when [RT]CAMID was OK, but [RC]CAMLUT was not)
   camera correction doesn't trust [RT]CAMID if use_camera_info is false
 1.5.19
+  validate L0 files

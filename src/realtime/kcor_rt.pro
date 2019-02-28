@@ -107,6 +107,14 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       goto, done
     endif
 
+    spec = run->config('realtime/l0_validation_specification')
+    if (n_elements(spec) eq 0L || ~file_test(spec, /regular)) then begin
+      mg_log, 'no spec to validate L0 files against', name='kcor/rt', /info
+    endif else begin
+      mg_log, 'validating %d L0 files', n_l0_fits_files, name='kcor/rt', /info
+      kcor_validate_l0, l0_fits_files, logger_name='kcor/rt', run=run
+    endelse
+
     mg_log, 'checking %d L0 files', n_l0_fits_files, name='kcor/rt', /info
     ok_files = kcor_quality(date, l0_fits_files, /append, $
                             brt_files=brt_files, $

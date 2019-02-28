@@ -3,6 +3,7 @@ add_subdirectory(database)
 add_subdirectory(eod)
 add_subdirectory(realtime)
 add_subdirectory(util)
+add_subdirectory(validate)
 
 configure_file(kcor_find_code_version.pro.in kcor_find_code_version.pro)
 
