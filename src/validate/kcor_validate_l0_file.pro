@@ -193,6 +193,7 @@ function kcor_validate_l0_file, filename, validation_spec, $
 
   if (~file_test(filename, /regular)) then begin
     error_list->add, 'file does not exist'
+    is_valid = 0B
     goto, done
   endif
 

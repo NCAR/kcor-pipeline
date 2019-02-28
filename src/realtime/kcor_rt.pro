@@ -112,7 +112,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       mg_log, 'no spec to validate L0 files against', name='kcor/rt', /info
     endif else begin
       mg_log, 'validating %d L0 files', n_l0_fits_files, name='kcor/rt', /info
-      kcor_validate_l0, l0_fits_files, logger_name='kcor/rt', run=run
+      kcor_validate_l0, l0_fits_files, spec, logger_name='kcor/rt', run=run
     endelse
 
     mg_log, 'checking %d L0 files', n_l0_fits_files, name='kcor/rt', /info

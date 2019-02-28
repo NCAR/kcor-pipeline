@@ -3,14 +3,18 @@
 pro kcor_validate_l0, l0_fits_files, spec, logger_name=logger_name, run=run
   compile_opt strictarr
 
-  all_valid = 1B
-
   body = list()
+
+  n_problem_files = 0L
+  n_problems      = 0L
 
   for f = 0L, n_elements(l0_fits_files) - 1L do begin
     is_valid = kcor_validate_l0_file(l0_fits_files[f], spec, $
                                      error_msg=error_msg)
     if (~is_valid) then begin
+      n_problem_files++
+      n_problems += n_elements(error_msg)
+
       body->add, string(l0_fits_files[f], format='(%"%s")')
       body->add, '    ' + error_msg, /extract
       body->add, ''
@@ -23,7 +27,7 @@ pro kcor_validate_l0, l0_fits_files, spec, logger_name=logger_name, run=run
   endfor
 
   ; send notification if some files are not valid
-  if (~all_valid) then begin
+  if (n_problems gt 0L) then begin
     if (run->config('notifications/send')) then begin
       if (n_elements(run->config('notifications/email')) eq 0L) then begin
         mg_log, 'no email specified to send notification to', name=logger_name, /info
@@ -48,11 +52,12 @@ pro kcor_validate_l0, l0_fits_files, spec, logger_name=logger_name, run=run
     credit = string(mg_src_root(/filename), who, format='(%"Sent from %s (%s)")')
 
     address = run->config('notifications/email')
-    subject = string(run.date, $
-                     format='(%"KCor L0 validation failures for %s")')
+    subject = string(run.date, n_problems, n_problem_files, $
+                     format='(%"KCor L0 validation failures for %s (%d problems in %s files)")')
     body->add, credit
 
-    kcor_send_mail, address, subject, body, error=error, logger_name=logger_name
+    kcor_send_mail, address, subject, body->toArray(), $
+                    error=error, logger_name=logger_name
   endif
 
   done:
