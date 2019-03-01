@@ -233,8 +233,8 @@ end
 
 ; main-level example program
 
-date = '20190227'
-basename = '20190228_015841_kcor.fts.gz'
+date = '20190301'
+basename = '20190301_205539_kcor.fts.gz'
 ;date = '20181201'
 ;basename = '20181201_230127_kcor.fts.gz'
 
