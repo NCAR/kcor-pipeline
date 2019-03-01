@@ -3,12 +3,12 @@
 function kcor_dutycycle_parsedt, dt
   compile_opt strictarr
 
-  return, long([strmid(dt, 0, 4), $
-                strmid(dt, 5, 2), $
-                strmid(dt, 8, 2), $
-                strmid(dt, 11, 2), $
-                strmid(dt, 14, 2), $
-                strmid(dt, 17, 2)])
+  return, long([[strmid(dt, 0, 4)], $
+                [strmid(dt, 5, 2)], $
+                [strmid(dt, 8, 2)], $
+                [strmid(dt, 11, 2)], $
+                [strmid(dt, 14, 2)], $
+                [strmid(dt, 17, 2)]])
 end
 
 
@@ -42,28 +42,44 @@ pro kcor_dutycycle, start_date, end_date, $
   mg_log, 'found %d days between %s and %s', n_days, start_date, end_date, /info
 
   dts         = kcor_dutycycle_parsedt(days.obs_day)
-  dates       = julday(dts[1], dts[2], dts[0], dts[3], dts[4], dts[5])
+  dates       = julday(dts[*, 1], dts[*, 2], dts[*, 0], dts[*, 3], dts[*, 4], dts[*, 5])
   n_images    = days.num_kcor_pb_fits
 
-  start_times = fltarr(n_days)
-  end_times   = fltarr(n_days)
-
+  start_times = dblarr(n_days)
+  end_times   = dblarr(n_days)
 
   for d = 0L, n_days - 1L do begin
-    query = 'select min(date_obs) from kcor_img where obs_day=%d'
+    query = 'select min(date_obs) from kcor_img where obs_day=%d and producttype=1'
     mins = db->query(query, $
                      days[d].day_id, $
                      status=status, error_message=error_message, sql_statement=sql_cmd)
     dt = kcor_dutycycle_parsedt(mins.min_date_obs_[0])
     start_times[d] = julday(dt[1], dt[2], dt[0], dt[3], dt[4], dt[5])
 
-    query = 'select max(date_obs) from kcor_img where obs_day=%d'
+    query = 'select max(date_obs) from kcor_img where obs_day=%d and producttype=1'
     mins = db->query(query, $
                      days[d].day_id, $
                      status=status, error_message=error_message, sql_statement=sql_cmd)
     dt = kcor_dutycycle_parsedt(mins.max_date_obs_[0])
     end_times[d] = julday(dt[1], dt[2], dt[0], dt[3], dt[4], dt[5])
+
+    ;mg_log, 'start: %0.5f, end: %0.5f', start_times[d], end_times[d], /debug
   endfor
+
+  ; remove
+  ind = where(24.0 * 60.0 * 60.0 * (end_times - start_times) gt 1.0, count)
+  mg_log, 'keeping %d dates', count, /info
+  dates = dates[ind]
+  start_times = start_times[ind]
+  end_times = end_times[ind]
+  n_images = n_images[ind]
+
+  ; sort by date
+  ind = sort(dates)
+  dates = dates[ind]
+  start_times = start_times[ind]
+  end_times = end_times[ind]
+  n_images = n_images[ind]
 
   ; cache values in .sav file
   save, dates, start_times, end_times, n_images, filename=cache_filename
@@ -71,18 +87,39 @@ pro kcor_dutycycle, start_date, end_date, $
   plot_results:
 
   ; setup plotting
-  mg_window, xsize=5, ysize=4, /inches
-  !p.multi = [0, 2, 1]
+  use_ps = 1B
+  if (keyword_set(use_ps)) then begin
+    basename = 'duty-cycle'
+    mg_psbegin, filename=basename + '.ps', /color
+    font = 1
+  endif else begin
+    font = 0
+  endelse
+
+  mg_window, xsize=9, ysize=8, /inches, /free
+  !p.multi = [0, 1, 2]
+
+  !null = label_date(date_format='%M %Y')
 
   ; plot date/time vs. length of days
-  plot, dates, end_times - start_times, psym=3
+  plot, dates, 24.0 * (end_times - start_times), $
+        psym=3, font=font, $
+        xstyle=1, xtitle='dates', xtickformat='label_date', $
+        ystyle=1, yrange=[0.0, 12.0], ytitle='hours'
 
   ; plot date/time vs. % of full data
   n_images_per_day = 4 * 60 * 24
-  duty_cycle = n_images * (end_times - start_times) / n_images_per_day
-  plot, dates, duty_cycle, psym=3
+  duty_cycle = 100.0 * n_images / (end_times - start_times) / n_images_per_day
+  plot, dates, duty_cycle, $
+        psym=3, font=font, $
+        xstyle=1, xtitle='dates', xtickformat='label_date', $
+        ystyle=1, yrange=[0.0, 100.0], ytitle='% observing'
 
   !p.multi = 0
+
+  if (keyword_set(use_ps)) then begin
+    mg_psend
+  endif
 
   ; cleanup
   if (obj_valid(db)) then obj_destroy, db
@@ -95,5 +132,18 @@ kcor_dutycycle, '2013-09-30', $
                 '2019-12-31', $
                 database_config_filename='~/.mysqldb', $
                 database_config_section='mgalloy@databases'
+
+restore, filename='duty-cycle-info.sav'
+t = mg_table()
+caldat, dates, months, days, years, hours, minutes, seconds
+dates_string = string(years, format='(I04)') $
+                 + string(months, format='(I02)') $
+                 + string(days, format='(I02)')
+t['date'] = dates_string
+t['n_images'] = n_images 
+t['length'] = 24.0 * (end_times - start_times)
+n_images_per_day = 4 * 60 * 24
+t['duty_cycle'] = 100.0 * n_images / (end_times - start_times) / n_images_per_day
+t.n_rows_to_print = 1500
 
 end
