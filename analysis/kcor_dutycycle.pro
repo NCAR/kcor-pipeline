@@ -90,20 +90,21 @@ pro kcor_dutycycle, start_date, end_date, $
   use_ps = 1B
   if (keyword_set(use_ps)) then begin
     basename = 'duty-cycle'
-    mg_psbegin, filename=basename + '.ps', /color
+    mg_psbegin, filename=basename + '.ps', /color, $
+                xsize=10.0, ysize=8.0, /inches, /landscape, xoffset=0.0
     font = 1
   endif else begin
+    mg_window, xsize=9, ysize=8, /inches, /free
     font = 0
   endelse
 
-  mg_window, xsize=9, ysize=8, /inches, /free
   !p.multi = [0, 1, 2]
 
   !null = label_date(date_format='%M %Y')
 
   ; plot date/time vs. length of days
   plot, dates, 24.0 * (end_times - start_times), $
-        psym=3, font=font, $
+        psym=3, font=font, title='Length of observing days',$
         xstyle=1, xtitle='dates', xtickformat='label_date', $
         ystyle=1, yrange=[0.0, 12.0], ytitle='hours'
 
@@ -111,7 +112,7 @@ pro kcor_dutycycle, start_date, end_date, $
   n_images_per_day = 4 * 60 * 24
   duty_cycle = 100.0 * n_images / (end_times - start_times) / n_images_per_day
   plot, dates, duty_cycle, $
-        psym=3, font=font, $
+        psym=3, font=font, title='Percentage of day with images', $
         xstyle=1, xtitle='dates', xtickformat='label_date', $
         ystyle=1, yrange=[0.0, 100.0], ytitle='% observing'
 
