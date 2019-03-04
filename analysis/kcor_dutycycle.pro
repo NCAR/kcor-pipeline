@@ -88,14 +88,19 @@ pro kcor_dutycycle, start_date, end_date, $
 
   ; setup plotting
   use_ps = 1B
+
+  mg_decomposed, 1, old_decomposed=odec
+
   if (keyword_set(use_ps)) then begin
     basename = 'duty-cycle'
-    mg_psbegin, filename=basename + '.ps', /color, $
+    mg_psbegin, filename=basename + '.ps', /color, bits_per_pixel=8, $
                 xsize=10.0, ysize=8.0, /inches, /landscape, xoffset=0.0
+    charsize = 1.0
     font = 1
   endif else begin
     mg_window, xsize=9, ysize=8, /inches, /free
-    font = 0
+    charsize = 1.5
+    font = 1
   endelse
 
   !p.multi = [0, 1, 2]
@@ -104,7 +109,7 @@ pro kcor_dutycycle, start_date, end_date, $
 
   ; plot date/time vs. length of days
   plot, dates, 24.0 * (end_times - start_times), $
-        psym=3, font=font, title='Length of observing days',$
+        psym=3, font=font, charsize=charsize, title='Length of observing days', $
         xstyle=1, xtitle='dates', xtickformat='label_date', $
         ystyle=1, yrange=[0.0, 12.0], ytitle='hours'
 
@@ -112,7 +117,7 @@ pro kcor_dutycycle, start_date, end_date, $
   n_images_per_day = 4 * 60 * 24
   duty_cycle = 100.0 * n_images / (end_times - start_times) / n_images_per_day
   plot, dates, duty_cycle, $
-        psym=3, font=font, title='Percentage of day with images', $
+        psym=3, font=font, charsize=charsize, title='Percentage of day with images', $
         xstyle=1, xtitle='dates', xtickformat='label_date', $
         ystyle=1, yrange=[0.0, 100.0], ytitle='% observing'
 
@@ -121,6 +126,54 @@ pro kcor_dutycycle, start_date, end_date, $
   if (keyword_set(use_ps)) then begin
     mg_psend
   endif
+
+  if (keyword_set(use_ps)) then begin
+    basename = 'duty-cycle-histogram'
+    mg_psbegin, filename=basename + '.ps', /color, bits_per_pixel=8, $
+                xsize=10.0, ysize=8.0, /inches, /landscape, xoffset=0.0
+    charsize = 1.0
+    font = 1
+    axis_color = '000000'x
+    fill_color = '606060'x
+  endif else begin
+    mg_window, xsize=9, ysize=8, /inches, /free
+    charsize = 1.5
+    font = 1
+    axis_color = 'ffffff'x
+    fill_color = '808080'x
+  endelse
+
+  !p.multi = [0, 1, 2]
+
+  nbins = 48
+
+  h = histogram(24.0 * (end_times - start_times), $
+                min=0.0, max=12.0, nbins=nbins, $
+                locations=bins)
+  mg_histplot, bins, h, $
+               ticklen=-0.01, font=font, charsize=charsize, $
+               /fill, color=fill_color, axis_color=axis_color, $
+               xstyle=1, xtitle='hours', $
+               ytitle='number of days', $
+               title='Length of observing day'
+
+  h = histogram(24.0 * n_images / n_images_per_day, $
+                min=0.0, max=12.0, nbins=nbins, $
+                locations=bins)
+  mg_histplot, bins, h, $
+               ticklen=-0.01, font=font, charsize=charsize, $
+               /fill, color=fill_color, axis_color=axis_color, $
+               xstyle=1, xtitle='hours', $
+               ytitle='number of days', $
+               title='Length of observed day'
+
+  !p.multi = 0
+
+  if (keyword_set(use_ps)) then begin
+    mg_psend
+  endif
+
+  device, decomposed=odec
 
   ; cleanup
   if (obj_valid(db)) then obj_destroy, db
