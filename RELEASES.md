@@ -277,3 +277,4 @@
   camera correction doesn't trust [RT]CAMID if use_camera_info is false
 1.5.19
   validate L0 files
+  handle camera correction of a single camera

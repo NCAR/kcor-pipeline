@@ -68,80 +68,93 @@ pro kcor_correct_camera, im, header, $
     tokens = strsplit(rcam_lut, '_-', /extract, count=n_tokens)
     if (n_tokens lt 2L) then begin
       mg_log, 'invalid format for RCAMLUT: %s', rcam_lut, name=logger_name, /warn
-      return
-    endif
-
-    rcam_lut = string(tokens[0], tokens[1], format='(%"%s-%s")')
+      correct_rcam = 0B
+    endif else begin
+      correct_rcam = 1B
+      rcam_lut = string(tokens[0], tokens[1], format='(%"%s-%s")')
+    endelse
 
     tcam_lut = sxpar(header, 'TCAMLUT')
     tokens = strsplit(tcam_lut, '_-', /extract, count=n_tokens)
     if (n_tokens lt 2L) then begin
       mg_log, 'invalid format for TCAMLUT: %s', tcam_lut, name=logger_name, /warn
-      return
-    endif
-    tcam_lut = string(tokens[0], tokens[1], format='(%"%s-%s")')
+      correct_tcam = 0B
+    endif else begin
+      correct_tcam = 1B
+      tcam_lut = string(tokens[0], tokens[1], format='(%"%s-%s")')
+    endelse
   endif else begin
+    correct_rcam = 1B
+    correct_tcam = 1B
     rcamid = run->epoch('rcamid')
     tcamid = run->epoch('tcamid')
     rcam_lut = run->epoch('rcamlut')
     tcam_lut = run->epoch('tcamlut')
   endelse
 
-  rcam_cor_filename = filepath(string(prefix, rcamid, exposure, $
-                                      rcam_lut, 'ncdf', $
-                                      format=fmt), $
-                               root=run->config('calibration/camera_correction_dir'))
-  if (file_test(rcam_cor_filename)) then begin
-    mg_log, 'RCAM correction: %s', rcam_cor_filename, name=logger_name, /debug
-  endif else begin
-    mg_log, '%s not found', rcam_cor_filename, name=logger_name, /error
-    rcam_cor_filename = ''
-    return
-  endelse
+  ; correct RCAM
+  if (correct_rcam) then begin
+    rcam_cor_filename = filepath(string(prefix, rcamid, exposure, $
+                                        rcam_lut, 'ncdf', $
+                                        format=fmt), $
+                                 root=run->config('calibration/camera_correction_dir'))
+    if (file_test(rcam_cor_filename)) then begin
+      mg_log, 'RCAM correction: %s', rcam_cor_filename, name=logger_name, /debug
+    endif else begin
+      mg_log, '%s not found', rcam_cor_filename, name=logger_name, /error
+      rcam_cor_filename = ''
+      return
+    endelse
 
-  rcam_cor_cache_filename = filepath(string(prefix, rcamid, exposure, $
-                                            rcam_lut, 'sav', $
-                                            format=fmt), $
-                                     subdir='.cache', $
-                                     root=run->config('calibration/camera_correction_dir'))
+    rcam_cor_cache_filename = filepath(string(prefix, rcamid, exposure, $
+                                              rcam_lut, 'sav', $
+                                              format=fmt), $
+                                       subdir='.cache', $
+                                       root=run->config('calibration/camera_correction_dir'))
 
-  fp[*, *, *, 0] = kcor_read_camera_correction(rcam_cor_filename, $
-                                               rcam_cor_cache_filename, $
-                                               bad_columns=rbad_columns, $
-                                               n_bad_columns=n_rbad_columns, $
-                                               bad_values=rbad_values, $
-                                               n_bad_values=n_rbad_values, $
-                                               interpolate=interpolate)
-  mg_log, 'RCAM fit: %d bad cols, %d bad values', n_rbad_columns, n_rbad_values, $
-          name=logger_name, /debug
+    fp[*, *, *, 0] = kcor_read_camera_correction(rcam_cor_filename, $
+                                                 rcam_cor_cache_filename, $
+                                                 bad_columns=rbad_columns, $
+                                                 n_bad_columns=n_rbad_columns, $
+                                                 bad_values=rbad_values, $
+                                                 n_bad_values=n_rbad_values, $
+                                                 interpolate=interpolate)
+    mg_log, 'RCAM fit: %d bad cols, %d bad values', n_rbad_columns, n_rbad_values, $
+            name=logger_name, /debug
+  endif
 
-  tcam_cor_filename = filepath(string(prefix, tcamid, exposure, $
-                                      tcam_lut, 'ncdf', $
-                                      format=fmt), $
-                               root=run->config('calibration/camera_correction_dir'))
-  if (file_test(tcam_cor_filename)) then begin
-    mg_log, 'TCAM correction: %s', tcam_cor_filename, name=logger_name, /debug
-  endif else begin
-    mg_log, '%s not found', tcam_cor_filename, name=logger_name, /error
-    tcam_cor_filename = ''
-    return
-  endelse
+  ; correct TCAM
 
-  tcam_cor_cache_filename = filepath(string(prefix, tcamid, exposure, $
-                                            tcam_lut, 'sav', $
-                                            format=fmt), $
-                                     subdir='.cache', $
-                                     root=run->config('calibration/camera_correction_dir'))
+  if (correct_tcam) then begin
+    tcam_cor_filename = filepath(string(prefix, tcamid, exposure, $
+                                        tcam_lut, 'ncdf', $
+                                        format=fmt), $
+                                 root=run->config('calibration/camera_correction_dir'))
+    if (file_test(tcam_cor_filename)) then begin
+      mg_log, 'TCAM correction: %s', tcam_cor_filename, name=logger_name, /debug
+    endif else begin
+      mg_log, '%s not found', tcam_cor_filename, name=logger_name, /error
+      tcam_cor_filename = ''
+      return
+    endelse
 
-  fp[*, *, *, 1] = kcor_read_camera_correction(tcam_cor_filename, $
-                                               tcam_cor_cache_filename, $
-                                               bad_columns=tbad_columns, $
-                                               n_bad_columns=n_tbad_columns, $
-                                               bad_values=tbad_values, $
-                                               n_bad_values=n_tbad_values, $
-                                               interpolate=interpolate)
-  mg_log, 'TCAM fit: %d bad cols, %d bad values', n_tbad_columns, n_tbad_values, $
-          name=logger_name, /debug
+    tcam_cor_cache_filename = filepath(string(prefix, tcamid, exposure, $
+                                              tcam_lut, 'sav', $
+                                              format=fmt), $
+                                       subdir='.cache', $
+                                       root=run->config('calibration/camera_correction_dir'))
+
+    fp[*, *, *, 1] = kcor_read_camera_correction(tcam_cor_filename, $
+                                                 tcam_cor_cache_filename, $
+                                                 bad_columns=tbad_columns, $
+                                                 n_bad_columns=n_tbad_columns, $
+                                                 bad_values=tbad_values, $
+                                                 n_bad_values=n_tbad_values, $
+                                                 interpolate=interpolate)
+    mg_log, 'TCAM fit: %d bad cols, %d bad values', n_tbad_columns, n_tbad_values, $
+            name=logger_name, /debug
+  endif
+
 
   if (n_elements(xoffset) gt 0L) then fp = shift(fp, xoffset, 0, 0, 0)
 
@@ -151,11 +164,16 @@ pro kcor_correct_camera, im, header, $
   scale = 2L^(bitpix - 9L) * numsum - 1L
   im /= scale
 
+  camera_indices = where([correct_rcam, correct_tcam], n_cameras_to_correct)
   for p = 0L, n_polstates - 1L do begin
-    for c = 0L, n_cameras - 1L do begin
-      x = im[*, *, p, c]
-      im[*, *, p, c] = fp[*, *, 0, c] + fp[*, *, 1, c] * x + fp[*, *, 2, c] * x^2 $
-                         + fp[*, *, 3, c] * x^3 + fp[*, *, 4, c] * x^4
+    for c = 0L, n_cameras_to_correct - 1L do begin
+      camera = camera_indices[c]
+      x = im[*, *, p, camera]
+      im[*, *, p, camera] = fp[*, *, 0, camera] $
+                              + fp[*, *, 1, camera] * x $
+                              + fp[*, *, 2, camera] * x^2 $
+                              + fp[*, *, 3, camera] * x^3 $
+                              + fp[*, *, 4, camera] * x^4
     endfor
   endfor
 
