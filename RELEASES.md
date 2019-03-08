@@ -278,3 +278,5 @@
 1.5.19
   validate L0 files
   handle camera correction of a single camera
+  update epochs.cfg with new versions of hard-coded cal files
+  safer comparison to match exposure times between cal file and sci file
