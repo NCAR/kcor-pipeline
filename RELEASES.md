@@ -280,3 +280,4 @@
   handle camera correction of a single camera
   update epochs.cfg with new versions of hard-coded cal files
   safer comparison to match exposure times between cal file and sci file
+1.5.20
