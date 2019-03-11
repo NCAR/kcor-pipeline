@@ -610,7 +610,7 @@ pro kcor_l1, date, ok_files, $
       continue
     endif else begin
       if (abs(cal_exptime - struct.exptime) gt 1e-3) then begin
-        mg_log, 'cal file EXPTIME (%0.1f ms) does not match file (%0.1f ms) for %s', $
+        mg_log, 'cal file EXPTIME (%0.2f ms) does not match file (%0.2f ms) for %s', $
                 cal_exptime, struct.exptime, file_basename(l0_file), $
                 name=log_name, /error
         mg_log, 'skipping file %s', file_basename(l0_file), name=log_name, /error
