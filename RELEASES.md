@@ -280,7 +280,7 @@
   handle camera correction of a single camera
   update epochs.cfg with new versions of hard-coded cal files
   safer comparison to match exposure times between cal file and sci file
-1.5.20
+1.5.20 [Mar 12, 2019]
   update validation file for new (old) TCAM
   update epochs file for odd data taken on 20131122
   increase to 2 digits of accuracy after decimal for display of exposure time
