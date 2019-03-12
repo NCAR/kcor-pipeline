@@ -285,3 +285,4 @@
   update epochs file for odd data taken on 20131122
   increase to 2 digits of accuracy after decimal for display of exposure time
   can remove horizontal artifacts in a single camera, i.e., 20190307-
+1.5.21
