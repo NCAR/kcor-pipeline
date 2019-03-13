@@ -33,6 +33,7 @@ fi
 
 source ${BIN_DIR}/kcor_include.sh
 
+CONFIG_FLAG=$1
 END_DATE=$3
 d=$DATE
 
