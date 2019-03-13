@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# This script launches the runkcor_process.sh script for a series of days.
+# This script launches the runkcor_calibrate.sh script for a series of days.
 
 canonicalpath() {
   if [ -d $1 ]; then
@@ -33,6 +33,7 @@ fi
 
 source ${BIN_DIR}/kcor_include.sh
 
+CONFIG_FLAG=$1
 END_DATE=$3
 
 d=$DATE
