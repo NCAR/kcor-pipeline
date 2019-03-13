@@ -287,3 +287,4 @@
   can remove horizontal artifacts in a single camera, i.e., 20190307-
 1.6.0 [Mar 13, 2019]
   release for reprocessing, no new changes
+1.6.1
