@@ -1112,7 +1112,11 @@ pro kcor_l1, date, ok_files, $
     ; image has been shifted to center of array
     ; draw circle at photosphere
     if (~keyword_set(nomask)) then begin
-      tvcircle, r_photo, 511.5, 511.5, color=255, /device
+      ; TODO: put N, S, E, W on image
+      kcor_add_directions, fltarr(2) + 511.5, r_photo, $
+                           charsize=1.5, dimensions=lonarr(2) + 1024L
+      kcor_suncircle, 1024, 1024, 511.5, 511.5, 0, 0, r_photo, 0.0, log_name=log_name
+      ;tvcircle, r_photo, 511.5, 511.5, color=255, /device
     endif
 
     device, decomposed=1
@@ -1614,7 +1618,7 @@ pro kcor_l1, date, ok_files, $
     endif
 
     ; now make cropped GIF file
-    kcor_cropped_gif, corona, date, date_struct, run=run, nomask=nomask
+    kcor_cropped_gif, corona, date, date_struct, run=run, nomask=nomask, log_name=log_name
 
     ; create NRG (normalized, radially-graded) GIF image
     cd, l1_dir

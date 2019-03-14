@@ -28,7 +28,7 @@ pro kcor_cropped_gif, im, date, date_obs, $
                       nomask=nomask, $
                       daily=daily, average=average, $
                       output_filename=cgif_filename, $
-                      run=run
+                      run=run, log_name=log_name
   compile_opt strictarr
 
   start_index = 256L
@@ -92,7 +92,11 @@ pro kcor_cropped_gif, im, date, date_obs, $
   sun, date_obs.year, date_obs.month, date_obs.day, date_obs.ehour, $
        sd=radsun
   r_photosphere = radsun / run->epoch('plate_scale')
-  tvcircle, r_photosphere, 255.5, 255.5, color=255, /device
+  ; TODO: put N, S, E, W on image
+  kcor_add_directions, [255.5, 255.5], r_photosphere, $
+                       charsize=1.0, /cropped, dimensions=[512, 512], color=255
+  kcor_suncir, 512, 512, 255.5, 255.5, 0, 0, r_photosphere, 0.0, log_name=log_name
+  ;tvcircle, r_photosphere, 255.5, 255.5, color=255, /device
 
   ; save
   raster = tvrd()

@@ -271,17 +271,21 @@ pro kcor_nrgf, fits_file, $
   big_charsize = keyword_set(cropped) ? 1.25 : 1.5
   charsize = keyword_set(cropped) ? 1.0 : 1.2
 
-  cneg = fix(ycen - r_photo) - keyword_set(cropped) * 4
-  cpos = fix(ycen + r_photo) + keyword_set(cropped) * 6
+  kcor_add_directions, [xcen, ycen], r_photo, $
+                       cropped=cropped, $
+                       dimensions=[out_xdim, out_ydim], $
+                       charsize=big_charsize, color=254
+  ;cneg = fix(ycen - r_photo) - keyword_set(cropped) * 4
+  ;cpos = fix(ycen + r_photo) + keyword_set(cropped) * 6
 
-  xyouts, out_xdim / 2, cpos - 24, 'N', $
-          alignment=0.5, color=254, charsize=big_charsize, /device
-  xyouts, cneg + 12, out_ydim / 2 - 7, 'E', $
-          color=254, charsize=big_charsize, /device
-  xyouts, out_xdim / 2, cneg + 12, 'S', $
-          alignment=0.5, color=254, charsize=big_charsize, /device
-  xyouts, cpos - 24, out_ydim / 2 - 7, 'W', $
-          color=254, charsize=big_charsize, /device
+  ;xyouts, out_xdim / 2, cpos - 24, 'N', $
+  ;        alignment=0.5, color=254, charsize=big_charsize, /device
+  ;xyouts, cneg + 12, out_ydim / 2 - 7, 'E', $
+  ;        color=254, charsize=big_charsize, /device
+  ;xyouts, out_xdim / 2, cneg + 12, 'S', $
+  ;        alignment=0.5, color=254, charsize=big_charsize, /device
+  ;xyouts, cpos - 24, out_ydim / 2 - 7, 'W', $
+  ;        color=254, charsize=big_charsize, /device
 
   ; image has been shifted to center of array
   ; draw circle at photosphere

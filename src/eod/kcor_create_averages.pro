@@ -319,8 +319,13 @@ pro kcor_create_averages, date, l1_files, run=run
             color=255, charsize=1.2, /device, alignment=1.0
 
     ; image has been shifted to center of array
+    kcor_add_directions, [511.5, 511.5], r_photo, $
+                         dimensions=[1024, 1024], $
+                         charsize=1.0, color=255
+    kcor_suncir, 1024, 1024, 511.5, 511.5, 0, 0, r_photo, 0.0, log_name='kcor/eod'
+
     ; draw circle at photosphere
-    tvcircle, r_photo, 511.5, 511.5, color=255, /device
+    ;tvcircle, r_photo, 511.5, 511.5, color=255, /device
 
     save = tvrd()
 
@@ -332,7 +337,8 @@ pro kcor_create_averages, date, l1_files, run=run
 
     ; create cropped (512 x 512) GIF images
     kcor_cropped_gif, bscale * avgimg, date, kcor_parse_dateobs(date_obs), $
-                      /average, output_filename=cgif_filename, run=run
+                      /average, output_filename=cgif_filename, run=run, $
+                      log_name='kcor/eod'
     if (run->config('realtime/distribute')) then begin
       file_copy, cgif_filename, cropped_dir, /overwrite
     endif
