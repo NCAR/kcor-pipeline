@@ -288,3 +288,6 @@
 1.6.0 [Mar 13, 2019]
   release for reprocessing, no new changes
 1.6.1
+  hostname in start of log messages
+  grid on pB, difference, and average GIF images
+  epoch file updates
