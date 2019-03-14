@@ -1115,7 +1115,7 @@ pro kcor_l1, date, ok_files, $
       ; TODO: put N, S, E, W on image
       kcor_add_directions, fltarr(2) + 511.5, r_photo, $
                            charsize=1.5, dimensions=lonarr(2) + 1024L
-      kcor_suncircle, 1024, 1024, 511.5, 511.5, 0, 0, r_photo, 0.0, log_name=log_name
+      kcor_suncir, 1024, 1024, 511.5, 511.5, 0, 0, r_photo, 0.0, log_name=log_name
       ;tvcircle, r_photo, 511.5, 511.5, color=255, /device
     endif
 
