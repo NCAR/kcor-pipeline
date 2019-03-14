@@ -35,8 +35,13 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   !except = 0
 
   version = kcor_find_code_version(revision=revision, branch=branch)
-  mg_log, 'kcor-pipeline %s (%s) [%s]', version, revision, branch, $
-          name='kcor/eod', /debug
+  full_hostname = mg_hostname()
+  hostname_tokens = strsplit(full_hostname, '.', /extract)
+  hostname = hostname_tokens[0]
+  mg_log, 'kcor-pipeline %s (%s) [%s] on %s', $
+          version, revision, branch, hostname, $
+          name='kcor/eod', /info
+
   mg_log, 'IDL %s (%s %s)', !version.release, !version.os, !version.arch, $
           name='kcor/eod', /debug
   mg_log, 'starting end-of-day processing for %s', date, name='kcor/eod', /info
@@ -433,6 +438,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   done:
   mg_log, /check_math, name='kcor/eod', /debug
   mg_log, 'done', name='kcor/eod', /info
+
   obj_destroy, run
 end
 
