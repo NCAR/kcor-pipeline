@@ -152,7 +152,10 @@ pro kcor_plotraw, date, list=list, run=run, $
 
     for c = 0, 1 do begin
       info_raw  = kcor_find_image(im[*, *, 0, c], $
-                                  radius_guess, /center_guess, log_name='kcor/eod')
+                                  radius_guess, $
+                                  /center_guess, $
+                                  max_center_difference=run->epoch('max_center_difference'), $
+                                  log_name='kcor/eod')
 
       x_0 = info_raw[0]
       y_0 = info_raw[1]

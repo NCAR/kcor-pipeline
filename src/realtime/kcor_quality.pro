@@ -449,7 +449,9 @@ function kcor_quality, date, l0_fits_files, append=append, $
       rdisc_pix = radius_guess
     endif else begin   ; locate disc center
       center_info = kcor_find_image(img00, radius_guess, chisq=chisq, $
-                                    /center_guess, log_name='kcor/rt')
+                                    /center_guess, $
+                                    max_center_difference=run->epoch('max_center_difference'), $
+                                    log_name='kcor/rt')
       xcen = center_info[0]        ; x offset
       ycen = center_info[1]        ; y offset
       rdisc_pix = center_info[2]   ; radius of occulter [pixels]

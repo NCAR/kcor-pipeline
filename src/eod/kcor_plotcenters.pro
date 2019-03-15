@@ -285,9 +285,11 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
     rocc0_pix = 0.0
     rocc1_pix = 0.0
-
+    max_center_difference = run->epoch('max_center_difference')
     cen0_info = kcor_find_image(img0, chisq=chisq, radius_guess, $
-                                /center_guess, log_name='kcor/eod')
+                                /center_guess, $
+                                max_center_difference=max_center_difference, $
+                                log_name='kcor/eod')
     xcen0 = cen0_info[0]   ; x center
     ycen0 = cen0_info[1]   ; y center
     rocc0 = cen0_info[2]   ; radius of occulter [pixels]
@@ -296,7 +298,9 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     frocc0[i] = rocc0
 
     cen1_info = kcor_find_image(img1, chisq=chisq, radius_guess, $
-                                /center_guess, log_name='kcor/eod')
+                                /center_guess, $
+                                max_center_difference=max_center_difference, $
+                                log_name='kcor/eod')
     xcen1 = cen1_info[0]   ; x center
     ycen1 = cen1_info[1]   ; y center
     rocc1 = cen1_info[2]   ; radius of occulter [pixels]
@@ -306,9 +310,13 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
 
     dc_cen0_info = kcor_find_image(dc_img0, chisq=chisq, radius_guess, $
-                                   /center_guess, log_name='kcor/eod')
+                                   /center_guess, $
+                                   max_center_difference=max_center_difference, $
+                                   log_name='kcor/eod')
     dc_cen1_info = kcor_find_image(dc_img1, chisq=chisq, radius_guess, $
-                                   /center_guess, log_name='kcor/eod')
+                                   /center_guess, $
+                                   max_center_difference=max_center_difference, $
+                                   log_name='kcor/eod')
     dcr_diff[i] = dc_cen0_info[2] - dc_cen1_info[2]
 
 

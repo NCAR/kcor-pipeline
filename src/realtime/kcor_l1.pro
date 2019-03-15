@@ -685,8 +685,11 @@ pro kcor_l1, date, ok_files, $
     ; find image centers & radii of raw images
 
     ; camera 0 (reflected)
-    info_raw  = kcor_find_image(img[*, *, 0, 0], $
-                                radius_guess, /center_guess, log_name=log_name)
+    info_raw = kcor_find_image(img[*, *, 0, 0], $
+                               radius_guess, $
+                               /center_guess, $
+                               max_center_difference=run->epoch('max_center_difference'), $
+                               log_name=log_name)
 
     xcen0    = info_raw[0]
     ycen0    = info_raw[1]
@@ -706,7 +709,10 @@ pro kcor_l1, date, ok_files, $
 
     ; camera 1 (transmitted)
     info_raw = kcor_find_image(img[*, *, 0, 1], $
-                               radius_guess, /center_guess, log_name=log_name)
+                               radius_guess, $
+                               /center_guess, $
+                               max_center_difference=run->epoch('max_center_difference'), $
+                               log_name=log_name)
 
     xcen1    = info_raw[0]
     ycen1    = info_raw[1]
@@ -847,7 +853,10 @@ pro kcor_l1, date, ok_files, $
 
     ; find image centers of distortion-corrected images
     ; camera 0:
-    info_dc0 = kcor_find_image(cimg0, radius_guess, /center_guess, log_name=log_name, $
+    info_dc0 = kcor_find_image(cimg0, radius_guess, $
+                               /center_guess, $
+                               max_center_difference=run->epoch('max_center_difference'), $
+                               log_name=log_name, $
                                xoffset=center_offset[0], yoffset=center_offset[1], $
                                offset_xyr=sun_xyr0)
 
@@ -864,7 +873,10 @@ pro kcor_l1, date, ok_files, $
     endif
 
     ; camera 1:
-    info_dc1 = kcor_find_image(cimg1, radius_guess, /center_guess, log_name=log_name, $
+    info_dc1 = kcor_find_image(cimg1, radius_guess, $
+                               /center_guess, $
+                               max_center_difference=run->epoch('max_center_difference'), $
+                               log_name=log_name, $
                                xoffset=center_offset[0], yoffset=center_offset[1], $
                                offset_xyr=sun_xyr1)
 

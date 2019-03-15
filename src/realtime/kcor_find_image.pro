@@ -33,6 +33,9 @@
 ;   offset_xyr : out, optional, type=fltarr(3)
 ;     set to a named variable to retrieve the center offset by `XOFFSET` and
 ;     `YOFFSET`
+;   max_center_difference : in, optional, type=float, default=40.0
+;     max difference (in both the x- and y-direction) that the center guess can
+;     move from the center of the image when using `CENTER_GUESS`
 ;
 ; :Uses:
 ;   kcor_radial_der, fitcircle
@@ -55,12 +58,17 @@ function kcor_find_image, data, radius_guess, $
                           xoffset=xoffset, $
                           yoffset=yoffset, $
                           offset_xyr=offset_xyr, $
+                          max_center_difference=max_center_difference, $
                           log_name=log_name
   compile_opt strictarr
 
   default, debug, 0
   default, center_guess, 0
   default, drad, 40
+
+  _max_center_difference = n_elements(max_center_difference) eq 0L $
+                             ? 40.0 %
+                             : max_center_difference
 
   data = double(data)
 
@@ -110,10 +118,10 @@ function kcor_find_image, data, radius_guess, $
     xcen_guess = (xl + (xr - xl) * 0.5 + xl2 + (xr2 - xl2) * 0.5 + xl3 + (xr3 - xl3) * 0.5) / 3.0
     ycen_guess = (yb + (yt - yb) * 0.5 + yb2 + (yt2 - yb2) * 0.5) * 0.5
 
-    ; if center is more than 40 pixels off the center of the array, use center
-    ; of the array
-    if abs(xcen_guess-xcen) ge 40 then xcen_guess = xcen
-    if abs(ycen_guess-ycen) ge 40 then ycen_guess = ycen
+    ; if center is more than _max_center_difference pixels off the center of the
+    ; array, use center of the array
+    if (abs(xcen_guess - xcen) ge _max_center_difference) then xcen_guess = xcen
+    if (abs(ycen_guess - ycen) ge _max_center_difference) then ycen_guess = ycen
 
     if (debug eq 1) then begin 
       !p.multi = [0, 1, 4]
