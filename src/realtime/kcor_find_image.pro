@@ -67,7 +67,7 @@ function kcor_find_image, data, radius_guess, $
   default, drad, 40
 
   _max_center_difference = n_elements(max_center_difference) eq 0L $
-                             ? 40.0 %
+                             ? 40.0 $
                              : max_center_difference
 
   data = double(data)
