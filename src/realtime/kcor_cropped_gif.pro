@@ -92,11 +92,13 @@ pro kcor_cropped_gif, im, date, date_obs, $
   sun, date_obs.year, date_obs.month, date_obs.day, date_obs.ehour, $
        sd=radsun
   r_photosphere = radsun / run->epoch('plate_scale')
-  ; TODO: put N, S, E, W on image
-  kcor_add_directions, [255.5, 255.5], r_photosphere, $
-                       charsize=1.0, /cropped, dimensions=[512, 512], color=255
-  kcor_suncir, 512, 512, 255.5, 255.5, 0, 0, r_photosphere, 0.0, log_name=log_name
-  ;tvcircle, r_photosphere, 255.5, 255.5, color=255, /device
+
+  ; put a grid on masked GIFs
+  if (~keyword_set(nomask)) then begin
+    kcor_add_directions, [255.5, 255.5], r_photosphere, $
+                         charsize=1.0, /cropped, dimensions=[512, 512], color=255
+    kcor_suncir, 512, 512, 255.5, 255.5, 0, 0, r_photosphere, 0.0, log_name=log_name
+  endif
 
   ; save
   raster = tvrd()
