@@ -1,5 +1,83 @@
 ; docformat = 'rst'
 
+;+
+; Convert date/time representation from HPSS `ls -l` listing to epoch time,
+; i.e., seconds from 1 Jan 1970 UT.
+;
+; :Returns:
+;   double
+;
+; :Params:
+;   month_name : in, required, type=str
+;   day_str : in, required, type=str
+;   year_or_time : in, required, type=str
+;
+; :Keywords:
+;   tolerance : out, optional, type=double
+;     set to a named variable to retrieve the approximate tolerance of the
+;     input date/time from the creation of the local file to its placement on
+;     the HPSS
+;-
+function kcor_verify_date2epoch, month_name, day_str, year_or_time, $
+                                 tolerance=tolerance
+  compile_opt strictarr
+  on_error, 2
+
+  is_year = strpos(year_or_time, ':') lt 0
+  tolerance = is_year ? 24.0D * 60.0D * 60.0D : 0.0D
+  tolerance += 60.0D * 60.0D   ; add an hour of tolerance for transfer time
+
+  month_names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', $
+                 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+  month = where(month_name eq month_names, count) + 1
+  if (count eq 0L) then begin
+    message, string(month_name, format='(%"invalid month name %s")')
+  endif
+
+  on_ioerror, bad_day
+  day = long(day_str)
+
+  if (is_year) then begin
+    on_ioerror, bad_year
+    year = long(year_or_time)
+    hours = 0.0D
+    minutes = 0.0D
+  endif else begin
+    hhmm = strsplit(year_or_time, ':', /extract)
+
+    on_ioerror, bad_time
+    hhmm = long(hhmm)
+
+    hours = hhmm[0]
+    minutes = hhmm[1]
+
+    current_datetime = bin_date(systime())
+    current_year = current_datetime[0]
+    current_month = current_datetime[1]
+
+    year = month gt current_month ? (current_year - 1) : current_year
+  endelse
+
+  jd = julday(month, day, year, hours, minutes, 0.0D)
+  epoch = (jd - julday(1, 1, 1970, 0, 0, 0)) * (24.0D * 60.0D * 60.0D)
+
+  ; calculate timezone offset
+  tz_offset = (systime(/julian, /utc) - systime(/julian)) * 24.0D * 60.0D * 60.0D
+  epoch += tz_offset
+
+  return, epoch[0]
+
+  bad_day:
+  message, string(day_str, format='(%"invalid day %s")')
+
+  bad_year:
+  message, string(year_or_time, format='(%"invalid year %s")')
+
+  bad_time:
+  message, string(year_or_time, format='(%"invalid time %s")')
+end
+
 
 ;+
 ; Verify that the given filename is on the HPSS with correct permissions.
@@ -11,12 +89,14 @@
 ;     HPSS filename to check
 ;   filesize : in, required, type=integer
 ;     size of given file
+;   ctime : in, required, type=long64
+;     creation time of local file in seconds from 1 January 1970 UTC
 ;
 ; :Keywords:
 ;   run : in, required, type=object
 ;     KCor run object
 ;-
-pro kcor_verify_hpss, date, filename, filesize, $
+pro kcor_verify_hpss, date, filename, filesize, ctime, $
                       logger_name=logger_name, run=run, $
                       status=status
   compile_opt strictarr
@@ -73,6 +153,20 @@ pro kcor_verify_hpss, date, filename, filesize, $
               file_basename(filename), $
               mg_float2str(filesize, places_sep=','), $
               mg_float2str(ulong64(tokens[4]), places_sep=','), $
+              name=logger_name, /error
+      status = 1L
+      goto, hpss_done
+    endif
+
+    ; check date of tarball on HPSS vs local tarball
+    hpss_epoch = kcor_verify_date2epoch(tokens[5], tokens[6], tokens[7], $
+                                        tolerance=tolerance)
+    if (abs(hpss_epoch - ctime) gt tolerance) then begin
+      mg_log, 'HPSS date: %s %s %s, local date: %s', $
+              tokens[5], tokens[6], tokens[7], $
+              systime(elapsed=ctime), $
+              name=logger_name, /error
+      mg_log, 'dates not within %d hours', round(tolerance / 60.0D / 60.0D), $
               name=logger_name, /error
       status = 1L
       goto, hpss_done
@@ -491,6 +585,9 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   l0_tarball_size = mg_filesize(l0_tarball_filename)
   l1_tarball_size = mg_filesize(l1_tarball_filename)
 
+  l0_tarball_ctime = (file_info(l0_tarball_filename)).ctime
+  l1_tarball_ctime = (file_info(l1_tarball_filename)).ctime
+
   if (~file_test(l0_tarball_filename, /regular)) then begin
     mg_log, 'no L0 tarball', name=logger_name, /error
     status = 1
@@ -571,12 +668,14 @@ pro kcor_verify, date, config_filename=config_filename, status=status
                       string(year, date, $
                              format='(%"/CORDYN/KCOR/%s/%s_kcor_l0.tgz")'), $
                       l0_tarball_size, $
+                      l0_tarball_ctime, $
                       status=status, $
                       logger_name=logger_name, run=run
     kcor_verify_hpss, date, $
                       string(year, date, $
                              format='(%"/CORDYN/KCOR/%s/%s_kcor_l1.5.tgz")'), $
                       l1_tarball_size, $
+                      l1_tarball_ctime, $
                       status=status, $
                       logger_name=logger_name, run=run
   endif else begin
