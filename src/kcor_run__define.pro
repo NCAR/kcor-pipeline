@@ -73,6 +73,7 @@ end
 ;-
 function kcor_run::epoch, name, time=time
   compile_opt strictarr
+  on_error, 2
 
   if (strlowcase(name) eq 'cal_file') then begin
     if (self.epochs->get('use_pipeline_calfiles', datetime=datetime)) then begin
@@ -81,7 +82,9 @@ function kcor_run::epoch, name, time=time
         hst_time = dt->strftime('%H%M%S')
       endif else hst_time = kcor_ut2hst(time)
 
-      return, self->_find_calfile(self.date, hst_time)
+      calfile = self->_find_calfile(self.date, hst_time)
+      if (calfile eq '') then message, 'unable to find cal file'
+      return, calfile
     endif
   endif
 
