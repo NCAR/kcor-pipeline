@@ -1083,9 +1083,9 @@ pro kcor_l1, date, ok_files, $
     ; display image, annotate, and save as a full resolution GIF file
 
     display_factor = 1.0e6
-    scaled_image = bytscl((display_factor * corona) ^ run->epoch('display_exp'), $
-               min=display_factor * run->epoch('display_min'), $
-               max=display_factor * run->epoch('display_max'))
+    scaled_image = bytscl((display_factor * corona)^run->epoch('display_exp'), $
+                          min=display_factor * run->epoch('display_min'), $
+                          max=display_factor * run->epoch('display_max'))
     tv, scaled_image
 
     xyouts, 4, 990, 'MLSO/HAO/KCOR', color=255, charsize=1.5, /device
