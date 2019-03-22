@@ -291,3 +291,4 @@
   hostname in start of log messages
   grid on pB, difference, and average GIF images
   epoch file updates
+1.6.2
