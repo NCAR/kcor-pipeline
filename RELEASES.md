@@ -293,3 +293,4 @@
   epoch file updates
 1.6.2 [Mar 25, 2019]
   epoch change for quicklook GIF scaling
+1.6.3
