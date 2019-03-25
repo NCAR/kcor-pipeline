@@ -592,7 +592,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
     pb0s = pb0m ^ power   ; apply exponential power
 
     imin = min(pb0s)
-    imax = max(pb0s)
+    imax = run->epoch('quicklook_scale') * max(pb0s)
 
     ; imin = 0.0
     ; imax = 40.0
