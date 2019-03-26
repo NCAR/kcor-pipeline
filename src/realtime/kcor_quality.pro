@@ -404,13 +404,9 @@ function kcor_quality, date, l0_fits_files, append=append, $
       cov += 1
     endif
 
-    if (~run->config('realtime/check_quality')) then begin
-      mg_log, 'skipping quality check', name='kcor/rt', /debug
-      goto, next
-    endif
-
     ; saturation check
-    chksat = 1
+    chksat = run->config('realtime/check_quality')
+    sat = 0B
     if (chksat gt 0) then begin
       sat_pixels = where(img[*, *, 0, 0] ge run->epoch('smax'), n_saturated_pixels)
       sat = n_saturated_pixels gt run->epoch('smax_max_count')
@@ -476,7 +472,8 @@ function kcor_quality, date, l0_fits_files, append=append, $
     endelse
 
     ; bright sky check
-    dobright = 1
+    dobright = run->config('realtime/check_quality')
+    bright = 0B
     if (dobright gt 0) then begin
       bmax = run->epoch('bmax') * numsum / 512.0
       if ((bitpix ne 16) and (bitpix ne 32)) then begin
@@ -495,10 +492,10 @@ function kcor_quality, date, l0_fits_files, append=append, $
     endif
 
     ; cloud check
-    chkcloud = 1
-    clo      = 0
-    chi      = 0
-    cloud    = 0
+    chkcloud = run->config('realtime/check_quality')
+    clo      = 0B
+    chi      = 0B
+    cloud    = 0B
     if (chkcloud gt 0) then begin
       ; upper brightness threshold
       cmax = run->epoch('cmax') * numsum / 512.0
@@ -523,7 +520,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
     ; Need to find noise limits that work for 32 bit (float and long) data
     ; For now, skip noise check for 32 bit data
 
-    chknoise = run->epoch('check_noise')
+    chknoise = run->epoch('check_noise') && run->config('realtime/check_quality')
 
     noise    = 0
     bad = bright + sat + clo + chi
