@@ -404,6 +404,11 @@ function kcor_quality, date, l0_fits_files, append=append, $
       cov += 1
     endif
 
+    if (~run->config('realtime/check_quality')) then begin
+      mg_log, 'skipping quality check', name='kcor/rt', /debug
+      goto, next
+    endif
+
     ; saturation check
     chksat = 1
     if (chksat gt 0) then begin
