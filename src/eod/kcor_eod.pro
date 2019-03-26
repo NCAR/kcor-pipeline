@@ -134,10 +134,14 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     mg_log, '%s does not exist', l0_dir, name='kcor/eod', /error
     n_l1_zipped_files = 0L
   endif else begin
-    cd, l1_dir
-    l1_zipped_fits_glob = '*_l1.5.fts.gz'
-    l1_zipped_files = file_search(l1_zipped_fits_glob, count=n_l1_zipped_files)
-    cd, l0_dir
+    if (file_test(l1_dir, /directory)) then begin
+      cd, l1_dir
+      l1_zipped_fits_glob = '*_l1.5.fts.gz'
+      l1_zipped_files = file_search(l1_zipped_fits_glob, count=n_l1_zipped_files)
+      cd, l0_dir
+    endif else begin
+      n_l1_zipped_files = 0L
+    endelse
   endelse
 
   if (run->config('eod/create_daily_movies') && n_l1_zipped_files gt 0L) then begin
@@ -148,7 +152,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   oka_filename = filepath('oka.ls', subdir=[date, 'q'], $
                           root=run->config('processing/raw_basedir'))
-  n_oka_files = file_lines(oka_filename)
+  n_oka_files = file_test(oka_filename) ? file_lines(oka_filename) : 0L
   if (file_test(oka_filename, /regular) && n_oka_files gt 0L) then begin
     mg_log, 'producing nomask files...', name='kcor/eod', /info
 
@@ -193,10 +197,12 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   if (run->config('eod/validate_t1')) then begin
     mg_log, 'validating t1.log', name='kcor/eod', /info
     n_lines = file_lines(t1_log_file)
-    lines = strarr(n_lines)
-    openr, lun, t1_log_file, /get_lun
-    readf, lun, lines
-    free_lun, lun
+    if (n_lines gt 0L) then begin
+      lines = strarr(n_lines)
+      openr, lun, t1_log_file, /get_lun
+      readf, lun, lines
+      free_lun, lun
+    endif
 
     for i = 0L, n_lines - 1L do begin
       tokens = strsplit(lines[i], /extract, count=n_tokens)
@@ -247,28 +253,32 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     ; TODO: should really check process flag from epochs file here to filter
     ;       out L0 files that should not be processed
 
-    if (run->config('eod/produce_plots')) then begin
-      kcor_plotparams, date, list=files, run=run
-      kcor_plotcenters, date, list=files, run=run
-    endif
+    if (n_files gt 0L) then begin
+      if (run->config('eod/produce_plots')) then begin
+        kcor_plotparams, date, list=files, run=run
+        kcor_plotcenters, date, list=files, run=run
+      endif
 
-    if (run->config('eod/catalog_files')) then begin
-      kcor_catalog, date, list=files, run=run
-    endif
+      if (run->config('eod/catalog_files')) then begin
+        kcor_catalog, date, list=files, run=run
+      endif
 
-    if (run->config('eod/send_to_archive')) then begin
-      kcor_archive_l0, run=run, reprocess=reprocess
-    endif
+      if (run->config('eod/send_to_archive')) then begin
+        kcor_archive_l0, run=run, reprocess=reprocess
+      endif
 
-    ; produce calibration for tomorrow
-    if (run->config('eod/reduce_calibration') $
+      ; produce calibration for tomorrow
+      if (run->config('eod/reduce_calibration') $
           && run->epoch('produce_calibration')) then begin
-      kcor_reduce_calibration, date, run=run
-    endif else begin
-      mg_log, 'skipping reducing calibration', name='kcor/eod', /info
-    endelse
+        kcor_reduce_calibration, date, run=run
+      endif else begin
+        mg_log, 'skipping reducing calibration', name='kcor/eod', /info
+      endelse
 
-    kcor_archive_l1, run=run
+      kcor_archive_l1, run=run
+    endif else begin
+      mg_log, 'no L0 files to plot, catalog, or archive', name='kcor/eod', /warn
+    endelse
   endif else begin
     ; t{1,2}.log in level0/ directory indicates eod done
     file_delete, filepath(date + '.kcor.t1.log', root=l0_dir), $

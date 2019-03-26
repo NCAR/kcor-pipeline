@@ -65,15 +65,19 @@ pro kcor_save_results, date, run=run
   endif
 
   ; p and q directories
-  file_copy, filepath('p', subdir=date, root=run->config('processing/raw_basedir')), $
-             save_dir, $
-             /recursive, /overwrite
-  mg_log, 'saving p directory', name='kcor/eod', /debug
+  p_dir = filepath('p', subdir=date, root=run->config('processing/raw_basedir'))
+  if (file_test(p_dir, /directory)) then begin
+    file_copy, p_dir, save_dir, $
+               /recursive, /overwrite
+    mg_log, 'saving p directory', name='kcor/eod', /debug
+  endif
 
-  file_copy, filepath('q', subdir=date, root=run->config('processing/raw_basedir')), $
-             save_dir, $
-             /recursive, /overwrite
-  mg_log, 'saving q directory', name='kcor/eod', /debug
+  q_dir = filepath('q', subdir=date, root=run->config('processing/raw_basedir'))
+  if (file_test(q_dir, /directory)) then begin
+    file_copy, q_dir, save_dir, $
+               /recursive, /overwrite
+    mg_log, 'saving q directory', name='kcor/eod', /debug
+  endif
 
   ; *.log files
   log_files = file_search(filepath('*.log', subdir=date, $

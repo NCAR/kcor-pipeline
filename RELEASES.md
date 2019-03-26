@@ -294,5 +294,7 @@
 1.6.2 [Mar 25, 2019]
   epoch change for quicklook GIF scaling
 1.6.3
-  Handle NaN/infinity in corona
-  Add realtime/check_quality option
+  handle NaN/infinity in corona
+  add realtime/check_quality option
+  mark some bad files in epoch file
+  handle no L0 files, but empty t1/t2 log files
