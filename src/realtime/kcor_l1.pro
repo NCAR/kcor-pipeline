@@ -909,7 +909,6 @@ pro kcor_l1, date, ok_files, $
     deltay = sun_xyr1[1] - sun_xyr0[1]
 
     ; invert calibrated data for camera 0 in Y-axis
-
     for s = 0, 2 do begin
       cal_data[*, *, 0, s] = reverse(cal_data[*, *, 0, s], 2, /overwrite)
     endfor
@@ -1282,9 +1281,9 @@ pro kcor_l1, date, ok_files, $
               ' physical = data * BSCALE + BZERO', format='(F8.3)'
 
     ; data display information
-    fxaddpar, newheader, 'DATAMIN', min(corona), ' minimum value of data', $
+    fxaddpar, newheader, 'DATAMIN', min(corona, /nan), ' minimum value of data', $
               format='(E0.4)'
-    fxaddpar, newheader, 'DATAMAX', max(corona), ' maximum value of data', $
+    fxaddpar, newheader, 'DATAMAX', max(corona, /nan), ' maximum value of data', $
               format='(E0.4)'
     fxaddpar, newheader, 'DISPMIN', run->epoch('display_min'), $
               ' minimum value for display', $
@@ -1673,13 +1672,13 @@ end
 
 ; main-level example program
 
-date = '20181030'
-config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
-                           subdir=['..', 'config'], $
+date = '20131014'
+config_filename = filepath('kcor.reprocess.cfg', $
+                           subdir=['..', '..', 'config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
 
-l1_files = ['20181030_000000_kcor.fts.gz']
+l1_files = ['20131015_013948_kcor.fts.gz']
 
 kcor_l1, date, l1_files, run=run, log_name='kcor/rt'
 
