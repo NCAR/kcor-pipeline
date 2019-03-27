@@ -30,7 +30,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   endif
 
   _reprocess = n_elements(reprocess) eq 0L $
-                 ? run->config('realtime/reprocess'), $
+                 ? run->config('realtime/reprocess') $
                  : keyword_set(reprocess)
 
   mg_log, '------------------------------', name='kcor/eod', /info
