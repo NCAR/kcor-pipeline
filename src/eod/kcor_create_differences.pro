@@ -111,6 +111,7 @@ pro kcor_create_differences, date, l1_files, run=run
 
       ; find image time
       date_obs = fxpar(header, 'DATE-OBS')    ; yyyy-mm-ddThh:mm:ss
+      run.time = date_obs
 
       ; extract fields from DATE_OBS
       yr  = strmid(date_obs,  0, 4)

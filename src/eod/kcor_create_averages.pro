@@ -142,6 +142,7 @@ pro kcor_create_averages, date, l1_files, run=run
         date_obs = fxpar(header, 'DATE-OBS')    ; yyyy-mm-ddThh:mm:ss
         date_end = fxpar(header, 'DATE-END')    ; yyyy-mm-ddThh:mm:ss
         tmp_hst  = fxpar(header, 'DATE_HST')    ; yyyy-mm-ddThh:mm:ss
+        run.time = date_obs
 
         ; extract fields from DATE_OBS
         yr   = strmid(date_obs,  0, 4)
