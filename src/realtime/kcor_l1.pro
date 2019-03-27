@@ -1049,6 +1049,7 @@ pro kcor_l1, date, ok_files, $
 
     ; use only corona minus sky polarization background
     corona = umk4_new
+    mg_log, 'type: %d', size(corona, /type), name='kcor/rt', /debug
 
     vdimref = kcor_getsgs(header, 'SGSDIMV', /float)
     mg_log, 'flat DIMV: %0.1f, image DIMV: %0.1f', flat_vdimref, vdimref, $
@@ -1064,6 +1065,7 @@ pro kcor_l1, date, ok_files, $
 
       ; mask pixels beyond field of view
       mask = where(rad1 lt r_in or rad1 ge r_out, /null)
+      ; TODO: should we be changing this, it goes into FITS file
       corona[mask] = run->epoch('display_min')
     endif
 
@@ -1280,8 +1282,7 @@ pro kcor_l1, date, ok_files, $
                      format='(%" %s")'), $
               format='(G0.3)'
 
-    fxaddpar, newheader, 'BZERO', $
-              run->epoch('use_bzero') ? struct.bzero : run->epoch('bzero'), $
+    fxaddpar, newheader, 'BZERO', 0, $
               ' offset for unsigned integer data'
     fxaddpar, newheader, 'BSCALE', bscale, $
               ' physical = data * BSCALE + BZERO', format='(F8.3)'

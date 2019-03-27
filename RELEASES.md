@@ -303,3 +303,4 @@
   fix bug where L0 tarball was sent to HPSS in a reprocess
   fix issue where epoch date/time was not advanced during difference/average creation
   skip first good science image on reprocessing
+  remove use_bzero option, always write FITS files with 0 BZERO
