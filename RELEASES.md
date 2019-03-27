@@ -300,3 +300,4 @@
   handle no L0 files, but empty t1/t2 log files
   correct for NUMSUM between sci/cal files before using dark/flat
   log warning if negative values in coronal images
+  fix bug where L0 tarball was sent to HPSS in a reprocess

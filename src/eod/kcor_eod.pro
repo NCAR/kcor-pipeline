@@ -29,6 +29,10 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     goto, done
   endif
 
+  _reprocess = n_elements(reprocess) eq 0L $
+                 ? run->config('realtime/reprocess'), $
+                 : keyword_set(reprocess)
+
   mg_log, '------------------------------', name='kcor/eod', /info
 
   ; do not print math errors, we check for them explicitly
@@ -76,9 +80,9 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
                               count=n_l0_fits_files)
   if (n_l0_fits_files gt 0L) then begin
     mg_log, 'L0 FITS files exist in %s', date_dir, name='kcor/eod', $
-            error=keyword_set(reprocess), info=~keyword_set(reprocess)
+            error=keyword_set(_reprocess), info=~keyword_set(_reprocess)
     mg_log, 'L1.5 processing incomplete', name='kcor/eod', $
-            error=keyword_set(reprocess), info=~keyword_set(reprocess)
+            error=keyword_set(_reprocess), info=~keyword_set(_reprocess)
     goto, done
   endif
 
@@ -264,7 +268,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
       endif
 
       if (run->config('eod/send_to_archive')) then begin
-        kcor_archive_l0, run=run, reprocess=reprocess
+        kcor_archive_l0, run=run, reprocess=_reprocess
       endif
 
       ; produce calibration for tomorrow
