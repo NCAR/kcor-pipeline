@@ -291,7 +291,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
       mg_log, 'correcting horiz lines @ [%s], cameras: [%s]', $
               strjoin(strtrim(run->epoch('horizontal_artifact_lines'), 2), ', '), $
               strjoin(strtrim(run->epoch('horizontal_artifact_cameras'), 2), ', '), $
-              name='kcor/cal', /debug
+              name='kcor/rt', /debug
       kcor_correct_horizontal_artifact, img, $
                                         run->epoch('horizontal_artifact_lines'), $
                                         run->epoch('horizontal_artifact_cameras')
