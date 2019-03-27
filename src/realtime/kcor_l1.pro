@@ -781,6 +781,9 @@ pro kcor_l1, date, ok_files, $
     gain_replace = 0
     img_cor      = img
 
+    ; need to correct image before we correct with dark
+    img_cor *= float(cal_numsum) / float(struct.numsum)
+
     ; apply dark and gain correction
     ; (Set negative values (after dark subtraction) to zero.)
 
@@ -789,18 +792,21 @@ pro kcor_l1, date, ok_files, $
         ; img[*, *, s, b] = $
         ;   (img[*, *, s, b] - dark_alfred[*, *, b]) / gain_shift[*, *, b]
         img_cor[*, *, s, b] = img[*, *, s, b] - dark_alfred[*, *, b]
+
+        ; TODO: should we be doing this?
         img_temp = reform(img_cor[*, *, s, b])
-        img_temp[where(img_temp le 0, /null)] = 0
+        negative_indices = where(img_temp le 0, /null, n_negative_values)
+        ;img_temp[negative_indices] = 0
+        if (n_negative_values gt 0L) then begin
+          mg_log, '%d negative values', n_negative_values, name='kcor/rt', /warn
+        endif
         img_cor[*, *, s, b]  = img_temp
+
         img_cor[*, *, s, b] /= gain_shift[*, *, b]
       endfor
     endfor
 
-    img_cor *= float(cal_numsum) / float(struct.numsum)
-
     img_temp = 0
-
-    ; printf, ulog, 'Applied dark and gain correction.'  
 
     ; apply demodulation matrix to get I, Q, U images from each camera
 

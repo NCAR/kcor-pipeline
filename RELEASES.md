@@ -298,3 +298,5 @@
   add realtime/check_quality option
   mark some bad files in epoch file
   handle no L0 files, but empty t1/t2 log files
+  correct for NUMSUM between sci/cal files before using dark/flat
+  log warning if negative values in coronal images
