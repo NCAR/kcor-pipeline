@@ -302,3 +302,4 @@
   log warning if negative values in coronal images
   fix bug where L0 tarball was sent to HPSS in a reprocess
   fix issue where epoch date/time was not advanced during difference/average creation
+  skip first good science image on reprocessing

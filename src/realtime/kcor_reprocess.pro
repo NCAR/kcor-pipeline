@@ -26,8 +26,12 @@ pro kcor_reprocess, date, run=run, error=error
   endif
 
   case 1 of
-    run->config('realtime/reprocess'): mg_log, 'prepping for reprocessing', name='kcor/reprocess', /info
-    run->config('realtime/update_processing'): mg_log, 'prepping for updating', name='kcor/reprocess', /info
+    run->config('realtime/reprocess'): begin
+        mg_log, 'prepping for reprocessing', name='kcor/reprocess', /info
+      end
+    run->config('realtime/update_processing'): begin
+        mg_log, 'prepping for updating', name='kcor/reprocess', /info
+      end
     else: begin
         mg_log, 'exiting, neither reprocessing nor udpating', $
                 name='kcor/reprocess', /error
@@ -55,6 +59,12 @@ pro kcor_reprocess, date, run=run, error=error
   endif else begin
     mg_log, 'no L0 FITS files to zip', name='kcor/reprocess', /info
   endelse
+
+  ; remove any lock or .first_image files
+  state_filenames = filepath(['.lock', '.first_image'], $
+                             subdir=[date], $
+                             root=run->config('processing/raw_basedir'))
+  file_delete, state_filenames, /allow_nonexistent
 
   ; move level 0 FITS files and t1/t2 logs up a level
   raw_files = file_search(filepath('*_kcor.fts.gz', $
