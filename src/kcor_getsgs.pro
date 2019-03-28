@@ -24,7 +24,7 @@ function kcor_getsgs, header, name, float=float
     if (count eq 0) then return, keyword_set(float) ? !values.f_nan : 'NULL'
 
     if (keyword_set(float)) then begin
-      if (size(value, /type) eq 7) then value = !values.f_nan
+      value = size(value, /type) eq 7 ? !values.f_nan : float(value)
     endif else begin
       value = size(value, /type) eq 7 $
                 ? strtrim(value, 2) $

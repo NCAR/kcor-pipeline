@@ -1049,7 +1049,6 @@ pro kcor_l1, date, ok_files, $
 
     ; use only corona minus sky polarization background
     corona = umk4_new
-    mg_log, 'type: %d', size(corona, /type), name='kcor/rt', /debug
 
     vdimref = kcor_getsgs(header, 'SGSDIMV', /float)
     mg_log, 'flat DIMV: %0.1f, image DIMV: %0.1f', flat_vdimref, vdimref, $
