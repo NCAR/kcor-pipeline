@@ -1545,40 +1545,39 @@ pro kcor_l1, date, ok_files, $
     fxaddpar, newheader, 'RCAMLUT', rcamlut, ' ' + run->epoch('rcamlut_comment')
     fxaddpar, newheader, 'TCAMLUT', tcamlut, ' ' + run->epoch('tcamlut_comment')
 
-    fxaddpar, newheader, 'SGSDIMV', finite(struct.sgsdimv) ? struct.sgsdimv : 'NaN', $
+    fxaddpar, newheader, 'SGSDIMV', struct.sgsdimv, $
               ' [V] SGS DIM signal mean', $
-              format='(f9.4)'
-    fxaddpar, newheader, 'SGSDIMS', finite(struct.sgsdims) ? struct.sgsdims : 'NaN', $
+              format='(f9.4)', /null
+    fxaddpar, newheader, 'SGSDIMS', struct.sgsdims, $
               ' [V] SGS DIM signal standard deviation', $
-              format='(e11.3)'
-    fxaddpar, newheader, 'SGSSUMV', finite(struct.sgssumv) ? struct.sgssumv : 'NaN', $
-              ' [V] mean SGS sum signal', format = '(f9.4)'
-    fxaddpar, newheader, 'SGSRAV', finite(struct.sgsrav) ? struct.sgsrav : 'NaN', $
-              ' [V] mean SGS RA error signal', format = '(e11.3)'
-    fxaddpar, newheader, 'SGSRAS', finite(struct.sgsras) ? struct.sgsras : 'NaN', $
+              format='(e11.3)', /null
+    fxaddpar, newheader, 'SGSSUMV', struct.sgssumv, $
+              ' [V] mean SGS sum signal', format='(f9.4)', /null
+    fxaddpar, newheader, 'SGSRAV', struct.sgsrav, $
+              ' [V] mean SGS RA error signal', format='(e11.3)', /null
+    fxaddpar, newheader, 'SGSRAS', struct.sgsras, $
               ' [V] mean SGS RA error standard deviation', $
-              format='(e11.3)'
+              format='(e11.3)', /null
     if (check_sgsrazr ne 0) then begin
-      fxaddpar, newheader, 'SGSRAZR', finite(struct.sgsrazr) ? struct.sgsrazr : 'NaN', $
-                ' [arcsec] SGS RA zeropoint offset', format='(f9.4)'
+      fxaddpar, newheader, 'SGSRAZR', struct.sgsrazr, $
+                ' [arcsec] SGS RA zeropoint offset', format='(f9.4)', /null
     endif
-    fxaddpar, newheader, 'SGSDECV', finite(struct.sgsdecv) ? struct.sgsdecv : 'NaN', $
-              ' [V] mean SGS DEC error signal', format='(e11.3)'
-    fxaddpar, newheader, 'SGSDECS',  finite(struct.sgsdecs) ? struct.sgsdecs : 'NaN', $
+    fxaddpar, newheader, 'SGSDECV', struct.sgsdecv, $
+              ' [V] mean SGS DEC error signal', format='(e11.3)', /null
+    fxaddpar, newheader, 'SGSDECS',  struct.sgsdecs, $
               ' [V] mean SGS DEC error standard deviation', $
-              format='(e11.3)'
+              format='(e11.3)', /null
     if (check_sgsdeczr ne 0) then begin
-      fxaddpar, newheader, 'SGSDECZR', $
-                finite(struct.sgsdeczr) ? struct.sgsdeczr : 'NaN', $
-                ' [arcsec] SGS DEC zeropoint offset', format = '(f9.4)'
+      fxaddpar, newheader, 'SGSDECZR', struct.sgsdeczr, $
+                ' [arcsec] SGS DEC zeropoint offset', format='(f9.4)', /null
     endif
-    fxaddpar, newheader, 'SGSSCINT', finite(struct.sgsscint) ? struct.sgsscint : 'NaN', $
+    fxaddpar, newheader, 'SGSSCINT', struct.sgsscint, $
               ' [arcsec] SGS scintillation seeing estimate', $
-              format='(f9.4)'
+              format='(f9.4)', /null
     fxaddpar, newheader, 'SGSLOOP',  struct.sgsloop, ' SGS loop closed fraction'
-    fxaddpar, newheader, 'SGSSUMS',  finite(struct.sgssums) ? struct.sgssums : 'NaN', $
+    fxaddpar, newheader, 'SGSSUMS',  struct.sgssums, $
               ' [V] SGS sum signal standard deviation', $
-              format='(e11.3)'
+              format='(e11.3)', /null
 
     ; data citation URL
     fxaddpar, newheader, 'DATACITE', run->epoch('doi_url'), ' URL for DOI'
