@@ -853,8 +853,6 @@ pro kcor_l1, date, ok_files, $
     cimg0 = dat1
     cimg1 = dat2
 
-; TODO: save cimg{0,1}
-
     center_offset = run->config('realtime/center_offset')
 
     ; find image centers of distortion-corrected images
@@ -936,8 +934,6 @@ pro kcor_l1, date, ok_files, $
     for s = 0, 2 do begin
       camera_0 = kcor_fshift(cal_data[*, *, 0, s], deltax, deltay)
       camera_1 = cal_data[*, *, 1, s]
-
-; TODO:
 
       mg_log, 'cameras used: %s', run->config('realtime/cameras'), name=log_name, /debug
       case run->config('realtime/cameras') of
@@ -1129,11 +1125,9 @@ pro kcor_l1, date, ok_files, $
     ; image has been shifted to center of array
     ; draw circle at photosphere
     if (~keyword_set(nomask)) then begin
-      ; TODO: put N, S, E, W on image
       kcor_add_directions, fltarr(2) + 511.5, r_photo, $
                            charsize=1.5, dimensions=lonarr(2) + 1024L
       kcor_suncir, 1024, 1024, 511.5, 511.5, 0, 0, r_photo, 0.0, log_name=log_name
-      ;tvcircle, r_photo, 511.5, 511.5, color=255, /device
     endif
 
     device, decomposed=1
