@@ -49,7 +49,7 @@ pro kcor_reprocess, date, run=run, error=error
     mg_log, 'zipping %d L0 FITS files', n_unzipped_raw_files, $
             name='kcor/reprocess', /info
     gzip_cmd = string(run->config('externals/gzip'), $
-                      unzipped_raw_fits_glob, format='(%"%s %s")')
+                      unzipped_raw_fits_glob, format='(%"%s -f %s")')
     spawn, gzip_cmd, result, error_result, exit_status=status
     if (status ne 0L) then begin
       mg_log, 'problem zipping files with command: %s', gzip_cmd, $
