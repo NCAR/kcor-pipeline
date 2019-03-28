@@ -90,7 +90,11 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
     diffuser = sxpar(header, 'DIFFUSER', count=n_diffuser)
     calpol = sxpar(header, 'CALPOL', count=n_calpol)
     calpang = sxpar(header, 'CALPANG', count=n_calpang)
-    sgsdimv = sxpar(header, 'SGSDIMV', count=n_sgsdimv)
+    if (run->epoch('use_sgs')) then begin
+      sgsdimv = sxpar(header, 'SGSDIMV', count=n_sgsdimv)
+    endif else begin
+      sgsdimv = kcor_simulate_sgsdimv(date_obs)
+    endelse
 
     ; NUMSUM for all files must be the same to produce a calibration
     file_numsum = sxpar(header, 'NUMSUM', count=n_numsum)

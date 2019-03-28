@@ -106,6 +106,13 @@ pro mlso_sgs_insert, date, fits_list, $
     ; normalize odd values for date/times
     date_obs = kcor_normalize_datetime(date_obs)
 
+    run.time = date_obs
+
+    if (~run->epoch('use_sgs')) then begin
+      mg_log, 'not using SGS from files in this epoch', name='kcor/rt', /warn
+      continue
+    endif
+
     sgsdimv_str  = kcor_getsgs(hdu, 'SGSDIMV')
     sgsdims_str  = kcor_getsgs(hdu, 'SGSDIMS')
     sgssumv_str  = kcor_getsgs(hdu, 'SGSSUMV')

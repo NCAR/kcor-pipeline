@@ -102,6 +102,7 @@ pro kcor_cal_insert, date, fits_list, quality, $
     if (error ne 0L) then begin
       date_end = kcor_normalize_datetime(date_obs, error=error, /add_15)
     endif
+    run.time = date_obs
 
     level       = strtrim(sxpar(hdu, 'LEVEL', count=qlevel), 2)
     ; TODO: Older NRGF headers have 'NRGF' appended to level string, but newer headers
@@ -158,8 +159,13 @@ pro kcor_cal_insert, date, fits_list, quality, $
     calpolid    = strtrim(sxpar(hdu, 'CALPOLID', count=qcalpolid), 2)
     diffsrid    = strtrim(sxpar(hdu, 'DIFFSRID', count=qdiffsrid), 2)
     filterid    = strtrim(sxpar(hdu, 'FILTERID', count=qfilterid), 2)
-    sgsdimv_str = kcor_getsgs(hdu, 'SGSDIMV')
-    sgsdims_str = kcor_getsgs(hdu, 'SGSDIMS')
+    if (run->epoch('use_sgs')) then begin
+      sgsdimv_str = kcor_getsgs(hdu, 'SGSDIMV')
+      sgsdims_str = kcor_getsgs(hdu, 'SGSDIMS')
+    endif else begin
+      sgsdimv_str = 'NULL'
+      sgsdims_str = 'NULL'
+    endelse
 
     fits_file = file_basename(fts_file, '.gz') ; remove '.gz' from file name
 	

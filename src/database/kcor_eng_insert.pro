@@ -115,6 +115,7 @@ pro kcor_eng_insert, date, fits_list, $
 
     ; normalize odd values for date/times
     date_obs = kcor_normalize_datetime(date_obs)
+    run.time = date_obs
 
     rcamfocs     = sxpar(hdu, 'RCAMFOCS', count=qrcamfocs)
     rcamfocs_str = strtrim(rcamfocs, 2)
@@ -126,8 +127,13 @@ pro kcor_eng_insert, date, fits_list, $
 		
     modltrt     = sxpar(hdu, 'MODLTRT', count=qmodltrt)
     o1focs      = sxpar(hdu, 'O1FOCS', count=q01focs)
-    sgsdimv_str = kcor_getsgs(hdu, 'SGSDIMV')
-    sgsdims_str = kcor_getsgs(hdu, 'SGSDIMS')
+    if (run->epoch('use_sgs')) then begin
+      sgsdimv_str = kcor_getsgs(hdu, 'SGSDIMV')
+      sgsdims_str = kcor_getsgs(hdu, 'SGSDIMS')
+    endif else begin
+      sgsdimv_str = 'NULL'
+      sgsdims_str = 'NULL'
+    endelse
 		
     level       = strtrim(sxpar(hdu, 'LEVEL', count=qlevel), 2)
 

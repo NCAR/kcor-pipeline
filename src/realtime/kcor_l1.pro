@@ -1046,8 +1046,15 @@ pro kcor_l1, date, ok_files, $
     ; use only corona minus sky polarization background
     corona = umk4_new
 
-    vdimref = kcor_getsgs(header, 'SGSDIMV', /float)
-    mg_log, 'flat DIMV: %0.1f, image DIMV: %0.1f', flat_vdimref, vdimref, $
+    if (run->epoch('use_sgs')) then begin
+      vdimref = kcor_getsgs(header, 'SGSDIMV', /float)
+      dimv_comment = ''
+    endif else begin
+      vdimref = kcor_simulate_sgsdimv(date_obs)
+      dimv_comment = ' (simulated)'
+    endelse
+    mg_log, 'flat DIMV: %0.1f, image DIMV: %0.1f%s', $
+            flat_vdimref, vdimref, dimv_comment, $
             name=log_name, /debug
     if (finite(vdimref) && finite(flat_vdimref)) then begin
       corona *= flat_vdimref / vdimref
@@ -1176,21 +1183,35 @@ pro kcor_l1, date, ok_files, $
     check_lyotstop = tag_exist(struct, 'LYOTSTOP')
 
     ; clean bad SGS information
-    bad_dimv = struct.sgsdimv lt 1.0 or struct.sgsdimv gt 10.0
-    bad_scint = struct.sgsscint lt 0.0 or struct.sgsscint gt 20.0
-    if (bad_dimv) then struct.sgsdimv = !values.f_nan
-    if (bad_scint) then struct.sgsscint = !values.f_nan
-    if (bad_dimv || bad_scint) then begin
-      struct.sgsdims = !values.f_nan
-      struct.sgssumv = !values.f_nan
-      struct.sgssums = !values.f_nan
-      struct.sgsrav  = !values.f_nan
-      struct.sgsras  = !values.f_nan
-      struct.sgsdecv = !values.f_nan
-      struct.sgsdecs = !values.f_nan
-      if (check_sgsrazr) then struct.sgsrazr = !values.f_nan
-      if (check_sgsdeczr) then struct.sgsdeczr = !values.f_nan
-    endif
+    if (run->epoch('use_sgs')) then begin
+      bad_dimv = struct.sgsdimv lt 1.0 or struct.sgsdimv gt 10.0
+      bad_scint = struct.sgsscint lt 0.0 or struct.sgsscint gt 20.0
+      if (bad_dimv) then struct.sgsdimv = !values.f_nan
+      if (bad_scint) then struct.sgsscint = !values.f_nan
+      if (bad_dimv || bad_scint) then begin
+        struct.sgsdims = !values.f_nan
+        struct.sgssumv = !values.f_nan
+        struct.sgssums = !values.f_nan
+        struct.sgsrav  = !values.f_nan
+        struct.sgsras  = !values.f_nan
+        struct.sgsdecv = !values.f_nan
+        struct.sgsdecs = !values.f_nan
+        if (check_sgsrazr) then struct.sgsrazr = !values.f_nan
+        if (check_sgsdeczr) then struct.sgsdeczr = !values.f_nan
+      endif
+    endif else begin
+      struct.sgsdimv  = !values.f_nan
+      struct.sgsscint = !values.f_nan
+      struct.sgsdims  = !values.f_nan
+      struct.sgssumv  = !values.f_nan
+      struct.sgssums  = !values.f_nan
+      struct.sgsrav   = !values.f_nan
+      struct.sgsras   = !values.f_nan
+      struct.sgsdecv  = !values.f_nan
+      struct.sgsdecs  = !values.f_nan
+      struct.sgsrazr  = !values.f_nan
+      struct.sgsdeczr = !values.f_nan
+    endelse
     struct.sgsloop = 1   ; SGSLOOP is 1 if image passed quality check
 
     bscale = 1.0   ; pB is stored in FITS image

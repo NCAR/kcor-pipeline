@@ -112,14 +112,25 @@ pro kcor_plotparams, date, list=list, run=run
 
     mod_temp[i] = modltrt
 
-    sgs_dimv[i]  = kcor_getsgs(hdu, 'SGSDIMV', /float)
-    sgs_scin[i]  = kcor_getsgs(hdu, 'SGSSCINT', /float)
-    sgs_rav[i]   = kcor_getsgs(hdu, 'SGSRAV', /float)
-    sgs_ras[i]   = kcor_getsgs(hdu, 'SGSRAS', /float)
-    sgs_decv[i]  = kcor_getsgs(hdu, 'SGSDECV', /float)
-    sgs_decs[i]  = kcor_getsgs(hdu, 'SGSDECS', /float)
-    sgs_razr[i]  = kcor_getsgs(hdu, 'SGSRAZR', /float)
-    sgs_deczr[i] = kcor_getsgs(hdu, 'SGSDECZR', /float)
+    if (run->epoch('use_sgs')) then begin
+      sgs_dimv[i]  = kcor_getsgs(hdu, 'SGSDIMV', /float)
+      sgs_scin[i]  = kcor_getsgs(hdu, 'SGSSCINT', /float)
+      sgs_rav[i]   = kcor_getsgs(hdu, 'SGSRAV', /float)
+      sgs_ras[i]   = kcor_getsgs(hdu, 'SGSRAS', /float)
+      sgs_decv[i]  = kcor_getsgs(hdu, 'SGSDECV', /float)
+      sgs_decs[i]  = kcor_getsgs(hdu, 'SGSDECS', /float)
+      sgs_razr[i]  = kcor_getsgs(hdu, 'SGSRAZR', /float)
+      sgs_deczr[i] = kcor_getsgs(hdu, 'SGSDECZR', /float)
+    endif else begin
+      sgs_dimv[i]  = !values.f_nan
+      sgs_scin[i]  = !values.f_nan
+      sgs_rav[i]   = !values.f_nan
+      sgs_ras[i]   = !values.f_nan
+      sgs_decv[i]  = !values.f_nan
+      sgs_decs[i]  = !values.f_nan
+      sgs_razr[i]  = !values.f_nan
+      sgs_deczr[i] = !values.f_nan
+    endelse
 
     tcam_focus[i] = tcamfocs
     rcam_focus[i] = rcamfocs
