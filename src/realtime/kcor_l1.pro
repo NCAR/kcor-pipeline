@@ -1064,7 +1064,6 @@ pro kcor_l1, date, ok_files, $
 
       ; mask pixels beyond field of view
       mask = where(rad1 lt r_in or rad1 ge r_out, /null)
-      ; TODO: should we be changing this, it goes into FITS file
       corona[mask] = run->epoch('display_min')
     endif
 
