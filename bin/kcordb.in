@@ -69,14 +69,18 @@ def list_by_version(args):
     elif args.greater_or_equal:
         op = StrictVersion.__ge__
     else:
-        op = StrictVersion.__lt__
+        op = StrictVersion.__le__
 
     versions = [v for v in versions
                   if op(StrictVersion(v[2]), StrictVersion(version))]
     version_lookup = {v[0]: v[2] for v in versions}
     version_ids = [v[0] for v in versions]
 
-    if args.verbose: print_version_table(versions)
+    if len(versions) == 0: return
+
+    if args.verbose or args.list: print_version_table(versions)
+
+    if args.list: return
 
     version_ids_clause = ', '.join([str(v) for v in version_ids])
     db.query(f'''select obs_day, min(date_obs), max(kcor_sw_id), count(distinct kcor_sw_id)
@@ -156,6 +160,7 @@ if __name__ == '__main__':
 					    help='list dates by process version')
     version_parser.add_argument('version', type=str, nargs='?', default=None,
                                 help='version')
+    version_parser.add_argument('-l', '--list', action='store_true')
     version_parser.add_argument('-eq', '--equal', action='store_true')
     version_parser.add_argument('-ne', '--not-equal', action='store_true')
     version_parser.add_argument('-lt', '--less', action='store_true')

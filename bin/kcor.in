@@ -97,7 +97,7 @@ def validate(args):
 def filter_log(args):
     date_prog = re.compile('^\d{8}$')
     logfiles = [os.path.join(LOG_DIR, f'{f}.{args.type}.log') if date_prog.match(f) else f
-                for f in logfiles]
+                for f in args.logfiles]
 
     follow = args.follow
     if follow and len(logfiles) > 1:
