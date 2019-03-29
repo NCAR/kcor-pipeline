@@ -1,0 +1,170 @@
+#!/usr/bin/env python
+
+import argparse
+import configparser
+import datetime
+from distutils.version import StrictVersion
+import os
+
+
+import MySQLdb
+
+
+def read_config(filename, section):
+    '''Read a config file with the database authentication. The file may contain
+       multiple database authentication as section. Each section has the form:
+
+         [mgalloy@databases]
+         host     : database.example.com
+         user     : my-username
+         password : my-password
+         port     : 3306
+         database : database-name
+    '''
+    cp = configparser.ConfigParser()
+    cp.read(filename)
+
+    # use the first section, if none given
+    if section is None:
+        section = cp.sections()[0]
+
+    host     = cp.get(section, 'host')
+    user     = cp.get(section, 'user')
+    password = cp.get(section, 'password')
+    port     = cp.getint(section, 'port', fallback=3306)
+    db       = cp.get(section, 'database')
+
+    return host, user, password, port, db
+
+
+def connect(config_filename, config_section):
+    '''Connect to the database.
+    '''
+    host, user, password, port, db = read_config(config_filename, config_section)
+    return MySQLdb.Connection(host=host, user=user, passwd=password, port=port, db=db)
+
+
+
+# version sub-command
+def list_by_version(args):
+    db = connect(args.config_filename, args.config_section)
+    db.query('select * from kcor_sw')
+    versions = db.store_result().fetch_row(maxrows=0)
+
+    if args.version is not None:
+        version = args.version
+    else:
+        version = versions[-1][2]
+
+    if args.equal:
+        op = StrictVersion.__eq__
+    elif args.not_equal:
+        op = StrictVersion.__ne__
+    elif args.less:
+        op = StrictVersion.__lt__
+    elif args.less_or_equal:
+        op = StrictVersion.__le__
+    elif args.greater:
+        op = StrictVersion.__gt__
+    elif args.greater_or_equal:
+        op = StrictVersion.__ge__
+    else:
+        op = StrictVersion.__lt__
+
+    versions = [v for v in versions
+                  if op(StrictVersion(v[2]), StrictVersion(version))]
+    version_lookup = {v[0]: v[2] for v in versions}
+    version_ids = [v[0] for v in versions]
+
+    if args.verbose: print_version_table(versions)
+
+    version_ids_clause = ', '.join([str(v) for v in version_ids])
+    db.query(f'''select obs_day, min(date_obs), max(kcor_sw_id), count(distinct kcor_sw_id)
+                 from kcor_eng
+                 where kcor_sw_id in ({version_ids_clause})
+                 group by obs_day
+                 order by date_obs
+              ''')
+
+    dates = db.store_result().fetch_row(maxrows=0)
+    if args.verbose:
+        print()
+        print_date_version_table(dates, version_lookup)
+    else:
+        dates = [datetime.datetime.strftime(d[1], '%Y%m%d') for d in dates]
+        for d in dates:
+            print(d)
+
+
+def print_date_version_table(dates, version_lookup):
+    date = 'date'
+    version = 'version'
+    print(f'{date:^12} {version:^9}')
+    print('%s %s' % ('-' * 12, '-' * 9))
+    for row in dates:
+        date_obs = datetime.datetime.strftime(row[1], '%Y-%m-%d')
+        sw_id = row[2]
+        version = version_lookup[sw_id]
+        count = row[3]
+        count_expr = '*' if count > 1 else ''
+        print(f'{date_obs:>12} {version:>9}{count_expr}')
+
+
+def print_version_table(versions):
+    fmt = '%Y-%m-%d'
+    sw_id = 'sw_id'
+    proc_date = 'date'
+    version = 'version'
+    revision = 'revision'
+    print(f'{sw_id:^9} {proc_date:^12} {version:^9} {revision:^10}')
+    print('%s %s %s %s' % ('-' * 9, '-' * 12, '-' * 9, '-' * 10))
+    for row in versions:
+        proc_date = datetime.datetime.strftime(row[1], fmt)
+        print(f'{row[0]:9} {proc_date:>12} {row[2]:>9} {row[3]:>10}')
+
+
+def print_help(args):
+    '''Print help for the KCor database command.
+    '''
+    args.parser.print_help()
+
+
+if __name__ == '__main__':
+    name = 'KCor database @GIT_VERSION@ [@GIT_REVISION@] (@GIT_BRANCH@)'
+
+    parser = argparse.ArgumentParser(description=name)
+
+    # top-level arguments
+    parser.add_argument('-v', '--version',
+                        action='version',
+                        version=name)
+    parser.add_argument('--verbose',
+                        action='store_true',
+			help='print verbose output')
+    parser.add_argument('--config-filename',
+                        help='configuration filename',
+                        default=os.path.expanduser('~/.mysqldb'))
+    parser.add_argument('--config-section',
+                        help='configuration filename section')
+
+    # show help if no sub-command given
+    parser.set_defaults(func=print_help, parser=parser)
+
+    subparsers = parser.add_subparsers(metavar='command')
+
+    # version sub-command
+    version_parser = subparsers.add_parser('version',
+					    help='list dates by process version')
+    version_parser.add_argument('version', type=str, nargs='?', default=None,
+                                help='version')
+    version_parser.add_argument('-eq', '--equal', action='store_true')
+    version_parser.add_argument('-ne', '--not-equal', action='store_true')
+    version_parser.add_argument('-lt', '--less', action='store_true')
+    version_parser.add_argument('-le', '--less-or-equal', action='store_true')
+    version_parser.add_argument('-gt', '--greater', action='store_true')
+    version_parser.add_argument('-ge', '--greater-or-equal', action='store_true')
+    version_parser.set_defaults(func=list_by_version, parser=version_parser)
+
+    # parse args and call appropriate sub-command
+    args = parser.parse_args()
+    args.func(args)
