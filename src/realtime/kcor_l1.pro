@@ -1281,7 +1281,7 @@ pro kcor_l1, date, ok_files, $
               ' calibration polarizer angle', format='(f9.3)'
     exposure = run->epoch('use_exptime') ? struct.exptime : run->epoch('exptime')
     fxaddpar, newheader, 'EXPTIME',  exposure * 1.e-3, $
-              ' [s] exposure time for each frame', format='(f10.5)'
+              ' [s] exposure time for each frame', format='(f10.6)'
     numsum = run->epoch('use_numsum') ? struct.numsum : run->epoch('numsum')
     fxaddpar, newheader, 'NUMSUM', numsum, $
               ' # frames summed per L0 img for each pol state'

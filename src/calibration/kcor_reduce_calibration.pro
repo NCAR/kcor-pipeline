@@ -218,7 +218,7 @@ pro kcor_reduce_calibration, date, $
                             run->epoch('cal_epoch_version'), $
                             kcor_find_code_version(), $
                             float(exposures[0]), $
-                            format='(%"%s_%s_kcor_cal_v%s_%s_%0.2fms.ncdf")')
+                            format='(%"%s_%s_kcor_cal_v%s_%s_%0.3fms.ncdf")')
   outfile = filepath(outfile_basename, root=run->config('calibration/out_dir'))
 
   if (~file_test(run->config('calibration/out_dir'), /directory)) then begin
