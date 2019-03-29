@@ -95,11 +95,6 @@ def validate(args):
 
 # log sub-command
 def filter_log(args):
-    if len(args.logfiles) == 0:
-        logfiles = sys.stdin.read().split()
-    else:
-        logfiles = args.logfiles
-
     date_prog = re.compile('^\d{8}$')
     logfiles = [os.path.join(LOG_DIR, f'{f}.{args.type}.log') if date_prog.match(f) else f
                 for f in logfiles]
