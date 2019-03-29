@@ -201,7 +201,7 @@ pro kcor_plotparams, date, list=list, run=run
                 title=pdate + ' KCor SGS DIM', $
                 xtitle='Hours [UT]', ytitle='DIM [volts]', $
                 xrange=[16.0, 28.0], $
-                /ynozero, ystyle=1, yrange=[3.0, 9.0], $
+                /ynozero, ystyle=1, yrange=[3.0, 10.0], $
                 background=255, color=0, charsize=1.0, $
                 clip_thick=2.0
 
