@@ -798,7 +798,7 @@ pro kcor_l1, date, ok_files, $
         negative_indices = where(img_temp le 0, /null, n_negative_values)
         ;img_temp[negative_indices] = 0
         if (n_negative_values gt 0L) then begin
-          mg_log, '%d negative values', n_negative_values, name='kcor/rt', /warn
+          mg_log, '%d negative values', n_negative_values, name=log_name, /warn
         endif
         img_cor[*, *, s, b]  = img_temp
 
