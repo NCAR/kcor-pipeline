@@ -448,6 +448,14 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     mg_log, 'not sending notification email', name='kcor/eod', /warn
   endelse
 
+  l15_spec = run->config('data/l15_validation_specification')
+    if (n_elements(l15_spec) eq 0L || ~file_test(l15_spec, /regular)) then begin
+      mg_log, 'no spec to validate L1.5 files against', name='kcor/rt', /info
+    endif else begin
+      mg_log, 'validating %d L1.5 files', n_l1_zipped_files, name='kcor/rt', /info
+      kcor_validate, filepath(l1_zipped_files, root=l1_dir), $
+                     l15_spec, 'L1.5', logger_name='kcor/rt', run=run
+    endelse
 
   done:
   mg_log, /check_math, name='kcor/eod', /debug
