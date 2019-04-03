@@ -294,12 +294,14 @@
 1.6.2 [Mar 25, 2019]
   epoch change for quicklook GIF scaling
 1.6.3
-  handle NaN/infinity in corona
+  writing L1.5 FITS data as float, not double
+  not setting negative dark corrected science values to 0
+  log warning if negative dark corrected science values in coronal images
+  handle NaN/infinity in corona when setting DATAMIN/DATAMAX
   add realtime/check_quality option
   mark some bad files in epoch file
   handle no L0 files, but empty t1/t2 log files
   correct for NUMSUM between sci/cal files before using dark/flat
-  log warning if negative values in coronal images
   fix bug where L0 tarball was sent to HPSS in a reprocess
   fix issue where epoch date/time was not advanced during difference/average creation
   skip first good science image on reprocessing
