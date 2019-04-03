@@ -350,7 +350,9 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
     ; print image summary
     mg_log, mg_format('%*d/%d: %s %s', n_digits, /simple), $
-            i + 1, n_images, file_basename(l0_file, '.gz'), datatype_str, $
+            i + 1, n_images, $
+            file_basename(l0_file, '.gz'), $
+            strmid(datatype_str, 0, 3), $
             name='kcor/eod', /info
     mg_log, '   %5s %3s %4s %4s %4s %7s %4s', $
             exptime_str, cover_str, dshutter_str, $

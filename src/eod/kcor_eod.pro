@@ -17,6 +17,8 @@
 pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   compile_opt strictarr
 
+  eod_clock = tic('eod')
+
   run = kcor_run(date, config_filename=config_filename, mode='eod')
   if (~obj_valid(run)) then message, 'problem creating run object'
 
@@ -365,6 +367,18 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   kcor_save_results, date, run=run
 
+  l15_spec = run->config('data/l15_validation_specification')
+  if (n_elements(l15_spec) eq 0L || ~file_test(l15_spec, /regular)) then begin
+    n_invalid_l15_files = 0L
+    mg_log, 'no spec to validate L1.5 files against', name='kcor/eod', /info
+  endif else begin
+    mg_log, 'validating %d L1.5 files', n_l1_zipped_files, name='kcor/eod', /info
+    kcor_validate, filepath(l1_zipped_files, root=l1_dir), $
+                   l15_spec, 'L1.5', $
+                   n_invalid_files=n_invalid_l15_files, $
+                   logger_name='kcor/eod', run=run
+  endelse
+
   if (run->config('notifications/send') $
         && n_elements(run->config('notifications/email')) gt 0L) then begin
     msg = [string(date, $
@@ -391,7 +405,12 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
       msg = [msg, $
              string(n_wrongsize, $
                     format='(%"number of wrong sized files: %d")')]
-             
+    endif
+
+    if (n_invalid_l15_files gt 0L) then begin
+      msg = [msg, $
+             string(n_invalid_l15_files, $
+                    format='(%"number of invalid L1.5 files: %d")')]
     endif
 
     spawn, 'echo $(whoami)@$(hostname)', who, error_result, exit_status=status
@@ -448,18 +467,14 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     mg_log, 'not sending notification email', name='kcor/eod', /warn
   endelse
 
-  l15_spec = run->config('data/l15_validation_specification')
-    if (n_elements(l15_spec) eq 0L || ~file_test(l15_spec, /regular)) then begin
-      mg_log, 'no spec to validate L1.5 files against', name='kcor/eod', /info
-    endif else begin
-      mg_log, 'validating %d L1.5 files', n_l1_zipped_files, name='kcor/eod', /info
-      kcor_validate, filepath(l1_zipped_files, root=l1_dir), $
-                     l15_spec, 'L1.5', logger_name='kcor/eod', run=run
-    endelse
-
   done:
+
   mg_log, /check_math, name='kcor/eod', /debug
-  mg_log, 'done', name='kcor/eod', /info
+
+  eod_time = toc(eod_clock)
+  mg_log, 'done, eod processing time: %s', $
+          kcor_times2str(eod_time), $
+          name='kcor/eod', /info
 
   obj_destroy, run
 end

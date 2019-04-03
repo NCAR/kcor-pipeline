@@ -12,12 +12,16 @@
 ;     type of files, "L0" or "L1.5"
 ;
 ; :Keywords:
+;   n_invalid_files : out, optional, type=integer
+;     set to a named variable to retrieve the number of files with a validation
+;     problem
 ;   logger_name : in, optional, type=string
 ;     name of logger to send output to; if not present, sent to stdout
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;-
 pro kcor_validate, fits_files, spec_filename, type, $
+                   n_invalid_files=n_problem_files, $
                    logger_name=logger_name, run=run
   compile_opt strictarr
 

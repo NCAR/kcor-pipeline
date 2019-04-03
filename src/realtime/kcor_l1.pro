@@ -800,12 +800,25 @@ pro kcor_l1, date, ok_files, $
           ;img_temp[negative_indices] = 0
 
           case b of
-            0: !null = where(mask_occulter0[negative_indices], n_fov_negative_values)
-            1: !null = where(mask_occulter1[negative_indices], n_fov_negative_values)
+            0: n_fov_negative_values_indices = where(mask_occulter0[negative_indices], $
+                                                     n_fov_negative_values)
+            1: n_fov_negative_values_indices = where(mask_occulter1[negative_indices], $
+                                                     n_fov_negative_values)
           endcase
 
           if (n_fov_negative_values gt 0L) then begin
-            mg_log, '%d negative values in FOV', n_fov_negative_values, $
+            n_fov_negative_values_cutoff = 3
+            print_indices = n_fov_negative_values gt n_fov_negative_values_cutoff $
+                              ? '' $
+                              : (' @ ' $
+                                   + strjoin(strtrim(n_fov_negative_values_indices, $
+                                                     2), $
+                                             ' '))
+            mg_log, '%d negative values in FOV (cam %d, stokes %d) %s %s', $
+                    n_fov_negative_values, b, s, $
+                    n_fov_negative_values gt n_fov_negative_values_cutoff $
+                      ? '' $
+                      : print_indices, $
                     name=log_name, /warn
           endif
         endif

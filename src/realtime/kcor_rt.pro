@@ -393,7 +393,9 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
   endif
 
   rt_time = toc(rt_clock)
-  mg_log, 'done, total realtime processing time: %0.1f sec', rt_time, name='kcor/rt', /info
+  mg_log, 'done, realtime processing time: %s', $
+          kcor_times2str(rt_time), $
+          name='kcor/rt', /info
 
   obj_destroy, run
 end
