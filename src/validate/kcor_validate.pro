@@ -30,6 +30,9 @@ pro kcor_validate, fits_files, spec_filename, type, $
 
   ; send notification if some files are not valid
   if (n_problems gt 0L) then begin
+    mg_log, '%d invalid %s files', n_problems, type, $
+            name=logger_name, /info
+
     if (run->config('notifications/send')) then begin
       if (n_elements(run->config('notifications/email')) eq 0L) then begin
         mg_log, 'no email specified to send notification to', name=logger_name, /info
@@ -61,6 +64,8 @@ pro kcor_validate, fits_files, spec_filename, type, $
 
     kcor_send_mail, address, subject, body->toArray(), $
                     error=error, logger_name=logger_name
+  endif else begin
+    mg_log, 'no invalid %s files', type, name=logger_name, /info
   endif
 
   done:
