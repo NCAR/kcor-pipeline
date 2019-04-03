@@ -748,9 +748,12 @@ pro kcor_l1, date, ok_files, $
       mg_log, 'camera 1 y-coordinate center out of bounds', name=log_name, /warn
     endif
 
-    ; create new gain to account for image shift
-    ;   Region of missing data is set to a constant for now.
-    ;   It should be replaced with the values from the gain we took without
+    ; create new gain to account for science image shift from flat because the
+    ; occulter in the flat will not align with the science image causing
+    ; extremely bright pixels in the corrected science image around the occulter
+    ;
+    ; - region of missing data is replace with shifted flat data for now.
+    ; - it should be replaced with the values from the gain we took without
     ;   occulter in.
 
     ; camera 0
@@ -760,9 +763,8 @@ pro kcor_l1, date, ok_files, $
       gain_replace = shift(gain_alfred[*, *, 0], $
                            xcen0 - info_gain0[0], $
                            ycen0 - info_gain0[1])
-      gain_temp[replace] = gain_replace[replace]   ; gain_no_occulter0[replace]
+      gain_temp[replace] = gain_replace[replace]
       gain_shift[*, *, 0] = gain_temp
-      ; printf, ulog, 'Gain for CAMERA 0 shifted to image position.'
     endif
 
     ; camera 1
@@ -772,9 +774,8 @@ pro kcor_l1, date, ok_files, $
       gain_replace = shift(gain_alfred[*, *, 1], $
                            xcen1 - info_gain1[0], $
                            ycen1 - info_gain1[1])
-      gain_temp[replace] = gain_replace[replace]   ; gain_no_occulter1[replace]
+      gain_temp[replace] = gain_replace[replace]
       gain_shift[*, *, 1] = gain_temp
-      ; printf, ulog, 'Gain for CAMERA 1 shifted to image position.'
     endif
 
     gain_temp    = 0
@@ -797,6 +798,7 @@ pro kcor_l1, date, ok_files, $
         img_temp = reform(img_cor[*, *, s, b])
         negative_indices = where(img_temp le 0, /null, n_negative_values)
         ;img_temp[negative_indices] = 0
+        ; TODO: only give warning if in masked corona
         if (n_negative_values gt 0L) then begin
           mg_log, '%d negative values', n_negative_values, name=log_name, /warn
         endif
