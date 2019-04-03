@@ -702,10 +702,13 @@ pro kcor_l1, date, ok_files, $
     theta0 = atan(- yy0, - xx0)
     theta0 += !pi
     
-    ; pick0 = where (rr0 gt radius_0 -1.0 and rr0 lt 506.0 )
-    ; mask_occulter0 = fltarr (xsize, ysize)
-    ; mask_occulter0 (*) = 0
-    ; mask_occulter0 (pick0) = 1.
+    ; inside and outside radius for masks
+    r_in  = fix(occulter / run->epoch('plate_scale')) + run->epoch('r_in_offset')
+    r_out = run->epoch('r_out')
+
+    cam0_indices = where(rr0 gt r_in and rr0 lt r_out, n_cam0_fov_pixels)
+    mask_occulter0 = bytarr(xsize, ysize)
+    mask_occulter0[cam0_indices] = 1B
 
     ; camera 1 (transmitted)
     info_raw = kcor_find_image(img[*, *, 0, 1], $
@@ -725,10 +728,9 @@ pro kcor_l1, date, ok_files, $
     theta1 = atan(- yy1, - xx1)
     theta1 += !pi
 
-    ; pick1 = where(rr1 ge radius_1 -1.0 and rr1 lt 506.0)
-    ; mask_occulter1 = fltarr(xsize, ysize)
-    ; mask_occulter1[*] = 0
-    ; mask_occulter1[pick1] = 1.0
+    cam1_indices = where(rr1 gt r_in and rr1 lt r_out, n_cam1_fov_pixels)
+    mask_occulter1 = bytarr(xsize, ysize)
+    mask_occulter1[cam1_indices] = 1B
 
     mg_log, 'camera 0 center: %0.1f, %0.1f and radius: %0.1f', $
             xcen0, ycen0, radius_0, name=log_name, /debug
@@ -786,29 +788,31 @@ pro kcor_l1, date, ok_files, $
     img_cor *= float(cal_numsum) / float(struct.numsum)
 
     ; apply dark and gain correction
-    ; (Set negative values (after dark subtraction) to zero.)
-
     for b = 0, 1 do begin
       for s = 0, 3 do begin
-        ; img[*, *, s, b] = $
-        ;   (img[*, *, s, b] - dark_alfred[*, *, b]) / gain_shift[*, *, b]
         img_cor[*, *, s, b] = img[*, *, s, b] - dark_alfred[*, *, b]
 
-        ; TODO: should we be doing this?
         img_temp = reform(img_cor[*, *, s, b])
         negative_indices = where(img_temp le 0, /null, n_negative_values)
-        ;img_temp[negative_indices] = 0
-        ; TODO: only give warning if in masked corona
-        if (n_negative_values gt 0L) then begin
-          mg_log, '%d negative values', n_negative_values, name=log_name, /warn
-        endif
-        img_cor[*, *, s, b]  = img_temp
 
-        img_cor[*, *, s, b] /= gain_shift[*, *, b]
+        if (n_negative_values gt 0L) then begin
+          ; TODO: should we be doing this?
+          ;img_temp[negative_indices] = 0
+
+          case b of
+            0: !null = where(mask_occulter0[negative_indices], n_fov_negative_values)
+            1: !null = where(mask_occulter1[negative_indices], n_fov_negative_values)
+          endcase
+
+          if (n_fov_negative_values gt 0L) then begin
+            mg_log, '%d negative values in FOV', n_fov_negative_values, $
+                    name=log_name, /warn
+          endif
+        endif
+
+        img_cor[*, *, s, b] = temporary(img_temp) / gain_shift[*, *, b]
       endfor
     endfor
-
-    img_temp = 0
 
     ; apply demodulation matrix to get I, Q, U images from each camera
 
@@ -1062,11 +1066,8 @@ pro kcor_l1, date, ok_files, $
       corona *= flat_vdimref / vdimref
     endif
 
+    ; create mask for final image
     if (~keyword_set(nomask)) then begin
-      ; create mask for final image
-      r_in  = fix(occulter / run->epoch('plate_scale')) + run->epoch('r_in_offset')
-      r_out = run->epoch('r_out')
-
       ; mask pixels beyond field of view
       mask = where(rad1 lt r_in or rad1 ge r_out, /null)
       corona[mask] = run->epoch('display_min')

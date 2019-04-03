@@ -296,7 +296,8 @@
 1.6.3
   writing L1.5 FITS data as float, not double
   not setting negative dark corrected science values to 0
-  log warning if negative dark corrected science values in coronal images
+  log warning if negative dark corrected science values in masked coronal images
+  log warning if Nan/infinity in corona
   handle NaN/infinity in corona when setting DATAMIN/DATAMAX
   add realtime/check_quality option
   mark some bad files in epoch file
