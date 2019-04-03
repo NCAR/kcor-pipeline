@@ -20,7 +20,8 @@ pro kcor_validate, fits_files, spec_filename, type, $
       body->add, '    ' + error_msg, /extract
       body->add, ''
 
-      mg_log, 'problem with: %s', fits_files[f], name=logger_name, /warn
+      mg_log, 'problem with: %s', file_basename(fits_files[f]), $
+              name=logger_name, /warn
       for e = 0L, n_elements(error_msg) - 1L do begin
         mg_log, ' - %s', error_msg[e], name=logger_name, /warn
       endfor
