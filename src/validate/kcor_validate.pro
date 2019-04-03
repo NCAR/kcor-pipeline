@@ -1,5 +1,22 @@
 ; docformat = 'rst'
 
+;+
+; Validate given FITS files.
+;
+; :Params:
+;   fits_files : in, required, type=strarr
+;     array of FITS filenames to check
+;   spec_filename : in, required, type=string
+;     filename of validation spec to use
+;   type : in, required, type=string
+;     type of files, "L0" or "L1.5"
+;
+; :Keywords:
+;   logger_name : in, optional, type=string
+;     name of logger to send output to; if not present, sent to stdout
+;   run : in, required, type=object
+;     `kcor_run` object
+;-
 pro kcor_validate, fits_files, spec_filename, type, $
                    logger_name=logger_name, run=run
   compile_opt strictarr
@@ -66,7 +83,7 @@ pro kcor_validate, fits_files, spec_filename, type, $
                     error=error, logger_name=logger_name
   endif else begin
     mg_log, 'no invalid %s files', type, name=logger_name, /info
-  endif
+  endelse
 
   done:
 
