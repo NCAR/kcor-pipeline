@@ -810,7 +810,7 @@ pro kcor_l1, date, ok_files, $
             n_fov_negative_values_cutoff = 3
             print_indices = n_fov_negative_values gt n_fov_negative_values_cutoff $
                               ? '' $
-                              : (' @ ' $
+                              : ('@ ' $
                                    + strjoin(strtrim(n_fov_negative_values_indices, $
                                                      2), $
                                              ' '))
