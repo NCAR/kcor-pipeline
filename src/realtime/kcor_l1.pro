@@ -1639,6 +1639,12 @@ pro kcor_l1, date, ok_files, $
 
     sxdelpar, newheader, 'DUMMY'
 
+    ; give a warning for NaN/infinite values in the final corona image
+    !null = where(finite(corona) eq 0, n_nans)
+    if (n_nans gt 0L) then begin
+      mg_log, '%d NaN/Inf values in L1.5 FITS', n_nans, name=log_name, /warn
+    endif
+
     ; write FITS image to disk
     writefits, filepath(l1_file, root=l1_dir), corona, newheader
 
