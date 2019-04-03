@@ -473,7 +473,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   eod_time = toc(eod_clock)
   mg_log, 'done, eod processing time: %s', $
-          kcor_times2str(eod_time), $
+          kcor_sec2str(eod_time), $
           name='kcor/eod', /info
 
   obj_destroy, run
