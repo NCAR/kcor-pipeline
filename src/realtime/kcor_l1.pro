@@ -676,7 +676,7 @@ pro kcor_l1, date, ok_files, $
       mg_log, 'correcting horiz lines @ [%s], cameras: [%s]', $
               strjoin(strtrim(run->epoch('horizontal_artifact_lines'), 2), ', '), $
               strjoin(strtrim(run->epoch('horizontal_artifact_cameras'), 2), ', '), $
-              name='kcor/cal', /debug
+              name=log_name, /debug
       kcor_correct_horizontal_artifact, img, $
                                         run->epoch('horizontal_artifact_lines'), $
                                         run->epoch('horizontal_artifact_cameras')

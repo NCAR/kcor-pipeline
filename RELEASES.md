@@ -308,3 +308,4 @@
   skip first good science image on reprocessing
   remove use_bzero option, always write FITS files with 0 BZERO
   validate L1.5 FITS files
+  fix for sending log messages for correcting horiz lines to wrong log
