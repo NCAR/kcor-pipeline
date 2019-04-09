@@ -34,5 +34,5 @@ function kcor_sec2str, secs
   endfor
 
   ind = result[where(result ne '', count, /null)]
-  return, count gt 0L ? strjoin(ind, ' ') : string(secs, format='(%"%0.1 secs")')
+  return, count gt 0L ? strjoin(ind, ' ') : string(secs, format='(%"%0.1f secs")')
 end
