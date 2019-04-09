@@ -10,6 +10,17 @@
 pro kcor_crash_notification, run=run, realtime=realtime, eod=eod
   compile_opt strictarr
 
+  case 1 of
+    keyword_set(realtime): logger_name = 'kcor/rt'
+    keyword_set(eod): logger_name = 'kcor/eod'
+    else:
+  endcase
+
+  help, /last_message, output=help_output
+
+  ; sometimes the pipeline crashes before the run object is created
+  if (~obj_valid(run)) then goto, done
+
   if (run->config('notifications/send')) then begin
     if (n_elements(run->config('notifications/email')) eq 0L) then begin
       mg_log, 'no email specified to send notification to', name=logger_name, /info
@@ -23,7 +34,6 @@ pro kcor_crash_notification, run=run, realtime=realtime, eod=eod
     goto, done
   endelse
 
-  help, /last_message, output=help_output
   body = [help_output, '']
 
   if (~obj_valid(run)) then begin
@@ -35,7 +45,6 @@ pro kcor_crash_notification, run=run, realtime=realtime, eod=eod
 
   case 1 of
     keyword_set(realtime): begin
-        logger_name = 'kcor/rt'
         rt_log_filename = filepath(run.date + '.realtime.log', $
                                    root=run->config('logging/dir'))
         rt_errors = kcor_filter_log(rt_log_filename, /error, n_messages=n_rt_errors)
@@ -43,7 +52,6 @@ pro kcor_crash_notification, run=run, realtime=realtime, eod=eod
         body = [body, rt_log_filename, '', rt_errors]
       end
     keyword_set(eod): begin
-        logger_name = 'kcor/eod'
         eod_log_filename = filepath(run.date + '.eod.log', root=run->config('logging/dir'))
         eod_errors = kcor_filter_log(eod_log_filename, /error, n_messages=n_eod_errors)
         name = 'end-of-day'
