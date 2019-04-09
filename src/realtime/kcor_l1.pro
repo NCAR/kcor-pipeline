@@ -1408,9 +1408,9 @@ pro kcor_l1, date, ok_files, $
                 ''
     endif
 
-    fxaddpar, newheader, 'CALFILE', run->epoch('cal_file'), $
+    fxaddpar, newheader, 'CALFILE', file_basename(calpath), $
               ' calibration file'
-    fxaddpar, newheader, 'DISTORT', run->epoch('distortion_correction_filename'), $
+    fxaddpar, newheader, 'DISTORT', file_basename(dc_path), $
               ' distortion file'
     if (finite(vdimref) && finite(flat_vdimref) && vdimref ne 0.0) then begin
       skytrans = flat_vdimref / vdimref
