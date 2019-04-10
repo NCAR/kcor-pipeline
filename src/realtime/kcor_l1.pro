@@ -1569,6 +1569,9 @@ pro kcor_l1, date, ok_files, $
               format='(e11.3)', /null
     fxaddpar, newheader, 'SGSSUMV', struct.sgssumv, $
               ' [V] mean SGS sum signal', format='(f9.4)', /null
+    fxaddpar, newheader, 'SGSSUMS',  struct.sgssums, $
+              ' [V] SGS sum signal standard deviation', $
+              format='(e11.3)', /null
     fxaddpar, newheader, 'SGSRAV', struct.sgsrav, $
               ' [V] mean SGS RA error signal', format='(e11.3)', /null
     fxaddpar, newheader, 'SGSRAS', struct.sgsras, $
@@ -1591,9 +1594,6 @@ pro kcor_l1, date, ok_files, $
               ' [arcsec] SGS scintillation seeing estimate', $
               format='(f9.4)', /null
     fxaddpar, newheader, 'SGSLOOP',  struct.sgsloop, ' SGS loop closed fraction'
-    fxaddpar, newheader, 'SGSSUMS',  struct.sgssums, $
-              ' [V] SGS sum signal standard deviation', $
-              format='(e11.3)', /null
 
     ; data citation URL
     fxaddpar, newheader, 'DATACITE', run->epoch('doi_url'), ' URL for DOI'
