@@ -23,7 +23,7 @@ KCOR_CME_PATH=+${KCOR_CME_ROOT}:+${KCOR_ROOT}/lib:+${KCOR_ROOT}/src:+${MGLIB_ROO
 SHORT_HOSTNAME=$(hostname | sed -e 's/\..*$//')
 FLAGS=cme
 
-CONFIG_FILENAME=$KCOR_ROOT/config/kcor.$(whoami).$SHORT_HOSTNAME.$FLAGS.cfg
+CONFIG_FILENAME=$KCOR_ROOT/config/kcor.$FLAGS.cfg
 
 #echo $KCOR_CME_PATH
 #echo $CONFIG_FILENAME
