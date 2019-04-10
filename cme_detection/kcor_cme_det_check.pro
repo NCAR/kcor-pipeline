@@ -36,7 +36,7 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
       t0 = anytim2utc(timerange[0], /ccsds)
       t1 = anytim2utc(timerange[1], /ccsds)
       break_file, files, disk, dir, name
-      tt = anytim2utc(strmid(name,0,15),/ccsds)
+      tt = anytim2utc(strmid(name, 0, 15), /ccsds)
       w = where((tt ge t0) and (tt le t1), count)
       if (count eq 0) then begin
         mg_log, 'no FITS files found in time range', name='kcor/cme', /info
