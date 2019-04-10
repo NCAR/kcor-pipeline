@@ -12,6 +12,7 @@ assignees: mgalloy
 - [ ] check to make sure no changes to the production config files are needed
 - [ ] add date to version line in `RELEASES.md`
 - [ ] check that version to release in `RELEASES.md` matches version in `CMakeLists.txt`
+- [ ] check to make sure L1.5 validation specification file is still correct
 
 ### Release to production
 
