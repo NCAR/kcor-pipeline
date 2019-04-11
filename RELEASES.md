@@ -312,3 +312,4 @@
   make sure distortion and calibration files are those actually used
   handle writing missing data in FITS keywords correctly
   CME detection alert specifies last file processed at detection
+1.6.4
