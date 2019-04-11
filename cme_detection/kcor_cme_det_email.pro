@@ -48,7 +48,7 @@
 ;
 ; Contact     :	WTHOMPSON
 ;-
-pro kcor_cme_det_email, time, edge, operator=operator
+pro kcor_cme_det_email, time, edge, last_detected_image_time, operator=operator
   compile_opt strictarr
   @kcor_cme_det_common
 
@@ -142,7 +142,10 @@ pro kcor_cme_det_email, time, edge, operator=operator
     format = '(F10.2)'
     printf, out, 'Radial distance from Sun center: ' + ntrim(edge, format) + ' Rsun'
     printf, out, 'Position angle: ' + ntrim(angle) + ' degrees'
-    printf, out, 'Initial speed: ' + ntrim(speed, format) + ' km/s'
+    printf, out, 'Initial speed: ' + ntrim(speed, format) + ' km/s
+    printf, out
+    printf, out, last_detected_image_time, $
+            format='(%"CME detected when images up to %s UT have been processed")'
   endelse
 
   spawn, 'echo $(whoami)@$(hostname)', who, error_result, exit_status=status

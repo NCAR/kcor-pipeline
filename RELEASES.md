@@ -311,3 +311,4 @@
   fix for sending log messages for correcting horiz lines to wrong log
   make sure distortion and calibration files are those actually used
   handle writing missing data in FITS keywords correctly
+  CME detection alert specifies last file processed at detection
