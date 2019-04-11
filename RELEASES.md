@@ -293,7 +293,7 @@
   epoch file updates
 1.6.2 [Mar 25, 2019]
   epoch change for quicklook GIF scaling
-1.6.3
+1.6.3 [Apr 11, 2019]
   writing L1.5 FITS data as float, not double
   not setting negative dark corrected science values to 0
   log warning if negative dark corrected science values in masked coronal images
