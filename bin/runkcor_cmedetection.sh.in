@@ -31,7 +31,7 @@ ${IDL} -quiet \
     2>&1 | tail -n +3
 
 # need to add cme_detection directory to normal KCor IDL path
-KCOR_CME_PATH=${PIPE_DIR}/cme_detection:${KCOR_PATH}
+KCOR_CME_PATH=+${PIPE_DIR}/cme_detection:${KCOR_PATH}
 
 ${IDL} -quiet -IDL_QUIET 1 -IDL_STARTUP "" -IDL_PATH ${KCOR_CME_PATH} -IDL_DLM_PATH ${KCOR_DLM_PATH} -e "kcor_cme_detection_job, '${DATE}', config_filename='${CONFIG}'" \
     2>&1 | tail -n +3
