@@ -13,8 +13,8 @@ configure_file(runkcor_eod_range.sh.in runkcor_eod_range.sh @ONLY)
 configure_file(runkcor_process.sh.in runkcor_process.sh @ONLY)
 configure_file(runkcor_process_range.sh.in runkcor_process_range.sh @ONLY)
 
-configure_file(runkcor_cmedetection.sh.in runkcor_process.sh @ONLY)
-configure_file(runkcor_cmedetection_range.sh.in runkcor_process_range.sh @ONLY)
+configure_file(runkcor_cmedetection.sh.in runkcor_cmedetection.sh @ONLY)
+configure_file(runkcor_cmedetection_range.sh.in runkcor_cmedetection_range.sh @ONLY)
 
 configure_file(runkcor_archive_l0.sh.in runkcor_archive_l0.sh @ONLY)
 configure_file(runkcor_archive_l0_range.sh.in runkcor_archive_l0_range.sh @ONLY)
