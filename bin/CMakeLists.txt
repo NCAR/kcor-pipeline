@@ -13,6 +13,9 @@ configure_file(runkcor_eod_range.sh.in runkcor_eod_range.sh @ONLY)
 configure_file(runkcor_process.sh.in runkcor_process.sh @ONLY)
 configure_file(runkcor_process_range.sh.in runkcor_process_range.sh @ONLY)
 
+configure_file(runkcor_cmedetection.sh.in runkcor_process.sh @ONLY)
+configure_file(runkcor_cmedetection_range.sh.in runkcor_process_range.sh @ONLY)
+
 configure_file(runkcor_archive_l0.sh.in runkcor_archive_l0.sh @ONLY)
 configure_file(runkcor_archive_l0_range.sh.in runkcor_archive_l0_range.sh @ONLY)
 
@@ -34,8 +37,6 @@ configure_file(kcor_verify_dates.sh.in kcor_verify_dates.sh @ONLY)
 
 configure_file(runkcor_env.sh.in runkcor_env.sh @ONLY)
 
-configure_file(runkcor_cme_batch.sh.in runkcor_cme_batch.sh @ONLY)
-
 install(PROGRAMS
           ${CMAKE_CURRENT_BINARY_DIR}/kcor_include.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_rt.sh
@@ -47,6 +48,8 @@ install(PROGRAMS
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_eod_range.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_process.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_process_range.sh
+          ${CMAKE_CURRENT_BINARY_DIR}/runkcor_cmedetection.sh
+          ${CMAKE_CURRENT_BINARY_DIR}/runkcor_cmedetection_range.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_archive_l0.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_archive_l0_range.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_archive_l1.sh
@@ -54,7 +57,6 @@ install(PROGRAMS
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_clean.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_clean_range.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_env.sh
-          ${CMAKE_CURRENT_BINARY_DIR}/runkcor_cme_batch.sh
 	  ${CMAKE_CURRENT_BINARY_DIR}/kcor
 	  ${CMAKE_CURRENT_BINARY_DIR}/kcordb
 	  ${CMAKE_CURRENT_BINARY_DIR}/kcorcat
