@@ -313,3 +313,4 @@
   handle writing missing data in FITS keywords correctly
   CME detection alert specifies last file processed at detection
 1.6.4
+  handle no L1.5 files when validating

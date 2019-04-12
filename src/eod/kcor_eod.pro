@@ -372,11 +372,15 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     n_invalid_l15_files = 0L
     mg_log, 'no spec to validate L1.5 files against', name='kcor/eod', /info
   endif else begin
-    mg_log, 'validating %d L1.5 files', n_l1_zipped_files, name='kcor/eod', /info
-    kcor_validate, filepath(l1_zipped_files, root=l1_dir), $
-                   l15_spec, 'L1.5', $
-                   n_invalid_files=n_invalid_l15_files, $
-                   logger_name='kcor/eod', run=run
+    if (n_l1_zipped_files eq 0L) then begin
+      mg_log, 'no L1.5 files to validate', name='kcor/eod', /info
+    endif else begin
+      mg_log, 'validating %d L1.5 files', n_l1_zipped_files, name='kcor/eod', /info
+      kcor_validate, filepath(l1_zipped_files, root=l1_dir), $
+                     l15_spec, 'L1.5', $
+                     n_invalid_files=n_invalid_l15_files, $
+                     logger_name='kcor/eod', run=run
+    endelse
   endelse
 
   if (run->config('notifications/send') $
