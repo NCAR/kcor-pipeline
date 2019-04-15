@@ -80,7 +80,7 @@ pro kcor_validate, fits_files, spec_filename, type, $
 
     address = run->config('notifications/email')
     subject = string(type, run.date, n_problems, n_problem_files, $
-                     format='(%"KCor %s validation failures for %s (%d problems in %s files)")')
+                     format='(%"KCor %s validation failures for %s (%d problems in %d files)")')
     body->add, credit
 
     kcor_send_mail, address, subject, body->toArray(), $
