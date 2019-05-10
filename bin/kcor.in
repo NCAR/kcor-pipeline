@@ -313,6 +313,12 @@ def purge(args):
         process_dates(d, 'purge', args.flags, args.no_wait)
 
 
+# remove sub-command
+def remove(args):
+    for d in args.dates:
+        process_dates(d, 'remove', args.flags, args.no_wait)
+
+
 def process_dates(dates, script, flags, no_wait):
     for d in dates.split(','):
         if d.find('-') < 0:
@@ -555,6 +561,18 @@ if __name__ == '__main__':
                               default='latest')
     purge_parser.add_argument('--no-wait', action='store_true', help=nowait_help)
     purge_parser.set_defaults(func=purge, parser=purge_parser)
+
+
+    # remove sub-command
+    remove_help = 'remove raw directory for a day'
+    remove_parser = subparsers.add_parser('purge', help=remove_help)
+    remove_parser.add_argument('dates', type=str, nargs='*', help=date_help,
+                               metavar='date-expr')
+    remove_parser.add_argument('-f', '--flags', type=str, help=flags_help,
+                              default='latest')
+    remove_parser.add_argument('--no-wait', action='store_true', help=nowait_help)
+    remove_parser.set_defaults(func=remove, parser=remove_parser)
+
 
     # simulate sub-command
     simulate_parser = subparsers.add_parser('simulate', aliases=['sim'],
