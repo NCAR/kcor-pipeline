@@ -22,8 +22,8 @@ configure_file(runkcor_archive_l0_range.sh.in runkcor_archive_l0_range.sh @ONLY)
 configure_file(runkcor_archive_l1.sh.in runkcor_archive_l1.sh @ONLY)
 configure_file(runkcor_archive_l1_range.sh.in runkcor_archive_l1_range.sh @ONLY)
 
-configure_file(runkcor_clean.sh.in runkcor_clean.sh @ONLY)
-configure_file(runkcor_clean_range.sh.in runkcor_clean_range.sh @ONLY)
+configure_file(runkcor_purge.sh.in runkcor_purge.sh @ONLY)
+configure_file(runkcor_purge_range.sh.in runkcor_purge_range.sh @ONLY)
 
 configure_file(kcor.in kcor @ONLY)
 configure_file(kcordb.in kcordb @ONLY)
@@ -54,8 +54,8 @@ install(PROGRAMS
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_archive_l0_range.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_archive_l1.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_archive_l1_range.sh
-          ${CMAKE_CURRENT_BINARY_DIR}/runkcor_clean.sh
-          ${CMAKE_CURRENT_BINARY_DIR}/runkcor_clean_range.sh
+          ${CMAKE_CURRENT_BINARY_DIR}/runkcor_purge.sh
+          ${CMAKE_CURRENT_BINARY_DIR}/runkcor_purge_range.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_env.sh
 	  ${CMAKE_CURRENT_BINARY_DIR}/kcor
 	  ${CMAKE_CURRENT_BINARY_DIR}/kcordb

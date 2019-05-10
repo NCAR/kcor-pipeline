@@ -1,7 +1,7 @@
 ; docformat = 'rst'
 
 ;+
-; Wrapper to be called from kcor script to clean a day for reprocessing.
+; Wrapper to be called from kcor script to purge a day for reprocessing.
 ;
 ; :Params:
 ;   date : in, required, type=string
@@ -11,7 +11,7 @@
 ;    config_filename : in, required, type=string
 ;      filename of config file
 ;-
-pro kcor_clean, date, config_filename=config_filename
+pro kcor_purge, date, config_filename=config_filename
   compile_opt strictarr
 
   run = kcor_run(date, config_filename=config_filename)

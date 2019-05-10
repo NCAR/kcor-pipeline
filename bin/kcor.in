@@ -307,10 +307,10 @@ def archive(args):
         process_dates(d, script, args.flags, args.no_wait)
 
 
-# clean sub-command
-def clean(args):
+# purge sub-command
+def purge(args):
     for d in args.dates:
-        process_dates(d, 'clean', args.flags, args.no_wait)
+        process_dates(d, 'purge', args.flags, args.no_wait)
 
 
 def process_dates(dates, script, flags, no_wait):
@@ -546,15 +546,15 @@ if __name__ == '__main__':
     validate_parser.set_defaults(func=validate, parser=validate_parser)
 
 
-    # clean sub-command
-    clean_parser = subparsers.add_parser('clean',
-                                         help='clean results for a day')
-    clean_parser.add_argument('dates', type=str, nargs='*', help=date_help,
+    # purge sub-command
+    purge_help = 'purge results from archive/database for a day'
+    purge_parser = subparsers.add_parser('purge', help=purge_help)
+    purge_parser.add_argument('dates', type=str, nargs='*', help=date_help,
                               metavar='date-expr')
-    clean_parser.add_argument('-f', '--flags', type=str, help=flags_help,
+    purge_parser.add_argument('-f', '--flags', type=str, help=flags_help,
                               default='latest')
-    clean_parser.add_argument('--no-wait', action='store_true', help=nowait_help)
-    clean_parser.set_defaults(func=clean, parser=clean_parser)
+    purge_parser.add_argument('--no-wait', action='store_true', help=nowait_help)
+    purge_parser.set_defaults(func=purge, parser=purge_parser)
 
     # simulate sub-command
     simulate_parser = subparsers.add_parser('simulate', aliases=['sim'],
