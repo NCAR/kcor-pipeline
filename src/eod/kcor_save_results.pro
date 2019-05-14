@@ -79,6 +79,16 @@ pro kcor_save_results, date, run=run
     mg_log, 'saving q directory', name='kcor/eod', /debug
   endif
 
+  ; quicklook directory
+  quicklook_dir = filepath('quicklook', $
+                           subdir=[date, 'level0'], $
+                           root=run->config('processing/raw_basedir'))
+  if (file_test(quicklook_dir, /directory)) then begin
+    file_copy, quicklook_dir, save_dir, $
+               /recursive, /overwrite
+    mg_log, 'saving quicklook directory', name='kcor/eod', /debug
+  endif
+
   ; *.log files
   log_files = file_search(filepath('*.log', subdir=date, $
                                    root=run->config('processing/raw_basedir')), $
