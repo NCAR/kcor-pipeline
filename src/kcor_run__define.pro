@@ -210,6 +210,39 @@ pro kcor_run::setup_loggers, rotate_logs=rotate_logs
 end
 
 
+;= variables for template of report
+
+function kcor_run::getVariable, name, found=found
+  compile_opt strictarr
+
+  found = 1B
+  case strlowcase(name) of
+    'date': return, self.date
+    'css_location': return, filepath('main.css', $
+                                     subdir=['resources', 'html'], $
+                                     root=self.pipe_dir)
+    'raw_times': begin
+        raw_glob = filepath('*.fts*', $
+                            subdir=[self.date, 'level0'], $
+                            root=self->config('processing/raw_basedir'))
+        raw_files = file_search(raw_glob, count=n_raw_files)
+        if (n_raw_files eq 0L) then return, ''
+
+        raw_times = strmid(file_basename(raw_files), 0, 15)
+
+        raw_time_objects = objarr(n_raw_files)
+        for f = 0L, n_raw_files - 1L do begin
+          raw_time_objects[f] = kcor_time(raw_times[f], run=self)
+        endfor
+        return, raw_time_objects
+      end
+  endcase
+
+  found = 0B
+  return, ''
+end
+
+
 ;= property access
 
 ;+

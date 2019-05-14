@@ -1,0 +1,43 @@
+<html>
+  <head>
+    <title>KCor results for [% date %]</title>
+    <style>[% include css_location %]</style>
+  </head>
+  <body>
+    <div id="summary">
+      <h1>[% date %]</h1>
+      <img src="q/[% date %].kcor.quality.png"/>
+      <table>
+      	<tr>
+          <td># of L0 files:</td>
+	  <td></td>
+	</tr>
+      </table>
+    </div>
+
+    <div id="timeline">
+      <table>
+       <thead>
+         <tr>
+	   <th>Time</th>
+	   <th>Type</th>
+	   <th>Quicklook</th>
+	   <th>L1.5 GIF</th>
+	 </tr>
+       </thead>
+       <tbody>
+         [% foreach t in raw_times %][% scope t %]
+	 <tr>
+	   <td>[% datetime %]</td>
+	   <td>[% type %]</td>
+	   <td><a href="[% quicklook_href %]">img</a></td>
+	   <td>[% if l15_href ne '' %]<a href="[% l15_href %]">img</a>[% end %]</td>
+	 </tr>
+	 [% end %][% end %]
+       </tbody>
+       <tfoot>
+       </tfoot>
+      </table>
+    </div>
+  </body>
+</html>

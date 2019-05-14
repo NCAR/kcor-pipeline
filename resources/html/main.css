@@ -1,0 +1,25 @@
+body {
+    font-family: Helvetica;
+    font-size: 11pt;
+}
+
+h1 {
+    font-size: 48pt;
+    color: #888;
+    font-weight: bold;
+    margin-top: 0;
+    margin-bottom: 0.5em;
+}
+
+#timeline thead {
+    background: #e0e0e0;
+}
+
+#timeline th {
+    font-size: 80%;
+    font-weight: bold;
+}
+
+#timeline td {
+    font-size: 80%;
+}
