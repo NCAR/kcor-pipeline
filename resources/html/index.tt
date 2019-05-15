@@ -30,22 +30,22 @@
 
       	<tr>
           <td class="heading">Extended average:</td>
-          <td>img (cropped)</td>
+          <td>[% if extavg_href ne '' %]<a href="[% extavg_href %]">img</a>[% end %][% if extavg_cropped_href ne '' %] <a href="[% extavg_cropped_href %]">(cropped)</a>[% end %]</td>
         </tr>
 
       	<tr>
-          <td class="heading">Extended average NRGF:</td>
-          <td>img (cropped)</td>
+          <td class="heading">NRGF extended average:</td>
+          <td>[% if nrgf_extavg_href ne '' %]<a href="[% nrgf_extavg_href %]">img</a>[% end %][% if nrgf_extavg_cropped_href ne '' %] <a href="[% nrgf_extavg_cropped_href %]">(cropped)</a>[% end %]</td>
         </tr>
 
       	<tr>
           <td class="heading">Daily movie:</td>
-          <td>mp4 (cropped)</td>
+          <td>[% if daily_mp4_href ne '' %]<a href="[% daily_mp4_href %]">mp4</a>[% end %][% if daily_cropped_mp4_href ne '' %] <a href="[% daily_cropped_mp4_href %]">(cropped)</a>[% end %]</td>
         </tr>
 
       	<tr>
           <td class="heading">Daily NRGF movie:</td>
-          <td>mp4 (cropped)</td>
+          <td>[% if daily_nrgf_mp4_href ne '' %]<a href="[% daily_nrgf_mp4_href %]">mp4</a>[% end %][% if daily_nrgf_cropped_mp4_href ne '' %] <a href="[% daily_nrgf_cropped_mp4_href %]">(cropped)</a>[% end %]</td>
         </tr>
 
       	<tr>
@@ -55,7 +55,7 @@
 
       	<tr>
           <td class="heading">Logs:</td>
-          <td>reprocess/rt/eod</td>
+          <td>[% if reprocess_log_href ne '' %]<a href="[% reprocess_log_href %]">reprocess</a>[% else %]reprocess[% end %]-[% if rt_log_href ne '' %]<a href="[% rt_log_href %]">rt</a>[% else %]rt[% end %]-[% if eod_log_href ne '' %]<a href="[% eod_log_href %]">eod</a>[% else %]eod[% end %]</td>
         </tr>
 
       	<tr>

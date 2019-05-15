@@ -216,6 +216,8 @@ function kcor_run::getVariable, name, found=found
   compile_opt strictarr
 
   found = 1B
+
+  raw_basedir = self->config('processing/raw_basedir')
   case strlowcase(name) of
     'date': return, self.date
     'css_location': return, filepath('main.css', $
@@ -224,7 +226,7 @@ function kcor_run::getVariable, name, found=found
     'raw_times': begin
         raw_glob = filepath('*.fts*', $
                             subdir=[self.date, 'level0'], $
-                            root=self->config('processing/raw_basedir'))
+                            root=raw_basedir)
         raw_files = file_search(raw_glob, count=n_raw_files)
         if (n_raw_files eq 0L) then return, ''
 
@@ -236,27 +238,29 @@ function kcor_run::getVariable, name, found=found
         endfor
         return, raw_time_objects
       end
+
     'n_raw_files': begin
         raw_glob = filepath('*.fts*', $
                             subdir=[self.date, 'level0'], $
-                            root=self->config('processing/raw_basedir'))
+                            root=raw_basedir)
         raw_files = file_search(raw_glob, count=n_raw_files)
         return, n_raw_files
       end
     'n_l15_files': begin
         l15_glob = filepath('*_kcor_l1.5.fts*', $
                             subdir=[self.date, 'level1'], $
-                            root=self->config('processing/raw_basedir'))
+                            root=raw_basedir)
         l15_files = file_search(l15_glob, count=n_l15_files)
         return, n_l15_files
       end
     'n_nrgf_files': begin
         nrgf_glob = filepath('*_kcor_l1.5_nrgf.fts*', $
-                            subdir=[self.date, 'level1'], $
-                            root=self->config('processing/raw_basedir'))
+                             subdir=[self.date, 'level1'], $
+                             root=raw_basedir)
         nrgf_files = file_search(nrgf_glob, count=n_nrgf_files)
         return, n_nrgf_files
       end
+
     'observer_log_href': begin
         olog_basedir = self->config('logging/observer_log_basedir')
         date_parts = long(kcor_decompose_date(self.date))
@@ -264,6 +268,90 @@ function kcor_run::getVariable, name, found=found
         href = filepath(string(date_parts[0], doy, format='(%"mlso.%04dd%03d.olog")'), $
                         subdir=strtrim(date_parts[0], 2), $
                         root=olog_basedir)
+        return, href
+      end
+
+    'reprocess_log_href': begin
+        log_filename = filepath(string(self.date, format='(%"%s.reprocess.log")'), $
+                                root=self->config('logging/dir'))
+        return, file_test(log_filename, /regular) ? log_filename : ''
+      end
+    'rt_log_href': begin
+        log_filename = filepath(string(self.date, format='(%"%s.realtime.log")'), $
+                                root=self->config('logging/dir'))
+        return, file_test(log_filename, /regular) ? log_filename : ''
+      end
+    'eod_log_href': begin
+        log_filename = filepath(string(self.date, format='(%"%s.eod.log")'), $
+                                root=self->config('logging/dir'))
+        return, file_test(log_filename, /regular) ? log_filename : ''
+      end
+
+    'extavg_href': begin
+        extavg_glob = filepath('*_kcor_l1.5_extavg.gif', $
+                               subdir=[self.date, 'level1'], $
+                               root=raw_basedir)
+        extavg_files = file_search(extavg_glob, count=n_extavg_files)
+        href = './level1/' + file_basename(extavg_files[0])
+        return, href
+      end
+    'extavg_cropped_href': begin
+        extavg_glob = filepath('*_kcor_l1.5_extavg_cropped.gif', $
+                               subdir=[self.date, 'level1'], $
+                               root=raw_basedir)
+        extavg_files = file_search(extavg_glob, count=n_extavg_files)
+        href = './level1/' + file_basename(extavg_files[0])
+        return, href
+      end
+
+    'nrgf_extavg_href': begin
+        extavg_glob = filepath('*_kcor_l1.5_nrgf_extavg.gif', $
+                               subdir=[self.date, 'level1'], $
+                               root=raw_basedir)
+        extavg_files = file_search(extavg_glob, count=n_extavg_files)
+        href = './level1/' + file_basename(extavg_files[0])
+        return, href
+      end
+    'nrgf_extavg_cropped_href': begin
+        extavg_glob = filepath('*_kcor_l1.5_nrgf_extavg_cropped.gif', $
+                               subdir=[self.date, 'level1'], $
+                               root=raw_basedir)
+        extavg_files = file_search(extavg_glob, count=n_extavg_files)
+        href = './level1/' + file_basename(extavg_files[0])
+        return, href
+      end
+
+    'daily_mp4_href': begin
+        glob = filepath('*_kcor_l1.5.mp4', $
+                        subdir=[self.date, 'level1'], $
+                        root=raw_basedir)
+        files = file_search(glob, count=n_files)
+        href = n_files eq 0L ? '' : './level1/' + file_basename(files[0])
+        return, href
+      end
+    'daily_croppped_mp4_href': begin
+        glob = filepath('*_kcor_l1.5_cropped.mp4', $
+                        subdir=[self.date, 'level1'], $
+                        root=raw_basedir)
+        files = file_search(glob, count=n_files)
+        href = n_files eq 0L ? '' : './level1/' + file_basename(files[0])
+        return, href
+      end
+
+    'daily_nrgf_mp4_href': begin
+        glob = filepath('*_kcor_l1.5_nrgf.mp4', $
+                        subdir=[self.date, 'level1'], $
+                        root=raw_basedir)
+        files = file_search(glob, count=n_files)
+        href = n_files eq 0L ? '' : './level1/' + file_basename(files[0])
+        return, href
+      end
+    'daily_nrgf_croppped_mp4_href': begin
+        glob = filepath('*_kcor_l1.5_nrgf_cropped.mp4', $
+                        subdir=[self.date, 'level1'], $
+                        root=raw_basedir)
+        files = file_search(glob, count=n_files)
+        href = n_files eq 0L ? '' : './level1/' + file_basename(files[0])
         return, href
       end
   endcase
