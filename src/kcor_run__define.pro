@@ -236,6 +236,36 @@ function kcor_run::getVariable, name, found=found
         endfor
         return, raw_time_objects
       end
+    'n_raw_files': begin
+        raw_glob = filepath('*.fts*', $
+                            subdir=[self.date, 'level0'], $
+                            root=self->config('processing/raw_basedir'))
+        raw_files = file_search(raw_glob, count=n_raw_files)
+        return, n_raw_files
+      end
+    'n_l15_files': begin
+        l15_glob = filepath('*_kcor_l1.5.fts*', $
+                            subdir=[self.date, 'level1'], $
+                            root=self->config('processing/raw_basedir'))
+        l15_files = file_search(l15_glob, count=n_l15_files)
+        return, n_l15_files
+      end
+    'n_nrgf_files': begin
+        nrgf_glob = filepath('*_kcor_l1.5_nrgf.fts*', $
+                            subdir=[self.date, 'level1'], $
+                            root=self->config('processing/raw_basedir'))
+        nrgf_files = file_search(nrgf_glob, count=n_nrgf_files)
+        return, n_nrgf_files
+      end
+    'observer_log_href': begin
+        olog_basedir = self->config('logging/observer_log_basedir')
+        date_parts = long(kcor_decompose_date(self.date))
+        doy = mg_ymd2doy(date_parts[0], date_parts[1], date_parts[2])
+        href = filepath(string(date_parts[0], doy, format='(%"mlso.%04dd%03d.olog")'), $
+                        subdir=strtrim(date_parts[0], 2), $
+                        root=olog_basedir)
+        return, href
+      end
   endcase
 
   found = 0B

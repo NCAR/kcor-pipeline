@@ -45,6 +45,11 @@ td {
     text-align: center;
 }
 
+.heading {
+    font-weight: bold;
+    padding-right: 1em;
+}
+
 div#title {
     float: left;
 }

@@ -14,33 +14,53 @@
       <h2>Summary</h2>
       <table>
       	<tr>
-          <td># of L0 files:</td>
-	  <td></td>
+          <td class="heading"># of L0 files:</td>
+	  <td>[% n_raw_files %]</td>
 	</tr>
 
       	<tr>
-          <td># of L1.5 files:</td>
-          <td></td>
+          <td class="heading"># of L1.5 files:</td>
+          <td>[% n_l15_files %]</td>
         </tr>
 
       	<tr>
-          <td># of NRGF files:</td>
-          <td></td>
+          <td class="heading"># of NRGF files:</td>
+          <td>[% n_nrgf_files %]</td>
         </tr>
 
       	<tr>
-          <td>Extended average:</td>
-          <td>img/mp4</td>
+          <td class="heading">Extended average:</td>
+          <td>img (cropped)</td>
         </tr>
 
       	<tr>
-          <td>Logs:</td>
+          <td class="heading">Extended average NRGF:</td>
+          <td>img (cropped)</td>
+        </tr>
+
+      	<tr>
+          <td class="heading">Daily movie:</td>
+          <td>mp4 (cropped)</td>
+        </tr>
+
+      	<tr>
+          <td class="heading">Daily NRGF movie:</td>
+          <td>mp4 (cropped)</td>
+        </tr>
+
+      	<tr>
+          <td class="heading">Daily difference movie:</td>
+          <td>mp4</td>
+        </tr>
+
+      	<tr>
+          <td class="heading">Logs:</td>
           <td>reprocess/rt/eod</td>
         </tr>
 
       	<tr>
-          <td>Observer log:</td>
-          <td>log</td>
+          <td class="heading">Observer log:</td>
+          <td>[% if observer_log_href ne '' %]<a href="[% observer_log_href %]">log</a>[% end %]</td>
         </tr>
       </table>
     </div>
@@ -60,6 +80,8 @@
            <th>L1.5 GIF</th>
            <th>NRGF</th>
            <th>2 min average</th>
+           <th>Differences</th>
+           <th>No mask</th>
          </tr>
        </thead>
        <tbody>
@@ -71,6 +93,8 @@
            <td class="centered">[% if l15_href ne '' %]<a href="[% l15_href %]">img</a>[% end %][% if l15_cropped_href ne '' %] (<a href="[% l15_cropped_href %]">cropped</a>)[% end %]</td>
            <td class="centered">[% if nrgf_href ne '' %]<a href="[% nrgf_href %]">img</a>[% end %][% if nrgf_cropped_href ne '' %] (<a href="[% nrgf_cropped_href %]">cropped</a>)[% end %]</td>
            <td class="centered">[% if avg_href ne '' %]<a href="[% avg_href %]">img</a>[% end %][% if avg_cropped_href ne '' %] (<a href="[% avg_cropped_href %]">cropped</a>)[% end %]</td>
+           <td class="centered">[% if diff_href ne '' %]<a href="[% diff_href %]">[% diff_quality %]</a>[% end %]</td>
+           <td class="centered">[% if nomask_href ne '' %]<a href="[% nomask_href %]">img</a>[% end %][% if nomask_cropped_href ne '' %] (<a href="[% nomask_cropped_href %]">cropped</a>)[% end %]</td>
          </tr>
 	 [% end %][% end %]
        </tbody>
