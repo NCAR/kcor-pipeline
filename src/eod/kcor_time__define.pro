@@ -51,6 +51,56 @@ function kcor_time::getVariable, name, found=found
         l15_href = './level1/' + file_basename(l15_gifs[0])
         return, l15_href
       end
+    'l15_cropped_href': begin
+        raw_basedir = self.run->config('processing/raw_basedir')
+        l15_cropped_gifs = file_search(filepath(self.datetime + '_kcor_l1.5_cropped.gif', $
+                                                subdir=[self.run.date, 'level1'], $
+                                                root=raw_basedir), $
+                                       count=n_l15_cropped_gifs)
+        if (n_l15_cropped_gifs eq 0L) then return, ''
+        l15_cropped_href = './level1/' + file_basename(l15_cropped_gifs[0])
+        return, l15_cropped_href
+      end
+    'nrgf_href': begin
+        raw_basedir = self.run->config('processing/raw_basedir')
+        nrgf_gifs = file_search(filepath(self.datetime + '_kcor_l1.5_nrgf.gif', $
+                                        subdir=[self.run.date, 'level1'], $
+                                        root=raw_basedir), $
+                               count=n_nrgf_gifs)
+        if (n_nrgf_gifs eq 0L) then return, ''
+        nrgf_href = './level1/' + file_basename(nrgf_gifs[0])
+        return, nrgf_href
+      end
+    'nrgf_cropped_href': begin
+        raw_basedir = self.run->config('processing/raw_basedir')
+        nrgf_cropped_gifs = file_search(filepath(self.datetime + '_kcor_l1.5_nrgf_cropped.gif', $
+                                                 subdir=[self.run.date, 'level1'], $
+                                                 root=raw_basedir), $
+                                        count=n_nrgf_cropped_gifs)
+        if (n_nrgf_cropped_gifs eq 0L) then return, ''
+        nrgf_cropped_href = './level1/' + file_basename(nrgf_cropped_gifs[0])
+        return, nrgf_cropped_href
+      end
+    'avg_href': begin
+        raw_basedir = self.run->config('processing/raw_basedir')
+        avg_gifs = file_search(filepath(self.datetime + '_kcor_l1.5_avg.gif', $
+                                        subdir=[self.run.date, 'level1'], $
+                                        root=raw_basedir), $
+                               count=n_avg_gifs)
+        if (n_avg_gifs eq 0L) then return, ''
+        avg_href = './level1/' + file_basename(avg_gifs[0])
+        return, avg_href
+      end
+    'avg_cropped_href': begin
+        raw_basedir = self.run->config('processing/raw_basedir')
+        avg_cropped_gifs = file_search(filepath(self.datetime + '_kcor_l1.5_avg_cropped.gif', $
+                                                 subdir=[self.run.date, 'level1'], $
+                                                 root=raw_basedir), $
+                                        count=n_avg_cropped_gifs)
+        if (n_avg_cropped_gifs eq 0L) then return, ''
+        avg_cropped_href = './level1/' + file_basename(avg_cropped_gifs[0])
+        return, avg_cropped_href
+      end
   endcase
 
   found = 0B

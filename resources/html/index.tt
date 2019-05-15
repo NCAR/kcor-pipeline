@@ -4,35 +4,74 @@
     <style>[% include css_location %]</style>
   </head>
   <body>
-    <div id="summary">
+    <div id="title">
       <h1>[% date %]</h1>
+      <h2>Quality</h2>
       <img src="q/[% date %].kcor.quality.png"/>
+    </div>
+
+    <div id="summary">
+      <h2>Summary</h2>
       <table>
       	<tr>
           <td># of L0 files:</td>
 	  <td></td>
 	</tr>
+
+      	<tr>
+          <td># of L1.5 files:</td>
+          <td></td>
+        </tr>
+
+      	<tr>
+          <td># of NRGF files:</td>
+          <td></td>
+        </tr>
+
+      	<tr>
+          <td>Extended average:</td>
+          <td>img/mp4</td>
+        </tr>
+
+      	<tr>
+          <td>Logs:</td>
+          <td>reprocess/rt/eod</td>
+        </tr>
+
+      	<tr>
+          <td>Observer log:</td>
+          <td>log</td>
+        </tr>
       </table>
     </div>
 
+    <div class="spacer">
+    </div>
+
     <div id="timeline">
+      <h2>Timeline</h2>
+
       <table>
        <thead>
          <tr>
-	   <th>Time</th>
-	   <th>Type</th>
-	   <th>Quicklook</th>
-	   <th>L1.5 GIF</th>
-	 </tr>
+           <th>Time</th>
+           <th>Type</th>
+           <th>Quicklook</th>
+           <th>L1.5 GIF</th>
+           <th>NRGF</th>
+           <th>2 min average</th>
+         </tr>
        </thead>
        <tbody>
          [% foreach t in raw_times %][% scope t %]
-	 <tr>
-	   <td>[% datetime %]</td>
-	   <td>[% type %]</td>
-	   <td><a href="[% quicklook_href %]">img</a></td>
-	   <td>[% if l15_href ne '' %]<a href="[% l15_href %]">img</a>[% end %]</td>
-	 </tr>
+         <tr>
+           <td class="left">[% datetime %]</td>
+           <td class="centered">[% type %]</td>
+           <td class="centered"><a href="[% quicklook_href %]">img</a></td>
+           <td class="centered">[% if l15_href ne '' %]<a href="[% l15_href %]">img</a>[% end %][% if l15_cropped_href ne '' %] (<a href="[% l15_cropped_href %]">cropped</a>)[% end %]</td>
+           <td class="centered">[% if nrgf_href ne '' %]<a href="[% nrgf_href %]">img</a>[% end %][% if nrgf_cropped_href ne '' %] (<a href="[% nrgf_cropped_href %]">cropped</a>)[% end %]</td>
+           <td class="centered">[% if avg_href ne '' %]<a href="[% avg_href %]">img</a>[% end %][% if avg_cropped_href ne '' %] (<a href="[% avg_cropped_href %]">cropped</a>)[% end %]</td>
+         </tr>
 	 [% end %][% end %]
        </tbody>
        <tfoot>

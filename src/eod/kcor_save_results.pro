@@ -102,13 +102,13 @@ pro kcor_save_results, date, run=run
   ; *.tarlist files
   dirs = ['level0', 'level1']
   for d = 0L, n_elements(dirs) - 1L do begin
-    tarlist_file = file_search(filepath('*.tarlist', $
-                                        subdir=[date, dirs[d]], $
-                                        root=run->config('processing/raw_basedir')), $
-                               count=n_tarlist_files)
-    if (n_tarlist_file gt 0L) then begin
-      file_copy, tarlist_file, save_dir, /overwrite
-      mg_log, 'saving %d tarlist files', n_log_files, $
+    tarlist_files = file_search(filepath('*.tarlist', $
+                                         subdir=[date, dirs[d]], $
+                                         root=run->config('processing/raw_basedir')), $
+                                count=n_tarlist_files)
+    if (n_tarlist_files gt 0L) then begin
+      file_copy, tarlist_files, save_dir, /overwrite
+      mg_log, 'saving %s tarlist file', dirs[d], $
               name='kcor/eod', /debug
     endif
   endfor

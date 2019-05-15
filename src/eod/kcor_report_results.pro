@@ -1,5 +1,16 @@
 ; docformat = 'rst'
 
+;+
+; Create report (web page) of the day results.
+;
+; :Params:
+;   date : in, required, type=date
+;     date in the form 'YYYYMMDD' to process
+;
+; :Keywords:
+;   run : in, required, type=object
+;     `kcor_run` object
+;-
 pro kcor_report_results, date, run=run
   compile_opt strictarr
 
@@ -12,6 +23,7 @@ pro kcor_report_results, date, run=run
                              subdir=date, $
                              root=run->config('processing/raw_basedir'))
 
+  mg_log, 'creating end-of-day report...', name='kcor/eod', /info
   template->process, run, output_filename
 
   obj_destroy, template

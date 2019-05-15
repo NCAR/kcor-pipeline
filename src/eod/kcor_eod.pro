@@ -367,7 +367,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   kcor_save_results, date, run=run
 
-  kcor_report_results, data, run=run
+  kcor_report_results, date, run=run
 
   l15_spec = run->config('data/l15_validation_specification')
   if (n_elements(l15_spec) eq 0L || ~file_test(l15_spec, /regular)) then begin
