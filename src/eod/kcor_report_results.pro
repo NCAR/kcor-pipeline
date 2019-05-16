@@ -14,6 +14,21 @@
 pro kcor_report_results, date, run=run
   compile_opt strictarr
 
+  ; copy logs over to home directory
+  logs = ['reprocess', 'realtime', 'eod']
+  for f = 0L, n_elements(logs) - 1L do begin
+    basename = string(date, logs[f], format='(%"%s.%s.log")')
+    log_filename = filepath(basename, root=run->config('logging/dir'))
+    if (file_test(log_filename, /regular)) then begin
+      dst_filename = filepath(file_basename(basename, '.log') + '.olog', $
+                              subdir=date, $
+                              root=run->config('processing/raw_basedir'))
+      if (file_test(dst_filename)) then file_delete, dst_filename
+      file_copy, log_filename, dst_filename
+    endif
+  endfor
+
+  ; generate report
   template_filename = filepath('index.tt', $
                                subdir='html', $
                                root=run.resources_dir)

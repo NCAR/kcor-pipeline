@@ -272,19 +272,25 @@ function kcor_run::getVariable, name, found=found
       end
 
     'reprocess_log_href': begin
-        log_filename = filepath(string(self.date, format='(%"%s.reprocess.log")'), $
-                                root=self->config('logging/dir'))
-        return, file_test(log_filename, /regular) ? log_filename : ''
+        basename = string(self.date, format='(%"%s.reprocess.olog")')
+        log_filename = filepath(basename, $
+                                subdir=self.date, $
+                                root=self->config('processing/raw_basedir'))
+        return, file_test(log_filename) ? log_filename : ''
       end
     'rt_log_href': begin
-        log_filename = filepath(string(self.date, format='(%"%s.realtime.log")'), $
-                                root=self->config('logging/dir'))
-        return, file_test(log_filename, /regular) ? log_filename : ''
+        basename = string(self.date, format='(%"%s.realtime.olog")')
+        log_filename = filepath(basename, $
+                                subdir=self.date, $
+                                root=self->config('processing/raw_basedir'))
+        return, file_test(log_filename) ? ('./' + basename) : ''
       end
     'eod_log_href': begin
-        log_filename = filepath(string(self.date, format='(%"%s.eod.log")'), $
-                                root=self->config('logging/dir'))
-        return, file_test(log_filename, /regular) ? log_filename : ''
+        basename = string(self.date, format='(%"%s.eod.olog")')
+        log_filename = filepath(basename, $
+                                subdir=self.date, $
+                                root=self->config('processing/raw_basedir'))
+        return, file_test(log_filename) ? log_filename : ''
       end
 
     'extavg_href': begin
