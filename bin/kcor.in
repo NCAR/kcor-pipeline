@@ -300,6 +300,13 @@ def cme_detection(args):
         process_dates(d, 'cmedetection', args.flags, args.no_wait)
 
 
+# savecme sub-command
+def savecme(args):
+    script = f'archive_savecme'
+    for d in args.dates:
+        process_dates(d, script, args.flags, args.no_wait)
+
+
 # archive sub-command
 def archive(args):
     script = f'archive_l{args.level}'
@@ -525,6 +532,17 @@ if __name__ == '__main__':
                             default='latest')
     cme_parser.add_argument('--no-wait', action='store_true', help=nowait_help)
     cme_parser.set_defaults(func=cme_detection, parser=cme_parser)
+
+
+    # savecme sub-command
+    savecme_parser = subparsers.add_parser('savecme',
+                                           help='save CME results')
+    savecme_parser.add_argument('dates', type=str, nargs='*', help=date_help,
+                                metavar='date-expr')
+    savecme_parser.add_argument('-f', '--flags', type=str, help=flags_help,
+                                default='latest')
+    savecme_parser.add_argument('--no-wait', action='store_true', help=nowait_help)
+    savecme_parser.set_defaults(func=savecme, parser=savecme_parser)
 
 
     # archive sub-command

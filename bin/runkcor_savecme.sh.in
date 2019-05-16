@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# This script launches IDL to archive the L1 data.
+# This script launches IDL for the realtime pipeline.
 
 canonicalpath() {
   if [ -d $1 ]; then
@@ -26,5 +26,5 @@ ${IDL} -quiet \
     -IDL_STARTUP "" \
     -IDL_PATH ${KCOR_PATH} \
     -IDL_DLM_PATH ${KCOR_DLM_PATH} \
-    -e "kcor_archive_l1_wrapper, '${DATE}', config_filename='${CONFIG}'" \
+    -e "kcor_savecme_wrapper, '${DATE}', config_filename='${CONFIG}'" \
     2>&1 | tail -n +3

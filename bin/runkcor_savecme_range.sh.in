@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# This script launches the runkcor_archive_l0.sh script for a series of days.
+# This script launches the runkcor_savecme.sh script for a series of days.
 
 canonicalpath() {
   if [ -d $1 ]; then
@@ -16,14 +16,14 @@ canonicalpath() {
 }
 
 printhelp() {
-  echo "syntax: runkcor_archive_l0_range.sh config_flag start_date end_date"
+  echo "syntax: runkcor_savecme_range.sh config_flag start_date end_date"
   echo "note: start_date is inclusive, but end_date is not"
 }
 
 # find locations relative to this script
 SCRIPT_LOC=$(canonicalpath $0)
 BIN_DIR=$(dirname ${SCRIPT_LOC})
-PROCESS_SCRIPT=$BIN_DIR/runkcor_archive_l0.sh
+PROCESS_SCRIPT=$BIN_DIR/runkcor_savecme.sh
 
 if [[ $# -lt 3 ]]; then
   echo "required arguments not present"

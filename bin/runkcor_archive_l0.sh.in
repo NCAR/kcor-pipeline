@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# This script launches IDL for the realtime pipeline.
+# This script launches IDL to archive the L0 data.
 
 canonicalpath() {
   if [ -d $1 ]; then

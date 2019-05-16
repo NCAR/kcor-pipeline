@@ -16,6 +16,9 @@ configure_file(runkcor_process_range.sh.in runkcor_process_range.sh @ONLY)
 configure_file(runkcor_cmedetection.sh.in runkcor_cmedetection.sh @ONLY)
 configure_file(runkcor_cmedetection_range.sh.in runkcor_cmedetection_range.sh @ONLY)
 
+configure_file(runkcor_savecme.sh.in runkcor_savecme.sh @ONLY)
+configure_file(runkcor_savecme_range.sh.in runkcor_savecme_range.sh @ONLY)
+
 configure_file(runkcor_archive_l0.sh.in runkcor_archive_l0.sh @ONLY)
 configure_file(runkcor_archive_l0_range.sh.in runkcor_archive_l0_range.sh @ONLY)
 
@@ -55,6 +58,8 @@ install(PROGRAMS
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_cmedetection_range.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_archive_l0.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_archive_l0_range.sh
+          ${CMAKE_CURRENT_BINARY_DIR}/runkcor_savecme.sh
+          ${CMAKE_CURRENT_BINARY_DIR}/runkcor_savecme_range.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_archive_l1.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_archive_l1_range.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_purge.sh

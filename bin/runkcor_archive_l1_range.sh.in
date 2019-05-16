@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# This script launches the runkcor_rt.sh script for a series of days.
+# This script launches the runkcor_archive_l1.sh script for a series of days.
 
 canonicalpath() {
   if [ -d $1 ]; then
