@@ -302,7 +302,7 @@ def cme_detection(args):
 
 # savecme sub-command
 def savecme(args):
-    script = f'archive_savecme'
+    script = f'savecme'
     for d in args.dates:
         process_dates(d, script, args.flags, args.no_wait)
 
