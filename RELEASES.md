@@ -314,3 +314,6 @@
   CME detection alert specifies last file processed at detection
 1.6.4
   handle no L1.5 files when validating
+  eod report
+  savecme sub-command
+  save tarlist, nomask/diff files
