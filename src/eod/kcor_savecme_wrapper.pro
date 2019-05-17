@@ -26,12 +26,12 @@ pro kcor_savecme_wrapper, date, config_filename=config_filename
 
   save_dir = filepath(date, root=save_basedir)
 
-  dirs = ['hpr_dir', 'hpr_diff_dir']
+  dirs = ['hpr', 'hpr_diff']
   for d = 0L, n_elements(dirs) - 1L do begin
     src_dir = filepath('', $
                        subdir=kcor_decompose_date(date), $
-                       root=run->config('cme/' + dirs[d]))
-    file_copy, src_dir, filepath(dirs[d], root=save_dir)
+                       root=run->config('cme/' + dirs[d] + '_dir'))
+    file_copy, src_dir, filepath(dirs[d], root=save_dir), /recursive
   endfor
 
   ; handle movie directory a bit differently
@@ -43,6 +43,6 @@ pro kcor_savecme_wrapper, date, config_filename=config_filename
   endif
 
   done:
-  if (obj_valid(run)) then obj_destroy, run
   mg_log, 'done', name=logger_name, /info
+  if (obj_valid(run)) then obj_destroy, run
 end
