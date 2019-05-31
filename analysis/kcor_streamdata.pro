@@ -11,6 +11,10 @@
 
 ;   DATA ARE LOCATED ON:  /hao/mlsodata1/Data/KCor/raw/20181203/stream_data/184832raw
 
+do_display = 1B
+
+tic
+
 cd, '/hao/sunrise/Data/KCor/raw/2018/20181203/stream_data/184832raw'
 
 clist = 'imlist'
@@ -75,29 +79,39 @@ for i = 0L, n_frames - 1L do begin
 endfor
 free_lun, list_lun
 
+print, toc(), format='(%"file IO: %0.1f sec")'
+
+
+tic
 
 state00a = mean(state0, dim=3)
 state11a = mean(state1, dim=3)    
 state22a = mean(state2, dim=3)
 state33a = mean(state3, dim=3)
 
-corona_mean = sqrt((state00a - state33a)^2 + (state22a - state11a)^2)
-
 state00 = median(state0, dim=3)
-state11 = median(state1, dim=3)    
+state11 = median(state1, dim=3)
 state22 = median(state2, dim=3)
 state33 = median(state3, dim=3)
 
-corona_median = sqrt((state00 - state33)^2 + (state22 - state11)^2)
+print, toc(), format='(%"mean/medians: %0.1f sec")'
 
-window,0, xsize=1024, ysize=1024, retain=2
-loadct, 0
-wset, 0
-tv, bytscl(corona_median^0.5, min=0.0, max=5.0)
 
-window, 1, xsize=1024, ysize=1024, retain=2
-wset, 1
-tv, bytscl(corona_mean^0.5, min=0.0, max=5.0)
+if (do_display) then begin
+  device, get_decomposed=odec
+  device, decomposed=0
+  loadct, 0
+
+  corona_mean = sqrt((state00a - state33a)^2 + (state22a - state11a)^2)
+  window, xsize=1024, ysize=1024, retain=2, /free, title='corona mean'
+  tv, bytscl(corona_mean^0.5, min=0.0, max=5.0)
+
+  corona_median = sqrt((state00 - state33)^2 + (state22 - state11)^2)
+  window, xsize=1024, ysize=1024, retain=2, /free, title='corona median'
+  tv, bytscl(corona_median^0.5, min=0.0, max=5.0)
+
+  device, decomposed=odec
+endif
 
 ;print, 'done mean and median'
 
@@ -132,6 +146,7 @@ tv, bytscl(corona_mean^0.5, min=0.0, max=5.0)
 ; use median value to find signa 
 ; select pixels inside sigma 
 
+tic
 
 newstate00 = fltarr(nx, ny)
 newstate11 = fltarr(nx, ny)
@@ -202,20 +217,30 @@ for j = 0, nx - 1 do begin
   endfor
 endfor
 
+print, toc(), format='(%"main processing: %0.1f sec")'
+
 
 ;need to add logic to retain CMEs
 ;if pick# has more than 4 consecutive indices do not through those indices away
 ;assume assume an aersols is visible in less than 5 frames
 
-corona_new  = sqrt((newstate00 - newstate33)^2 + (newstate22 - newstate11)^2)
+if (do_display) then begin
+  device, get_decomposed=odec
+  device, decomposed=0
 
-wset, 0
-loadct, 0
-tv, bytscl(corona_mean^0.5, min=0.0, max=6.0)
-wset, 1
-tv, bytscl(corona_new^0.5, min=0.0, max=6.0)
+  loadct, 0
 
-print, 'all done' 
+  window, xsize=1024, ysize=1024, /free, title='mean'
+  tv, bytscl(corona_mean^0.5, min=0.0, max=6.0)
+
+  corona_new  = sqrt((newstate00 - newstate33)^2 + (newstate22 - newstate11)^2)
+  window, xsize=1024, ysize=1024, /free, title='new'
+  tv, bytscl(corona_new^0.5, min=0.0, max=6.0)
+
+  device, decomposed=odec
+endif
+
+;print, 'all done' 
 
 ;FOR DEBUG
 ;display pixels where outliers where not eliminated:
