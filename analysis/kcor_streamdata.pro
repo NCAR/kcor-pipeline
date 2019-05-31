@@ -162,6 +162,8 @@ thr = n_frames * 0.90
 
 for j = 0, nx - 1 do begin 
   for i = 0, ny - 1 do begin
+    ; TODO: make a single mask per camera
+    ; TODO: can we remove the loops
     pick0 = where(abs(state0[i, j, *] - state00[i, j]) lt ss * sqrt(state00[i, j] * 44.0), $
                   npick0)
     if (npick0 gt thr) then begin
