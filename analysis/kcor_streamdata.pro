@@ -38,7 +38,7 @@ filename = ''
 
 openr, list_lun, clist, /get_lun
 
-for i=0, n_frames-1 do begin 
+for i = 0L, n_frames - 1L do begin
   readf, list_lun, filename
   openr, lun, filename, /get_lun
   readu, lun, img0
