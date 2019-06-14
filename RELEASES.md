@@ -312,8 +312,9 @@
   make sure distortion and calibration files are those actually used
   handle writing missing data in FITS keywords correctly
   CME detection alert specifies last file processed at detection
-1.6.4
+1.6.4 [Jun 14, 2019]
   handle no L1.5 files when validating
   eod report
   savecme sub-command
   save tarlist, nomask/diff files
+  new temp epoch for test with NUMSUM=171
