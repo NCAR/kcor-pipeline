@@ -25,7 +25,7 @@ function kcor_timehistogram_readoka, raw_basedir, date, count=count
 end
 
 
-pro kcor_timehistogram, raw_basedirs
+pro kcor_timehistogram, raw_basedirs, for_dates
   compile_opt strictarr
 
   ; collect data
@@ -44,28 +44,38 @@ pro kcor_timehistogram, raw_basedirs
   endfor
   times = times_list->toArray()
 
+  n_total = n_elements(times)
+  !null = where(times gt 14.0, n_later_than_14)
+
+  title = string(for_dates, format='(%"# of good files by time %s")')
   start_time = 6.0
   end_time = 19.0
   h = histogram(times, min=start_time, binsize=0.25, locations=locs)
   window, xsize=1024, ysize=512, /free, $
-          title='# of good files by time since start of mission'
+          title=title
   plot, locs, h, psym=10, $
         xtitle='HST time', $
         xrange=[start_time, end_time], xstyle=9, xticks=end_time - start_time, xminor=4, $
         ytitle='# of good files', ystyle=9, $
-        title='# of good files by time since start of mission', $
+        title=title, $
         color='000000'x, background='ffffff'x
+  xyouts, 0.975, 0.85, /normal, alignment=1.0, $
+          string(n_later_than_14, n_total, 100.0 * n_later_than_14 / n_total, $
+                 format='(%"%d of %d images (%0.1f%%) later than 1400 HST")'), $
+          color='000000'x, charsize=1.5
 end
 
 ; main-level example program
 
-raw_basedirs = ['/hao/kaula1/Data/KCor/raw/2013', $
-                '/hao/kaula1/Data/KCor/raw/2014', $
-                '/hao/mlsodata3/Data/KCor/raw/2015', $
-                '/hao/mlsodata2/Data/KCor/raw/2016', $
-                '/hao/sunrise/Data/KCor/raw/2017', $
-                '/hao/sunrise/Data/KCor/raw/2018', $
-                '/hao/mlsodata1/Data/KCor/raw']
-kcor_timehistogram, raw_basedirs
+;raw_basedirs = ['/hao/kaula1/Data/KCor/raw/2013', $
+;                '/hao/kaula1/Data/KCor/raw/2014', $
+;                '/hao/mlsodata3/Data/KCor/raw/2015', $
+;                '/hao/mlsodata2/Data/KCor/raw/2016', $
+;                '/hao/sunrise/Data/KCor/raw/2017', $
+;                '/hao/sunrise/Data/KCor/raw/2018', $
+;                '/hao/mlsodata1/Data/KCor/raw']
+raw_basedirs = ['/hao/mlsodata2/Data/KCor/raw/2016', $
+                '/hao/sunrise/Data/KCor/raw/2017']
+kcor_timehistogram, raw_basedirs, 'for 2016-2017'
 
 end
