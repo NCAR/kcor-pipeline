@@ -317,6 +317,6 @@
   eod report
   savecme sub-command
   save tarlist, nomask/diff files
-  new temp epoch for test with NUMSUM=171
-
-1.6.5
+  new short epoch for test with NUMSUM=171
+1.6.5 [Jun 19, 2019]
+  new short epoch for test with NUMSUM=171
