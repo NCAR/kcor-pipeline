@@ -321,3 +321,4 @@
 1.6.5 [Jun 19, 2019]
   new short epoch for test with NUMSUM=171
 1.6.6
+  fix for case where there is data, but not L1.5 files for a day

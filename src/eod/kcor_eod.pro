@@ -370,8 +370,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   kcor_report_results, date, run=run
 
   l15_spec = run->config('data/l15_validation_specification')
+  n_invalid_l15_files = 0L
   if (n_elements(l15_spec) eq 0L || ~file_test(l15_spec, /regular)) then begin
-    n_invalid_l15_files = 0L
     mg_log, 'no spec to validate L1.5 files against', name='kcor/eod', /info
   endif else begin
     if (n_l1_zipped_files eq 0L) then begin
