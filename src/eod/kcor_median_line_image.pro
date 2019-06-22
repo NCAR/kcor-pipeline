@@ -83,7 +83,7 @@ end
 pro kcor_median_line_image, date, raw_basedir
   compile_opt strictarr
 
-;  kcor_median_line_image_l0, date, raw_basedir
+  kcor_median_line_image_l0, date, raw_basedir
   kcor_median_line_image_l1, date, raw_basedir
 end
 
