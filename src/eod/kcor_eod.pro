@@ -351,6 +351,10 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     kcor_plotsci, date, daily_science_file, run=run
   endif
 
+  ; create median row/col images
+  kcor_median_rowcol_image, run=run
+  ; TODO: check for bad lines
+
   ; remove zero length files in 'q' sub-directory
   cd, filepath('q', root=date_dir)
 
