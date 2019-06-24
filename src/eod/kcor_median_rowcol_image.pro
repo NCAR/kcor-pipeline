@@ -160,4 +160,6 @@ run = kcor_run(date, $
                                         root=mg_src_root()))
 kcor_median_rowcol_image, run=run
 
+obj_destroy, run
+
 end
