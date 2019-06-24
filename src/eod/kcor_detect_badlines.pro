@@ -40,6 +40,8 @@ end
 pro kcor_detect_badlines, run=run
   compile_opt strictarr
 
+  mg_log, 'starting', name='kcor/eod', /info
+
   basename = '*_kcor.fts.gz'
   raw_basedir = run->config('processing/raw_basedir')
 
@@ -48,6 +50,7 @@ pro kcor_detect_badlines, run=run
 
   cam0_badlines = mg_defaulthash(default=0L)
   cam1_badlines = mg_defaulthash(default=0L)
+  n_checked_images = 0L
 
   for f = 0L, n_filenames - 1L do begin
     im = float(readfits(filenames[f], /silent))
@@ -57,6 +60,8 @@ pro kcor_detect_badlines, run=run
 
     if (median(im) gt 10000.0) then continue
     if (median(corona0) gt 200.0 || median(corona1) gt 200.0) then continue
+
+    n_checked_images += 1L
 
     cam0 = kcor_detect_badlines_find(corona0)
     cam1 = kcor_detect_badlines_find(corona1)
@@ -76,10 +81,13 @@ pro kcor_detect_badlines, run=run
     mg_log, 'cam1 bad lines:', name='kcor/eod', /warn
   endif
   foreach count, cam1_badlines, line do begin
-    mg_log, '%d: %d times', line, count, name='kcor/eod', /warn
+    mg_log, '%d: %d times (%0.1f%%)', $
+            line, count, 100.0 * count / n_checked_images, $
+            name='kcor/eod', /warn
   endforeach
 
   obj_destroy, [cmd0_badlines, cmd1_badlines]
+  mg_log, 'done', name='kcor/eod', /info
 end
 
 
