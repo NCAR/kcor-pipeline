@@ -353,7 +353,9 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   ; create median row/col images
   kcor_median_rowcol_image, run=run
-  ; TODO: check for bad lines
+
+  ; check for bad lines
+  kcor_detect_badlines, run=run
 
   ; remove zero length files in 'q' sub-directory
   cd, filepath('q', root=date_dir)

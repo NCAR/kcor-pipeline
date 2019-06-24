@@ -1,5 +1,15 @@
 ; docformat = 'rst'
 
+;+
+; Find indices of anomalous lines.
+;
+; :Returns:
+;   `lonarr` of indices, `!null` if none
+;
+; :Params:
+;   im : in, required, type="fltarr(nx, ny, 4)"
+;     image for one camera to check
+;-
 function kcor_detect_badlines_find, im
   compile_opt strictarr
 
@@ -9,6 +19,7 @@ function kcor_detect_badlines_find, im
   kernel = fltarr(n) - 1.0 / (n - 1)
   kernel[n / 2] = 1.0
 
+  ; number of lines to skip at the top and bottom of the image
   n_skip = 3
 
   diffs = convol(meds[n_skip:-n_skip-1], kernel, /edge_truncate)
@@ -19,29 +30,56 @@ function kcor_detect_badlines_find, im
 end
 
 
-pro kcor_detect_badlines, im, cam0=cam0, cam1=cam1, error=error, lun=lun
+;+
+; Find bad lines raw images.
+;
+; :Keywords:
+;   run : in, required, type=object
+;     KCor run object
+;-
+pro kcor_detect_badlines, run=run
   compile_opt strictarr
 
-  error = 0L
+  basename = '*_kcor.fts.gz'
+  raw_basedir = run->config('processing/raw_basedir')
 
-  corona0 = kcor_corona(im[*, *, *, 0])
-  corona1 = kcor_corona(im[*, *, *, 1])
+  pattern = filepath(basename, subdir=[run.date, 'level0'], root=raw_basename)
+  filenames = file_search(pattern, count=n_filenames)
 
-  ;printf, lun, median(corona0), format='(%"  corona0 median: %0.1f")'
-  ;printf, lun, median(corona1), format='(%"  corona1 median: %0.1f")'
+  cam0_badlines = mg_defaulthash(default=0L)
+  cam1_badlines = mg_defaulthash(default=0L)
 
-  if (median(im) gt 10000.0) then begin
-    error = 1L
-    return
+  for f = 0L, n_filenames - 1L do begin
+    im = float(readfits(filenames[f], /silent))
+
+    corona0 = kcor_corona(im[*, *, *, 0])
+    corona1 = kcor_corona(im[*, *, *, 1])
+
+    if (median(im) gt 10000.0) then continue
+    if (median(corona0) gt 200.0 || median(corona1) gt 200.0) then continue
+
+    cam0 = kcor_detect_badlines_find(corona0)
+    cam1 = kcor_detect_badlines_find(corona1)
+
+    for i = 0L, n_elements(cam0) - 1L do cam0_badlines[cam0[i]] += 1
+    for i = 0L, n_elements(cam1) - 1L do cam1_badlines[cam1[i]] += 1
+  endfor
+
+  if (cmd0_badlines->count() gt 0L) then begin
+    mg_log, 'cam0 bad lines:', name='kcor/eod', /warn
   endif
+  foreach count, cam0_badlines, line do begin
+    mg_log, '%d: %d times', line, count, name='kcor/eod', /warn
+  endforeach
 
-  if (median(corona0) gt 200.0 || median(corona1) gt 200.0) then begin
-    error = 2L
-    return
+  if (cmd1_badlines->count() gt 0L) then begin
+    mg_log, 'cam1 bad lines:', name='kcor/eod', /warn
   endif
+  foreach count, cam1_badlines, line do begin
+    mg_log, '%d: %d times', line, count, name='kcor/eod', /warn
+  endforeach
 
-  cam0 = kcor_detect_badlines_find(corona0)
-  cam1 = kcor_detect_badlines_find(corona1)
+  obj_destroy, [cmd0_badlines, cmd1_badlines]
 end
 
 
