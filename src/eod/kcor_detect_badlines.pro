@@ -45,12 +45,14 @@ pro kcor_detect_badlines, run=run
   basename = '*_kcor.fts.gz'
   raw_basedir = run->config('processing/raw_basedir')
 
-  pattern = filepath(basename, subdir=[run.date, 'level0'], root=raw_basename)
+  pattern = filepath(basename, subdir=[run.date, 'level0'], root=raw_basedir)
   filenames = file_search(pattern, count=n_filenames)
 
   cam0_badlines = mg_defaulthash(default=0L)
   cam1_badlines = mg_defaulthash(default=0L)
   n_checked_images = 0L
+
+  mg_log, 'checking %d L0 files', n_filenames, name='kcor/eod', /info
 
   for f = 0L, n_filenames - 1L do begin
     im = float(readfits(filenames[f], /silent))
@@ -70,14 +72,14 @@ pro kcor_detect_badlines, run=run
     for i = 0L, n_elements(cam1) - 1L do cam1_badlines[cam1[i]] += 1
   endfor
 
-  if (cmd0_badlines->count() gt 0L) then begin
+  if (cam0_badlines->count() gt 0L) then begin
     mg_log, 'cam0 bad lines:', name='kcor/eod', /warn
   endif
   foreach count, cam0_badlines, line do begin
     mg_log, '%d: %d times', line, count, name='kcor/eod', /warn
   endforeach
 
-  if (cmd1_badlines->count() gt 0L) then begin
+  if (cam1_badlines->count() gt 0L) then begin
     mg_log, 'cam1 bad lines:', name='kcor/eod', /warn
   endif
   foreach count, cam1_badlines, line do begin
@@ -86,94 +88,21 @@ pro kcor_detect_badlines, run=run
             name='kcor/eod', /warn
   endforeach
 
-  obj_destroy, [cmd0_badlines, cmd1_badlines]
+  obj_destroy, [cam0_badlines, cam1_badlines]
   mg_log, 'done', name='kcor/eod', /info
 end
 
 
 ; main-level example program
 
-raw_basename = '/hao/mlsodata1/Data/KCor/raw'
+date = '20190508'
 
-dates = file_search(filepath('2019????', root=raw_basename), count=n_dates)
-months = ['03', '04', '05', '06']
+run = kcor_run(date, $
+               config_filename=filepath('kcor.latest.cfg', $
+                                        subdir=['..', '..', 'config'], $
+                                        root=mg_src_root()))
+kcor_detect_badlines, run=run
 
-openw, lun, 'bad_lines.txt', /get_lun
-
-for d = 0L, n_dates - 1L do begin
-  ;n_wrong_cam0_lines = 0L
-  ;n_wrong_cam1_lines = 0L
-
-  date = file_basename(dates[d])
-
-  month = strmid(date, 4, 2)
-  if (n_elements(where(month eq months, /null)) eq 0L) then continue
-
-  basename = '*_kcor.fts.gz'
-
-  pattern = filepath(basename, subdir=[date, 'level0'], root=raw_basename)
-  filenames = file_search(pattern, count=n_filenames)
-
-  printf, lun, date, n_filenames, format='(%"%s (%d files)")'
-  print, date, n_filenames, format='(%"### %s (%d files)")'
-
-  cam0_badlines = mg_defaulthash(default=0L)
-  cam1_badlines = mg_defaulthash(default=0L)
-
-  for f = 0L, n_filenames - 1L do begin
-    print, f + 1, n_filenames, file_basename(filenames[f]), $
-           format='(%"%d/%d: %s")'
-    ;printf, lun, file_basename(filenames[f]), format='(%"%s:")'
-    im = float(readfits(filenames[f], /silent))
-    ;printf, lun, median(im), format='(%"  median: %0.1f")'
-
-    kcor_detect_badlines, im, cam0=cam0, cam1=cam1, error=error, lun=lun
-
-    for i = 0L, n_elements(cam0) - 1L do begin
-      cam0_badlines[cam0[i]] += 1
-    endfor
-
-    for i = 0L, n_elements(cam1) - 1L do begin
-      cam1_badlines[cam1[i]] += 1
-    endfor
-
-    if (0) then begin
-      if (n_elements(cam0) gt 0L) then begin
-        printf, lun, strjoin(strtrim(cam0, 2), ', '), format='(%"  cam0 bad lines: %s")'
-      endif
-      if (n_elements(cam1) gt 0L) then begin
-        printf, lun, strjoin(strtrim(cam1, 2), ', '), format='(%"  cam1 bad lines: %s")'
-      endif
-    endif
-
-    ;if (error eq 0 && n_elements(cam0) ne 0) then begin
-    ;  printf, lun, strjoin(strtrim(cam0, 2), ', '), $
-    ;          format='(%"  wrong cam0 bad lines: %s")'
-    ;  n_wrong_cam0_lines += 1
-    ;endif
-    ;if (error eq 0 && (n_elements(cam1) ne 1 || cam1[0] ne 752)) then begin
-    ;  printf, lun, n_elements(cam1) eq 0L ? 'none' : strjoin(strtrim(cam1, 2), ', '), $
-    ;          format='(%"  wrong cam1 bad lines: %s")'
-    ;  n_wrong_cam1_lines += 1
-    ;endif
-  endfor
-
-  ;printf, lun, n_wrong_cam0_lines, format='(%"wrong cam0 bad lines: %d")'
-  ;printf, lun, n_wrong_cam1_lines, format='(%"wrong cam1 bad lines: %d")'
-
-  printf, lun, '  cam0 bad lines:'
-  foreach count, cam0_badlines, line do begin
-    printf, lun, line, count, format='(%"    %d: %d times")'
-  endforeach
-
-  printf, lun, '  cam1 bad lines:'
-  foreach count, cam1_badlines, line do begin
-    printf, lun, line, count, format='(%"    %d: %d times")'
-  endforeach
-
-  flush, lun
-endfor
-
-free_lun, lun
+obj_destroy, run
 
 end
