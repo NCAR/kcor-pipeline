@@ -111,20 +111,23 @@ pro kcor_median_rowcol_image_l1, run=run
                                      format='(%"%s.kcor.l1.medcols.gif")'), $
                               root=pdir)
 
-  disp_min = run->epoch('display_min')
-  disp_max = run->epoch('display_max')
-  disp_exp = run->epoch('display_exp')
+  ;disp_min = run->epoch('display_min')
+  ;disp_max = run->epoch('display_max')
+  ;disp_exp = run->epoch('display_exp')
 
-  loadct, 0, /silent
-  gamma_ct, run->epoch('display_gamma'), /current
-  tvlct, red, green, blue, /get
+  ;loadct, 0, /silent
+  ;gamma_ct, run->epoch('display_gamma'), /current
+  ;tvlct, red, green, blue, /get
 
-  write_gif, medrows_filename, $
-             bytscl(medrows^disp_exp, min=disp_min, max=disp_max), $
-             red, green, blue
-  write_gif, medcols_filename, $
-             bytscl(medcols^disp_exp, min=disp_min, max=disp_max), $
-             red, green, blue
+  ;write_gif, medrows_filename, $
+  ;           bytscl(medrows^disp_exp, min=disp_min, max=disp_max), $
+  ;           red, green, blue
+  ;write_gif, medcols_filename, $
+  ;           bytscl(medcols^disp_exp, min=disp_min, max=disp_max), $
+  ;           red, green, blue
+
+  write_gif, medrows_filename, bytscl(medrows)
+  write_gif, medcols_filename, bytscl(medcols)
 end
 
 
@@ -140,8 +143,8 @@ pro kcor_median_rowcol_image, run=run
 
   mg_log, 'starting', name='kcor/eod', /info
 
-  mg_log, 'creating L0 image...', name='kcor/eod', /info
-  kcor_median_rowcol_image_l0, run=run
+  ;mg_log, 'creating L0 image...', name='kcor/eod', /info
+  ;kcor_median_rowcol_image_l0, run=run
 
   mg_log, 'creating L1.5 image...', name='kcor/eod', /info
   kcor_median_rowcol_image_l1, run=run
