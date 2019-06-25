@@ -143,10 +143,10 @@ pro kcor_median_rowcol_image, run=run
 
   mg_log, 'starting', name='kcor/eod', /info
 
-  ;mg_log, 'creating L0 image...', name='kcor/eod', /info
-  ;kcor_median_rowcol_image_l0, run=run
+  mg_log, 'creating L0 images...', name='kcor/eod', /info
+  kcor_median_rowcol_image_l0, run=run
 
-  mg_log, 'creating L1.5 image...', name='kcor/eod', /info
+  mg_log, 'creating L1.5 images...', name='kcor/eod', /info
   kcor_median_rowcol_image_l1, run=run
 
   mg_log, 'done', name='kcor/eod', /info
