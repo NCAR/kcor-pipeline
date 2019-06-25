@@ -322,3 +322,6 @@
   new short epoch for test with NUMSUM=171
 1.6.6
   fix for case where there is data, but not L1.5 files for a day
+  epoch file changes for display min/max/exp
+  detect bad horizontal lines
+  product median row/col images
