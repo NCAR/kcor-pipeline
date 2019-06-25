@@ -456,6 +456,16 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
       msg = [msg, '', '# No end-of-day log errors']
     endelse
 
+    ; bad line warning messages in EOD log
+    eod_warnings = kcor_filter_log(eod_logfile, /warn, n_messages=n_eod_warnings)
+    if (n_eod_warnings gt 0L) then begin
+      badline_mask = stregex(eod_warnings, 'KCOR_DETECT_BADLINES', /boolean)
+      badline_indices = where(badline_mask, n_badlines)
+      if (n_badlines gt 0L) then begin
+        msg = [msg, '', '# Bad lines', '', eod_warnings[badline_indices]]
+      endif
+    endif
+
     msg = [msg, '', '', '# Config file', '', run.config_content, '', '', $
            string(mg_src_root(/filename), who, $
                   format='(%"Sent from %s (%s)")')]
