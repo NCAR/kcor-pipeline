@@ -293,6 +293,27 @@ function kcor_run::getVariable, name, found=found
         return, file_test(log_filename) ? log_filename : ''
       end
 
+    'l0_median_rows_cam0_image_href': begin
+        return, string(self.date, format='(%"./p/%d.kcor.l0.medrows.cam0.gif")')
+      end
+    'l0_median_cols_cam0_image_href': begin
+        return, string(self.date, format='(%"./p/%d.kcor.l0.medcols.cam0.gif")')
+      end
+
+    'l0_median_rows_cam1_image_href': begin
+        return, string(self.date, format='(%"./p/%d.kcor.l0.medrows.cam1.gif")')
+      end
+    'l0_median_cols_cam1_image_href': begin
+        return, string(self.date, format='(%"./p/%d.kcor.l0.medcols.cam1.gif")')
+      end
+
+    'l1_median_rows_image_href': begin
+        return, string(self.date, format='(%"./p/%d.kcor.l1.medrows.gif")')
+      end
+    'l1_median_cols_image_href': begin
+        return, string(self.date, format='(%"./p/%d.kcor.l1.medcols.gif")')
+      end
+
     'extavg_href': begin
         extavg_glob = filepath('*_kcor_l1.5_extavg.gif', $
                                subdir=[self.date, 'level1'], $

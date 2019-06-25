@@ -28,6 +28,17 @@
           <td>[% n_nrgf_files %]</td>
         </tr>
 
+	<tr>
+          <td class="heading">L0 median row/col images:</td>
+	  <td>
+	    <a href="[% l0_median_rows_cam0_image_href %]">cam0 rows</a>-<a href="[% l0_median_cols_cam0_image_href %]">cam0 cols</a><br/><a href="[% l0_median_rows_cam1_image_href %]">cam1 rows</a>-<a href="[% l0_median_cols_cam1_image_href %]">cam1 cols</a>
+	</tr>
+
+	<tr>
+          <td class="heading">L1.5 median row/col images:</td>
+	  <td><a href="[% l1_median_rows_image_href %]">rows</a>-<a href="[% l1_median_cols_image_href %]">cols</a></td>
+	</tr>
+
       	<tr>
           <td class="heading">Extended average:</td>
           <td>[% if extavg_href ne '' %]<a href="[% extavg_href %]">img</a>[% end %][% if extavg_cropped_href ne '' %] <a href="[% extavg_cropped_href %]">(cropped)</a>[% end %]</td>
