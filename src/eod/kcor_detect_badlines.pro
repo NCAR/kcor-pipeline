@@ -76,7 +76,9 @@ pro kcor_detect_badlines, run=run
     mg_log, 'cam0 bad lines:', name='kcor/eod', /warn
   endif
   foreach count, cam0_badlines, line do begin
-    mg_log, '%d: %d times', line, count, name='kcor/eod', /warn
+    mg_log, '%d: %d times (%0.1f%%)', $
+            line, count, 100.0 * count / n_checked_images, $
+            name='kcor/eod', /warn
   endforeach
 
   if (cam1_badlines->count() gt 0L) then begin
