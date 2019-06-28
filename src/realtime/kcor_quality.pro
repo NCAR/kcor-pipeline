@@ -412,6 +412,9 @@ function kcor_quality, date, l0_fits_files, append=append, $
       sat = n_saturated_pixels gt run->epoch('smax_max_count')
 
       if (sat) then begin
+        mg_log, 'saturated: %d pixels (max %d) > %0.1f', $
+                n_saturard_pixels, run->epoch('smax_max_count'), run->epoch('smax'), $
+                name='kcor/rt', /debug
         pb0rot = img[*, *, 0, 0]
         goto, next
       endif
@@ -423,6 +426,9 @@ function kcor_quality, date, l0_fits_files, append=append, $
     q0 = img[*, *, 0, 0] - img[*, *, 3, 0]   ; Q camera 0
     u0 = img[*, *, 1, 0] - img[*, *, 2, 0]   ; U camera 0
     pb0 = sqrt(q0 * q0 + u0 * u0)
+
+    mg_log, 'pB cam 0 mean: %0.2f, median: %0.2f', mean(pb0), median(pb0), $
+            name='kcor/rt', /debug
 
     ;----------------------------------------------------------------------------
     ; Cloud test (using rectangular box).
@@ -489,6 +495,11 @@ function kcor_quality, date, l0_fits_files, append=append, $
 
       ; if too many pixels in circle exceed threshold, set bright = 1
       bright = n_bright_pixels ge (nray / 5)
+      if (bright) then begin
+        mg_log, 'bright: %d pixels (max %0.1f) > %0.1f', $
+                n_bright_pixels, nray / 5, bmax, $
+                name='kcor/rt', /debug
+      endif
     endif
 
     ; cloud check
@@ -514,6 +525,16 @@ function kcor_quality, date, l0_fits_files, append=append, $
       if (n_cloudy_hi gt 0L) then chi = cave ge cmax
 
       cloud = clo + chi
+
+      if (clo) then begin
+        mg_log, 'dim: %d pixels (max %0.1f) > %0.1f', $
+                n_cloudy_lo, nray / 5, cmin, $
+                name='kcor/rt', /debug
+      endif
+
+      if (chi) then begin
+        mg_log, 'cloudy: %0.1f > %0.1f', cave, cmax, name='kcor/rt', /debug
+      endif
     endif
 
     ; do noise (sobel) test for "good" images for 16 bit data.
@@ -573,6 +594,8 @@ function kcor_quality, date, l0_fits_files, append=append, $
 
       ; if noise limit is exceeded, set bad = 1
       noise = total_bad ge total_bad_limit
+      mg_log, 'noisy: %d bad pixels > %d', total_bad, total_bad_limit, $
+              name='kcor/rt', /debug
     endif
 
     ; apply mask to restrict field of view (FOV)
