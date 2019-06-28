@@ -75,6 +75,12 @@ function kcor_run::epoch, name, time=time
   compile_opt strictarr
   on_error, 2
 
+  if (n_elements(time) gt 0L) then begin
+    hst_time = kcor_ut2hst(time)
+    datetime = self.date + '.' + hst_time
+  endif
+
+  ; handle 'cal_file' when using pipeline cal files
   if (strlowcase(name) eq 'cal_file') then begin
     if (self.epochs->get('use_pipeline_calfiles', datetime=datetime)) then begin
       if (n_elements(time) eq 0L) then begin
@@ -88,11 +94,18 @@ function kcor_run::epoch, name, time=time
     endif
   endif
 
-  if (n_elements(time) gt 0L) then begin
-    hst_time = kcor_ut2hst(time)
-    datetime = self.date + '.' + hst_time
-  endif
   value = self.epochs->get(name, datetime=datetime)
+
+  ; handle 'cal_file' when using hard-coded cal files
+  if (strlowcase(name) eq 'cal_file') then begin
+    cal_file_glob_pattern = value
+    cal_out_dir = self->config('calibration/out_dir')
+    cal_search_spec = filepath(cal_file_glob_pattern, root=cal_out_dir)
+
+    calfiles = file_search(cal_search_spec, count=n_calfiles)
+    if (n_calfiles eq 0L) then message, 'unable to find cal file'
+    return, file_basename(calfile[-1])
+  endif
 
   return, value
 end
