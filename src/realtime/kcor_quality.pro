@@ -635,7 +635,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
     power = run->epoch('quicklook_power')
     pb0s = pb0m ^ power   ; apply exponential power
 
-    imin = -50.0
+    imin = -10.0
     imax = max(pb0s)
 
     ; imin = 0.0
@@ -643,6 +643,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
 
     ; scale pixel intensities
     pb0sb = bytscl(pb0s, min=imin, max=imax, top=249)   ; linear scaling: 0-249
+    pb0sb *= mask
 
     ; display image
     tv, pb0sb
