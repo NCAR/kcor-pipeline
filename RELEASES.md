@@ -325,3 +325,4 @@
   epoch file changes for display min/max/exp
   detect bad horizontal lines
   product median row/col images
+  major quicklook scaling changes

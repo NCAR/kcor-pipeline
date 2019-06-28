@@ -193,16 +193,30 @@ function kcor_quality, date, l0_fits_files, append=append, $
           set_colors=256, $
           z_buffering=0
 
-  lct, filepath('bwy5.lut', root=run.resources_dir)   ; color table
-  tvlct, rlut, glut, blut, /get
+  ;lct, filepath('bwy5.lut', root=run.resources_dir)   ; color table
+  loadct, 0, ncolors=250, /silent
+  gamma_ct, run->epoch('quicklook_gamma'), /current
 
   ; define color levels for annotation
-  yellow = 250 
+  yellow = 250
+  tvlct, 255, 255, 0, yellow
+
   grey   = 251
+  tvlct, 127, 127, 127, grey
+
   blue   = 252
+  tvlct, 0, 0, 255, blue
+
   green  = 253
+  tvlct, 0, 255, 0, green
+
   red    = 254
+  tvlct, 255, 0, 0, red
+
   white  = 255
+  tvlct, 255, 255, 255, white
+
+  tvlct, rlut, glut, blut, /get
 
   ; open file containing a list of kcor L0 FITS files
   mg_log, 'inventory for current run...', name='kcor/rt', /debug
@@ -427,7 +441,10 @@ function kcor_quality, date, l0_fits_files, append=append, $
     u0 = img[*, *, 1, 0] - img[*, *, 2, 0]   ; U camera 0
     pb0 = sqrt(q0 * q0 + u0 * u0)
 
-    mg_log, 'pB cam 0 mean: %0.2f, median: %0.2f', mean(pb0), median(pb0), $
+    annulus_indices = where(mask, n_annulus_indices)
+    mg_log, 'pB (cam 0) mean: %0.2f, median: %0.2f', $
+            mean(pb0[annulus_indices]), $
+            median(pb0[annulus_indices]), $
             name='kcor/rt', /debug
 
     ;----------------------------------------------------------------------------
@@ -527,7 +544,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
       cloud = clo + chi
 
       if (clo) then begin
-        mg_log, 'dim: %d pixels (max %0.1f) > %0.1f', $
+        mg_log, 'dim: %d radial scans (max %0.1f) < %0.1f', $
                 n_cloudy_lo, nray / 5, cmin, $
                 name='kcor/rt', /debug
       endif
@@ -594,8 +611,10 @@ function kcor_quality, date, l0_fits_files, append=append, $
 
       ; if noise limit is exceeded, set bad = 1
       noise = total_bad ge total_bad_limit
-      mg_log, 'noisy: %d bad pixels > %d', total_bad, total_bad_limit, $
-              name='kcor/rt', /debug
+      if (noise) then begin
+        mg_log, 'noisy: %d bad pixels > %d', total_bad, total_bad_limit, $
+                name='kcor/rt', /debug
+      endif
     endif
 
     ; apply mask to restrict field of view (FOV)
@@ -613,11 +632,11 @@ function kcor_quality, date, l0_fits_files, append=append, $
     endelse
 
     ; intensity scaling
-    power = 0.5
+    power = run->epoch('quicklook_power')
     pb0s = pb0m ^ power   ; apply exponential power
 
-    imin = min(pb0s)
-    imax = run->epoch('quicklook_scale') * max(pb0s)
+    imin = -50.0
+    imax = max(pb0s)
 
     ; imin = 0.0
     ; imax = 40.0
@@ -641,8 +660,8 @@ function kcor_quality, date, l0_fits_files, append=append, $
       tvcircle, 3.0 * rsunpix, axcen, aycen, grey, /device     ; 3.0 Rsun circle
 
       ; draw "+" at sun center
-      plots, [ixcen - 5, ixcen + 5], [iycen, iycen], color=yellow, /device
-      plots, [ixcen, ixcen], [iycen - 5, iycen + 5], color=yellow, /device
+      plots, [ixcen - 5, ixcen + 5], [iycen, iycen], color=green, /device
+      plots, [ixcen, ixcen], [iycen - 5, iycen + 5], color=green, /device
 
       if (dev eq 0) then begin
         xyouts, 490, 1010, 'NORTH', color=green, charsize=1.0, /device
@@ -723,6 +742,11 @@ function kcor_quality, date, l0_fits_files, append=append, $
 
     ; write GIF file
     xyouts, 6, ydim-20, gif_file, color=white, charsize=1.0, /device
+    xyouts, 6, 30, string(imin, imax, format='(%"min/max: %0.1f, %0.1f")'), $
+            color=white, charsize=1.0, /device
+    xyouts, 6, 13, string(power, run->epoch('quicklook_gamma'), $
+                          format='(%"scaling: pb ^ %0.1f, gamma=%0.1f")'), $
+            color=white, charsize=1.0, /device
     save = tvrd()
     write_gif, gif_path, save, rlut, glut, blut
 
@@ -808,4 +832,19 @@ function kcor_quality, date, l0_fits_files, append=append, $
   mg_log, 'done', name='kcor/rt', /info
 
   return, ok_files
+end
+
+
+; main-level example program
+
+date = '20160810'
+config_filename = filepath('kcor.latest.cfg', $
+                           subdir=['..', '..', 'config'], $
+                           root=mg_src_root())
+run = kcor_run(date, config_filename=config_filename)
+
+ok_files = kcor_quality(date, ['20160810_210441_kcor.fts.gz'], /append, run=run)
+
+obj_destroy, run
+
 end
