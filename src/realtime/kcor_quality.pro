@@ -600,7 +600,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
     ; imax = 40.0
 
     ; scale pixel intensities
-    pb0sb = bytscl(pb0s, min=imin, max=imax, top=250)   ; linear scaling: 0-250
+    pb0sb = bytscl(pb0s, min=imin, max=imax, top=249)   ; linear scaling: 0-249
 
     ; display image
     tv, pb0sb
