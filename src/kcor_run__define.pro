@@ -220,6 +220,20 @@ pro kcor_run::setup_loggers, rotate_logs=rotate_logs
                        time_format=log_time_fmt, $
                        level=log_level, $
                        filename=log_filename
+
+  ; can setup other loggers just by changing MODE property
+  if (self.mode ne 'eod' && self.mode ne 'realtime') then begin
+    mg_log, name='kcor/' + self.mode, logger=logger
+    log_filename = filepath(string(self.date, self.mode, format='(%"%s.%s.log")'), $
+                            root=log_dir)
+    if (keyword_set(rotate_logs)) then begin
+      mg_rotate_log, log_filename, max_version=max_log_version
+    endif
+    logger->setProperty, format=log_fmt, $
+                         time_format=log_time_fmt, $
+                         level=log_level, $
+                         filename=log_filename
+  endif
 end
 
 
