@@ -84,6 +84,7 @@ add_subdirectory(gen)
 add_subdirectory(hv)
 add_subdirectory(lib)
 add_subdirectory(resources)
+add_subdirectory(scripts)
 add_subdirectory(src)
 add_subdirectory(ssw)
 

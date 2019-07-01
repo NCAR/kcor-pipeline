@@ -13,6 +13,9 @@ configure_file(runkcor_eod_range.sh.in runkcor_eod_range.sh @ONLY)
 configure_file(runkcor_process.sh.in runkcor_process.sh @ONLY)
 configure_file(runkcor_process_range.sh.in runkcor_process_range.sh @ONLY)
 
+configure_file(runkcor_script.sh.in runkcor_script.sh @ONLY)
+configure_file(runkcor_script_range.sh.in runkcor_script_range.sh @ONLY)
+
 configure_file(runkcor_cmedetection.sh.in runkcor_cmedetection.sh @ONLY)
 configure_file(runkcor_cmedetection_range.sh.in runkcor_cmedetection_range.sh @ONLY)
 
@@ -54,6 +57,8 @@ install(PROGRAMS
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_eod_range.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_process.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_process_range.sh
+          ${CMAKE_CURRENT_BINARY_DIR}/runkcor_script.sh
+          ${CMAKE_CURRENT_BINARY_DIR}/runkcor_script_range.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_cmedetection.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_cmedetection_range.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_archive_l0.sh

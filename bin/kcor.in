@@ -294,6 +294,35 @@ def process_eod(args):
         process_dates(d, 'eod', args.flags, args.no_wait)
 
 
+# script sub-command
+def run_script(args):
+    for dates in args.dates:
+        for d in dates.split(','):
+            if d.find('-') < 0:
+                cmd = [os.path.join(PIPELINE_DIR, 'bin', f'runkcor_script.sh'),
+                       args.name,
+                       args.flags,
+                       d]
+
+                process = launch_process(cmd, stdout=None, stderr=subprocess.PIPE)
+                print('[%d] %s' % (process.pid, ' '.join(cmd)))
+                if not args.no_wait:
+                    terminated = wait_for(process)
+                    if terminated: break
+            else:
+                r = d.split('-')
+                cmd = [os.path.join(PIPELINE_DIR, 'bin', f'runkcor_script_range.sh'),
+                       args.name,
+                       args.flags,
+                       r[0], r[1]]
+
+                process = launch_process(cmd, stdout=None, stderr=subprocess.PIPE)
+                print('[%d] %s' % (process.pid, ' '.join(cmd)))
+                if not args.no_wait:
+                    terminated = wait_for(process)
+                    if terminated: break
+
+
 # CME detection sub-command
 def cme_detection(args):
     for d in args.dates:
@@ -521,6 +550,18 @@ if __name__ == '__main__':
     eod_parser.set_defaults(func=process_eod, parser=eod_parser)
     rt_parser.set_defaults(func=process_rt, parser=rt_parser)
     cal_parser.set_defaults(func=process_cal, parser=cal_parser)
+
+    # script sub-command
+    script_parser = subparsers.add_parser('script',
+                                           help='run script on days')
+    script_parser.add_argument('dates', type=str, nargs='*', help=date_help,
+                               metavar='date-expr')
+    script_parser.add_argument('-f', '--flags', type=str, help=flags_help,
+                               default='latest')
+    script_parser.add_argument('-n', '--name', type=str, help="name of script",
+                               required=True)
+    script_parser.add_argument('--no-wait', action='store_true', help=nowait_help)
+    script_parser.set_defaults(func=run_script, parser=script_parser)
 
 
     # cme sub-command

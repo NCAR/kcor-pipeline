@@ -16,7 +16,7 @@
 ;   12 Feb 2015 Add TIC & TOC to get elapsed time.
 ;   02 Mar 2015 Modify to generate files containing lists of kcor L0 FITS files
 ;               which are labeled according to quality assessment.
-;   03 Apr 2015 Do NOT create category sub-directories unles gif keyword is set.
+;   03 Apr 2015 Do NOT create category sub-directories unless gif keyword is set.
 ;   06 Apr 2015 Do NOT delete list files.
 ;   07 Apr 2015 Move okf file to date directory (instead of copy).
 ;   10 Apr 2015 Copy calibration images to /hao/mlsodata1/Data/KCor/cal/yyyymmdd.
@@ -299,7 +299,6 @@ function kcor_quality, date, l0_fits_files, append=append, $
     ; determine occulter size in pixels
     occulter = kcor_get_occulter_size(occltrid, run=run)
     radius_guess = occulter / run->epoch('plate_scale')   ; occulter size [pixels]
-
     kcor_correct_camera, img, hdu, run=run, logger_name='kcor/rt'
     if (run->epoch('remove_horizontal_artifact')) then begin
       mg_log, 'correcting horiz lines @ [%s], cameras: [%s]', $
@@ -838,13 +837,13 @@ end
 
 ; main-level example program
 
-date = '20160810'
+date = '20160809'
 config_filename = filepath('kcor.latest.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
 
-ok_files = kcor_quality(date, ['20160810_210441_kcor.fts.gz'], /append, run=run)
+ok_files = kcor_quality(date, ['20160809_170203_kcor.fts.gz'], /append, run=run)
 
 obj_destroy, run
 
