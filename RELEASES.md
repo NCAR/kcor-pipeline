@@ -320,9 +320,10 @@
   new short epoch for test with NUMSUM=171
 1.6.5 [Jun 19, 2019]
   new short epoch for test with NUMSUM=171
-1.6.6
+1.6.6 [Jul 2, 2019]
   fix for case where there is data, but not L1.5 files for a day
   epoch file changes for display min/max/exp
   detect bad horizontal lines
   product median row/col images
   major quicklook scaling changes
+  epoch for Eclipse day with NUMSUM=171
