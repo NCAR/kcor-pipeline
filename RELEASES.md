@@ -328,3 +328,4 @@
   major quicklook scaling changes
   epoch for Eclipse day with NUMSUM=171
 1.6.7
+  fix for crashing bug in log message in KCOR_QUALITY for saturated images
