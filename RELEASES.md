@@ -327,5 +327,5 @@
   produce median row/col images
   major quicklook scaling changes
   epoch for Eclipse day with NUMSUM=171
-1.6.7
+1.6.7 [Jul 3, 2019]
   fix for crashing bug in log message in KCOR_QUALITY for saturated images
