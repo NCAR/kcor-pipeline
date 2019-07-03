@@ -28,22 +28,17 @@ assignees: mgalloy
 - [ ] `cd build; make`
 - [ ] `make install` when the pipeline is not running
 
-### Notify
-
-- [ ] send email with new release notes to iguana, detoma, and observers
-
-### Post-release check
-
-- [ ] increment version in `CMakeLists.txt` and `RELEASES.md`
-
-### Release to MLSO
-
-A day after production release, release to MLSO.
+### Release mlso
 
 - [ ] merge production to mlso
 - [ ] push mlso to origin
 
-### Install MLSO
+### Post-release check
+
+- [ ] send email with new release notes to iguana, detoma, and observers
+- [ ] in master, increment version in `CMakeLists.txt` and `RELEASES.md`
+
+### Install mlso
 
 A day after production release, release to MLSO.
 
