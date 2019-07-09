@@ -54,8 +54,6 @@ pro kcor_detect_badlines, run=run
   cam1_badlines = mg_defaulthash(default=0L)
   n_checked_images = 0L
 
-  mg_log, 'checking %d L0 files', n_filenames, name=logger_name, /info
-
   for f = 0L, n_filenames - 1L do begin
     im = float(readfits(filenames[f], /silent))
 
@@ -73,6 +71,9 @@ pro kcor_detect_badlines, run=run
     for i = 0L, n_elements(cam0) - 1L do cam0_badlines[cam0[i]] += 1
     for i = 0L, n_elements(cam1) - 1L do cam1_badlines[cam1[i]] += 1
   endfor
+
+  mg_log, 'checked %d out of %d L0 files', n_checked_images, n_filenames, $
+          name=logger_name, /info
 
   if (cam0_badlines->count() gt 0L) then begin
     mg_log, 'cam0 bad lines:', name=logger_name, /warn
