@@ -89,14 +89,14 @@ end
 ;     HPSS filename to check
 ;   filesize : in, required, type=integer
 ;     size of given file
-;   ctime : in, required, type=long64
-;     creation time of local file in seconds from 1 January 1970 UTC
+;   mtime : in, required, type=long64
+;     modification time of local file in seconds from 1 January 1970 UTC
 ;
 ; :Keywords:
 ;   run : in, required, type=object
 ;     KCor run object
 ;-
-pro kcor_verify_hpss, date, filename, filesize, ctime, $
+pro kcor_verify_hpss, date, filename, filesize, mtime, $
                       logger_name=logger_name, run=run, $
                       status=status
   compile_opt strictarr
@@ -161,10 +161,10 @@ pro kcor_verify_hpss, date, filename, filesize, ctime, $
     ; check date of tarball on HPSS vs local tarball
     hpss_epoch = kcor_verify_date2epoch(tokens[5], tokens[6], tokens[7], $
                                         tolerance=tolerance)
-    if (abs(hpss_epoch - ctime) gt tolerance) then begin
+    if (abs(hpss_epoch - mtime) gt tolerance) then begin
       mg_log, 'HPSS date: %s %s %s, local date: %s', $
               tokens[5], tokens[6], tokens[7], $
-              systime(elapsed=ctime), $
+              systime(elapsed=mtime), $
               name=logger_name, /error
       mg_log, 'dates not within %d hours', round(tolerance / 60.0D / 60.0D), $
               name=logger_name, /error
@@ -585,8 +585,8 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   l0_tarball_size = mg_filesize(l0_tarball_filename)
   l1_tarball_size = mg_filesize(l1_tarball_filename)
 
-  l0_tarball_ctime = (file_info(l0_tarball_filename)).ctime
-  l1_tarball_ctime = (file_info(l1_tarball_filename)).ctime
+  l0_tarball_mtime = (file_info(l0_tarball_filename)).mtime
+  l1_tarball_mtime = (file_info(l1_tarball_filename)).mtime
 
   if (~file_test(l0_tarball_filename, /regular)) then begin
     mg_log, 'no L0 tarball', name=logger_name, /error
@@ -668,14 +668,14 @@ pro kcor_verify, date, config_filename=config_filename, status=status
                       string(year, date, $
                              format='(%"/CORDYN/KCOR/%s/%s_kcor_l0.tgz")'), $
                       l0_tarball_size, $
-                      l0_tarball_ctime, $
+                      l0_tarball_mtime, $
                       status=status, $
                       logger_name=logger_name, run=run
     kcor_verify_hpss, date, $
                       string(year, date, $
                              format='(%"/CORDYN/KCOR/%s/%s_kcor_l1.5.tgz")'), $
                       l1_tarball_size, $
-                      l1_tarball_ctime, $
+                      l1_tarball_mtime, $
                       status=status, $
                       logger_name=logger_name, run=run
   endif else begin
