@@ -330,5 +330,5 @@
 1.6.7 [Jul 3, 2019]
   fix for crashing bug in log message in KCOR_QUALITY for saturated images
 1.6.8
-  use modification time instead of creation time when verifying tarballs vs. HPSS
-  remove bad cal files from 20170530
+  remove bad cal files from 20170530 in epochs file
+  use md5 hash instead of date to check that HPSS tarballs match local ones
