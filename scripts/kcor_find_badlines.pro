@@ -16,5 +16,6 @@ pro kcor_find_badlines, date, config_filename=config_filename
 
   run = kcor_run(date, config_filename=config_filename, mode='badlines')
   kcor_detect_badlines, run=run
+  kcor_median_rowcol_image, run=run
   obj_destroy, run
 end
