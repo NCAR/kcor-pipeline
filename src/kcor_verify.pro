@@ -86,8 +86,6 @@ end
 ;   string
 ;
 ; :Params:
-;   date : in, required, type=string
-;     date in the form YYYYMMDD
 ;   filename : in, required, type=string
 ;     HPSS filename to check
 ;
