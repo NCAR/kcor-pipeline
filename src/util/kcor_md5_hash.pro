@@ -23,7 +23,8 @@ function kcor_md5_hash, filename, $
                         logger_name=logger_name, run=run, status=status
   compile_opt strictarr
 
-  cmd = string(filename, format='(%"openssl dgst -md5 %s")')
+  cmd = string(run->config('externals/openssl'), filename, $
+               format='(%"%s dgst -md5 %s")')
   spawn, cmd, output, openssl_error_output, exit_status=status
   if (status eq 0L) then begin
     hash = (strsplit(output[0], /extract))[-1]
