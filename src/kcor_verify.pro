@@ -80,6 +80,58 @@ end
 
 
 ;+
+; Return the md5 hash of a file on the HPSS.
+;
+; :Returns:
+;   string
+;
+; :Params:
+;   date : in, required, type=string
+;     date in the form YYYYMMDD
+;   filename : in, required, type=string
+;     HPSS filename to check
+;
+; :Keywords:
+;   logger_name : in, type=string
+;     name of logger
+;   run : in, required, type=object
+;     KCor run object
+;   status : out, optional, type=integer
+;     set to a named variable to retrieve the error status for the HPSS query,
+;     0 for none
+;-
+function kcor_verify_hpss_hash, filename, $
+                                logger_name=logger_name, run=run, status=status
+  compile_opt strictarr
+
+  status = 0L
+  hash = ''
+
+  hsi_cmd = string(run->config('externals/hsi'), filename, format='(%"%s hashlist %s")')
+
+  spawn, hsi_cmd, hsi_output, hsi_error_output, exit_status=exit_status
+  if (exit_status ne 0L) then begin
+    mg_log, 'problem connecting to HPSS with command: %s', hsi_cmd, $
+            name=logger_name, /error
+    mg_log, '%s', mg_strmerge(hsi_error_output), name=logger_name, /error
+    status = 1L
+    goto, hpss_hash_done
+  endif
+
+  ; output should be on two lines, like:
+
+  ; Username: mgalloy  UID: 22778  Acct: 22100010(P22100010) Copies: 1 Firewall: off [hsi.5.0.2.p5 Wed Jan 18 16:20:51 MST 2017] 
+  ; caf9d08a23ea298ecfd7421e96cf3eab md5 /CORDYN/KCOR/2019/20190710_kcor_l0.tgz [hsi]
+
+  ; for some reason, hsi puts all output on stderr
+  hash = (strsplit(hsi_error_output[-1], /extract))[0]
+
+  hpss_hash_done:
+  return, hash
+end
+
+
+;+
 ; Verify that the given filename is on the HPSS with correct permissions.
 ;
 ; :Params:
@@ -93,8 +145,13 @@ end
 ;     modification time of local file in seconds from 1 January 1970 UTC
 ;
 ; :Keywords:
+;   logger_name : in, type=string
+;     name of logger
 ;   run : in, required, type=object
 ;     KCor run object
+;   status : out, optional, type=integer
+;     set to a named variable to retrieve the error status for the HPSS query,
+;     0 for none
 ;-
 pro kcor_verify_hpss, date, filename, filesize, mtime, $
                       logger_name=logger_name, run=run, $
@@ -697,18 +754,33 @@ end
 ; main-level example program
 
 logger_name = 'kcor/verify'
-cfile = 'kcor.mgalloy.mlsodata.production.cfg'
+cfile = 'kcor.production.cfg'
 config_filename = filepath(cfile, subdir=['..', 'config'], root=mg_src_root())
 
-dates = ['20180818']
+dates = ['20190702', '20190709', '20190710']
 for d = 0L, n_elements(dates) - 1L do begin
-  kcor_verify, dates[d], config_filename=config_filename
+  run = kcor_run(dates[d], config_filename=config_filename)
+  hpss_filename = string(strmid(dates[d], 0, 4), dates[d], $
+                    format='(%"/CORDYN/KCOR/%s/%s_kcor_l0.tgz")')
+  hpss_hash = kcor_verify_hpss_hash(hpss_filename, run=run, status=status)
 
-  if (d lt n_elements(dates) - 1L) then begin
-    mg_log, name=logger_name, logger=logger
-    logger->setProperty, format='%(time)s %(levelshortname)s: %(message)s'
-    mg_log, '-----------------------------------', name=logger_name, /info
-  endif
+  local_filename = filepath(string(dates[d], format='(%"%s_kcor_l0.tgz")'), $
+                            subdir=[dates[d], 'level0'], $
+                            root=run->config('processing/raw_basedir'))
+  local_hash = kcor_md5_hash(local_filename, run=run, status=status)
+
+  print, hpss_hash eq local_hash
+
+  obj_destroy, run
+
+;  kcor_verify, dates[d], config_filename=config_filename
+
+;  if (d lt n_elements(dates) - 1L) then begin
+;    mg_log, name=logger_name, logger=logger
+;    logger->setProperty, format='%(time)s %(levelshortname)s: %(message)s'
+;    mg_log, '-----------------------------------', name=logger_name, /info
+;  endif
 endfor
+
 
 end
