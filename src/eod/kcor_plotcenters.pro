@@ -376,25 +376,27 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
   erase
 
+  ocen_yrange = run->epoch('ocen_range')
+
   plot, hours, fxcen0, title=pdate + '  Camera 0 occulter raw X center', $
         xtitle='Hours [UT]', ytitle='X center pixel location', $
         background=255, color=0, charsize=2.0, $
-        yrange=[480.0, 540.0]
+        yrange=ocen_yrange
 
   plot, hours, fycen0, title=pdate + '  Camera 0 occulter raw Y center', $
         xtitle='Hours [UT]', ytitle='Y center pixel location', $
         background=255, color=0, charsize=2.0, $
-        yrange=[480.0, 540.0]
+        yrange=ocen_yrange
 
   plot, hours, fxcen1, title=pdate + '  Camera 1 occulter X raw center', $
         xtitle='Hours [UT]', ytitle='X center pixel location', $
         background=255, color=0, charsize=2.0, $
-        yrange=[480.0, 540.0]
+        yrange=ocen_yrange
 
   plot, hours, fycen1, title=pdate + '  Camera 1 occulter Y raw center', $
         xtitle='Hours [UT]', ytitle='Y center pixel location', $
         background=255, color=0, charsize=2.0, $
-        yrange=[480.0, 540.0]
+        yrange=ocen_yrange
    
   ocen_gif_filename = string(date, format='(%"%s.kcor.ocen.gif")')
   save = tvrd()
