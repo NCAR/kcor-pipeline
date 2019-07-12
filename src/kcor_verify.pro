@@ -230,10 +230,13 @@ pro kcor_verify_hpss, date, hpss_filename, local_filename, $
     endif
 
     if (hpss_hash eq '(none)') then begin
-      mg_log, 'HPSS hash not available', name=logger_name, /warn
+      mg_log, 'HPSS hash not available for %s', $
+              file_basename(hpss_filename), $
+              name=logger_name, /warn
     endif else begin
       if (hpss_hash eq local_hash) then begin
-        mg_log, 'md5 hashes match for local vs. HPSS tarball', $
+        mg_log, 'md5 hashes match for %s', $
+                file_basename(hpss_filename), $
                 name=logger_name, /info
       endif else begin
         mg_log, 'mismatching md5 hashes for %s:', $
