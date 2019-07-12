@@ -147,12 +147,22 @@ end
 ;     KCor run object
 ;   status : out, optional, type=integer
 ;     set to a named variable to retrieve the error status for the HPSS query,
-;     0 for none
+;     0 for none, 1 for unable to compare, 2 for not matching
 ;-
 pro kcor_verify_hpss, date, hpss_filename, local_filename, $
                       logger_name=logger_name, run=run, $
                       status=status
   compile_opt strictarr
+
+  status = 0L
+
+  if (~file_test(local_filename, /regular)) then begin
+    mg_log, 'local tarball %s not available', $
+            file_basename(local_filename), $
+            name=logger_name, /warn
+    status = 1L
+    goto, hpss_done
+  endif
 
   filesize = mg_filesize(local_filename)
   mtime = (file_info(local_filename)).mtime
@@ -165,7 +175,7 @@ pro kcor_verify_hpss, date, hpss_filename, local_filename, $
     mg_log, 'problem connecting to HPSS with command: %s', hsi_cmd, $
             name=logger_name, /error
     mg_log, '%s', mg_strmerge(hsi_error_output), name=logger_name, /error
-    status = 1
+    status = 1L
     goto, hpss_done
   endif
 
@@ -190,7 +200,7 @@ pro kcor_verify_hpss, date, hpss_filename, local_filename, $
               tokens[3], $
               file_basename(hpss_filename), $
               name=logger_name, /error
-      status = 1L
+      status = 2L
       goto, hpss_done
     endif
 
@@ -200,7 +210,7 @@ pro kcor_verify_hpss, date, hpss_filename, local_filename, $
               tokens[0], $
               file_basename(hpss_filename), $
               name=logger_name, /error
-      status = 1L
+      status = 2L
       goto, hpss_done
     endif
 
@@ -211,7 +221,7 @@ pro kcor_verify_hpss, date, hpss_filename, local_filename, $
               mg_float2str(filesize, places_sep=','), $
               mg_float2str(ulong64(tokens[4]), places_sep=','), $
               name=logger_name, /error
-      status = 1L
+      status = 2L
       goto, hpss_done
     endif
 
@@ -225,7 +235,7 @@ pro kcor_verify_hpss, date, hpss_filename, local_filename, $
                                status=local_hash_status)
     if (hpss_hash_status ne 0L && local_hash_status ne 0L) then begin
       mg_log, 'not comparing hashes', name=logger_name, /error
-      status = 1
+      status = 1L
       goto, hpss_done
     endif
 
@@ -233,6 +243,7 @@ pro kcor_verify_hpss, date, hpss_filename, local_filename, $
       mg_log, 'HPSS hash not available for %s', $
               file_basename(hpss_filename), $
               name=logger_name, /warn
+      status = 1L
     endif else begin
       if (hpss_hash eq local_hash) then begin
         mg_log, 'md5 hashes match for %s', $
@@ -245,7 +256,7 @@ pro kcor_verify_hpss, date, hpss_filename, local_filename, $
         mg_log, 'local (%s) vs. HPSS (%s)', $
                 local_hash, hpss_hash, $
                 name=logger_name, /error
-        status = 1
+        status = 2L
         goto, hpss_done
       endelse
     endelse
@@ -760,14 +771,15 @@ pro kcor_verify, date, config_filename=config_filename, status=status
                       string(year, date, $
                              format='(%"/CORDYN/KCOR/%s/%s_kcor_l0.tgz")'), $
                       l0_tarball_filename, $
-                      status=status, $
+                      status=l0_hpss_status, $
                       logger_name=logger_name, run=run
     kcor_verify_hpss, date, $
                       string(year, date, $
                              format='(%"/CORDYN/KCOR/%s/%s_kcor_l1.5.tgz")'), $
                       l1_tarball_filename, $
-                      status=status, $
+                      status=l1_hpss_status, $
                       logger_name=logger_name, run=run
+    status or= l0_hpss_status or l1_hpss_status
   endif else begin
     mg_log, 'skipping HPSS check', name=logger_name, /info
   endelse
