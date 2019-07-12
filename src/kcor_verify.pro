@@ -171,12 +171,12 @@ pro kcor_verify_hpss, date, hpss_filename, local_filename, $
 
   ; for some reason, hsi puts its output in stderr
   matches = stregex(hsi_error_output, $
-                    file_basename(filename, '.tgz') + '\.tgz', $
+                    file_basename(hpss_filename, '.tgz') + '\.tgz', $
                     /boolean)
   ind = where(matches, count)
   if (count eq 0L) then begin
     mg_log, '%s tarball for %s not found on HPSS', $
-            file_basename(filename), date, $
+            file_basename(hpss_filename), date, $
             name=logger_name, /error
     status = 1L
     goto, hpss_done
@@ -188,7 +188,7 @@ pro kcor_verify_hpss, date, hpss_filename, local_filename, $
     if (tokens[3] ne 'cordyn') then begin
       mg_log, 'incorrect group owner %s for %s on HPSS', $
               tokens[3], $
-              file_basename(filename), $
+              file_basename(hpss_filename), $
               name=logger_name, /error
       status = 1L
       goto, hpss_done
@@ -198,7 +198,7 @@ pro kcor_verify_hpss, date, hpss_filename, local_filename, $
     if (tokens[0] ne '-rw-rw-r--') then begin
       mg_log, 'incorrect permissions %s for %s on HPSS', $
               tokens[0], $
-              file_basename(filename), $
+              file_basename(hpss_filename), $
               name=logger_name, /error
       status = 1L
       goto, hpss_done
@@ -207,7 +207,7 @@ pro kcor_verify_hpss, date, hpss_filename, local_filename, $
     ; check size of tarball on HPSS
     if (ulong64(tokens[4]) ne filesize) then begin
       mg_log, '%s local size (%s B) does not match size on HPSS (%s B)', $
-              file_basename(filename), $
+              file_basename(hpss_filename), $
               mg_float2str(filesize, places_sep=','), $
               mg_float2str(ulong64(tokens[4]), places_sep=','), $
               name=logger_name, /error
@@ -229,14 +229,22 @@ pro kcor_verify_hpss, date, hpss_filename, local_filename, $
       goto, hpss_done
     endif
 
-    if (hpss_hash eq local_hash) then begin
-      mg_log, 'md5 hashes match', name=logger_name, /info
+    if (hpss_hash eq '(none)') then begin
+      mg_log, 'HPSS hash not available', name=logger_name, /warn
     endif else begin
-      mg_log, 'mismatching md5 hashes: local (%s) vs. HPSS (%s)', $
-              local_hash, hpss_hash, $
-              name=logger_name, /error
-      status = 1
-      goto, hpss_done
+      if (hpss_hash eq local_hash) then begin
+        mg_log, 'md5 hashes match for local vs. HPSS tarball', $
+                name=logger_name, /info
+      endif else begin
+        mg_log, 'mismatching md5 hashes for %s:', $
+                file_basename(hpss_filename), $
+                name=logger_name, /error
+        mg_log, 'local (%s) vs. HPSS (%s)', $
+                local_hash, hpss_hash, $
+                name=logger_name, /error
+        status = 1
+        goto, hpss_done
+      endelse
     endelse
 
 ;    ; check date of tarball on HPSS vs local tarball
@@ -253,7 +261,7 @@ pro kcor_verify_hpss, date, hpss_filename, local_filename, $
 ;      goto, hpss_done
 ;    endif
 
-    mg_log, 'verified %s tarball on HPSS', file_basename(filename), $
+    mg_log, 'verified %s tarball on HPSS', file_basename(hpss_filename), $
             name=logger_name, /info
   endelse
 
