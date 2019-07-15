@@ -299,7 +299,9 @@ function kcor_quality, date, l0_fits_files, append=append, $
     ; determine occulter size in pixels
     occulter = kcor_get_occulter_size(occltrid, run=run)
     radius_guess = occulter / run->epoch('plate_scale')   ; occulter size [pixels]
-    kcor_correct_camera, img, hdu, run=run, logger_name='kcor/rt'
+
+    ; not doing camera correction any more
+
     if (run->epoch('remove_horizontal_artifact')) then begin
       mg_log, 'correcting horiz lines @ [%s], cameras: [%s]', $
               strjoin(strtrim(run->epoch('horizontal_artifact_lines'), 2), ', '), $
