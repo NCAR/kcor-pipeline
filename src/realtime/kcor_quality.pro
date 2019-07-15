@@ -429,7 +429,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
         mg_log, 'saturated: %d pixels (max %d) > %0.1f', $
                 n_saturated_pixels, run->epoch('smax_max_count'), run->epoch('smax'), $
                 name='kcor/rt', /debug
-        pb0rot = img[*, *, 0, 0]
+        pb0 = img[*, *, 0, 0]
         goto, next
       endif
     endif
