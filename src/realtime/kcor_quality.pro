@@ -175,7 +175,6 @@ function kcor_quality, date, l0_fits_files, append=append, $
   nsat = 0
 
   ; read mask
-  mask = 0
   nx   = 1024
   ny   = 1024
   mask = fltarr(nx, ny)
@@ -442,12 +441,6 @@ function kcor_quality, date, l0_fits_files, append=append, $
     u0 = img[*, *, 1, 0] - img[*, *, 2, 0]   ; U camera 0
     pb0 = sqrt(q0 * q0 + u0 * u0)
 
-    annulus_indices = where(mask, n_annulus_indices)
-    mg_log, 'pB (cam 0) mean: %0.2f, median: %0.2f', $
-            mean(pb0[annulus_indices]), $
-            median(pb0[annulus_indices]), $
-            name='kcor/rt', /debug
-
     ;----------------------------------------------------------------------------
     ; Cloud test (using rectangular box).
     ; Extract 70x10 pixel rectangle from pb image.
@@ -481,6 +474,13 @@ function kcor_quality, date, l0_fits_files, append=append, $
       ycen = center_info[1]        ; y offset
       rdisc_pix = center_info[2]   ; radius of occulter [pixels]
     endelse
+
+    shifted_mask = shift(mask, xcen - axcen, ycen - aycen)
+    annulus_indices = where(shifted_mask, n_annulus_indices)
+    mg_log, 'pB (cam 0) mean: %0.2f, median: %0.2f', $
+            mean(pb0[annulus_indices]), $
+            median(pb0[annulus_indices]), $
+            name='kcor/rt', /debug
 
     ; integer coordinates for disc center
     ixcen = fix(xcen + 0.5)
@@ -623,13 +623,13 @@ function kcor_quality, date, l0_fits_files, append=append, $
     next:
 
     if ((cal gt 0) or (dev gt 0) or (sat gt 0)) then begin
-      pb0m = pb0rot
+      pb0m = pb0
     endif else if (nx ne xdim or ny ne ydim) then begin
       mg_log, 'image dimensions incompatible with mask: %d, %d, %d, %d', $
               nx, ny, xdim, ydim, name='kcor/rt', /warn
-      pb0m = pb0rot 
+      pb0m = pb0 
     endif else begin
-      pb0m = pb0rot * mask 
+      pb0m = pb0 * shifted_mask
     endelse
 
     ; intensity scaling
@@ -644,7 +644,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
 
     ; scale pixel intensities
     pb0sb = bytscl(pb0s, min=imin, max=imax, top=249)   ; linear scaling: 0-249
-    pb0sb *= mask
+    pb0sb *= shifted_mask
 
     ; display image
     tv, pb0sb
@@ -657,16 +657,21 @@ function kcor_quality, date, l0_fits_files, append=append, $
 
     if (cal eq 0 and dev eq 0 and sat eq 0) then begin
       ; draw circle at 1.0 Rsun
-      tvcircle, rdisc_pix, axcen, aycen, grey, /device, /fill  ; occulter disc 
-      tvcircle, rsunpix, axcen, aycen, yellow, /device         ; 1.0 Rsun circle
-      tvcircle, 3.0 * rsunpix, axcen, aycen, grey, /device     ; 3.0 Rsun circle
+      tvcircle, rdisc_pix, xcen, ycen, grey, /device, /fill  ; occulter disc 
+      tvcircle, rsunpix, xcen, ycen, yellow, /device         ; 1.0 Rsun circle
+      tvcircle, 3.0 * rsunpix, xcen, ycen, grey, /device     ; 3.0 Rsun circle
 
       ; draw "+" at sun center
-      plots, [ixcen - 5, ixcen + 5], [iycen, iycen], color=green, /device
-      plots, [ixcen, ixcen], [iycen - 5, iycen + 5], color=green, /device
+      plots, [axcen - 5, axcen + 5], [aycen, aycen], color=green, /device
+      plots, [axcen, axcen], [aycen - 5, aycen + 5], color=green, /device
 
       if (dev eq 0) then begin
-        xyouts, 490, 1010, 'NORTH', color=green, charsize=1.0, /device
+        north_r = 498.5
+        north_x = north_r * cos(pangle) + xcen
+        north_y = north_r * sin(pangle) + ycen
+        ;xyouts, 490, 1010, 'NORTH', color=green, charsize=1.0, /device
+        xyouts, north_x, north_y, 'NORTH', color=green, charsize=1.0, /device, $
+                alignment=0.5, orientation=pangle
       endif
     endif
 
@@ -693,36 +698,36 @@ function kcor_quality, date, l0_fits_files, append=append, $
       printf, udev, l0_file
       dev_list->add, l0_file
     endif else if (sat gt 0) then begin   ; saturation
-      tvcircle, run->epoch('rpixt'), axcen, aycen, blue, /device   ; sat circle
+      tvcircle, run->epoch('rpixt'), xcen, ycen, blue, /device   ; sat circle
       gif_file = strmid(l0_basename, 0, fitsloc) + '_t.gif' 
       qual = q_sat
       nsat += 1
       printf, usat, l0_file
       sat_list->add, l0_file
     endif else if (bright gt 0) then begin     ; bright image
-      tvcircle, rpixb, axcen, aycen, red, /device   ; bright circle
+      tvcircle, rpixb, xcen, ycen, red, /device   ; bright circle
       gif_file = strmid(l0_basename, 0, fitsloc) + '_b.gif' 
       qual = q_brt
       nbrt += 1
       printf, ubrt, l0_file
       brt_list->add, l0_file
     endif else if (clo gt 0) then begin   ; dim image
-      tvcircle, rpixc, axcen, aycen, green,  /device   ; cloud circle
+      tvcircle, rpixc, xcen, ycen, green,  /device   ; cloud circle
       gif_file = strmid(l0_basename, 0, fitsloc) + '_d.gif'
       qual = q_dim
       ndim += 1
       printf, udim, l0_file
       dim_list->add, l0_file
     endif else if (chi gt 0) then begin   ; cloudy image
-      tvcircle, rpixc, axcen, aycen, green,  /device   ; cloud circle
+      tvcircle, rpixc, xcen, ycen, green,  /device   ; cloud circle
       gif_file = strmid(l0_basename, 0, fitsloc) + '_o.gif' 
       qual = q_cld
       ncld += 1
       printf, ucld, l0_file
       cld_list->add, l0_file
     endif else if (noise gt 0) then begin   ; noisy
-      tvcircle, rpixn, axcen, aycen, yellow, /device   ; noise circle
-      gif_file = strmid (l0_basename, 0, fitsloc) + '_n.gif' 
+      tvcircle, rpixn, xcen, ycen, yellow, /device   ; noise circle
+      gif_file = strmid(l0_basename, 0, fitsloc) + '_n.gif' 
       qual = q_nsy
       nnsy += 1
       printf, unsy, l0_file
