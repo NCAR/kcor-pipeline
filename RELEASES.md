@@ -329,7 +329,7 @@
   epoch for Eclipse day with NUMSUM=171
 1.6.7 [Jul 3, 2019]
   fix for crashing bug in log message in KCOR_QUALITY for saturated images
-1.6.8
+1.6.8 [Jul 15, 2019]
   remove bad cal files from 20170530 in epochs file
   use md5 hash instead of date to check that HPSS tarballs match local ones
   make y-range for ocen plots epoch dependent
