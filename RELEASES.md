@@ -335,3 +335,4 @@
   make y-range for ocen plots epoch dependent
   removing camera correction from quality check
 1.6.9
+  not rotating/translating quicklook image
