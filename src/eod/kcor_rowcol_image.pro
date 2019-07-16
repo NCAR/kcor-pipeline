@@ -7,7 +7,7 @@
 ;   run : in, required, type=object
 ;     KCor run object
 ;-
-pro kcor_median_rowcol_image_l0, run=run
+pro kcor_rowcol_image_l0, run=run
   compile_opt strictarr
 
   raw_basedir = run->config('processing/raw_basedir')
@@ -76,7 +76,7 @@ end
 ;   run : in, required, type=object
 ;     KCor run object
 ;-
-pro kcor_median_rowcol_image_l1, run=run
+pro kcor_rowcol_image_l1, run=run
   compile_opt strictarr
 
   raw_basedir = run->config('processing/raw_basedir')
@@ -95,59 +95,60 @@ pro kcor_median_rowcol_image_l1, run=run
   medrows = fltarr(n_files, ny)
   medcols = fltarr(nx, n_files)
 
+  meanrows = fltarr(n_files, ny)
+  meancols = fltarr(nx, n_files)
+
   for f = 0L, n_files - 1L do begin
     im = readfits(files[f], /silent)
 
     medrows[f, *] = median(im, dimension=1)
     medcols[*, f] = median(im, dimension=2)
+
+    meanrows[f, *] = mean(im, dimension=1)
+    meancols[*, f] = mean(im, dimension=2)
   endfor
 
   pdir = filepath('p', subdir=run.date, root=raw_basedir)
 
   medrows_filename = filepath(string(run.date, $
-                                     format='(%"%s.kcor.l1.medrows.gif")'), $
+                                     format='(%"%s.kcor.l1.5.medrows.gif")'), $
                               root=pdir)
   medcols_filename = filepath(string(run.date, $
-                                     format='(%"%s.kcor.l1.medcols.gif")'), $
+                                     format='(%"%s.kcor.l1.5.medcols.gif")'), $
                               root=pdir)
 
-  ;disp_min = run->epoch('display_min')
-  ;disp_max = run->epoch('display_max')
-  ;disp_exp = run->epoch('display_exp')
-
-  ;loadct, 0, /silent
-  ;gamma_ct, run->epoch('display_gamma'), /current
-  ;tvlct, red, green, blue, /get
-
-  ;write_gif, medrows_filename, $
-  ;           bytscl(medrows^disp_exp, min=disp_min, max=disp_max), $
-  ;           red, green, blue
-  ;write_gif, medcols_filename, $
-  ;           bytscl(medcols^disp_exp, min=disp_min, max=disp_max), $
-  ;           red, green, blue
+  meanrows_filename = filepath(string(run.date, $
+                                      format='(%"%s.kcor.l1.5.meanrows.gif")'), $
+                               root=pdir)
+  meancols_filename = filepath(string(run.date, $
+                                      format='(%"%s.kcor.l1.5.meancols.gif")'), $
+                               root=pdir)
 
   write_gif, medrows_filename, bytscl(medrows)
   write_gif, medcols_filename, bytscl(medcols)
+
+  write_gif, meanrows_filename, bytscl(meanrows)
+  write_gif, meancols_filename, bytscl(meancols)
 end
 
 
 ;+
-; Create median row/col images of L1.5 data.
+; Create median row/col images of L0 and L1.5 data.
 ;
 ; :Keywords:
 ;   run : in, required, type=object
 ;     KCor run object
 ;-
-pro kcor_median_rowcol_image, run=run
+pro kcor_rowcol_image, run=run
   compile_opt strictarr
 
   mg_log, 'starting', name='kcor/eod', /info
 
-  mg_log, 'creating L0 images...', name='kcor/eod', /info
-  kcor_median_rowcol_image_l0, run=run
+  mg_log, 'creating L0 rowcol images...', name='kcor/eod', /info
+  kcor_rowcol_image_l0, run=run
 
-  mg_log, 'creating L1.5 images...', name='kcor/eod', /info
-  kcor_median_rowcol_image_l1, run=run
+  mg_log, 'creating L1.5 rowcol images...', name='kcor/eod', /info
+  kcor_rowcol_image_l1, run=run
 
   mg_log, 'done', name='kcor/eod', /info
 end

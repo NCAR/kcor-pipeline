@@ -351,8 +351,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     kcor_plotsci, date, daily_science_file, run=run
   endif
 
-  ; create median row/col images
-  kcor_median_rowcol_image, run=run
+  ; create median/mean row/col images
+  kcor_rowcol_image, run=run
 
   ; check for bad lines
   kcor_detect_badlines, run=run
