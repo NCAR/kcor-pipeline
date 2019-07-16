@@ -334,3 +334,5 @@
   use md5 hash instead of date to check that HPSS tarballs match local ones
   make y-range for ocen plots epoch dependent
   removing camera correction from quality check
+1.6.9 [Jul 16, 2019]
+  fix for ocen_yrange use typo

@@ -376,7 +376,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
   erase
 
-  ocen_yrange = run->epoch('ocen_range')
+  ocen_yrange = run->epoch('ocen_yrange')
 
   plot, hours, fxcen0, title=pdate + '  Camera 0 occulter raw X center', $
         xtitle='Hours [UT]', ytitle='X center pixel location', $
