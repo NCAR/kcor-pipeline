@@ -668,11 +668,19 @@ function kcor_quality, date, l0_fits_files, append=append, $
 
       if (dev eq 0) then begin
         north_r = 498.5
-        north_x = north_r * cos(pangle) + xcen
-        north_y = north_r * sin(pangle) + ycen
+        north_angle = 90.0 - pangle
+        north_x = north_r * cos(north_angle * !dtor) + xcen
+        north_y = north_r * sin(north_angle * !dtor) + ycen
+        north_orientation = north_angle - 90.0
+        north_angle mod= 360.0
+        if ((north_angle lt 0.0 && north_angle gt -180.0) $
+            || (north_angle gt 180.0)) then begin
+          north_orientation += 180.0
+        endif
         ;xyouts, 490, 1010, 'NORTH', color=green, charsize=1.0, /device
-        xyouts, north_x, north_y, 'NORTH', color=green, charsize=1.0, /device, $
-                alignment=0.5, orientation=pangle
+        xyouts, north_x, north_y, string(pangle, format='(%"NORTH (p-angle: %0.1f)")'), $
+                color=green, charsize=1.0, /device, $
+                alignment=0.5, orientation=north_orientation
       endif
     endif
 
