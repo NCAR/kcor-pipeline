@@ -678,7 +678,8 @@ function kcor_quality, date, l0_fits_files, append=append, $
           north_orientation += 180.0
         endif
         ;xyouts, 490, 1010, 'NORTH', color=green, charsize=1.0, /device
-        xyouts, north_x, north_y, string(pangle, format='(%"NORTH (p-angle: %0.1f)")'), $
+        xyouts, north_x, north_y, string(pangle - 180.0, $
+                                         format='(%"NORTH (p-angle: %0.1f)")'), $
                 color=green, charsize=1.0, /device, $
                 alignment=0.5, orientation=north_orientation
       endif
