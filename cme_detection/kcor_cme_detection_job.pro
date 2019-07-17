@@ -11,7 +11,11 @@ pro kcor_cme_detection_job, date, $
                             config_filename=config_filename, $
                             realtime=realtime
   compile_opt strictarr
+  on_error, 2
   @kcor_cme_det_common
+
+  valid_date = kcor_valid_date(date, msg=msg)
+  if (~valid_date) then message, msg
 
   store = 1
   running = 0B

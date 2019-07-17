@@ -304,6 +304,13 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   status = 0L
   logger_name = 'kcor/verify'
 
+  valid_date = kcor_valid_date(date, msg=msg)
+  if (~valid_date) then begin
+    mg_log, msg, name=logger_name, /error
+    status = 1L
+    goto, done
+  endif
+
   _config_filename = file_expand_path(n_elements(config_filename) eq 0L $
                        ? filepath('kcor.cfg', root=mg_src_root()) $
                        : config_filename)

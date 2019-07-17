@@ -28,6 +28,9 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     goto, done
   endif
 
+  valid_date = kcor_valid_date(date, msg=msg)
+  if (~valid_date) then message, msg
+
   run = kcor_run(date, config_filename=config_filename, mode='realtime')
   if (~obj_valid(run)) then message, 'problem creating run object'
 

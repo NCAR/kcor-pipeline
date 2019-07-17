@@ -30,6 +30,9 @@ pro kcor_calibration, date, $
     goto, done
   endif
 
+  valid_date = kcor_valid_date(date, msg=msg)
+  if (~valid_date) then message, msg
+
   run = kcor_run(date, config_filename=config_filename, mode='eod')
 
   mg_log, '------------------------------', name='kcor/eod', /info
