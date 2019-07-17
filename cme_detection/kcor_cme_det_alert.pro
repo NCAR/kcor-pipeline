@@ -63,10 +63,10 @@ pro kcor_cme_det_alert, itime, rsun, operator=operator
     time = tai2utc(tairef, /time, /truncate, /ccsds)
     edge = 60 * (lat[leadingedge[itime]] + 90) / rsun
     format = '(F0.2)'
-    mg_log, 'CME detected at %s UT', time, name='kcor/cme', /info
-    mg_log, '  Rsun           : %s', ntrim(edge, format), name='kcor/cme', /info
-    mg_log, '  position angle : %s deg', ntrim(angle, format), name='kcor/cme', /info
-    mg_log, '  initial speed  : %s km/s', ntrim(speed, format), name='kcor/cme', /info
+    mg_log, 'CME detected at %s UT', time, name='kcor/cme', /warn
+    mg_log, '  Rsun           : %s', ntrim(edge, format), name='kcor/cme', /warn
+    mg_log, '  position angle : %s deg', ntrim(angle, format), name='kcor/cme', /warn
+    mg_log, '  initial speed  : %s km/s', ntrim(speed, format), name='kcor/cme', /warn
   endelse
 
   mg_log, 'CME detected when images up to %s UT have been processed', $

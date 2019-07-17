@@ -340,3 +340,4 @@
   not rotating/translating quicklook image
   fix for name of remove sub-command (was repeated as purge)
   check for valid date in entry-point routines
+  made CME detection alert a WARN in the logs
