@@ -553,7 +553,7 @@ if __name__ == '__main__':
 
     # script sub-command
     script_parser = subparsers.add_parser('script',
-                                           help='run script on days')
+                                           help='run a given script on days')
     script_parser.add_argument('dates', type=str, nargs='*', help=date_help,
                                metavar='date-expr')
     script_parser.add_argument('-f', '--flags', type=str, help=flags_help,
