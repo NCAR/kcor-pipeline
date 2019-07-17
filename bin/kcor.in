@@ -624,7 +624,7 @@ if __name__ == '__main__':
 
     # remove sub-command
     remove_help = 'remove raw directory for a day'
-    remove_parser = subparsers.add_parser('purge', help=remove_help)
+    remove_parser = subparsers.add_parser('remove', help=remove_help)
     remove_parser.add_argument('dates', type=str, nargs='*', help=date_help,
                                metavar='date-expr')
     remove_parser.add_argument('-f', '--flags', type=str, help=flags_help,
