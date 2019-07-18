@@ -430,7 +430,11 @@ function kcor_quality, date, l0_fits_files, append=append, $
                 n_saturated_pixels, run->epoch('smax_max_count'), run->epoch('smax'), $
                 name='kcor/rt', /debug
         pb0 = img[*, *, 0, 0]
+
         shifted_mask = mask
+        xcen = axcen
+        ycen = aycen
+
         goto, next
       endif
     endif
