@@ -59,25 +59,15 @@ pro kcor_cme_det_email, time, edge, last_detected_image_time, operator=operator
     return
   endif
 
-  engineering_basedir = run->config('engineering/basedir')
-  if (n_elements(engineering_basedir) eq 0L) then begin
-    mg_log, 'no engineering basedir specified, not sending email', $
-            name='kcor/cme', /warn
-    return
-  endif
+  plot_dir = filepath('p', $
+                      subdir=simple_date, $
+                      root=run->config('processing/raw_basedir'))
 
   ; create filename for plot file
-  if (~file_test(engineering_basedir, /directory)) then begin
-    file_mkdir, engineering_basedir
-  endif
-
-  eng_dir = filepath('', $
-                     subdir=kcor_decompose_date(simple_date), $
-                     root=engineering_basedir)
-  if (~file_test(eng_dir, /directory)) then file_mkdir, eng_dir
+  if (~file_test(plot_dir, /directory)) then file_mkdir, plot_dir
 
   plot_file = filepath(string(simple_date, format='(%"%s.cme.profile.png")'), $
-                       root=eng_dir)
+                       root=plot_dir)
 
   ; create plot to attach to email
   original_device = !d.name

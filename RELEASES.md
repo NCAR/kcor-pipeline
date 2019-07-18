@@ -341,3 +341,4 @@
   fix for name of remove sub-command (was repeated as purge)
   check for valid date in entry-point routines
   made CME detection alert a WARN in the logs
+  put CME plot in p/ directory since engineering/basedir has been removed
