@@ -62,10 +62,9 @@ pro kcor_cme_det_email, time, edge, last_detected_image_time, operator=operator
   plot_dir = filepath('p', $
                       subdir=simple_date, $
                       root=run->config('processing/raw_basedir'))
-
-  ; create filename for plot file
   if (~file_test(plot_dir, /directory)) then file_mkdir, plot_dir
 
+  ; create filename for plot file
   plot_file = filepath(string(simple_date, format='(%"%s.cme.profile.png")'), $
                        root=plot_dir)
 
