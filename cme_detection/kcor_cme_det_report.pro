@@ -89,7 +89,7 @@ pro kcor_cme_det_report, time, widget=widget
 
     ; create file of data values from plot
     plotvalues_file = filepath(string(simple_date, format='(%"%s.cme.plot.csv")'), $
-                               root=eng_dir)
+                               root=plot_dir)
     openw, lun, plotvalues_file, /get_lun
     printf, lun, 'date (seconds from 79/1/1), velocity, position, radius'
     for i = 0L, n_elements(date_diff.date_avg) - 1L do begin
