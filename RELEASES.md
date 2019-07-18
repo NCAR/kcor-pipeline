@@ -345,3 +345,4 @@
   send crash notifications for CME detection crashes
 1.6.11 [Jul 18, 2019]
   fix for date check in CME detection launch
+1.6.12
