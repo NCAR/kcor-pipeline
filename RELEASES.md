@@ -336,9 +336,10 @@
   removing camera correction from quality check
 1.6.9 [Jul 16, 2019]
   fix for ocen_yrange use typo
-1.6.10
+1.6.10 [Jul 18, 2019]
   not rotating/translating quicklook image
   fix for name of remove sub-command (was repeated as purge)
   check for valid date in entry-point routines
   made CME detection alert a WARN in the logs
   put CME plot in p/ directory since engineering/basedir has been removed
+  send crash notifications for CME detection crashes
