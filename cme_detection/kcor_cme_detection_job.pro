@@ -129,7 +129,7 @@ pro kcor_cme_detection_job, date, $
     endif
   endwhile
 
+  done:
   mg_log, 'quiting...', name='kcor/cme', /info
-
-  obj_destroy, run
+  if (obj_valid(run)) then obj_destroy, run
 end
