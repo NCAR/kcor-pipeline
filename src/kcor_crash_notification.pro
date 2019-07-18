@@ -60,7 +60,7 @@ pro kcor_crash_notification, run=run, realtime=realtime, eod=eod, cme=cme
       end
     keyword_set(cme): begin
         cme_log_filename = filepath(run.date + '.cme.log', root=run->config('logging/dir'))
-        cme_errors = kcor_filter_log(eod_log_filename, /error, n_messages=n_cme_errors)
+        cme_errors = kcor_filter_log(cme_log_filename, /error, n_messages=n_cme_errors)
         name = 'cme'
         body = [body, cme_log_filename, '', cme_errors]
       end
