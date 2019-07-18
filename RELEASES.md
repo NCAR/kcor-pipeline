@@ -347,3 +347,4 @@
   fix for date check in CME detection launch
 1.6.12 [Jul 18, 2019]
   typo in crash notification
+1.6.13
