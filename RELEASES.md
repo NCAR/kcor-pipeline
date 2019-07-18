@@ -343,4 +343,5 @@
   made CME detection alert a WARN in the logs
   put CME plots in p/ directory since engineering/basedir has been removed
   send crash notifications for CME detection crashes
-1.6.11
+1.6.11 [Jul 18, 2019]
+  fix for date check in CME detection launch

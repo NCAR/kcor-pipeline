@@ -22,9 +22,6 @@ pro kcor_cme_detection_job, date, $
     goto, done
   endif
 
-  valid_date = kcor_valid_date(date, msg=msg)
-  if (~valid_date) then message, msg
-
   store = 1
   running = 0B
   cme_occurring = 0B
@@ -47,6 +44,9 @@ pro kcor_cme_detection_job, date, $
   if (n_elements(date) eq 0) then begin
     date = string(julday(), format='(C(CYI4, CMOI02, CDI02))')
   endif
+
+  valid_date = kcor_valid_date(date, msg=msg)
+  if (~valid_date) then message, msg
 
   run = kcor_run(date, config_filename=config_filename)
 
