@@ -7,12 +7,13 @@
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;-
-pro kcor_crash_notification, run=run, realtime=realtime, eod=eod
+pro kcor_crash_notification, run=run, realtime=realtime, eod=eod, cme=cme
   compile_opt strictarr
 
   case 1 of
     keyword_set(realtime): logger_name = 'kcor/rt'
     keyword_set(eod): logger_name = 'kcor/eod'
+    keyword_set(cme): logger_name = 'kcor/cme'
     else:
   endcase
 
@@ -56,6 +57,12 @@ pro kcor_crash_notification, run=run, realtime=realtime, eod=eod
         eod_errors = kcor_filter_log(eod_log_filename, /error, n_messages=n_eod_errors)
         name = 'end-of-day'
         body = [body, eod_log_filename, '', eod_errors]
+      end
+    keyword_set(cme): begin
+        cme_log_filename = filepath(run.date + '.cme.log', root=run->config('logging/dir'))
+        cme_errors = kcor_filter_log(eod_log_filename, /error, n_messages=n_cme_errors)
+        name = 'cme'
+        body = [body, cme_log_filename, '', cme_errors]
       end
   endcase
 

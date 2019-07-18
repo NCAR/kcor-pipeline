@@ -11,8 +11,16 @@ pro kcor_cme_detection_job, date, $
                             config_filename=config_filename, $
                             realtime=realtime
   compile_opt strictarr
-  on_error, 2
   @kcor_cme_det_common
+
+  ; catch and log any crashes
+  catch, error
+  if (error ne 0L) then begin
+    catch, /cancel
+    mg_log, /last_error, name='kcor/cme', /critical
+    kcor_crash_notification, /cme, run=run
+    goto, done
+  endif
 
   valid_date = kcor_valid_date(date, msg=msg)
   if (~valid_date) then message, msg
