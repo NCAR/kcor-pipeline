@@ -819,7 +819,7 @@ pro kcor_l1, date, ok_files, $
                     n_fov_negative_values gt n_fov_negative_values_cutoff $
                       ? '' $
                       : print_indices, $
-                    name=log_name, /warn
+                    name=log_name, /debug
           endif
         endif
 
