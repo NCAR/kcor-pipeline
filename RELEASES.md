@@ -349,3 +349,4 @@
   typo in crash notification
 1.6.13 [Jul 18, 2019]
   typo in CME detection report
+1.6.14
