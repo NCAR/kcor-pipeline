@@ -1,8 +1,7 @@
 ; docformat = 'rst'
 
 ;+
-; Simulate an SGS DIMV value using a model. This is only valid for dates from
-; 20130930 to 20131009.
+; Simulate an SGS DIMV value using a model. 
 ;
 ; :Returns:
 ;   float
