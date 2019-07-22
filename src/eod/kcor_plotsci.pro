@@ -41,13 +41,34 @@ pro kcor_plotsci, date, daily_science_file, run=run
   loadct, 0, /silent
   tvlct, red, green, blue, /get
 
+  title_fmt = '(%"Azimuthally averaged radial pB intensity for %s @ %s UT")'
   plot, radii, intensity, $
-        title=string(date, time, format='(%"Radial intensity for %s @ %s UT")'), $
-        xtitle='radius [R_sun]', xstyle=9, xrange=[1.0, 3.0], $
-        ytitle='calibrarted pB [B/B_sun]', /ylog, yrange=[1.0e-9, 2.0e-6], ystyle=9, $
+        title=string(date, time, format=title_fmt), $
+        xtitle='radius [R_sun]', xstyle=1, xrange=[1.0, 3.0], $
+        ytitle='calibrarted pB [B/B_sun]', /ylog, yrange=[1.0e-9, 2.0e-6], ystyle=1, $
         color=0, background=255
   oplot, radii, intensity + intensity_stddev, linestyle=1, color=0
   oplot, radii, intensity - intensity_stddev, linestyle=1, color=0
+
+  legend_x = 0.6
+  legend_y = 0.9
+  line_height = 0.025
+  gap = 0.015
+  line_length = 0.04
+  plots, legend_x + [0.0, line_length], fltarr(2) + legend_y + 0.25 * line_height, $
+         linestyle=0, /normal, color=0
+  plots, legend_x + [0.0, line_length], fltarr(2) + legend_y - 0.75 * line_height, $
+         linestyle=1, /normal, color=0
+  xyouts, legend_x + line_length + gap, legend_y, /normal, $
+          'intensity', $
+          color=0
+  xyouts, legend_x + line_length + gap, legend_y - line_height, /normal, $
+          'intensity ' + string(177B) + ' standard deviation', $
+          color=0
+
+;  mg_legend, item_linestyles=[0, 1], item_name=['mean', 'mean +- std. dev.'], $
+;             position=[0.5, 0.5, 0.5, 0.5], /normal, $
+;             frame=1, color=0
 
   plot_image = tvrd()
 
@@ -72,9 +93,9 @@ end
 
 ; main-level example program
 
-date = '20160803'
-filename = '20160803_223136_kcor_l1.fts.gz'
-config_filename = filepath('kcor.mgalloy.mahi.susino.cfg', $
+date = '20160603'
+filename = '20160603_205347_kcor_l1.5.fts.gz'
+config_filename = filepath('kcor.latest.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
