@@ -135,7 +135,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
       continue
     endif
 
-    img = readfits (l0_file, hdu, /silent)   ; read fits image & header
+    img = readfits(l0_file, hdu, /silent)   ; read fits image & header
 
     img0 = reform(img[*, *, 0, 0])
     img0 = reverse(img0, 2)  ; y-axis inversion
@@ -381,22 +381,22 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
   plot, hours, fxcen0, title=pdate + '  Camera 0 occulter raw X center', $
         xtitle='Hours [UT]', ytitle='X center pixel location', $
         background=255, color=0, charsize=2.0, $
-        yrange=ocen_yrange
+        yrange=ocen_yrange, ystyle=1
 
   plot, hours, fycen0, title=pdate + '  Camera 0 occulter raw Y center', $
         xtitle='Hours [UT]', ytitle='Y center pixel location', $
         background=255, color=0, charsize=2.0, $
-        yrange=ocen_yrange
+        yrange=ocen_yrange, ystyle=1
 
   plot, hours, fxcen1, title=pdate + '  Camera 1 occulter X raw center', $
         xtitle='Hours [UT]', ytitle='X center pixel location', $
         background=255, color=0, charsize=2.0, $
-        yrange=ocen_yrange
+        yrange=ocen_yrange, ystyle=1
 
   plot, hours, fycen1, title=pdate + '  Camera 1 occulter Y raw center', $
         xtitle='Hours [UT]', ytitle='Y center pixel location', $
         background=255, color=0, charsize=2.0, $
-        yrange=ocen_yrange
+        yrange=ocen_yrange, ystyle=1
    
   ocen_gif_filename = string(date, format='(%"%s.kcor.ocen.gif")')
   save = tvrd()
