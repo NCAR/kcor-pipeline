@@ -266,6 +266,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
       if (run->config('eod/produce_plots')) then begin
         kcor_plotparams, date, list=files, run=run
         kcor_plotcenters, date, list=files, run=run
+
+        kcor_plot_l1, run=run
       endif
 
       if (run->config('eod/catalog_files')) then begin
