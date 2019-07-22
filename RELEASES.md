@@ -352,3 +352,4 @@
 1.6.14 [Jul 18, 2019]
   fix for saturated images in quality check
 1.6.15
+  use simulated SGSDIMV for early epochs
