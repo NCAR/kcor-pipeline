@@ -1414,12 +1414,10 @@ pro kcor_l1, date, ok_files, $
               ' distortion file'
     if (finite(vdimref) && finite(flat_vdimref) && vdimref ne 0.0) then begin
       skytrans = flat_vdimref / vdimref
-    endif else begin
-      skytrans = 'NaN'
-    endelse
+    endif
     fxaddpar, newheader, 'SKYTRANS', skytrans, $
-              ' sky transmission correction normalized to gain image', $
-              format='(F5.3)'
+              ' ' + run->epoch(skytrans_comment), $
+              format='(F5.3)', /null
     fxaddpar, newheader, 'BIASCORR', run->epoch('skypol_bias'), $
               ' bias added after sky polarization correction', $
               format='(G0.3)'
