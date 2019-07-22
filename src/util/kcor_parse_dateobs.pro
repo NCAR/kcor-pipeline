@@ -9,7 +9,7 @@
 ;
 ; :Params:
 ;   date_obs : in, required, type=string
-;     date in the form "2018-04-24T00:22:02"
+;     UT date in the form "2018-04-24T00:22:02"
 ;
 ; :Keywords:
 ;   hst_date : out, optional, type=structure
@@ -66,13 +66,16 @@ function kcor_parse_dateobs, date_obs, hst_date=hst_date
       endif
     endif
 
+    hst_ehour = float(hst_hour) + hst_minute / 60.0 + hst_second / 3600.0
+
     hst_date = {doy:    hst_doy, $
                 year:   hst_year, $
                 month:  hst_month, $
                 day:    hst_day, $
                 hour:   hst_hour, $
                 minute: hst_minute, $
-                second: hst_second}
+                second: hst_second, $
+                ehour:  hst_ehour}
   endif
 
   return, {doy:        doy, $
