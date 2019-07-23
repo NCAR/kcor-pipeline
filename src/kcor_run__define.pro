@@ -104,7 +104,7 @@ function kcor_run::epoch, name, time=time
 
     calfiles = file_search(cal_search_spec, count=n_calfiles)
     if (n_calfiles eq 0L) then message, 'unable to find cal file'
-    return, file_basename(calfile[-1])
+    return, file_basename(calfiles[-1])
   endif
 
   return, value
