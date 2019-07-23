@@ -1069,7 +1069,7 @@ pro kcor_l1, date, ok_files, $
       vdimref = kcor_getsgs(header, 'SGSDIMV', /float)
       dimv_comment = ''
     endif else begin
-      vdimref = kcor_simulate_sgsdimv(date_obs)
+      vdimref = kcor_simulate_sgsdimv(date_obs, run=run)
       dimv_comment = ' (simulated)'
     endelse
     mg_log, 'flat DIMV: %0.1f, image DIMV: %0.1f%s', $
