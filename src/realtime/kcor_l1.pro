@@ -1225,8 +1225,8 @@ pro kcor_l1, date, ok_files, $
       struct.sgsras   = !values.f_nan
       struct.sgsdecv  = !values.f_nan
       struct.sgsdecs  = !values.f_nan
-      struct.sgsrazr  = !values.f_nan
-      struct.sgsdeczr = !values.f_nan
+      if (check_sgsrazr) then struct.sgsrazr = !values.f_nan
+      if (check_sgsdeczr) then struct.sgsdeczr = !values.f_nan
     endelse
     struct.sgsloop = 1   ; SGSLOOP is 1 if image passed quality check
 
