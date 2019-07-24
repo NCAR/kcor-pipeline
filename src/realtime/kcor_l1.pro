@@ -1416,7 +1416,7 @@ pro kcor_l1, date, ok_files, $
       skytrans = flat_vdimref / vdimref
     endif
     fxaddpar, newheader, 'SKYTRANS', skytrans, $
-              ' ' + run->epoch(skytrans_comment), $
+              ' ' + run->epoch('skytrans_comment'), $
               format='(F5.3)', /null
     fxaddpar, newheader, 'BIASCORR', run->epoch('skypol_bias'), $
               ' bias added after sky polarization correction', $
