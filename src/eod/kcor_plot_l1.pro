@@ -12,8 +12,6 @@
 ;     pB data to average
 ;   date : in, required, type=structure
 ;     parsed date obs with `year`, `month`, `day`, and `ehour` fields
-;   n_angles : in, required, type=integer
-;     the number of angular slices to grid the image into
 ;   radii : in, required, type=fltarr
 ;     the radii to check in R_sun
 ;   radius_width : in, required, type=float
@@ -22,7 +20,6 @@
 ;   plate_scale : in, required, type=float
 ;-
 function kcor_plot_l1_mean_pB, pB, date, $
-                               ;n_angles, $
                                radii, radius_width, $
                                plate_scale
   compile_opt strictarr
@@ -31,7 +28,6 @@ function kcor_plot_l1_mean_pB, pB, date, $
   sun, date.year, date.month, date.day, date.ehour, sd=rsun
   sun_pixels = rsun / plate_scale
 
-;  angles = findgen(n_angles + 1) / n_angles * 360.0 * !dtor   ; radians
   n_radii = n_elements(radii)
 
   ; compute x-y coordinates in R_sun
@@ -48,22 +44,13 @@ function kcor_plot_l1_mean_pB, pB, date, $
 
   ; compute radius-theta coordinates in R_sun and radians
   radius = sqrt(x^2 + y^2)
-;  theta = atan(y, x)
 
   ; compute mean
-;  mean_pb = fltarr(n_angles, n_radii)
   mean_pb = fltarr(n_radii)
   for r = 0L, n_radii - 1L do begin
-;    for a = 0L, n_angles - 1L do begin
-;      ind = where((radius gt (radii[r] - radius_width / 2.0)) $
-;                  and (radius lt (radii[r] + radius_width / 2.0)) $
-;                  and (theta gt angles[a]) $
-;                  and (theta lt angles[a + 1L]), n_pixels)
-      ind = where((radius gt (radii[r] - radius_width / 2.0)) $
-                  and (radius lt (radii[r] + radius_width / 2.0)), n_pixels)
-;      mean_pb[a, r] = n_pixels eq 0L ? !values.f_nan : mean(pb[ind])
-      mean_pb[r] = n_pixels eq 0L ? !values.f_nan : mean(pb[ind])
-;    endfor
+    ind = where((radius gt (radii[r] - radius_width / 2.0)) $
+                and (radius lt (radii[r] + radius_width / 2.0)), n_pixels)
+    mean_pb[r] = n_pixels eq 0L ? !values.f_nan : mean(pb[ind])
   endfor
 
   return, mean_pb
@@ -99,7 +86,6 @@ pro kcor_plot_l1, run=run
     goto, done
   endif
 
-  n_angles = 1200L
   radii = [1.11, 1.3, 1.5, 1.8]   ; R_sun
   radius_width = 0.01
   yranges = [[1.0e-07, 7.0e-07], $
