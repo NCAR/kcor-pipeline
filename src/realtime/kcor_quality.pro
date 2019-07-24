@@ -672,7 +672,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
 
       if (dev eq 0) then begin
         north_r = 498.5
-        north_angle = 90.0 - pangle
+        north_angle = 90.0 + pangle
         north_x = north_r * cos(north_angle * !dtor) + xcen
         north_y = north_r * sin(north_angle * !dtor) + ycen
         north_orientation = north_angle - 90.0
