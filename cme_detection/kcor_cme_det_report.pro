@@ -23,13 +23,22 @@ pro kcor_cme_det_report, time, widget=widget
       return
     endif
 
+    last_time_index = n_elements(leading_edge) - 1L
+
     plot_dir = filepath('p', $
                         subdir=simple_date, $
                         root=run->config('processing/raw_basedir'))
     if (~file_test(plot_dir, /directory)) then file_mkdir, plot_dir
 
     ; create filename for plot file
-    plot_file = filepath(string(simple_date, format='(%"%s.cme.plot.png")'), $
+    last_datetime = kcor_parse_dateobs(date_diff[last_time_index].date_obs)
+    plot_file = filepath(string(last_datetime.year, $
+                                last_datetime.month, $
+                                last_datetime.day, $
+                                last_datetime.hour, $
+                                last_datetime.minute, $
+                                last_datetime.second, $
+                                format='(%"%04d%02d%02d.%02d%02d%02d.cme.plot.png")'), $
                          root=plot_dir)
 
     ; create plot to attach to email
@@ -88,7 +97,13 @@ pro kcor_cme_det_report, time, widget=widget
     !p.multi = 0
 
     ; create file of data values from plot
-    plotvalues_file = filepath(string(simple_date, format='(%"%s.cme.plot.csv")'), $
+    plotvalues_file = filepath(string(last_datetime.year, $
+                                      last_datetime.month, $
+                                      last_datetime.day, $
+                                      last_datetime.hour, $
+                                      last_datetime.minute, $
+                                      last_datetime.second, $, $
+                                      format='(%"%04d%02d%02d.%02d%02d%02d.cme.plot.csv")'), $
                                root=plot_dir)
     openw, lun, plotvalues_file, /get_lun
     printf, lun, 'date (seconds from 79/1/1), velocity, position, radius'

@@ -64,15 +64,6 @@ pro kcor_cme_det_email, time, edge, last_detected_image_time, operator=operator
                       root=run->config('processing/raw_basedir'))
   if (~file_test(plot_dir, /directory)) then file_mkdir, plot_dir
 
-  ; create filename for plot file
-  plot_file = filepath(string(simple_date, format='(%"%s.cme.profile.png")'), $
-                       root=plot_dir)
-
-  ; create plot to attach to email
-  original_device = !d.name
-  set_plot, 'Z'
-  loadct, 0
-
   device, decomposed=1, set_pixel_depth=24, set_resolution=[800, 360]
 
   itime = n_elements(leadingedge) - 1L
@@ -84,6 +75,22 @@ pro kcor_cme_det_email, time, edge, last_detected_image_time, operator=operator
   endif else begin
     y = average(map[0:i1, *], 1) + average(map[i0:*, *], 1)
   endelse
+
+  ; create filename for plot file
+  date_obs = kcor_parse_dateobs(date_diff[itime].date_obs)
+  plot_file = filepath(string(date_obs.year, $
+                              date_obs.month, $
+                              date_obs.day, $
+                              date_obs.hour, $
+                              date_obs.minute, $
+                              date_obs.second, $
+                              format='(%"%04d%02d%02d.%02d%02d%02d.cme.profile.png")'), $
+                       root=plot_dir)
+
+  ; create plot to attach to email
+  original_device = !d.name
+  set_plot, 'Z'
+  loadct, 0
 
   rsun = (pb0r(date0))[2]
   radius = 60 * (lat + 90) / rsun
@@ -131,7 +138,7 @@ pro kcor_cme_det_email, time, edge, last_detected_image_time, operator=operator
     format = '(F10.2)'
     printf, out, 'Radial distance from Sun center: ' + ntrim(edge, format) + ' Rsun'
     printf, out, 'Position angle: ' + ntrim(angle) + ' degrees'
-    printf, out, 'Initial speed: ' + ntrim(speed, format) + ' km/s
+    printf, out, 'Initial speed: ' + ntrim(speed, format) + ' km/s'
     printf, out
     printf, out, last_detected_image_time, $
             format='(%"CME detected when images up to %s UT have been processed")'
