@@ -93,7 +93,7 @@ pro kcor_cme_det_report, time, widget=widget
     openw, lun, plotvalues_file, /get_lun
     printf, lun, 'date (seconds from 79/1/1), velocity, position, radius'
     for i = 0L, n_elements(date_diff.date_avg) - 1L do begin
-      printf, lun, date_diff.date_avg, velocity, position, radius, $
+      printf, lun, date_diff[i].date_avg, velocity[i], position[i], radius[i], $
               format='(%"%f, %f, %f, %f")'
     endfor
     free_lun, lun
