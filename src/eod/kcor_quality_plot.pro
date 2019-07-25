@@ -73,6 +73,9 @@ pro kcor_quality_plot, q_dir, output_filename
     endif
   endfor
 
+  ; some days we take images with a difference cadence
+  if (max(histograms) gt max_images + 1) then max_images = max(histograms)
+
   ; display plot
 
   original_device = !d.name
