@@ -65,7 +65,11 @@ pro fvp_kcor, fits_name, gif=gif, cm=cm, wmin=wmin, wmax=wmax, wexp=wexp, $
 
     ; load specified colormap
     lct, cm
-  endif else loadct, 0, /silent   ; load B-W color table if CM not specified
+  endif else begin
+    ; load B-W color table if CM not specified
+    loadct, 0, ncolors=249, /silent
+    tvlct, 255B, 0B, 0B, 254B
+  endelse
  
   ; read color map arrays
   redlut   = bytarr(256)
@@ -87,10 +91,9 @@ pro fvp_kcor, fits_name, gif=gif, cm=cm, wmin=wmin, wmax=wmax, wexp=wexp, $
   ; open text file and write title
   if (keyword_set(text)) then begin
     pfile = basename + '.pos'
-    CLOSE,  21
-    OPENW,  21, pfile
-    PRINTF, 21, fits_name, '   Position Measurement[s]'
-    CLOSE,  21
+    openw, lun, pfile, /get_lun
+    printf, lun, fits_name, '   Position Measurement[s]'
+    free_lun, lun
   endif
 
   ; read FITS image & header
