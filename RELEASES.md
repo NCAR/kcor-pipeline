@@ -353,3 +353,7 @@
   fix for saturated images in quality check
 1.6.15
   use simulated SGSDIMV for early epochs
+  adjust plots of radial intensity and centering
+  create plot of sky transmission over the day
+  create plot of mean pB over the day at four heights
+  fixes for processing early epoch data
