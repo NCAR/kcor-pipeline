@@ -1,7 +1,6 @@
 ;+
-;-------------------------------------------------------------------------------
 ; NAME		fvp_kcor.pro
-;-------------------------------------------------------------------------------
+;
 ; PURPOSE	Display a kcor FITS image & report cursor position.
 ;
 ; SYNTAX	fvp_kcor, fits_image, /gif, cm='colormap.lut', $
@@ -35,9 +34,7 @@
 ;
 ; HISTORY	Andrew L. Stanger   HAO/NCAR   17 Nov 2001
 ; 17 Nov 2015 [ALS] Adapted from fvp.pro for kcor.
-;-------------------------------------------------------------------------------
 ;-
-
 pro fvp_kcor, fits_name, gif=gif, cm=cm, wmin=wmin, wmax=wmax, wexp=wexp, $
               text=text, nolabel=nolabel
 
@@ -70,115 +67,74 @@ pro fvp_kcor, fits_name, gif=gif, cm=cm, wmin=wmin, wmax=wmax, wexp=wexp, $
     lct, cm
   endif else loadct, 0, /silent   ; load B-W color table if CM not specified
  
-;-----------------------
-; Read color map arrays.
-;-----------------------
+  ; read color map arrays
+  redlut   = bytarr(256)
+  greenlut = bytarr(256)
+  bluelut  = bytarr(256)
+  tvlct, redlut, greenlut, bluelut, /get   ; fetch RGB color look-up tables
 
-redlut   = bytarr (256)
-greenlut = bytarr (256)
-bluelut  = bytarr (256)
-tvlct, redlut, greenlut, bluelut, /GET	; Fetch RGB color look-up tables.
+  ; default variable values
+  xb = 160        ; x-axis border [pixels]
+  yb =  80        ; y-axis border [pixels]
+  xdim_prev = 0   ; x-dimension previous image
+  ydim_prev = 0   ; y-dimension previous image
 
-;-------------------------
-; Default variable values.
-;-------------------------
+  ; read FITS image & header
+  ftspos   = strpos(fits_name, '.fts')
+  basename = strmid(fits_name, 0, ftspos)
+  print, 'basename: ', basename
 
-xb = 160 		; x-axis border [pixels]
-yb =  80		; y-axis border [pixels]
-xdim_prev = 0		; x-dimension previous image.
-ydim_prev = 0		; y-dimension previous image.
+  ; open text file and write title
+  if (keyword_set(text)) then begin
+    pfile = basename + '.pos'
+    CLOSE,  21
+    OPENW,  21, pfile
+    PRINTF, 21, fits_name, '   Position Measurement[s]'
+    CLOSE,  21
+  endif
 
-   ;--------------------------
-   ; Read FITS image & header.
-   ;--------------------------
+  ; read FITS image & header
+  hdu = headfits(fits_name)
 
-   ftspos   = STRPOS (fits_name, '.fts')
-   basename = STRMID (fits_name, 0, ftspos)
-   print, 'basename: ', basename
+  ; extract information from header
+  xdim     = fxpar(hdu, 'NAXIS1')
+  ydim     = fxpar(hdu, 'NAXIS2')
+  xcen     = fxpar(hdu, 'CRPIX1') + xb - 1
+  ycen     = fxpar(hdu, 'CRPIX2') + yb - 1
+  roll     = fxpar(hdu, 'INST_ROT', count=qinst_rot)
+  cdelt1   = fxpar(hdu, 'CDELT1',   count=qcdelt1)
+  rsun     = fxpar(hdu, 'RSUN_OBS', count=qrsun)
+  if (qrsun eq 0L) then rsun = fxpar(hdu, 'RSUN', count=qrsun)
 
-   ;--------------------------------
-   ; Open text file and write title.
-   ;--------------------------------
+  pixrs    = rsun / cdelt1   ; pixels/Rsun
+  print, 'pixrs   : ', pixrs
 
-   IF (KEYWORD_SET (text)) THEN	$
-   BEGIN
-      pfile = basename + '.pos'
-      CLOSE,  21
-      OPENW,  21, pfile
-      PRINTF, 21, fits_name, '   Position Measurement[s]'
-      CLOSE,  21
-   END
+  ; resize window [if image size has changed]
+  if (xdim ne xdim_prev or ydim ne ydim_prev) then begin
+    window, xsize=xdim + xb, ys=ydim + yb, retain=2
+  endif
 
-   ;--------------------------
-   ; Read FITS image & header.
-   ;--------------------------
+  print, 'xdim + xb: ', xdim + xb
+  print, 'ydim + yb: ', ydim + yb
 
-   hdu = headfits (fits_name)
+  xdim_prev = xdim
+  ydim_prev = ydim
 
-   ;---------------------------------
-   ; Extract information from header.
-   ;---------------------------------
-
-   xdim     = fxpar (hdu, 'NAXIS1')
-   ydim     = fxpar (hdu, 'NAXIS2')
-   xcen     = fxpar (hdu, 'CRPIX1') + xb - 1
-   ycen     = fxpar (hdu, 'CRPIX2') + yb - 1
-   roll     = fxpar (hdu, 'INST_ROT', count=qinst_rot)
-   cdelt1   = fxpar (hdu, 'CDELT1',   count=qcdelt1)
-   rsun     = fxpar (hdu, 'RSUN_OBS', count=qrsun)
-   if (qrsun eq 0L) then rsun = fxpar (hdu, 'RSUN', count=qrsun)
-
-   pixrs    = rsun / cdelt1	; pixels/Rsun.
-
-   print, 'pixrs   : ', pixrs
-
-   ;-------------------------------------------
-   ; Resize window [if image size has changed].
-   ;-------------------------------------------
-
-   if (xdim NE xdim_prev OR ydim NE ydim_prev)  THEN	$
-       WINDOW, xsize=xdim+xb, ys=ydim+yb, retain=2
-
-   print, 'xdim + xb: ', xdim + xb
-   print, 'ydim + yb: ', ydim + yb
-
-   xdim_prev = xdim
-   ydim_prev = ydim
-
-   ;----------------
-   ; Annotate image.
-   ;----------------
-
+  ; annotate image
 ;   fits_annotate_kcor, hdu, xdim, ydim, xb, yb
 
-   ;---------------
-   ; Display image.
-   ;---------------
+  ; display image
+  fitsdisp_kcor, fits_name, xdim_prev, ydim_prev, xb, yb, $
+                 gif=gif, wmin=wmin, wmax=wmax, wexp=wexp
 
-   fitsdisp_kcor, fits_name, xdim_prev, ydim_prev, xb, yb, $
-                  gif=gif, wmin=wmin, wmax=wmax, wexp=wexp
+  ; use mouse to extract radius & position angle for cursor position
+  mouse_pos_lab, xdim, ydim, xcen, ycen, pixrs, roll, $
+                 pos=1, pfile=pfile, disp_label=keyword_set(nolabel) eq 0B
 
-   ;------------------------------------------------------------------
-   ; Use mouse to extract radius & position angle for cursor position.
-   ;------------------------------------------------------------------
-
-   IF (KEYWORD_SET (nolabel)) THEN			 $
-     mouse_pos_lab, xdim, ydim, xcen, ycen, pixrs, roll, $
-		    pos=1, pfile=pfile			 $
-   ELSE	$
-     mouse_pos_lab, xdim, ydim, xcen, ycen, pixrs, roll, $
-		    pos=1, pfile=pfile, /disp_label
-
-   ;---------------------------------------------------------------
-   ; Write displayed image to a GIF file (if "gif" keyword is set).
-   ;---------------------------------------------------------------
-
-   IF (KEYWORD_SET (gif))  THEN		$
-   BEGIN
-      gif_file = basename + '.gif'
-      img_gif = TVRD ()
-      WRITE_GIF, gif_file, img_gif, redlut, greenlut, bluelut
-   END
-
-END
-
+  ; write displayed image to a GIF file (if "gif" keyword is set)
+  if (keyword_set(gif)) then begin
+    gif_file = basename + '.gif'
+    img_gif = tvrd()
+    write_gif, gif_file, img_gif, redlut, greenlut, bluelut
+  endif
+end
