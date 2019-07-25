@@ -357,3 +357,4 @@
   create plot of sky transmission over the day
   create plot of mean pB over the day at four heights
   fixes for processing early epoch data
+  fix for CME CSV output
