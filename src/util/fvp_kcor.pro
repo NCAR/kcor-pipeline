@@ -38,49 +38,37 @@
 ;-------------------------------------------------------------------------------
 ;-
 
-PRO fvp_kcor, fits_name, gif=gif, cm=cm, wmin=wmin, wmax=wmax, wexp=wexp, $
+pro fvp_kcor, fits_name, gif=gif, cm=cm, wmin=wmin, wmax=wmax, wexp=wexp, $
               text=text, nolabel=nolabel
 
-disp_label = 1				; Set display label option variable.
+  disp_label = 1   ; set display label option variable.
 
-;------------------
-; Load color table.
-;------------------
+  ; load color table
+  if (n_elements(cm) gt 0) then begin
+    print, 'cm: ', cm
+    dirend = -1
 
-IF (KEYWORD_SET (cm))  THEN 		$
-BEGIN
-   PRINT, 'cm: ', cm
-   dirend = -1
+    ; find index of last "/" in cm pathname
+    dirend = strpos(cm, '/', /reverse_search)
 
-   ;---------------------------------------
-   ; Find index of last "/" in cm pathname.
-   ;---------------------------------------
+    if (dirend ne -1) then begin
+      print, 'dirend: ', dirend
+      coldir = strmid(cm, 0, dirend)   ; directory containing color map
+      print, 'coldir: ', coldir
+      ccm = strmid(cm, dirend+1, strlen(cm) - dirend - 1)   ; color map file
+      print, 'ccm: ', ccm
+    endif
 
-   FOR i = 0, strlen (cm) - 1 DO		$
-   BEGIN
-      dirloc = STRPOS (cm, '/', i)
-      IF (dirloc GE 0)  THEN dirend = dirloc
-   END
+    ; if cm does not contain a directory, use default color directory
+    if (dirend eq -1) then begin
+      cm = filepath(cm + '.lut', $
+                    subdir=['..', '..', 'resources'], $
+                    root=mg_src_root())
+    endif
 
-   IF (dirend NE -1)  THEN		$
-   BEGIN
-      PRINT, 'dirend: ', dirend
-      coldir = STRMID (cm, 0, dirend)	; Directory containing color map.
-      PRINT, 'coldir: ', coldir
-      ccm = STRMID (cm, dirend+1, strlen (cm) - dirend - 1)	; color map file
-      PRINT, 'ccm: ', ccm
-   END
-
-   ;-----------------------------------------------------------------
-   ; If cm does not contain a directory, use default color directory.
-   ;-----------------------------------------------------------------
-
-   IF (dirend EQ -1)  THEN		$
-      lct, '/home/cordyn/color/' + cm + '.lut'	$	; Use default directory.
-   ELSE					$
-   lct, cm					; Load specified colormap.
-END					$
-ELSE   lct, '/hao/acos/sw/colortable/quallab.lut' ; Load blue-white colormap.
+    ; load specified colormap
+    lct, cm
+  endif else loadct, 0, /silent   ; load B-W color table if CM not specified
  
 ;-----------------------
 ; Read color map arrays.
