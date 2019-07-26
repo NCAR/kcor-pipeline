@@ -97,6 +97,7 @@ pro kcor_quality_plot, q_dir, output_filename
                        axis_color='000000'x, $
                        background='ffffff'x, color=colors, /fill, $
                        xstyle=9, xticks=end_time - start_time, xminor=4, $
+                       ytickformat='(I)', $
                        ystyle=9, yrange=[0, max_images], yticks=4, $
                        charsize=0.85, $
                        xtitle='Time (HST)', ytitle='# of images', $
