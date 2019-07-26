@@ -64,8 +64,6 @@ pro kcor_cme_det_email, time, edge, last_detected_image_time, operator=operator
                       root=run->config('processing/raw_basedir'))
   if (~file_test(plot_dir, /directory)) then file_mkdir, plot_dir
 
-  device, decomposed=1, set_pixel_depth=24, set_resolution=[800, 360]
-
   itime = n_elements(leadingedge) - 1L
   map = mdiffs[*, *, itime] > 0
   i0 = itheta[0, itime]
@@ -91,6 +89,7 @@ pro kcor_cme_det_email, time, edge, last_detected_image_time, operator=operator
   original_device = !d.name
   set_plot, 'Z'
   loadct, 0
+  device, decomposed=1, set_pixel_depth=24, set_resolution=[800, 360]
 
   rsun = (pb0r(date0))[2]
   radius = 60 * (lat + 90) / rsun
