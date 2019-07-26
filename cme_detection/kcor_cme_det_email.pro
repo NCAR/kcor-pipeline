@@ -75,7 +75,7 @@ pro kcor_cme_det_email, time, edge, last_detected_image_time, operator=operator
   endelse
 
   ; create filename for plot file
-  date_obs = kcor_parse_dateobs(date_diff[itime].date_obs)
+  date_obs = kcor_parse_dateobs(date_diff[itime].date_avg)
   plot_file = filepath(string(date_obs.year, $
                               date_obs.month, $
                               date_obs.day, $

@@ -31,7 +31,7 @@ pro kcor_cme_det_report, time, widget=widget
     if (~file_test(plot_dir, /directory)) then file_mkdir, plot_dir
 
     ; create filename for plot file
-    last_datetime = kcor_parse_dateobs(date_diff[last_time_index].date_obs)
+    last_datetime = kcor_parse_dateobs(date_diff[last_time_index].date_avg)
     plot_file = filepath(string(last_datetime.year, $
                                 last_datetime.month, $
                                 last_datetime.day, $
@@ -106,9 +106,9 @@ pro kcor_cme_det_report, time, widget=widget
                                       format='(%"%04d%02d%02d.%02d%02d%02d.cme.plot.csv")'), $
                                root=plot_dir)
     openw, lun, plotvalues_file, /get_lun
-    printf, lun, 'date (seconds from 79/1/1), velocity, position, radius'
+    printf, lun, 'date (seconds from 58/1/1), velocity, position, radius'
     for i = 0L, n_elements(date_diff.date_avg) - 1L do begin
-      printf, lun, date_diff[i].date_avg, velocity[i], position[i], radius[i], $
+      printf, lun, date_diff[i].tai_avg, velocity[i], position[i], radius[i], $
               format='(%"%f, %f, %f, %f")'
     endfor
     free_lun, lun
@@ -164,6 +164,7 @@ pro kcor_cme_det_report, time, widget=widget
     ; delete the temporary files
     file_delete, mailfile
 
-    delvarx, speed_history
+    ; TODO: should I also delete angle_history and leadingedge?
+    ;delvarx, speed_history
   endif
 end
