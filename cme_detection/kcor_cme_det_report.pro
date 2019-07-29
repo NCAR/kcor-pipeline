@@ -88,7 +88,7 @@ pro kcor_cme_det_report, time, widget=widget
             psym=1, symsize=0.5, $
             ytitle='Solar radii', $
             title='Leading edge', $
-            yrange=[1.0, 2.0]
+            yticks=4, yminor=5, yrange=[1.0, 3.0]
 
     im = tvrd(true=1)
     set_plot, original_device
