@@ -107,8 +107,13 @@ pro kcor_cme_det_report, time, widget=widget
                                root=plot_dir)
     openw, lun, plotvalues_file, /get_lun
     printf, lun, 'date (seconds from 58/1/1), velocity, position, radius'
-    for i = 0L, n_elements(date_diff.date_avg) - 1L do begin
-      printf, lun, date_diff[i].tai_avg, velocity[i], position[i], radius[i], $
+    tracked_indices = where(reform(tracked_pt), n_tracked_indices)
+    for i = 0L, n_tracked_indices - 1L do begin
+      printf, lun, $
+              date_diff[tracked_indices[i]].tai_avg, $
+              velocity[tracked_indices[i]], $
+              position[tracked_indices[i]], $
+              radius[i], $
               format='(%"%f, %f, %f, %f")'
     endfor
     free_lun, lun

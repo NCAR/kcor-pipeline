@@ -117,12 +117,14 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
           temp = {date_obs: date_obs, tai_obs: tai_obs, $
                   date_end: date_end, tai_end: tai_end, $
                   date_avg: date_avg, tai_avg: tai_avg}
+
           if (n_elements(date_diff) eq 0) then begin
             date_diff = temp
           endif else begin
             date_diff = [date_diff, temp]
           endelse
 
+          boost_array, tracked_pt, 0B
           boost_array, speed_history, -1.0
           boost_array, angle_history, -1.0
           boost_array, mdiffs, mdiff
@@ -152,6 +154,8 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
 
           ; if the LEADINGEDGE array grew in size, then update the plots
           if (n_elements(leadingedge) gt nlead) then begin
+            tracked_pt[-1] = 1B
+
             ilead = n_elements(leadingedge) - 1
             lead0 = leadingedge[ilead]
             date0 = date_diff[ilead].date_avg
