@@ -358,4 +358,5 @@
   create plot of mean pB over the day at four heights
   fixes for processing early epoch data
   fix for CME CSV output
+  better reporting of CME events
   use UT date/time in CME output filenames
