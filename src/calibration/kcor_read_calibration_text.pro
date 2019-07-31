@@ -142,14 +142,20 @@ end
 
 ; main-level example program
 
-date = '20181021'
-config_filename = filepath('kcor.mgalloy.kaula.production.cfg', $
+date = '20131011'
+config_filename = filepath('kcor.latest.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
-help, run->epoch('gbuparams_filename')
-;filenames = kcor_read_calibration_text(date, run->config('processing/process_basedir'), $
-;                                       exposures=exposures, n_files=n_files, run=run)
+;help, run->epoch('gbuparams_filename')
+filenames = kcor_read_calibration_text(date, $
+                                       run->config('processing/process_basedir'), $
+                                       exposures=exposures, $
+                                       n_files=n_files, $
+                                       all_files=all_filenames, $
+                                       n_all_files=n_all_files, $
+                                       quality=quality, $
+                                       run=run)
 ;obj_destroy, run
 
 end

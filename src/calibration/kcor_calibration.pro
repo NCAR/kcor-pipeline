@@ -85,16 +85,21 @@ pro kcor_calibration, date, $
     endif
   endelse
 
-  kcor_reduce_calibration, date, run=run, filelist=filelist, catalog_dir=catalog_dir
+  kcor_reduce_calibration, date, run=run, filelist=filelist, $
+                           catalog_dir=catalog_dir, $
+                           status=cal_status
+
+  cal_files = kcor_read_calibration_text(date, $
+                                         run->config('processing/process_basedir'), $
+                                         exposures=exposures, $
+                                         n_files=n_cal_files, $
+                                         n_all_files=n_all_cal_files, $
+                                         run=run, $
+                                         quality=cal_quality)
 
   ; update databases
   if (run->config('database/update') && (n_elements(filelist_filename) eq 0L)) then begin
     mg_log, 'updating database', name='kcor/eod', /info
-    cal_files = kcor_read_calibration_text(date, $
-                                           run->config('processing/process_basedir'), $
-                                           exposures=exposures, $
-                                           n_files=n_cal_files, run=run, $
-                                           quality=cal_quality)
 
     obsday_index = mlso_obsday_insert(date, $
                                       run=run, $
@@ -122,6 +127,64 @@ pro kcor_calibration, date, $
     obj_destroy, db
   endif else begin
     mg_log, 'skipping updating database', name='kcor/eod', /info
+  endelse
+
+  ; send notification
+  if (run->config('notifications/send') $
+        && n_elements(run->config('notifications/email')) gt 0L) then begin
+    msg = [string(date, $
+                  format='(%"KCor calibration for %s")'), $
+           '', $
+           string(version, revision, branch, $
+                  format='(%"kcor-pipeline %s (%s) [%s]")'), $
+           '', $
+           '# Basic statistics', $
+           '', $
+           string(n_cal_files, $
+                  format='(%"number of OK cal files: %d")'), $
+           string(n_all_cal_files, $
+                  format='(%"number of cal files: %d")')]
+
+    spawn, 'echo $(whoami)@$(hostname)', who, error_result, exit_status=status
+    if (status eq 0L) then begin
+      who = who[0]
+    endif else begin
+      who = 'unknown'
+    endelse
+
+    log_dir = run->config('logging/dir')
+
+    eod_logfile = filepath(run.date + '.eod.log', root=log_dir)
+    eod_errors = kcor_filter_log(eod_logfile, /error, n_messages=n_eod_errors)
+    if (n_eod_errors gt 0L) then begin
+      msg = [msg, '', $
+             string(n_eod_errors, format='(%"# End-of-day log errors (%d errors)")'), $
+             '', eod_errors]
+    endif else begin
+      msg = [msg, '', '# No end-of-day log errors']
+    endelse
+
+    msg = [msg, '', '', '# Config file', '', run.config_content, '', '', $
+           string(mg_src_root(/filename), who, $
+                  format='(%"Sent from %s (%s)")')]
+
+    case cal_status of
+      0: cal_status_msg = 'success'
+      1: cal_status_msg = 'incomplete'
+      2: cal_status_msg = 'problems'
+      else: cal_status_msg = string(cal_status, format='(%"unknown status: %d")')
+    endcase
+
+    mg_log, 'sending notification to %s', run->config('notifications/email'), $
+            name='kcor/eod', /info
+    kcor_send_mail, run->config('notifications/email'), $
+                    string(run.date, $
+                           cal_status_msg, $
+                           format='(%"KCor calibration for %s (%s)")'), $
+                    msg, $
+                    logger_name='kcor/eod'
+  endif else begin
+    mg_log, 'not sending notification email', name='kcor/eod', /warn
   endelse
 
   done:

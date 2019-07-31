@@ -20,6 +20,9 @@
 ;     reads the `calibration_files.txt` file in the process directory
 ;   config_filename : in, optional, type=string
 ;     filename of configuration file; `config_filename` or `run` is required
+;   status : out, optional, type=long
+;     set to a named variable to retrieve the status of the calibration
+;     calculation: 0 for success, 1 for incomplete data, 2 for error
 ;   run : in, optional, type=object
 ;     `kcor_run` object; `config_filename` or `run` is required
 ;-
@@ -27,8 +30,11 @@ pro kcor_reduce_calibration, date, $
                              catalog_dir=catalog_dir, $
                              filelist=filelist, $
                              config_filename=config_filename, $
+                             status=status, $
                              run=run
   common kcor_random, seed
+
+  status = 0
 
   run_created = ~obj_valid(run)
   if (run_created) then begin
@@ -55,6 +61,7 @@ pro kcor_reduce_calibration, date, $
       if (errmsg ne '') then begin
         mg_log, 'error reading %s', filelist[f], name='kcor/cal', /error
         mg_log, errmsg, name='kcor/cal', /error
+        status = 2
         goto, done
       endif
 
@@ -76,6 +83,7 @@ pro kcor_reduce_calibration, date, $
 
   if (n_files lt 1L) then begin
     mg_log, 'missing or empty calibration_files.txt', name='kcor/cal', /warn
+    status = 2
     goto, done
   endif
 
@@ -84,6 +92,7 @@ pro kcor_reduce_calibration, date, $
   if (n_elements(unique_exposure_indices) gt 1L) then begin
     mg_log, 'more than one exposure time in calibration_files.txt', $
             name='kcor/cal', /error
+    status = 2
     goto, done
   endif
 
@@ -95,6 +104,7 @@ pro kcor_reduce_calibration, date, $
 
   if (n_elements(data) eq 0L) then begin
     mg_log, 'incomplete cal data, exiting', name='kcor/cal', /info
+    status = 1
     goto, done
   endif
 
@@ -118,6 +128,7 @@ pro kcor_reduce_calibration, date, $
     if (nw lt npick) then begin
       mg_log, 'didn''t find enough pixels with signal: %d', nw, $
               name='kcor/cal', /error
+      status = 2
       return
     endif
     pick = sort(randomu(seed, nw))
@@ -133,7 +144,7 @@ pro kcor_reduce_calibration, date, $
 
       ; run the minimization
       fits[*, i] = mpfit('kcor_reduce_calibration_model', parinfo=parinfo, $
-                         functargs=functargs, status=status, errmsg=errmsg, $
+                         functargs=functargs, status=fit_status, errmsg=errmsg, $
                          niter=niter, npegged=npegged, perror=fiterror, /quiet)
       fiterrors[*, i] = fiterror
     endfor

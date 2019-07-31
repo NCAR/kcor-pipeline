@@ -93,7 +93,7 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
     if (run->epoch('use_sgs')) then begin
       sgsdimv = sxpar(header, 'SGSDIMV', count=n_sgsdimv)
     endif else begin
-      sgsdimv = kcor_simulate_sgsdimv(date_obs)
+      sgsdimv = kcor_simulate_sgsdimv(date_obs, run=run)
     endelse
 
     ; NUMSUM for all files must be the same to produce a calibration
