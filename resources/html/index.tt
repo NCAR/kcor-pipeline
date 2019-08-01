@@ -81,7 +81,7 @@
          </tr>
        </thead>
        <tbody>
-         [% foreach t in raw_times %][% scope t %]
+         [% if n_raw_files gt 0 %][% foreach t in raw_times %][% scope t %]
          <tr>
            <td class="left">[% datetime %]</td>
            <td class="centered">[% type %]</td>
@@ -92,7 +92,7 @@
            <td class="centered">[% if diff_href ne '' %]<a href="[% diff_href %]">[% diff_quality %]</a>[% end %]</td>
            <td class="centered">[% if nomask_href ne '' %]<a href="[% nomask_href %]">img</a>[% end %][% if nomask_cropped_href ne '' %] (<a href="[% nomask_cropped_href %]">cropped</a>)[% end %]</td>
          </tr>
-	 [% end %][% end %]
+	 [% end %][% end %][% end %]
        </tbody>
        <tfoot>
        </tfoot>
