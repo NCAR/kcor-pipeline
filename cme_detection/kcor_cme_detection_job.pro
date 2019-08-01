@@ -73,7 +73,7 @@ pro kcor_cme_detection_job, date, $
   ; setup cme log
   log_filename = filepath(string(date, format='(%"%s.cme.log")'), $
                           root=run->config('logging/dir'))
-  mg_rotate_log, log_filename, max_version=self->config('logging/max_version')
+  mg_rotate_log, log_filename, max_version=run->config('logging/max_version')
   mg_log, logger=logger, name='kcor/cme'
   logger->setProperty, filename=log_filename
 
