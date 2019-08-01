@@ -360,3 +360,4 @@
   fix for CME CSV output
   better reporting of CME events
   use UT date/time in CME output filenames
+  can turn off row/col images and report generation

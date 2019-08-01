@@ -14,6 +14,13 @@
 pro kcor_report_results, date, run=run
   compile_opt strictarr
 
+  if (run->config('eod/produce_report')) then begin
+    mg_log, 'generating report...', name='kcor/eod', /info
+  endif else begin
+    mg_log, 'skipping report generation', name='kcor/eod', /info
+    goto, done
+  endelse
+
   ; copy logs over to home directory
   logs = ['reprocess', 'realtime', 'eod']
   for f = 0L, n_elements(logs) - 1L do begin
@@ -42,6 +49,9 @@ pro kcor_report_results, date, run=run
   template->process, run, output_filename
 
   obj_destroy, template
+
+  done:
+  mg_log, 'done', name='kcor/eod', /info
 end
 
 

@@ -142,7 +142,12 @@ end
 pro kcor_rowcol_image, run=run
   compile_opt strictarr
 
-  mg_log, 'starting', name='kcor/eod', /info
+  if (run->config('eod/produce_rowcol_images')) then begin
+    mg_log, 'starting...', name='kcor/eod', /info
+  endif else begin
+    mg_log, 'skipping row/col images', name='kcor/eod', /info
+    goto, done
+  endelse
 
   mg_log, 'creating L0 rowcol images...', name='kcor/eod', /info
   kcor_rowcol_image_l0, run=run
@@ -150,6 +155,7 @@ pro kcor_rowcol_image, run=run
   mg_log, 'creating L1.5 rowcol images...', name='kcor/eod', /info
   kcor_rowcol_image_l1, run=run
 
+  done:
   mg_log, 'done', name='kcor/eod', /info
 end
 
@@ -162,7 +168,7 @@ run = kcor_run(date, $
                config_filename=filepath('kcor.latest.cfg', $
                                         subdir=['..', '..', 'config'], $
                                         root=mg_src_root()))
-kcor_median_rowcol_image, run=run
+kcor_rowcol_image, run=run
 
 obj_destroy, run
 
