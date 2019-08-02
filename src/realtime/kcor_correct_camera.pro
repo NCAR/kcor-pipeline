@@ -28,7 +28,7 @@ pro kcor_correct_camera, im, header, $
 
   ; note: if we decide to change whether we interpolate around some bad pixels,
   ; we will have to clear the camera correction cache directory
-  interpolate = 1B
+  interpolate = run->config('calibration/interpolate_camera_correction')
 
   im = float(im)
 
