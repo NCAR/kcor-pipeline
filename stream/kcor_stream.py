@@ -3,11 +3,16 @@
 import argparse
 from collections import namedtuple
 import configparser
+import datetime
 import glob
 import os
 import multiprocessing
+import time
+import warnings
 
 import astropy.io.fits
+from astropy.utils.exceptions import AstropyUserWarning
+import numpy as np
 
 
 Task = namedtuple("Task", ["datetime", "stream_dir", "raw_dir", "output_dir"])
@@ -23,10 +28,14 @@ def aerosol_median(stream_dir, datetime, numsum, camera):
 def write_median(output_dir, datetime, header, median_0, median_1):
     """Combine the header with the median_0 and median_1 arrays.
     """
-    # TODO: replace below with actual FITS file
-    output_filename = os.path.join(output_dir, f"{datetime}_kcor_median.fts.gz")
-    with open(output_filename, "w") as f:
-        f.write(str(header))
+    data = np.stack([median_0, median_1], axis=0)
+    output_filename = os.path.join(output_dir, f"{datetime}_kcor_median.fts")
+
+    primary_hdu = astropy.io.fits.PrimaryHDU(data)
+    primary_hdu.header = header
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', AstropyUserWarning)
+        primary_hdu.writeto(output_filename, output_verify="ignore")
 
 
 def process_time(task):
@@ -39,11 +48,15 @@ def process_time(task):
     with astropy.io.fits.open(raw_filename) as f:
         header = f[0].header
 
+        # TODO: temporary median solution
+        median_0 = f[0].data[0, :, :, :]
+        median_1 = f[0].data[1, :, :, :]
+
     numsum = header['NUMSUM']
 
     # create a separate clean image for each camera
-    median_0 = aerosol_median(task.stream_dir, task.datetime, numsum, 0)
-    median_1 = aerosol_median(task.stream_dir, task.datetime, numsum, 1)
+    #median_0 = aerosol_median(task.stream_dir, task.datetime, numsum, 0)
+    #median_1 = aerosol_median(task.stream_dir, task.datetime, numsum, 1)
 
     # combine median 0 and 1 with the original header (making sure to modify
     # for NUMSUM) and write to task.output_dir
@@ -100,7 +113,11 @@ def main():
     if not os.path.isdir(output_dir):
         os.makedirs(output_dir)
 
+    t0 = time.time()
     process_stream(args.date, stream_dir, raw_dir, output_dir, args.cores)
+    t1 = time.time()
+    delta = datetime.timedelta(seconds=t1 - t0)
+    print(f"elapsed time   : {delta}")
 
 
 if __name__ == "__main__":
