@@ -14,28 +14,81 @@ import astropy.io.fits
 from astropy.utils.exceptions import AstropyUserWarning
 import numpy as np
 
+N_STATES = 4
+NX = 1024
+NY = 1024
 
 Task = namedtuple("Task", ["datetime", "stream_dir", "raw_dir", "output_dir"])
 
 
-def aerosol_median(stream_dir, datetime, numsum, camera):
-    # TODO: call C code to find separate median of files of the form
-    # f"{task.datetime}_{n}_{cam}_kcor.fts" where n=0..numsnum for
-    # cam=[0, 1]
-    pass
-
-
-def write_median(output_dir, datetime, header, median_0, median_1):
-    """Combine the header with the median_0 and median_1 arrays.
+def read_raw(stream_dir, datetime, numsum, camera):
+    """Read all the states for `numsum` images for camera `camera` at
+    `datetime`.
     """
-    data = np.stack([median_0, median_1], axis=0)
-    output_filename = os.path.join(output_dir, f"{datetime}_kcor_median.fts")
+    states = np.empty((N_STATES, NX, NY, numsum), dtype=np.uint16)
+    for n in range(numsum):
+        for s in range(N_STATES):
+            i = N_STATES * s + n
+            raw_filename = os.path.join(stream_dir, f"{datetime}cam{camera}_{i:04d}.raw")
+            with open(raw_filename, "r") as bf:
+                states[s, :, :, n] = np.fromfile(bf, dtype=np.uint16).reshape(1024, 1024)
+    return states
+
+
+def remove_aerosols(stream_dir, dt, numsum, camera):
+    """Compute the aerosol filtered median for a given `datetime` and `camera`.
+    """
+    t0 = time.time()
+
+    # states is N_STATES x NX x NY x numsum
+    states = read_raw(stream_dir, dt, numsum, camera)
+
+    t1 = time.time()
+
+    states_mean = np.median(states, axis=3).astype(np.uint16)
+    states_median = np.median(states, axis=3).astype(np.uint16)
+
+    t2 = time.time()
+
+    corrected = np.empty((N_STATES, NX, NY), dtype=np.uint16)
+    masks = np.zeros((N_STATES, NX, NY), dtype=np.uint8)
+
+    ss = 4.0 / 44.0 / np.sqrt(44.0)
+    threshold = numsum * 0.90
+
+    for s in range(N_STATES):
+        for i in range(NX):
+            for j in range(NY):
+                ind = np.where(np.abs(states[s, i, j, :] - states_median[s, i, j]) < ss * np.sqrt(states_median[s, i, j]))
+                n = ind[0].size
+                if n > threshold:
+                    corrected[s, i, j] = np.mean(states[s, i, j, ind])
+                else:
+                    corrected[s, i, j] = states_mean[s, i, j]
+
+    t3 = time.time()
+
+    delta1 = datetime.timedelta(seconds=t1 - t0)
+    print(f"reading time {camera} : {delta1}")
+    delta2 = datetime.timedelta(seconds=t2 - t1)
+    print(f"median time {camera}  : {delta2}")
+    delta2 = datetime.timedelta(seconds=t3 - t2)
+    print(f"proc time {camera}    : {delta2}")
+
+    return corrected
+
+
+def write_corrected(output_dir, dt, header, cam_0, cam_1):
+    """Combine the header with the cam_0 and cam_1 arrays.
+    """
+    data = np.stack([cam_0, cam_1], axis=0)
+    output_filename = os.path.join(output_dir, f"{dt}_kcor_median.fts")
 
     primary_hdu = astropy.io.fits.PrimaryHDU(data)
     primary_hdu.header = header
     with warnings.catch_warnings():
         warnings.simplefilter('ignore', AstropyUserWarning)
-        primary_hdu.writeto(output_filename, output_verify="ignore")
+        primary_hdu.writeto(output_filename, output_verify="ignore", overwrite=True)
 
 
 def process_time(task):
@@ -48,19 +101,15 @@ def process_time(task):
     with astropy.io.fits.open(raw_filename) as f:
         header = f[0].header
 
-        # TODO: temporary median solution
-        median_0 = f[0].data[0, :, :, :]
-        median_1 = f[0].data[1, :, :, :]
-
     numsum = header['NUMSUM']
 
     # create a separate clean image for each camera
-    #median_0 = aerosol_median(task.stream_dir, task.datetime, numsum, 0)
-    #median_1 = aerosol_median(task.stream_dir, task.datetime, numsum, 1)
+    cam_0 = remove_aerosols(task.stream_dir, task.datetime, numsum, 0)
+    cam_1 = remove_aerosols(task.stream_dir, task.datetime, numsum, 1)
 
     # combine median 0 and 1 with the original header (making sure to modify
     # for NUMSUM) and write to task.output_dir
-    write_median(task.output_dir, task.datetime, header, median_0, median_1)
+    write_corrected(task.output_dir, task.datetime, header, cam_0, cam_1)
 
 
 def process_stream(date, stream_dir, raw_dir, output_dir, n_cores):
