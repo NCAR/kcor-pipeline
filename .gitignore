@@ -10,3 +10,6 @@
 /analysis/duty-cycle.ps
 /analysis/duty-cycle-histogram.ps
 .ipynb_checkpoints
+/stream/stream.html
+/stream/stream.c
+/stream/stream.cpython-*.so

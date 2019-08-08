@@ -14,6 +14,8 @@ import astropy.io.fits
 from astropy.utils.exceptions import AstropyUserWarning
 import numpy as np
 
+import stream
+
 N_STATES = 4
 NX = 1024
 NY = 1024
@@ -50,21 +52,23 @@ def remove_aerosols(stream_dir, dt, numsum, camera):
 
     t2 = time.time()
 
-    corrected = np.empty((N_STATES, NX, NY), dtype=np.uint16)
-    masks = np.zeros((N_STATES, NX, NY), dtype=np.uint8)
-
     ss = 4.0 / 44.0 / np.sqrt(44.0)
     threshold = numsum * 0.90
 
-    for s in range(N_STATES):
-        for i in range(NX):
-            for j in range(NY):
-                ind = np.where(np.abs(states[s, i, j, :] - states_median[s, i, j]) < ss * np.sqrt(states_median[s, i, j]))
-                n = ind[0].size
-                if n > threshold:
-                    corrected[s, i, j] = np.mean(states[s, i, j, ind])
-                else:
-                    corrected[s, i, j] = states_mean[s, i, j]
+    use_cython = False
+    if use_cython:
+        corrected = stream.filter(states, states_mean, states_median, threshold, ss)
+    else:
+        corrected = np.empty((4, 1024, 1024), dtype=np.uint16)
+        for s in range(N_STATES):
+            for i in range(NX):
+                for j in range(NY):
+                    ind = np.where(np.abs(states[s, i, j, :] - states_median[s, i, j]) < ss * np.sqrt(states_median[s, i, j]))
+                    n = ind[0].size
+                    if n > threshold:
+                        corrected[s, i, j] = np.mean(states[s, i, j, ind])
+                    else:
+                        corrected[s, i, j] = states_mean[s, i, j]
 
     t3 = time.time()
 
