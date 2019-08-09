@@ -14,7 +14,6 @@ import astropy.io.fits
 from astropy.utils.exceptions import AstropyUserWarning
 import numpy as np
 
-import stream
 
 N_STATES = 4
 NX = 1024
@@ -34,6 +33,7 @@ def read_raw(stream_dir, datetime, numsum, camera):
             raw_filename = os.path.join(stream_dir, f"{datetime}cam{camera}_{i:04d}.raw")
             with open(raw_filename, "r") as bf:
                 states[s, :, :, n] = np.fromfile(bf, dtype=np.uint16).reshape(1024, 1024)
+
     return states
 
 
@@ -73,11 +73,11 @@ def remove_aerosols(stream_dir, dt, numsum, camera):
     t3 = time.time()
 
     delta1 = datetime.timedelta(seconds=t1 - t0)
-    print(f"reading time {camera} : {delta1}")
+    print(f"reading time {camera}  : {delta1}")
     delta2 = datetime.timedelta(seconds=t2 - t1)
-    print(f"median time {camera}  : {delta2}")
+    print(f"median time {camera}   : {delta2}")
     delta2 = datetime.timedelta(seconds=t3 - t2)
-    print(f"proc time {camera}    : {delta2}")
+    print(f"proc time {camera}     : {delta2}")
 
     return corrected
 
@@ -120,14 +120,14 @@ def process_stream(date, stream_dir, raw_dir, output_dir, n_cores):
     """Finds all the standard mean FITS files, creates a pool of size `n_cores`,
     and sends the work to create the median FITS files to the pool.
     """
-    print(f"date           : {date}")
-    print(f"stream dir     : {stream_dir}")
-    print(f"raw dir        : {raw_dir}")
-    print(f"output dir     : {output_dir}")
-    print(f"# of cores     : {n_cores}")
+    print(f"date            : {date}")
+    print(f"stream dir      : {stream_dir}")
+    print(f"raw dir         : {raw_dir}")
+    print(f"output dir      : {output_dir}")
+    print(f"# of cores      : {n_cores}")
 
     raw_filenames = glob.glob(os.path.join(raw_dir, "*_kcor.fts.gz"))
-    print(f"# of raw files : {len(raw_filenames)}")
+    print(f"# of raw files  : {len(raw_filenames)}")
 
     tasks = [Task(os.path.basename(f)[0:15], stream_dir, raw_dir, output_dir)
              for f in raw_filenames]
@@ -170,7 +170,7 @@ def main():
     process_stream(args.date, stream_dir, raw_dir, output_dir, args.cores)
     t1 = time.time()
     delta = datetime.timedelta(seconds=t1 - t0)
-    print(f"elapsed time   : {delta}")
+    print(f"elapsed time    : {delta}")
 
 
 if __name__ == "__main__":
