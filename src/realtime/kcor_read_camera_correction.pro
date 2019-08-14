@@ -58,7 +58,7 @@ function kcor_read_camera_correction, filename, $
 
       bad_pixel_mask or= (fit_params[*, *, 4] gt 1.0) or (fit_params[*, *, 4] lt -1.0)
 
-      ; number of bad pixels in a column to call it a bad column
+      ; number of bad pixels in a column to call it a bad column (all of them)
       bad_column_max = dims[1]
 
       bad_pixels_by_column = total(bad_pixel_mask, 2, /integer)
@@ -72,23 +72,19 @@ function kcor_read_camera_correction, filename, $
         fixable_column_mask = rebin(reform(fixable_column_mask, dims[0], 1), $
                                     dims[0], dims[1])
 
-        bad_values = where(bad_pixel_mask and fixable_column_mask, n_bad_values)
+        bad_pixel_mask and= fixable_column_mask
+        bad_values = where(bad_pixel_mask, n_bad_values)
       endif
     endif
 
-    if (keyword_set(interpolate)) then begin
+    if (keyword_set(interpolate) && n_bad_values gt 0L) then begin
       fit_dims = size(fit_params, /dimensions)
 
-      width = 21
-      kernel = fltarr(width, width) + 1.0
-      c = width / 2
-      kernel[c - 2:c + 2, c - 2:c + 2] = 0.0
-
+      width = 11
       for f = 0L, fit_dims[2] - 1L do begin
-        k = reform(fit_params[*, *, f])
-        k1 = convol(k, kernel, /center, /normalize, /edge_truncate)
-        k[bad_values] = k1[bad_values]
-        fit_params[*, *, f] = k
+        fit_params[*, *, f] = kcor_fix_badpixels(fit_params[*, *, f], $
+                                                 bad_values, $
+                                                 width=width)
       endfor
     endif
 
