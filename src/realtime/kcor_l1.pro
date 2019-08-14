@@ -673,13 +673,24 @@ pro kcor_l1, date, ok_files, $
     endif
 
     if (run->epoch('remove_horizontal_artifact')) then begin
-      mg_log, 'correcting horiz lines @ [%s], cameras: [%s]', $
-              strjoin(strtrim(run->epoch('horizontal_artifact_lines'), 2), ', '), $
-              strjoin(strtrim(run->epoch('horizontal_artifact_cameras'), 2), ', '), $
-              name=log_name, /debug
+      kcor_find_badlines, img, $
+                          cam0_badlines=cam0_badlines, $
+                          cam1_badlines=cam1_badlines
+
+      if (n_elements(cam0_badlines) gt 0L) then begin
+        mg_log, 'correcting cam 0 bad lines: %s', $
+                strjoin(strtrim(cam0_badlines, 2), ', '), $
+                name='kcor/rt', /debug
+      endif
+      if (n_elements(cam1_badlines) gt 0L) then begin
+        mg_log, 'correcting cam 1 bad lines: %s', $
+                strjoin(strtrim(cam1_badlines, 2), ', '), $
+                name='kcor/rt', /debug
+      endif
+
       kcor_correct_horizontal_artifact, img, $
-                                        run->epoch('horizontal_artifact_lines'), $
-                                        run->epoch('horizontal_artifact_cameras')
+                                        cam0_badlines, $
+                                        cam1_badlines
     endif
 
     ; find image centers & radii of raw images

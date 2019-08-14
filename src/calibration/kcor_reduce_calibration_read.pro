@@ -77,13 +77,24 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
     kcor_correct_camera, thisdata, header, run=run, logger_name='kcor/cal'
 
     if (run->epoch('remove_horizontal_artifact')) then begin
-      mg_log, 'correcting horiz lines @ [%s], cameras: [%s]', $
-              strjoin(strtrim(run->epoch('horizontal_artifact_lines'), 2), ', '), $
-              strjoin(strtrim(run->epoch('horizontal_artifact_cameras'), 2), ', '), $
-              name='kcor/cal', /debug
+      kcor_find_badlines, thisdata, $
+                          cam0_badlines=cam0_badlines, $
+                          cam1_badlines=cam1_badlines
+
+      if (n_elements(cam0_badlines) gt 0L) then begin
+        mg_log, 'correcting cam 0 bad lines: %s', $
+                strjoin(strtrim(cam0_badlines, 2), ', '), $
+                name='kcor/cal', /debug
+      endif
+      if (n_elements(cam1_badlines) gt 0L) then begin
+        mg_log, 'correcting cam 1 bad lines: %s', $
+                strjoin(strtrim(cam1_badlines, 2), ', '), $
+                name='kcor/cal', /debug
+      endif
+
       kcor_correct_horizontal_artifact, thisdata, $
-                                        run->epoch('horizontal_artifact_lines'), $
-                                        run->epoch('horizontal_artifact_cameras')
+                                        cam0_badlines, $
+                                        cam1_badlines
     endif
 
     darkshut = sxpar(header, 'DARKSHUT', count=n_darkshut)

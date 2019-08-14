@@ -1,36 +1,6 @@
 ; docformat = 'rst'
 
 ;+
-; Find indices of anomalous lines.
-;
-; :Returns:
-;   `lonarr` of indices, `!null` if none
-;
-; :Params:
-;   im : in, required, type="fltarr(nx, ny, 4)"
-;     image for one camera to check
-;-
-function kcor_detect_badlines_find, im
-  compile_opt strictarr
-
-  meds = median(im, dimension=1)
-
-  n = 5
-  kernel = fltarr(n) - 1.0 / (n - 1)
-  kernel[n / 2] = 1.0
-
-  ; number of lines to skip at the top and bottom of the image
-  n_skip = 3
-
-  diffs = convol(meds[n_skip:-n_skip-1], kernel, /edge_truncate)
-  bad_lines = where(diffs gt 25.0, n_bad_lines, /null)
-  if (n_bad_lines gt 0L) then bad_lines += n_skip
-
-  return, bad_lines
-end
-
-
-;+
 ; Find bad lines raw images.
 ;
 ; :Keywords:
@@ -65,8 +35,8 @@ pro kcor_detect_badlines, run=run
 
     n_checked_images += 1L
 
-    cam0 = kcor_detect_badlines_find(corona0)
-    cam1 = kcor_detect_badlines_find(corona1)
+    cam0 = kcor_find_badlines_camera(corona0)
+    cam1 = kcor_find_badlines_camera(corona1)
 
     for i = 0L, n_elements(cam0) - 1L do cam0_badlines[cam0[i]] += 1
     for i = 0L, n_elements(cam1) - 1L do cam1_badlines[cam1[i]] += 1
