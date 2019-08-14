@@ -22,6 +22,8 @@ pro kcor_calibration, date, $
                       filelist_filename=filelist_filename
   compile_opt strictarr
 
+  cal_clock = tic('cal')
+
   ; catch and log any crashes
   catch, error
   if (error ne 0L) then begin
@@ -189,7 +191,11 @@ pro kcor_calibration, date, $
 
   done:
   mg_log, /check_math, name='kcor/eod', /debug
-  mg_log, 'done', name='kcor/eod', /info
+
+  cal_time = toc(cal_clock)
+  mg_log, 'done, cal processing time: %s', $
+          kcor_sec2str(cal_time), $
+          name='kcor/eod', /info
 
   if (obj_valid(run)) then obj_destroy, run
 end
