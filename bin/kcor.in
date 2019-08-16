@@ -92,7 +92,7 @@ def notify_completed(args, task):
             text = f.read()
 
         msg = MIMEText(text)
-        msg["Subject"] = f"{task} job completed for {dates}"
+        msg["Subject"] = f"{task} job completed for {dates} on {hostname}"
         msg["From"] = f"{user}@{hostname}"
         msg["To"] = notification_email
 
