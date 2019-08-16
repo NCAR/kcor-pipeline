@@ -2,10 +2,13 @@
 
 import argparse
 import datetime
+from email.mime.text import MIMEText
 import glob
 import os
 import psutil
 import re
+import smtplib
+import socket
 import subprocess
 import sys
 import time
@@ -52,6 +55,50 @@ def display_time(seconds, granularity=2):
 
 def format_timedelta(timedelta):
     return(display_time(int(timedelta.total_seconds()), granularity=len(intervals)))
+
+
+def convert_boolean(value):
+    return True if value.lower() in {'1', 'yes', 'true'} else False
+
+
+def notify_completed(args, task):
+    config_basename = f'kcor.{args.flags}.cfg'
+
+    # construct config file filename
+    config_filename = os.path.join(PIPELINE_DIR, 'config', config_basename)
+
+    # read config file to get arguments to launch data/processing simulators
+    config = configparser.ConfigParser()
+    config.read(config_filename)
+
+    try:
+        send_notification = convert_boolean(config.get('notifications', 'send'))
+    except (configparser.NoSectionError, configparser.NoOptionError) as e:
+        send_notification = False
+
+    try:
+        notification_email = config.get('notifications', 'email')
+    except (configparser.NoSectionError, configparser.NoOptionError) as e:
+        send_notification = False
+
+    if send_notification:
+        userhome = os.path.expanduser('~')
+        user = os.path.split(userhome)[-1]
+        hostname = socket.gethostname()
+
+        dates = ','.join(args.dates)
+
+        with open(config_filename, "r") as f:
+            text = f.read()
+
+        msg = MIMEText(text)
+        msg["Subject"] = f"{task} job completed for {dates}"
+        msg["From"] = f"{user}@{hostname}"
+        msg["To"] = notification_email
+
+        s = smtplib.SMTP("localhost")
+        s.send_message(msg)
+        s.quit()
 
 
 # list sub-command
@@ -230,6 +277,8 @@ def process_cal(args):
     for d in args.dates:
         calibrate_dates(d, args.flags, args.no_wait)
 
+    notify_completed(args, 'Calibration')
+
 
 def calibrate_list(filelist, dates, flags, no_wait, parser):
     if dates.find(',') >= 0 or dates.find('-') >= 0:
@@ -281,17 +330,23 @@ def process(args):
     for d in args.dates:
         process_dates(d, 'process', args.flags, args.no_wait)
 
+    notify_completed(args, 'Process')
+
 
 # realtime (rt) sub-command
 def process_rt(args):
     for d in args.dates:
         process_dates(d, 'rt', args.flags, args.no_wait)
 
+    notify_completed(args, 'Real-time process')
+
 
 # end-of-day (eod) sub-command
 def process_eod(args):
     for d in args.dates:
         process_dates(d, 'eod', args.flags, args.no_wait)
+
+    notify_completed(args, 'End-of-day process')
 
 
 # script sub-command
@@ -322,11 +377,15 @@ def run_script(args):
                     terminated = wait_for(process)
                     if terminated: break
 
+    notify_completed(args, 'Script')
+
 
 # CME detection sub-command
 def cme_detection(args):
     for d in args.dates:
         process_dates(d, 'cmedetection', args.flags, args.no_wait)
+
+    notify_completed(args, 'CME detection')
 
 
 # savecme sub-command
@@ -334,6 +393,8 @@ def savecme(args):
     script = f'savecme'
     for d in args.dates:
         process_dates(d, script, args.flags, args.no_wait)
+
+    notify_completed(args, 'Save CME results')
 
 
 # archive sub-command
@@ -348,11 +409,15 @@ def purge(args):
     for d in args.dates:
         process_dates(d, 'purge', args.flags, args.no_wait)
 
+    notify_completed(args, 'Purge')
+
 
 # remove sub-command
 def remove(args):
     for d in args.dates:
         process_dates(d, 'remove', args.flags, args.no_wait)
+
+    notify_completed(args, 'Remove')
 
 
 def process_dates(dates, script, flags, no_wait):
