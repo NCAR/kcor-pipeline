@@ -23,8 +23,8 @@ pro kcor_find_badlines, im, $
   corona0 = kcor_corona(im[*, *, *, 0])
   corona1 = kcor_corona(im[*, *, *, 1])
 
-  if (median(im) gt 10000.0) then continue
-  if (median(corona0) gt 200.0 || median(corona1) gt 200.0) then continue
+  if (median(im) gt 10000.0) then return
+  if (median(corona0) gt 200.0 || median(corona1) gt 200.0) then return
 
   cam0_badlines = kcor_find_badlines_camera(corona0)
   cam1_badlines = kcor_find_badlines_camera(corona1)
