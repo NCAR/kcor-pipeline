@@ -59,7 +59,7 @@ pro kcor_create_averages, date, l1_files, run=run
   hst = ''
   daily_hst = ''
 
-  n_skip = 8                         ; number of daily times to skip
+  n_skip = 2                         ; number of daily times to skip
 
   date_julian = dblarr(8)
 
@@ -115,8 +115,14 @@ pro kcor_create_averages, date, l1_files, run=run
           dailycount += 1
         endif
         date_julian[0] = date_julian[last]
+        hst = tmp_hst
         stopavg = 0
         numavg = 1
+        saveheader = header
+        savename = strmid(file_basename(l1_file), 0, 25)
+        imgtimes[0]    = imgtimes[last]
+        imgendtimes[0] = imgendtimes[last]
+        timestring[0]  = strmid(imgtimes[0], 11)
       endif else begin
         if (f ge n_elements(l1_files)) then break
 
@@ -607,12 +613,23 @@ end
 
 ; main-level example program
 
-date = '20180703'
-config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
+; setup
+date = '20190812'
+config_filename = filepath('kcor.averaging.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
 
+; clean old averages
+old_average_files = file_search(filepath('*avg*', $
+                                         subdir=[date, 'level1'], $
+                                         root=run->config('processing/raw_basedir')), $
+                                count=n_old_average_files)
+if (n_old_average_files gt 0L) then begin
+  file_delete, old_average_files, /allow_nonexistent
+endif
+
+; create new averages
 l1_zipped_fits_glob = '*_l1.5.fts.gz'
 l1_zipped_files = file_search(filepath(l1_zipped_fits_glob, $
                                        subdir=[date, 'level1'], $
@@ -620,6 +637,9 @@ l1_zipped_files = file_search(filepath(l1_zipped_fits_glob, $
                               count=n_l1_zipped_files)
 
 kcor_create_averages, date, l1_zipped_files, run=run
+
+; cleanup
+obj_destroy, run
 
 end
 
