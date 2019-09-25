@@ -365,3 +365,4 @@
   find and remove horizontal line artifacts automatically
   do not rotate quicklook images
   compute SGSDIMV using model for days with unreliable data
+  fix for when only OK image in batch is first good science image
