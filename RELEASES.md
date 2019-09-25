@@ -363,3 +363,5 @@
   can turn off row/col images and report generation
   initial version of streaming aerosol removal
   find and remove horizontal line artifacts automatically
+  do not rotate quicklook images
+  compute SGSDIMV using model for days with unreliable data
