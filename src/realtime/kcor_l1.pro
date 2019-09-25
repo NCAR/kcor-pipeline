@@ -1698,8 +1698,8 @@ pro kcor_l1, date, ok_files, $
   endforeach   ; end file loop
 
   ; drop the first file from OK files if skipped
-  if (first_skipped && nfiles gt 1L) then begin
-    ok_files = ok_files[1:*]
+  if (first_skipped) then begin
+    ok_files = nfiles gt 1L ? ok_files[1:*] : !null
   endif
 
   ; get system time & compute elapsed time since TIC command
