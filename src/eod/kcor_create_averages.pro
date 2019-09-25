@@ -336,19 +336,24 @@ pro kcor_create_averages, date, l1_files, run=run
 
     save = tvrd()
 
-    gif_basename = strmid(savename, 0, 25) + '_avg.gif'
-    write_gif, gif_basename, save, red, green, blue
-    if (run->config('realtime/distribute')) then begin
-      file_copy, gif_basename, fullres_dir, /overwrite
-    endif
+    if (numavg gt 1L) then begin
+      gif_basename = strmid(savename, 0, 25) + '_avg.gif'
+      write_gif, gif_basename, save, red, green, blue
+      if (run->config('realtime/distribute')) then begin
+        file_copy, gif_basename, fullres_dir, /overwrite
+      endif
 
-    ; create cropped (512 x 512) GIF images
-    kcor_cropped_gif, bscale * avgimg, date, kcor_parse_dateobs(date_obs), $
-                      /average, output_filename=cgif_filename, run=run, $
-                      log_name='kcor/eod'
-    if (run->config('realtime/distribute')) then begin
-      file_copy, cgif_filename, cropped_dir, /overwrite
-    endif
+      ; create cropped (512 x 512) GIF images
+      kcor_cropped_gif, bscale * avgimg, date, kcor_parse_dateobs(date_obs), $
+                        /average, output_filename=cgif_filename, run=run, $
+                        log_name='kcor/eod'
+      if (run->config('realtime/distribute')) then begin
+        file_copy, cgif_filename, cropped_dir, /overwrite
+      endif
+    endif else begin
+      mg_log, 'not writing average GIFs with single image: %s', gif_basename, $
+              name='comp', /debug
+    endelse
 
     ; Create fullres (1024x1024) FITS image
     ; Create up to 2 new keywords that record the times of the images used in
@@ -365,8 +370,13 @@ pro kcor_create_averages, date, l1_files, run=run
     fxaddpar, saveheader, 'DATE-END', imgtimes[numavg - 1]
     fxaddpar, saveheader, 'DATE_HST', hst
 
-    mg_log, 'writing %s', fits_filename, name='kcor/eod', /info
-    writefits, fits_filename, avgimg, saveheader
+    if (numavg gt 1L) then begin
+      mg_log, 'writing %s', fits_filename, name='kcor/eod', /info
+      writefits, fits_filename, avgimg, saveheader
+    endif else begin
+      mg_log, 'not writing average FITS with single image: %s', fits_filename, $
+              name='comp', /debug
+    endelse
   endwhile
 
   ; zip average FITS files
