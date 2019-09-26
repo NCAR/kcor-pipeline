@@ -5,8 +5,10 @@ import datetime
 from email.mime.text import MIMEText
 import glob
 import os
+import pathlib
 import psutil
 import re
+import shutil
 import smtplib
 import socket
 import subprocess
@@ -502,6 +504,109 @@ def simulate(args):
         data_process.kill()
 
 
+# stage sub-command
+def stage(args):
+    dst = os.path.realpath(args.location)
+    print(f"staging to {dst}")
+
+    for e in args.dates:
+        for r in e.split(','):
+            if r.find('-') < 0:
+                dates = [r]
+            else:
+                try:
+                    dates = expand_date_range(r)
+                except IndexError:
+                    args.parser.error(r"bad date range expression: {r}")
+
+            for d in dates:
+                stage_date(args.parser, d, args.flags, dst)
+
+    notify_completed(args, "Stage")
+
+
+def expand_date_range(r):
+    ends = r.split("-")
+    start_dt = datetime.datetime.strptime(ends[0], "%Y%m%d")
+    end_dt = datetime.datetime.strptime(ends[1], "%Y%m%d")
+
+    if end_dt < start_dt:
+        raise IndexError
+
+    dates = []
+
+    dt = start_dt
+    while dt < end_dt:
+        dates.append(dt.strftime("%Y%m%d"))
+        dt += datetime.timedelta(days=1)
+
+    return dates
+
+
+def raw_basedir(date, config_filename):
+    """Look for processing/raw_basedir first -- if not found, then use
+    processing/routing_file.
+    """
+    config = configparser.ConfigParser()
+    config.read(config_filename)
+
+    try:
+        raw_basedir = config.get("processing", "raw_basedir")
+        return raw_basedir
+    except configparser.NoOptionError:
+        routing_file = config.get("processing", "routing_file")
+        routing = configparser.ConfigParser()
+        routing.read(routing_file)
+        date_ranges = routing.options("locations")
+        for r in date_ranges:
+            if pathlib.PurePath(date).match(r):
+                raw_basedir = routing.get("locations", r)
+                return raw_basedir
+        return None
+
+
+def stage_date(parser, date, flags, dst):
+    config_filename = os.path.join(PIPELINE_DIR,
+                                   "config",
+                                   f"kcor.{flags}.cfg")
+    src = raw_basedir(date, config_filename)
+
+    if src is None:
+        parser.error("raw basedir not specified")
+
+    date_dir = os.path.join(src, date)
+    if os.path.isdir(date_dir):
+        try:
+            copy_date(date, src, dst)
+        except FileNotFoundError:
+            parser.error(f"files not found in {src}")
+    else:
+        parser.error(f"{date_dir} does not exist")
+
+
+def copy_date(date, src, dst):
+    copy_files(date, src, "*.log", dst)
+    copy_files(date, src, "*.fts.gz", dst, verbose=True)
+
+
+def copy_files(date, src, spec, dst, *, verbose=False):
+    files = glob.glob(os.path.join(src, date, "level0", spec))
+    if not files:
+        files = glob.glob(os.path.join(src, date, spec))
+        if not files:
+            raise FileNotFoundError
+
+    dst_dir = os.path.join(dst, date)
+    if not os.path.isdir(dst_dir):
+        os.mkdir(dst_dir)
+
+    if verbose:
+        print(f"staging {date} [{src}] ({len(files)} FITS files)...")
+
+    for f in files:
+        shutil.copy2(f, dst_dir)
+
+
 def print_help(args):
     args.parser.print_help()
 
@@ -709,6 +814,19 @@ if __name__ == '__main__':
     simulate_parser.add_argument('--no-eod', action='store_true',
                                  help='set to not launch end-of-day processing')
     simulate_parser.set_defaults(func=simulate, parser=simulate_parser)
+
+    # stage sub-command
+    stage_parser = subparsers.add_parser('stage',
+                                         help='stage raw data')
+    stage_parser.add_argument('dates', type=str, nargs='*',
+                              help='date to run on in the form YYYYMMDD',
+                              metavar='date')
+    stage_parser.add_argument('-f', '--flags', type=str, help=flags_help,
+                              default='latest')
+    stage_parser.add_argument('-l', '--location', type=str,
+                              help="location to copy raw data to",
+                              default='.')
+    stage_parser.set_defaults(func=stage, parser=stage_parser)
 
     # parse args and call appropriate sub-command
     args = parser.parse_args()
