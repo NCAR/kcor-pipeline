@@ -233,6 +233,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
   foreach l0_file, l0_fits_files do begin
     num_img += 1
     img = readfits(l0_file, hdu, /silent)   ; read fits image & header
+    img = float(img)
 
     mg_log, 'checking %d/%d: %s', $
             num_img, n_l0_fits_files, file_basename(l0_file), $

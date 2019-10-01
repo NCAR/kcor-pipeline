@@ -30,9 +30,8 @@ pro kcor_correct_camera, im, header, $
   ; we will have to clear the camera correction cache directory
   interpolate = run->config('calibration/interpolate_camera_correction')
 
-  im = float(im)
-
-  if (~run->epoch('correct_camera')) then begin
+  if (~run->epoch('correct_camera') $
+      || ~run->config('calibration/correct_camera')) then begin
     mg_log, 'not performing camera correction', name=logger_name, /debug
     return
   endif

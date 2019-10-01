@@ -178,8 +178,8 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       endelse
     endif
 
-    kcor_l1, date, ok_files, run=run, mean_phase1=mean_phase1, $
-             log_name='kcor/rt', error=error
+    kcor_process_files, ok_files, run=run, mean_phase1=mean_phase1, $
+                        log_name='kcor/rt', error=error
     if (error ne 0L) then begin
       mg_log, 'L1.5 processing failed, quitting', name='kcor/rt', /error
       goto, done
