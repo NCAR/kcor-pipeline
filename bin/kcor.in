@@ -607,6 +607,31 @@ def copy_files(date, src, spec, dst, *, verbose=False):
         shutil.copy2(f, dst_dir)
 
 
+# stage sub-command
+def locate(args):
+    # get config file
+    config_filename = os.path.join(PIPELINE_DIR,
+                                   "config",
+                                   f"kcor.{args.flags}.cfg")
+
+    if args.dates:
+        for d in args.dates:
+            # get raw_basedir
+            raw_bdir = raw_basedir(d, config_filename)
+            print(f"{d}: {raw_bdir}")
+    else:
+        config = configparser.ConfigParser()
+        config.read(config_filename)
+        try:
+            raw_bdir = config.get("processing", "raw_basedir")
+            print(raw_bdir)
+        except configparser.NoOptionError:
+            routing_file = config.get("processing", "routing_file")
+            with open(routing_file, "r") as f:
+                print(f.read().strip())
+
+
+
 def print_help(args):
     args.parser.print_help()
 
@@ -804,29 +829,41 @@ if __name__ == '__main__':
 
 
     # simulate sub-command
-    simulate_parser = subparsers.add_parser('simulate', aliases=['sim'],
-                                            help='simulate realtime processing')
-    simulate_parser.add_argument('dates', type=str, nargs='*',
-                                 help='date to run on in the form YYYYMMDD',
-                                 metavar='date')
-    simulate_parser.add_argument('-f', '--flags', type=str, help=flags_help,
-                                default='latest')
-    simulate_parser.add_argument('--no-eod', action='store_true',
-                                 help='set to not launch end-of-day processing')
+    simulate_parser = subparsers.add_parser("simulate", aliases=["sim"],
+                                            help="simulate realtime processing")
+    simulate_parser.add_argument("dates", type=str, nargs="*",
+                                 help="date to run on in the form YYYYMMDD",
+                                 metavar="date")
+    simulate_parser.add_argument("-f", "--flags", type=str, help=flags_help,
+                                default="latest")
+    simulate_parser.add_argument("--no-eod", action="store_true",
+                                 help="set to not launch end-of-day processing")
     simulate_parser.set_defaults(func=simulate, parser=simulate_parser)
 
+
     # stage sub-command
-    stage_parser = subparsers.add_parser('stage',
-                                         help='stage raw data')
-    stage_parser.add_argument('dates', type=str, nargs='*',
-                              help='date to run on in the form YYYYMMDD',
-                              metavar='date')
-    stage_parser.add_argument('-f', '--flags', type=str, help=flags_help,
-                              default='latest')
-    stage_parser.add_argument('-l', '--location', type=str,
+    stage_parser = subparsers.add_parser("stage",
+                                         help="stage raw data")
+    stage_parser.add_argument("dates", type=str, nargs="*",
+                              help="date to run on in the form YYYYMMDD",
+                              metavar="date")
+    stage_parser.add_argument("-f", "--flags", type=str, help=flags_help,
+                              default="reprocess")
+    stage_parser.add_argument("-l", "--location", type=str,
                               help="location to copy raw data to",
-                              default='.')
+                              default=".")
     stage_parser.set_defaults(func=stage, parser=stage_parser)
+
+
+    # locate sub-command
+    locate_parser = subparsers.add_parser("locate", aliases=["loc"],
+                                          help="locate raw data")
+    locate_parser.add_argument("dates", type=str, nargs="*",
+                              help="date to run on in the form YYYYMMDD",
+                              metavar="date")
+    locate_parser.add_argument("-f", "--flags", type=str, help=flags_help,
+                               default="reprocess")
+    locate_parser.set_defaults(func=locate, parser=locate_parser)
 
     # parse args and call appropriate sub-command
     args = parser.parse_args()
