@@ -12,6 +12,7 @@
 ;     observation date
 ;-
 pro kcor_l1_gif, l0_file, corona, date_obs, $
+                 scaled_image=scaled_image, $
                  nomask=nomask, $
                  run=run, $
                  log_name=log_name
@@ -52,12 +53,12 @@ pro kcor_l1_gif, l0_file, corona, date_obs, $
   xyouts, 512, 1000, 'North', color=255, charsize=1.2, alignment=0.5, $
           /device
   xyouts, 1018, 995, $
-          string(date_struct.day, date_struct.name_month, date_struct_year, $
+          string(date_struct.day, date_struct.month_name, date_struct.year, $
                  format='(%"%02d %s %04d")'), $
           /device, alignment=1.0, $
           charsize=1.2, color=255
   xyouts, 1010, 975, $
-          string(date_struct.doy, format='(%"4d")'), $
+          string(date_struct.doy, format='(%"%4d")'), $
           /device, $
           alignment=1.0, charsize=1.2, color=255
   xyouts, 1018, 955, $
@@ -95,7 +96,10 @@ pro kcor_l1_gif, l0_file, corona, date_obs, $
   gif_file = string(strmid(file_basename(l0_file), 0, 20), $
                     keyword_set(nomask) ? '_nomask' : '', $
                     format='(%"%s_l1%s.gif")')
-  write_gif, filepath(gif_file, root=l1_dir), save, red, green, blue
+  write_gif, filepath(gif_file, $
+                      subdir=[run.date, 'level1'], $
+                      root=run->config('processing/raw_basedir')), $
+             save, red, green, blue
 
   tvlct, rgb
   device, decomposed=original_decomposed

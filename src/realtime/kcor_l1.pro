@@ -18,7 +18,8 @@
 ;   error : out, optional, type=long
 ;     set to a named variable to retrieve the error status of the call
 ;-
-pro kcor_l1, ok_file, $
+pro kcor_l1, ok_filename, $
+             l1_filename=l1_filename, $
              nomask=nomask, $
              run=run, $
              mean_phase1=mean_phase1, $
@@ -39,7 +40,7 @@ pro kcor_l1, ok_file, $
   if (~file_test(l1_dir, /directory)) then file_mkdir, l1_dir
 
   mg_log, 'L1 processing %s%s', $
-          ok_file, keyword_set(nomask) ? ' (nomask)' : '', $
+          file_basename(ok_filename), keyword_set(nomask) ? ' (nomask)' : '', $
           name=log_name, /info
 
   mean_phase1 = 0.0   ; TODO: this is not set?
@@ -55,13 +56,13 @@ pro kcor_l1, ok_file, $
   cal_data_new = dblarr(xsize, ysize, 2, 3)
   gain_shift   = dblarr(xsize, ysize, 2)
 
-  l1_file = string(strmid(file_basename(l0_file), 0, 20), $
-                   keyword_set(nomask) ? '_nomask' : '', $
-                   format='(%"%s_l1.5%s.fts")')
+  l1_filename = string(strmid(file_basename(ok_filename), 0, 20), $
+                       keyword_set(nomask) ? '_nomask' : '', $
+                       format='(%"%s_l1.5%s.fts")')
 
-  lclock = tic('Loop_' + strtrim(fnum, 2))
+  lclock = tic('file_loop')
 
-  img = readfits(l0_file, header, /silent)
+  img = readfits(ok_filename, header, /silent)
 
   type = fxpar(header, 'DATATYPE')
   mg_log, 'type: %s', strmid(type, 0, 3), name=log_name, /debug
@@ -180,9 +181,9 @@ pro kcor_l1, ok_file, $
 
   if (cal_epoch_version ne run->epoch('cal_epoch_version')) then begin
     mg_log, 'cal file epoch_version (%s) does not match for time of file %s (%s)', $
-            cal_epoch_version, file_basename(l0_file), run->epoch('cal_epoch_version'), $
+            cal_epoch_version, file_basename(ok_filename), run->epoch('cal_epoch_version'), $
             name=log_name, /error
-    mg_log, 'skipping file %s', file_basename(l0_file), name=log_name, /error
+    mg_log, 'skipping file %s', file_basename(ok_filename), name=log_name, /error
     error = 1L
     goto, done
   endif
@@ -195,15 +196,15 @@ pro kcor_l1, ok_file, $
 
   if (n_elements(cal_exptime) eq 0L) then begin
     mg_log, 'calibration exptime not defined', name=log_name, /error
-    mg_log, 'skipping file %s', file_basename(l0_file), name=log_name, /error
-    error =1 L
+    mg_log, 'skipping file %s', file_basename(ok_filename), name=log_name, /error
+    error = 1L
     goto, done
   endif else begin
     if (abs(cal_exptime - struct.exptime) gt 1e-3) then begin
       mg_log, 'cal file EXPTIME (%0.2f ms) does not match file (%0.2f ms) for %s', $
-              cal_exptime, struct.exptime, file_basename(l0_file), $
+              cal_exptime, struct.exptime, file_basename(ok_filename), $
               name=log_name, /error
-      mg_log, 'skipping file %s', file_basename(l0_file), name=log_name, /error
+      mg_log, 'skipping file %s', file_basename(ok_filename), name=log_name, /error
       error = 1L
       goto, done
     endif
@@ -212,9 +213,9 @@ pro kcor_l1, ok_file, $
   file_lyotstop = kcor_lyotstop(header, run=run)
   if (cal_lyotstop ne file_lyotstop) then begin
     mg_log, 'cal file LYOTSTOP (%s) does not match file (%s) for %s', $
-            cal_lyotstop, file_lyotstop, file_basename(l0_file), $
+            cal_lyotstop, file_lyotstop, file_basename(ok_filename), $
             name=log_name, /error
-    mg_log, 'skipping file %s', file_basename(l0_file), name=log_name, /error
+    mg_log, 'skipping file %s', file_basename(ok_filename), name=log_name, /error
     error = 1L
     goto, done
   endif
@@ -257,7 +258,7 @@ pro kcor_l1, ok_file, $
                        tcam_cor_filename=tcam_cor_filename
 
   if (run->config('realtime/diagnostics')) then begin
-    save, img, header, filename=strmid(file_basename(l0_file), 0, 20) + '_cam.sav'
+    save, img, header, filename=strmid(file_basename(ok_filename), 0, 20) + '_cam.sav'
   endif
 
   if (run->epoch('remove_horizontal_artifact')) then begin
@@ -645,7 +646,8 @@ pro kcor_l1, ok_file, $
 
   ; end of new beam combination modifications
 
-  kcor_l1_gif, l0_file, corona, date_obs, $
+  kcor_l1_gif, ok_filename, corona, date_obs, $
+               scaled_image=scaled_image, $
                nomask=nomask, $
                run=run, log_name=log_name
 
@@ -727,10 +729,10 @@ pro kcor_l1, ok_file, $
   comment_padding = strjoin(strarr(25) + ' ')
 
   ; image array information
-  fxaddpar, newheader, 'BITPIX',   struct.bitpix, ' bits per pixel'
+  fxaddpar, newheader, 'BITPIX', -32, ' bits per pixel'
   fxaddpar, newheader, 'NAXIS', 2, ' number of dimensions; FITS image' 
-  fxaddpar, newheader, 'NAXIS1',   struct.naxis1, ' [pixels] x dimension'
-  fxaddpar, newheader, 'NAXIS2',   struct.naxis2, ' [pixels] y dimension'
+  fxaddpar, newheader, 'NAXIS1', struct.naxis1, ' [pixels] x dimension'
+  fxaddpar, newheader, 'NAXIS2', struct.naxis2, ' [pixels] y dimension'
   if (struct.extend eq 0) then val_extend = 'F'
   if (struct.extend eq 1) then val_extend = 'T'
   fxaddpar, newheader, 'EXTEND', 'F', ' no FITS extensions'
@@ -1139,7 +1141,7 @@ pro kcor_l1, ok_file, $
   endif
 
   ; write FITS image to disk
-  writefits, filepath(l1_file, root=l1_dir), corona, newheader
+  writefits, filepath(l1_filename, root=l1_dir), corona, newheader
 
   ; write Helioviewer JPEG2000 image to a web accessible directory
   if (run->config('results/hv_basedir') ne '' && ~keyword_set(nomask)) then begin
@@ -1149,21 +1151,22 @@ pro kcor_l1, ok_file, $
   endif
 
   ; now make cropped GIF file
-  kcor_cropped_gif, corona, date, date_struct, run=run, nomask=nomask, log_name=log_name
+  kcor_cropped_gif, corona, run.date, date_struct, run=run, nomask=nomask, log_name=log_name
   
   ; create NRG (normalized, radially-graded) GIF image
   cd, l1_dir
-  if (osecond lt 15 and fix(ominute / 2) * 2 eq ominute $
+  if (date_struct.second lt 15 and fix(date_struct.minute / 2) * 2 eq date_struct.minute $
         and ~keyword_set(nomask)) then begin
-    kcor_nrgf, l1_file, run=run, log_name=log_name
+    kcor_nrgf, l1_filename, run=run, log_name=log_name
     mg_log, /check_math, name=log_name, /debug
-    kcor_nrgf, l1_file, /cropped, run=run, log_name=log_name
+    kcor_nrgf, l1_filename, /cropped, run=run, log_name=log_name
     mg_log, /check_math, name=log_name, /debug
   endif
   cd, l0_dir
 
   loop_time = toc(lclock)   ; save loop time
-  mg_log, '%0.1f sec to process %s', loop_time, l0_file, name=log_name, /debug
+  mg_log, '%0.1f sec to process %s', loop_time, file_basename(ok_filename), $
+          name=log_name, /debug
 
   done:
   mg_log, /check_math, name=log_name, /debug
@@ -1172,16 +1175,19 @@ end
 
 ; main-level example program
 
-date = '20131014'
-config_filename = filepath('kcor.reprocess.cfg', $
+date = '20190924'
+config_filename = filepath('kcor.parker.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
 
-l1_file = filepath('20131015_013948_kcor.fts.gz', $
-                   subdir=date, $
-                   root=run->config('processing/raw_basedir'))
 
-kcor_l1, l1_file, run=run, log_name='kcor/rt'
+l0_filename = filepath('20190924_175132_kcor.fts.gz', $
+                       subdir=[date, 'level0'], $
+                       root=run->config('processing/raw_basedir'))
+
+kcor_l1, l0_filename, run=run, log_name='kcor/rt'
+
+obj_destroy, run
 
 end

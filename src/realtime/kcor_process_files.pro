@@ -319,6 +319,8 @@ pro kcor_process_files, ok_files, $
   l1_dir = dirs[1]
   l2_dir = dirs[2]
 
+  date_dir = filepath(run.date, subdir=run->config('processing/raw_basedir'))
+
   ; move to the processing directory
   cd, current=start_dir   ; save current directory
 
@@ -365,17 +367,17 @@ pro kcor_process_files, ok_files, $
       continue
     endif
 
-    kcor_l1, filepath(file_basename(l0_file), root=l0_dir), $
+    kcor_l1, filepath(file_basename(l0_file), root=date_dir), $
              run=run, $
              mean_phase1=file_mean_phase1, $
-             l1_filename=l1_file, $
+             l1_filename=l1_filename, $
              nomask=nomask, $
              log_name=log_name, $
              error=l1_error
     error or= l1_error
     mean_phase1[fnum - 1L] = file_mean_phase1
 
-    kcor_l2, l1_file, $
+    kcor_l2, l1_filename, $
              run=run, $
              nomask=nomask, $
              log_name=log_name, $
@@ -386,7 +388,7 @@ pro kcor_process_files, ok_files, $
 
   ; drop the first file from OK files if skipped
   if (first_skipped) then begin
-    ok_files = nfiles gt 1L ? ok_files[1:*] : !null
+    ok_files = n_ok_files gt 1L ? ok_files[1:*] : !null
   endif
 
 
