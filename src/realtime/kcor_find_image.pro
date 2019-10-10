@@ -197,3 +197,27 @@ function kcor_find_image, data, radius_guess, $
 
   return, a
 end
+
+
+; main-level example program
+
+date = '20190625'
+config_filename = filepath('kcor.latest.cfg', $
+                           subdir=['..', '..', 'config'], $
+                           root=mg_src_root())
+run = kcor_run(date, config_filename=config_filename)
+
+calpath = filepath(run->epoch('cal_file'), root=run->config('calibration/out_dir'))
+print, calpath
+unit = ncdf_open(calpath)
+ncdf_varget, unit, 'Gain', gain_alfred
+gain_negative = -10
+gain_alfred[where(gain_alfred le 0, /null)] = gain_negative
+ncdf_close, unit
+
+window, xsize=1024, ysize=1024, /free, title='Gain'
+tv, bytscl(gain_alfred)
+
+obj_destroy, run
+
+end
