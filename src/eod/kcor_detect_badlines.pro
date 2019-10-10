@@ -30,13 +30,15 @@ pro kcor_detect_badlines, run=run
     corona0 = kcor_corona(im[*, *, *, 0])
     corona1 = kcor_corona(im[*, *, *, 1])
 
-    if (median(im) gt 10000.0) then continue
-    if (median(corona0) gt 200.0 || median(corona1) gt 200.0) then continue
+    if (median(im) gt run->config('badlines/median_max')) then continue
+    corona_max = run->config('badlines/corona_max')
+    if (median(corona0) gt corona_max || median(corona1) gt corona_max) then continue
 
     n_checked_images += 1L
 
-    cam0 = kcor_find_badlines_camera(corona0)
-    cam1 = kcor_find_badlines_camera(corona1)
+    difference_threshold = run->config('badlines/difference_threshold')
+    cam0 = kcor_find_badlines_camera(corona0, difference_threshold=difference_threshold)
+    cam1 = kcor_find_badlines_camera(corona1, difference_threshold=difference_threshold)
 
     for i = 0L, n_elements(cam0) - 1L do cam0_badlines[cam0[i]] += 1
     for i = 0L, n_elements(cam1) - 1L do cam1_badlines[cam1[i]] += 1

@@ -9,12 +9,15 @@
 ; :Params:
 ;   im : in, required, type="fltarr(nx, ny)"
 ;     coronal image from one camera to check
+;
+; :Keywords:
+;   difference_threshold : in, required, type=float
+;     minimum value of the mean of a row of column differences to be considered
+;     for being a bad row
 ;-
-function kcor_find_badlines_camera, corona
+function kcor_find_badlines_camera, corona, $
+                                    difference_threshold=difference_threshold
   compile_opt strictarr
-
-  ; TODO: need to play around with this threshold
-  diff_threshold = 40.0
 
   col_diff_kernel = fltarr(3, 3)
   col_diff_kernel[1, *] = [-0.5, 1.0, -0.5]
@@ -29,7 +32,7 @@ function kcor_find_badlines_camera, corona
   ; number of lines to skip at the top and bottom of the image
   n_skip = 3
 
-  bad_lines = where(means[n_skip:-n_skip-1] gt diff_threshold, $
+  bad_lines = where(means[n_skip:-n_skip-1] gt difference_threshold, $
                     n_bad_lines, /null)
 
   ; need to add bad the index offset for the skipping lines

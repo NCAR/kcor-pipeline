@@ -664,10 +664,16 @@ pro kcor_l1, date, ok_files, $
     radius_guess = occulter / run->epoch('plate_scale')    ; pixels
 
     if (run->epoch('remove_horizontal_artifact')) then begin
+      difference_threshold = run->config('badlines/difference_threshold')
+      median_max = run->config('badlines/median_max')
+      corona_max = run->config('badlines/corona_max')
       kcor_find_badlines, img, $
                           cam0_badlines=cam0_badlines, $
-                          cam1_badlines=cam1_badlines
-    endif
+                          cam1_badlines=cam1_badlines, $
+                          difference_threshold=difference_threshold, $
+                          median_max=median_max, $
+                          corona_max=corona_max
+   endif
 
     ; correct camera nonlinearity
     kcor_correct_camera, img, header, run=run, logger_name=log_name, $

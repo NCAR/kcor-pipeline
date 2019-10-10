@@ -15,7 +15,10 @@
 ;-
 pro kcor_find_badlines, im, $
                         cam0_badlines=cam0_badlines, $
-                        cam1_badlines=cam1_badlines
+                        cam1_badlines=cam1_badlines, $
+                        difference_threshold=difference_threshold, $
+                        median_max=median_max, $
+                        corona_max=corona_max
   compile_opt strictarr
 
   cam0_badlines = !null
@@ -24,11 +27,13 @@ pro kcor_find_badlines, im, $
   corona0 = kcor_corona(im[*, *, *, 0])
   corona1 = kcor_corona(im[*, *, *, 1])
 
-  if (median(im) gt 30000.0) then return
-  if (median(corona0) gt 200.0 || median(corona1) gt 200.0) then return
+  if (median(im) gt median_max) then return
+  if (median(corona0) gt corona_max || median(corona1) gt corona_max) then return
 
-  cam0_badlines = kcor_find_badlines_camera(corona0)
-  cam1_badlines = kcor_find_badlines_camera(corona1)
+  cam0_badlines = kcor_find_badlines_camera(corona0, $
+                                            difference_threshold=difference_threshold)
+  cam1_badlines = kcor_find_badlines_camera(corona1, $
+                                            difference_threshold=difference_threshold)
 end
 
 
