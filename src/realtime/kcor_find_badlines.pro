@@ -55,12 +55,14 @@ run = kcor_run(date, config_filename=config_filename)
 ;basename = '20190625_183025_kcor.fts.gz'
 ;basename = '20190625_182421_kcor.fts.gz'
 ;basename = '20190625_184218_kcor.fts.gz'
-basename = '20190625_184435_kcor.fts.gz'
+;basename = '20190625_184435_kcor.fts.gz'
+;basename = '20190625_192603_kcor.fts.gz'
+basename = '20190625_193338_kcor.fts.gz'
 filename = filepath(basename, $
-;                    subdir=[date, 'level0'], $
-                    subdir=[date], $
+                    subdir=[date, 'level0'], $
+;                    subdir=[date], $
                     root=run->config('processing/raw_basedir'))
-im = readfits(filename, header)
+im = readfits(filename, header, /silent)
 
 corona0 = kcor_corona(im[*, *, *, 0])
 corona1 = kcor_corona(im[*, *, *, 1])
@@ -72,7 +74,10 @@ tv, bytscl(corona1, min=0.0, max=200.0)
 
 kcor_find_badlines, im, $
                     cam0_badlines=cam0_badlines, $
-                    cam1_badlines=cam1_badlines
+                    cam1_badlines=cam1_badlines, $
+                    difference_threshold=run->config('badlines/difference_threshold'), $
+                    median_max=run->config('badlines/median_max'), $
+                    corona_max=run->config('badlines/corona_max')
 
 if (n_elements(cam0_badlines) gt 0L) then begin
   print, strjoin(strtrim(cam0_badlines, 2), ', '), $
