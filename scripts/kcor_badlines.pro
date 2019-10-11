@@ -11,11 +11,15 @@
 ;   config_filename : in, required, type=string
 ;     config filename
 ;-
-pro kcor_find_badlines, date, config_filename=config_filename
+pro kcor_badlines, date, config_filename=config_filename
   compile_opt strictarr
 
   run = kcor_run(date, config_filename=config_filename, mode='badlines')
+
+  mg_log, 'starting bad lines for %d', date, name=run.logger_name, /info
+  mg_log, 'bad lines diff threshold: %0.1f', run->epoch('badlines_diff_threshold'), $
+          name=run.logger_name, /info
   kcor_detect_badlines, run=run
-  kcor_median_rowcol_image, run=run
+
   obj_destroy, run
 end

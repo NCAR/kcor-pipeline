@@ -450,6 +450,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
                            config_filename=config_filename, $
                            pipe_dir=pipe_dir, $
                            resources_dir=resources_dir, $
+                           logger_name=logger_name, $
                            mode=mode
   compile_opt strictarr
 
@@ -465,6 +466,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
     resources_dir = filepath('resources', root=self.pipe_dir)
   endif
 
+  if (arg_present(logger_name)) then logger_name = self.log_name
   if (arg_present(mode)) then mode = self.mode
 end
 

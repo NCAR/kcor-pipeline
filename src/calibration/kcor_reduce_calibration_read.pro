@@ -74,22 +74,16 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
       lyotstop = kcor_lyotstop(header, run=run)
     endif
 
-    ; TODO: should this be done in calibration?
     if (run->epoch('remove_horizontal_artifact')) then begin
-      difference_threshold = run->config('badlines/difference_threshold')
-      median_max = run->config('badlines/median_max')
-      corona_max = run->config('badlines/corona_max')
+      difference_threshold = run->epoch('badlines_diff_threshold')
       kcor_find_badlines, thisdata, $
                           cam0_badlines=cam0_badlines, $
                           cam1_badlines=cam1_badlines, $
-                          difference_threshold=difference_threshold, $
-                          median_max=median_max, $
-                          corona_max=corona_max
+                          difference_threshold=difference_threshold
     endif
 
     kcor_correct_camera, thisdata, header, run=run, logger_name='kcor/cal'
 
-    ; TODO: should this be done in calibration?
     if (run->epoch('remove_horizontal_artifact')) then begin
       if (n_elements(cam0_badlines) gt 0L) then begin
         mg_log, 'correcting cam 0 bad lines: %s', $

@@ -19,15 +19,12 @@ function kcor_find_badlines_camera, corona, $
                                     difference_threshold=difference_threshold
   compile_opt strictarr
 
-  col_diff_kernel = fltarr(3, 3)
-  col_diff_kernel[1, *] = [-0.5, 1.0, -0.5]
+  n = 3
+  col_diff_kernel = fltarr(n, n) - 1.0 / (n - 1L)
+  col_diff_kernel[*, n / 2] = 1.0
   col_diffs = convol(corona, col_diff_kernel)
 
-  means = mean(abs(col_diffs), dimension=1)
-
-  n = 5
-  kernel = fltarr(n) - 1.0 / (n - 1)
-  kernel[n / 2] = 1.0
+  means = mean(abs(col_diffs) < 80.0, dimension=1)
 
   ; number of lines to skip at the top and bottom of the image
   n_skip = 3

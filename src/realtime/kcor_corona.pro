@@ -13,5 +13,6 @@
 function kcor_corona, im
   compile_opt strictarr
 
-  return, sqrt((im[*, *, 0] - im[*, *, 3])^2 + (im[*, *, 1] - im[*, *, 2])^2)
+  _im = float(im)
+  return, sqrt((_im[*, *, 0] - _im[*, *, 3])^2 + (_im[*, *, 1] - _im[*, *, 2])^2)
 end
