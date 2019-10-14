@@ -19,6 +19,9 @@ pro kcor_badlines, date, config_filename=config_filename
   mg_log, 'starting bad lines for %d', date, name=run.logger_name, /info
   mg_log, 'bad lines diff threshold: %0.1f', run->epoch('badlines_diff_threshold'), $
           name=run.logger_name, /info
+
+  mg_log, 'raw basedir: %s', run->config('processing/raw_basedir'), $
+          name=run.logger_name, /info
   kcor_detect_badlines, run=run
 
   obj_destroy, run

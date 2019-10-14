@@ -425,7 +425,9 @@ pro kcor_run::setProperty, time=time, mode=mode
 
   if (n_elements(mode) gt 0L) then begin
     self.mode = mode
-    self.log_name = self.mode eq 'realtime' ? 'kcor/rt' : 'kcor/eod'
+    if (self.mode eq 'realtime') then begin
+      self.logger_name = 'kcor/rt'
+    endif else self.logger_name = 'kcor/' + mode
   endif
 
   if (n_elements(time) gt 0L) then begin
@@ -466,7 +468,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
     resources_dir = filepath('resources', root=self.pipe_dir)
   endif
 
-  if (arg_present(logger_name)) then logger_name = self.log_name
+  if (arg_present(logger_name)) then logger_name = self.logger_name
   if (arg_present(mode)) then mode = self.mode
 end
 
@@ -553,7 +555,7 @@ pro kcor_run__define
            date:            '', $
            config_filename: '', $
            mode:            '', $   ; realtime or eod
-           log_name:        '', $
+           logger_name:     '', $
            pipe_dir:        '', $
            options:         obj_new(), $
            epochs:          obj_new()}
