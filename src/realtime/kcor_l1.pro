@@ -252,6 +252,12 @@ pro kcor_l1, ok_filename, $
   ; TODO: do this?
   img = float(img)
 
+  if (run->epoch('remove_horizontal_artifact')) then begin
+    kcor_find_badlines, img, $
+                        cam0_badlines=cam0_badlines, $
+                        cam1_badlines=cam1_badlines
+  endif
+
   ; correct camera nonlinearity
   kcor_correct_camera, img, header, run=run, logger_name=log_name, $
                        rcam_cor_filename=rcam_cor_filename, $
@@ -262,10 +268,6 @@ pro kcor_l1, ok_filename, $
   endif
 
   if (run->epoch('remove_horizontal_artifact')) then begin
-    kcor_find_badlines, img, $
-                        cam0_badlines=cam0_badlines, $
-                        cam1_badlines=cam1_badlines
-
     if (n_elements(cam0_badlines) gt 0L) then begin
       mg_log, 'correcting cam 0 bad lines: %s', $
               strjoin(strtrim(cam0_badlines, 2), ', '), $

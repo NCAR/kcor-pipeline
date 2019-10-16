@@ -9,30 +9,52 @@
 ; :Params:
 ;   im : in, required, type="fltarr(nx, ny)"
 ;     coronal image from one camera to check
+;
+; :Keywords:
+;   difference_threshold : in, required, type=float
+;     minimum value of the mean of a row of column differences to be considered
+;     for being a bad row
 ;-
 function kcor_find_badlines_camera, corona, $
-                                    diff_threshold=diff_threshold, $
-                                    kernel_width=kernel_width
+                                    difference_threshold=difference_threshold
   compile_opt strictarr
 
-  meds = median(corona, dimension=1)
+  n = 3
+  col_diff_kernel = fltarr(n, n) - 1.0 / (n - 1L)
+  col_diff_kernel[*, n / 2] = 1.0
+  col_diffs = convol(corona, col_diff_kernel)
 
-  _diff_threshold = n_elements(diff_threshold) eq 0L ? 25.0 : diff_threshold
-
-  n = n_elements(kernel_width) eq 0L ? 5 : kernel_width
-  kernel = fltarr(n) - 1.0 / (n - 1)
-  kernel[n / 2] = 1.0
+  means = mean(abs(col_diffs) < 80.0, dimension=1)
 
   ; number of lines to skip at the top and bottom of the image
   n_skip = 3
 
-  diffs = convol(meds[n_skip:-n_skip-1], kernel, /edge_truncate)
-  bad_lines = where(diffs gt _diff_threshold, n_bad_lines, /null)
-  ;if (n_bad_lines eq 0L) then begin
-  ;  max_value = max(diffs, max_index)
-  ;  print, max_value, max_index + 3, format='(%"  %0.3f @ %d")'
-  ;endif
+  bad_lines = where(means[n_skip:-n_skip-1] gt difference_threshold, $
+                    n_bad_lines, /null)
+
+  ; need to add bad the index offset for the skipping lines
   if (n_bad_lines gt 0L) then bad_lines += n_skip
+
+  ; if multiple bad lines found, take the worst one in each contiguous block of
+  ; bad lines
+  if (n_bad_lines gt 1L) then begin
+    dims = size(corona, /dimensions)
+    mask = bytarr(dims[1])
+    mask[bad_lines] = 1B
+    labels = label_region(mask)
+    n_labels = max(labels)
+    worse_lines = lonarr(n_labels)
+
+    for r = 1L, n_labels do begin
+      ind = where(labels eq r, count)
+      if (count gt 0L) then begin
+        !null = max(means[ind], max_index)
+        worse_lines[r - 1L] = ind[max_index]
+      endif
+    endfor
+
+    bad_lines = worse_lines
+  endif
 
   return, bad_lines
 end

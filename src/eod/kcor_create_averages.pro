@@ -352,7 +352,7 @@ pro kcor_create_averages, date, l1_files, run=run
       endif
     endif else begin
       mg_log, 'not writing average GIFs with single image: %s', gif_basename, $
-              name='comp', /debug
+              name='kcor/eod', /debug
     endelse
 
     ; Create fullres (1024x1024) FITS image

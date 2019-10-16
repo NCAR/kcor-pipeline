@@ -17,16 +17,20 @@ pro kcor_correct_horizontal_artifact_image, im, lines, pol_state, camera
   compile_opt strictarr
 
   dims = size(im, /dimensions)
+  _im = float(im)
 
   for l = 0L, n_elements(lines) - 1L do begin
-    im[*, lines[l], pol_state, camera] = !values.f_nan
-    interp = mean(reform(im[*, $
-                            (lines[l] - 1) > 0:(lines[l] + 1) < (dims[1] - 1), $
-                            pol_state, $
-                            camera]), $
-                    dimension=2, /nan)
-    im[*, lines[l], pol_state, camera] = interp
+    _im[*, lines[l], pol_state, camera] = !values.f_nan
+    interp = mean(reform(_im[*, $
+                             (lines[l] - 1) > 0:(lines[l] + 1) < (dims[1] - 1), $
+                             pol_state, $
+                             camera]), $
+                  dimension=2, /nan)
+
+    _im[*, lines[l], pol_state, camera] = interp
   endfor
+
+  im = fix(_im, type=size(im, /type))
 end
 
 

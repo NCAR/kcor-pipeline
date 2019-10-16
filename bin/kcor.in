@@ -94,7 +94,7 @@ def notify_completed(args, task):
             text = f.read()
 
         msg = MIMEText(text)
-        msg["Subject"] = f"{task} job completed for {dates} on {hostname}"
+        msg["Subject"] = f"KCor {task} ({args.flags}) job completed for {dates} on {hostname}"
         msg["From"] = f"{user}@ucar.edu"
         msg["To"] = notification_email
 
@@ -279,7 +279,7 @@ def process_cal(args):
     for d in args.dates:
         calibrate_dates(d, args.flags, args.no_wait)
 
-    notify_completed(args, 'Calibration')
+    notify_completed(args, 'calibration')
 
 
 def calibrate_list(filelist, dates, flags, no_wait, parser):
@@ -332,7 +332,7 @@ def process(args):
     for d in args.dates:
         process_dates(d, 'process', args.flags, args.no_wait)
 
-    notify_completed(args, 'Process')
+    notify_completed(args, 'process')
 
 
 # realtime (rt) sub-command
@@ -340,7 +340,7 @@ def process_rt(args):
     for d in args.dates:
         process_dates(d, 'rt', args.flags, args.no_wait)
 
-    notify_completed(args, 'Real-time process')
+    notify_completed(args, 'real-time process')
 
 
 # end-of-day (eod) sub-command
@@ -348,7 +348,7 @@ def process_eod(args):
     for d in args.dates:
         process_dates(d, 'eod', args.flags, args.no_wait)
 
-    notify_completed(args, 'End-of-day process')
+    notify_completed(args, 'end-of-day process')
 
 
 # script sub-command
@@ -379,7 +379,7 @@ def run_script(args):
                     terminated = wait_for(process)
                     if terminated: break
 
-    notify_completed(args, 'Script')
+    notify_completed(args, 'script')
 
 
 # CME detection sub-command
@@ -396,7 +396,7 @@ def savecme(args):
     for d in args.dates:
         process_dates(d, script, args.flags, args.no_wait)
 
-    notify_completed(args, 'Save CME results')
+    notify_completed(args, 'save CME results')
 
 
 # archive sub-command
@@ -411,7 +411,7 @@ def purge(args):
     for d in args.dates:
         process_dates(d, 'purge', args.flags, args.no_wait)
 
-    notify_completed(args, 'Purge')
+    notify_completed(args, 'purge')
 
 
 # remove sub-command
@@ -419,7 +419,7 @@ def remove(args):
     for d in args.dates:
         process_dates(d, 'remove', args.flags, args.no_wait)
 
-    notify_completed(args, 'Remove')
+    notify_completed(args, 'remove')
 
 
 def process_dates(dates, script, flags, no_wait):
@@ -522,7 +522,7 @@ def stage(args):
             for d in dates:
                 stage_date(args.parser, d, args.flags, dst)
 
-    notify_completed(args, "Stage")
+    notify_completed(args, "stage")
 
 
 def expand_date_range(r):
