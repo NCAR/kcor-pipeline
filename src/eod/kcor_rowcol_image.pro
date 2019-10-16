@@ -30,7 +30,8 @@ pro kcor_rowcol_image_l0, run=run
   medcols1 = fltarr(nx, n_files)
 
   for f = 0L, n_files - 1L do begin
-    im = readfits(files[f], /silent)
+    im = readfits(files[f], header, /silent)
+    exposure = sxpar(header, 'EXPTIME')
 
     corona0 = kcor_corona(reform(im[*, *, *, 0]))
     corona1 = kcor_corona(reform(im[*, *, *, 1]))
@@ -59,7 +60,7 @@ pro kcor_rowcol_image_l0, run=run
                                root=pdir)
 
   min = 0.0
-  max = 200.0
+  max = run->epoch('corona_max') * exposure
 
   write_gif, medrows0_filename, bytscl(medrows0, min=min, max=max)
   write_gif, medrows1_filename, bytscl(medrows1, min=min, max=max)
@@ -162,7 +163,7 @@ end
 
 ; main-level example
 
-date = '20190508'
+date = '20131001'
 
 run = kcor_run(date, $
                config_filename=filepath('kcor.latest.cfg', $
