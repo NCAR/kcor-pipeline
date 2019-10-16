@@ -89,7 +89,7 @@ pro kcor_plot_l1, run=run
   radii = [1.11, 1.3, 1.5, 1.8]   ; R_sun
   radius_width = 0.01
   yranges = [[1.0e-07, 7.0e-07], $
-             [6.0e-08, 3.0e-07], $
+             [3.0e-08, 3.0e-07], $
              [5.0e-09, 1.2e-07], $
              [1.0e-09, 4.0e-08]]
   plate_scale = run->epoch('plate_scale')
@@ -132,13 +132,14 @@ pro kcor_plot_l1, run=run
   loadct, 0, /silent
 
   plot, times, skytrans, $
-        title=string(run.date, format='(%"Sky transmission for %s")'), $
+        title=string(run.date, format='(%"Sky transmission correction for %s")'), $
         xtitle='Hours [UT]', $
-        yrange=skytrans_range, ystyle=1, ytitle='Sky transmission', $
-        background=255, color=0, charsize=charsize
+        yrange=skytrans_range, ystyle=1, $
+        ytitle='Sky trans @ flat image / sky trans @ science image', $
+        background=255, color=0, charsize=charsize, psym=1
 
   im = tvrd()
-  write_gif, filepath(string(run.date, format='(%"%s.kcor.skytrans.gif")'), $
+  write_gif, filepath(string(run.date, format='(%"%s.kcor.skytrans-correct.gif")'), $
                       root=plots_dir), $
              im
 
@@ -153,7 +154,7 @@ pro kcor_plot_l1, run=run
           xmargin=[11, 3], xticklen=1.0, xtitle='Hours [UT]', $
           yticklen=1.0, yrange=yranges[*, r], ystyle=1, ytitle='pB', $
           ytickformat='(E0.1)', $
-          background=255, color=200, charsize=charsize
+          background=255, color=200, charsize=charsize, psym=1
 
     plot, times, reform(mean_pb[r, *]), /noerase, $
           title=string(radii[r], run.date, $
@@ -161,7 +162,7 @@ pro kcor_plot_l1, run=run
           xmargin=[11, 3], xticklen=0.025, xtitle='Hours [UT]', $
           yticklen=0.03, yrange=yranges[*, r], ystyle=1, ytitle='pB', $
           ytickformat='(E0.1)', $
-          color=0, charsize=charsize
+          color=0, charsize=charsize, psym=1
 
     im = tvrd()
     write_gif, filepath(string(run.date, radii[r], $
