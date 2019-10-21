@@ -319,7 +319,7 @@ pro kcor_process_files, ok_files, $
   l1_dir = dirs[1]
   l2_dir = dirs[2]
 
-  date_dir = filepath(run.date, subdir=run->config('processing/raw_basedir'))
+  date_dir = filepath(run.date, root=run->config('processing/raw_basedir'))
 
   ; move to the processing directory
   cd, current=start_dir   ; save current directory
