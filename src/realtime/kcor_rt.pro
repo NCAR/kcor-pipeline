@@ -87,6 +87,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       kcor_reprocess, date, run=run, error=error
       if (error ne 0L) then begin
         mg_log, 'error in reprocessing setup, exiting', name='kcor/rt', /error
+        mg_log, 'see reprocessing log for details', name='kcor/rt', /error
         goto, done
       endif
     endif else begin
