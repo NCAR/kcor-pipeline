@@ -367,3 +367,4 @@
   fix for when only OK image in batch is first good science image
 1.6.16 [Oct 22, 2019]
   fix for DLM path in CME detection code
+1.6.17
