@@ -351,7 +351,7 @@
   typo in CME detection report
 1.6.14 [Jul 18, 2019]
   fix for saturated images in quality check
-1.6.15
+1.6.15 [Oct 22, 2019]
   use simulated SGSDIMV for early epochs
   adjust plots of radial intensity and centering
   create plot of sky transmission over the day
