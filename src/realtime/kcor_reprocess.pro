@@ -33,7 +33,7 @@ pro kcor_reprocess, date, run=run, error=error
         mg_log, 'prepping for updating', name='kcor/reprocess', /info
       end
     else: begin
-        mg_log, 'exiting, neither reprocessing nor udpating', $
+        mg_log, 'exiting, neither reprocessing nor updating', $
                 name='kcor/reprocess', /error
         goto, done
       end
