@@ -31,7 +31,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
     if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
   endif
 
-  l1_dir   = filepath('level1', subdir=date, root=run->config('processing/raw_basedir'))
+  l1_dir = filepath('level1', subdir=date, root=run->config('processing/raw_basedir'))
 
   cd, current=current
   cd, l1_dir
