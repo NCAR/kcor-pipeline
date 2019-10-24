@@ -7,4 +7,6 @@ pro kcor_l2, l1_file, $
              error=error
   compile_opt strictarr
 
+  error = 0L
+
 end
