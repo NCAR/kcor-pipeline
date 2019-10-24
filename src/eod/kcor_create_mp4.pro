@@ -51,3 +51,31 @@ pro kcor_create_mp4, gif_filenames, mp4_filename, run=run, status=status
   tmp_files = file_search('kcor_tmp*', count=n_tmp_files)
   if (n_tmp_files gt 0L) then file_delete, tmp_files
 end
+
+
+; main-level example program
+
+date = '20190924'
+
+config_filename = filepath('kcor.parker.cfg', $
+                           subdir=['..', '..', 'config'], $
+                           root=mg_src_root())
+run = kcor_run(date, config_filename=config_filename)
+
+nrgf_glob = filepath('*_kcor_l1.5_nrgf.fts.gz', $
+                     subdir=[date, 'level1'], $
+                     root=run->config('processing/raw_basedir'))
+nrgf_files = file_search(nrgf_glob, count=n_nrgf_files)
+
+gif_filenames = file_basename(nrgf_files, '_nrgf.fts.gz') + '.gif'
+dailymp4_filename = string(date, format='(%"%s_kcor_l1.5.mp4")')
+
+l1_dir = filepath('level1', subdir=date, root=run->config('processing/raw_basedir'))
+cd, l1_dir
+
+kcor_create_mp4, gif_filenames, dailymp4_filename, run=run, status=status
+help, status
+
+obj_destroy, run
+
+end
