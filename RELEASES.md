@@ -351,7 +351,7 @@
   typo in CME detection report
 1.6.14 [Jul 18, 2019]
   fix for saturated images in quality check
-1.6.15
+1.6.15 [Oct 22, 2019]
   use simulated SGSDIMV for early epochs
   adjust plots of radial intensity and centering
   create plot of sky transmission over the day
@@ -365,3 +365,6 @@
   find and remove horizontal line artifacts automatically
   do not rotate quicklook images
   fix for when only OK image in batch is first good science image
+1.6.16 [Oct 22, 2019]
+  fix for DLM path in CME detection code
+1.6.17

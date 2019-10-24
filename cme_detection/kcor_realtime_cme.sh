@@ -19,6 +19,7 @@ SCRIPT_LOC=$(canonicalpath $0)
 KCOR_CME_ROOT=$(dirname $SCRIPT_LOC)
 KCOR_ROOT=$(dirname $KCOR_CME_ROOT)
 KCOR_CME_PATH=+${KCOR_CME_ROOT}:+${KCOR_ROOT}/lib:+${KCOR_ROOT}/src:"<IDL_DEFAULT>"
+KCOR_CME_DLM_PATH=+${KCOR_CME_ROOT}/lib:"<IDL_DEFAULT>"
 
 FLAGS=cme
 
@@ -28,4 +29,7 @@ CONFIG_FILENAME=$KCOR_ROOT/config/kcor.$FLAGS.cfg
 
 IDL_CMD="$SCRIPT_NAME, config_filename='$CONFIG_FILENAME', /realtime"
 
-${IDL} -IDL_PATH ${KCOR_CME_PATH} -IDL_STARTUP '' -e "${IDL_CMD}"
+${IDL} -IDL_PATH ${KCOR_CME_PATH} \
+       -IDL_DLM_PATH ${KCOR_CME_DLM_PATH} \
+       -IDL_STARTUP '' \
+       -e "${IDL_CMD}"
