@@ -121,7 +121,7 @@ pro kcor_plot_l1, run=run
   n_bad = n_nan + n_lt + n_gt
   if (n_bad gt 0L) then begin
     mg_log, '%d out of range sky transmission values', n_bad, $
-            name=logger_name, /error
+            name=logger_name, /warn
   endif
 
   charsize = 1.15
