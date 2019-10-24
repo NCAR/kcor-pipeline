@@ -302,6 +302,7 @@
 ;-
 pro kcor_process_files, ok_files, $
                         nomask=nomask, $
+                        eod=eod, $
                         run=run, $
                         mean_phase1=mean_phase1, $
                         log_name=log_name, $
@@ -354,7 +355,7 @@ pro kcor_process_files, ok_files, $
 
     fnum += 1L
 
-    mg_log, 'processing %d/%d: %s', $
+    mg_log, '%d/%d: %s', $
             fnum, n_ok_files, file_basename(l0_file), $
             name=log_name, /info
 
@@ -367,7 +368,8 @@ pro kcor_process_files, ok_files, $
       continue
     endif
 
-    kcor_l1, filepath(file_basename(l0_file), root=date_dir), $
+    kcor_l1, filepath(file_basename(l0_file), $
+                      root=keyword_set(eod) ? l0_dir : date_dir), $
              run=run, $
              mean_phase1=file_mean_phase1, $
              l1_filename=l1_filename, $

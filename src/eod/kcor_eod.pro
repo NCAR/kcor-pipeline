@@ -173,7 +173,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     oka_files = filepath(oka_files, $
                          subdir=[date, 'level0'], $
                          root=run->config('processing/raw_basedir'))
-    kcor_process_files, oka_files[0:*:60], /nomask, run=run, $
+    kcor_process_files, oka_files[0:*:60], /nomask, /eod, run=run, $
                         log_name='kcor/eod', error=error
   endif else begin
     mg_log, 'no OK L0 files to produce nomask files for', name='kcor/eod', /info
