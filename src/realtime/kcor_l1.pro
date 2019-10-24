@@ -26,6 +26,7 @@ pro kcor_l1, ok_filename, $
              log_name=log_name, $
              error=error
   compile_opt strictarr
+  on_error, 2
 
   error = 0L
 
@@ -62,6 +63,9 @@ pro kcor_l1, ok_filename, $
 
   lclock = tic('file_loop')
 
+  if (~file_test(ok_filename, /regular)) then begin
+    message, string(file_basename(ok_filename), format='(%"%s not found")')
+  endif
   img = readfits(ok_filename, header, /silent)
 
   type = fxpar(header, 'DATATYPE')
@@ -92,7 +96,7 @@ pro kcor_l1, ok_filename, $
   endif
 
   ncdf_varget, unit, 'Dark', dark_alfred
-  ncdf_varget, unit, 'Gain', gain_alfred
+  ncdf_varget, unit, 'Gain', gain_alfred  ; gain_alfred is a dark corrected gain
   gain_alfred /= 1e-6   ; this makes gain_alfred in units of B/Bsun
   ncdf_varget, unit, 'Modulation Matrix', mmat
   ncdf_varget, unit, 'Demodulation Matrix', dmat
@@ -253,9 +257,11 @@ pro kcor_l1, ok_filename, $
   img = float(img)
 
   if (run->epoch('remove_horizontal_artifact')) then begin
+    difference_threshold = run->epoch('badlines_diff_threshold')
     kcor_find_badlines, img, $
                         cam0_badlines=cam0_badlines, $
-                        cam1_badlines=cam1_badlines
+                        cam1_badlines=cam1_badlines, $
+                        difference_threshold=difference_threshold
   endif
 
   ; correct camera nonlinearity
