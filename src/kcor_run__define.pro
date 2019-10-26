@@ -82,16 +82,14 @@ function kcor_run::epoch, name, time=time
 
   ; handle 'cal_file' when using pipeline cal files
   if (strlowcase(name) eq 'cal_file') then begin
-    if (self.epochs->get('use_pipeline_calfiles', datetime=datetime)) then begin
-      if (n_elements(time) eq 0L) then begin
-        dt = self.epochs.datetime
-        hst_time = dt->strftime('%H%M%S')
-      endif else hst_time = kcor_ut2hst(time)
+    if (n_elements(time) eq 0L) then begin
+      dt = self.epochs.datetime
+      hst_time = dt->strftime('%H%M%S')
+    endif else hst_time = kcor_ut2hst(time)
 
-      calfile = self->_find_calfile(self.date, hst_time)
-      if (calfile eq '') then message, 'unable to find cal file'
-      return, calfile
-    endif
+    calfile = self->_find_calfile(self.date, hst_time)
+    if (calfile eq '') then message, 'unable to find cal file'
+    return, calfile
   endif
 
   value = self.epochs->get(name, datetime=datetime)
