@@ -54,6 +54,11 @@ pro kcor_calibration, date, $
           name='kcor/eod', /debug
   mg_log, 'starting calibration for %s', date, name='kcor/eod', /info
 
+  if (~run->epoch('produce_calibration')) then begin
+    mg_log, 'skipping reducing calibration', name='kcor/eod', /info
+    goto, done
+  endif
+      
   if (n_elements(filelist_filename) gt 0L) then begin
     n_files = file_lines(filelist_filename)
     filelist = strarr(n_files)
