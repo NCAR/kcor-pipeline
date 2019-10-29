@@ -1446,8 +1446,8 @@ pro kcor_l1, date, ok_files, $
     skypol_method_comment = ' sky polarization removal method'
     case skypol_method of
       'subtraction':
-      'sin2theta': skypol_method_comment += string(run->epoch('sine2theta_nparams'), $
-                                                   format='(%" (%d params)")')
+      'sine2theta': skypol_method_comment += string(run->epoch('sine2theta_nparams'), $
+                                                    format='(%" (%d params)")')
       else: skypol_method = 'none'
     endcase
     fxaddpar, newheader, 'SKYPOLRM', skypol_method, skypol_method_comment
