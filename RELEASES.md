@@ -370,3 +370,4 @@
 1.6.17 [Oct 25, 2019]
   add epoch for bad cal data on 20191024
 1.6.18
+  add CAMERAS, FIXCAMLC, SKYPOLRM FITS keywords

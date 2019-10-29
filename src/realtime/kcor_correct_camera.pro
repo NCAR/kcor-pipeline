@@ -32,7 +32,8 @@ pro kcor_correct_camera, im, header, $
 
   im = float(im)
 
-  if (~run->epoch('correct_camera')) then begin
+  if (~run->epoch('correct_camera') $
+        || ~run->config('calibration/correct_camera')) then begin
     mg_log, 'not performing camera correction', name=logger_name, /debug
     return
   endif

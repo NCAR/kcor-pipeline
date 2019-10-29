@@ -1418,6 +1418,9 @@ pro kcor_l1, date, ok_files, $
       fxaddpar, newheader, 'TCAMCORR', file_basename(tcam_cor_filename), $
                 ''
     endif
+    fxaddpar, newheader, 'FIXCAMLC', $
+              run->config('calibration/interpolate_camera_correction') ? 1 : 0, $
+              ' interp over bad pixels in camera lin correction'
 
     fxaddpar, newheader, 'CALFILE', file_basename(calpath), $
               ' calibration file'
@@ -1426,12 +1429,28 @@ pro kcor_l1, date, ok_files, $
     if (finite(vdimref) && finite(flat_vdimref) && vdimref ne 0.0) then begin
       skytrans = flat_vdimref / vdimref
     endif
+    case run->config('realtime/cameras') of
+      '0': cameras_used = 'RCAM'
+      '1': cameras_used = 'TCAM'
+      else: cameras_used = 'both'
+    endcase
+    fxaddpar, newheader, 'CAMERAS', cameras_used, $
+              ' cameras used in processing'
     fxaddpar, newheader, 'SKYTRANS', skytrans, $
               ' ' + run->epoch('skytrans_comment'), $
               format='(F5.3)', /null
     fxaddpar, newheader, 'BIASCORR', run->epoch('skypol_bias'), $
               ' bias added after sky polarization correction', $
               format='(G0.3)'
+    skypol_method = strlowcase(run->config('realtime/skypol_method'))
+    skypol_method_comment = ' sky polarization removal method'
+    case skypol_method of
+      'subtraction':
+      'sin2theta': skypol_method_comment += string(run->epoch('sine2theta_nparams'), $
+                                                   format='(%" (%d params)")')
+      else: skypol_method = 'none'
+    endcase
+    fxaddpar, newheader, 'SKYPOLRM', skypol_method, skypol_method_comment
     fxaddpar, newheader, 'ROLLCORR', run->epoch('rotation_correction'), $
               ' [deg] clockwise offset: spar polar axis align.', $
               format='(G0.1)'
