@@ -367,4 +367,7 @@
   fix for when only OK image in batch is first good science image
 1.6.16 [Oct 22, 2019]
   fix for DLM path in CME detection code
-1.6.17
+1.6.17 [Oct 25, 2019]
+  add epoch for bad cal data on 20191024
+1.6.18
+  add CAMERAS, FIXCAMLC, SKYPOLRM FITS keywords

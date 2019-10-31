@@ -118,16 +118,8 @@ pro kcor_l1, ok_filename, $
   endelse
 
   if (kcor_nc_varid(unit, 'exptime') eq -1L) then begin
-    if (run->epoch('use_pipeline_calfiles')) then begin
-      tokens = strsplit(file_basename(run->epoch('cal_file'), '.ncdf'), '_', /extract)
-      cal_exptime = float(strmid(tokens[-1], 0, strlen(tokens[-1]) - 2))
-    endif else begin
-      ; no way to determine EXPTIME for old-style cal files
-      mg_log, 'no way to determine EXPTIME for old-style cal files', $
-              name=log_name, /error
-      error = 1L
-      goto, done
-    endelse
+    tokens = strsplit(file_basename(run->epoch('cal_file'), '.ncdf'), '_', /extract)
+    cal_exptime = float(strmid(tokens[-1], 0, strlen(tokens[-1]) - 2))
   endif else begin
     ncdf_varget, unit, 'exptime', cal_exptime
   endelse
@@ -902,10 +894,20 @@ pro kcor_l1, ok_filename, $
               ''
   endif
 
+  fxaddpar, newheader, 'FIXCAMLC', $
+            run->config('calibration/interpolate_camera_correction') ? 1 : 0, $
+            ' interp over bad pixels in camera lin correction'
   fxaddpar, newheader, 'CALFILE', file_basename(calpath), $
             ' calibration file'
   fxaddpar, newheader, 'DISTORT', file_basename(dc_path), $
             ' distortion file'
+    case run->config('realtime/cameras') of
+      '0': cameras_used = 'RCAM'
+      '1': cameras_used = 'TCAM'
+      else: cameras_used = 'both'
+    endcase
+    fxaddpar, newheader, 'CAMERAS', cameras_used, $
+              ' cameras used in processing'
   if (finite(vdimref) && finite(flat_vdimref) && vdimref ne 0.0) then begin
     skytrans = flat_vdimref / vdimref
   endif
@@ -915,6 +917,15 @@ pro kcor_l1, ok_filename, $
   fxaddpar, newheader, 'BIASCORR', run->epoch('skypol_bias'), $
             ' bias added after sky polarization correction', $
             format='(G0.3)'
+  skypol_method = strlowcase(run->config('realtime/skypol_method'))
+  skypol_method_comment = ' sky polarization removal method'
+  case skypol_method of
+    'subtraction':
+    'sine2theta': skypol_method_comment += string(run->epoch('sine2theta_nparams'), $
+                                                  format='(%" (%d params)")')
+    else: skypol_method = 'none'
+  endcase
+  fxaddpar, newheader, 'SKYPOLRM', skypol_method, skypol_method_comment
   fxaddpar, newheader, 'ROLLCORR', run->epoch('rotation_correction'), $
             ' [deg] clockwise offset: spar polar axis align.', $
             format='(G0.1)'

@@ -67,7 +67,7 @@ function kcor_read_calibration_text, date, process_basedir, $
     ; use GBU params file, if specified for epoch
     gbuparams_basename = run->epoch('gbuparams_filename')
     if (gbuparams_basename eq '') then begin
-      quality[i] = 99L * run->epoch('process') * run->epoch('use_calibration_data')
+      quality[i] = 99L * run->epoch('process')
     endif else begin
       date_parts = long(kcor_decompose_date(file_date))
       time_parts = long(kcor_decompose_time(file_time))
