@@ -20,6 +20,9 @@
 ;-
 pro kcor_l1, ok_filename, $
              l1_filename=l1_filename, $
+             l1_header=l1_header, $
+             q=qmk4, $
+             u=umk4, $
              nomask=nomask, $
              run=run, $
              mean_phase1=mean_phase1, $
@@ -723,19 +726,19 @@ pro kcor_l1, ok_filename, $
 
   bscale = 1.0   ; pB is stored in FITS image
   img_quality = 'ok'
-  newheader    = strarr(200)
-  newheader[0] = header[0]         ; contains SIMPLE keyword
+  l1_header    = strarr(200)
+  l1_header[0] = header[0]         ; contains SIMPLE keyword
 
   comment_padding = strjoin(strarr(25) + ' ')
 
   ; image array information
-  fxaddpar, newheader, 'BITPIX', -32, ' bits per pixel'
-  fxaddpar, newheader, 'NAXIS', 2, ' number of dimensions; FITS image' 
-  fxaddpar, newheader, 'NAXIS1', struct.naxis1, ' [pixels] x dimension'
-  fxaddpar, newheader, 'NAXIS2', struct.naxis2, ' [pixels] y dimension'
+  fxaddpar, l1_header, 'BITPIX', -32, ' bits per pixel'
+  fxaddpar, l1_header, 'NAXIS', 2, ' number of dimensions; FITS image' 
+  fxaddpar, l1_header, 'NAXIS1', struct.naxis1, ' [pixels] x dimension'
+  fxaddpar, l1_header, 'NAXIS2', struct.naxis2, ' [pixels] y dimension'
   if (struct.extend eq 0) then val_extend = 'F'
   if (struct.extend eq 1) then val_extend = 'T'
-  fxaddpar, newheader, 'EXTEND', 'F', ' no FITS extensions'
+  fxaddpar, l1_header, 'EXTEND', 'F', ' no FITS extensions'
 
   ; normalize odd values for date/times, particularly "60" as minute value in
   ; DATE-END
@@ -746,175 +749,175 @@ pro kcor_l1, ok_filename, $
   endif
 
   ; observation information
-  fxaddpar, newheader, 'DATE-OBS', struct.date_d$obs, ' UTC observation start'
-  ; fxaddpar, newheader, 'DATE-BEG', struct.date_d$obs, ' UTC observation start'
-  fxaddpar, newheader, 'DATE-END', struct.date_d$end, ' UTC observation end'
+  fxaddpar, l1_header, 'DATE-OBS', struct.date_d$obs, ' UTC observation start'
+  ; fxaddpar, l1_header, 'DATE-BEG', struct.date_d$obs, ' UTC observation start'
+  fxaddpar, l1_header, 'DATE-END', struct.date_d$end, ' UTC observation end'
 
-  fxaddpar, newheader, 'TIMESYS',  'UTC', $
+  fxaddpar, l1_header, 'TIMESYS',  'UTC', $
             ' date/time system: Coordinated Universal Time'
-  fxaddpar, newheader, 'DATE_HST', date_hst, ' MLSO observation date [HST]'
-  fxaddpar, newheader, 'LOCATION', 'MLSO', $
+  fxaddpar, l1_header, 'DATE_HST', date_hst, ' MLSO observation date [HST]'
+  fxaddpar, l1_header, 'LOCATION', 'MLSO', $
             ' Mauna Loa Solar Observatory, Hawaii'
-  fxaddpar, newheader, 'ORIGIN',   struct.origin, $
+  fxaddpar, l1_header, 'ORIGIN',   struct.origin, $
             ' Nat.Ctr.Atmos.Res. High Altitude Observatory'
-  fxaddpar, newheader, 'TELESCOP', 'COSMO K-Coronagraph', $
+  fxaddpar, l1_header, 'TELESCOP', 'COSMO K-Coronagraph', $
             ' COSMO: COronal Solar Magnetism Observatory' 
-  fxaddpar, newheader, 'INSTRUME', 'COSMO K-Coronagraph'
+  fxaddpar, l1_header, 'INSTRUME', 'COSMO K-Coronagraph'
 
   ; wavelength information
-  fxaddpar, newheader, 'WAVELNTH', 735, $
+  fxaddpar, l1_header, 'WAVELNTH', 735, $
             ' [nm] center wavelength of bandpass filter', $
             format='(i4)'
-  fxaddpar, newheader, 'WAVEFWHM', 30, $
+  fxaddpar, l1_header, 'WAVEFWHM', 30, $
             ' [nm] full width half max of bandpass filter', $
             format='(i3)'
 
-  fxaddpar, newheader, 'OBJECT',   struct.object, $
+  fxaddpar, l1_header, 'OBJECT',   struct.object, $
             ' white light polarization brightness'
-  fxaddpar, newheader, 'DATATYPE', struct.datatype, ' type of data acquired'
-  fxaddpar, newheader, 'OBSERVER', struct.observer, $
+  fxaddpar, l1_header, 'DATATYPE', struct.datatype, ' type of data acquired'
+  fxaddpar, l1_header, 'OBSERVER', struct.observer, $
             ' name of Mauna Loa observer'
 
   ; mechanism positions
-  fxaddpar, newheader, 'DARKSHUT', struct.darkshut, $
+  fxaddpar, l1_header, 'DARKSHUT', struct.darkshut, $
             ' dark shutter open (out) or closed (in)'
-  fxaddpar, newheader, 'COVER',    struct.cover, $
+  fxaddpar, l1_header, 'COVER',    struct.cover, $
             ' cover in or out of the light beam'
-  fxaddpar, newheader, 'DIFFUSER', struct.diffuser, $
+  fxaddpar, l1_header, 'DIFFUSER', struct.diffuser, $
             ' diffuser in or out of the light beam'
-  fxaddpar, newheader, 'CALPOL',   struct.calpol, $
+  fxaddpar, l1_header, 'CALPOL',   struct.calpol, $
             ' calibration polarizer in or out of beam'
-  fxaddpar, newheader, 'CALPANG',  struct.calpang, $
+  fxaddpar, l1_header, 'CALPANG',  struct.calpang, $
             ' calibration polarizer angle', format='(f9.3)'
   exposure = run->epoch('use_exptime') ? struct.exptime : run->epoch('exptime')
-  fxaddpar, newheader, 'EXPTIME',  exposure * 1.e-3, $
+  fxaddpar, l1_header, 'EXPTIME',  exposure * 1.e-3, $
             ' [s] exposure time for each frame', format='(f10.6)'
   numsum = run->epoch('use_numsum') ? struct.numsum : run->epoch('numsum')
-  fxaddpar, newheader, 'NUMSUM', numsum, $
+  fxaddpar, l1_header, 'NUMSUM', numsum, $
             ' # frames summed per L0 img for each pol state'
 
-  fxaddpar, newheader, 'BUNIT', 'B/Bsun', $
+  fxaddpar, l1_header, 'BUNIT', 'B/Bsun', $
             ' brightness with respect to solar disk'
   diffsrid = run->epoch('use_diffsrid') ? struct.diffsrid : run->epoch('diffsrid')
-  fxaddpar, newheader, 'BOPAL', $
+  fxaddpar, l1_header, 'BOPAL', $
             run->epoch(diffsrid) * 1e-6, $
             string(run->epoch(diffsrid + '_comment'), $
                    format='(%" %s")'), $
             format='(G0.3)'
 
-  fxaddpar, newheader, 'BZERO', 0, $
+  fxaddpar, l1_header, 'BZERO', 0, $
             ' offset for unsigned integer data'
-  fxaddpar, newheader, 'BSCALE', bscale, $
+  fxaddpar, l1_header, 'BSCALE', bscale, $
             ' physical = data * BSCALE + BZERO', format='(F8.3)'
 
   ; data display information
-  fxaddpar, newheader, 'DATAMIN', min(corona, /nan), ' minimum value of data', $
+  fxaddpar, l1_header, 'DATAMIN', min(corona, /nan), ' minimum value of data', $
             format='(E0.4)'
-  fxaddpar, newheader, 'DATAMAX', max(corona, /nan), ' maximum value of data', $
+  fxaddpar, l1_header, 'DATAMAX', max(corona, /nan), ' maximum value of data', $
             format='(E0.4)'
-  fxaddpar, newheader, 'DISPMIN', run->epoch('display_min'), $
+  fxaddpar, l1_header, 'DISPMIN', run->epoch('display_min'), $
             ' minimum value for display', $
             format='(G0.3)'
-  fxaddpar, newheader, 'DISPMAX', run->epoch('display_max'), $
+  fxaddpar, l1_header, 'DISPMAX', run->epoch('display_max'), $
             ' maximum value for display', $
             format='(G0.3)'
-  fxaddpar, newheader, 'DISPEXP', run->epoch('display_exp'), $
+  fxaddpar, l1_header, 'DISPEXP', run->epoch('display_exp'), $
             ' exponent value for display (d=b^DISPEXP)', $
             format='(f10.2)'
-  fxaddpar, newheader, 'DISPGAM', run->epoch('display_gamma'), $
+  fxaddpar, l1_header, 'DISPGAM', run->epoch('display_gamma'), $
             ' gamma value for color table correction', $
             format='(f10.2)'
 
   ; coordinate system information
-  fxaddpar, newheader, 'WCSNAME', 'helioprojective-cartesian', $
+  fxaddpar, l1_header, 'WCSNAME', 'helioprojective-cartesian', $
             ' World Coordinate System (WCS) name'
-  fxaddpar, newheader, 'CTYPE1', 'HPLN-TAN', $
+  fxaddpar, l1_header, 'CTYPE1', 'HPLN-TAN', $
             ' [deg] helioprojective west angle: solar X'
-  fxaddpar, newheader, 'CRPIX1', xcen, $
+  fxaddpar, l1_header, 'CRPIX1', xcen, $
             ' [pixel] solar X center (index origin=1)', $
             format='(f9.2)'
-  fxaddpar, newheader, 'CRVAL1', 0.00, ' [arcsec] solar X sun center', $
+  fxaddpar, l1_header, 'CRVAL1', 0.00, ' [arcsec] solar X sun center', $
             format='(f9.2)'
-  fxaddpar, newheader, 'CDELT1', run->epoch('plate_scale'), $
+  fxaddpar, l1_header, 'CDELT1', run->epoch('plate_scale'), $
             ' [arcsec/pixel] solar X increment = platescale', $
             format='(f9.4)'
-  fxaddpar, newheader, 'CUNIT1', 'arcsec', ' unit of CRVAL1'
-  fxaddpar, newheader, 'CTYPE2', 'HPLT-TAN', $
+  fxaddpar, l1_header, 'CUNIT1', 'arcsec', ' unit of CRVAL1'
+  fxaddpar, l1_header, 'CTYPE2', 'HPLT-TAN', $
             ' [deg] helioprojective north angle: solar Y'
-  fxaddpar, newheader, 'CRPIX2', ycen, $
+  fxaddpar, l1_header, 'CRPIX2', ycen, $
             ' [pixel] solar Y center (index origin=1)', $
             format='(f9.2)'
-  fxaddpar, newheader, 'CRVAL2', 0.00, ' [arcsec] solar Y sun center', $
+  fxaddpar, l1_header, 'CRVAL2', 0.00, ' [arcsec] solar Y sun center', $
             format='(f9.2)'
-  fxaddpar, newheader, 'CDELT2', run->epoch('plate_scale'), $
+  fxaddpar, l1_header, 'CDELT2', run->epoch('plate_scale'), $
             ' [arcsec/pixel] solar Y increment = platescale', $
             format='(f9.4)'
-  fxaddpar, newheader, 'CUNIT2', 'arcsec', ' unit of CRVAL2'
-  fxaddpar, newheader, 'INST_ROT', 0.00, $
+  fxaddpar, l1_header, 'CUNIT2', 'arcsec', ' unit of CRVAL2'
+  fxaddpar, l1_header, 'INST_ROT', 0.00, $
             ' [deg] rotation of the image wrt solar north', $
             format='(f9.3)'
-  fxaddpar, newheader, 'PC1_1', 1.00, $
+  fxaddpar, l1_header, 'PC1_1', 1.00, $
             ' coord transform matrix element (1, 1) WCS std.', $
             format='(f9.3)'
-  fxaddpar, newheader, 'PC1_2', 0.00, $
+  fxaddpar, l1_header, 'PC1_2', 0.00, $
             ' coord transform matrix element (1, 2) WCS std.', $
             format='(f9.3)'
-  fxaddpar, newheader, 'PC2_1', 0.00, $
+  fxaddpar, l1_header, 'PC2_1', 0.00, $
             ' coord transform matrix element (2, 1) WCS std.', $
             format='(f9.3)'
-  fxaddpar, newheader, 'PC2_2', 1.00, $
+  fxaddpar, l1_header, 'PC2_2', 1.00, $
             ' coord transform matrix element (2, 2) WCS std.', $
             format='(f9.3)'
 
   ; software information
-  fxaddpar, newheader, 'QUALITY', img_quality, ' image quality'
-  fxaddpar, newheader, 'LEVEL', 'L1.5', $
+  fxaddpar, l1_header, 'QUALITY', img_quality, ' image quality'
+  fxaddpar, l1_header, 'LEVEL', 'L1.5', $
             ' level 1.5 pB Intensity is fully-calibrated'
 
   check_socketcam = tag_exist(struct, 'SOCKETCA')
   if (check_socketcam) then begin
-    fxaddpar, newheader, 'SOCKETCA', struct.socketca, $
+    fxaddpar, l1_header, 'SOCKETCA', struct.socketca, $
               ' camera interface software filename'
   endif
 
-  fxaddpar, newheader, 'DATE_DP', date_dp, ' L1.5 processing date (UTC)'
+  fxaddpar, l1_header, 'DATE_DP', date_dp, ' L1.5 processing date (UTC)'
   version = kcor_find_code_version(revision=revision, date=code_date)
-  fxaddpar, newheader, 'DPSWID',  $
+  fxaddpar, l1_header, 'DPSWID',  $
             string(version, revision, $
                    format='(%"%s [%s]")'), $
             string(code_date, $
                    format='(%" L1.5 data processing software (%s)")')
 
   if (rcam_cor_filename ne '') then begin
-    fxaddpar, newheader, 'RCAMCORR', file_basename(rcam_cor_filename), $
+    fxaddpar, l1_header, 'RCAMCORR', file_basename(rcam_cor_filename), $
               ''
   endif
   if (tcam_cor_filename ne '') then begin
-    fxaddpar, newheader, 'TCAMCORR', file_basename(tcam_cor_filename), $
+    fxaddpar, l1_header, 'TCAMCORR', file_basename(tcam_cor_filename), $
               ''
   endif
 
-  fxaddpar, newheader, 'FIXCAMLC', $
+  fxaddpar, l1_header, 'FIXCAMLC', $
             run->config('calibration/interpolate_camera_correction') ? 1 : 0, $
             ' interp over bad pixels in camera lin correction'
-  fxaddpar, newheader, 'CALFILE', file_basename(calpath), $
+  fxaddpar, l1_header, 'CALFILE', file_basename(calpath), $
             ' calibration file'
-  fxaddpar, newheader, 'DISTORT', file_basename(dc_path), $
+  fxaddpar, l1_header, 'DISTORT', file_basename(dc_path), $
             ' distortion file'
     case run->config('realtime/cameras') of
       '0': cameras_used = 'RCAM'
       '1': cameras_used = 'TCAM'
       else: cameras_used = 'both'
     endcase
-    fxaddpar, newheader, 'CAMERAS', cameras_used, $
+    fxaddpar, l1_header, 'CAMERAS', cameras_used, $
               ' cameras used in processing'
   if (finite(vdimref) && finite(flat_vdimref) && vdimref ne 0.0) then begin
     skytrans = flat_vdimref / vdimref
   endif
-  fxaddpar, newheader, 'SKYTRANS', skytrans, $
+  fxaddpar, l1_header, 'SKYTRANS', skytrans, $
             ' ' + run->epoch('skytrans_comment'), $
             format='(F5.3)', /null
-  fxaddpar, newheader, 'BIASCORR', run->epoch('skypol_bias'), $
+  fxaddpar, l1_header, 'BIASCORR', run->epoch('skypol_bias'), $
             ' bias added after sky polarization correction', $
             format='(G0.3)'
   skypol_method = strlowcase(run->config('realtime/skypol_method'))
@@ -925,88 +928,88 @@ pro kcor_l1, ok_filename, $
                                                   format='(%" (%d params)")')
     else: skypol_method = 'none'
   endcase
-  fxaddpar, newheader, 'SKYPOLRM', skypol_method, skypol_method_comment
-  fxaddpar, newheader, 'ROLLCORR', run->epoch('rotation_correction'), $
+  fxaddpar, l1_header, 'SKYPOLRM', skypol_method, skypol_method_comment
+  fxaddpar, l1_header, 'ROLLCORR', run->epoch('rotation_correction'), $
             ' [deg] clockwise offset: spar polar axis align.', $
             format='(G0.1)'
 
-  fxaddpar, newheader, 'DMODSWID', '2016-05-26', $
+  fxaddpar, l1_header, 'DMODSWID', '2016-05-26', $
             ' date of demodulation software'
-  fxaddpar, newheader, 'OBSSWID', struct.obsswid, $
+  fxaddpar, l1_header, 'OBSSWID', struct.obsswid, $
             ' version of the LabVIEW observing software'
 
   ; raw camera occulting center & radius information
-  fxaddpar, newheader, 'RCAMXCEN', xcen0 + 1, $
+  fxaddpar, l1_header, 'RCAMXCEN', xcen0 + 1, $
             ' [pixel] camera 0 raw X-coord occulting center', $
             format='(f8.2)'
-  fxaddpar, newheader, 'RCAMYCEN', ycen0 + 1, $
+  fxaddpar, l1_header, 'RCAMYCEN', ycen0 + 1, $
             ' [pixel] camera 0 raw Y-coord occulting center', $
             format='(f8.2)'
-  fxaddpar, newheader, 'RCAM_RAD', radius_0, $
+  fxaddpar, l1_header, 'RCAM_RAD', radius_0, $
             ' [pixel] camera 0 raw occulter radius', $
             format='(f8.2)'
-  fxaddpar, newheader, 'RCAM_DCX', info_dc0[0] + 1, $
+  fxaddpar, l1_header, 'RCAM_DCX', info_dc0[0] + 1, $
             ' [pixel] camera 0 dist cor occulter X center', $
             format='(f8.2)'
-  fxaddpar, newheader, 'RCAM_DCY', info_dc0[1] + 1, $
+  fxaddpar, l1_header, 'RCAM_DCY', info_dc0[1] + 1, $
             ' [pixel] camera 0 dist cor occulter Y center', $
             format='(f8.2)'
-  fxaddpar, newheader, 'RCAM_DCR', info_dc0[2], $
+  fxaddpar, l1_header, 'RCAM_DCR', info_dc0[2], $
             ' [pixel] camera 0 dist corrected occulter radius', $
             format='(f8.2)'
 
-  fxaddpar, newheader, 'TCAMXCEN', xcen1 + 1, $
+  fxaddpar, l1_header, 'TCAMXCEN', xcen1 + 1, $
             ' [pixel] camera 1 raw X-coord occulting center', $
             format='(f8.2)'
-  fxaddpar, newheader, 'TCAMYCEN', ycen1 + 1, $
+  fxaddpar, l1_header, 'TCAMYCEN', ycen1 + 1, $
             ' [pixel] camera 1 raw Y-coord occulting center', $
             format='(f8.2)'
-  fxaddpar, newheader, 'TCAM_RAD', radius_1, $
+  fxaddpar, l1_header, 'TCAM_RAD', radius_1, $
             ' [pixel] camera 1 raw occulter radius', $
             format='(f8.2)'
-  fxaddpar, newheader, 'TCAM_DCX', info_dc1[0] + 1, $
+  fxaddpar, l1_header, 'TCAM_DCX', info_dc1[0] + 1, $
             ' [pixel] camera 1 dist cor occulter X center', $
             format='(f8.2)'
-  fxaddpar, newheader, 'TCAM_DCY', info_dc1[1] + 1, $
+  fxaddpar, l1_header, 'TCAM_DCY', info_dc1[1] + 1, $
             ' [pixel] camera 1 dist cor occulter Y center', $
             format='(f8.2)'
-  fxaddpar, newheader, 'TCAM_DCR', info_dc1[2], $
+  fxaddpar, l1_header, 'TCAM_DCR', info_dc1[2], $
             ' [pixel] camera 1 dist corrected occulter radius', $
             format='(f8.2)'
 
   if (~array_equal(center_offset, [0.0, 0.0])) then begin
-    fxaddpar, newheader, 'XOFFSET', center_offset[0], $
+    fxaddpar, l1_header, 'XOFFSET', center_offset[0], $
               ' [pixel] x-offset between occulter and sun centers', $
               format='(f8.2)'
-    fxaddpar, newheader, 'YOFFSET', center_offset[1], $
+    fxaddpar, l1_header, 'YOFFSET', center_offset[1], $
               ' [pixel] y-offset between occulter and sun centers', $
               format='(f8.2)'
   endif
 
   ; add ephemeris data
-  fxaddpar, newheader, 'RSUN_OBS', radsun, $
+  fxaddpar, l1_header, 'RSUN_OBS', radsun, $
             string(dist_au * radsun, $
                    '(%" [arcsec] solar radius using ref radius %0.2f\"")'), $
             format='(f8.2)'
-  fxaddpar, newheader, 'RSUN', radsun, $
+  fxaddpar, l1_header, 'RSUN', radsun, $
             ' [arcsec] solar radius (old standard keyword)', $
             format='(f8.2)'
-  fxaddpar, newheader, 'R_SUN', radsun / run->epoch('plate_scale'), $
+  fxaddpar, l1_header, 'R_SUN', radsun / run->epoch('plate_scale'), $
             ' [pixel] solar radius', format = '(f9.2)'
-  fxaddpar, newheader, 'SOLAR_P0', pangle, $
+  fxaddpar, l1_header, 'SOLAR_P0', pangle, $
             ' [deg] solar P angle', format='(f9.3)'
-  fxaddpar, newheader, 'CRLT_OBS', bangle, $
+  fxaddpar, l1_header, 'CRLT_OBS', bangle, $
             ' [deg] solar B angle: Carrington latitude ', $
             format='(f8.3)'
-  fxaddpar, newheader, 'CRLN_OBS', tim2carr_carrington_long, $
+  fxaddpar, l1_header, 'CRLN_OBS', tim2carr_carrington_long, $
             ' [deg] solar L angle: Carrington longitude', $
             format='(f9.3)'
-  fxaddpar, newheader, 'CAR_ROT',  fix(tim2carr_carrington_rotnum), $
+  fxaddpar, l1_header, 'CAR_ROT',  fix(tim2carr_carrington_rotnum), $
             ' Carrington rotation number', format = '(i4)'
-  fxaddpar, newheader, 'SOLAR_RA', sol_ra, $
+  fxaddpar, l1_header, 'SOLAR_RA', sol_ra, $
             ' [h] solar right ascension (hours)', $
             format='(f9.3)'
-  fxaddpar, newheader, 'SOLARDEC', sol_dec, $
+  fxaddpar, l1_header, 'SOLARDEC', sol_dec, $
             ' [deg] solar declination', format = '(f9.3)'
 
   ; engineering data
@@ -1017,34 +1020,34 @@ pro kcor_l1, ok_filename, $
   stcamfocs = strmid(string(struct.tcamfocs), 0, 3)
   if (stcamfocs eq 'NaN') then tcamfocs = 0.0
 
-  fxaddpar, newheader, 'O1FOCS',   struct.o1focs, $
+  fxaddpar, l1_header, 'O1FOCS',   struct.o1focs, $
             ' [mm] objective lens (01) focus position', $
             format='(f8.3)'
-  fxaddpar, newheader, 'RCAMFOCS', rcamfocs, $
+  fxaddpar, l1_header, 'RCAMFOCS', rcamfocs, $
             ' [mm] camera 0 focus position', format='(f9.3)'
-  fxaddpar, newheader, 'TCAMFOCS', tcamfocs, $
+  fxaddpar, l1_header, 'TCAMFOCS', tcamfocs, $
             ' [mm] camera 1 focus position', format='(f9.3)'
-  fxaddpar, newheader, 'MODLTRT',  struct.modltrt, $
+  fxaddpar, l1_header, 'MODLTRT',  struct.modltrt, $
             ' [deg C] modulator temperature', format = '(f8.3)'
 
   ; component identifiers
-  fxaddpar, newheader, 'CALPOLID', struct.calpolid, $
+  fxaddpar, l1_header, 'CALPOLID', struct.calpolid, $
             ' ID polarizer'
-  fxaddpar, newheader, 'DIFFSRID', diffsrid, $
+  fxaddpar, l1_header, 'DIFFSRID', diffsrid, $
             run->epoch('use_diffsrid') ? ' ID diffuser' : run->epoch('diffsrid_comment')
-  fxaddpar, newheader, 'FILTERID', struct.filterid, $
+  fxaddpar, l1_header, 'FILTERID', struct.filterid, $
             ' ID bandpass filter'
 
   o1id = run->epoch('use_O1id') ? run->epoch(struct.o1id) : run->epoch('O1id')
-  fxaddpar, newheader, 'O1ID', o1id, ' ID objective (O1) lens' 
+  fxaddpar, l1_header, 'O1ID', o1id, ' ID objective (O1) lens' 
 
   if (check_lyotstop ne 0) then begin
-    fxaddpar, newheader, 'LYOTSTOP', struct.lyotstop, $ 
+    fxaddpar, l1_header, 'LYOTSTOP', struct.lyotstop, $ 
               ' specifies if the 2nd Lyot stop is in the beam'
   endif
 
-  fxaddpar, newheader, 'OCCLTRID', occltrid, ' ID occulter'
-  fxaddpar, newheader, 'MODLTRID', struct.modltrid, ' ID modulator'
+  fxaddpar, l1_header, 'OCCLTRID', occltrid, ' ID occulter'
+  fxaddpar, l1_header, 'MODLTRID', struct.modltrid, ' ID modulator'
 
   if (run->epoch('use_camera_info')) then begin
     prefix = run->epoch('use_camera_prefix') ? run->epoch('camera_prefix') : ''
@@ -1059,73 +1062,73 @@ pro kcor_l1, ok_filename, $
     tcamlut = run->epoch('tcamlut')
   endelse
 
-  fxaddpar, newheader, 'RCAMID', rcamid, ' ' + run->epoch('rcamid_comment') 
-  fxaddpar, newheader, 'TCAMID', tcamid, ' ' + run->epoch('tcamid_comment')  
-  fxaddpar, newheader, 'RCAMLUT', rcamlut, ' ' + run->epoch('rcamlut_comment')
-  fxaddpar, newheader, 'TCAMLUT', tcamlut, ' ' + run->epoch('tcamlut_comment')
+  fxaddpar, l1_header, 'RCAMID', rcamid, ' ' + run->epoch('rcamid_comment') 
+  fxaddpar, l1_header, 'TCAMID', tcamid, ' ' + run->epoch('tcamid_comment')  
+  fxaddpar, l1_header, 'RCAMLUT', rcamlut, ' ' + run->epoch('rcamlut_comment')
+  fxaddpar, l1_header, 'TCAMLUT', tcamlut, ' ' + run->epoch('tcamlut_comment')
 
-  fxaddpar, newheader, 'SGSDIMV', struct.sgsdimv, $
+  fxaddpar, l1_header, 'SGSDIMV', struct.sgsdimv, $
             ' [V] SGS DIM signal mean', $
             format='(f9.4)', /null
-  fxaddpar, newheader, 'SGSDIMS', struct.sgsdims, $
+  fxaddpar, l1_header, 'SGSDIMS', struct.sgsdims, $
             ' [V] SGS DIM signal standard deviation', $
             format='(e11.3)', /null
-  fxaddpar, newheader, 'SGSSUMV', struct.sgssumv, $
+  fxaddpar, l1_header, 'SGSSUMV', struct.sgssumv, $
             ' [V] mean SGS sum signal', format='(f9.4)', /null
-  fxaddpar, newheader, 'SGSSUMS',  struct.sgssums, $
+  fxaddpar, l1_header, 'SGSSUMS',  struct.sgssums, $
             ' [V] SGS sum signal standard deviation', $
             format='(e11.3)', /null
-  fxaddpar, newheader, 'SGSRAV', struct.sgsrav, $
+  fxaddpar, l1_header, 'SGSRAV', struct.sgsrav, $
             ' [V] mean SGS RA error signal', format='(e11.3)', /null
-  fxaddpar, newheader, 'SGSRAS', struct.sgsras, $
+  fxaddpar, l1_header, 'SGSRAS', struct.sgsras, $
             ' [V] mean SGS RA error standard deviation', $
             format='(e11.3)', /null
   if (check_sgsrazr ne 0) then begin
-    fxaddpar, newheader, 'SGSRAZR', struct.sgsrazr, $
+    fxaddpar, l1_header, 'SGSRAZR', struct.sgsrazr, $
               ' [arcsec] SGS RA zeropoint offset', format='(f9.4)', /null
   endif
-  fxaddpar, newheader, 'SGSDECV', struct.sgsdecv, $
+  fxaddpar, l1_header, 'SGSDECV', struct.sgsdecv, $
             ' [V] mean SGS DEC error signal', format='(e11.3)', /null
-  fxaddpar, newheader, 'SGSDECS',  struct.sgsdecs, $
+  fxaddpar, l1_header, 'SGSDECS',  struct.sgsdecs, $
             ' [V] mean SGS DEC error standard deviation', $
             format='(e11.3)', /null
   if (check_sgsdeczr ne 0) then begin
-    fxaddpar, newheader, 'SGSDECZR', struct.sgsdeczr, $
+    fxaddpar, l1_header, 'SGSDECZR', struct.sgsdeczr, $
               ' [arcsec] SGS DEC zeropoint offset', format='(f9.4)', /null
   endif
-  fxaddpar, newheader, 'SGSSCINT', struct.sgsscint, $
+  fxaddpar, l1_header, 'SGSSCINT', struct.sgsscint, $
             ' [arcsec] SGS scintillation seeing estimate', $
             format='(f9.4)', /null
-  fxaddpar, newheader, 'SGSLOOP',  struct.sgsloop, ' SGS loop closed fraction'
+  fxaddpar, l1_header, 'SGSLOOP',  struct.sgsloop, ' SGS loop closed fraction'
 
   ; data citation URL
-  fxaddpar, newheader, 'DATACITE', run->epoch('doi_url'), ' URL for DOI'
+  fxaddpar, l1_header, 'DATACITE', run->epoch('doi_url'), ' URL for DOI'
 
-  fxaddpar, newheader, 'DUMMY', 1.0
+  fxaddpar, l1_header, 'DUMMY', 1.0
 
   ; add headings
-  fxaddpar, newheader, 'COMMENT', $
+  fxaddpar, l1_header, 'COMMENT', $
             comment_padding + 'HARDWARE MECHANISM KEYWORDS GROUPED BELOW', $
             before='DARKSHUT'
-  fxaddpar, newheader, 'COMMENT', $
+  fxaddpar, l1_header, 'COMMENT', $
             comment_padding + 'COORDINATE SYSTEM KEYWORDS GROUPED BELOW', $
             before='WCSNAME'
-  fxaddpar, newheader, 'COMMENT', $
+  fxaddpar, l1_header, 'COMMENT', $
             comment_padding + 'PROCESSING SOFTWARE KEYWORDS GROUPED BELOW', $
             before='QUALITY'
-  fxaddpar, newheader, 'COMMENT', $
+  fxaddpar, l1_header, 'COMMENT', $
             comment_padding + 'SCALING KEYWORDS GROUPED BELOW', $
             before='BUNIT'
-  fxaddpar, newheader, 'COMMENT', $
+  fxaddpar, l1_header, 'COMMENT', $
             comment_padding + 'CAMERA OCCULTING KEYWORDS GROUPED BELOW', $
             before='RCAMXCEN'
-  fxaddpar, newheader, 'COMMENT', $
+  fxaddpar, l1_header, 'COMMENT', $
             comment_padding + 'EPHEMERAL KEYWORDS GROUPED BELOW', $
             before='RSUN_OBS'
-  fxaddpar, newheader, 'COMMENT', $
+  fxaddpar, l1_header, 'COMMENT', $
             comment_padding + 'ENGINEERING KEYWORDS GROUPED BELOW', $
             before='O1FOCS'
-  fxaddpar, newheader, 'COMMENT', $
+  fxaddpar, l1_header, 'COMMENT', $
             comment_padding + 'SPAR GUIDER SYSTEM KEYWORDS GROUPED BELOW', $
             before='SGSDIMV'
   
@@ -1136,9 +1139,9 @@ pro kcor_l1, ok_filename, $
               'from 720 to 750 nm. Nominal time cadence is 15 seconds.']
   comments = [mg_strwrap(strjoin(comments, ' '), width=72), '']
 
-  fxaddpar, newheader, 'COMMENT', comments[0], after='DATACITE'
+  fxaddpar, l1_header, 'COMMENT', comments[0], after='DATACITE'
   for c = 1L, n_elements(comments) - 1L do begin
-    fxaddpar, newheader, 'COMMENT', comments[c]
+    fxaddpar, l1_header, 'COMMENT', comments[c]
   endfor
 
   ; data processing comments
@@ -1149,9 +1152,9 @@ pro kcor_l1, ok_filename, $
              'to tangential polarization; remove sky polarization; correct for', $
              'sky transmission.']
   history = mg_strwrap(strjoin(history, ' '), width=72)
-  for h = 0L, n_elements(history) - 1L do sxaddhist, history[h], newheader
+  for h = 0L, n_elements(history) - 1L do sxaddhist, history[h], l1_header
 
-  sxdelpar, newheader, 'DUMMY'
+  sxdelpar, l1_header, 'DUMMY'
 
   ; give a warning for NaN/infinite values in the final corona image
   !null = where(finite(corona) eq 0, n_nans)
@@ -1160,11 +1163,11 @@ pro kcor_l1, ok_filename, $
   endif
 
   ; write FITS image to disk
-  writefits, filepath(l1_filename, root=l1_dir), corona, newheader
+  writefits, filepath(l1_filename, root=l1_dir), corona, l1_header
 
   ; write Helioviewer JPEG2000 image to a web accessible directory
   if (run->config('results/hv_basedir') ne '' && ~keyword_set(nomask)) then begin
-    hv_kcor_write_jp2, scaled_image, newheader, $
+    hv_kcor_write_jp2, scaled_image, l1_header, $
                        run->config('results/hv_basedir'), $
                        log_name=log_name
   endif
