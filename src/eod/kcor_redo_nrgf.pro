@@ -17,9 +17,9 @@ pro kcor_redo_nrgf, date, run=run
 
   mg_log, 'Redoing NRGFs', name='kcor/eod', /info
 
-  l1_dir = filepath('level1', subdir=date, root=run->config('processing/raw_basedir'))
+  l2_dir = filepath('level2', subdir=date, root=run->config('processing/raw_basedir'))
   cd, current=current_dir
-  cd, l1_dir
+  cd, l2_dir
 
   ; remove existing NRGF from database and archive
 
@@ -52,16 +52,16 @@ pro kcor_redo_nrgf, date, run=run
                          root=run->config('results/croppedgif_basedir'))
 
   if (run->config('realtime/distribute')) then begin
-    dirs = [l1_dir, archive_dir, nrgf_dir, cropped_dir]
-    names = ['level1', 'archive', 'NRGF', 'cropped']
+    dirs = [l2_dir, archive_dir, nrgf_dir, cropped_dir]
+    names = ['level2', 'archive', 'NRGF', 'cropped']
   endif else begin
-    dirs = [l1_dir]
-    names = ['level1']
+    dirs = [l2_dir]
+    names = ['level2']
   endelse
 
   for d = 0L, n_elements(dirs) - 1L do begin
-    ; delete L1 and L1.5 NRGF files
-    files = file_search(filepath('*_kcor_l1*_nrgf*', root=dirs[d]), $
+    ; delete any (L1, L1.5, or L2) NRGF files
+    files = file_search(filepath('*_kcor_l*_nrgf*', root=dirs[d]), $
                         count=n_files)
     mg_log, 'removing %d NRGF files from %s dir', n_files, names[d], $
             name='kcor/eod', /info
@@ -81,8 +81,8 @@ pro kcor_redo_nrgf, date, run=run
   endif
 
   ; create new NRGF files corresponding to average files
-  average_files = file_search(filepath('*_kcor_l1.5_avg.fts.gz', $
-                                       subdir=[date, 'level1'], $
+  average_files = file_search(filepath('*_kcor_l2_avg.fts.gz', $
+                                       subdir=[date, 'level2'], $
                                        root=run->config('processing/raw_basedir')), $
                               count=n_average_files)
   for f = 0L, n_average_files - 1L do begin
@@ -91,8 +91,8 @@ pro kcor_redo_nrgf, date, run=run
   endfor
 
   ; create NRGF daily average file corresponding to daily average file
-  daily_average_files = file_search(filepath('*_kcor_l1.5_extavg.fts.gz', $
-                                             subdir=[date, 'level1'], $
+  daily_average_files = file_search(filepath('*_kcor_l2_extavg.fts.gz', $
+                                             subdir=[date, 'level2'], $
                                              root=run->config('processing/raw_basedir')), $
                                     count=n_daily_average_files)
   for f = 0L, n_daily_average_files - 1L do begin   ; only 1 right now

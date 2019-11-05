@@ -31,10 +31,10 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
     if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
   endif
 
-  l1_dir = filepath('level1', subdir=date, root=run->config('processing/raw_basedir'))
+  l2_dir = filepath('level2', subdir=date, root=run->config('processing/raw_basedir'))
 
   cd, current=current
-  cd, l1_dir
+  cd, l2_dir
 
   nrgf_gif_filenames = file_basename(nrgf_files, '.fts.gz') + '.gif'
   gif_filenames = file_basename(nrgf_files, '_nrgf.fts.gz') + '.gif'
@@ -43,15 +43,15 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
 
   n_gif_filenames = n_elements(gif_filenames)
 
-  nrgf_dailygif_filename = string(date, format='(%"%s_kcor_l1.5_nrgf.gif")')
-  nrgf_dailymp4_filename = string(date, format='(%"%s_kcor_l1.5_nrgf.mp4")')
-  cropped_nrgf_dailygif_filename = string(date, format='(%"%s_kcor_l1.5_nrgf_cropped.gif")')
-  cropped_nrgf_dailymp4_filename = string(date, format='(%"%s_kcor_l1.5_nrgf_cropped.mp4")')
+  nrgf_dailygif_filename = string(date, format='(%"%s_kcor_l2_nrgf.gif")')
+  nrgf_dailymp4_filename = string(date, format='(%"%s_kcor_l2_nrgf.mp4")')
+  cropped_nrgf_dailygif_filename = string(date, format='(%"%s_kcor_l2_nrgf_cropped.gif")')
+  cropped_nrgf_dailymp4_filename = string(date, format='(%"%s_kcor_l2_nrgf_cropped.mp4")')
 
-  dailygif_filename = string(date, format='(%"%s_kcor_l1.5.gif")')
-  dailymp4_filename = string(date, format='(%"%s_kcor_l1.5.mp4")')
-  cropped_dailygif_filename = string(date, format='(%"%s_kcor_l1.5_cropped.gif")')
-  cropped_dailymp4_filename = string(date, format='(%"%s_kcor_l1.5_cropped.mp4")')
+  dailygif_filename = string(date, format='(%"%s_kcor_l2.gif")')
+  dailymp4_filename = string(date, format='(%"%s_kcor_l2.mp4")')
+  cropped_dailygif_filename = string(date, format='(%"%s_kcor_l2_cropped.gif")')
+  cropped_dailymp4_filename = string(date, format='(%"%s_kcor_l2_cropped.mp4")')
 
   ; create daily GIF of NRGF files
   if (create_gifs) then begin
@@ -71,9 +71,9 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
     file_copy, nrgf_dailymp4_filename, fullres_dir, /overwrite
   endif
 
-  ; create daily GIF of L1 files
+  ; create daily GIF of L2 files
   if (create_gifs) then begin
-    mg_log, 'creating L1.5 GIF', name='kcor/eod', /info
+    mg_log, 'creating L2 GIF', name='kcor/eod', /info
     kcor_create_animated_gif, gif_filenames, dailygif_filename, $
                               run=run, status=status
     if (status eq 0 && run->config('realtime/distribute')) then begin
@@ -82,7 +82,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
   endif
 
   ; create daily mp4 of L1 files
-  mg_log, 'creating L1.5 mp4', name='kcor/eod', /info
+  mg_log, 'creating L2 mp4', name='kcor/eod', /info
   kcor_create_mp4, gif_filenames, dailymp4_filename, run=run, status=status
   if (status eq 0 && run->config('realtime/distribute')) then begin
     file_copy, dailymp4_filename, fullres_dir, /overwrite
@@ -107,9 +107,9 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
     file_copy, cropped_nrgf_dailymp4_filename, cropped_dir, /overwrite
   endif
 
-  ; create daily GIF of cropped L1 GIF files
+  ; create daily GIF of cropped L2 GIF files
   if (create_gifs) then begin
-    mg_log, 'creating cropped L1.5 GIF', name='kcor/eod', /info
+    mg_log, 'creating cropped L2 GIF', name='kcor/eod', /info
     kcor_create_animated_gif, cropped_gif_filenames, $
                               cropped_dailygif_filename, $
                               run=run, status=status 
@@ -119,7 +119,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
   endif
 
   ; create daily mp4 of cropped L1 GIF files
-  mg_log, 'creating cropped L1.5 mp4', name='kcor/eod', /info
+  mg_log, 'creating cropped L2 mp4', name='kcor/eod', /info
   kcor_create_mp4, cropped_gif_filenames, cropped_dailymp4_filename, $
                    run=run, status=status
   if (status eq 0 && run->config('realtime/distribute')) then begin
@@ -136,12 +136,12 @@ end
 ; main-level example program
 
 date = '20161127'
-run = kcor_run(date, config_filename=filepath('kcor.mgalloy.mahi.latest.cfg', $
+run = kcor_run(date, config_filename=filepath('kcor.latest.cfg', $
                                               subdir=['..', '..', 'config'], $
                                               root=mg_src_root()))
 
 nrgf_list = filepath('oknrgf.ls', $
-                     subdir=[date, 'level1'], $
+                     subdir=[date, 'level2'], $
                      root=run->config('processing/raw_basedir'))
 
 n_nrgf_files = file_test(nrgf_list) ? file_lines(nrgf_list) : 0L

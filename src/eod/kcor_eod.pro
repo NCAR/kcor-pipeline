@@ -86,7 +86,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   if (n_l0_fits_files gt 0L) then begin
     mg_log, 'L0 FITS files exist in %s', date_dir, name='kcor/eod', $
             error=keyword_set(_reprocess), info=~keyword_set(_reprocess)
-    mg_log, 'L1.5 processing incomplete', name='kcor/eod', $
+    mg_log, 'L2 processing incomplete', name='kcor/eod', $
             error=keyword_set(_reprocess), info=~keyword_set(_reprocess)
     goto, done
   endif
@@ -138,24 +138,24 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   cd, l0_dir
 
-  l1_dir = filepath('level1', root=date_dir)
+  l2_dir = filepath('level2', root=date_dir)
   if (~file_test(l0_dir, /directory)) then begin
     mg_log, '%s does not exist', l0_dir, name='kcor/eod', /error
     n_l1_zipped_files = 0L
   endif else begin
-    if (file_test(l1_dir, /directory)) then begin
-      cd, l1_dir
-      l1_zipped_fits_glob = '*_l1.5.fts.gz'
-      l1_zipped_files = file_search(l1_zipped_fits_glob, count=n_l1_zipped_files)
+    if (file_test(l2_dir, /directory)) then begin
+      cd, l2_dir
+      l2_zipped_fits_glob = '*_l2.fts.gz'
+      l2_zipped_files = file_search(l2_zipped_fits_glob, count=n_l2_zipped_files)
       cd, l0_dir
     endif else begin
-      n_l1_zipped_files = 0L
+      n_l2_zipped_files = 0L
     endelse
   endelse
 
-  if (run->config('eod/create_daily_movies') && n_l1_zipped_files gt 0L) then begin
-    kcor_create_differences, date, l1_zipped_files, run=run
-    kcor_create_averages, date, l1_zipped_files, run=run
+  if (run->config('eod/create_daily_movies') && n_l2_zipped_files gt 0L) then begin
+    kcor_create_differences, date, l2_zipped_files, run=run
+    kcor_create_averages, date, l2_zipped_files, run=run
     kcor_redo_nrgf, date, run=run
   endif
 
@@ -179,8 +179,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     mg_log, 'no OK L0 files to produce nomask files for', name='kcor/eod', /info
   endelse
 
-  nrgf_glob = filepath('*_kcor_l1.5_nrgf.fts.gz', $
-                       subdir=[date, 'level1'], $
+  nrgf_glob = filepath('*_kcor_l2_nrgf.fts.gz', $
+                       subdir=[date, 'level2'], $
                        root=run->config('processing/raw_basedir'))
   nrgf_files = file_search(nrgf_glob, count=n_nrgf_files)
   if (n_nrgf_files gt 0L) then begin
@@ -287,6 +287,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
       endelse
 
       kcor_archive_l1, run=run
+      kcor_archive_l2, run=run
     endif else begin
       mg_log, 'no L0 files to plot, catalog, or archive', name='kcor/eod', /warn
     endelse
@@ -297,8 +298,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
                  /allow_nonexistent
   endelse
 
-  if (n_l1_zipped_files gt 0L) then begin
-    daily_science_file = l1_zipped_files[n_l1_zipped_files ge 20 ? 20 : 0]
+  if (n_l2_zipped_files gt 0L) then begin
+    daily_science_file = l2_zipped_files[n_l2_zipped_files ge 20 ? 20 : 0]
   endif
 
   ; update databases
@@ -335,13 +336,13 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
         mg_log, 'no NRGF files to add mean/median values for', name='kcor/eod', /warn
       endelse
 
-      if (n_l1_zipped_files gt 0L) then begin
+      if (n_l2_zipped_files gt 0L) then begin
         kcor_sci_insert, date, daily_science_file, $
                          run=run, $
                          database=db, $
                          obsday_index=obsday_index
       endif else begin
-        mg_log, 'no L1.5 files for daily science', name='kcor/eod', /warn
+        mg_log, 'no L2 files for daily science', name='kcor/eod', /warn
       endelse
     endif else begin
       mg_log, 'error connecting to database', name='kcor/eod', /warn
@@ -352,7 +353,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     mg_log, 'skipping updating database', name='kcor/eod', /info
   endelse
 
-  if (n_l1_zipped_files gt 0L) then begin
+  if (n_l2_zipped_files gt 0L) then begin
     kcor_plotsci, date, daily_science_file, run=run
   endif
 
@@ -380,18 +381,18 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   kcor_report_results, date, run=run
 
-  l15_spec = run->config('data/l15_validation_specification')
-  n_invalid_l15_files = 0L
-  if (n_elements(l15_spec) eq 0L || ~file_test(l15_spec, /regular)) then begin
-    mg_log, 'no spec to validate L1.5 files against', name='kcor/eod', /info
+  l2_spec = run->config('data/l2_validation_specification')
+  n_invalid_l2_files = 0L
+  if (n_elements(l2_spec) eq 0L || ~file_test(l2_spec, /regular)) then begin
+    mg_log, 'no spec to validate L2 files against', name='kcor/eod', /info
   endif else begin
-    if (n_l1_zipped_files eq 0L) then begin
-      mg_log, 'no L1.5 files to validate', name='kcor/eod', /info
+    if (n_l2_zipped_files eq 0L) then begin
+      mg_log, 'no L2 files to validate', name='kcor/eod', /info
     endif else begin
-      mg_log, 'validating %d L1.5 files', n_l1_zipped_files, name='kcor/eod', /info
-      kcor_validate, filepath(l1_zipped_files, root=l1_dir), $
-                     l15_spec, 'L1.5', $
-                     n_invalid_files=n_invalid_l15_files, $
+      mg_log, 'validating %d L2 files', n_l2_zipped_files, name='kcor/eod', /info
+      kcor_validate, filepath(l2_zipped_files, root=l2_dir), $
+                     l2_spec, 'L2', $
+                     n_invalid_files=n_invalid_l2_files, $
                      logger_name='kcor/eod', run=run
     endelse
   endelse
@@ -424,10 +425,10 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
                     format='(%"number of wrong sized files: %d")')]
     endif
 
-    if (n_invalid_l15_files gt 0L) then begin
+    if (n_invalid_l2_files gt 0L) then begin
       msg = [msg, $
-             string(n_invalid_l15_files, $
-                    format='(%"number of invalid L1.5 files: %d")')]
+             string(n_invalid_l2_files, $
+                    format='(%"number of invalid L2 files: %d")')]
     endif
 
     spawn, 'echo $(whoami)@$(hostname)', who, error_result, exit_status=status

@@ -71,22 +71,22 @@ end
 
 
 ;+
-; Create median row/col images of L1.5 data.
+; Create median row/col images of L2 data.
 ;
 ; :Keywords:
 ;   run : in, required, type=object
 ;     KCor run object
 ;-
-pro kcor_rowcol_image_l1, run=run
+pro kcor_rowcol_image_l2, run=run
   compile_opt strictarr
 
   raw_basedir = run->config('processing/raw_basedir')
-  files = file_search(filepath('*_kcor_l1.5.fts.gz', $
-                               subdir=[run.date, 'level1'], $
+  files = file_search(filepath('*_kcor_l2.fts.gz', $
+                               subdir=[run.date, 'level2'], $
                                root=raw_basedir), $
                       count=n_files)
   if (n_files eq 0L) then begin
-    mg_log, 'no L1.5 files', name='kcor/eod', /warn
+    mg_log, 'no L2 files', name='kcor/eod', /warn
     return
   endif
 
@@ -112,17 +112,17 @@ pro kcor_rowcol_image_l1, run=run
   pdir = filepath('p', subdir=run.date, root=raw_basedir)
 
   medrows_filename = filepath(string(run.date, $
-                                     format='(%"%s.kcor.l1.5.medrows.gif")'), $
+                                     format='(%"%s.kcor.l2.medrows.gif")'), $
                               root=pdir)
   medcols_filename = filepath(string(run.date, $
-                                     format='(%"%s.kcor.l1.5.medcols.gif")'), $
+                                     format='(%"%s.kcor.l2.medcols.gif")'), $
                               root=pdir)
 
   meanrows_filename = filepath(string(run.date, $
-                                      format='(%"%s.kcor.l1.5.meanrows.gif")'), $
+                                      format='(%"%s.kcor.l2.meanrows.gif")'), $
                                root=pdir)
   meancols_filename = filepath(string(run.date, $
-                                      format='(%"%s.kcor.l1.5.meancols.gif")'), $
+                                      format='(%"%s.kcor.l2.meancols.gif")'), $
                                root=pdir)
 
   write_gif, medrows_filename, bytscl(medrows)
@@ -134,7 +134,7 @@ end
 
 
 ;+
-; Create median row/col images of L0 and L1.5 data.
+; Create median row/col images of L0 and L2 data.
 ;
 ; :Keywords:
 ;   run : in, required, type=object
@@ -153,8 +153,8 @@ pro kcor_rowcol_image, run=run
   mg_log, 'creating L0 rowcol images...', name='kcor/eod', /info
   kcor_rowcol_image_l0, run=run
 
-  mg_log, 'creating L1.5 rowcol images...', name='kcor/eod', /info
-  kcor_rowcol_image_l1, run=run
+  mg_log, 'creating L2 rowcol images...', name='kcor/eod', /info
+  kcor_rowcol_image_l2, run=run
 
   done:
   mg_log, 'done', name='kcor/eod', /info

@@ -1,37 +1,37 @@
 ; docformat = 'rst'
 
 ;+
-; Archive KCor L1 products to HPSS.
+; Archive KCor L2 products to HPSS.
 ;
 ; :Keywords:
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;-
-pro kcor_archive_l1, run=run
+pro kcor_archive_l2, run=run
   compile_opt strictarr
 
   date = run.date
 
   if (run->config('eod/send_to_hpss')) then begin
-    mg_log, 'sending L1 data to HPSS...', name='kcor/eod', /info
+    mg_log, 'sending L2 data to HPSS...', name='kcor/eod', /info
   endif else begin
-    mg_log, 'not sending L1 data to HPSS', name='kcor/eod', /info
+    mg_log, 'not sending L2 data to HPSS', name='kcor/eod', /info
   endelse
 
   cd, current=cwd
 
   date_dir = filepath(date, root=run->config('processing/raw_basedir'))
-  l1_dir   = filepath('level1', root=date_dir)
+  l2_dir   = filepath('level2', root=date_dir)
 
-  if (~file_test(l1_dir, /directory)) then begin
-    file_mkdir, l1_dir
-    file_chmod, l1_dir, /a_read, /a_execute, /u_write
+  if (~file_test(l2_dir, /directory)) then begin
+    file_mkdir, l2_dir
+    file_chmod, l2_dir, /a_read, /a_execute, /u_write
   endif
 
-  cd, l1_dir
+  cd, l2_dir
 
-  tarfile  = string(date, format='(%"%s_kcor_l1.tgz")')
-  tarlist  = string(date, format='(%"%s_kcor_l1.tarlist")')
+  tarfile  = string(date, format='(%"%s_kcor_l2.tgz")')
+  tarlist  = string(date, format='(%"%s_kcor_l2.tarlist")')
 
   ; delete old tarball, tarlist
   if (~file_test(tarfile, /regular)) then file_delete, tarfile, /quiet
@@ -115,15 +115,15 @@ pro kcor_archive_l1, run=run
       endif
 
       ; link tarball into HPSS directory
-      file_link, filepath(tarfile, root=l1_dir), $
+      file_link, filepath(tarfile, root=l2_dir), $
                  dst_tarfile
     endif
   endif else begin
-    mg_log, 'no files for L1 tarball/tarlist, not creating', $
+    mg_log, 'no files for L2 tarball/tarlist, not creating', $
             name='kcor/eod', /warn
   endelse
 
   done:
   cd, cwd
-  mg_log, 'done sending L1 data to HPSS', name='kcor/eod', /info
+  mg_log, 'done sending L2 data to HPSS', name='kcor/eod', /info
 end

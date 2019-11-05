@@ -19,8 +19,8 @@
 	</tr>
 
       	<tr>
-          <td class="heading"># of L1.5 files:</td>
-          <td>[% n_l15_files %]</td>
+          <td class="heading"># of L2 files:</td>
+          <td>[% n_l2_files %]</td>
         </tr>
 
       	<tr>
@@ -35,8 +35,8 @@
 	</tr>
 
 	<tr>
-          <td class="heading">L1.5 median row/col images:</td>
-	  <td><a href="[% l1_median_rows_image_href %]">rows</a>-<a href="[% l1_median_cols_image_href %]">cols</a></td>
+          <td class="heading">L2 median row/col images:</td>
+	  <td><a href="[% l2_median_rows_image_href %]">rows</a>-<a href="[% l2_median_cols_image_href %]">cols</a></td>
 	</tr>
 
       	<tr>
@@ -73,7 +73,7 @@
            <th>Time</th>
            <th>Type</th>
            <th>Quicklook</th>
-           <th>L1.5 GIF</th>
+           <th>L2 GIF</th>
            <th>NRGF</th>
            <th>2 min average</th>
            <th>Differences</th>
@@ -86,7 +86,7 @@
            <td class="left">[% datetime %]</td>
            <td class="centered">[% type %]</td>
            <td class="centered"><a href="[% quicklook_href %]">img</a></td>
-           <td class="centered">[% if l15_href ne '' %]<a href="[% l15_href %]">img</a>[% end %][% if l15_cropped_href ne '' %] (<a href="[% l15_cropped_href %]">cropped</a>)[% end %]</td>
+           <td class="centered">[% if l2_href ne '' %]<a href="[% l2_href %]">img</a>[% end %][% if l2_cropped_href ne '' %] (<a href="[% l2_cropped_href %]">cropped</a>)[% end %]</td>
            <td class="centered">[% if nrgf_href ne '' %]<a href="[% nrgf_href %]">img</a>[% end %][% if nrgf_cropped_href ne '' %] (<a href="[% nrgf_cropped_href %]">cropped</a>)[% end %]</td>
            <td class="centered">[% if avg_href ne '' %]<a href="[% avg_href %]">img</a>[% end %][% if avg_cropped_href ne '' %] (<a href="[% avg_cropped_href %]">cropped</a>)[% end %]</td>
            <td class="centered">[% if diff_href ne '' %]<a href="[% diff_href %]">[% diff_quality %]</a>[% end %]</td>
