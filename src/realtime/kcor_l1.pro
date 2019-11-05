@@ -21,9 +21,9 @@
 pro kcor_l1, ok_filename, $
              l1_filename=l1_filename, $
              l1_header=l1_header, $
+             intensity=intensity, $
              q=qmk4, $
              u=umk4, $
-             nomask=nomask, $
              run=run, $
              mean_phase1=mean_phase1, $
              log_name=log_name, $
@@ -34,17 +34,16 @@ pro kcor_l1, ok_filename, $
   error = 0L
 
   ; setup directories
-  dirs  = filepath('level' + ['0', '1', '2'], $
+  dirs  = filepath('level' + ['0', '1'], $
                    subdir=run.date, $
                    root=run->config('processing/raw_basedir'))
   l0_dir = dirs[0]
   l1_dir = dirs[1]
-  l2_dir = dirs[2]
 
   if (~file_test(l1_dir, /directory)) then file_mkdir, l1_dir
 
-  mg_log, 'L1 processing %s%s', $
-          file_basename(ok_filename), keyword_set(nomask) ? ' (nomask)' : '', $
+  mg_log, 'L1 processing %s', $
+          file_basename(ok_filename), $
           name=log_name, /info
 
   mean_phase1 = 0.0   ; TODO: this is not set?
@@ -62,9 +61,9 @@ pro kcor_l1, ok_filename, $
 
   l1_filename = string(strmid(file_basename(ok_filename), 0, 20), $
                        keyword_set(nomask) ? '_nomask' : '', $
-                       format='(%"%s_l1.5%s.fts")')
+                       format='(%"%s_l1%s.fts")')
 
-  lclock = tic('file_loop')
+  clock = tic('l1_loop')
 
   if (~file_test(ok_filename, /regular)) then begin
     message, string(file_basename(ok_filename), format='(%"%s not found")')
@@ -604,52 +603,8 @@ pro kcor_l1, ok_filename, $
     mg_log, 'skipping shfting image to center', name=log_name, /debug
   endelse
 
-  ; sky polarization removal on coordinate-transformed data
-  case strlowcase(run->config('realtime/skypol_method')) of
-    'subtraction': begin
-        mg_log, 'correcting sky polarization with subtraction method', $
-                name=log_name, /debug
-        qmk4_new = float(qmk4)
-        ; umk4 contains the corona
-        umk4_new = float(umk4) - float(rot(qmk4, 45.0)) + run->epoch('skypol_bias')
-      end
-    'sine2theta': begin
-        mg_log, 'correcting sky polarization with sine2theta (%d params) method', $
-                run->epoch('sine2theta_nparams'), name=log_name, /debug
-        kcor_sine2theta_method, umk4, qmk4, intensity, radsun, theta1, rr1, $
-                                q_new=qmk3_new, u_new=umk4_new, $
-                                run=run
-      end
-    else: mg_log, 'no sky polarization correction', name=log_name, /debug
-  endcase
-
-  ; use only corona minus sky polarization background
-  corona = umk4_new
-
-  if (run->epoch('use_sgs')) then begin
-    vdimref = kcor_getsgs(header, 'SGSDIMV', /float)
-    dimv_comment = ''
-  endif else begin
-    vdimref = kcor_simulate_sgsdimv(date_obs, run=run)
-    dimv_comment = ' (simulated)'
-  endelse
-  mg_log, 'flat DIMV: %0.1f, image DIMV: %0.1f%s', $
-          flat_vdimref, vdimref, dimv_comment, $
-          name=log_name, /debug
-  if (finite(vdimref) && finite(flat_vdimref)) then begin
-    corona *= flat_vdimref / vdimref
-  endif
-
-  ; create mask for final image
-  if (~keyword_set(nomask)) then begin
-    ; mask pixels beyond field of view
-    mask = where(rad1 lt r_in or rad1 ge r_out, /null)
-    corona[mask] = run->epoch('display_min')
-  endif
-
-  ; end of new beam combination modifications
-
-  kcor_l1_gif, ok_filename, corona, date_obs, $
+  kcor_l1_gif, ok_filename, umk4, date_obs, $
+               level='l1', $
                scaled_image=scaled_image, $
                nomask=nomask, $
                run=run, log_name=log_name
@@ -733,9 +688,10 @@ pro kcor_l1, ok_filename, $
 
   ; image array information
   fxaddpar, l1_header, 'BITPIX', -32, ' bits per pixel'
-  fxaddpar, l1_header, 'NAXIS', 2, ' number of dimensions; FITS image' 
+  fxaddpar, l1_header, 'NAXIS', 3, ' number of dimensions; FITS image' 
   fxaddpar, l1_header, 'NAXIS1', struct.naxis1, ' [pixels] x dimension'
   fxaddpar, l1_header, 'NAXIS2', struct.naxis2, ' [pixels] y dimension'
+  fxaddpar, l1_header, 'NAXIS3', struct.naxis2, ' 0=K-Corona + sky; 1=sky'
   if (struct.extend eq 0) then val_extend = 'F'
   if (struct.extend eq 1) then val_extend = 'T'
   fxaddpar, l1_header, 'EXTEND', 'F', ' no FITS extensions'
@@ -772,8 +728,8 @@ pro kcor_l1, ok_filename, $
             ' [nm] full width half max of bandpass filter', $
             format='(i3)'
 
-  fxaddpar, l1_header, 'OBJECT',   struct.object, $
-            ' white light polarization brightness'
+  fxaddpar, l1_header, 'OBJECT', 'K-Corona+sky; sky', $
+            ' img0=K-Corona pB + sky pB; img1=sky pB'
   fxaddpar, l1_header, 'DATATYPE', struct.datatype, ' type of data acquired'
   fxaddpar, l1_header, 'OBSERVER', struct.observer, $
             ' name of Mauna Loa observer'
@@ -871,8 +827,8 @@ pro kcor_l1, ok_filename, $
 
   ; software information
   fxaddpar, l1_header, 'QUALITY', img_quality, ' image quality'
-  fxaddpar, l1_header, 'LEVEL', 'L1.5', $
-            ' level 1.5 pB Intensity is fully-calibrated'
+  fxaddpar, l1_header, 'LEVEL', 'L1', $
+            ' level 1 inst.-corrected calibrated pB intensity'
 
   check_socketcam = tag_exist(struct, 'SOCKETCA')
   if (check_socketcam) then begin
@@ -880,13 +836,13 @@ pro kcor_l1, ok_filename, $
               ' camera interface software filename'
   endif
 
-  fxaddpar, l1_header, 'DATE_DP', date_dp, ' L1.5 processing date (UTC)'
+  fxaddpar, l1_header, 'DATE_DP', date_dp, ' L1 processing date (UTC)'
   version = kcor_find_code_version(revision=revision, date=code_date)
   fxaddpar, l1_header, 'DPSWID',  $
             string(version, revision, $
                    format='(%"%s [%s]")'), $
             string(code_date, $
-                   format='(%" L1.5 data processing software (%s)")')
+                   format='(%" L1 data processing software (%s)")')
 
   if (rcam_cor_filename ne '') then begin
     fxaddpar, l1_header, 'RCAMCORR', file_basename(rcam_cor_filename), $
@@ -911,24 +867,7 @@ pro kcor_l1, ok_filename, $
     endcase
     fxaddpar, l1_header, 'CAMERAS', cameras_used, $
               ' cameras used in processing'
-  if (finite(vdimref) && finite(flat_vdimref) && vdimref ne 0.0) then begin
-    skytrans = flat_vdimref / vdimref
-  endif
-  fxaddpar, l1_header, 'SKYTRANS', skytrans, $
-            ' ' + run->epoch('skytrans_comment'), $
-            format='(F5.3)', /null
-  fxaddpar, l1_header, 'BIASCORR', run->epoch('skypol_bias'), $
-            ' bias added after sky polarization correction', $
-            format='(G0.3)'
-  skypol_method = strlowcase(run->config('realtime/skypol_method'))
-  skypol_method_comment = ' sky polarization removal method'
-  case skypol_method of
-    'subtraction':
-    'sine2theta': skypol_method_comment += string(run->epoch('sine2theta_nparams'), $
-                                                  format='(%" (%d params)")')
-    else: skypol_method = 'none'
-  endcase
-  fxaddpar, l1_header, 'SKYPOLRM', skypol_method, skypol_method_comment
+
   fxaddpar, l1_header, 'ROLLCORR', run->epoch('rotation_correction'), $
             ' [deg] clockwise offset: spar polar axis align.', $
             format='(G0.1)'
@@ -1145,12 +1084,11 @@ pro kcor_l1, ok_filename, $
   endfor
 
   ; data processing comments
-  history = ['Level 1.5 calibration and processing steps: dark current subtracted;', $
+  history = ['Level 1 calibration and processing steps: dark current subtracted;', $
              'gain correction; apply polarization demodulation matrix; apply', $
              'distortion correction; align each camera to center, rotate to solar', $
              'north and combine cameras; coordinate transformation from cartesian', $
-             'to tangential polarization; remove sky polarization; correct for', $
-             'sky transmission.']
+             'to tangential polarization.']
   history = mg_strwrap(strjoin(history, ' '), width=72)
   for h = 0L, n_elements(history) - 1L do sxaddhist, history[h], l1_header
 
@@ -1159,34 +1097,16 @@ pro kcor_l1, ok_filename, $
   ; give a warning for NaN/infinite values in the final corona image
   !null = where(finite(corona) eq 0, n_nans)
   if (n_nans gt 0L) then begin
-    mg_log, '%d NaN/Inf values in L1.5 FITS', n_nans, name=log_name, /warn
+    mg_log, '%d NaN/Inf values in L1 FITS', n_nans, name=log_name, /warn
   endif
 
   ; write FITS image to disk
   writefits, filepath(l1_filename, root=l1_dir), corona, l1_header
 
-  ; write Helioviewer JPEG2000 image to a web accessible directory
-  if (run->config('results/hv_basedir') ne '' && ~keyword_set(nomask)) then begin
-    hv_kcor_write_jp2, scaled_image, l1_header, $
-                       run->config('results/hv_basedir'), $
-                       log_name=log_name
-  endif
-
   ; now make cropped GIF file
   kcor_cropped_gif, corona, run.date, date_struct, run=run, nomask=nomask, log_name=log_name
   
-  ; create NRG (normalized, radially-graded) GIF image
-  cd, l1_dir
-  if (date_struct.second lt 15 and fix(date_struct.minute / 2) * 2 eq date_struct.minute $
-        and ~keyword_set(nomask)) then begin
-    kcor_nrgf, l1_filename, run=run, log_name=log_name
-    mg_log, /check_math, name=log_name, /debug
-    kcor_nrgf, l1_filename, /cropped, run=run, log_name=log_name
-    mg_log, /check_math, name=log_name, /debug
-  endif
-  cd, l0_dir
-
-  loop_time = toc(lclock)   ; save loop time
+  loop_time = toc(clock)   ; save loop time
   mg_log, '%0.1f sec to process %s', loop_time, file_basename(ok_filename), $
           name=log_name, /debug
 

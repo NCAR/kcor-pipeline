@@ -374,9 +374,9 @@ pro kcor_process_files, ok_files, $
              mean_phase1=file_mean_phase1, $
              l1_filename=l1_filename, $
              l1_header=l1_header, $
+             intensity=intensity, $
              q=q, $
              u=u, $
-             nomask=nomask, $
              log_name=log_name, $
              error=l1_error
     error or= l1_error
@@ -384,7 +384,7 @@ pro kcor_process_files, ok_files, $
 
     kcor_l2, l1_filename, $
              l1_header, $
-             q, u, $
+             intensity, q, u, $
              run=run, $
              nomask=nomask, $
              log_name=log_name, $

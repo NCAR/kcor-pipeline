@@ -15,7 +15,8 @@ pro kcor_l1_gif, l0_file, corona, date_obs, $
                  scaled_image=scaled_image, $
                  nomask=nomask, $
                  run=run, $
-                 log_name=log_name
+                 log_name=log_name, $
+                 level=level
   compile_opt strictarr
 
   date_struct = kcor_parse_dateobs(date_obs)
@@ -94,8 +95,9 @@ pro kcor_l1_gif, l0_file, corona, date_obs, $
   device, decomposed=1
   save     = tvrd()
   gif_file = string(strmid(file_basename(l0_file), 0, 20), $
+                    level, $
                     keyword_set(nomask) ? '_nomask' : '', $
-                    format='(%"%s_l1.5%s.gif")')
+                    format='(%"%s_%s%s.gif")')
   write_gif, filepath(gif_file, $
                       subdir=[run.date, 'level1'], $
                       root=run->config('processing/raw_basedir')), $

@@ -3,7 +3,7 @@
 ;+
 ; Utility to insert values into the MLSO database table: kcor_img.
 ;
-; Reads a list of L1 files for a specified date and inserts a row of data into
+; Reads a list of L2 files for a specified date and inserts a row of data into
 ; 'kcor_img'.
 ;
 ; :Params:
@@ -47,7 +47,7 @@
 ;               changes to come (search for TODO)
 ;-
 pro kcor_img_insert, date, fits_list, $
-                     level1=level1, $
+                     level2=level2, $
                      run=run, $
                      database=database, $
                      obsday_index=obsday_index, $
@@ -56,7 +56,7 @@ pro kcor_img_insert, date, fits_list, $
   compile_opt strictarr
   on_error, 2
 
-  if (keyword_set(level1)) then begin
+  if (keyword_set(level2)) then begin
     kcor_hw_insert, date, fits_list, run=run, database=database, log_name=log_name, $
                     hw_ids=hw_ids
   endif
@@ -84,7 +84,7 @@ pro kcor_img_insert, date, fits_list, $
   month   = strmid (date, 4, 2)	; mm
   day     = strmid (date, 6, 2)	; dd
 
-  l1_dir = filepath('level1', subdir=date, root=run->config('processing/raw_basedir'))
+  l2_dir = filepath('level2', subdir=date, root=run->config('processing/raw_basedir'))
   cd, current=start_dir 
   cd, l1_dir
 

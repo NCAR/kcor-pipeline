@@ -104,15 +104,15 @@ pro kcor_cropped_gif, im, date, date_obs, $
   raster = tvrd()
   tvlct, red, green, blue, /get
 
-  l1_dir = filepath('level1', subdir=date, root=run->config('processing/raw_basedir'))
+  l2_dir = filepath('level2', subdir=date, root=run->config('processing/raw_basedir'))
   cgif_basename = string(date_obs.year, date_obs.month, date_obs.day, $
                          date_obs.hour, date_obs.minute, date_obs.second, $
                          keyword_set(average) $
                            ? (keyword_set(daily) ? '_extavg' : '_avg') $
                            : '', $
                          keyword_set(nomask) ? '_nomask' : '', $
-                         format='(%"%04d%02d%02d_%02d%02d%02d_kcor_l1.5%s_cropped%s.gif")')
-  cgif_filename = filepath(cgif_basename, root=l1_dir)
+                         format='(%"%04d%02d%02d_%02d%02d%02d_kcor_l2%s_cropped%s.gif")')
+  cgif_filename = filepath(cgif_basename, root=l2_dir)
   write_gif, cgif_filename, raster, red, green, blue
 
   done:
@@ -126,18 +126,18 @@ end
 ;date = '20180423'
 date = '20180604'
 ;l1_basename = '20180424_000420_kcor_l1.5.fts.gz'
-l1_basename = '20180605_011443_kcor_l1.5_avg.fts.gz'
+l2_basename = '20180605_011443_kcor_l2_avg.fts.gz'
 
-config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
+config_filename = filepath('kcor.latest.cfg', $
                            subdir='../../config', $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
 
-l1_filename = filepath(l1_basename, $
-                       subdir=[date, 'level1'], $
+l2_filename = filepath(l1_basename, $
+                       subdir=[date, 'level2'], $
                        root=run->config('processing/raw_basedir'))
 
-im = readfits(l1_filename, header, /silent)
+im = readfits(l2_filename, header, /silent)
 date_obs = sxpar(header, 'DATE-OBS')
 date_obs = kcor_parse_dateobs(date_obs)
 

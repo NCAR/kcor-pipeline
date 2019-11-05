@@ -59,10 +59,12 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
   if (available) then begin
     l0_dir = filepath('level0', root=raw_dir)
     l1_dir = filepath('level1', root=raw_dir)
+    l2_dir = filepath('level2', root=raw_dir)
     q_dir = filepath('q', root=raw_dir)
 
     if (~file_test(l0_dir, /directory)) then file_mkdir, l0_dir
     if (~file_test(l1_dir, /directory)) then file_mkdir, l1_dir
+    if (~file_test(l2_dir, /directory)) then file_mkdir, l2_dir
     if (~file_test(q_dir, /directory)) then file_mkdir, q_dir
 
     date_parts = kcor_decompose_date(date)
@@ -182,20 +184,20 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     kcor_process_files, ok_files, run=run, mean_phase1=mean_phase1, $
                         log_name='kcor/rt', error=error
     if (error ne 0L) then begin
-      mg_log, 'L1.5 processing failed, quitting', name='kcor/rt', /error
+      mg_log, 'L1/L2 processing failed, quitting', name='kcor/rt', /error
       goto, done
     endif
 
     mg_log, 'moving processed files to level0 dir', name='kcor/rt', /info
     file_move, l0_fits_files, l0_dir, /overwrite
 
-    cd, l1_dir
+    cd, l2_dir
 
-    l1_fits_glob = '*l1.5*fts'
-    l1_fits_files = file_search(l1_fits_glob, count=n_l1_fits_files)
-    if (n_l1_fits_files gt 0L) then begin
-      mg_log, 'zipping %d L1.5 FITS files', n_l1_fits_files, name='kcor/rt', /info
-      gzip_cmd = string(run->config('externals/gzip'), l1_fits_glob, format='(%"%s %s")')
+    l2_fits_glob = '*l2*fts'
+    l2_fits_files = file_search(l2_fits_glob, count=n_l2_fits_files)
+    if (n_l2_fits_files gt 0L) then begin
+      mg_log, 'zipping %d L2 FITS files', n_l2_fits_files, name='kcor/rt', /info
+      gzip_cmd = string(run->config('externals/gzip'), l2_fits_glob, format='(%"%s %s")')
       spawn, gzip_cmd, result, error_result, exit_status=status
       if (status ne 0L) then begin
         mg_log, 'problem zipping files with command: %s', gzip_cmd, $
@@ -203,7 +205,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
         mg_log, '%s', strjoin(error_result, ' '), name='kcor/rt', /error
       endif
     endif else begin
-      mg_log, 'no L1.5 FITS files to zip', name='kcor/rt', /info
+      mg_log, 'no L2 FITS files to zip', name='kcor/rt', /info
     endelse
 
     if (n_elements(ok_files) eq 0L) then begin
@@ -211,7 +213,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       goto, done
     endif else begin
       if (run->config('realtime/distribute')) then begin
-        mg_log, 'distributing L1.5 products of %d raw files', $
+        mg_log, 'distributing L2 products of %d raw files', $
                 n_elements(ok_files), $
                 name='kcor/rt', /info
       endif else begin
@@ -229,16 +231,16 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     for f = 0L, n_elements(ok_files) - 1L do begin
       base = file_basename(ok_files[f], '.fts.gz')
 
-      cropped_gif_filename = base + '_l1.5_cropped.gif'
+      cropped_gif_filename = base + '_l2_cropped.gif'
       printf, okcgif_lun, cropped_gif_filename
 
-      gif_filename = base + '_l1.5.gif'
+      gif_filename = base + '_l2.gif'
       printf, okfgif_lun, gif_filename
 
-      l1_filename = base + '_l1.5.fts.gz'
-      printf, okl1gz_lun, l1_filename
+      l2_filename = base + '_l2.fts.gz'
+      printf, okl1gz_lun, l2_filename
 
-      nrgf_filename = base + '_l1.5_nrgf.fts.gz'
+      nrgf_filename = base + '_l2_nrgf.fts.gz'
       if (file_test(nrgf_filename)) then begin
         printf, ok_rg_lun, nrgf_filename
         nrgf_basenames->add, base
@@ -255,8 +257,8 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
         if (file_test(gif_filename)) then begin
           file_copy, gif_filename, fullres_dir, /overwrite
         endif
-        if (file_test(l1_filename)) then begin
-          file_copy, l1_filename, archive_dir, /overwrite
+        if (file_test(l2_filename)) then begin
+          file_copy, l2_filename, archive_dir, /overwrite
         endif
       endif
     endfor
@@ -275,8 +277,8 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     n_nrgf_gifs = nrgf_basenames->count()
     if (n_nrgf_gifs gt 0L) then begin
       nrgf_gif_basenames = nrgf_basenames->toArray()
-      nrgf_gifs = nrgf_gif_basenames + '_l1.5_nrgf.gif'
-      cropped_nrgf_gifs = nrgf_gif_basenames + '_l1.5_nrgf_cropped.gif'
+      nrgf_gifs = nrgf_gif_basenames + '_l2_nrgf.gif'
+      cropped_nrgf_gifs = nrgf_gif_basenames + '_l2_nrgf_cropped.gif'
     endif
 
     obj_destroy, nrgf_basenames
@@ -343,15 +345,15 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
                                         status=db_status, $
                                         log_name='kcor/rt')
       if (db_status eq 0L) then begin
-        ; update databases that use L1 files
-        if (n_l1_fits_files gt 0L) then begin
-          kcor_img_insert, date, l1_fits_files, $
-                           /level1, $
+        ; update databases that use L2 files
+        if (n_l2_fits_files gt 0L) then begin
+          kcor_img_insert, date, l2_fits_files, $
+                           /level2, $
                            hw_ids=hw_ids, $
                            run=run, $
                            database=db, $
                            obsday_index=obsday_index, log_name='kcor/rt'
-          kcor_eng_insert, date, l1_fits_files, $
+          kcor_eng_insert, date, l2_fits_files, $
                            mean_phase1=mean_phase1, $
                            sw_index=sw_index, $
                            hw_ids=hw_ids, $
@@ -359,7 +361,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
                            database=db, $
                            obsday_index=obsday_index
         endif else begin
-          mg_log, 'no L1.5 files for img or eng tables', name='kcor/rt', /info
+          mg_log, 'no L2 files for img or eng tables', name='kcor/rt', /info
         endelse
 
         if (n_l0_fits_files gt 0L) then begin

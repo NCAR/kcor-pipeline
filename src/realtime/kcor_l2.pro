@@ -2,7 +2,7 @@
 
 pro kcor_l2, l1_filename, $
              l1_header, $
-             q, u, $
+             intensity, qmk4, umk4, $
              nomask=nomask, $
              run=run, $
              log_name=log_name, $
@@ -11,4 +11,166 @@ pro kcor_l2, l1_filename, $
 
   error = 0L
 
+  ; setup directories
+  dirs  = filepath('level' + ['0', '1', '2'], $
+                   subdir=run.date, $
+                   root=run->config('processing/raw_basedir'))
+  l0_dir = dirs[0]
+  l1_dir = dirs[1]
+  l2_dir = dirs[2]
+
+  if (~file_test(l2_dir, /directory)) then file_mkdir, l2_dir
+
+  mg_log, 'L1 processing %s%s', $
+          file_basename(l1_filename), keyword_set(nomask) ? ' (nomask)' : '', $
+          name=log_name, /info
+
+  clock = tic('l2_loop')
+
+  date_obs = sxpar(l1_header, 'DATE-OBS')   ; yyyy-mm-ddThh:mm:ss
+  date_struct = kcor_parse_dateobs(date_obs)
+  run.time = date_obs
+
+  ; TODO: need theta1, rad1
+
+  ; sky polarization removal on coordinate-transformed data
+  case strlowcase(run->config('realtime/skypol_method')) of
+    'subtraction': begin
+        mg_log, 'correcting sky polarization with subtraction method', $
+                name=log_name, /debug
+        qmk4_new = float(qmk4)
+        ; umk4 contains the corona
+        umk4_new = float(umk4) - float(rot(qmk4, 45.0)) + run->epoch('skypol_bias')
+      end
+    'sine2theta': begin
+      sun, date_struct.year, date_struct.month, date_struct.day, $
+           date_struct.ehour, $
+           sd=radsun
+        mg_log, 'correcting sky polarization with sine2theta (%d params) method', $
+                run->epoch('sine2theta_nparams'), name=log_name, /debug
+        kcor_sine2theta_method, umk4, qmk4, intensity, radsun, theta1, rad1, $
+                                q_new=qmk3_new, u_new=umk4_new, $
+                                run=run
+      end
+    else: mg_log, 'no sky polarization correction', name=log_name, /debug
+  endcase
+
+  ; use only corona minus sky polarization background
+  corona = umk4_new
+
+  ; TODO: need flat_vdimref
+
+  ; sky transmission correction
+  if (run->epoch('use_sgs')) then begin
+    vdimref = kcor_getsgs(l1_header, 'SGSDIMV', /float)
+    dimv_comment = ''
+  endif else begin
+    vdimref = kcor_simulate_sgsdimv(date_obs, run=run)
+    dimv_comment = ' (simulated)'
+  endelse
+  mg_log, 'flat DIMV: %0.1f, image DIMV: %0.1f%s', $
+          flat_vdimref, vdimref, dimv_comment, $
+          name=log_name, /debug
+  if (finite(vdimref) && finite(flat_vdimref) && vdimref ne 0.0) then begin
+    skytrans = flat_vdimref / vdimref
+    corona *= skytrans
+  endif
+
+  ; create mask for final image
+  if (~keyword_set(nomask)) then begin
+    ; mask pixels beyond field of view
+    mask = where(rad1 lt r_in or rad1 ge r_out, /null)
+    corona[mask] = run->epoch('display_min')
+  endif
+
+  kcor_l1_gif, l1_filename, corona, date_obs, $
+               level='l2', $
+               scaled_image=scaled_image, $
+               nomask=nomask, $
+               run=run, log_name=log_name
+
+  ; convert L1 header to an L2 header
+  l2_header = l1_header
+
+  fxaddpar, l2_header, 'NAXIS', 2, ' number of dimensions; FITS image' 
+  sxdelpar, l2_header, 'NAXIS3'
+  fxaddpar, l2_header, 'OBJECT', 'Solar K-Corona', $
+            ' white light polarization brightness'
+  fxaddpar, l2_header, 'LEVEL', 'L2', $
+            ' level 2 pB intensity is fully-calibrated'
+
+  date_dp = string(bin_date(systime(/utc)), $
+                   format='(%"%04d-%02d-%02dT%02d:%02d:%02d")')
+  fxaddpar, l2_header, 'DATE_DP', date_dp, ' L2 processing date (UTC)'
+  version = kcor_find_code_version(revision=revision, date=code_date)
+  fxaddpar, l2_header, 'DPSWID',  $
+            string(version, revision, $
+                   format='(%"%s [%s]")'), $
+            string(code_date, $
+                   format='(%" L2 data processing software (%s)")')
+
+  fxaddpar, l2_header, 'SKYTRANS', skytrans, $
+            ' ' + run->epoch('skytrans_comment'), $
+            format='(F5.3)', /null
+  fxaddpar, l2_header, 'BIASCORR', run->epoch('skypol_bias'), $
+            ' bias added after sky polarization correction', $
+            format='(G0.3)'
+  skypol_method = strlowcase(run->config('realtime/skypol_method'))
+  skypol_method_comment = ' sky polarization removal method'
+  case skypol_method of
+    'subtraction':
+    'sine2theta': skypol_method_comment += string(run->epoch('sine2theta_nparams'), $
+                                                  format='(%" (%d params)")')
+    else: skypol_method = 'none'
+  endcase
+  fxaddpar, l2_header, 'SKYPOLRM', skypol_method, skypol_method_comment
+
+  sxdelpar, l1_header, 'HISTORY'
+  fxaddpar, l1_header, 'DUMMY', 1.0
+  history = ['Level 1 calibration and processing steps: dark current subtracted;', $
+             'gain correction; apply polarization demodulation matrix; apply', $
+             'distortion correction; align each camera to center, rotate to solar', $
+             'north and combine cameras; coordinate transformation from cartesian', $
+             'to tangential polarization; remove sky polarization; correct for', $
+             'sky transmission.']
+  history = mg_strwrap(strjoin(history, ' '), width=72)
+  for h = 0L, n_elements(history) - 1L do sxaddhist, history[h], l1_header
+
+  sxdelpar, l1_header, 'DUMMY'
+
+  ; write FITS image to disk
+  l2_filename = string(strmid(file_basename(l1_filename), 0, 20), $
+                       keyword_set(nomask) ? '_nomask' : '', $
+                       format='(%"%s_l2%s.fts")')
+  writefits, filepath(l2_filename, root=l2_dir), corona, l2_header
+
+  ; TODO: need scaled image
+
+  ; write Helioviewer JPEG2000 image to a web accessible directory
+  if (run->config('results/hv_basedir') ne '' && ~keyword_set(nomask)) then begin
+    hv_kcor_write_jp2, scaled_image, l2_header, $
+                       run->config('results/hv_basedir'), $
+                       log_name=log_name
+  endif
+
+  ; now make cropped GIF file
+  kcor_cropped_gif, corona, run.date, date_struct, run=run, nomask=nomask, log_name=log_name
+
+  ; create NRG (normalized, radially-graded) GIF image
+  cd, l2_dir
+  if (date_struct.second lt 15 and fix(date_struct.minute / 2) * 2 eq date_struct.minute $
+        and ~keyword_set(nomask)) then begin
+    kcor_nrgf, l2_filename, run=run, log_name=log_name
+    mg_log, /check_math, name=log_name, /debug
+    kcor_nrgf, l2_filename, /cropped, run=run, log_name=log_name
+    mg_log, /check_math, name=log_name, /debug
+  endif
+  cd, l0_dir
+
+  loop_time = toc(clock)   ; save loop time
+  mg_log, '%0.1f sec to process %s', loop_time, file_basename(l2_filename), $
+          name=log_name, /debug
+
+  done:
+  mg_log, /check_mask, name=log_name, /debug
 end

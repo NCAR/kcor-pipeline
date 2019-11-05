@@ -46,13 +46,13 @@ pro kcor_nrgf_annotations, year, name_month, day, hour, minute, second, doy, $
 
     if (keyword_set(daily)) then begin
       if (keyword_set(cropped)) then begin
-        text = 'Level 1.5 ~10 min avg'
+        text = 'Level 2 ~10 min avg'
       endif else begin
         text = string(to_time, format='(%"%s UT")')
       endelse
     endif else begin
       if (keyword_set(cropped)) then begin
-        text = 'Level 1.5 2 min avg'
+        text = 'Level 2 2 min avg'
       endif else begin
         text = string(to_time, format='(%"%s UT")')
       endelse
@@ -63,7 +63,7 @@ pro kcor_nrgf_annotations, year, name_month, day, hour, minute, second, doy, $
   endif
 
   if (~keyword_set(cropped)) then begin
-    xyouts, 4, 6 + 2 * line_height, 'Level 1.5 data', $
+    xyouts, 4, 6 + 2 * line_height, 'Level 2 data', $
             color=annotation_color, charsize=charsize, /device
   endif
 
@@ -349,8 +349,8 @@ pro kcor_nrgf, fits_file, $
 
     ; modify the FITS header for an NRG FITS image
     rhdu = hdu
-    fxaddpar, rhdu, 'LEVEL', 'L1.5', $
-              ' Level 1.5'
+    fxaddpar, rhdu, 'LEVEL', 'L2', $
+              ' Level 2'
     if (keyword_set(averaged)) then begin
       fxaddpar, rhdu, 'PRODUCT', 'NRGFAVG', $
                 ' Averaged Normalized Radially-Graded Intensity'
@@ -401,21 +401,21 @@ run = kcor_run(date, $
                                        subdir=['..', '..', 'config'], $
                                        root=mg_src_root()))
 
-f = filepath('20180423_175443_kcor_l1.5_extavg.fts.gz', $
+f = filepath('20180423_175443_kcor_l2_extavg.fts.gz', $
              subdir=[date, 'level1'], $
              root=run->config('processing/raw_basedir'))
 
 kcor_nrgf, f, /average, /daily, run=run
 kcor_nrgf, f, /average, /daily, /cropped, run=run
 
-f = filepath('20180423_175443_kcor_l1.5_avg.fts.gz', $
+f = filepath('20180423_175443_kcor_l2_avg.fts.gz', $
              subdir=[date, 'level1'], $
              root=run->config('processing/raw_basedir'))
 
 kcor_nrgf, f, /average, run=run
 kcor_nrgf, f, /average, /cropped, run=run
 
-f = filepath('20180423_175443_kcor_l1.5.fts.gz', $
+f = filepath('20180423_175443_kcor_l2.fts.gz', $
              subdir=[date, 'level1'], $
              root=run->config('processing/raw_basedir'))
 
