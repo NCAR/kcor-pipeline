@@ -184,7 +184,9 @@ pro kcor_l2, l1_filename, $
   endif
 
   ; now make cropped GIF file
-  kcor_cropped_gif, corona, run.date, date_struct, run=run, nomask=nomask, log_name=log_name
+  kcor_cropped_gif, corona, run.date, date_struct, $
+                    run=run, nomask=nomask, log_name=log_name, $
+                    level=2
 
   ; create NRG (normalized, radially-graded) GIF image
   cd, l2_dir

@@ -28,7 +28,8 @@ pro kcor_cropped_gif, im, date, date_obs, $
                       nomask=nomask, $
                       daily=daily, average=average, $
                       output_filename=cgif_filename, $
-                      run=run, log_name=log_name
+                      run=run, log_name=log_name, $
+                      level=level
   compile_opt strictarr
 
   start_index = 256L
@@ -104,14 +105,16 @@ pro kcor_cropped_gif, im, date, date_obs, $
   raster = tvrd()
   tvlct, red, green, blue, /get
 
-  l2_dir = filepath('level2', subdir=date, root=run->config('processing/raw_basedir'))
+  dir = filepath(string(level, format='(%"level%d")'), $
+                 subdir=date, root=run->config('processing/raw_basedir'))
   cgif_basename = string(date_obs.year, date_obs.month, date_obs.day, $
                          date_obs.hour, date_obs.minute, date_obs.second, $
+                         level, $
                          keyword_set(average) $
                            ? (keyword_set(daily) ? '_extavg' : '_avg') $
                            : '', $
                          keyword_set(nomask) ? '_nomask' : '', $
-                         format='(%"%04d%02d%02d_%02d%02d%02d_kcor_l2%s_cropped%s.gif")')
+                         format='(%"%04d%02d%02d_%02d%02d%02d_kcor_l%d%s_cropped%s.gif")')
   cgif_filename = filepath(cgif_basename, root=l2_dir)
   write_gif, cgif_filename, raster, red, green, blue
 
