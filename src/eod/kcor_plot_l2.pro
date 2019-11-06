@@ -19,7 +19,7 @@
 ;     radius of `radii + radius_width / 2.0`
 ;   plate_scale : in, required, type=float
 ;-
-function kcor_plot_l1_mean_pB, pB, date, $
+function kcor_plot_l2_mean_pB, pB, date, $
                                radii, radius_width, $
                                plate_scale
   compile_opt strictarr
@@ -58,13 +58,13 @@ end
 
 
 ;+
-; Plot quantities in L1.5 files, such as sky transmission.
+; Plot quantities in L2 files, such as sky transmission.
 ;
 ; :Keywords:
 ;   run : in, required, type=object
 ;     KCor run object
 ;-
-pro kcor_plot_l1, run=run
+pro kcor_plot_l2, run=run
   compile_opt strictarr
 
   original_device = !d.name
@@ -73,16 +73,16 @@ pro kcor_plot_l1, run=run
   base_dir  = run->config('processing/raw_basedir')
   date_dir  = filepath(run.date, root=base_dir)
   plots_dir = filepath('p', root=date_dir)
-  l1_dir    = filepath('level1', root=date_dir)
+  l2_dir    = filepath('level2', root=date_dir)
 
   logger_name = 'kcor/eod'
 
   mg_log, 'starting...', name=logger_name, /info
 
-  l1_files = file_search(filepath('*_*_kcor_l1.5.fts.gz', root=l1_dir), $
-                         count=n_l1_files)
-  if (n_l1_files eq 0L) then begin
-    mg_log, 'no L1 files to plot', name=logger_name, /warn
+  l2_files = file_search(filepath('*_*_kcor_l2.fts.gz', root=l2_dir), $
+                         count=n_l2_files)
+  if (n_l2_files eq 0L) then begin
+    mg_log, 'no L2 files to plot', name=logger_name, /warn
     goto, done
   endif
 
@@ -94,11 +94,11 @@ pro kcor_plot_l1, run=run
              [1.0e-09, 4.0e-08]]
   plate_scale = run->epoch('plate_scale')
 
-  times = fltarr(n_l1_files)
-  skytrans = fltarr(n_l1_files)
-  mean_pb = fltarr(n_elements(radii), n_l1_files)
-  for f = 0L, n_l1_files - 1L do begin
-    fits_open, l1_files[f], fcb
+  times = fltarr(n_l2_files)
+  skytrans = fltarr(n_l2_files)
+  mean_pb = fltarr(n_elements(radii), n_l2_files)
+  for f = 0L, n_l2_files - 1L do begin
+    fits_open, l2_files[f], fcb
     fits_read, fcb, pB, header
     fits_close, fcb
 
@@ -109,7 +109,7 @@ pro kcor_plot_l1, run=run
     strans = fxpar(header, 'SKYTRANS', /null)
     skytrans[f] = n_elements(strans) eq 0L ? !values.f_nan : strans
 
-    mean_pb[*, f] = kcor_plot_l1_mean_pb(pB, date, $
+    mean_pb[*, f] = kcor_plot_l2_mean_pb(pB, date, $
                                          radii, radius_width, $
                                          plate_scale)
   endfor
@@ -185,7 +185,7 @@ config_filename = filepath('kcor.latest.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
-kcor_plot_l1, run=run
+kcor_plot_l2, run=run
 obj_destroy, run
 
 end

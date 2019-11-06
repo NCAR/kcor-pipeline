@@ -1,9 +1,9 @@
 ; docformat = 'rst'
 
 ;+
-; Create averages from L1 data.
+; Create averages from L2 data.
 ;
-;  1) create averaged images from KCor level 1 data, averaging up to 8 images
+;  1) create averaged images from KCor level 2 data, averaging up to 8 images
 ;     taken < 3 minutes apart
 ;  2) save each average an annotated GIF and a FITS image
 ;  3) create a daily averaged image of up to 40 images taken < 15 min. apart
@@ -16,14 +16,14 @@
 ; :Params:
 ;   date : in, required, type=string
 ;     date in the form "YYYYMMDD"
-;   l1_files : in, required, type=strarr
-;     array of L1 filenames
+;   l2_files : in, required, type=strarr
+;     array of L2 filenames
 ;
 ; :Keywords:
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;- 
-pro kcor_create_averages, date, l1_files, run=run
+pro kcor_create_averages, date, l2_files, run=run
   compile_opt strictarr
 
   mg_log, 'creating average movies', name='kcor/eod', /info
@@ -39,10 +39,10 @@ pro kcor_create_averages, date, l1_files, run=run
     if (~file_test(cropped_dir, /directory)) then file_mkdir, cropped_dir
   endif
 
-  l1_dir = filepath('level1', subdir=date, root=run->config('processing/raw_basedir'))
+  l2_dir = filepath('level2', subdir=date, root=run->config('processing/raw_basedir'))
 
   cd, current=current
-  cd, l1_dir
+  cd, l2_dir
 
   ; set up variables and arrays needed
 
@@ -85,17 +85,17 @@ pro kcor_create_averages, date, l1_files, run=run
   dailycount = 0  ; want to average up to 40 images in < 15 minutes for daily avg.
   stopavg = 0  ; set to 1 if images are more than 3 minutes apart (stop averaging)
 
-  mg_log, 'averaging for %d L1.5 files', n_elements(l1_files), name='kcor/eod', /info
+  mg_log, 'averaging for %d L2 files', n_elements(l2_files), name='kcor/eod', /info
 
   ; read in images and generate subtractions ~10 minutes apart
   f = 0L
-  while (f lt n_elements(l1_files)) do begin
+  while (f lt n_elements(l2_files)) do begin
     numavg = 0
     timestring[*] = ''
 
     ; read in up to 8 images, get time, and average if images <= 3 min apart
     for i = 0, 7 do begin
-      if (f ge n_elements(l1_files)) then break
+      if (f ge n_elements(l2_files)) then break
 
       ; if last image was not used in average (i.e. stopavg = 1) then begin with
       ; the last image else read in a new image
@@ -105,7 +105,7 @@ pro kcor_create_averages, date, l1_files, run=run
         if (dailycount lt 48 and date_julian[i] - firsttime lt dailyavgval) then begin
           if (dailycount eq n_skip) then begin
             daily_hst = hst
-            daily_savename = strmid(file_basename(l1_file), 0, 25)
+            daily_savename = strmid(file_basename(l2_file), 0, 25)
             dailysaveheader = header
           endif
 
@@ -119,15 +119,15 @@ pro kcor_create_averages, date, l1_files, run=run
         stopavg = 0
         numavg = 1
         saveheader = header
-        savename = strmid(file_basename(l1_file), 0, 25)
+        savename = strmid(file_basename(l2_file), 0, 25)
         imgtimes[0]    = imgtimes[last]
         imgendtimes[0] = imgendtimes[last]
         timestring[0]  = strmid(imgtimes[0], 11)
       endif else begin
-        if (f ge n_elements(l1_files)) then break
+        if (f ge n_elements(l2_files)) then break
 
-        l1_file = file_basename(l1_files[f])
-        img = readfits(l1_file, header, /silent, /noscale)
+        l2_file = file_basename(l2_files[f])
+        img = readfits(l2_file, header, /silent, /noscale)
 
         f += 1
         imgsave[0, 0, i] = float(img)
@@ -179,7 +179,7 @@ pro kcor_create_averages, date, l1_files, run=run
         endif
 
         if (dailycount eq 0L) then begin
-          daily_savename = strmid(file_basename(l1_file), 0, 25)
+          daily_savename = strmid(file_basename(l2_file), 0, 25)
           dailyavg[0, 0, dailycount] = imgsave[*, *, 0]
           dailysaveheader = header
           dailytimes[dailycount] = imgtimes[0]
@@ -188,7 +188,7 @@ pro kcor_create_averages, date, l1_files, run=run
         endif
 
         if (i eq 0) then begin
-          savename = strmid(file_basename(l1_file), 0, 25)
+          savename = strmid(file_basename(l2_file), 0, 25)
           avgimg = imgsave[*, *, 0]
           saveheader = header
           numavg = 1
@@ -218,7 +218,7 @@ pro kcor_create_averages, date, l1_files, run=run
         if (dailycount lt 48  and  date_julian[i] - firsttime lt dailyavgval) then begin
           if (dailycount eq n_skip) then begin
             daily_hst = hst
-            daily_savename = strmid(file_basename(l1_file), 0, 25)
+            daily_savename = strmid(file_basename(l2_file), 0, 25)
             dailysaveheader = header
           endif
 
@@ -314,7 +314,7 @@ pro kcor_create_averages, date, l1_files, run=run
             orientation=90., /device
     xyouts, 1012, 512, 'West', color=255, charsize=1.2, alignment=0.5, $
             orientation=90., /device
-    xyouts, 4, 46, 'Level 1.5 Avg', color=255, charsize=1.2, /device
+    xyouts, 4, 46, 'Level 2 Avg', color=255, charsize=1.2, /device
     xyouts, 4, 26, string(display_min, display_max, $
                           format='(%"min/max: %0.2g, %0.2g")'), $
             color=255, charsize=1.2, /device
@@ -632,7 +632,7 @@ run = kcor_run(date, config_filename=config_filename)
 
 ; clean old averages
 old_average_files = file_search(filepath('*avg*', $
-                                         subdir=[date, 'level1'], $
+                                         subdir=[date, 'level2'], $
                                          root=run->config('processing/raw_basedir')), $
                                 count=n_old_average_files)
 if (n_old_average_files gt 0L) then begin
@@ -640,13 +640,13 @@ if (n_old_average_files gt 0L) then begin
 endif
 
 ; create new averages
-l1_zipped_fits_glob = '*_l1.5.fts.gz'
-l1_zipped_files = file_search(filepath(l1_zipped_fits_glob, $
-                                       subdir=[date, 'level1'], $
+l2_zipped_fits_glob = '*_l2.fts.gz'
+l2_zipped_files = file_search(filepath(l2_zipped_fits_glob, $
+                                       subdir=[date, 'level2'], $
                                        root=run->config('processing/raw_basedir')), $
-                              count=n_l1_zipped_files)
+                              count=n_l2_zipped_files)
 
-kcor_create_averages, date, l1_zipped_files, run=run
+kcor_create_averages, date, l2_zipped_files, run=run
 
 ; cleanup
 obj_destroy, run

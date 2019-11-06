@@ -116,19 +116,19 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
   n_digits = floor(alog10(n_images)) + 1L   ; for formatting
 
-  ; corresponding L1.5 files
-  l1_basenames = string(strmid(file_basename(list), 0, 15), $
-                        format='(%"%s_kcor_l1.5.fts.gz")')
-  l1_filenames = filepath(l1_basenames, $
-                          subdir=[date, 'level1'], $
+  ; corresponding L2 files
+  l2_basenames = string(strmid(file_basename(list), 0, 15), $
+                        format='(%"%s_kcor_l2.fts.gz")')
+  l2_filenames = filepath(l2_basenames, $
+                          subdir=[date, 'level2'], $
                           root=run->config('processing/raw_basedir'))
 
   ; image file loop
   for i = 0L, n_images - 1L do begin
     l0_file = list[i]
 
-    if (~file_test(l1_filenames[i], /regular)) then begin
-      mg_log, 'no corresponding L1.5 file', $
+    if (~file_test(l2_filenames[i], /regular)) then begin
+      mg_log, 'no corresponding L2 file', $
               name='kcor/eod', /debug
       mg_log, 'skipping %s', file_basename(l0_file), $
               name='kcor/eod', /debug

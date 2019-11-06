@@ -62,16 +62,16 @@ config_filename = filepath('kcor.parker.cfg', $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
 
-nrgf_glob = filepath('*_kcor_l1.5_nrgf.fts.gz', $
-                     subdir=[date, 'level1'], $
+nrgf_glob = filepath('*_kcor_l2_nrgf.fts.gz', $
+                     subdir=[date, 'level2'], $
                      root=run->config('processing/raw_basedir'))
 nrgf_files = file_search(nrgf_glob, count=n_nrgf_files)
 
 gif_filenames = file_basename(nrgf_files, '_nrgf.fts.gz') + '.gif'
-dailymp4_filename = string(date, format='(%"%s_kcor_l1.5.mp4")')
+dailymp4_filename = string(date, format='(%"%s_kcor_l2.mp4")')
 
-l1_dir = filepath('level1', subdir=date, root=run->config('processing/raw_basedir'))
-cd, l1_dir
+l2_dir = filepath('level2', subdir=date, root=run->config('processing/raw_basedir'))
+cd, l2_dir
 
 kcor_create_mp4, gif_filenames, dailymp4_filename, run=run, status=status
 help, status

@@ -14,11 +14,11 @@ pro kcor_detect_badlines, run=run
 
   mg_log, 'starting', name=logger_name, /info
 
-  basename = '*_kcor_l1.5.fts.gz'
+  basename = '*_kcor_l2.fts.gz'
 
   raw_basedir = run->config('processing/raw_basedir')
 
-  pattern = filepath(basename, subdir=[run.date, 'level1'], root=raw_basedir)
+  pattern = filepath(basename, subdir=[run.date, 'level2'], root=raw_basedir)
   times = strmid(file_basename(file_search(pattern, count=n_filenames)), 0, 15)
 
   cam0_badlines = mg_defaulthash(default=0L)

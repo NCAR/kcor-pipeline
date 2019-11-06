@@ -354,8 +354,8 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   l0_tarball_filename = filepath(date + '_kcor_l0.tgz', $
                                  subdir=[date, 'level0'], $
                                  root=run->config('processing/raw_basedir'))
-  l1_tarball_filename = filepath(date + '_kcor_l1.5.tgz', $
-                                 subdir=[date, 'level1'], $
+  l2_tarball_filename = filepath(date + '_kcor_l2.tgz', $
+                                 subdir=[date, 'level2'], $
                                  root=run->config('processing/raw_basedir'))
 
   fits_files = file_search(filepath('*.fts.gz', $
@@ -693,10 +693,10 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   ; TEST: tgz size
 
   l0_tarball_size = mg_filesize(l0_tarball_filename)
-  l1_tarball_size = mg_filesize(l1_tarball_filename)
+  l2_tarball_size = mg_filesize(l2_tarball_filename)
 
   l0_tarball_mtime = (file_info(l0_tarball_filename)).mtime
-  l1_tarball_mtime = (file_info(l1_tarball_filename)).mtime
+  l2_tarball_mtime = (file_info(l2_tarball_filename)).mtime
 
   if (~file_test(l0_tarball_filename, /regular)) then begin
     mg_log, 'no L0 tarball', name=logger_name, /error
@@ -704,8 +704,8 @@ pro kcor_verify, date, config_filename=config_filename, status=status
     goto, compress_ratio_done
   endif
 
-  if (~file_test(l1_tarball_filename, /regular)) then begin
-    mg_log, 'no L1.5 tarball', name=logger_name, /error
+  if (~file_test(l2_tarball_filename, /regular)) then begin
+    mg_log, 'no L2 tarball', name=logger_name, /error
     status = 1
     goto, compress_ratio_done
   endif
@@ -768,7 +768,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
 ;
 ;  extra_files_done:
 
-  ; TEST: check HPSS for L0/L1 tarball of correct size, ownership, and
+  ; TEST: check HPSS for L0/L2 tarball of correct size, ownership, and
   ; protections
 
   check_hpss = 1B
@@ -782,11 +782,11 @@ pro kcor_verify, date, config_filename=config_filename, status=status
                       logger_name=logger_name, run=run
     kcor_verify_hpss, date, $
                       string(year, date, $
-                             format='(%"/CORDYN/KCOR/%s/%s_kcor_l1.5.tgz")'), $
-                      l1_tarball_filename, $
-                      status=l1_hpss_status, $
+                             format='(%"/CORDYN/KCOR/%s/%s_kcor_l2.tgz")'), $
+                      l2_tarball_filename, $
+                      status=l2_hpss_status, $
                       logger_name=logger_name, run=run
-    status or= l0_hpss_status or l1_hpss_status
+    status or= l0_hpss_status or l2_hpss_status
   endif else begin
     mg_log, 'skipping HPSS check', name=logger_name, /info
   endelse
