@@ -90,6 +90,16 @@ pro kcor_l2, l1_filename, $
 
   ; create mask for final image
   if (~keyword_set(nomask)) then begin
+    if (run->epoch('use_occulter_id')) then begin
+      occltrid = sxpar(l1_header, 'OCCLTRID')
+    endif else begin
+      occltrid = run->epoch('occulter_id')
+    endelse
+    occulter = kcor_get_occulter_size(occltrid, run=run)  ; arcsec
+
+    r_in  = fix(occulter / run->epoch('plate_scale')) + run->epoch('r_in_offset')
+    r_out = run->epoch('r_out')
+
     ; mask pixels beyond field of view
     mask = where(rad1 lt r_in or rad1 ge r_out, /null)
     corona[mask] = run->epoch('display_min')
