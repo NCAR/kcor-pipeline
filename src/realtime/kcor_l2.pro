@@ -32,6 +32,19 @@ pro kcor_l2, l1_filename, $
   date_struct = kcor_parse_dateobs(date_obs)
   run.time = date_obs
 
+  ; create coordinate system
+  xsize = run->epoch('xsize')
+  ysize = run->epoch('ysize')
+  xx   = dindgen(xsize, ysize) mod xsize - (xsize / 2.0 - 0.5)
+  yy   = transpose(dindgen(ysize, xsize) mod ysize) - (ysize / 2.0 - 0.5)
+
+  center_offset = run->config('realtime/center_offset')
+  rad  = sqrt((xx + center_offset[0])^ 2.0 + (yy + center_offset[1]) ^ 2.0)
+  
+  theta = atan(- yy, - xx)
+  theta += !pi
+  theta = rot(reverse(theta), pangle + run->epoch('rotation_correction'), 1)
+
   ; sky polarization removal on coordinate-transformed data
   case strlowcase(run->config('realtime/skypol_method')) of
     'subtraction': begin
@@ -45,20 +58,6 @@ pro kcor_l2, l1_filename, $
         sun, date_struct.year, date_struct.month, date_struct.day, $
              date_struct.ehour, $
              pa=pangle, sd=radsun
-
-        ; create coordinate system
-        xsize = run->epoch('xsize')
-        ysize = run->epoch('ysize')
-        xx   = dindgen(xsize, ysize) mod xsize - (xsize / 2.0 - 0.5)
-        yy   = transpose(dindgen(ysize, xsize) mod ysize) - (ysize / 2.0 - 0.5)
-
-        center_offset = run->config('realtime/center_offset')
-        rad  = sqrt((xx + center_offset[0])^ 2.0 + (yy + center_offset[1]) ^ 2.0)
-  
-        theta = atan(- yy, - xx)
-        theta += !pi
-
-        theta = rot(reverse(theta), pangle + run->epoch('rotation_correction'), 1)
 
         mg_log, 'correcting sky polarization with sine2theta (%d params) method', $
                 run->epoch('sine2theta_nparams'), name=log_name, /debug
@@ -101,7 +100,7 @@ pro kcor_l2, l1_filename, $
     r_out = run->epoch('r_out')
 
     ; mask pixels beyond field of view
-    mask = where(rad1 lt r_in or rad1 ge r_out, /null)
+    mask = where(rad lt r_in or rad ge r_out, /null)
     corona[mask] = run->epoch('display_min')
   endif
 
