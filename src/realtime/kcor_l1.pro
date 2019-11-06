@@ -1102,7 +1102,7 @@ pro kcor_l1, ok_filename, $
   writefits, filepath(l1_filename, root=l1_dir), data, l1_header
 
   ; now make cropped GIF file
-  kcor_cropped_gif, corona, run.date, date_struct, run=run, nomask=nomask, log_name=log_name
+  kcor_cropped_gif, umk4, run.date, date_struct, run=run, nomask=nomask, log_name=log_name
   
   loop_time = toc(clock)   ; save loop time
   mg_log, '%0.1f sec to process %s', loop_time, file_basename(ok_filename), $
