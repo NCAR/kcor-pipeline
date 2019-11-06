@@ -377,6 +377,7 @@ pro kcor_process_files, ok_files, $
              intensity=intensity, $
              q=q, $
              u=u, $
+             flat_vdimref=flat_vdimref, $
              log_name=log_name, $
              error=l1_error
     error or= l1_error
@@ -384,7 +385,7 @@ pro kcor_process_files, ok_files, $
 
     kcor_l2, l1_filename, $
              l1_header, $
-             intensity, q, u, $
+             intensity, q, u, flat_vimdref, $
              run=run, $
              nomask=nomask, $
              log_name=log_name, $

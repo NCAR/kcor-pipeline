@@ -3,6 +3,7 @@
 pro kcor_l2, l1_filename, $
              l1_header, $
              intensity, qmk4, umk4, $
+             flat_vdimref, $
              nomask=nomask, $
              run=run, $
              log_name=log_name, $
@@ -31,8 +32,6 @@ pro kcor_l2, l1_filename, $
   date_struct = kcor_parse_dateobs(date_obs)
   run.time = date_obs
 
-  ; TODO: need theta1, rad1
-
   ; sky polarization removal on coordinate-transformed data
   case strlowcase(run->config('realtime/skypol_method')) of
     'subtraction': begin
@@ -43,12 +42,27 @@ pro kcor_l2, l1_filename, $
         umk4_new = float(umk4) - float(rot(qmk4, 45.0)) + run->epoch('skypol_bias')
       end
     'sine2theta': begin
-      sun, date_struct.year, date_struct.month, date_struct.day, $
-           date_struct.ehour, $
-           sd=radsun
+        sun, date_struct.year, date_struct.month, date_struct.day, $
+             date_struct.ehour, $
+             pa=pangle, sd=radsun
+
+        ; create coordinate system
+        xsize = run->epoch('xsize')
+        ysize = run->epoch('ysize')
+        xx   = dindgen(xsize, ysize) mod xsize - (xsize / 2.0 - 0.5)
+        yy   = transpose(dindgen(ysize, xsize) mod ysize) - (ysize / 2.0 - 0.5)
+
+        center_offset = run->config('realtime/center_offset')
+        rad  = sqrt((xx + center_offset[0])^ 2.0 + (yy + center_offset[1]) ^ 2.0)
+  
+        theta = atan(- yy, - xx)
+        theta += !pi
+
+        theta = rot(reverse(theta), pangle + run->epoch('rotation_correction'), 1)
+
         mg_log, 'correcting sky polarization with sine2theta (%d params) method', $
                 run->epoch('sine2theta_nparams'), name=log_name, /debug
-        kcor_sine2theta_method, umk4, qmk4, intensity, radsun, theta1, rad1, $
+        kcor_sine2theta_method, umk4, qmk4, intensity, radsun, theta, rad, $
                                 q_new=qmk3_new, u_new=umk4_new, $
                                 run=run
       end
@@ -57,8 +71,6 @@ pro kcor_l2, l1_filename, $
 
   ; use only corona minus sky polarization background
   corona = umk4_new
-
-  ; TODO: need flat_vdimref
 
   ; sky transmission correction
   if (run->epoch('use_sgs')) then begin

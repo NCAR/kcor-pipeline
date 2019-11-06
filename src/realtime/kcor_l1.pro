@@ -24,6 +24,7 @@ pro kcor_l1, ok_filename, $
              intensity=intensity, $
              q=qmk4, $
              u=umk4, $
+             flat_vdimref=flat_vdimref, $
              run=run, $
              mean_phase1=mean_phase1, $
              log_name=log_name, $
@@ -49,8 +50,8 @@ pro kcor_l1, ok_filename, $
   mean_phase1 = 0.0   ; TODO: this is not set?
 
   ; set image dimensions
-  xsize = 1024L
-  ysize = 1024L
+  xsize = run->epoch('xsize')
+  ysize = run->epoch('ysize')
 
   ; set guess for radius - needed to find center
   radius_guess = 178   ; average radius for occulter
