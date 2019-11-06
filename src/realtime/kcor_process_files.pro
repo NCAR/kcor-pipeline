@@ -385,7 +385,7 @@ pro kcor_process_files, ok_files, $
 
     kcor_l2, l1_filename, $
              l1_header, $
-             intensity, q, u, flat_vimdref, $
+             intensity, q, u, flat_vdimref, $
              run=run, $
              nomask=nomask, $
              log_name=log_name, $
