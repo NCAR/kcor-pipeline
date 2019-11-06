@@ -603,11 +603,11 @@ pro kcor_l1, ok_filename, $
     mg_log, 'skipping shfting image to center', name=log_name, /debug
   endelse
 
-  kcor_l1_gif, ok_filename, umk4, date_obs, $
-               level='l1', $
-               scaled_image=scaled_image, $
-               nomask=nomask, $
-               run=run, log_name=log_name
+  kcor_create_gif, ok_filename, umk4, date_obs, $
+                   level=1, $
+                   scaled_image=scaled_image, $
+                   nomask=nomask, $
+                   run=run, log_name=log_name
 
   ;----------------------------------------------------------------------------
   ; CREATE A FITS IMAGE:

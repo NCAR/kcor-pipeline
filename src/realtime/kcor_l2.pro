@@ -83,11 +83,11 @@ pro kcor_l2, l1_filename, $
     corona[mask] = run->epoch('display_min')
   endif
 
-  kcor_l1_gif, l1_filename, corona, date_obs, $
-               level='l2', $
-               scaled_image=scaled_image, $
-               nomask=nomask, $
-               run=run, log_name=log_name
+  kcor_create_gif, l1_filename, corona, date_obs, $
+                   level=2, $
+                   scaled_image=scaled_image, $
+                   nomask=nomask, $
+                   run=run, log_name=log_name
 
   ; convert L1 header to an L2 header
   l2_header = l1_header
@@ -143,8 +143,6 @@ pro kcor_l2, l1_filename, $
                        keyword_set(nomask) ? '_nomask' : '', $
                        format='(%"%s_l2%s.fts")')
   writefits, filepath(l2_filename, root=l2_dir), corona, l2_header
-
-  ; TODO: need scaled image
 
   ; write Helioviewer JPEG2000 image to a web accessible directory
   if (run->config('results/hv_basedir') ne '' && ~keyword_set(nomask)) then begin

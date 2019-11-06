@@ -4,19 +4,19 @@
 ; Display image, annotate, and save as a full resolution GIF file.
 ;
 ; :Params:
-;   l0_file : in, required, type=string
+;   filename : in, required, type=string
 ;     level 0 filename
 ;   corona : in, required, type="fltarr(1024, 1024)"
 ;     corona
 ;   date_obs : in, required, type=string
 ;     observation date
 ;-
-pro kcor_l1_gif, l0_file, corona, date_obs, $
-                 scaled_image=scaled_image, $
-                 nomask=nomask, $
-                 run=run, $
-                 log_name=log_name, $
-                 level=level
+pro kcor_create_gif, filename, corona, date_obs, $
+                     scaled_image=scaled_image, $
+                     nomask=nomask, $
+                     run=run, $
+                     log_name=log_name, $
+                     level=level
   compile_opt strictarr
 
   date_struct = kcor_parse_dateobs(date_obs)
@@ -71,7 +71,8 @@ pro kcor_l1_gif, l0_file, corona, date_obs, $
           orientation=90., /device
   xyouts, 1012, 512, 'West', color=255, charsize=1.2, alignment=0.5, $
           orientation=90., /device
-  xyouts, 4, 46, 'Level 1 data', color=255, charsize=1.2, /device
+  xyouts, 4, 46, string(level, format='(%"Level %d data")'), $
+          color=255, charsize=1.2, /device
   xyouts, 4, 26, string(run->epoch('display_min'), $
                         run->epoch('display_max'), $
                         format='(%"min/max: %0.2g, %0.2g")'), $
@@ -94,12 +95,12 @@ pro kcor_l1_gif, l0_file, corona, date_obs, $
 
   device, decomposed=1
   save     = tvrd()
-  gif_file = string(strmid(file_basename(l0_file), 0, 20), $
+  gif_file = string(strmid(file_basename(filename), 0, 20), $
                     level, $
                     keyword_set(nomask) ? '_nomask' : '', $
-                    format='(%"%s_%s%s.gif")')
+                    format='(%"%s_l%d%s.gif")')
   write_gif, filepath(gif_file, $
-                      subdir=[run.date, 'level1'], $
+                      subdir=[run.date, string(level, format='(%"level%d")')], $
                       root=run->config('processing/raw_basedir')), $
              save, red, green, blue
 
