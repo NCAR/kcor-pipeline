@@ -604,6 +604,9 @@ pro kcor_l1, ok_filename, $
     mg_log, 'skipping shfting image to center', name=log_name, /debug
   endelse
 
+  ; output array
+  data = [[[umk4]], [[qmk4]]]
+
   kcor_create_gif, ok_filename, umk4, date_obs, $
                    level=1, $
                    scaled_image=scaled_image, $
@@ -768,9 +771,9 @@ pro kcor_l1, ok_filename, $
             ' physical = data * BSCALE + BZERO', format='(F8.3)'
 
   ; data display information
-  fxaddpar, l1_header, 'DATAMIN', min(corona, /nan), ' minimum value of data', $
+  fxaddpar, l1_header, 'DATAMIN', min(data, /nan), ' minimum value of data', $
             format='(E0.4)'
-  fxaddpar, l1_header, 'DATAMAX', max(corona, /nan), ' maximum value of data', $
+  fxaddpar, l1_header, 'DATAMAX', max(data, /nan), ' maximum value of data', $
             format='(E0.4)'
   fxaddpar, l1_header, 'DISPMIN', run->epoch('display_min'), $
             ' minimum value for display', $
@@ -1095,14 +1098,8 @@ pro kcor_l1, ok_filename, $
 
   sxdelpar, l1_header, 'DUMMY'
 
-  ; give a warning for NaN/infinite values in the final corona image
-  !null = where(finite(corona) eq 0, n_nans)
-  if (n_nans gt 0L) then begin
-    mg_log, '%d NaN/Inf values in L1 FITS', n_nans, name=log_name, /warn
-  endif
-
   ; write FITS image to disk
-  writefits, filepath(l1_filename, root=l1_dir), corona, l1_header
+  writefits, filepath(l1_filename, root=l1_dir), data, l1_header
 
   ; now make cropped GIF file
   kcor_cropped_gif, corona, run.date, date_struct, run=run, nomask=nomask, log_name=log_name

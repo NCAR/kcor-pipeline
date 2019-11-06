@@ -137,6 +137,11 @@ pro kcor_l2, l1_filename, $
   endcase
   fxaddpar, l2_header, 'SKYPOLRM', skypol_method, skypol_method_comment
 
+  fxaddpar, l1_header, 'DATAMIN', min(corona, /nan), ' minimum value of data', $
+            format='(E0.4)'
+  fxaddpar, l1_header, 'DATAMAX', max(corona, /nan), ' maximum value of data', $
+            format='(E0.4)'
+
   sxdelpar, l1_header, 'HISTORY'
   fxaddpar, l1_header, 'DUMMY', 1.0
   history = ['Level 1 calibration and processing steps: dark current subtracted;', $
@@ -149,6 +154,12 @@ pro kcor_l2, l1_filename, $
   for h = 0L, n_elements(history) - 1L do sxaddhist, history[h], l1_header
 
   sxdelpar, l1_header, 'DUMMY'
+
+  ; give a warning for NaN/infinite values in the final corona image
+  !null = where(finite(corona) eq 0, n_nans)
+  if (n_nans gt 0L) then begin
+    mg_log, '%d NaN/Inf values in L1 FITS', n_nans, name=log_name, /warn
+  endif
 
   ; write FITS image to disk
   l2_filename = string(strmid(file_basename(l1_filename), 0, 20), $
