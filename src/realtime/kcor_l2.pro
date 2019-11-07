@@ -204,5 +204,5 @@ pro kcor_l2, l1_filename, $
           name=log_name, /debug
 
   done:
-  mg_log, /check_mask, name=log_name, /debug
+  mg_log, /check_math, name=log_name, /debug
 end
