@@ -30,12 +30,14 @@ pro kcor_remove, date, config_filename=config_filename
 
   mg_log, 'starting remove for %s', date, name='kcor/reprocess', /info
 
-  mg_log, 'removing level1/ directory', name='kcor/reprocess', /info
-
-  level1_dir = filepath('level1', $
-                        subdir=date, $
-                        root=run->config('processing/raw_basedir'))
-  file_delete, level1_dir, /recursive, /allow_nonexistent
+  levels = ['level1', 'level2']
+  for i = 0L, n_elements(levels) - 1L do begin
+    mg_log, 'removing %s/ directory', levels[i], name='kcor/reprocess', /info
+    level_dir = filepath(levels[i], $
+                         subdir=date, $
+                         root=run->config('processing/raw_basedir'))
+    file_delete, level_dir, /recursive, /allow_nonexistent
+  endfor
 
   mg_log, 'done', name='kcor/reprocess', /info
 
