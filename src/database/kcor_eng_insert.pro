@@ -3,7 +3,7 @@
 ;+
 ; Insert values into the MLSO database table: kcor_eng.
 ;
-; Reads a list of L1 files for a specified date and inserts a row of data into
+; Reads a list of L2 files for a specified date and inserts a row of data into
 ; 'kcor_eng'.
 ;
 ; :Params:
@@ -26,7 +26,7 @@
 ;   For example::
 ;
 ;     date = '20170204'
-;     filelist = ['20170204_205610_kcor_l1_nrgf.fts.gz', '20170204_205625_kcor_l1.fts.gz']
+;     filelist = ['20170204_205610_kcor_l2_nrgf.fts.gz', '20170204_205625_kcor_l2.fts.gz']
 ;     kcor_eng_insert, date, filelist, run=run, obsday_index=obsday_index
 ;
 ; :Author: 
@@ -77,9 +77,9 @@ pro kcor_eng_insert, date, fits_list, $
   month   = strmid(date, 4, 2)   ; MM
   day     = strmid(date, 6, 2)   ; DD
 
-  l1_dir = filepath('level1', subdir=date, root=run->config('processing/raw_basedir'))
+  l2_dir = filepath('level2', subdir=date, root=run->config('processing/raw_basedir'))
   cd, current=start_dir 
-  cd, l1_dir
+  cd, l2_dir
 
   ; step through list of fits files passed in parameter
   nfiles = n_elements(fits_list)
@@ -220,12 +220,10 @@ end
 
 ; main-level example program
 
-;date = '20170204'
 date = '20130930'
-;filelist = ['20170204_205610_kcor_l1_nrgf.fts.gz','20170204_205625_kcor_l1.fts.gz','20170204_205640_kcor_l1.fts.gz','20170204_205656_kcor_l1.fts.gz','20170204_205711_kcor_l1.fts.gz']
-filelist = ['20130930_202422_kcor_l1.5.fts']
+filelist = ['20130930_202422_kcor_l2.fts']
 run = kcor_run(date, $
-               config_filename=filepath('kcor.mgalloy.mahi.latest.cfg', $
+               config_filename=filepath('kcor.latest.cfg', $
                                         subdir=['..', '..', 'config'], $
                                         root=mg_src_root()))
 

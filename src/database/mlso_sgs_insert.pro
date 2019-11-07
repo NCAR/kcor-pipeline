@@ -3,13 +3,13 @@
 ;+
 ; Insert values into the MLSO database table: mlso_sgs.
 ;
-; Reads a list of L1 files for a specified date and inserts a row of data into
+; Reads a list of L0 files for a specified date and inserts a row of data into
 ; 'kcor_sgs'.  TODO: will also need to read from sgs text files.
 ;
 ; :Params:
 ;   date : in, required, type=string
 ;     date in the form 'YYYYMMDD'
-;   filelist: in, required, type=array of strings
+;   fits_list: in, required, type=array of strings
 ;     array of L0 FITS files to insert into the database
 ;
 ; :Keywords:
@@ -152,9 +152,13 @@ end
 ; main-level example program
 
 date = '20170204'
-filelist = ['20170204_205610_kcor.fts.gz','20170204_205625_kcor.fts.gz','20170204_205640_kcor.fts.gz','20170204_205656_kcor.fts.gz','20170204_205711_kcor.fts.gz']
+filelist = ['20170204_205610_kcor.fts.gz', $
+            '20170204_205625_kcor.fts.gz', $
+            '20170204_205640_kcor.fts.gz', $
+            '20170204_205656_kcor.fts.gz', $
+            '20170204_205711_kcor.fts.gz']
 run = kcor_run(date, $
-               config_filename=filepath('kcor.kolinski.mahi.latest.cfg', $
+               config_filename=filepath('kcor.latest.cfg', $
                                         subdir=['..', '..', 'config'], $
                                         root=mg_src_root()))
 mlso_sgs_insert, date, filelist, run=run

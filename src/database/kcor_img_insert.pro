@@ -13,8 +13,8 @@
 ;     array of FITS files to insert into the database
 ;
 ; :Keywords:
-;   level1 : in, optional, type=boolean
-;     set to indicate that the `fits_list` files are L1.5 files
+;   level2 : in, optional, type=boolean
+;     set to indicate that the `fits_list` files are L2 files
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;   obsday_index : in, required, type=integer
@@ -28,7 +28,7 @@
 ;   For example::
 ;
 ;     date = '20170204'
-;     filelist = ['20170204_205610_kcor_l1_nrgf.fts.gz', '20170204_205625_kcor_l1.fts.gz']
+;     filelist = ['20170204_205610_kcor_l2_nrgf.fts.gz', '20170204_205625_kcor_l2.fts.gz']
 ;     kcor_img_insert, date, filelist, run=run, obsday_index=obsday_index
 ;
 ;   See the main-level program in this file for a detailed example.
@@ -86,7 +86,7 @@ pro kcor_img_insert, date, fits_list, $
 
   l2_dir = filepath('level2', subdir=date, root=run->config('processing/raw_basedir'))
   cd, current=start_dir 
-  cd, l1_dir
+  cd, l2_dir
 
   ; step through list of fits files passed in parameter
   nfiles = n_elements(fits_list)
@@ -284,18 +284,11 @@ end
 
 ; main-level example program
 
-;date = '20170204'
-;filelist = ['20170204_205610_kcor_l1_nrgf.fts.gz','20170204_205625_kcor_l1.fts.gz','20170204_205640_kcor_l1.fts.gz','20170204_205656_kcor_l1.fts.gz','20170204_205711_kcor_l1.fts.gz']
-;date = '20170305'
-;filelist = ['20170305_185807_kcor_l1.5_nrgf.fts.gz', $
-;            '20170305_185822_kcor_l1.5.fts.gz', $
-;            '20170305_185837_kcor_l1.5.fts.gz']
-
 date = '20180802'
-filelist = ['20180802_204107_kcor_l1.5.fts']
+filelist = ['20180802_204107_kcor_l2.fts']
 
 run = kcor_run(date, $
-               config_filename=filepath('kcor.mgalloy.twilight.latest.cfg', $
+               config_filename=filepath('kcor.latest.cfg', $
                                         subdir=['..', '..', 'config'], $
                                         root=mg_src_root()))
 obsday_index = mlso_obsday_insert(date, run=run)

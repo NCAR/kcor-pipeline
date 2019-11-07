@@ -112,13 +112,13 @@ end
 ; main-level example program
 
 date = '20180208'
-config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
+config_filename = filepath('kcor.latest.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
 
 obsday_index = mlso_obsday_insert(date, run=run, database=db)
-kcor_sw_insert, date, l1_files, run=run, database=db, obsday_index=obsday_index
+kcor_sw_insert, date, run=run, database=db, obsday_index=obsday_index
 
 obj_destroy, run
 

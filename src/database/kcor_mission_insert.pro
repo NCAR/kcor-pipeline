@@ -6,7 +6,7 @@
 ;+
 ; Insert values into the MLSO database table: kcor_mission.
 ;
-; Reads a list of L1 files for a specified date and inserts a row of data into
+; Reads a list of L2 files for a specified date and inserts a row of data into
 ; 'kcor_mission'.
 ;
 ; :Params:

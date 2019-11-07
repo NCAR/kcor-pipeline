@@ -3,7 +3,7 @@
 ;+
 ; Insert values into the MLSO database table: kcor_hw.
 ;
-; Reads a list of L1 files for a specified date and inserts a row of data into
+; Reads a list of L2 files for a specified date and inserts a row of data into
 ; 'kcor_hw' if any of the monitored fields changed from the previous db entry.
 ; This script will check the database against the current data to decide whether
 ; a new line should be added
@@ -12,7 +12,7 @@
 ;   date : in, type=string
 ;     date in the form 'YYYYMMDD'
 ;   fits_list: in, required, type=array of strings
-;     level 1 FITS filenames
+;     level 2 FITS filenames
 ;
 ; :Keywords:
 ;   run : in, required, type=object
@@ -230,11 +230,11 @@ latest_hw = kcor_find_latest_row(run=run, database=database, log_name=log_name)
 help, latest_hw
 
 cd, current=current_dir
-l1_dir = filepath('level1', subdir=date, root=run->config('processing/raw_basedir'))
-cd, l1_dir
-l1_files = file_search('*l1.fts*', count=n_l1_files)
+l2_dir = filepath('level2', subdir=date, root=run->config('processing/raw_basedir'))
+cd, l2_dir
+l2_files = file_search('*l2.fts*', count=n_l2_files)
 
-;kcor_hw_insert, date, l1_files, run=run
+;kcor_hw_insert, date, l2_files, run=run
 
 cd, current_dir
 

@@ -3,8 +3,8 @@
 ;+
 ; Update mean/median values in the MLSO database table: kcor_eng.
 ;
-; Reads a list of L0 files corresponding to NRGFs for a specified date and
-; updates the mean/median values for a row of data in 'kcor_eng'.
+; Reads a list of NRGF files for a specified date and updates the mean/median
+; values for a row of data in 'kcor_eng'.
 ;
 ; :Params:
 ;   date : in, required, type=string
@@ -62,15 +62,15 @@ pro kcor_eng_update, date, nrgf_files, $
   day     = strmid(date, 6, 2)   ; DD
 
   for f = 0L, n_elements(nrgf_files) - 1L do begin
-    l1_filename = strmid(file_basename(nrgf_files[f]), 0, 20) + '_l1.5.fts.gz'
+    l2_filename = strmid(file_basename(nrgf_files[f]), 0, 20) + '_l2.fts.gz'
 
-    mg_log, 'updating db for %s', l1_filename, name='kcor/eod', /info
+    mg_log, 'updating db for %s', l2_filename, name='kcor/eod', /info
     db->execute, 'UPDATE kcor_eng SET l0inthorizmeancam0=%f,l0inthorizmeancam1=%f, l0inthorizmediancam0=%f, l0inthorizmediancam1=%f, l0intazimeancam0=%f,l0intazimeancam1=%f, l0intazimediancam0=%f, l0intazimediancam1=%f WHERE file_name=''%s''', $
                  line_means[0, f], line_means[1, f], $
                  line_medians[0, f], line_medians[1, f], $
                  azi_means[0, f], azi_means[1, f], $
                  azi_medians[0, f], azi_medians[1, f], $
-                 file_basename(l1_filename, '.gz'), $
+                 file_basename(l2_filename, '.gz'), $
                  status=status, error_message=error_message, sql_statement=sql_cmd
     if (status ne 0L) then begin
       mg_log, 'error updating values in kcor_eng table for obsday index %d', $

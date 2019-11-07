@@ -3,7 +3,7 @@
 ;+
 ; Utility to insert values into the MLSO database table: kcor_sci.
 ;
-; Reads a list of L1 files for a specified date and inserts a row of data
+; Reads a list of L2 files for a specified date and inserts a row of data
 ; into 'kcor_cal' table.
 ;
 ; :Params:
@@ -24,7 +24,7 @@
 ;   For example::
 ;
 ;     date = '20170204'
-;     files = ['20170214_190402_kcor_l1.5.fts.gz']
+;     files = ['20170214_190402_kcor_l2.fts.gz']
 ;     kcor_sci_insert, date, files, run=run, obsday_index=obsday_index
 ;
 ; :Author:
@@ -61,9 +61,9 @@ pro kcor_sci_insert, date, files, $
     mg_log, 'connected to %s', host, name='kcor/eod', /info
   endelse
 
-  l1_dir = filepath('level1', subdir=date, root=run->config('processing/raw_basedir'))
+  l2_dir = filepath('level2', subdir=date, root=run->config('processing/raw_basedir'))
   cd, current=start_dir
-  cd, l1_dir
+  cd, l2_dir
 
   ; angles for full circle in radians
   theta = findgen(360) * !dtor
@@ -154,13 +154,13 @@ end
 
 date = '20161127'
 run = kcor_run(date, $
-               config_filename=filepath('kcor.mgalloy.mahi.latest.cfg', $
+               config_filename=filepath('kcor.latest.cfg', $
                                         subdir=['..', '..', 'config'], $
                                         root=mg_src_root()))
 
 obsday_index = mlso_obsday_insert(date, run=run, database=db)
 
-files = ['20170318_205523_kcor_l1.5.fts.gz']
+files = ['20170318_205523_kcor_l2.fts.gz']
 kcor_sci_insert, date, files, run=run, database=db, obsday_index=obsday_index
 
 results = db->query('select * from kcor_sci', sql_statement=cmd, error=error, fields=fields)
