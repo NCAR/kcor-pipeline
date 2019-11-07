@@ -27,7 +27,7 @@ pro kcor_save_results, date, run=run
 
   ; difference images
   diff_filenames = file_search(filepath('*minus*', $
-                                        subdir=[date, 'level1'], $
+                                        subdir=[date, 'level2'], $
                                         root=run->config('processing/raw_basedir')), $
                                count=n_diff_filenames)
   if (n_diff_filenames gt 0L) then begin
@@ -40,7 +40,7 @@ pro kcor_save_results, date, run=run
 
   ; extended average files
   extavg_filenames = file_search(filepath('*extavg*', $
-                                          subdir=[date, 'level1'], $
+                                          subdir=[date, 'level2'], $
                                           root=run->config('processing/raw_basedir')), $
                                  count=n_extavg_filenames)
   if (n_extavg_filenames gt 0L) then begin
@@ -53,7 +53,7 @@ pro kcor_save_results, date, run=run
 
   ; no mask files
   nomask_filenames = file_search(filepath('*nomask*', $
-                                          subdir=[date, 'level1'], $
+                                          subdir=[date, 'level2'], $
                                           root=run->config('processing/raw_basedir')), $
                                  count=n_nomask_filenames)
   if (n_nomask_filenames gt 0L) then begin
@@ -100,7 +100,7 @@ pro kcor_save_results, date, run=run
   endif
 
   ; *.tarlist files
-  dirs = ['level0', 'level1']
+  dirs = ['level0', 'level1', 'level2']
   for d = 0L, n_elements(dirs) - 1L do begin
     tarlist_files = file_search(filepath('*.tarlist', $
                                          subdir=[date, dirs[d]], $

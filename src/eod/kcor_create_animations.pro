@@ -81,7 +81,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
     endif
   endif
 
-  ; create daily mp4 of L1 files
+  ; create daily mp4 of L2 files
   mg_log, 'creating L2 mp4', name='kcor/eod', /info
   kcor_create_mp4, gif_filenames, dailymp4_filename, run=run, status=status
   if (status eq 0 && run->config('realtime/distribute')) then begin
@@ -118,7 +118,7 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
     endif
   endif
 
-  ; create daily mp4 of cropped L1 GIF files
+  ; create daily mp4 of cropped L2 GIF files
   mg_log, 'creating cropped L2 mp4', name='kcor/eod', /info
   kcor_create_mp4, cropped_gif_filenames, cropped_dailymp4_filename, $
                    run=run, status=status

@@ -1,7 +1,7 @@
 ; docformat = 'rst'
 
 ;+
-; Wrapper to call `kcor_archive_l1`.
+; Wrapper to call `kcor_archive_l2`.
 ;
 ; :Params:
 ;   date : in, required, type=string

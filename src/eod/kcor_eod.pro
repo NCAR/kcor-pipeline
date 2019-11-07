@@ -141,7 +141,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   l2_dir = filepath('level2', root=date_dir)
   if (~file_test(l0_dir, /directory)) then begin
     mg_log, '%s does not exist', l0_dir, name='kcor/eod', /error
-    n_l1_zipped_files = 0L
+    n_l2_zipped_files = 0L
   endif else begin
     if (file_test(l2_dir, /directory)) then begin
       cd, l2_dir
@@ -196,7 +196,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   endif
 
   ok_list = filepath('okfgif.ls', $
-                     subdir=[date, 'level1'], $
+                     subdir=[date, 'level2'], $
                      root=run->config('processing/raw_basedir'))
   n_ok_files = file_test(ok_list) ? file_lines(ok_list) : 0L
 
