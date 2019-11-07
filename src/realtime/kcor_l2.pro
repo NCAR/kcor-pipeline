@@ -32,6 +32,10 @@ pro kcor_l2, l1_filename, $
   date_struct = kcor_parse_dateobs(date_obs)
   run.time = date_obs
 
+  sun, date_struct.year, date_struct.month, date_struct.day, $
+       date_struct.ehour, $
+       pa=pangle, sd=radsun
+
   ; create coordinate system
   xsize = run->epoch('xsize')
   ysize = run->epoch('ysize')
@@ -55,10 +59,6 @@ pro kcor_l2, l1_filename, $
         umk4_new = float(umk4) - float(rot(qmk4, 45.0)) + run->epoch('skypol_bias')
       end
     'sine2theta': begin
-        sun, date_struct.year, date_struct.month, date_struct.day, $
-             date_struct.ehour, $
-             pa=pangle, sd=radsun
-
         mg_log, 'correcting sky polarization with sine2theta (%d params) method', $
                 run->epoch('sine2theta_nparams'), name=log_name, /debug
         kcor_sine2theta_method, umk4, qmk4, intensity, radsun, theta, rad, $
