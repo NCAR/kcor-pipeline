@@ -1,7 +1,7 @@
 ; docformat = 'rst'
 
 ;+
-;  1) Create averaged images from KCor level 1 data, averaging up to 4 images
+;  1) Create averaged images from KCor level 2 data, averaging up to 4 images
 ;     if they are taken < 2 minutes apart
 ;  2) generate subtractions from averages that are >= 10 minutes apart in time.
 ;  3) create a subtraction every 5 minutes
@@ -19,14 +19,14 @@
 ; :Params:
 ;   date : in, required, type=string
 ;     date in the form "YYYYMMDD"
-;   l1_files : in, required, type=strarr
-;     array of L1 filenames
+;   l2_files : in, required, type=strarr
+;     array of L2 filenames
 ;
 ; :Keywords:
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;-
-pro kcor_create_differences, date, l1_files, run=run
+pro kcor_create_differences, date, l2_files, run=run
   compile_opt strictarr
 
   mg_log, 'creating difference movies', name='kcor/eod', /info
@@ -39,13 +39,13 @@ pro kcor_create_differences, date, l1_files, run=run
     if (~file_test(cropped_dir, /directory)) then file_mkdir, fullres_dir
   endif
 
-  l1_dir = filepath('level1', subdir=date, root=run->config('processing/raw_basedir'))
+  l2_dir = filepath('level2', subdir=date, root=run->config('processing/raw_basedir'))
 
   cd, current=current
-  cd, l1_dir
+  cd, l2_dir
 
   ; set up variables and arrays needed
-  l1_file = ''
+  l2_file = ''
   base_file = ''
   fits_file = ''
   gif_file = ''
@@ -83,15 +83,15 @@ pro kcor_create_differences, date, l1_files, run=run
 
   ; read in images and generate subtractions ~10 minutes apart
   f = 0L
-  while (f lt n_elements(l1_files)) do begin
+  while (f lt n_elements(l2_files)) do begin
     numavg = 0
 
     ; read in up to 4 images, get time, and average if images <= 2 min apart
     for i = 0, 3 do begin
-      if (f ge n_elements(l1_files)) then break
+      if (f ge n_elements(l2_files)) then break
 
-      l1_file = file_basename(l1_files[f])
-      img = readfits(l1_file, header, /silent, /noscale)
+      l2_file = file_basename(l2_files[f])
+      img = readfits(l2_file, header, /silent, /noscale)
 
       f += 1
 
@@ -283,7 +283,7 @@ pro kcor_create_differences, date, l1_files, run=run
     pointing_ck = 0
 
     if (newsub eq 1) then begin
-      tscan, l1_file, subimg, pixrs, roll, xcen, ycen, $
+      tscan, l2_file, subimg, pixrs, roll, xcen, ycen, $
              theta_min, theta_max, theta_increment, radius, $
              scan, scandx, ns
 
@@ -372,7 +372,7 @@ pro kcor_create_differences, date, l1_files, run=run
         else: status = 'bad'
       endcase
 
-      name = strmid(file_basename(l1_file), 0, 20)
+      name = strmid(file_basename(l2_file), 0, 20)
 
       mg_log, 'writing %s-%s GIF/FTS file (%s)', $
               strmid(name, 9, 6), timestring, status, $
@@ -425,12 +425,12 @@ config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
 
-l1_files = file_search(filepath('*_l2.fts.gz', $
-                                subdir=[date, 'level1'], $
+l2_files = file_search(filepath('*_l2.fts.gz', $
+                                subdir=[date, 'level2'], $
                                 root=run->config('processing/raw_basedir')), $
-                       count=n_l1_files)
+                       count=n_l2_files)
 
-kcor_create_differences, date, l1_files, run=run
+kcor_create_differences, date, l2_files, run=run
 
 obj_destroy, run
 
