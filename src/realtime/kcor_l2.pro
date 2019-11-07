@@ -22,7 +22,7 @@ pro kcor_l2, l1_filename, $
 
   if (~file_test(l2_dir, /directory)) then file_mkdir, l2_dir
 
-  mg_log, 'L1 processing %s%s', $
+  mg_log, 'L2 processing %s%s', $
           file_basename(l1_filename), keyword_set(nomask) ? ' (nomask)' : '', $
           name=log_name, /info
 
