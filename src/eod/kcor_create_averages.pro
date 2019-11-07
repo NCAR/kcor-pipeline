@@ -346,7 +346,8 @@ pro kcor_create_averages, date, l2_files, run=run
       ; create cropped (512 x 512) GIF images
       kcor_cropped_gif, bscale * avgimg, date, kcor_parse_dateobs(date_obs), $
                         /average, output_filename=cgif_filename, run=run, $
-                        log_name='kcor/eod'
+                        log_name='kcor/eod', $
+                        level=2
       if (run->config('realtime/distribute')) then begin
         file_copy, cgif_filename, cropped_dir, /overwrite
       endif
@@ -548,7 +549,8 @@ pro kcor_create_averages, date, l2_files, run=run
   if (n_elements(daily_savename) gt 0L) then begin
     kcor_cropped_gif, bscale * daily, date, kcor_parse_dateobs(date_obs), $
                       /daily, /average, output_filename=cgif_filename, run=run, $
-                      log_name='kcor/eod'
+                      log_name='kcor/eod', $
+                      level=2
 
     if (run->config('realtime/distribute')) then begin
       mg_log, 'copying cropped extended average GIF to cropped dir', $
