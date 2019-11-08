@@ -80,7 +80,14 @@ pro kcor_l1, ok_filename, $
   run.time = date_obs
 
   ; extract information from calibration file
-  calpath = filepath(run->epoch('cal_file'), root=run->config('calibration/out_dir'))
+  cal_file = run->epoch('cal_file', error=cal_file_error)
+  if (cal_file_error ne 0L) then begin
+    mg_log, 'unable to find cal file', name=log_name, /error
+    error = 1L
+    goto, done
+  endif
+
+  calpath = filepath(cal_file, root=run->config('calibration/out_dir'))
   if (file_test(calpath)) then begin
     mg_log, 'cal file: %s', file_basename(calpath), name=log_name, /debug
   endif else begin
@@ -121,7 +128,7 @@ pro kcor_l1, ok_filename, $
   endelse
 
   if (kcor_nc_varid(unit, 'exptime') eq -1L) then begin
-    tokens = strsplit(file_basename(run->epoch('cal_file'), '.ncdf'), '_', /extract)
+    tokens = strsplit(file_basename(cal_file, '.ncdf'), '_', /extract)
     cal_exptime = float(strmid(tokens[-1], 0, strlen(tokens[-1]) - 2))
   endif else begin
     ncdf_varget, unit, 'exptime', cal_exptime

@@ -71,9 +71,11 @@ end
 ;   time : in, required, type=string
 ;     time at which epoch value is requested as UT time in the form "HHMMSS"
 ;-
-function kcor_run::epoch, name, time=time
+function kcor_run::epoch, name, time=time, error=error
   compile_opt strictarr
   on_error, 2
+
+  error = 0L
 
   if (n_elements(time) gt 0L) then begin
     hst_time = kcor_ut2hst(time)
@@ -88,7 +90,7 @@ function kcor_run::epoch, name, time=time
     endif else hst_time = kcor_ut2hst(time)
 
     calfile = self->_find_calfile(self.date, hst_time)
-    if (calfile eq '') then message, 'unable to find cal file'
+    if (calfile eq '') then error = 1L
     return, calfile
   endif
 
