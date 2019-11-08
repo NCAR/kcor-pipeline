@@ -16,9 +16,17 @@
 ;     date to check for, in the form "YYYYMMDD"
 ;   hst_time : in, required, type=string
 ;     HST time to check for, in the form "HHMMSS"
+;
+; :Keywords:
+;   error : out, optional, type=long
+;     set to a named variable to retrieve the error status: 0 for success, 1
+;     for no cal files of the correct epoch, and 2 for no files within the
+;     time constraint
 ;-
-function kcor_run::_find_calfile, date, hst_time
+function kcor_run::_find_calfile, date, hst_time, error=error
   compile_opt strictarr
+
+  error = 0L
 
   re = '([[:digit:]]{8})_([[:digit:]]{6})_kcor_cal.*.\.ncdf'
   cal_out_dir = self->config('calibration/out_dir')
@@ -29,6 +37,7 @@ function kcor_run::_find_calfile, date, hst_time
                              root=cal_out_dir)
 
   calfiles = file_basename(file_search(cal_search_spec, count=n_calfiles))
+  if (n_calfiles eq 0L) then error = 1L
 
   now_date = long(kcor_decompose_date(date))
   now_time = long(kcor_decompose_time(hst_time))
@@ -54,6 +63,7 @@ function kcor_run::_find_calfile, date, hst_time
     endif
   endfor
 
+  if (closest_file eq '') then error = 2L
   return, closest_file
 end
 
@@ -89,23 +99,13 @@ function kcor_run::epoch, name, time=time, error=error
       hst_time = dt->strftime('%H%M%S')
     endif else hst_time = kcor_ut2hst(time)
 
-    calfile = self->_find_calfile(self.date, hst_time)
-    if (calfile eq '') then error = 1L
+    calfile = self->_find_calfile(self.date, hst_time, error=find_cal_file_error)
+    error = find_cal_file_error
+
     return, calfile
   endif
 
   value = self.epochs->get(name, datetime=datetime)
-
-  ; handle 'cal_file' when using hard-coded cal files
-  if (strlowcase(name) eq 'cal_file') then begin
-    cal_file_glob_pattern = value
-    cal_out_dir = self->config('calibration/out_dir')
-    cal_search_spec = filepath(cal_file_glob_pattern, root=cal_out_dir)
-
-    calfiles = file_search(cal_search_spec, count=n_calfiles)
-    if (n_calfiles eq 0L) then message, 'unable to find cal file'
-    return, file_basename(calfiles[-1])
-  endif
 
   return, value
 end

@@ -81,11 +81,15 @@ pro kcor_l1, ok_filename, $
 
   ; extract information from calibration file
   cal_file = run->epoch('cal_file', error=cal_file_error)
-  if (cal_file_error ne 0L) then begin
-    mg_log, 'unable to find cal file', name=log_name, /error
-    error = 1L
-    goto, done
-  endif
+  switch cal_file_error of
+    0: break
+    1: mg_log, 'no cal files of correct cal epoch', name=log_name, /error
+    2: mg_log, 'unable to find cal file', name=log_name, /error
+    else: begin
+        error = 1L
+        goto, done
+      end
+  endswitch
 
   calpath = filepath(cal_file, root=run->config('calibration/out_dir'))
   if (file_test(calpath)) then begin
