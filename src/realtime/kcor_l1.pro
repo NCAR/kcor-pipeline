@@ -283,12 +283,12 @@ pro kcor_l1, ok_filename, $
     if (n_elements(cam0_badlines) gt 0L) then begin
       mg_log, 'correcting cam 0 bad lines: %s', $
               strjoin(strtrim(cam0_badlines, 2), ', '), $
-              name='kcor/rt', /debug
+              name=log_name, /debug
     endif
     if (n_elements(cam1_badlines) gt 0L) then begin
       mg_log, 'correcting cam 1 bad lines: %s', $
               strjoin(strtrim(cam1_badlines, 2), ', '), $
-              name='kcor/rt', /debug
+              name=log_name, /debug
     endif
 
     kcor_correct_horizontal_artifact, img, $

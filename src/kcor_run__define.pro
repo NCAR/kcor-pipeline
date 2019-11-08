@@ -37,7 +37,10 @@ function kcor_run::_find_calfile, date, hst_time, error=error
                              root=cal_out_dir)
 
   calfiles = file_basename(file_search(cal_search_spec, count=n_calfiles))
-  if (n_calfiles eq 0L) then error = 1L
+  if (n_calfiles eq 0L) then begin
+    error = 1L
+    return, ''
+  endif
 
   now_date = long(kcor_decompose_date(date))
   now_time = long(kcor_decompose_time(hst_time))

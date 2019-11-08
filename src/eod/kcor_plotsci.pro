@@ -20,7 +20,7 @@ pro kcor_plotsci, date, daily_science_file, run=run
   mg_log, '%s', file_basename(daily_science_file), name='kcor/eod', /info
 
   cd, current=orig_dir
-  cd, filepath('', subdir=[date, 'level1'], root=run->config('processing/raw_basedir'))
+  cd, filepath('', subdir=[date, 'level2'], root=run->config('processing/raw_basedir'))
 
   time = strmid(file_basename(daily_science_file), 9, 6)
 
