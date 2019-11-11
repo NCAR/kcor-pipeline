@@ -365,7 +365,7 @@ pro kcor_create_averages, date, l2_files, run=run
       fxaddpar, saveheader, 'AVGTIME1', timestring[1], ' Img times used in avg.'
     endif
     name = strmid(savename, 0, 15) + '_kcor_l2'
-    fits_filename = string(name, format='("%s_avg.fts")')
+    fits_filename = string(name, format='(%"%s_avg.fts")')
 
     fxaddpar, saveheader, 'DATE-OBS', imgtimes[0]
     fxaddpar, saveheader, 'DATE-END', imgtimes[numavg - 1]
