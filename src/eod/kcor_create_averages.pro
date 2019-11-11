@@ -105,7 +105,7 @@ pro kcor_create_averages, date, l2_files, run=run
         if (dailycount lt 48 and date_julian[i] - firsttime lt dailyavgval) then begin
           if (dailycount eq n_skip) then begin
             daily_hst = hst
-            daily_savename = strmid(file_basename(l2_file), 0, 25)
+            daily_savename = strmid(file_basename(l2_file), 0, 23)
             dailysaveheader = header
           endif
 
@@ -119,7 +119,7 @@ pro kcor_create_averages, date, l2_files, run=run
         stopavg = 0
         numavg = 1
         saveheader = header
-        savename = strmid(file_basename(l2_file), 0, 25)
+        savename = strmid(file_basename(l2_file), 0, 23)
         imgtimes[0]    = imgtimes[last]
         imgendtimes[0] = imgendtimes[last]
         timestring[0]  = strmid(imgtimes[0], 11)
@@ -179,7 +179,7 @@ pro kcor_create_averages, date, l2_files, run=run
         endif
 
         if (dailycount eq 0L) then begin
-          daily_savename = strmid(file_basename(l2_file), 0, 25)
+          daily_savename = strmid(file_basename(l2_file), 0, 23)
           dailyavg[0, 0, dailycount] = imgsave[*, *, 0]
           dailysaveheader = header
           dailytimes[dailycount] = imgtimes[0]
@@ -188,7 +188,7 @@ pro kcor_create_averages, date, l2_files, run=run
         endif
 
         if (i eq 0) then begin
-          savename = strmid(file_basename(l2_file), 0, 25)
+          savename = strmid(file_basename(l2_file), 0, 23)
           avgimg = imgsave[*, *, 0]
           saveheader = header
           numavg = 1
@@ -218,7 +218,7 @@ pro kcor_create_averages, date, l2_files, run=run
         if (dailycount lt 48  and  date_julian[i] - firsttime lt dailyavgval) then begin
           if (dailycount eq n_skip) then begin
             daily_hst = hst
-            daily_savename = strmid(file_basename(l2_file), 0, 25)
+            daily_savename = strmid(file_basename(l2_file), 0, 23)
             dailysaveheader = header
           endif
 
@@ -337,7 +337,7 @@ pro kcor_create_averages, date, l2_files, run=run
     save = tvrd()
 
     if (numavg gt 1L) then begin
-      gif_basename = strmid(savename, 0, 25) + '_avg.gif'
+      gif_basename = strmid(savename, 0, 23) + '_avg.gif'
       write_gif, gif_basename, save, red, green, blue
       if (run->config('realtime/distribute')) then begin
         file_copy, gif_basename, fullres_dir, /overwrite
@@ -364,8 +364,8 @@ pro kcor_create_averages, date, l2_files, run=run
     if (numavg gt 3) then begin
       fxaddpar, saveheader, 'AVGTIME1', timestring[1], ' Img times used in avg.'
     endif
-    name = strmid(savename, 0, 25)
-    fits_filename = string(format='(a25, "_avg.fts")', name)
+    name = strmid(savename, 0, 15) + '_kcor_l2'
+    fits_filename = string(name, format='("%s_avg.fts")')
 
     fxaddpar, saveheader, 'DATE-OBS', imgtimes[0]
     fxaddpar, saveheader, 'DATE-END', imgtimes[numavg - 1]
@@ -533,7 +533,7 @@ pro kcor_create_averages, date, l2_files, run=run
   save = tvrd()
 
   if (n_elements(daily_savename) gt 0L) then begin
-    gif_filename = strmid(daily_savename, 0, 25) + '_extavg.gif'
+    gif_filename = strmid(daily_savename, 0, 23) + '_extavg.gif'
     write_gif, gif_filename, save, red, green, blue  
     if (run->config('realtime/distribute')) then begin
       mg_log, 'copying extended average GIF to cropped dir', $
@@ -582,7 +582,7 @@ pro kcor_create_averages, date, l2_files, run=run
   fxaddpar, dailysaveheader, 'DATE_HST', daily_hst
 
   if (n_elements(daily_savename) gt 0L) then begin
-    name = strmid(daily_savename, 0, 25)
+    name = strmid(daily_savename, 0, 23)
     daily_fits_average_filename = string(name, format='(%"%s_extavg.fts")')
 
     mg_log, 'writing %s', daily_fits_average_filename, name='kcor/eod', /info
