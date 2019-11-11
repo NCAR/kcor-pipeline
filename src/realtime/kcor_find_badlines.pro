@@ -36,35 +36,18 @@ end
 
 ; main-level example program
 
-date = '20190625'
-;basename = '20190625_184435_kcor.fts.gz'
-;basename = '20190625_193439_kcor.fts.gz'
-;basename = '20190625_174052_kcor.fts.gz'
-;basename = '20190625_174253_kcor.fts.gz'
-;basename = '20190625_172355_kcor.fts.gz'
-;basename = '20190625_172426_kcor.fts.gz'
-;basename = '20190625_174842_kcor.fts.gz'
-;basename = '20190625_183025_kcor.fts.gz'
-;basename = '20190625_182421_kcor.fts.gz'
-;basename = '20190625_184218_kcor.fts.gz'
-time = '184435'
-;basename = '20190625_184505_kcor.fts.gz'
-;basename = '20190625_192603_kcor.fts.gz'
-;basename = '20190625_193338_kcor.fts.gz'
-;basename = '20190625_171031_kcor.fts.gz'
+date = '20191107'
+time = '200530'
 
-;date = '20150501'
-;time = '174041'
-
-config_filename = filepath('kcor.latest.cfg', $
+config_filename = filepath('kcor.parker.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
 
 basename = string(date, time, format='(%"%s_%s_kcor.fts.gz")')
 filename = filepath(basename, $
-                    subdir=[date, 'level0'], $
-;                    subdir=[date], $
+;                    subdir=[date, 'level0'], $
+                    subdir=[date], $
                     root=run->config('processing/raw_basedir'))
 im = readfits(filename, header, /silent)
 

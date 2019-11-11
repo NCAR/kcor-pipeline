@@ -19,17 +19,16 @@ function kcor_find_badlines_camera, corona, $
                                     difference_threshold=difference_threshold
   compile_opt strictarr
 
-  n = 3
-  col_diff_kernel = fltarr(n, n) - 1.0 / (n - 1L)
-  col_diff_kernel[*, n / 2] = 1.0
+  col_diff_kernel = fltarr(3, 3)
+  col_diff_kernel[1, 1] = 1.0
+  col_diff_kernel[1, [0, 2]] = -0.5
   col_diffs = convol(corona, col_diff_kernel)
-
-  means = mean(abs(col_diffs) < 80.0, dimension=1)
+  medians = median(abs(col_diffs), dimension=1)
 
   ; number of lines to skip at the top and bottom of the image
   n_skip = 3
 
-  bad_lines = where(means[n_skip:-n_skip-1] gt difference_threshold, $
+  bad_lines = where(medians[n_skip:-n_skip-1] gt difference_threshold, $
                     n_bad_lines, /null)
 
   ; need to add bad the index offset for the skipping lines
@@ -48,7 +47,7 @@ function kcor_find_badlines_camera, corona, $
     for r = 1L, n_labels do begin
       ind = where(labels eq r, count)
       if (count gt 0L) then begin
-        !null = max(means[ind], max_index)
+        !null = max(medians[ind], max_index)
         worse_lines[r - 1L] = ind[max_index]
       endif
     endfor
