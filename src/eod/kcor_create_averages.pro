@@ -376,7 +376,7 @@ pro kcor_create_averages, date, l2_files, run=run
       writefits, fits_filename, avgimg, saveheader
     endif else begin
       mg_log, 'not writing average FITS with single image: %s', fits_filename, $
-              name='comp', /debug
+              name='kcor/eod', /debug
     endelse
   endwhile
 
