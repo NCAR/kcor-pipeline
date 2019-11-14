@@ -146,13 +146,13 @@ pro kcor_l2, l1_filename, $
   endcase
   fxaddpar, l2_header, 'SKYPOLRM', skypol_method, skypol_method_comment
 
-  fxaddpar, l1_header, 'DATAMIN', min(corona, /nan), ' minimum value of data', $
+  fxaddpar, l2_header, 'DATAMIN', min(corona, /nan), ' minimum value of data', $
             format='(E0.4)'
-  fxaddpar, l1_header, 'DATAMAX', max(corona, /nan), ' maximum value of data', $
+  fxaddpar, l2_header, 'DATAMAX', max(corona, /nan), ' maximum value of data', $
             format='(E0.4)'
 
-  sxdelpar, l1_header, 'HISTORY'
-  fxaddpar, l1_header, 'DUMMY', 1.0
+  sxdelpar, l2_header, 'HISTORY'
+  fxaddpar, l2_header, 'DUMMY', 1.0
   history = ['Level 1 calibration and processing steps: dark current subtracted;', $
              'gain correction; apply polarization demodulation matrix; apply', $
              'distortion correction; align each camera to center, rotate to solar', $
@@ -160,9 +160,9 @@ pro kcor_l2, l1_filename, $
              'to tangential polarization; remove sky polarization; correct for', $
              'sky transmission.']
   history = mg_strwrap(strjoin(history, ' '), width=72)
-  for h = 0L, n_elements(history) - 1L do sxaddhist, history[h], l1_header
+  for h = 0L, n_elements(history) - 1L do sxaddhist, history[h], l2_header
 
-  sxdelpar, l1_header, 'DUMMY'
+  sxdelpar, l2_header, 'DUMMY'
 
   ; give a warning for NaN/infinite values in the final corona image
   !null = where(finite(corona) eq 0, n_nans)

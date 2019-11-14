@@ -1110,7 +1110,7 @@ pro kcor_l1, ok_filename, $
   sxdelpar, l1_header, 'DUMMY'
 
   ; write FITS image to disk
-  writefits, filepath(l1_filename, root=l1_dir), data, l1_header
+  writefits, filepath(l1_filename, root=l1_dir), float(data), l1_header
 
   ; now make cropped GIF file
   kcor_cropped_gif, umk4, run.date, date_struct, $
