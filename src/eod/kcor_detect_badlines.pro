@@ -48,7 +48,7 @@ pro kcor_detect_badlines, run=run
     n_checked_images += 1L
 
     difference_threshold = run->epoch('badlines_diff_threshold')
-    n_skip = run->epoch('badlines_n_skip')
+    n_skip = run->epoch('badlines_nskip')
     kcor_find_badlines, im, $
                         cam0_badlines=cam0, $
                         cam1_badlines=cam1, $
