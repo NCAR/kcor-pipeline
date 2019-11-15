@@ -14,12 +14,18 @@ pro kcor_detect_badlines, run=run
 
   mg_log, 'starting', name=logger_name, /info
 
-  basename = '*_kcor_l2.fts.gz'
-
   raw_basedir = run->config('processing/raw_basedir')
-
-  pattern = filepath(basename, subdir=[run.date, 'level2'], root=raw_basedir)
-  times = strmid(file_basename(file_search(pattern, count=n_filenames)), 0, 15)
+  oka_filename = filepath('oka.ls', $
+                          subdir=[run.date, 'q'], $
+                          root=raw_basedir)
+  n_filenames = file_lines(oka_filename)
+  if (n_filenames gt 0L) then begin
+    files = strarr(n_filenames)
+    openr, lun, oka_filename, /get_lun
+    readf, lun, files
+    free_lun, lun
+    times = strmid(files, 0, 15)
+  endif
 
   cam0_badlines = mg_defaulthash(default=0L)
   cam1_badlines = mg_defaulthash(default=0L)
