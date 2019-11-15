@@ -37,6 +37,7 @@ pro kcor_detect_badlines, run=run
   n_checked_images = 0L
 
   plot_dir = filepath('p', subdir=run.date, root=raw_basedir)
+  if (~file_test(plot_dir, /directory)) then file_mkdir, plot_dir
 
   for f = 0L, n_filenames - 1L do begin
     filename = filepath(string(times[f], format='(%"%s_kcor.fts.gz")'), $
