@@ -18,6 +18,11 @@ pro kcor_detect_badlines, run=run
   oka_filename = filepath('oka.ls', $
                           subdir=[run.date, 'q'], $
                           root=raw_basedir)
+  if (~file_test(oka_filename, /regular)) then begin
+    mg_log, 'no OK files', name=logger_name, /warn
+    goto, done
+  endif
+
   n_filenames = file_lines(oka_filename)
   if (n_filenames gt 0L) then begin
     files = strarr(n_filenames)
@@ -69,7 +74,7 @@ pro kcor_detect_badlines, run=run
     for i = 0L, n_elements(cam1) - 1L do cam1_badlines[cam1[i]] += 1
   endfor
 
-  mg_log, 'checked %d out of %d OK L0 files', n_checked_images, n_filenames, $
+  mg_log, 'checked %d OK L0 files', n_checked_images, $
           name=logger_name, /info
 
   if (cam0_badlines->count() gt 0L) then begin
@@ -104,7 +109,10 @@ pro kcor_detect_badlines, run=run
     endfor
   endif
 
-  obj_destroy, [cam0_badlines, cam1_badlines]
+  done:
+  if (obj_valid(cam0_badlines)) then obj_destroy, cam0_badlines
+  if (obj_valid(cam1_badlines)) then obj_destroy, cam1_badlines
+
   mg_log, 'done', name=logger_name, /info
 end
 
