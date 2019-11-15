@@ -14,7 +14,7 @@ end
 ;+
 ; Make diagnostic plots of the bad line finding.
 ;-
-pro kcor_plot_badlines_medians, cam0_medians, cam1_medians, threshold, $
+pro kcor_plot_badlines_medians, datetime, cam0_medians, cam1_medians, threshold, $
                                 filename, histogram_filename, $
                                 n_skip=n_skip
   compile_opt strictarr
@@ -24,6 +24,10 @@ pro kcor_plot_badlines_medians, cam0_medians, cam1_medians, threshold, $
   _cam1_medians = cam1_medians[_n_skip:-1 - _n_skip]
   rows0 = lindgen(n_elements(_cam0_medians)) + _n_skip
   rows1 = lindgen(n_elements(_cam1_medians)) + _n_skip
+
+  datetime_tokens = strsplit(datetime, '_', /extract)
+  date = datetime_tokens[0]
+  time = datetime_tokens[1]
 
   original_device = !d.name
   set_plot, 'Z'
@@ -66,7 +70,8 @@ pro kcor_plot_badlines_medians, cam0_medians, cam1_medians, threshold, $
 
   plot, rows0, under_cam0_medians, psym=1, symsize=symsize, $
         xstyle=9, ystyle=9, yrange=yrange, $
-        title='Camera 0 median of column convolutions', $
+        title=string(date, time, $
+                     format='(%"%s %s camera 0 median of column convolutions")'), $
         xtitle='Row', ytitle='Median', $
         font=font
   oplot, rows0, over_cam0_medians, psym=8, symsize=over_symsize, color=over_color
@@ -90,7 +95,8 @@ pro kcor_plot_badlines_medians, cam0_medians, cam1_medians, threshold, $
 
   plot, rows1, under_cam1_medians, psym=1, symsize=symsize, $
         xstyle=9, ystyle=9, yrange=yrange, $
-        title='Camera 1 median of column convolutions', $
+        title=string(date, time, $
+                     format='(%"%s %s camera 1 median of column convolutions")'), $
         xtitle='Row', ytitle='Median', $
         font=font
   oplot, rows1, over_cam1_medians, psym=8, symsize=over_symsize, color=over_color
@@ -121,7 +127,8 @@ pro kcor_plot_badlines_medians, cam0_medians, cam1_medians, threshold, $
   plot, locs0, h0, /nodata, $
         /ylog, xstyle=1, ystyle=1, yticklen=0.01, $
         xrange=[locs0[0], locs0[-1] + bin_size0], yrange=yrange, $
-        font=font, title='Camera 0 histogram', $
+        font=font, $
+        title=string(date, time, format='(%"%s %s camera 0 histogram")'), $
         xtitle='Threshold', ytitle='Number of rows'
   for i = 0L, n_elements(locs0) - 2L do begin
     oplot, fltarr(2) + locs0[i + 1L], yrange, linestyle=2, color=grid_color
@@ -142,7 +149,8 @@ pro kcor_plot_badlines_medians, cam0_medians, cam1_medians, threshold, $
         /ylog, xstyle=1, ystyle=1, yticklen=0.01, $
         xrange=[locs1[0], locs1[-1] + bin_size1], yrange=yrange, $
         psym=1, symsize=symsize, $
-        font=font, title='Camera 1 histogram', $
+        font=font, $
+        title=string(date, time, format='(%"%s %s camera 1 histogram")'), $
         xtitle='Threshold', ytitle='Number of rows'
   for i = 0L, n_elements(locs1) - 2L do begin
     oplot, fltarr(2) + locs1[i + 1L], yrange, linestyle=2, color=grid_color

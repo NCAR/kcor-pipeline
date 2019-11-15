@@ -63,7 +63,8 @@ pro kcor_detect_badlines, run=run
       histogram_basename = string(times[f], format='(%"%s.kcor.badlines.histogram.gif")')
       histogram_filename = filepath(histogram_basename, root=plot_dir)
 
-      kcor_plot_badlines_medians, cam0_medians, $
+      kcor_plot_badlines_medians, times[f], $
+                                  cam0_medians, $
                                   cam1_medians, $
                                   difference_threshold, $
                                   plot_filename, $
