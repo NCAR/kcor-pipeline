@@ -31,6 +31,8 @@ pro kcor_detect_badlines, run=run
   cam1_badlines = mg_defaulthash(default=0L)
   n_checked_images = 0L
 
+  plot_dir = filepath('p', subdir=run.date, root=raw_basedir)
+
   for f = 0L, n_filenames - 1L do begin
     filename = filepath(string(times[f], format='(%"%s_kcor.fts.gz")'), $
                         subdir=[run.date, 'level0'], $
@@ -40,10 +42,28 @@ pro kcor_detect_badlines, run=run
     n_checked_images += 1L
 
     difference_threshold = run->epoch('badlines_diff_threshold')
+    n_skip = run->epoch('badlines_n_skip')
     kcor_find_badlines, im, $
                         cam0_badlines=cam0, $
                         cam1_badlines=cam1, $
-                        difference_threshold=difference_threshold
+                        difference_threshold=difference_threshold, $
+                        n_skip=n_skip, $
+                        cam0_medians=cam0_medians, $
+                        cam1_medians=cam1_medians
+
+    if (run->config('badlines/diagnostics')) then begin
+      plot_basename = string(times[f], format='(%"%s.kcor.badlines.gif")')
+      plot_filename = filepath(plot_basename, root=plot_dir)
+      histogram_basename = string(times[f], format='(%"%s.kcor.badlines.histogram.gif")')
+      histogram_filename = filepath(histogram_basename, root=plot_dir)
+
+      kcor_plot_badlines_medians, cam0_medians, $
+                                  cam1_medians, $
+                                  difference_threshold, $
+                                  plot_filename, $
+                                  histogram_filename, $
+                                  n_skip=n_skip
+    endif
 
     for i = 0L, n_elements(cam0) - 1L do cam0_badlines[cam0[i]] += 1
     for i = 0L, n_elements(cam1) - 1L do cam1_badlines[cam1[i]] += 1

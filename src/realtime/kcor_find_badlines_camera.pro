@@ -14,9 +14,14 @@
 ;   difference_threshold : in, required, type=float
 ;     minimum value of the mean of a row of column differences to be considered
 ;     for being a bad row
+;   medians : out, optional, type=fltarr(1024)
+;     set to named variable to retrieve the median of each row in the column
+;     convolution
 ;-
 function kcor_find_badlines_camera, corona, $
-                                    difference_threshold=difference_threshold
+                                    difference_threshold=difference_threshold, $
+                                    n_skip=n_skip, $
+                                    medians=medians
   compile_opt strictarr
 
   col_diff_kernel = fltarr(3, 3)
@@ -26,13 +31,13 @@ function kcor_find_badlines_camera, corona, $
   medians = median(abs(col_diffs), dimension=1)
 
   ; number of lines to skip at the top and bottom of the image
-  n_skip = 3
+  _n_skip = n_elements(n_skip) eq 0L ? 3 : n_skip
 
-  bad_lines = where(medians[n_skip:-n_skip-1] gt difference_threshold, $
+  bad_lines = where(medians[_n_skip:-_n_skip-1] gt difference_threshold, $
                     n_bad_lines, /null)
 
   ; need to add bad the index offset for the skipping lines
-  if (n_bad_lines gt 0L) then bad_lines += n_skip
+  if (n_bad_lines gt 0L) then bad_lines += _n_skip
 
   ; if multiple bad lines found, take the worst one in each contiguous block of
   ; bad lines
