@@ -113,14 +113,14 @@ pro kcor_sci_insert, date, files, $
 
     total_pb = count eq 0L ? 0.0 : total(image[annulus], /preserve_type)
 
-    r108 = kcor_annulus_gridmeans(image, 1.08, sun_pixels)
+    r111 = kcor_annulus_gridmeans(image, 1.11, sun_pixels)
     r13 = kcor_annulus_gridmeans(image, 1.3, sun_pixels)
     r18 = kcor_annulus_gridmeans(image, 1.8, sun_pixels)
 
     level_id = kcor_get_level_id(level_name, database=db, count=level_found)
     if (level_found eq 0) then mg_log, 'using unknown level', name=log_name, /error
 
-    db->execute, 'INSERT INTO kcor_sci (file_name, date_obs, obs_day, level, totalpB, intensity, intensity_stddev, r108, r13, r18) VALUES (''%s'', ''%s'', %d, %d, %f, ''%s'', ''%s'', ''%s'', ''%s'', ''%s'')', $
+    db->execute, 'INSERT INTO kcor_sci (file_name, date_obs, obs_day, level, totalpB, intensity, intensity_stddev, r111, r13, r18) VALUES (''%s'', ''%s'', %d, %d, %f, ''%s'', ''%s'', ''%s'', ''%s'', ''%s'')', $
                  file_basename(files[f], '.gz'), $
                  date_obs, $
                  obsday_index, $
@@ -128,7 +128,7 @@ pro kcor_sci_insert, date, files, $
                  total_pb, $
                  db->escape_string(intensity), $
                  db->escape_string(intensity_stddev), $
-                 db->escape_string(r108), $
+                 db->escape_string(r111), $
                  db->escape_string(r13), $
                  db->escape_string(r18), $
                  status=status, $

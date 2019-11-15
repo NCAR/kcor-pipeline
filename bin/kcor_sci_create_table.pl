@@ -88,6 +88,7 @@ $command = "CREATE TABLE kcor_sci (
   intensity           BLOB,
   intensity_stddev    BLOB,
   r108                BLOB,
+  r111                BLOB,
   r13                 BLOB,
   r18                 BLOB,
   FOREIGN KEY (obs_day) REFERENCES mlso_numfiles(day_id),
