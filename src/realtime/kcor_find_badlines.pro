@@ -46,8 +46,8 @@ end
 ; main-level example program
 
 date = '20191107'
-;time = '200530'
-time = '214437'
+time = '200530'
+;time = '214437'
 
 ;date = '20190618'
 ;time = '184536'

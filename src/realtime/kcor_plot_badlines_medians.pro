@@ -58,8 +58,12 @@ pro kcor_plot_badlines_medians, datetime, cam0_medians, cam1_medians, threshold,
   !p.multi = [0, 1, 2]
 
   yrange = [0.0, threshold * 1.05]
+
   over_indices0 = where(_cam0_medians gt threshold, complement=under_indices0, /null)
+  over_indices0 = kcor_filter_badlines(over_indices0, _cam0_medians)
+
   over_indices1 = where(_cam1_medians gt threshold, complement=under_indices1, /null)
+  over_indices1 = kcor_filter_badlines(over_indices1, _cam1_medians)
 
   under_cam0_medians = kcor_plot_badlines_median_partition(_cam0_medians, $
                                                            under_indices0, $

@@ -42,22 +42,7 @@ function kcor_find_badlines_camera, corona, $
   ; if multiple bad lines found, take the worst one in each contiguous block of
   ; bad lines
   if (n_bad_lines gt 1L) then begin
-    dims = size(corona, /dimensions)
-    mask = bytarr(dims[1])
-    mask[bad_lines] = 1B
-    labels = label_region(mask)
-    n_labels = max(labels)
-    worse_lines = lonarr(n_labels)
-
-    for r = 1L, n_labels do begin
-      ind = where(labels eq r, count)
-      if (count gt 0L) then begin
-        !null = max(medians[ind], max_index)
-        worse_lines[r - 1L] = ind[max_index]
-      endif
-    endfor
-
-    bad_lines = worse_lines
+    bad_lines = kcor_filter_badlines(bad_lines, medians)
   endif
 
   return, bad_lines
