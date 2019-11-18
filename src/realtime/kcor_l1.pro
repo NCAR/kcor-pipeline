@@ -706,7 +706,7 @@ pro kcor_l1, ok_filename, $
   fxaddpar, l1_header, 'NAXIS', 3, ' number of dimensions; FITS image' 
   fxaddpar, l1_header, 'NAXIS1', struct.naxis1, ' [pixels] x dimension'
   fxaddpar, l1_header, 'NAXIS2', struct.naxis2, ' [pixels] y dimension'
-  fxaddpar, l1_header, 'NAXIS3', struct.naxis2, ' 0=K-Corona + sky; 1=sky'
+  fxaddpar, l1_header, 'NAXIS3', struct.naxis3, ' 0=K-Corona + sky; 1=sky'
   if (struct.extend eq 0) then val_extend = 'F'
   if (struct.extend eq 1) then val_extend = 'T'
   fxaddpar, l1_header, 'EXTEND', 'F', ' no FITS extensions'
