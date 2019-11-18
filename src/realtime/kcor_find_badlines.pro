@@ -45,12 +45,12 @@ end
 
 ; main-level example program
 
-;date = '20191107'
+date = '20191107'
 ;time = '200530'
-;time = '214437'
+time = '214437'
 
-date = '20190618'
-time = '184536'
+;date = '20190618'
+;time = '184536'
 ;time = '201254'
 
 config_filename = filepath('kcor.parker.cfg', $
@@ -61,8 +61,8 @@ run.time = time
 
 basename = string(date, time, format='(%"%s_%s_kcor.fts.gz")')
 filename = filepath(basename, $
-;                    subdir=[date, 'level0'], $
-                    subdir=[date], $
+                    subdir=[date, 'level0'], $
+;                    subdir=[date], $
                     root=run->config('processing/raw_basedir'))
 im = readfits(filename, header, /silent)
 
@@ -106,7 +106,8 @@ tv, bytscl(corona1, min=0.0, max=200.0)
 badlines_filename = string(date, time, format='(%"%s.%s.badlines.gif")')
 badlines_histogram_filename = string(date, time, $
                                      format='(%"%s.%s.badlines.histogram.gif")')
-kcor_plot_badlines_medians, cam0_medians, cam1_medians, $
+kcor_plot_badlines_medians, date + '_' + time, $
+                            cam0_medians, cam1_medians, $
                             run->epoch('badlines_diff_threshold'), $
                             badlines_filename, $
                             badlines_histogram_filename, $
