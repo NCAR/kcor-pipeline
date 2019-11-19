@@ -163,10 +163,10 @@ end
 
 ; main-level example
 
-date = '20131001'
+date = '20131027'
 
 run = kcor_run(date, $
-               config_filename=filepath('kcor.latest.cfg', $
+               config_filename=filepath('kcor.reprocess.cfg', $
                                         subdir=['..', '..', 'config'], $
                                         root=mg_src_root()))
 kcor_rowcol_image, run=run
