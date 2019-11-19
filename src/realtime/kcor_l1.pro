@@ -8,15 +8,14 @@
 ;     level 0 filename to process
 ;
 ; :Keywords:
-;   nomask : in, optional, type=boolean
-;     set to not apply a mask to the FITS or GIF files, adding a "nomask" to the
-;     filenames
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;   mean_phase1 : out, optional, type=fltarr
 ;     mean_phase1 for `ok_file`
 ;   error : out, optional, type=long
 ;     set to a named variable to retrieve the error status of the call
+;   read_only : in, optional, type=boolean
+;     set to indicate that an existing L1 file should be read, not produced
 ;-
 pro kcor_l1, ok_filename, $
              l1_filename=l1_filename, $
@@ -28,7 +27,8 @@ pro kcor_l1, ok_filename, $
              run=run, $
              mean_phase1=mean_phase1, $
              log_name=log_name, $
-             error=error
+             error=error, $
+             read_only=read_only
   compile_opt strictarr
   on_error, 2
 
@@ -47,6 +47,14 @@ pro kcor_l1, ok_filename, $
           file_basename(ok_filename), $
           name=log_name, /info
 
+  l1_filename = string(strmid(file_basename(ok_filename), 0, 20), $
+                       format='(%"%s_l1.fts")')
+  if (keyword_set(read_only)) then begin
+    !null = readfits(filepath(l1_filename, root=l1_dir), l1_header)
+    goto, done
+  endif
+
+
   mean_phase1 = 0.0   ; TODO: this is not set?
 
   ; set image dimensions
@@ -59,10 +67,6 @@ pro kcor_l1, ok_filename, $
   ; initialize variables
   cal_data_new = dblarr(xsize, ysize, 2, 3)
   gain_shift   = dblarr(xsize, ysize, 2)
-
-  l1_filename = string(strmid(file_basename(ok_filename), 0, 20), $
-                       keyword_set(nomask) ? '_nomask' : '', $
-                       format='(%"%s_l1%s.fts")')
 
   clock = tic('l1_loop')
 
@@ -621,7 +625,6 @@ pro kcor_l1, ok_filename, $
   kcor_create_gif, ok_filename, umk4, date_obs, $
                    level=1, $
                    scaled_image=scaled_image, $
-                   nomask=nomask, $
                    run=run, log_name=log_name
 
   ;----------------------------------------------------------------------------
@@ -1114,7 +1117,7 @@ pro kcor_l1, ok_filename, $
 
   ; now make cropped GIF file
   kcor_cropped_gif, umk4, run.date, date_struct, $
-                    run=run, nomask=nomask, log_name=log_name, $
+                    run=run, log_name=log_name, $
                     level=1
   
   loop_time = toc(clock)   ; save loop time

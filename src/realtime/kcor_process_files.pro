@@ -379,7 +379,8 @@ pro kcor_process_files, ok_files, $
              u=u, $
              flat_vdimref=flat_vdimref, $
              log_name=log_name, $
-             error=l1_error
+             error=l1_error, $
+             read_only=keyword_set(nomask)
     error or= l1_error
     mean_phase1[fnum - 1L] = file_mean_phase1
 
