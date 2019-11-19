@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # run on a week, starting from 2 days before the current date
-START_DATE=$(date +"%Y%m%d" -d "-9 days")
+START_DATE=$(date +"%Y%m%d" -d "-8 days")
 END_DATE=$(date +"%Y%m%d" -d "-2 days")
 
 BIN_DIR=$(dirname $0)
