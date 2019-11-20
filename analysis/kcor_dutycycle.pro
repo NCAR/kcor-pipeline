@@ -155,7 +155,8 @@ pro kcor_dutycycle, start_date, end_date, $
                /fill, color=fill_color, axis_color=axis_color, $
                xstyle=1, xtitle='hours', $
                ytitle='number of days', $
-               title='Length of observing day (time between first and last good image)'
+               title=string(dates[0], dates[-1], $
+                            format='("Length of observing day of KCor (time between first and last good image) [", C(CYI04, "-", CMOI02, "-", CDI02), " to ", C(CYI04, "-", CMOI02, "-", CDI02), "]")')
 
   h = histogram(24.0 * n_images / n_images_per_day, $
                 min=0.0, max=12.0, nbins=nbins, $
@@ -165,7 +166,8 @@ pro kcor_dutycycle, start_date, end_date, $
                /fill, color=fill_color, axis_color=axis_color, $
                xstyle=1, xtitle='hours', $
                ytitle='number of days', $
-               title='Length of observed day (number of hours taking good images)'
+               title=string(dates[0], dates[-1], $
+                            format='("Length of observed day (number of hours taking good images) [", C(CYI04, "-", CMOI02, "-", CDI02), " to ", C(CYI04, "-", CMOI02, "-", CDI02), "]")')
 
   !p.multi = 0
 
