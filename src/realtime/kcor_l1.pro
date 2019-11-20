@@ -51,7 +51,7 @@ pro kcor_l1, ok_filename, $
   l1_filename = string(strmid(file_basename(ok_filename), 0, 20), $
                        format='(%"%s_l1.fts")')
   if (keyword_set(read_only)) then begin
-    !null = readfits(filepath(l1_filename, root=l1_dir), l1_header)
+    !null = readfits(filepath(l1_filename + '.gz', root=l1_dir), l1_header)
     goto, done
   endif
 
