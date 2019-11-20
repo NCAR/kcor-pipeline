@@ -89,8 +89,6 @@ pro kcor_dutycycle, start_date, end_date, $
   ; setup plotting
   use_ps = 1B
 
-  mg_decomposed, 1, old_decomposed=odec
-
   if (keyword_set(use_ps)) then begin
     basename = 'duty-cycle'
     mg_psbegin, filename=basename + '.ps', /color, bits_per_pixel=8, $
@@ -102,6 +100,8 @@ pro kcor_dutycycle, start_date, end_date, $
     charsize = 1.5
     font = 1
   endelse
+
+  mg_decomposed, 1, old_decomposed=odec
 
   !p.multi = [0, 1, 2]
 
@@ -129,12 +129,12 @@ pro kcor_dutycycle, start_date, end_date, $
 
   if (keyword_set(use_ps)) then begin
     basename = 'duty-cycle-histogram'
-    mg_psbegin, filename=basename + '.ps', /color, bits_per_pixel=8, $
+    mg_psbegin, filename=basename + '.ps', /color, bits_per_pixel=24, $
                 xsize=10.0, ysize=8.0, /inches, /landscape, xoffset=0.0
     charsize = 1.0
     font = 1
     axis_color = '000000'x
-    fill_color = '606060'x
+    fill_color = 'a06020'x
   endif else begin
     mg_window, xsize=9, ysize=8, /inches, /free
     charsize = 1.5
@@ -155,7 +155,7 @@ pro kcor_dutycycle, start_date, end_date, $
                /fill, color=fill_color, axis_color=axis_color, $
                xstyle=1, xtitle='hours', $
                ytitle='number of days', $
-               title='Length of observing day'
+               title='Length of observing day (time between first and last good image)'
 
   h = histogram(24.0 * n_images / n_images_per_day, $
                 min=0.0, max=12.0, nbins=nbins, $
@@ -165,7 +165,7 @@ pro kcor_dutycycle, start_date, end_date, $
                /fill, color=fill_color, axis_color=axis_color, $
                xstyle=1, xtitle='hours', $
                ytitle='number of days', $
-               title='Length of observed day'
+               title='Length of observed day (number of hours taking good images)'
 
   !p.multi = 0
 
