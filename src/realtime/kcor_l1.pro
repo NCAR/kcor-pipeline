@@ -32,6 +32,7 @@ pro kcor_l1, ok_filename, $
   compile_opt strictarr
   on_error, 2
 
+  mean_phase1 = 0.0   ; TODO: this is not set?
   error = 0L
 
   ; setup directories
@@ -53,9 +54,6 @@ pro kcor_l1, ok_filename, $
     !null = readfits(filepath(l1_filename, root=l1_dir), l1_header)
     goto, done
   endif
-
-
-  mean_phase1 = 0.0   ; TODO: this is not set?
 
   ; set image dimensions
   xsize = run->epoch('xsize')
