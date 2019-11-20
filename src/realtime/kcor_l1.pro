@@ -53,7 +53,9 @@ pro kcor_l1, ok_filename, $
   if (keyword_set(read_only)) then begin
     l1_fullpath = filepath(l1_filename + '.gz', root=l1_dir)
     if (file_test(l1_fullpath, /regular)) then begin
-      !null = readfits(l1_fullpath, l1_header)
+      data = readfits(l1_fullpath, l1_header)
+      umk4 = reform(data[*, *, 0])
+      qmk4 = reform(data[*, *, 1])
     endif else begin
       mg_log, 'L1 file not present, skipping', name=log_name, /debug
     endelse
