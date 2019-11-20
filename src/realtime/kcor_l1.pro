@@ -51,7 +51,12 @@ pro kcor_l1, ok_filename, $
   l1_filename = string(strmid(file_basename(ok_filename), 0, 20), $
                        format='(%"%s_l1.fts")')
   if (keyword_set(read_only)) then begin
-    !null = readfits(filepath(l1_filename + '.gz', root=l1_dir), l1_header)
+    l1_fullpath = filepath(l1_filename + '.gz', root=l1_dir)
+    if (file_test(l1_fullpath, /regular)) then begin
+      !null = readfits(l1_fullpath, l1_header)
+    endif else begin
+      mg_log, 'L1 file not present, skipping', name=log_name, /debug
+    endelse
     goto, done
   endif
 

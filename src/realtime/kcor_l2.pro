@@ -12,6 +12,11 @@ pro kcor_l2, l1_filename, $
 
   error = 0L
 
+  if (n_elements(l1_header) eq 0L) then begin
+    mg_log, 'no L1 header, skipping', name=log_name, /debug
+    goto, done
+  endif
+
   ; setup directories
   dirs  = filepath('level' + ['0', '1', '2'], $
                    subdir=run.date, $
