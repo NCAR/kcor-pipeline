@@ -14,8 +14,6 @@
 ;     mean_phase1 for `ok_file`
 ;   error : out, optional, type=long
 ;     set to a named variable to retrieve the error status of the call
-;   read_only : in, optional, type=boolean
-;     set to indicate that an existing L1 file should be read, not produced
 ;-
 pro kcor_l1, ok_filename, $
              l1_filename=l1_filename, $
@@ -27,8 +25,7 @@ pro kcor_l1, ok_filename, $
              run=run, $
              mean_phase1=mean_phase1, $
              log_name=log_name, $
-             error=error, $
-             read_only=read_only
+             error=error
   compile_opt strictarr
   on_error, 2
 
@@ -47,20 +44,6 @@ pro kcor_l1, ok_filename, $
   mg_log, 'L1 processing %s', $
           file_basename(ok_filename), $
           name=log_name, /info
-
-  l1_filename = string(strmid(file_basename(ok_filename), 0, 20), $
-                       format='(%"%s_l1.fts")')
-  if (keyword_set(read_only)) then begin
-    l1_fullpath = filepath(l1_filename + '.gz', root=l1_dir)
-    if (file_test(l1_fullpath, /regular)) then begin
-      data = readfits(l1_fullpath, l1_header)
-      umk4 = reform(data[*, *, 0])
-      qmk4 = reform(data[*, *, 1])
-    endif else begin
-      mg_log, 'L1 file not present, skipping', name=log_name, /debug
-    endelse
-    goto, done
-  endif
 
   ; set image dimensions
   xsize = run->epoch('xsize')
@@ -1118,6 +1101,8 @@ pro kcor_l1, ok_filename, $
   sxdelpar, l1_header, 'DUMMY'
 
   ; write FITS image to disk
+  l1_filename = string(strmid(file_basename(ok_filename), 0, 20), $
+                       format='(%"%s_l1.fts")')
   writefits, filepath(l1_filename, root=l1_dir), float(data), l1_header
 
   ; now make cropped GIF file

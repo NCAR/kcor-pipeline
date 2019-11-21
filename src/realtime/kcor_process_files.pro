@@ -306,6 +306,7 @@ pro kcor_process_files, ok_files, $
                         run=run, $
                         mean_phase1=mean_phase1, $
                         log_name=log_name, $
+                        l1_filenames=l1_filenames, $
                         error=error
   compile_opt strictarr
 
@@ -344,6 +345,8 @@ pro kcor_process_files, ok_files, $
   ; image file loop
   fnum = 0L
   first_skipped = 0B
+  l1_filenames = strarr(n_ok_files)
+
   foreach l0_file, ok_files do begin
     catch, error_status
     if (error_status ne 0L) then begin
@@ -379,10 +382,10 @@ pro kcor_process_files, ok_files, $
              u=u, $
              flat_vdimref=flat_vdimref, $
              log_name=log_name, $
-             error=l1_error, $
-             read_only=keyword_set(nomask)
+             error=l1_error
     error or= l1_error
     mean_phase1[fnum - 1L] = file_mean_phase1
+    l1_filenames[fnum - 1L] = l1_filename
 
     kcor_l2, l1_filename, $
              l1_header, $
@@ -398,6 +401,7 @@ pro kcor_process_files, ok_files, $
   ; drop the first file from OK files if skipped
   if (first_skipped) then begin
     ok_files = n_ok_files gt 1L ? ok_files[1:*] : !null
+    l1_filenames = n_ok_files gt 1L ? l1_filenames[1:*] : !null
   endif
 
 

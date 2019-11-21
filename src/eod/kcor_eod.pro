@@ -174,7 +174,12 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
                          subdir=[date, 'level0'], $
                          root=run->config('processing/raw_basedir'))
     kcor_process_files, oka_files[0:*:60], /nomask, /eod, run=run, $
+                        l1_filenames=l1_filenames, $
                         log_name='kcor/eod', error=error
+
+    ; need to remove new .fts version of L1 files, .fts.gz version from the
+    ; realtime should still be there
+    file_delete, l1_filenames, /quiet
   endif else begin
     mg_log, 'no OK L0 files to produce nomask files for', name='kcor/eod', /info
   endelse
