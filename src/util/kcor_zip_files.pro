@@ -11,7 +11,7 @@ pro kcor_zip_files, glob, run=run
     if (status ne 0L) then begin
       mg_log, 'problem zipping files with command: %s', gzip_cmd, $
                 name=run.logger_name, /error
-      mg_log, '%s', strjoin(error_result, ' '), name='kcor/rt', /error
+      mg_log, '%s', strjoin(error_result, ' '), name=run.logger_name, /error
     endif
   endif
 end
