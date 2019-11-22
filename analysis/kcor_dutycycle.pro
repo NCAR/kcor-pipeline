@@ -140,8 +140,9 @@ pro kcor_dutycycle, start_date, end_date, $
   if (keyword_set(use_ps)) then begin
     basename = 'duty-cycle-histogram'
     mg_psbegin, filename=basename + '.ps', /color, bits_per_pixel=24, $
-                xsize=8.0, ysize=10.5, /inches, /portrait
-    charsize = 1.0
+                xsize=8.0, ysize=10.5, /inches, $
+                /portrait, xoffset=0.25, yoffset=0.25
+    charsize = 1.25
     font = 1
     axis_color = '000000'x
     fill_color = 'a06020'x
@@ -187,7 +188,7 @@ pro kcor_dutycycle, start_date, end_date, $
                xstyle=1, xtitle='time of day (HST)', $
                ytitle='number of images', $
                title=string(dates[0], dates[-1], $
-                            format='("Images acquired by time of day [", C(CYI04, "-", CMOI02, "-", CDI02), " to ", C(CYI04, "-", CMOI02, "-", CDI02), "]")')
+                            format='("Good images acquired by time of day [", C(CYI04, "-", CMOI02, "-", CDI02), " to ", C(CYI04, "-", CMOI02, "-", CDI02), "]")')
 
   !p.multi = 0
 
