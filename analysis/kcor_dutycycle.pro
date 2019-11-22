@@ -140,7 +140,7 @@ pro kcor_dutycycle, start_date, end_date, $
   if (keyword_set(use_ps)) then begin
     basename = 'duty-cycle-histogram'
     mg_psbegin, filename=basename + '.ps', /color, bits_per_pixel=24, $
-                xsize=10.0, ysize=11.0, /inches, /landscape, xoffset=0.0
+                xsize=8.0, ysize=10.5, /inches, /portrait
     charsize = 1.0
     font = 1
     axis_color = '000000'x
@@ -178,7 +178,6 @@ pro kcor_dutycycle, start_date, end_date, $
                ytitle='number of days', $
                title=string(dates[0], dates[-1], $
                             format='("Length of observed day (number of hours taking good images) [", C(CYI04, "-", CMOI02, "-", CDI02), " to ", C(CYI04, "-", CMOI02, "-", CDI02), "]")')
-
 
   times = (times - 10.0 + 24.0) mod 24.0
   h = histogram(times, min=6.0, max=20.0, nbins=14*4, locations=bins)
