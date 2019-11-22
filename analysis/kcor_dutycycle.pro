@@ -81,8 +81,18 @@ pro kcor_dutycycle, start_date, end_date, $
   end_times = end_times[ind]
   n_images = n_images[ind]
 
+  query = 'select date_obs from kcor_img where date_obs between ''%s'' and ''%s'''
+  images = db->query(query, start_date, end_date, $
+                     status=status, $
+                     error_message=error_message, $
+                     sql_statement=sql_cmd)
+  mg_log, 'found %d images between %s and %s', $
+          n_elements(images), start_date, end_date, /info
+  dts    = kcor_dutycycle_parsedt(images.date_obs)
+  times  = dts[*, 3] + (dts[*, 4] + dts[*, 5] / 60.0) / 60.0
+
   ; cache values in .sav file
-  save, dates, start_times, end_times, n_images, filename=cache_filename
+  save, dates, start_times, end_times, n_images, times, filename=cache_filename
 
   plot_results:
 
@@ -130,20 +140,20 @@ pro kcor_dutycycle, start_date, end_date, $
   if (keyword_set(use_ps)) then begin
     basename = 'duty-cycle-histogram'
     mg_psbegin, filename=basename + '.ps', /color, bits_per_pixel=24, $
-                xsize=10.0, ysize=8.0, /inches, /landscape, xoffset=0.0
+                xsize=10.0, ysize=11.0, /inches, /landscape, xoffset=0.0
     charsize = 1.0
     font = 1
     axis_color = '000000'x
     fill_color = 'a06020'x
   endif else begin
-    mg_window, xsize=9, ysize=8, /inches, /free
-    charsize = 1.5
+    mg_window, xsize=9, ysize=12, /inches, /free
+    charsize = 2.5
     font = 1
     axis_color = 'ffffff'x
     fill_color = '808080'x
   endelse
 
-  !p.multi = [0, 1, 2]
+  !p.multi = [0, 1, 3]
 
   nbins = 48
 
@@ -168,6 +178,17 @@ pro kcor_dutycycle, start_date, end_date, $
                ytitle='number of days', $
                title=string(dates[0], dates[-1], $
                             format='("Length of observed day (number of hours taking good images) [", C(CYI04, "-", CMOI02, "-", CDI02), " to ", C(CYI04, "-", CMOI02, "-", CDI02), "]")')
+
+
+  times = (times - 10.0 + 24.0) mod 24.0
+  h = histogram(times, min=6.0, max=20.0, nbins=14*4, locations=bins)
+  mg_histplot, bins, h, $
+               ticklen=-0.01, font=font, charsize=charsize, $
+               /fill, color=fill_color, axis_color=axis_color, $
+               xstyle=1, xtitle='time of day (HST)', $
+               ytitle='number of images', $
+               title=string(dates[0], dates[-1], $
+                            format='("Images acquired by time of day [", C(CYI04, "-", CMOI02, "-", CDI02), " to ", C(CYI04, "-", CMOI02, "-", CDI02), "]")')
 
   !p.multi = 0
 
