@@ -138,7 +138,9 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   cd, l0_dir
 
+  l1_dir = filepath('level1', root=date_dir)
   l2_dir = filepath('level2', root=date_dir)
+
   if (~file_test(l0_dir, /directory)) then begin
     mg_log, '%s does not exist', l0_dir, name='kcor/eod', /error
     n_l2_zipped_files = 0L
@@ -155,6 +157,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   if (run->config('eod/create_daily_movies') && n_l2_zipped_files gt 0L) then begin
     kcor_create_differences, date, l2_zipped_files, run=run
+    kcor_zip_files, filepath('*minus*.fts', root=l2_dir), run=run
+
     kcor_create_averages, date, l2_zipped_files, run=run
     kcor_redo_nrgf, date, run=run
   endif
@@ -179,7 +183,14 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
     ; need to remove new .fts version of L1 files, .fts.gz version from the
     ; realtime should still be there
-    file_delete, l1_filenames, /quiet
+    mg_log, 'removing nomask L1 files...', name='kcor/eod', /info
+
+    file_delete, filepath(l1_filenames, root=l1_dir), /quiet
+
+    mg_log, 'zipping nomask L2 FITS files...', $
+            name='kcor/eod', /info
+    unzipped_glob = filepath('*_kcor_l2_nomask.fts', root=l2_dir)
+    kcor_zip_files, unzipped_glob, run=run
   endif else begin
     mg_log, 'no OK L0 files to produce nomask files for', name='kcor/eod', /info
   endelse
