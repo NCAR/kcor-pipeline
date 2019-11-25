@@ -166,7 +166,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   oka_filename = filepath('oka.ls', subdir=[date, 'q'], $
                           root=run->config('processing/raw_basedir'))
   n_oka_files = file_test(oka_filename) ? file_lines(oka_filename) : 0L
-  if (file_test(oka_filename, /regular) && n_oka_files gt 0L) then begin
+  if (file_test(oka_filename, /regular) && n_oka_files gt 1L) then begin
     mg_log, 'producing nomask files...', name='kcor/eod', /info
 
     oka_files = strarr(n_oka_files)
@@ -177,14 +177,15 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     oka_files = filepath(oka_files, $
                          subdir=[date, 'level0'], $
                          root=run->config('processing/raw_basedir'))
-    kcor_process_files, oka_files[0:*:60], /nomask, /eod, run=run, $
+
+    ; skipping first good image of the day, starting with index=1
+    kcor_process_files, oka_files[1:*:60], /nomask, /eod, run=run, $
                         l1_filenames=l1_filenames, $
                         log_name='kcor/eod', error=error
 
     ; need to remove new .fts version of L1 files, .fts.gz version from the
     ; realtime should still be there
     mg_log, 'removing nomask L1 files...', name='kcor/eod', /info
-
     file_delete, filepath(l1_filenames, root=l1_dir), /quiet
 
     mg_log, 'zipping nomask L2 FITS files...', $
