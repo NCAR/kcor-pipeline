@@ -50,18 +50,18 @@ pro kcor_validate, fits_files, spec_filename, type, $
   endfor
 
   ; send notification if some files are not valid
-  if (n_problems gt 0L) then begin
+  if (n_problems gt 0L && run->config('validation/send_warnings')) then begin
     mg_log, '%d invalid %s files', n_problems, type, $
             name=logger_name, /info
 
-    if (run->config('notifications/send')) then begin
-      if (n_elements(run->config('notifications/email')) eq 0L) then begin
+    if (run->config('validation/send_warnings')) then begin
+      if (n_elements(run->config('validation/email')) eq 0L) then begin
         mg_log, 'no email specified to send notification to', name=logger_name, /info
         goto, done
       endif else begin
         mg_log, 'sending %s validation failures to %s', $
                 type, $
-                run->config('notifications/email'), $
+                run->config('validation/email'), $
                 name=logger_name, /info
       endelse
     endif else begin
@@ -78,7 +78,7 @@ pro kcor_validate, fits_files, spec_filename, type, $
 
     credit = string(mg_src_root(/filename), who, format='(%"Sent from %s (%s)")')
 
-    address = run->config('notifications/email')
+    address = run->config('validation/email')
     subject = string(type, run.date, n_problems, n_problem_files, $
                      format='(%"KCor %s validation failures for %s (%d problems in %d files)")')
     body->add, credit

@@ -118,7 +118,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       goto, done
     endif
 
-    l0_spec = run->config('data/l0_validation_specification')
+    l0_spec = run->config('data/l0_specification')
     if (n_elements(l0_spec) eq 0L || ~file_test(l0_spec, /regular)) then begin
       mg_log, 'no spec to validate L0 files against', name='kcor/rt', /info
     endif else begin

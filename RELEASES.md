@@ -374,3 +374,6 @@
   add CAMERAS, FIXCAMLC, SKYPOLRM FITS keywords
   moved 1.08 Rsun kcor_sci table column to 1.11 Rsun
   bad horizontal line finding tweaks and optional diagnostics
+  add L1 specification validation
+  added separate notification options for validation
+  changed validation option names in config file ("data" to "validation")

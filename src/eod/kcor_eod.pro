@@ -143,8 +143,18 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   if (~file_test(l0_dir, /directory)) then begin
     mg_log, '%s does not exist', l0_dir, name='kcor/eod', /error
+    n_l1_zipped_files = 0L
     n_l2_zipped_files = 0L
   endif else begin
+    if (file_test(l1_dir, /directory)) then begin
+      cd, l1_dir
+      l1_zipped_fits_glob = '*_l1.fts.gz'
+      l1_zipped_files = file_search(l1_zipped_fits_glob, count=n_l1_zipped_files)
+      cd, l0_dir
+    endif else begin
+      n_l2_zipped_files = 0L
+    endelse
+
     if (file_test(l2_dir, /directory)) then begin
       cd, l2_dir
       l2_zipped_fits_glob = '*_l2.fts.gz'
@@ -398,7 +408,23 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   kcor_report_results, date, run=run
 
-  l2_spec = run->config('data/l2_validation_specification')
+  l1_spec = run->config('validation/l1_specification')
+  n_invalid_l1_files = 0L
+  if (n_elements(l2_spec) eq 0L || ~file_test(l1_spec, /regular)) then begin
+    mg_log, 'no spec to validate L2 files against', name='kcor/eod', /info
+  endif else begin
+    if (n_l1_zipped_files eq 0L) then begin
+      mg_log, 'no L1 files to validate', name='kcor/eod', /info
+    endif else begin
+      mg_log, 'validating %d L1 files', n_l2_zipped_files, name='kcor/eod', /info
+      kcor_validate, filepath(l1_zipped_files, root=l1_dir), $
+                     l1_spec, 'L1', $
+                     n_invalid_files=n_invalid_l1_files, $
+                     logger_name='kcor/eod', run=run
+    endelse
+  endelse
+
+  l2_spec = run->config('validation/l2_specification')
   n_invalid_l2_files = 0L
   if (n_elements(l2_spec) eq 0L || ~file_test(l2_spec, /regular)) then begin
     mg_log, 'no spec to validate L2 files against', name='kcor/eod', /info
