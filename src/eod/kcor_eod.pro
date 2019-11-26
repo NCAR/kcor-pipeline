@@ -410,13 +410,13 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   l1_spec = run->config('validation/l1_specification')
   n_invalid_l1_files = 0L
-  if (n_elements(l2_spec) eq 0L || ~file_test(l1_spec, /regular)) then begin
-    mg_log, 'no spec to validate L2 files against', name='kcor/eod', /info
+  if (n_elements(l1_spec) eq 0L || ~file_test(l1_spec, /regular)) then begin
+    mg_log, 'no spec to validate L1 files against', name='kcor/eod', /info
   endif else begin
     if (n_l1_zipped_files eq 0L) then begin
       mg_log, 'no L1 files to validate', name='kcor/eod', /info
     endif else begin
-      mg_log, 'validating %d L1 files', n_l2_zipped_files, name='kcor/eod', /info
+      mg_log, 'validating %d L1 files', n_l1_zipped_files, name='kcor/eod', /info
       kcor_validate, filepath(l1_zipped_files, root=l1_dir), $
                      l1_spec, 'L1', $
                      n_invalid_files=n_invalid_l1_files, $
