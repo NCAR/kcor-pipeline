@@ -6,11 +6,11 @@ SSW_DIR=${PWD}/ssw
 GEN_DIR=${PWD}/gen
 LIB_DIR=${PWD}/lib
 KCOR_SRC_DIR=${PWD}/src
-
 KCOR_PATH=+${KCOR_SRC_DIR}:${SSW_DIR}:${GEN_DIR}:+${LIB_DIR}:"<IDL_DEFAULT>"
-SSW_DEP_PATH="<IDL_DEFAULT>":${KCOR_PATH}:+${FULL_SSW_DIR}
 
 FULL_SSW_DIR=/hao/contrib/ssw
+
+SSW_DEP_PATH="<IDL_DEFAULT>":${KCOR_PATH}:+${FULL_SSW_DIR}
 
 echo "Find ROUTINES..."
 find src -name '*.pro' -exec basename {} .pro \; > ROUTINES
