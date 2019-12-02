@@ -1,7 +1,7 @@
 ; docformat = 'rst'
 
 ;+
-; The CoMP pipeline ssw directory must be in the IDL path before the full ssw
+; The KCor pipeline ssw directory must be in the IDL path before the full ssw
 ; library directories.
 ;-
 pro kcor_find_ssw_dependencies, ssw_loc
