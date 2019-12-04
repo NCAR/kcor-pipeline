@@ -387,13 +387,19 @@ pro kcor_process_files, ok_files, $
     mean_phase1[fnum - 1L] = file_mean_phase1
     l1_filenames[fnum - 1L] = l1_filename
 
+    if (l1_error ne 0L) then begin
+      mg_log, 'error in L1 processing, skipping L2 processing', $
+              name=log_name, /warn
+      continue
+    endif
+
     kcor_l2, l1_filename, $
              l1_header, $
              intensity, q, u, flat_vdimref, $
              run=run, $
              nomask=nomask, $
              log_name=log_name, $
-             error=l2_error
+               error=l2_error
     error or= l2_error
   endforeach
 
