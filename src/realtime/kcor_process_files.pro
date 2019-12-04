@@ -383,15 +383,16 @@ pro kcor_process_files, ok_files, $
              flat_vdimref=flat_vdimref, $
              log_name=log_name, $
              error=l1_error
-    error or= l1_error
-    mean_phase1[fnum - 1L] = file_mean_phase1
-    l1_filenames[fnum - 1L] = l1_filename
 
+    error or= l1_error
     if (l1_error ne 0L) then begin
       mg_log, 'error in L1 processing, skipping L2 processing', $
               name=log_name, /warn
       continue
     endif
+
+    mean_phase1[fnum - 1L] = file_mean_phase1
+    l1_filenames[fnum - 1L] = l1_filename
 
     kcor_l2, l1_filename, $
              l1_header, $
