@@ -17,9 +17,9 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
   stopped = 0B
 
   if (~cstop) then begin
-    files = file_search(concat_dir(datedir, '*kcor_l1.5.fts'), count=count)
+    files = file_search(concat_dir(datedir, '*kcor_l2.fts'), count=count)
     if (count eq 0) then begin
-      files = file_search(concat_dir(datedir,'*kcor_l1.5.fts.gz'), count=count)
+      files = file_search(concat_dir(datedir,'*kcor_l2.fts.gz'), count=count)
       if (count eq 0) then begin
         mg_log, 'no FITS files found in archive dir', name='kcor/cme', /info
         goto, stop_point
