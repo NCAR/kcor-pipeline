@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# renames camera correction files from Alfred's convention for the LUT names to
+# the convention used in the level 0 FITS files, i.e., from:
+#
+#   camera_calibration_MV-D1024E-CL-13889_00.5000_lut20160716-13889.ncdf
+#
+# to:
+#
+#   camera_calibration_MV-D1024E-CL-13889_00.5000_lut13889-20160716.ncdf
+
+for f in "$@"; do
+  new_name=$(echo $f | sed 's/lut\([^-]*\)-\([^.]*\)/lut\2-\1/')
+  mv $f $new_name
+done
+
