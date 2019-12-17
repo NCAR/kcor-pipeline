@@ -136,6 +136,9 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     mg_log, 't2 log does not exist in %s', date_dir, name='kcor/eod', /warn
   endelse
 
+  ; copy config file to YYYYMMDD/ directory
+  file_copy, config_filename, filepath('kcor.cfg', root=date_dir), /overwrite
+
   cd, l0_dir
 
   l1_dir = filepath('level1', root=date_dir)
