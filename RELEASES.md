@@ -369,7 +369,7 @@
   fix for DLM path in CME detection code
 1.6.17 [Oct 25, 2019]
   add epoch for bad cal data on 20191024
-2.0.0
+2.0.0 [ Dec 19, 2019]
   creating L1 and L2 (equivalent to old L1.5) products
   add CAMERAS, FIXCAMLC, SKYPOLRM FITS keywords
   moved 1.08 Rsun kcor_sci table column to 1.11 Rsun
