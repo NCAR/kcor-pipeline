@@ -54,12 +54,17 @@ pro kcor_l2, l1_filename, $
   theta += !pi
   theta = rot(reverse(theta), pangle + run->epoch('rotation_correction'), 1)
 
+  ; TODO: not ready to release this yet
+  ;qmk4 = gauss_smooth(qmk4, 3, /edge_truncate)
+
   ; sky polarization removal on coordinate-transformed data
   case strlowcase(run->config('realtime/skypol_method')) of
     'subtraction': begin
         mg_log, 'correcting sky polarization with subtraction method', $
                 name=log_name, /debug
+
         qmk4_new = float(qmk4)
+
         ; umk4 contains the corona
         umk4_new = float(umk4) - float(rot(qmk4, 45.0)) + run->epoch('skypol_bias')
       end
@@ -67,7 +72,7 @@ pro kcor_l2, l1_filename, $
         mg_log, 'correcting sky polarization with sine2theta (%d params) method', $
                 run->epoch('sine2theta_nparams'), name=log_name, /debug
         kcor_sine2theta_method, umk4, qmk4, intensity, radsun, theta, rad, $
-                                q_new=qmk3_new, u_new=umk4_new, $
+                                q_new=qmk4_new, u_new=umk4_new, $
                                 run=run
       end
     else: mg_log, 'no sky polarization correction', name=log_name, /debug
