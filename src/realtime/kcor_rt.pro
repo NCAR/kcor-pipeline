@@ -191,39 +191,43 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     mg_log, 'moving processed files to level0 dir', name='kcor/rt', /info
     file_move, l0_fits_files, l0_dir, /overwrite
 
-    cd, l1_dir
+    if (file_test(l1_dir, /directory)) then begin
+      cd, l1_dir
 
-    l1_fits_glob = '*kcor_l1.fts'
-    l1_fits_files = file_search(l1_fits_glob, count=n_l1_fits_files)
-    if (n_l1_fits_files gt 0L) then begin
-      mg_log, 'zipping %d L1 FITS files', n_l1_fits_files, name='kcor/rt', /info
-      gzip_cmd = string(run->config('externals/gzip'), l1_fits_glob, format='(%"%s %s")')
-      spawn, gzip_cmd, result, error_result, exit_status=status
-      if (status ne 0L) then begin
-        mg_log, 'problem zipping files with command: %s', gzip_cmd, $
-                name='kcor/rt', /error
-        mg_log, '%s', strjoin(error_result, ' '), name='kcor/rt', /error
-      endif
-    endif else begin
-      mg_log, 'no L1 FITS files to zip', name='kcor/rt', /info
-    endelse
+      l1_fits_glob = '*kcor_l1.fts'
+      l1_fits_files = file_search(l1_fits_glob, count=n_l1_fits_files)
+      if (n_l1_fits_files gt 0L) then begin
+        mg_log, 'zipping %d L1 FITS files', n_l1_fits_files, name='kcor/rt', /info
+        gzip_cmd = string(run->config('externals/gzip'), l1_fits_glob, format='(%"%s %s")')
+        spawn, gzip_cmd, result, error_result, exit_status=status
+        if (status ne 0L) then begin
+          mg_log, 'problem zipping files with command: %s', gzip_cmd, $
+                  name='kcor/rt', /error
+          mg_log, '%s', strjoin(error_result, ' '), name='kcor/rt', /error
+        endif
+      endif else begin
+        mg_log, 'no L1 FITS files to zip', name='kcor/rt', /info
+      endelse
+    endif else n_l1_fits_files = 0L
 
-    cd, l2_dir
+    if (file_test(l2_dir, /directory)) then begin
+      cd, l2_dir
 
-    l2_fits_glob = '*kcor_l2.fts'
-    l2_fits_files = file_search(l2_fits_glob, count=n_l2_fits_files)
-    if (n_l2_fits_files gt 0L) then begin
-      mg_log, 'zipping %d L2 FITS files', n_l2_fits_files, name='kcor/rt', /info
-      gzip_cmd = string(run->config('externals/gzip'), l2_fits_glob, format='(%"%s %s")')
-      spawn, gzip_cmd, result, error_result, exit_status=status
-      if (status ne 0L) then begin
-        mg_log, 'problem zipping files with command: %s', gzip_cmd, $
-                name='kcor/rt', /error
-        mg_log, '%s', strjoin(error_result, ' '), name='kcor/rt', /error
-      endif
-    endif else begin
-      mg_log, 'no L2 FITS files to zip', name='kcor/rt', /info
-    endelse
+      l2_fits_glob = '*kcor_l2.fts'
+      l2_fits_files = file_search(l2_fits_glob, count=n_l2_fits_files)
+      if (n_l2_fits_files gt 0L) then begin
+        mg_log, 'zipping %d L2 FITS files', n_l2_fits_files, name='kcor/rt', /info
+        gzip_cmd = string(run->config('externals/gzip'), l2_fits_glob, format='(%"%s %s")')
+        spawn, gzip_cmd, result, error_result, exit_status=status
+        if (status ne 0L) then begin
+          mg_log, 'problem zipping files with command: %s', gzip_cmd, $
+                  name='kcor/rt', /error
+          mg_log, '%s', strjoin(error_result, ' '), name='kcor/rt', /error
+        endif
+      endif else begin
+        mg_log, 'no L2 FITS files to zip', name='kcor/rt', /info
+      endelse
+    endif else n_l2_fits_files = 0L
 
     if (n_elements(ok_files) eq 0L) then begin
       mg_log, 'no files to archive', name='kcor/rt', /info
