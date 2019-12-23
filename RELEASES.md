@@ -380,3 +380,4 @@
 2.0.1 [Dec 20, 2019]
   add epochs to not process different exposures on 20190923
   handle a day with raw data, but not data passing quality
+2.0.2
