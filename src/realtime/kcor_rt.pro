@@ -213,7 +213,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     if (file_test(l2_dir, /directory)) then begin
       cd, l2_dir
 
-      l2_fits_glob = '*kcor_l2.fts'
+      l2_fits_glob = '*kcor_l2*.fts'
       l2_fits_files = file_search(l2_fits_glob, count=n_l2_fits_files)
       if (n_l2_fits_files gt 0L) then begin
         mg_log, 'zipping %d L2 FITS files', n_l2_fits_files, name='kcor/rt', /info
