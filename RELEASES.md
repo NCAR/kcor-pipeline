@@ -382,3 +382,4 @@
   handle a day with raw data, but not data passing quality
 2.0.2 [Dec 26, 2019]
   missed zipping and distributing NRGF files
+2.0.3
