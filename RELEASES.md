@@ -388,3 +388,4 @@
   ignore long exposure data for 20140829 in epoch file
 2.0.5 [Jan 3, 2020]
   epoch fixes for bad cal files on 20150219 and 20160801
+2.0.6
