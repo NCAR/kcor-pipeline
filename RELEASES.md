@@ -383,3 +383,4 @@
 2.0.2 [Dec 26, 2019]
   missed zipping and distributing NRGF files
 2.0.3
+  epoch fix for trusting camera info pushed by from 20150319 to 20150324
