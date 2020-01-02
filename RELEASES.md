@@ -382,8 +382,9 @@
   handle a day with raw data, but not data passing quality
 2.0.2 [Dec 26, 2019]
   missed zipping and distributing NRGF files
-2.0.3 [Jan 2, 2019]
+2.0.3 [Jan 2, 2020]
   epoch fix for trusting camera info pushed by from 20150319 to 20150324
-2.0.4 [Jan 2, 2019]
+2.0.4 [Jan 2, 2020]
   ignore long exposure data for 20140829 in epoch file
-2.0.5
+2.0.5 [Jan 3, 2020]
+  epoch fixes for bad cal files on 20150219 and 20160801
