@@ -133,7 +133,6 @@ pro kcor_db_clearday, run=run, $
       mg_log, '%d rows deleted', n_affected_rows, name=log_name, /info
     endelse
 
-
     kcor_db_clearday_cleartable, 'kcor_img', $
                                  obsday_index=obsday_index, $
                                  database=db, $
