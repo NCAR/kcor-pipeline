@@ -136,7 +136,11 @@ function kcor_read_calibration_text, date, process_basedir, $
     endelse
   endfor
 
-  return, filenames[where(quality ge run->epoch('min_cal_quality'), n_files, /null)]
+  ok_indices = where(quality ge run->epoch('min_cal_quality'), n_files, /null)
+  ok_filenames = filenames[ok_indices]
+  exposures = exposures[ok_indices]
+
+  return, ok_filenames
 end
 
 

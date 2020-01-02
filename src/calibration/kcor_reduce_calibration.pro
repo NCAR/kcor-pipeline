@@ -82,7 +82,7 @@ pro kcor_reduce_calibration, date, $
   endelse
 
   if (n_files lt 1L) then begin
-    mg_log, 'missing or empty calibration_files.txt', name='kcor/cal', /warn
+    mg_log, 'no OK calibration files', name='kcor/cal', /warn
     status = 1
     goto, done
   endif
