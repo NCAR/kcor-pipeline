@@ -386,3 +386,4 @@
   epoch fix for trusting camera info pushed by from 20150319 to 20150324
 2.0.4 [Jan 2, 2019]
   ignore long exposure data for 20140829 in epoch file
+2.0.5
