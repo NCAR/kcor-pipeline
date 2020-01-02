@@ -390,3 +390,4 @@
   epoch fixes for bad cal files on 20150219 and 20160801
 2.0.6 [Jan 3, 2020]
   fix bug which checked exposures of bad calibration files
+2.0.7
