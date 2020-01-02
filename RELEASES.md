@@ -382,5 +382,5 @@
   handle a day with raw data, but not data passing quality
 2.0.2 [Dec 26, 2019]
   missed zipping and distributing NRGF files
-2.0.3
+2.0.3 [Jan 2, 2019]
   epoch fix for trusting camera info pushed by from 20150319 to 20150324
