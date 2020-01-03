@@ -386,8 +386,10 @@
   epoch fix for trusting camera info pushed by from 20150319 to 20150324
 2.0.4 [Jan 2, 2020]
   ignore long exposure data for 20140829 in epoch file
-2.0.5 [Jan 3, 2020]
+2.0.5 [Jan 2, 2020]
   epoch fixes for bad cal files on 20150219 and 20160801
-2.0.6 [Jan 3, 2020]
+2.0.6 [Jan 2, 2020]
   fix bug which checked exposures of bad calibration files
-2.0.7
+2.0.7 [Jan 3, 2020]
+  option to not check raw remote files during verification
+  epoch fixes for 20150601 and 20180118 to mark bad cal data
