@@ -624,56 +624,61 @@ pro kcor_verify, date, config_filename=config_filename, status=status
 
 
   ; TEST: compare t1/t2 log vs. what is present on MLSO server
-
-  ssh_key_str = run->config('results/ssh_key') eq '' $
+  raw_remote_server = run->config('verification/raw_remote_server')
+  raw_remote_dir = run->config('verification/raw_remote_dir')
+  if (n_elements(raw_remote_server) gt 0L && n_elements(raw_remote_dir) gt 0L) then begin
+    ssh_key_str = run->config('results/ssh_key') eq '' $
                   ? '' $
                   : string(run->config('results/ssh_key'), format='(%"-i %s")')
-  cmd = string(ssh_key_str, $
-               run->config('verification/raw_remote_server'), $
-               run->config('verification/raw_remote_dir'), $
-               date, $
-               format='(%"ssh %s %s ls %s/%s/*.fts | wc -l")')
-  spawn, cmd, output, error_output, exit_status=exit_status
-  if (exit_status ne 0L) then begin
-    mg_log, 'problem checking raw files on %s:%s', $
-            run->config('verification/raw_remote_server'), $
-            run->config('verification/raw_remote_dir'), $
-            name=logger_name, /error
-    mg_log, 'command: %s', cmd, name=logger_name, /error
-    mg_log, '%s', strjoin(error_output, ' '), name=logger_name, /error
-    status = 1L
-    goto, mlso_server_test_done
-  endif
+    cmd = string(ssh_key_str, $
+                 raw_remote_server, $
+                 raw_remote_dir, $
+                 date, $
+                 format='(%"ssh %s %s ls %s/%s/*.fts | wc -l")')
+    spawn, cmd, output, error_output, exit_status=exit_status
+    if (exit_status ne 0L) then begin
+      mg_log, 'problem checking raw files on %s:%s', $
+              run->config('verification/raw_remote_server'), $
+              run->config('verification/raw_remote_dir'), $
+              name=logger_name, /error
+      mg_log, 'command: %s', cmd, name=logger_name, /error
+      mg_log, '%s', strjoin(error_output, ' '), name=logger_name, /error
+      status = 1L
+      goto, mlso_server_test_done
+    endif
 
-  n_raw_files = long(output[0])
-  if (n_elements(n_log_lines) gt 0L) then begin
-    if (n_log_lines eq n_raw_files) then begin
-      mg_log, '# of L0 on %s (%d) matches t1.log (%d)', $
-              run->config('verification/raw_remote_server'), n_raw_files, n_log_lines, $
-              name=logger_name, /info
+    n_raw_files = long(output[0])
+    if (n_elements(n_log_lines) gt 0L) then begin
+      if (n_log_lines eq n_raw_files) then begin
+        mg_log, '# of L0 on %s (%d) matches t1.log (%d)', $
+                run->config('verification/raw_remote_server'), n_raw_files, n_log_lines, $
+                name=logger_name, /info
+      endif else begin
+        mg_log, '# of L0 on %s (%d) does not match t1.log (%d)', $
+                run->config('verification/raw_remote_server'), n_raw_files, n_log_lines, $
+                name=logger_name, /error
+        status = 1L
+        goto, mlso_server_test_done
+      endelse
+    endif else if (n_elements(n_list_lines) gt 0L) then begin
+      if (n_list_lines - 2L eq n_raw_files) then begin
+        mg_log, '# of L0 on %s (%d) matches tarlist (%d)', $
+                run->config('verification/raw_remote_server'), n_raw_files, n_list_lines - 2L, $
+                name=logger_name, /info
+      endif else begin
+        mg_log, '# of L0 on %s (%d) does not match tarlist (%d)', $
+                run->config('verification/raw_remote_server'), n_raw_files, n_list_lines - 2L, $
+                name=logger_name, /error
+        status = 1L
+        goto, mlso_server_test_done
+      endelse
     endif else begin
-      mg_log, '# of L0 on %s (%d) does not match t1.log (%d)', $
-              run->config('verification/raw_remote_server'), n_raw_files, n_log_lines, $
+      mg_log, 'nothing to compare number of files on %s to', $
+              run->config('verification/raw_remote_server'), $
               name=logger_name, /error
-      status = 1L
-      goto, mlso_server_test_done
-    endelse
-  endif else if (n_elements(n_list_lines) gt 0L) then begin
-    if (n_list_lines - 2L eq n_raw_files) then begin
-      mg_log, '# of L0 on %s (%d) matches tarlist (%d)', $
-              run->config('verification/raw_remote_server'), n_raw_files, n_list_lines - 2L, $
-              name=logger_name, /info
-    endif else begin
-      mg_log, '# of L0 on %s (%d) does not match tarlist (%d)', $
-              run->config('verification/raw_remote_server'), n_raw_files, n_list_lines - 2L, $
-              name=logger_name, /error
-      status = 1L
-      goto, mlso_server_test_done
     endelse
   endif else begin
-    mg_log, 'nothing to compare number of files on %s to', $
-            run->config('verification/raw_remote_server'), $
-            name=logger_name, /error
+    mg_log, 'no remote location specified, skipping check', name=logger_name, /warn
   endelse
 
 
