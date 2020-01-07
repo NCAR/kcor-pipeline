@@ -371,6 +371,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
                          run=run, $
                          database=db, $
                          obsday_index=obsday_index
+        kcor_rolling_synoptic_plot, database=db, run=run
       endif else begin
         mg_log, 'no L2 files for daily science', name='kcor/eod', /warn
       endelse
