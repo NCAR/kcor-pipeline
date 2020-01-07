@@ -394,3 +394,4 @@
   option to not check raw remote files during verification
   epoch fixes for 20150601 and 20180118 to mark bad cal data
 2.0.8
+  produce synoptic map of the last 28 days in the end-of-day processing
