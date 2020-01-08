@@ -538,12 +538,18 @@ pro kcor_l1, ok_filename, $
   ; compute image average from cameras 0 & 1
   cal_data_combined = dblarr(xsize, ysize, 3)
 
+  ; use config value if specified, otherwise use epoch value
+  cameras = run->config('realtime/cameras')
+  if (n_elements(cameras) eq 0L) then begin
+    cameras = run->epoch('cameras')
+  endif
+
   for s = 0, 2 do begin
     camera_0 = kcor_fshift(cal_data[*, *, 0, s], deltax, deltay)
     camera_1 = cal_data[*, *, 1, s]
 
-    mg_log, 'cameras used: %s', run->config('realtime/cameras'), name=log_name, /debug
-    case run->config('realtime/cameras') of
+    mg_log, 'cameras used: %s', cameras, name=log_name, /debug
+    case cameras of
       '0': cal_data_combined[*, *, s] = camera_0
       '1': cal_data_combined[*, *, s] = camera_1
       else: cal_data_combined[*, *, s] = (camera_0 + camera_1) / 2.0
@@ -580,7 +586,7 @@ pro kcor_l1, ok_filename, $
                                      xsize - 1 - sun_xyr1[0], $
                                      sun_xyr1[1], $
                                      cubic=-0.5)
-      case run->config('realtime/cameras') of
+      case cameras of
         '0': cal_data_combined_center[*, *, s] = cal_data_new[*, *, 0, s]
         '1': cal_data_combined_center[*, *, s] = cal_data_new[*, *, 1, s]
         else: cal_data_combined_center[*, *, s] = (cal_data_new[*, *, 0, s]  $
@@ -866,7 +872,7 @@ pro kcor_l1, ok_filename, $
             ' calibration file'
   fxaddpar, l1_header, 'DISTORT', file_basename(dc_path), $
             ' distortion file'
-    case run->config('realtime/cameras') of
+    case cameras of
       '0': cameras_used = 'RCAM'
       '1': cameras_used = 'TCAM'
       else: cameras_used = 'both'

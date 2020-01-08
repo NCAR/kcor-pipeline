@@ -395,3 +395,5 @@
   epoch fixes for 20150601 and 20180118 to mark bad cal data
 2.0.8
   produce synoptic map of the last 28 days in the end-of-day processing
+  epoch value for cameras to use (config value overrides epoch value)
+  verification can handle lack of L0 tarball on reprocessing
