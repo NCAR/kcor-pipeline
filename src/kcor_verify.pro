@@ -156,16 +156,21 @@ pro kcor_verify_hpss, date, hpss_filename, local_filename, $
 
   status = 0L
 
+  is_level0 = strpos(file_basename(local_filename), 'l0') ge 0L
+  check_against_local = ~is_level0 || ~run->config('realtime/reprocess')
+
   if (~file_test(local_filename, /regular)) then begin
     mg_log, 'local tarball %s not available', $
             file_basename(local_filename), $
-            name=logger_name, /warn
-    status = 1L
-    goto, hpss_done
+            name=logger_name, $
+            warn=~check_against_local, error=check_against_local
+    status = check_against_local
+    if (check_against_local) then goto, hpss_done
   endif
 
-  filesize = mg_filesize(local_filename)
-  mtime = (file_info(local_filename)).mtime
+  if (check_against_local) then begin
+    local_filesize = mg_filesize(local_filename)
+  endif
 
   hsi_cmd = string(run->config('externals/hsi'), hpss_filename, $
                    format='(%"%s ls -l %s")')
@@ -194,10 +199,19 @@ pro kcor_verify_hpss, date, hpss_filename, local_filename, $
     status_line = hsi_error_output[ind[0]]
     tokens = strsplit(status_line, /extract)
 
+    hpss_permissions = tokens[0]
+    hpss_owner = tokens[3]
+    hpss_filesize = ulong64(tokens[4])
+
+    mg_log, 'HPSS filesize for %s: %s B', $
+            file_basename(hpss_filename), $
+            mg_float2str(hpss_filesize, places_sep=','), $
+            name=logger_name, /info
+
     ; check group ownership of tarball on HPSS
-    if (tokens[3] ne 'cordyn') then begin
+    if (hpss_owner ne 'cordyn') then begin
       mg_log, 'incorrect group owner %s for %s on HPSS', $
-              tokens[3], $
+              hpss_owner, $
               file_basename(hpss_filename), $
               name=logger_name, /error
       status = 2L
@@ -205,9 +219,9 @@ pro kcor_verify_hpss, date, hpss_filename, local_filename, $
     endif
 
     ; check protection of tarball on HPSS
-    if (tokens[0] ne '-rw-rw-r--') then begin
+    if (hpss_permissions ne '-rw-rw-r--') then begin
       mg_log, 'incorrect permissions %s for %s on HPSS', $
-              tokens[0], $
+              hpss_permissions, $
               file_basename(hpss_filename), $
               name=logger_name, /error
       status = 2L
@@ -215,51 +229,53 @@ pro kcor_verify_hpss, date, hpss_filename, local_filename, $
     endif
 
     ; check size of tarball on HPSS
-    if (ulong64(tokens[4]) ne filesize) then begin
-      mg_log, '%s local size (%s B) does not match size on HPSS (%s B)', $
-              file_basename(hpss_filename), $
-              mg_float2str(filesize, places_sep=','), $
-              mg_float2str(ulong64(tokens[4]), places_sep=','), $
-              name=logger_name, /error
-      status = 2L
-      goto, hpss_done
-    endif
-
-    hpss_hash = kcor_verify_hpss_hash(hpss_filename, $
-                                      logger_name=logger_name, $
-                                      run=run, $
-                                      status=hpss_hash_status)
-    local_hash = kcor_md5_hash(local_filename, $
-                               logger_name=logger_name, $
-                               run=run, $
-                               status=local_hash_status)
-    if (hpss_hash_status ne 0L && local_hash_status ne 0L) then begin
-      mg_log, 'not comparing hashes', name=logger_name, /error
-      status = 1L
-      goto, hpss_done
-    endif
-
-    if (hpss_hash eq '(none)') then begin
-      mg_log, 'HPSS hash not available for %s', $
-              file_basename(hpss_filename), $
-              name=logger_name, /warn
-      status = 1L
-    endif else begin
-      if (hpss_hash eq local_hash) then begin
-        mg_log, 'md5 hashes match for %s', $
+    if (check_against_local) then begin
+      if (hpss_filesize ne local_filesize) then begin
+        mg_log, '%s local size (%s B) does not match size on HPSS (%s B)', $
                 file_basename(hpss_filename), $
-                name=logger_name, /info
-      endif else begin
-        mg_log, 'mismatching md5 hashes for %s:', $
-                file_basename(hpss_filename), $
-                name=logger_name, /error
-        mg_log, 'local (%s) vs. HPSS (%s)', $
-                local_hash, hpss_hash, $
+                mg_float2str(local_filesize, places_sep=','), $
+                mg_float2str(hpss_filesize, places_sep=','), $
                 name=logger_name, /error
         status = 2L
         goto, hpss_done
+      endif
+
+      hpss_hash = kcor_verify_hpss_hash(hpss_filename, $
+                                        logger_name=logger_name, $
+                                        run=run, $
+                                        status=hpss_hash_status)
+      local_hash = kcor_md5_hash(local_filename, $
+                                 logger_name=logger_name, $
+                                 run=run, $
+                                 status=local_hash_status)
+      if (hpss_hash_status ne 0L && local_hash_status ne 0L) then begin
+        mg_log, 'not comparing hashes', name=logger_name, /error
+        status = 1L
+        goto, hpss_done
+      endif
+
+      if (hpss_hash eq '(none)') then begin
+        mg_log, 'HPSS hash not available for %s', $
+                file_basename(hpss_filename), $
+                name=logger_name, /warn
+        status = 1L
+      endif else begin
+        if (hpss_hash eq local_hash) then begin
+          mg_log, 'md5 hashes match for %s', $
+                  file_basename(hpss_filename), $
+                  name=logger_name, /info
+        endif else begin
+          mg_log, 'mismatching md5 hashes for %s:', $
+                  file_basename(hpss_filename), $
+                  name=logger_name, /error
+          mg_log, 'local (%s) vs. HPSS (%s)', $
+                  local_hash, hpss_hash, $
+                  name=logger_name, /error
+          status = 2L
+          goto, hpss_done
+        endelse
       endelse
-    endelse
+    endif
 
 ;    ; check date of tarball on HPSS vs local tarball
 ;    hpss_epoch = kcor_verify_date2epoch(tokens[5], tokens[6], tokens[7], $
@@ -704,8 +720,13 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   l2_tarball_mtime = (file_info(l2_tarball_filename)).mtime
 
   if (~file_test(l0_tarball_filename, /regular)) then begin
-    mg_log, 'no L0 tarball', name=logger_name, /error
-    status = 1
+    if (run->config('realtime/reprocess')) then begin
+      mg_log, 'skipping L0 compression test on reprocessing', $
+              name=logger_name, /warn
+    endif else begin
+      mg_log, 'no L0 tarball', name=logger_name, /error
+      status = 1
+    endelse
     goto, compress_ratio_done
   endif
 
