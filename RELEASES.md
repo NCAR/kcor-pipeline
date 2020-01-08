@@ -396,4 +396,5 @@
 2.0.8
   produce synoptic map of the last 28 days in the end-of-day processing
   epoch value for cameras to use (config value overrides epoch value)
+  added epochs for using only camera 1 in Dec 2019
   verification can handle lack of L0 tarball on reprocessing
