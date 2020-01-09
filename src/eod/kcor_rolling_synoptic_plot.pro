@@ -13,6 +13,7 @@ pro kcor_rolling_synoptic_plot, database=db, run=run
   compile_opt strictarr
 
   n_days = 28   ; number of days to include in the plot
+  logger_name = run.logger_name
 
   ;logger_name = run.logger_name
   mg_log, 'producing synoptic plot of last %d days', n_days, $
