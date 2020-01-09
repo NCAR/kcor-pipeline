@@ -85,13 +85,15 @@ pro kcor_rolling_synoptic_plot, database=db, run=run
     maxv = range[1]
 
     loadct, 0, /silent
-    background = 0
+    foreground = 0
+    background = 255
   endif else begin
     minv = 0.0
     maxv = range[1]
 
     loadct, 0, /silent
-    background = 0
+    foreground = 0
+    background = 255
   endelse
 
   north_up_map = shift(map, 0, -180)
@@ -113,7 +115,7 @@ pro kcor_rolling_synoptic_plot, database=db, run=run
             xtyle=1, xtitle='Date (not offset for E limb)', $
             min_value=minv, max_value=maxv, $
             /axes, yticklen=-0.005, xticklen=-0.01, $
-            background=background, $
+            color=foreground, background=background, $
             title=string(title, format='(%"%s (East limb)")'), $
             xtickformat='label_date', $
             position=[0.05, 0.55, 0.97, 0.95], /noerase, $
@@ -125,7 +127,7 @@ pro kcor_rolling_synoptic_plot, database=db, run=run
             xstyle=1, xtitle='Date (not offset for W limb)', $
             min_value=minv, max_value=maxv, $
             /axes, yticklen=-0.005, xticklen=-0.01, $
-            background=background, $
+            color=foreground, background=background, $
             title=string(title, format='(%"%s (West limb)")'), $
             xtickformat='label_date', $
             position=[0.05, 0.05, 0.97, 0.45], /noerase, $
