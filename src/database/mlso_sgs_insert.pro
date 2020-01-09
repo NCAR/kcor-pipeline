@@ -99,7 +99,8 @@ pro mlso_sgs_insert, date, fits_list, $
     sgs_source = 'k'
 
     ; extract desired items from header
-    hdu = headfits(fts_file, /silent)   ; read FITS header
+    kcor_read_rawdata, fts_file, header=hdu, $
+                       repair_routine=run->epoch('repair_routine')
 
     date_obs  = sxpar(hdu, 'DATE-OBS', count=qdate_obs)
 

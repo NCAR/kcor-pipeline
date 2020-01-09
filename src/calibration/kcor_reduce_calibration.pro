@@ -57,7 +57,9 @@ pro kcor_reduce_calibration, date, $
 
     ; extract exposures from files
     for f = 0L, n_files - 1L do begin
-      header = headfits(filelist[f], errmsg=errmsg)
+      kcor_read_rawdata, filelist[f], header=hdu, $
+                         repair_routine=run->epoch('repair_routine'), $
+                         errmsg=errmsg
       if (errmsg ne '') then begin
         mg_log, 'error reading %s', filelist[f], name='kcor/cal', /error
         mg_log, errmsg, name='kcor/cal', /error

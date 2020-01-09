@@ -90,7 +90,8 @@ pro kcor_cal_insert, date, fits_list, quality, $
       mg_log, 'db inserting %s', fts_file, name='kcor/eod', /info
     endelse
 
-    hdu = headfits(fts_file, /silent)   ; read FITS header
+    kcor_read_rawdata, fts_file, header=hdu, $
+                       repair_routine=run->epoch('repair_routine')
 	
     date_obs    = sxpar(hdu, 'DATE-OBS', count=qdate_obs)
     date_end    = sxpar(hdu, 'DATE-END', count=qdate_end)
@@ -122,7 +123,8 @@ pro kcor_cal_insert, date, fits_list, quality, $
     calpol      = strtrim(sxpar(hdu, 'CALPOL',   count=qcalpol), 2)
     calpang     =         sxpar(hdu, 'CALPANG',  count=qcalpang)
 
-    image = readfits(fts_file, /silent)
+    kcor_read_rawdata, fts_file, image=image, $
+                       repair_routine=run->epoch('repair_routine')
     mean_int_img0 = mean(image[*, *, 0, 0])
     mean_int_img1 = mean(image[*, *, 1, 0])
     mean_int_img2 = mean(image[*, *, 2, 0])

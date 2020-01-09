@@ -30,7 +30,8 @@ pro kcor_rowcol_image_l0, run=run
   medcols1 = fltarr(nx, n_files)
 
   for f = 0L, n_files - 1L do begin
-    im = readfits(files[f], header, /silent)
+    kcor_read_rawdata, files[f], image=im, header=header, $
+                       repair_routine=run->epoch('repair_routine')
     exposure = sxpar(header, 'EXPTIME')
 
     corona0 = kcor_corona(reform(im[*, *, *, 0]))
@@ -100,7 +101,8 @@ pro kcor_rowcol_image_l2, run=run
   meancols = fltarr(nx, n_files)
 
   for f = 0L, n_files - 1L do begin
-    im = readfits(files[f], /silent)
+    kcor_read_rawdata, files[f], image=im, $
+                       repair_routine=run->epoch('repair_routine')
 
     medrows[f, *] = median(im, dimension=1)
     medcols[*, f] = median(im, dimension=2)

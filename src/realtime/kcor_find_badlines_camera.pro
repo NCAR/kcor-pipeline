@@ -55,7 +55,7 @@ f = filepath('20190625_174555_kcor.fts.gz', $
              subdir=['20190625', 'level0'], $
              root='/hao/sunset/Data/KCor/raw.latest')
 
-im = readfits(f, heade)
+im = readfits(f, header)
 corona1 = kcor_corona(im[*, *, *, 1]
 cam1_badlines = kcor_find_badlines_camera(corona1, diff_threshold=20.0)
 

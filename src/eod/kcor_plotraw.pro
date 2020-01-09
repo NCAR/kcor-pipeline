@@ -102,7 +102,8 @@ pro kcor_plotraw, date, list=list, run=run, $
             f + 1, n_nrgf_files, file_basename(raw_nrgf_files[f]), $
             name='kcor/eod', /info
 
-    im = readfits(raw_nrgf_files[f], header, /silent)
+    kcor_read_rawdata, raw_nrgf_files[f], image=im, header=header, $
+                       repair_routine=run->epoch('repair_routine')
 
     bitpix   = fix(sxpar(header, 'BITPIX'))
     if (bitpix gt 16) then begin

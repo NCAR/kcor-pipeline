@@ -75,7 +75,8 @@ pro kcor_plotparams, date, list=list, run=run
   for i = 0L, n_elements(list) - 1L do begin
     l0_file = list[i]
 
-    hdu = headfits(l0_file, /silent)   ; read FITS header
+    kcor_read_rawdata, l0_file, header=hdu, $
+                       repair_routine=run->epoch('repair_routine')
 
     ; get FITS header size
     hdusize = size(hdu)
@@ -97,10 +98,10 @@ pro kcor_plotparams, date, list=list, run=run
 
     datatype = sxpar(hdu, 'DATATYPE', count=qdatatype)
 
-    diffuser = sxpar(hdu, 'DIFFUSER', count=qdiffuser)
-    calpol   = sxpar(hdu, 'CALPOL',   count=qcalpol)
-    darkshut = sxpar(hdu, 'DARKSHUT', count=qdarkshut)
-    cover    = sxpar(hdu, 'COVER',    count=qcover)
+    diffuser = strtrim(sxpar(hdu, 'DIFFUSER', count=qdiffuser))
+    calpol   = strtrim(sxpar(hdu, 'CALPOL',   count=qcalpol))
+    darkshut = strtrim(sxpar(hdu, 'DARKSHUT', count=qdarkshut))
+    cover    = strtrim(sxpar(hdu, 'COVER',    count=qcover))
 
     occltrid = sxpar(hdu, 'OCCLTRID', count=qoccltrid)
 

@@ -135,7 +135,8 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
       continue
     endif
 
-    img = readfits(l0_file, hdu, /silent)   ; read fits image & header
+    kcor_read_rawdata, l0_file, image=img, header=hdu, $
+                       repair_routine=run->epoch('repair_routine')
 
     img0 = reform(img[*, *, 0, 0])
     img0 = reverse(img0, 2)  ; y-axis inversion
@@ -176,14 +177,14 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
     datatype = sxpar(hdu, 'DATATYPE', count=qdatatype)
 
-    diffuser = sxpar(hdu, 'DIFFUSER', count=qdiffuser)
-    calpol   = sxpar(hdu, 'CALPOL',   count=qcalpol)
+    diffuser = strtrim(sxpar(hdu, 'DIFFUSER', count=qdiffuser))
+    calpol   = strtrim(sxpar(hdu, 'CALPOL',   count=qcalpol))
     calpang  = sxpar(hdu, 'CALPANG',  count=qcalpang)
-    darkshut = sxpar(hdu, 'DARKSHUT', count=qdarkshut)
+    darkshut = strtrim(sxpar(hdu, 'DARKSHUT', count=qdarkshut))
     exptime  = sxpar(hdu, 'EXPTIME',  count=qexptime)
     if (~run->epoch('use_exptime')) then exptime = run->epoch('exptime')
 
-    cover    = sxpar(hdu, 'COVER',    count=qcover)
+    cover    = strtrim(sxpar(hdu, 'COVER',    count=qcover))
 
     if (run->epoch('use_occulter_id')) then begin
       occltrid = sxpar(hdu, 'OCCLTRID', count=qoccltrid)

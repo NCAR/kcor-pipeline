@@ -31,7 +31,9 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
 
   mg_log, 'testing %s...', filenames[0], name='kcor/cal', /debug
 
-  header = fitshead2struct(headfits(filenames[0]))
+  kcor_read_rawdata, filenames[0], header=header, $
+                     repair_routine=run->epoch('repair_routine')
+  header = fitshead2struct(header)
 
   ; set epoch values to the beginning of the calibration
   run.time = header.date_obs
@@ -62,7 +64,8 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
     ; check for zipped file if the FTS file is not present
     if (~file_test(filenames[f], /regular)) then filenames[f] += '.gz'
 
-    thisdata = readfits(filenames[f], header, /silent)
+    kcor_read_rawdata, filenames[f], image=thisdata, header=header, $
+                       repair_routine=run->epoch('repair_routine')
 
     ; must set time before querying run object
     date_obs = sxpar(header, 'DATE-OBS', count=qdate_obs)
@@ -101,9 +104,9 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
                                         cam1_badlines
     endif
 
-    darkshut = sxpar(header, 'DARKSHUT', count=n_darkshut)
-    diffuser = sxpar(header, 'DIFFUSER', count=n_diffuser)
-    calpol = sxpar(header, 'CALPOL', count=n_calpol)
+    darkshut = strtrim(sxpar(header, 'DARKSHUT', count=n_darkshut))
+    diffuser = strtrim(sxpar(header, 'DIFFUSER', count=n_diffuser))
+    calpol = strtrim(sxpar(header, 'CALPOL', count=n_calpol))
     calpang = sxpar(header, 'CALPANG', count=n_calpang)
     if (run->epoch('use_sgs')) then begin
       sgsdimv = sxpar(header, 'SGSDIMV', count=n_sgsdimv)

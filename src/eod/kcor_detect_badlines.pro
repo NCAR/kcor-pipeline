@@ -43,7 +43,8 @@ pro kcor_detect_badlines, run=run
     filename = filepath(string(times[f], format='(%"%s_kcor.fts.gz")'), $
                         subdir=[run.date, 'level0'], $
                         root=raw_basedir)
-    im = readfits(filename, /silent)
+    kcor_read_rawdata, filename, image=im, $
+                       repair_routine=run->epoch('repair_routine')
 
     n_checked_images += 1L
 

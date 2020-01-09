@@ -61,7 +61,8 @@ pro kcor_l1, ok_filename, $
   if (~file_test(ok_filename, /regular)) then begin
     message, string(file_basename(ok_filename), format='(%"%s not found")')
   endif
-  img = readfits(ok_filename, header, /silent)
+  kcor_read_rawdata, ok_filename, image=img, header=header, $
+                     repair_routine=run->epoch('repair_routine')
 
   type = fxpar(header, 'DATATYPE')
   mg_log, 'type: %s', strmid(type, 0, 3), name=log_name, /debug
@@ -747,13 +748,13 @@ pro kcor_l1, ok_filename, $
             ' name of Mauna Loa observer'
 
   ; mechanism positions
-  fxaddpar, l1_header, 'DARKSHUT', struct.darkshut, $
+  fxaddpar, l1_header, 'DARKSHUT', strtrim(struct.darkshut), $
             ' dark shutter open (out) or closed (in)'
-  fxaddpar, l1_header, 'COVER',    struct.cover, $
+  fxaddpar, l1_header, 'COVER',    strtrim(struct.cover), $
             ' cover in or out of the light beam'
-  fxaddpar, l1_header, 'DIFFUSER', struct.diffuser, $
+  fxaddpar, l1_header, 'DIFFUSER', strtrim(struct.diffuser), $
             ' diffuser in or out of the light beam'
-  fxaddpar, l1_header, 'CALPOL',   struct.calpol, $
+  fxaddpar, l1_header, 'CALPOL',   strtrim(struct.calpol), $
             ' calibration polarizer in or out of beam'
   fxaddpar, l1_header, 'CALPANG',  struct.calpang, $
             ' calibration polarizer angle', format='(f9.3)'

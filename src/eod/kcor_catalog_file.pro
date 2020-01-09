@@ -20,13 +20,14 @@ pro kcor_catalog_file, filename, run=run
   process_dir = filepath(run.date, root=run->config('processing/process_basedir'))
 
   ; read FITS header and read selected keyword parameters
-  header = headfits(filename)
+  kcor_read_rawdata, filename, header=header, $
+                     repair_routine=run->epoch('repair_routine')
 
   datatype = sxpar(header, 'DATATYPE')
-  diffuser = sxpar(header, 'DIFFUSER')
-  calpol   = sxpar(header, 'CALPOL')
+  diffuser = strtrim(sxpar(header, 'DIFFUSER'))
+  calpol   = strtrim(sxpar(header, 'CALPOL'))
   calpang  = sxpar(header, 'CALPANG')
-  darkshut = sxpar(header, 'DARKSHUT')
+  darkshut = strtrim(sxpar(header, 'DARKSHUT'))
 
   exposure = sxpar(header, 'EXPTIME', count=nrecords)
   if (nrecords eq 0) then exposure = sxpar(header, 'EXPOSURE')
@@ -42,7 +43,8 @@ pro kcor_catalog_file, filename, run=run
             format='(a, 3x, f10.4, 2x, "ms", 2x, "Data: ", a, 3x, "Dark: ", a, 3x, "Diff: ", a, 3x, "Cal: ", a, 3x, "Ang: ", f6.1)'
 
     ; print a measure of every image in the cube
-    image = readfits(filename, /silent)
+    kcor_read_rawdata, filename, image=image, $
+                       repair_routine=run->epoch('repair_routine')
     for camera = 0, 1 do begin
       for sequence = 0, 3 do begin
          printf, science_lun, mean(image[*, *, sequence, camera]), $
@@ -56,23 +58,24 @@ pro kcor_catalog_file, filename, run=run
 
   ; datatype = calibration
   if (datatype eq 'calibration') then begin
-     openw, calibration_lun, filepath('calibration_files.txt', root=process_dir), $
-            /append, /get_lun
-     printf, calibration_lun, $
-             file_basename(filename), exposure, datatype, darkshut, diffuser, $
-             calpol, calpang, $
-             format='(a, 3x, f10.4, 2x, "ms", 2x, "Data: ", a, 3x, "Dark: ", a, 3x, "Diff: ", a, 3x, "Cal: ", a, 3x, "Ang: ", f6.1, "  means: ", $)'
+    openw, calibration_lun, filepath('calibration_files.txt', root=process_dir), $
+           /append, /get_lun
+    printf, calibration_lun, $
+            file_basename(filename), exposure, datatype, darkshut, diffuser, $
+            calpol, calpang, $
+            format='(a, 3x, f10.4, 2x, "ms", 2x, "Data: ", a, 3x, "Dark: ", a, 3x, "Diff: ", a, 3x, "Cal: ", a, 3x, "Ang: ", f6.1, "  means: ", $)'
 
-     ; print a measure of every image in the cube
-     image = readfits(filename, /silent)
-     for camera = 0, 1 do begin
-       for sequence = 0, 3 do begin
-         printf, calibration_lun, format='(e12.5, "   ", $)', mean(image[*, *, sequence, camera])
-       endfor
-     endfor
+    ; print a measure of every image in the cube
+    kcor_read_rawdata, filename, image=image, $
+                       repair_routine=run->epoch('repair_routine')
+    for camera = 0, 1 do begin
+      for sequence = 0, 3 do begin
+        printf, calibration_lun, format='(e12.5, "   ", $)', mean(image[*, *, sequence, camera])
+      endfor
+    endfor
 
-     printf, calibration_lun
-     free_lun, calibration_lun
+    printf, calibration_lun
+    free_lun, calibration_lun
   endif
 
   ; datatype = engineering

@@ -64,7 +64,8 @@ filename = filepath(basename, $
                     subdir=[date, 'level0'], $
 ;                    subdir=[date], $
                     root=run->config('processing/raw_basedir'))
-im = readfits(filename, header, /silent)
+kcor_read_rawdata, filename, image=im, header=header, $
+                   repair_routine=run->epoch('repair_routine')
 
 corona0 = kcor_corona(im[*, *, *, 0])
 corona1 = kcor_corona(im[*, *, *, 1])

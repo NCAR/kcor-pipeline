@@ -35,7 +35,7 @@
 pro kcor_eng_update, date, nrgf_files, $
                      line_means=line_means, line_medians=line_medians, $
                      azi_means=azi_means, azi_medians=azi_medians, $
-                     run=run, database=db, obsday_index=obsday_index
+                     run=run, database=database, obsday_index=obsday_index
   compile_opt strictarr
 
   ; connect to MLSO database

@@ -229,10 +229,22 @@ function kcor_quality, date, l0_fits_files, append=append, $
 
   n_l0_fits_files = n_elements(l0_fits_files)
 
+  ; use config value if specified, otherwise use epoch value
+  cameras = run->config('realtime/cameras')
+  if (n_elements(cameras) eq 0L) then begin
+    cameras = run->epoch('cameras')
+  endif
+  case cameras of
+    '0': check_camera = 0
+    '1': check_camera = 1
+    else: check_camera = 0
+  endcase
+
   ; image file loop
   foreach l0_file, l0_fits_files do begin
     num_img += 1
-    img = readfits(l0_file, hdu, /silent)   ; read fits image & header
+    kcor_read_rawdata, l0_file, image=img, header=hdu, $
+                       repair_routine=run->epoch('repair_routine')
     img = float(img)
 
     mg_log, 'checking %d/%d: %s', $
@@ -248,7 +260,9 @@ function kcor_quality, date, l0_fits_files, append=append, $
       mg_log, 'attempting another read after %0.2f s delay', delay_time, $
               name='kcor/rt', /warn
       wait, delay_time
-      img = readfits(l0_file, hdu, /silent)
+
+      kcor_read_rawdata, l0_file, image=img, header=hdu, $
+                         repair_routine=run->epoch('repair_routine')
       n_dims = size(img, /n_dimensions)
       if (n_dims ne 4) then begin
         mg_log, 'wrong number of dimensions for image: %d', n_dims, $
@@ -281,12 +295,12 @@ function kcor_quality, date, l0_fits_files, append=append, $
 
     datatype = sxpar(hdu, 'DATATYPE', count=qdatatype)
 
-    diffuser = sxpar(hdu, 'DIFFUSER', count=qdiffuser)
-    calpol   = sxpar(hdu, 'CALPOL',   count=qcalpol)
+    diffuser = strtrim(sxpar(hdu, 'DIFFUSER', count=qdiffuser))
+    calpol   = strtrim(sxpar(hdu, 'CALPOL',   count=qcalpol))
     calpang  = sxpar(hdu, 'CALPANG',  count=qcalpang)
-    darkshut = sxpar(hdu, 'DARKSHUT', count=qdarkshut)
+    darkshut = strtrim(sxpar(hdu, 'DARKSHUT', count=qdarkshut))
     exptime  = sxpar(hdu, 'EXPTIME',  count=qexptime)
-    cover    = sxpar(hdu, 'COVER',    count=qcover)
+    cover    = strtrim(sxpar(hdu, 'COVER',    count=qcover))
 
     if (run->epoch('use_occulter_id')) then begin
       occltrid = sxpar(hdu, 'OCCLTRID', count=qoccltrid)
@@ -415,14 +429,15 @@ function kcor_quality, date, l0_fits_files, append=append, $
     chksat = run->config('realtime/check_quality')
     sat = 0B
     if (chksat gt 0) then begin
-      sat_pixels = where(img[*, *, 0, 0] ge run->epoch('smax'), n_saturated_pixels)
+      sat_pixels = where(img[*, *, 0, check_camera] ge run->epoch('smax'), $
+                         n_saturated_pixels)
       sat = n_saturated_pixels gt run->epoch('smax_max_count')
 
       if (sat) then begin
         mg_log, 'saturated: %d pixels (max %d) > %0.1f', $
                 n_saturated_pixels, run->epoch('smax_max_count'), run->epoch('smax'), $
                 name='kcor/rt', /debug
-        pb0 = img[*, *, 0, 0]
+        pb0 = img[*, *, 0, check_camera]
 
         shifted_mask = mask
         xcen = axcen
@@ -434,9 +449,9 @@ function kcor_quality, date, l0_fits_files, append=append, $
 
     ; create "raw" pB image
     img = float(img)
-    img00 = img[*, *, 0, 0]
-    q0 = img[*, *, 0, 0] - img[*, *, 3, 0]   ; Q camera 0
-    u0 = img[*, *, 1, 0] - img[*, *, 2, 0]   ; U camera 0
+    img00 = img[*, *, 0, check_camera]
+    q0 = img[*, *, 0, check_camera] - img[*, *, 3, check_camera]   ; Q camera 0
+    u0 = img[*, *, 1, check_camera] - img[*, *, 2, check_camera]   ; U camera 0
     pb0 = sqrt(q0 * q0 + u0 * u0)
 
     ;----------------------------------------------------------------------------

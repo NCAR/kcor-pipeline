@@ -398,3 +398,4 @@
   epoch value for cameras to use (config value overrides epoch value)
   added epochs for using only camera 1 in Dec 2019
   verification can handle lack of L0 tarball on reprocessing
+  system to repair raw data with incorrect headers through epochs
