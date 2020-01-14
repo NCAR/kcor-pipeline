@@ -79,6 +79,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   quality_plot = filepath(string(date, format='(%"%s.kcor.quality.png")'), $
                           root=q_dir)
   kcor_quality_plot, q_dir, quality_plot
+  kcor_daily_synoptic_map, run=run
 
   ; level 0 files still in root
   l0_fits_files = file_search(filepath('*_kcor.fts.gz', root=date_dir), $
