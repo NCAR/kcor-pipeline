@@ -9,7 +9,7 @@
 ;   run : in, required, type=object]
 ;     KCor run object
 ;-
-pro kcor_rolling_synoptic_plot, database=db, run=run
+pro kcor_rolling_synoptic_map, database=db, run=run
   compile_opt strictarr
 
   n_days = 28   ; number of days to include in the plot
@@ -169,7 +169,7 @@ db = mgdbmysql()
 db->connect, config_filename=run->config('database/config_filename'), $
              config_section=run->config('database/config_section')
 
-kcor_rolling_synoptic_plot, database=db, run=run
+kcor_rolling_synoptic_map, database=db, run=run
 
 obj_destroy, [db, run]
 
