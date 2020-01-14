@@ -148,7 +148,6 @@ pro kcor_rolling_synoptic_map, database=db, run=run
   if (n_elements(rgb) gt 0L) then tvlct, rgb
   if (n_elements(original_decomposed) gt 0L) then device, decomposed=original_decomposed
 
-
   for d = 0L, n_elements(data) - 1L do begin
     s = raw_data[d]
     ptr_free, s.intensity, s.intensity_stddev, s.r108, s.r13, s.r18, s.r111
