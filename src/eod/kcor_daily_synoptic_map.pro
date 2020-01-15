@@ -13,10 +13,10 @@ pro kcor_daily_synoptic_map, run=run
   logger_name = run.logger_name
 
   ; get all L2 files
-  files = file_search(filepath('*_kcor_l2.fts.gz', $
-                               subdir=['level2'], $
-                               root=run->config('processing/raw_basedir')), $
-                      count=n_files)
+  l2_glob = filepath('*_kcor_l2.fts.gz', $
+                     subdir=[run.date, 'level2'], $
+                     root=run->config('processing/raw_basedir'))
+  files = file_search(l2_glob, count=n_files)
   if (n_files eq 0L) then begin
     mg_log, 'no L2 files for daily synoptic map', name=logger_name, /warn
     goto, done
@@ -25,9 +25,10 @@ pro kcor_daily_synoptic_map, run=run
             name=logger_name, /info
   endelse
 
-  nbins = 720
-  map = fltarr(n_files, nbins)
-  times = fltarr(n_files)
+  n_bins = 720
+  n_angles = 720
+  map = fltarr(n_bins, n_angles)
+  counts = lonarr(n_bins)
 
   for f = 0L, n_files - 1L do begin
     im = readfits(files[f], header, /silent)
@@ -50,16 +51,22 @@ pro kcor_daily_synoptic_map, run=run
     run.time = date_obs
     sun_pixels = rsun / run->epoch('plate_scale')
 
-    r13 = kcor_annulus_gridmeans(im, 1.3, sun_pixels, nbins=nbins)
+    r13 = kcor_annulus_gridmeans(im, 1.3, sun_pixels, nbins=n_angles)
 
     ; place r13 in the right place in the map
-    map[f, *] = r13
-    times[f] = fhour - 10.0
+    jd = julday(month, day, year, hour, minute, second) - 10.0 / 24.0
+    caldat, jd, hst_month, hst_day, hst_year, hst_hour, hst_minute, hst_second
+    i = 60 * (hst_hour - 6) + hst_minute
+    map[i, *] += r13
+    counts[i] += 1
   endfor
+
+  counts[where(counts eq 0L, /null)] = 1L
+  map /= rebin(reform(counts, n_bins, 1), n_bins, n_angles)
 
   ; display map
   set_plot, 'Z'
-  device, set_resolution=[n_files + 80, 800]
+  device, set_resolution=[n_bins + 80, 800]
   original_device = !d.name
 
   device, get_decomposed=original_decomposed
@@ -90,30 +97,32 @@ pro kcor_daily_synoptic_map, run=run
   charsize = 1.0
   smooth_kernel = [11, 1]
 
-  title = string(start_date, end_date, $
-                 format='(%"Synoptic map for r1.3 from %s to %s")')
+  title = string(run.date, $
+                 format='(%"Synoptic map for r1.3 from %s")')
   erase, background
-  mg_image, reverse(east_limb, 1), reverse(times), $
+  mg_image, reverse(east_limb, 1), $
+            reverse(12.0 * findgen(n_bins) / (n_bins - 1.0) + 6.0), $
             xrange=[18.0, 6.0], $
-            xtyle=1, xtitle='Time (not offset for E limb)', $
+            xtyle=1, xtitle='HST time', $
             min_value=minv, max_value=maxv, $
             /axes, yticklen=-0.005, xticklen=-0.01, $
             color=foreground, background=background, $
             title=string(title, format='(%"%s (East limb)")'), $
             position=[0.05, 0.55, 0.97, 0.95], /noerase, $
             yticks=4, ytickname=['S', 'SE', 'E', 'NE', 'N'], yminor=4, $
-            smooth_kernel=smooth_kernel, $
+;            smooth_kernel=smooth_kernel, $
             charsize=charsize
-  mg_image, reverse(west_limb, 1), reverse(times), $
+  mg_image, reverse(west_limb, 1), $
+            reverse(12.0 * findgen(n_bins) / (n_bins - 1.0) + 6.0), $
             xrange=[18.0, 6.0], $
-            xstyle=1, xtitle='Time (not offset for W limb)', $
+            xstyle=1, xtitle='HST time', $
             min_value=minv, max_value=maxv, $
             /axes, yticklen=-0.005, xticklen=-0.01, $
             color=foreground, background=background, $
             title=string(title, format='(%"%s (West limb)")'), $
             position=[0.05, 0.05, 0.97, 0.45], /noerase, $
             yticks=4, ytickname=['S', 'SW', 'W', 'NW', 'N'], yminor=4, $
-            smooth_kernel=smooth_kernel, $
+;            smooth_kernel=smooth_kernel, $
             charsize=charsize
 
   im = tvrd()
@@ -129,7 +138,6 @@ pro kcor_daily_synoptic_map, run=run
   if (n_elements(rgb) gt 0L) then tvlct, rgb
   if (n_elements(original_decomposed) gt 0L) then device, decomposed=original_decomposed
 
-  done:
   mg_log, 'done', name=logger_name, /info
 end
 

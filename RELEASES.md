@@ -394,7 +394,8 @@
   option to not check raw remote files during verification
   epoch fixes for 20150601 and 20180118 to mark bad cal data
 2.0.8
-  produce synoptic map of the last 28 days in the end-of-day processing
+  produce synoptic map of the last 28 days
+  produce synoptic map for the day
   epoch value for cameras to use (config value overrides epoch value)
   added epochs for using only camera 1 in Dec 2019
   verification can handle lack of L0 tarball on reprocessing
