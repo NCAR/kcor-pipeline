@@ -25,7 +25,9 @@ pro kcor_daily_synoptic_map, run=run
             name=logger_name, /info
   endelse
 
-  n_bins = 720
+  start_hour = 6
+  end_hour = 18
+  n_bins = 1080 ;720
   n_angles = 720
   map = fltarr(n_bins, n_angles)
   counts = lonarr(n_bins)
@@ -56,7 +58,9 @@ pro kcor_daily_synoptic_map, run=run
     ; place r13 in the right place in the map
     jd = julday(month, day, year, hour, minute, second) - 10.0 / 24.0
     caldat, jd, hst_month, hst_day, hst_year, hst_hour, hst_minute, hst_second
-    i = 60 * (hst_hour - 6) + hst_minute
+
+    mins = 60 * (hst_hour - start_hour) + hst_minute + hst_second / 60.0
+    i = long(n_bins * mins / (end_hour - start_hour) / 60L)
     map[i, *] += r13
     counts[i] += 1
   endfor
@@ -66,7 +70,7 @@ pro kcor_daily_synoptic_map, run=run
 
   ; display map
   set_plot, 'Z'
-  device, set_resolution=[n_bins + 80, 800]
+  device, set_resolution=[n_bins + 80, n_angles + 160]
   original_device = !d.name
 
   device, get_decomposed=original_decomposed
