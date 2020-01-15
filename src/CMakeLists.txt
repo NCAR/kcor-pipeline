@@ -2,6 +2,7 @@ add_subdirectory(calibration)
 add_subdirectory(database)
 add_subdirectory(eod)
 add_subdirectory(realtime)
+add_subdirectory(fileio)
 add_subdirectory(util)
 add_subdirectory(validate)
 

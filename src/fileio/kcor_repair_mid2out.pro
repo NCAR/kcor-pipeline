@@ -15,7 +15,7 @@ pro kcor_repair_mid2out, image=im, header=header
   if (n_elements(header) gt 0L) then begin
     fxaddpar, header, 'DIFFUSER', 'out'
     fxaddpar, header, 'CALPOL', 'out'
-    fxaddpar, header, 'CALPOL', 'out'
-    fxaddpar, header, 'CALPOL', 'out'
+    fxaddpar, header, 'COVER', 'out'
+    fxaddpar, header, 'DARKSHUT', 'out'
   endif
 end
