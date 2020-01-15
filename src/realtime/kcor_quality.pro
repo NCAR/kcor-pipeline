@@ -243,6 +243,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
   ; image file loop
   foreach l0_file, l0_fits_files do begin
     num_img += 1
+    run.time = strmid(file_basename(l0_file), 9, 6)
     kcor_read_rawdata, l0_file, image=img, header=hdu, $
                        repair_routine=run->epoch('repair_routine')
     img = float(img)
