@@ -44,6 +44,7 @@ pro kcor_rolling_synoptic_map, database=db, run=run
   endelse
 
   ; organize data
+  radius = 1.3
   data = raw_data.r13
 
   dates = raw_data.date_obs
@@ -138,9 +139,28 @@ pro kcor_rolling_synoptic_map, database=db, run=run
   im = tvrd()
 
   p_dir = filepath('p', subdir=run.date, root=run->config('processing/raw_basedir'))
-  output_filename = filepath(string(run.date, format='(%"%s.synoptic.gif")'), $
+  output_filename = filepath(string(run.date, $
+                                    100.0 * 1.3, $
+                                    format='(%"%s.28day.synoptic.r%03d.gif")'), $
                              root=p_dir)
   write_gif, output_filename, im, rgb[*, 0], rgb[*, 1], rgb[*, 2]
+
+  mkhdr, primary_header, map, /extend
+  sxdelpar, primary_header, 'DATE'
+  sxaddpar, primary_header, 'DATE-OBS', start_date, $
+            ' [UTC] start date of synoptic map', after='EXTEND'
+sxaddpar, primary_header, 'DATE-END', end_date, $
+            ' [UTC] end date of synoptic map', $
+            format='(F0.2)', after='DATE-OBS'
+  sxaddpar, primary_header, 'HEIGHT', radius, $
+            ' [Rsun] height of annulus +/- 0.02 Rsun', $
+            format='(F0.2)', after='DATE-END'
+
+  fits_filename = filepath(string(run.date, $
+                                  100.0 * radius, $
+                                  format='(%"%s.28day.synoptic.r%03d.fts")'), $
+                           root=p_dir)
+  writefits, fits_filename, map, primary_header
 
   ; clean up
   done:
@@ -159,7 +179,7 @@ end
 
 ; main-level example program
 
-date = '20200105'
+date = '20200104'
 config_filename = filepath('kcor.reprocess.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())
