@@ -59,7 +59,7 @@ pro kcor_create_gif, filename, corona, date_obs, $
           /device, alignment=1.0, $
           charsize=1.2, color=255
   xyouts, 1010, 975, $
-          string(date_struct.doy, format='(%"%4d")'), $
+          string(date_struct.doy, format='(%"DOY %03d")'), $
           /device, $
           alignment=1.0, charsize=1.2, color=255
   xyouts, 1018, 955, $
