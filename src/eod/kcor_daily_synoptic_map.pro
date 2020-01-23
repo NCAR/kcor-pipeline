@@ -43,8 +43,8 @@ pro kcor_daily_synoptic_map, radius=radius, run=run
   for f = 0L, n_files - 1L do begin
     im = readfits(files[f], header, /silent)
 
-    sgsrazr[f] = sxpar(header, 'SGSRAZR')
-    sgsdeczr[f] = sxpar(header, 'SGSDECZR')
+    sgsrazr[f] = fxpar(header, 'SGSRAZR', /nan)
+    sgsdeczr[f] = fxpar(header, 'SGSDECZR', /nan)
 
     date_obs = sxpar(header, 'DATE-OBS', count=qdate_obs)
 
@@ -221,14 +221,17 @@ end
 
 ; main-level example
 
-date = '20200104'
-config_filename = filepath('kcor.reprocess.cfg', $
-                           subdir=['..', '..', 'config'], $
-                           root=mg_src_root())
-run = kcor_run(date, config_filename=config_filename)
+;dates = '202001' + ['01', '02', '04', '05', '06', '08', '17', '18', '19', '20']
+dates = ['20200118']
+for d = 0L, n_elements(dates) - 1L do begin
+  config_filename = filepath('kcor.reprocess.cfg', $
+                             subdir=['..', '..', 'config'], $
+                             root=mg_src_root())
+  run = kcor_run(dates[d], config_filename=config_filename)
 
-kcor_daily_synoptic_map, run=run
+  kcor_daily_synoptic_map, run=run
 
-obj_destroy, run
+  obj_destroy, run
+endfor
 
 end
