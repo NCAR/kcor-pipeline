@@ -400,3 +400,4 @@
   added epochs for using only camera 1 in Dec 2019
   verification can handle lack of L0 tarball on reprocessing
   system to repair raw data with incorrect headers through epochs
+  added back missing DOY label on GIFs
