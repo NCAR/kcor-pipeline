@@ -945,7 +945,7 @@ pro kcor_l1, ok_filename, $
   fxaddpar, l1_header, 'R_SUN', radsun / run->epoch('plate_scale'), $
             ' [pixel] solar radius', format = '(f9.2)'
   fxaddpar, l1_header, 'SOLAR_P0', pangle, $
-            ' [deg] solar P angle', format='(f9.3)'
+            ' [deg] solar P angle applied (image has N up)', format='(f9.3)'
   fxaddpar, l1_header, 'CRLT_OBS', bangle, $
             ' [deg] solar B angle: Carrington latitude ', $
             format='(f8.3)'
