@@ -741,7 +741,7 @@ if __name__ == '__main__':
                             help='''set to a filename containing a list of files
                                     to use to produce the calibration''')
 
-    process_parser.set_defaults(func=process, parser=eod_parser)
+    process_parser.set_defaults(func=process, parser=process_parser)
     eod_parser.set_defaults(func=process_eod, parser=eod_parser)
     rt_parser.set_defaults(func=process_rt, parser=rt_parser)
     cal_parser.set_defaults(func=process_cal, parser=cal_parser)
