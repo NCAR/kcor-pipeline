@@ -166,6 +166,8 @@ pro kcor_daily_synoptic_map, radius=radius, run=run
   im = tvrd()
 
   p_dir = filepath('p', subdir=run.date, root=run->config('processing/raw_basedir'))
+  if (~file_test(p_dir, /directory)) then file_mkdir, p_dir
+
   output_filename = filepath(string(run.date, $
                                     100.0 * _radius, $
                                     format='(%"%s.daily.synoptic.r%03d.gif")'), $

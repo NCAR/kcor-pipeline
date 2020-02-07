@@ -139,6 +139,8 @@ pro kcor_rolling_synoptic_map, database=db, run=run
   im = tvrd()
 
   p_dir = filepath('p', subdir=run.date, root=run->config('processing/raw_basedir'))
+  if (~file_test(p_dir, /directory)) then file_mkdir, p_dir
+
   output_filename = filepath(string(run.date, $
                                     100.0 * 1.3, $
                                     format='(%"%s.28day.synoptic.r%03d.gif")'), $
