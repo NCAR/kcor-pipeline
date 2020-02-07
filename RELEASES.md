@@ -403,3 +403,4 @@
   added back missing DOY label on GIFs
 2.0.9 [Feb 7, 2020]
   fixed issue creating synoptic maps if p/ directory not already created
+2.0.10
