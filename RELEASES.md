@@ -393,7 +393,7 @@
 2.0.7 [Jan 3, 2020]
   option to not check raw remote files during verification
   epoch fixes for 20150601 and 20180118 to mark bad cal data
-2.0.8
+2.0.8 [Feb 7, 2020]
   produce synoptic map of the last 28 days
   produce synoptic map for the day
   epoch value for cameras to use (config value overrides epoch value)
