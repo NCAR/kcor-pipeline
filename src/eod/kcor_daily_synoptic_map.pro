@@ -213,8 +213,8 @@ pro kcor_daily_synoptic_map, radius=radius, run=run
 
   ; clean up
   done:
-  if (n_elements(original_device) gt 0L) then set_plot, original_device
   if (n_elements(rgb) gt 0L) then tvlct, rgb
+  if (n_elements(original_device) gt 0L) then set_plot, original_device
   if (n_elements(original_decomposed) gt 0L) then device, decomposed=original_decomposed
 
   mg_log, 'done', name=logger_name, /info
