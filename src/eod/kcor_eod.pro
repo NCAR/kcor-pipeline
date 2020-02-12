@@ -231,6 +231,11 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
                      root=run->config('processing/raw_basedir'))
   n_ok_files = file_test(ok_list) ? file_lines(ok_list) : 0L
 
+  failed_list = filepath('failed.ls', $
+                         subdir=[date, 'level2'], $
+                         root=run->config('processing/raw_basedir'))
+  n_failed_files = file_test(failed_list) ? file_lines(failed_list) : 0L
+
   n_missing = 0L
   n_wrongsize = 0L
 
@@ -459,6 +464,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
                   format='(%"number of raw files: %d")'), $
            string(n_ok_files, $
                   format='(%"number of OK FITS files: %d")'), $
+           string(n_failed_files, $
+                  format='(%"number of files failing L1/L2 processing: %d")'), $
            string(n_nrgf_files, $
                   format='(%"number of NRGFs: %d")')]
 
