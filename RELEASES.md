@@ -404,3 +404,4 @@
 2.0.9 [Feb 7, 2020]
   fixed issue creating synoptic maps if p/ directory not already created
 2.0.10
+  handle failures in the L1/L2 processing more gracefully, recording in level2/failed.ls

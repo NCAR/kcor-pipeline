@@ -297,8 +297,10 @@
 ;     `kcor_run` object
 ;   mean_phase1 : out, optional, type=fltarr
 ;     mean_phase1 for each file in `ok_files`
-;   error : out, optional, type=long
-;     set to a named variable to retrieve the error status of the call
+;   error : out, optional, type=lonarr
+;     set to a named variable to retrieve the error status of the call; `!null`
+;     if `ok_files` was empty or empty after skipping the first good science
+;     image of the day
 ;-
 pro kcor_process_files, ok_files, $
                         nomask=nomask, $
@@ -311,7 +313,6 @@ pro kcor_process_files, ok_files, $
   compile_opt strictarr
 
   tic
-  error = 0L
 
   ; setup directories
   dirs  = filepath('level' + ['0', '1', '2'], $
@@ -336,11 +337,12 @@ pro kcor_process_files, ok_files, $
   n_ok_files = n_elements(ok_files)
   if (n_ok_files eq 0) then begin
     mg_log, 'no files to process', name=log_name, /info
+    error = !null
     goto, done
   endif
 
+  error       = lonarr(n_ok_files)
   mean_phase1 = fltarr(n_ok_files)
-
 
   ; image file loop
   fnum = 0L
@@ -384,7 +386,7 @@ pro kcor_process_files, ok_files, $
              log_name=log_name, $
              error=l1_error
 
-    error or= l1_error
+    error[fnum - 1L] or= l1_error
     if (l1_error ne 0L) then begin
       mg_log, 'error in L1 processing, skipping L2 processing', $
               name=log_name, /warn
@@ -401,7 +403,7 @@ pro kcor_process_files, ok_files, $
              nomask=nomask, $
              log_name=log_name, $
                error=l2_error
-    error or= l2_error
+    error[fnum - 1L] or= l2_error
   endforeach
 
 
@@ -409,6 +411,7 @@ pro kcor_process_files, ok_files, $
   if (first_skipped) then begin
     ok_files = n_ok_files gt 1L ? ok_files[1:*] : !null
     l1_filenames = n_ok_files gt 1L ? l1_filenames[1:*] : !null
+    error = n_ok_files gt 1L ? error[1:*] : !null
   endif
 
 

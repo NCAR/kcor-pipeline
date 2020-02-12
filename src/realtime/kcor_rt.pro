@@ -183,13 +183,18 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
 
     kcor_process_files, ok_files, run=run, mean_phase1=mean_phase1, $
                         log_name='kcor/rt', error=error
-    if (error ne 0L) then begin
-      mg_log, 'L1/L2 processing failed, quitting', name='kcor/rt', /error
+    if (n_elements(error) eq 0L) then begin
+      mg_log, 'no L0 files to process, quitting', name='kcor/rt', /error
       goto, done
     endif
 
+    processed_indices = where(error eq 0L, n_processed_files, /null)
+    failed_indices = where(error ne 0L, n_failed_files, /null)
+
     mg_log, 'moving processed files to level0 dir', name='kcor/rt', /info
     file_move, l0_fits_files, l0_dir, /overwrite
+
+    mg_log, 'moving processed files to level0 dir', name='kcor/rt', /info
 
     if (file_test(l1_dir, /directory)) then begin
       cd, l1_dir
@@ -229,13 +234,13 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       endelse
     endif else n_l2_fits_files = 0L
 
-    if (n_elements(ok_files) eq 0L) then begin
+    if (n_processed_files eq 0L) then begin
       mg_log, 'no files to archive', name='kcor/rt', /info
       goto, done
     endif else begin
       if (run->config('realtime/distribute')) then begin
         mg_log, 'distributing L2 products of %d raw files', $
-                n_elements(ok_files), $
+                n_processed_files, $
                 name='kcor/rt', /info
       endif else begin
         mg_log, 'skipping distribution', name='kcor/rt', /info
@@ -246,11 +251,16 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     openw, okfgif_lun, 'okfgif.ls', /append, /get_lun
     openw, okl1gz_lun, 'okl1gz.ls', /append, /get_lun
     openw, ok_rg_lun, 'oknrgf.ls', /append, /get_lun
+    openw, failed_lun, 'failed.ls', /append, /get_lun
 
     nrgf_basenames = list()
 
-    for f = 0L, n_elements(ok_files) - 1L do begin
-      base = file_basename(ok_files[f], '.fts.gz')
+    for f = 0L, n_failed_files - 1L do begin
+      printf, failed_lun, file_basename(ok_files[failed_indices[f]])
+    endfor
+
+    for f = 0L, n_processed_files - 1L do begin
+      base = file_basename(ok_files[processed_indices[f]], '.fts.gz')
 
       cropped_gif_filename = base + '_l2_cropped.gif'
       printf, okcgif_lun, cropped_gif_filename
@@ -288,6 +298,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     free_lun, okfgif_lun
     free_lun, okl1gz_lun
     free_lun, ok_rg_lun
+    free_lun, failed_lun
 
     ; find the NRGF files now, will copy them after updating database
     if (run->config('realtime/distribute')) then begin
