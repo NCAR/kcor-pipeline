@@ -32,7 +32,7 @@ pro kcor_send_mail, address, subject, body, $
     t = 1000.D * systime(/seconds)
     length = strtrim(fix(alog10(t)) + 1L > 15, 2)
     timestamp = string(t, format='(I0' + length + ')')
-    body_filename = filepath(string(timestamp, format='(%"comp-%s.txt")'), /tmp)
+    body_filename = filepath(string(timestamp, format='(%"kcor-%s.txt")'), /tmp)
 
     openw, lun, body_filename, /get_lun
     printf, lun, transpose([body])
