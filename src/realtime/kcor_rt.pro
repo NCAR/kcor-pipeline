@@ -247,11 +247,16 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       endelse
     endelse
 
+    failed_catalog_file = 'failed.ls'
+    n_previously_failed_files = file_test(failed_catalog_file) $
+                                  ? file_lines(failed_catalog_file) $
+                                  : 0L
+
     openw, okcgif_lun, 'okcgif.ls', /append, /get_lun
     openw, okfgif_lun, 'okfgif.ls', /append, /get_lun
     openw, okl1gz_lun, 'okl1gz.ls', /append, /get_lun
     openw, ok_rg_lun, 'oknrgf.ls', /append, /get_lun
-    openw, failed_lun, 'failed.ls', /append, /get_lun
+    openw, failed_lun, failed_catalog_file, /append, /get_lun
 
     nrgf_basenames = list()
 
@@ -299,6 +304,22 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     free_lun, okl1gz_lun
     free_lun, ok_rg_lun
     free_lun, failed_lun
+
+    n_failed_files = file_test(failed_catalog_file) $
+                       ? file_lines(failed_catalog_file) $
+                       : 0L
+
+    if (n_failed_files gt n_previously_failed_files $
+          && n_previously_failed_files eq 0L) then begin
+      n_new_failures = n_failed_files - n_previously_failed_files
+      msg = [string(mg_src_root(/filename), mg_loginname(), mg_hostname(), $
+                    format='(%"Sent from %s (%s@%s)")')]
+      kcor_send_mail, run->config('notifications/email'), $
+                      string(n_new_failures, run.date, $
+                             format='("KCor failures (%d) during L1/L2 processing for %s")'), $
+                      msg, $
+                      logger_name='kcor/rt'
+    endif
 
     ; find the NRGF files now, will copy them after updating database
     if (run->config('realtime/distribute')) then begin
