@@ -190,11 +190,11 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
 
     processed_indices = where(error eq 0L, n_processed_files, /null)
     failed_indices = where(error ne 0L, n_failed_files, /null)
+    mg_log, '%d processed files', n_processed_files, name='kcor/rt', /debug
+    mg_log, '%d failed files', n_failed_files, name='kcor/rt', /debug
 
     mg_log, 'moving processed files to level0 dir', name='kcor/rt', /info
     file_move, l0_fits_files, l0_dir, /overwrite
-
-    mg_log, 'moving processed files to level0 dir', name='kcor/rt', /info
 
     if (file_test(l1_dir, /directory)) then begin
       cd, l1_dir
@@ -232,11 +232,14 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       endif else begin
         mg_log, 'no L2 FITS files to zip', name='kcor/rt', /info
       endelse
-    endif else n_l2_fits_files = 0L
+    endif else begin
+      file_mkdir, l2_dir
+      cd, l2_dir
+      n_l2_fits_files = 0L
+    endelse
 
     if (n_processed_files eq 0L) then begin
       mg_log, 'no files to archive', name='kcor/rt', /info
-      goto, done
     endif else begin
       if (run->config('realtime/distribute')) then begin
         mg_log, 'distributing L2 products of %d raw files', $
@@ -305,9 +308,9 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     free_lun, ok_rg_lun
     free_lun, failed_lun
 
-    n_failed_files = file_test(failed_catalog_file) $
-                       ? file_lines(failed_catalog_file) $
-                       : 0L
+    mg_log, '%d failed files from previous realtime run', $
+            n_previously_failed_files, $
+            name='kcor/rt', /debug
 
     if (n_failed_files gt n_previously_failed_files $
           && n_previously_failed_files eq 0L) then begin
@@ -316,7 +319,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
                     format='(%"Sent from %s (%s@%s)")')]
       kcor_send_mail, run->config('notifications/email'), $
                       string(n_new_failures, run.date, $
-                             format='("KCor failures (%d) during L1/L2 processing for %s")'), $
+                             format='(%"KCor failures (%d) during L1/L2 processing for %s")'), $
                       msg, $
                       logger_name='kcor/rt'
     endif
