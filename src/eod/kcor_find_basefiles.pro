@@ -19,11 +19,15 @@
 ;   n_without_change : in, optional, type=integer, default=3
 ;     number of elements in a row without a change to qualify as a new base
 ;     index
+;   count : out, optional, type=long
+;     set to a named variable to retrieve the number of basefiles returned
 ;-
 function kcor_find_basefiles, ra_offsets, dec_offsets, $
-                              n_without_change=n_without_change
+                              n_without_change=n_without_change, $
+                              count=count
   compile_opt strictarr
 
+  count = 0L
   n = n_elements(ra_offsets)
 
   ; find changes in RA and DEC
@@ -46,7 +50,7 @@ function kcor_find_basefiles, ra_offsets, dec_offsets, $
 
   ; find the indices of the elements that change from the element on their left,
   ; but don't change without `n_without_change - 1` elements on their right
-  diff_indices = where(diffs ne 0L and future_changes eq 0L, n_diffs, /null)
+  diff_indices = where(diffs ne 0L and future_changes eq 0L, count, /null)
 
   return, diff_indices
 end
@@ -54,13 +58,33 @@ end
 
 ; main-level example program
 
-ra_offsets  = [ 15.0,  15.0,  20.0,  25.0,  25.0,  25.0,  25.0,  25.0, $
-                15.0,  15.0,  20.0,  25.0,  25.0,  25.0,  25.0,  25.0, $
-                15.0,  15.0,  20.0,  25.0,  25.0]
-dec_offsets = [-15.0, -20.0, -20.0, -20.0, -20.0, -20.0, -20.0, -20.0, $ 
-               -15.0, -20.0, -20.0, -20.0, -20.0, -20.0, -20.0, -20.0, $
-               -15.0, -20.0, -20.0, -20.0, -20.0]
+;ra_offsets  = [ 15.0,  15.0,  20.0,  25.0,  25.0,  25.0,  25.0,  25.0, $
+;                15.0,  15.0,  20.0,  25.0,  25.0,  25.0,  25.0,  25.0, $
+;                15.0,  15.0,  20.0,  25.0,  25.0]
+;dec_offsets = [-15.0, -20.0, -20.0, -20.0, -20.0, -20.0, -20.0, -20.0, $ 
+;               -15.0, -20.0, -20.0, -20.0, -20.0, -20.0, -20.0, -20.0, $
+;               -15.0, -20.0, -20.0, -20.0, -20.0]
 
-print, kcor_find_basefiles(ra_offsets, dec_offsets)
+filename = 'save_sgs_info.txt'
+n = file_lines(filename)
+lines = strarr(n)
+openr, lun, filename, /get_lun
+readf, lun, lines
+free_lun, lun
+
+time = strarr(n)
+ra_offsets = fltarr(n)
+dec_offsets = fltarr(n)
+
+for r = 0L, n - 1L do begin
+  tokens = strsplit(lines[r], /extract)
+  time[r] = tokens[0]
+  ra_offsets[r] = float(tokens[1])
+  dec_offsets[r] = float(tokens[2])
+endfor
+
+basefile_indices = kcor_find_basefiles(ra_offsets, dec_offsets, count=n_basefiles)
+print, transpose(time[basefile_indices])
+help, n_basefiles
 
 end
