@@ -31,9 +31,14 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
   ; store initial system time
   tic
 
+  if (n_elements(list) eq 0 || (n_elements(list) eq 1 && list[0] eq '')) then begin
+    mg_log, 'no files to plot centers', name='kcor/eod', /warn
+    goto, done
+  endif
+
   if (n_params() eq 0) then begin
     mg_log, 'missing date parameter', name='kcor/eod', /error
-    return
+    goto, done
   endif
 
   ; date for plots
@@ -124,6 +129,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
                           root=run->config('processing/raw_basedir'))
 
   ; image file loop
+  n_good_images = 0L
   for i = 0L, n_images - 1L do begin
     l0_file = list[i]
 
@@ -349,6 +355,8 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     calpang_str  = string(format='(f7.2)', calpang)
     qual_str     = strtrim(qual, 2)
 
+    n_good_images += 1L
+
     ; print image summary
     mg_log, mg_format('%*d/%d: %s %s', n_digits, /simple), $
             i + 1, n_images, $
@@ -364,6 +372,8 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     mg_log, '   xcen1, ycen1, rocc1: %0.2f, %0.2f, %0.2f', xcen0, ycen0, rocc0, $
             name='kcor/eod', /debug
   endfor
+
+  if (n_good_images eq 0L) then goto, done
 
   cd, plots_dir
 
@@ -441,7 +451,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
   mg_log, '%0.1f sec/image', qtime / n_images, name='kcor/eod', /info
 
   done:
-  cd, start_dir
+  if (n_elements(start_dir) gt 0L) then cd, start_dir
   !p.multi = 0
   set_plot, 'X'
 end
@@ -450,7 +460,7 @@ end
 ; main-level example program
 
 date = '20180728'
-config_file = filepath('kcor.mgalloy.twilight.latest.cfg', $
+config_file = filepath('kcor.latest.cfg', $
                        subdir=['..', '..', 'config'], $
                        root=mg_src_root())
 run = kcor_run(date, config_file=config_file)
