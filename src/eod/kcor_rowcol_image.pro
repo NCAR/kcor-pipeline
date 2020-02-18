@@ -63,11 +63,17 @@ pro kcor_rowcol_image_l0, run=run
   min = 0.0
   max = run->epoch('corona_max') * exposure
 
-  write_gif, medrows0_filename, bytscl(medrows0, min=min, max=max)
-  write_gif, medrows1_filename, bytscl(medrows1, min=min, max=max)
+  greys = bindgen(256)
 
-  write_gif, medcols0_filename, bytscl(medcols0, min=min, max=max)
-  write_gif, medcols1_filename, bytscl(medcols1, min=min, max=max)
+  write_gif, medrows0_filename, bytscl(medrows0, min=min, max=max), $
+             greys, greys, greys
+  write_gif, medrows1_filename, bytscl(medrows1, min=min, max=max), $
+             greys, greys, greys
+
+  write_gif, medcols0_filename, bytscl(medcols0, min=min, max=max), $
+             greys, greys, greys
+  write_gif, medcols1_filename, bytscl(medcols1, min=min, max=max), $
+             greys, greys, greys
 end
 
 
@@ -127,11 +133,13 @@ pro kcor_rowcol_image_l2, run=run
                                       format='(%"%s.kcor.l2.meancols.gif")'), $
                                root=pdir)
 
-  write_gif, medrows_filename, bytscl(medrows)
-  write_gif, medcols_filename, bytscl(medcols)
+  greys = bindgen(256)
 
-  write_gif, meanrows_filename, bytscl(meanrows)
-  write_gif, meancols_filename, bytscl(meancols)
+  write_gif, medrows_filename, bytscl(medrows), greys, greys, greys
+  write_gif, medcols_filename, bytscl(medcols), greys, greys, greys
+
+  write_gif, meanrows_filename, bytscl(meanrows), greys, greys, greys
+  write_gif, meancols_filename, bytscl(meancols), greys, greys, greys
 end
 
 
