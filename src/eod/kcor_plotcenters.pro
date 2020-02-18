@@ -375,6 +375,8 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
   if (n_good_images eq 0L) then goto, done
 
+  mg_log, 'making plots...', name='kcor/eod', /info
+
   cd, plots_dir
 
   ; plot occulting disc center
