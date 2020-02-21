@@ -240,6 +240,9 @@ function kcor_quality, date, l0_fits_files, append=append, $
     else: check_camera = 0
   endcase
 
+  mg_log, 'performing quality check with camera %d', check_camera, $
+          name='kcor/rt', /info
+
   ; image file loop
   foreach l0_file, l0_fits_files do begin
     num_img += 1
@@ -438,9 +441,9 @@ function kcor_quality, date, l0_fits_files, append=append, $
         mg_log, 'saturated: %d pixels (max %d) > %0.1f', $
                 n_saturated_pixels, run->epoch('smax_max_count'), run->epoch('smax'), $
                 name='kcor/rt', /debug
-        pb0 = img[*, *, 0, check_camera]
+        pb = reform(img[*, *, 0, *])
 
-        shifted_mask = mask
+        shifted_mask = [[[mask]], [[mask]]]
         xcen = axcen
         ycen = aycen
 
@@ -449,11 +452,9 @@ function kcor_quality, date, l0_fits_files, append=append, $
     endif
 
     ; create "raw" pB image
-    img = float(img)
-    img00 = img[*, *, 0, check_camera]
-    q0 = img[*, *, 0, check_camera] - img[*, *, 3, check_camera]   ; Q camera 0
-    u0 = img[*, *, 1, check_camera] - img[*, *, 2, check_camera]   ; U camera 0
-    pb0 = sqrt(q0 * q0 + u0 * u0)
+    q = reform(img[*, *, 0, *] - img[*, *, 3, *])
+    u = reform(img[*, *, 1, *] - img[*, *, 2, *])
+    pb = sqrt(q * q + u * u)
 
     ;----------------------------------------------------------------------------
     ; Cloud test (using rectangular box).
@@ -474,39 +475,60 @@ function kcor_quality, date, l0_fits_files, append=append, $
     ; endif
 
     ; find disc center
-    rdisc_pix = 0.0
     if (cal gt 0 or dev gt 0 or cloudy gt 0) then begin  ; fixed location for center
-      xcen = axcen - 4
-      ycen = aycen - 4
-      rdisc_pix = radius_guess
+      xcen = fltarr(2) + axcen - 4
+      ycen = fltarr(2) + aycen - 4
+      rdisc_pix = fltarr(2) + radius_guess
+
+
+      shifted_mask = rebin(reform(shift(mask, xcen[0] - axcen, ycen[0] - aycen), $
+                                  nx, ny, 1), $
+                           nx, ny, 2)
     endif else begin   ; locate disc center
-      center_info = kcor_find_image(img00, radius_guess, chisq=chisq, $
-                                    /center_guess, $
-                                    max_center_difference=run->epoch('max_center_difference'), $
-                                    log_name='kcor/rt')
-      xcen = center_info[0]        ; x offset
-      ycen = center_info[1]        ; y offset
-      rdisc_pix = center_info[2]   ; radius of occulter [pixels]
+      shifted_mask = bytarr(nx, ny, 2)
+      xcen = fltarr(2)
+      ycen = fltarr(2)
+      rdisc_pix = fltarr(2)
+
+      for c = 0, 1 do begin
+        center_info = kcor_find_image(img[*, *, 0, c], $
+                                      radius_guess, $
+                                      chisq=chisq, $
+                                      /center_guess, $
+                                      max_center_difference=run->epoch('max_center_difference'), $
+                                      log_name='kcor/rt')
+        xcen[c] = center_info[0]        ; x offset
+        ycen[c] = center_info[1]        ; y offset
+        rdisc_pix[c] = center_info[2]   ; radius of occulter [pixels]
+
+        x = rebin(reform(findgen(nx), nx, 1), nx, ny) - xcen[c]
+        y = rebin(reform(findgen(ny), 1, ny), nx, ny) - ycen[c]
+        d = sqrt(x * x + y * y)
+        shifted_mask[*, *, c] = d ge (rdisc_pix[c] + 3.0) and d lt 504
+        mg_log, 'cam: %d, xcen: %0.1f, ycen: %0.1f, rdisc_pix: %0.1f', $
+                c, xcen[c], ycen[c], rdisc_pix[c], $
+                name='kcor/rt', /debug
+      endfor
     endelse
 
-    shifted_mask = shift(mask, xcen - axcen, ycen - aycen)
-    annulus_indices = where(shifted_mask, n_annulus_indices)
-    mg_log, 'pB (cam 0) mean: %0.2f, median: %0.2f', $
-            mean(pb0[annulus_indices]), $
-            median(pb0[annulus_indices]), $
+    annulus_indices = where(shifted_mask[*, *, check_camera], n_annulus_indices)
+    mg_log, 'pB (cam %d) mean: %0.2f, median: %0.2f', $
+            check_camera, $
+            mean((pb[*, *, check_camera])[annulus_indices]), $
+            median((pb[*, *, check_camera])[annulus_indices]), $
             name='kcor/rt', /debug
-
-    ; integer coordinates for disc center
-    ixcen = fix(xcen + 0.5)
-    iycen = fix(ycen + 0.5)
 
     ; rotate image by P-angle, no rotation for calibration or device-obscured
     ; images
     if (cal gt 0 or dev gt 0) then begin
-      pb0rot = pb0
+      pb_rot = pb
       goto, next
     endif else begin
-      pb0rot = rot(pb0, pangle, 1.0, xcen, ycen, cubic=-0.5, missing=0)
+      pb_rot = fltarr(nx, ny, 2)
+      for c = 0, 1 do begin
+        pb_rot[*, *, c] = rot(pb[*, *, c], pangle, 1.0, xcen[c], ycen[c], $
+                              cubic=-0.5, missing=0)
+      endfor
     endelse
 
     ; bright sky check
@@ -522,8 +544,9 @@ function kcor_quality, date, l0_fits_files, append=append, $
       dpx   = fix(cos(dp) * rpixb + axcen + 0.5005)
       dpy   = fix(sin(dp) * rpixb + aycen + 0.5005)
 
-      brightave = total(pb0rot[dpx, dpy]) / nray
-      brightpix = where(pb0rot[dpx, dpy] ge bmax, n_bright_pixels)
+      ;brightave = total(pb_rot[dpx, dpy, check_camera]) / nray
+      pb_check = pb_rot[*, *, check_camera]
+      brightpix = where(pb_check[dpx, dpy] ge bmax, n_bright_pixels)
 
       ; if too many pixels in circle exceed threshold, set bright = 1
       bright = n_bright_pixels ge (nray / 5)
@@ -548,9 +571,10 @@ function kcor_quality, date, l0_fits_files, append=append, $
       dpx  = fix(cos(dp) * rpixc + axcen + 0.5005)
       dpy  = fix(sin(dp) * rpixc + aycen + 0.5005)
 
-      cave = total(pb0rot[dpx, dpy]) / nray
-      cloudpixlo = where(pb0rot[dpx, dpy] le cmin, n_cloudy_lo)
-      cloudpixhi = where(pb0rot[dpx, dpy] ge cmax, n_cloudy_hi)
+      pb_check = pb_rot[*, *, check_camera]
+      cave = total(pb_check[dpx, dpy]) / nray
+      cloudpixlo = where(pb_check[dpx, dpy] le cmin, n_cloudy_lo)
+      cloudpixhi = where(pb_check[dpx, dpy] ge cmax, n_cloudy_hi)
 
       ; if too many pixels are below lower limit, set clo = 1
       clo = n_cloudy_lo ge (nray / 5)
@@ -596,25 +620,13 @@ function kcor_quality, date, l0_fits_files, append=append, $
       total_bad = 0
       rpixbeg = 276
       rpixend = 280
+      pb_check = pb_rot[*, *, check_camera]
       for rpixn = rpixbeg, rpixend, 1 do begin
         dpx = fix(cos(dp) * rpixn + axcen + 0.5005)
         dpy = fix(sin(dp) * rpixn + aycen + 0.5005)
-        knoise = float(pb0rot[dpx, dpy])
+        knoise = float(pb_check[dpx, dpy])
         kdiff  = abs(knoise[0:nray - 2] - knoise[1:nray - 1])
         badpix = where(kdiff gt noise_diff_limit)
-
-        if (doview gt 0) then begin
-          set_plot, 'X'
-          window, xsize=512, ysize=512, retain=2
-          tvlct, rlut, glut, blut
-          !p.multi = [0, 1, 2]
-          plot, knoise, title = l0_file + ' noise'
-          plot, kdiff,  title = l0_file + ' diff noise'
-          cursor, _x, _y, 3, /normal
-          !p.multi = 0
-          set_plot, 'Z'
-          device, set_resolution = [xdim, ydim], set_colors=256, z_buffering=0
-        endif
 
         ; The noise itself is not a reliable test. The difference of the noise
         ; works well.
@@ -637,149 +649,185 @@ function kcor_quality, date, l0_fits_files, append=append, $
     next:
 
     if ((cal gt 0) or (dev gt 0) or (sat gt 0)) then begin
-      pb0m = pb0
+      pb_m = pb
     endif else if (nx ne xdim or ny ne ydim) then begin
       mg_log, 'image dimensions incompatible with mask: %d, %d, %d, %d', $
               nx, ny, xdim, ydim, name='kcor/rt', /warn
-      pb0m = pb0 
+      pb_m = pb
     endif else begin
-      pb0m = pb0 * shifted_mask
+      pb_m = pb * shifted_mask
     endelse
 
     ; intensity scaling
     power = run->epoch('quicklook_power')
-    pb0s = pb0m ^ power   ; apply exponential power
+    pb_s = pb_m ^ power   ; apply exponential power
 
     imin = -10.0
-    imax = max(pb0s)
+    imax = [max(pb_s[*, *, 0]), max(pb_s[*, *, 1])]
+
+    mg_log, 'pB max: %0.1f, %0.1f', max(pb[*, *, 0]), max(pb[*, *, 1]), $
+            name='kcor/rt', /debug
+    if (n_elements(pb_rot) gt 0L) then begin
+      mg_log, 'pB rot max: %0.1f, %0.1f', max(pb_rot[*, *, 0]), max(pb_rot[*, *, 1]), $
+              name='kcor/rt', /debug
+    endif
+    mg_log, 'pB m max: %0.1f, %0.1f', max(pb_m[*, *, 0]), max(pb_m[*, *, 1]), $
+              name='kcor/rt', /debug
+    mg_log, 'pB s max: %0.1f, %0.1f', max(pb_s[*, *, 0]), max(pb_s[*, *, 1]), $
+            name='kcor/rt', /debug
 
     ; imin = 0.0
     ; imax = 40.0
 
     ; scale pixel intensities
-    pb0sb = bytscl(pb0s, min=imin, max=imax, top=249)   ; linear scaling: 0-249
-    pb0sb *= shifted_mask
+    for c = 0, 1 do begin
+      ; linear scaling: 0-249
+      pb_sb = bytscl(pb_s[*, *, c], min=imin, max=imax[c], top=249)
+      pb_sb *= shifted_mask
 
-    ; display image
-    tv, pb0sb
+      ; display image
+      tv, pb_sb
 
-    rsunpix = rsun / run->epoch('plate_scale')   ; 1.0 rsun [pixels]
-    irsunpix = fix(rsunpix + 0.5)      ; 1.0 rsun [integer pixels]
+      rsunpix = rsun / run->epoch('plate_scale')   ; 1.0 rsun [pixels]
+      irsunpix = fix(rsunpix + 0.5)                ; 1.0 rsun [integer pixels]
 
-    ; Annotate image
-    ; Skip annotation (except file name) for calibration images
+      ; annotate image
 
-    if (cal eq 0 and dev eq 0 and sat eq 0) then begin
-      ; draw circle at 1.0 Rsun
-      tvcircle, rdisc_pix, xcen, ycen, grey, /device, /fill  ; occulter disc 
-      tvcircle, rsunpix, xcen, ycen, yellow, /device         ; 1.0 Rsun circle
-      tvcircle, 3.0 * rsunpix, xcen, ycen, grey, /device     ; 3.0 Rsun circle
+      ; skip annotation (except file name) for calibration images
+      if (cal eq 0 and dev eq 0 and sat eq 0) then begin
+        ; draw circle at 1.0 Rsun
+        tvcircle, rdisc_pix[c], xcen[c], ycen[c], grey, /device, /fill  ; occulter disc 
+        tvcircle, rsunpix, xcen[c], ycen[c], yellow, /device         ; 1.0 Rsun circle
+        tvcircle, 3.0 * rsunpix, xcen[c], ycen[c], grey, /device     ; 3.0 Rsun circle
 
-      ; draw "+" at sun center
-      plots, [axcen - 5, axcen + 5], [aycen, aycen], color=green, /device
-      plots, [axcen, axcen], [aycen - 5, aycen + 5], color=green, /device
+        ; draw "+" at sun center
+        plots, [axcen - 5, axcen + 5], [aycen, aycen], color=green, /device
+        plots, [axcen, axcen], [aycen - 5, aycen + 5], color=green, /device
 
-      if (dev eq 0) then begin
-        north_r = 498.5
-        north_angle = 90.0 + pangle
-        north_x = north_r * cos(north_angle * !dtor) + xcen
-        north_y = north_r * sin(north_angle * !dtor) + ycen
-        north_orientation = north_angle - 90.0
-        north_angle mod= 360.0
-        if ((north_angle lt 0.0 && north_angle gt -180.0) $
-            || (north_angle gt 180.0)) then begin
-          north_orientation += 180.0
+        if (dev eq 0) then begin
+          north_r = 498.5
+          north_angle = 90.0 + pangle
+
+          ; camera 1 is flipped vertically
+          if (c eq 1) then north_angle *= -1
+
+          north_x = north_r * cos(north_angle * !dtor) + xcen[c]
+          north_y = north_r * sin(north_angle * !dtor) + ycen[c]
+
+          north_orientation = north_angle - 90.0
+          north_angle mod= 360.0
+          if ((north_angle lt 0.0 && north_angle gt -180.0) $
+              || (north_angle gt 180.0)) then begin
+            north_orientation += 180.0
+          endif
+          xyouts, north_x, north_y, string(pangle - 180.0, $
+                                           format='(%"NORTH (p-angle: %0.1f)")'), $
+                  color=green, charsize=1.0, /device, $
+                  alignment=0.5, orientation=north_orientation
         endif
-        ;xyouts, 490, 1010, 'NORTH', color=green, charsize=1.0, /device
-        xyouts, north_x, north_y, string(pangle - 180.0, $
-                                         format='(%"NORTH (p-angle: %0.1f)")'), $
-                color=green, charsize=1.0, /device, $
-                alignment=0.5, orientation=north_orientation
       endif
-    endif
 
-    ; create GIF file name, draw circle (as needed)
-    fitsloc  = strpos(l0_file, '.fts')
-    gif_file = 'kcor.gif'   ; default gif file name
-    qual     = 'unk'
+      ; create GIF file name, draw circle (as needed)
+      fitsloc  = strpos(l0_file, '.fts')
+      gif_file = 'kcor.gif'   ; default gif file name
+      qual     = 'unk'
 
-    ; write GIF image
+      ; write GIF image
 
-    l0_basename = file_basename(l0_file)
-    l0_base = strmid(l0_basename, 0, fitsloc)
+      l0_basename = file_basename(l0_file)
+      l0_base = strmid(l0_basename, 0, fitsloc)
 
-    if (cal gt 0) then begin   ; calibration
-      gif_file = string(l0_base, format='(%"%s_c.gif")')
-      qual = q_cal
-      ncal += 1
-      printf, ucal, l0_file
-      cal_list->add, l0_file
-      file_copy, l0_file, cdate_dir, /overwrite   ; copy l0 file to cdate_dir
-    endif else if (dev gt 0) then begin   ; device obscuration
-      gif_file = string(l0_base, format='(%"%s_m.gif")')
-      qual = q_dev
-      ndev += 1
-      printf, udev, l0_file
-      dev_list->add, l0_file
-    endif else if (sat gt 0) then begin   ; saturation
-      tvcircle, run->epoch('rpixt'), xcen, ycen, blue, /device   ; sat circle
-      gif_file = string(l0_base, format='(%"%s_t.gif")')
-      qual = q_sat
-      nsat += 1
-      printf, usat, l0_file
-      sat_list->add, l0_file
-    endif else if (bright gt 0) then begin     ; bright image
-      tvcircle, rpixb, xcen, ycen, red, /device   ; bright circle
-      gif_file = string(l0_base, format='(%"%s_b.gif")')
-      qual = q_brt
-      nbrt += 1
-      printf, ubrt, l0_file
-      brt_list->add, l0_file
-    endif else if (clo gt 0) then begin   ; dim image
-      tvcircle, rpixc, xcen, ycen, green,  /device   ; cloud circle
-      gif_file = string(l0_base, format='(%"%s_d.gif")')
-      qual = q_dim
-      ndim += 1
-      printf, udim, l0_file
-      dim_list->add, l0_file
-    endif else if (chi gt 0) then begin   ; cloudy image
-      tvcircle, rpixc, xcen, ycen, green,  /device   ; cloud circle
-      gif_file = string(l0_base, format='(%"%s_o.gif")')
-      qual = q_cld
-      ncld += 1
-      printf, ucld, l0_file
-      cld_list->add, l0_file
-    endif else if (noise gt 0) then begin   ; noisy
-      tvcircle, rpixn, xcen, ycen, yellow, /device   ; noise circle
-      gif_file = string(l0_base, format='(%"%s_n.gif")')
-      qual = q_nsy
-      nnsy += 1
-      printf, unsy, l0_file
-      nsy_list->add, l0_file
-    endif else begin   ; good image
-      if (eng gt 0) then begin   ; engineering
-        gif_file = string(l0_base, format='(%"%s_e.gif")')
-      endif else begin
-        gif_file = string(l0_base, format='(%"%s_g.gif")')
+      if (cal gt 0) then begin   ; calibration
+        gif_file = string(l0_base, format='(%"%s_cam%%d_c.gif")')
+        qual = q_cal
+        if (c eq check_camera) then begin
+          ncal += 1
+          printf, ucal, l0_file
+          cal_list->add, l0_file
+          file_copy, l0_file, cdate_dir, /overwrite   ; copy l0 file to cdate_dir
+        endif
+      endif else if (dev gt 0) then begin           ; device obscuration
+        gif_file = string(l0_base, format='(%"%s_cam%%d_m.gif")')
+        qual = q_dev
+        if (c eq check_camera) then begin
+          ndev += 1
+          printf, udev, l0_file
+          dev_list->add, l0_file
+        endif
+      endif else if (sat gt 0) then begin                      ; saturation
+        tvcircle, run->epoch('rpixt'), xcen[c], ycen[c], blue, /device   ; sat circle
+        gif_file = string(l0_base, format='(%"%s_cam%%d_t.gif")')
+        qual = q_sat
+        if (c eq check_camera) then begin
+          nsat += 1
+          printf, usat, l0_file
+          sat_list->add, l0_file
+        endif
+      endif else if (bright gt 0) then begin     ; bright image
+        tvcircle, rpixb, xcen[c], ycen[c], red, /device   ; bright circle
+        gif_file = string(l0_base, format='(%"%s_cam%%d_b.gif")')
+        qual = q_brt
+        if (c eq check_camera) then begin
+          nbrt += 1
+          printf, ubrt, l0_file
+          brt_list->add, l0_file
+        endif
+      endif else if (clo gt 0) then begin          ; dim image
+        tvcircle, rpixc, xcen[c], ycen[c], green,  /device   ; cloud circle
+        gif_file = string(l0_base, format='(%"%s_cam%%d_d.gif")')
+        qual = q_dim
+        if (c eq check_camera) then begin
+          ndim += 1
+          printf, udim, l0_file
+          dim_list->add, l0_file
+        endif
+      endif else if (chi gt 0) then begin          ; cloudy image
+        tvcircle, rpixc, xcen[c], ycen[c], green,  /device   ; cloud circle
+        gif_file = string(l0_base, format='(%"%s_cam%%d_o.gif")')
+        qual = q_cld
+        if (c eq check_camera) then begin
+          ncld += 1
+          printf, ucld, l0_file
+          cld_list->add, l0_file
+        endif
+      endif else if (noise gt 0) then begin        ; noisy
+        tvcircle, rpixn, xcen[c], ycen[c], yellow, /device   ; noise circle
+        gif_file = string(l0_base, format='(%"%s_cam%%d_n.gif")')
+        qual = q_nsy
+        if (c eq check_camera) then begin
+          nnsy += 1
+          printf, unsy, l0_file
+          nsy_list->add, l0_file
+        endif
+      endif else begin         ; good image
+        if (eng gt 0) then begin   ; engineering
+          gif_file = string(l0_base, format='(%"%s_cam%%d_e.gif")')
+        endif else begin
+          gif_file = string(l0_base, format='(%"%s_cam%%d_g.gif")')
+        endelse
+
+        qual = q_ok
+        if (c eq check_camera) then begin
+          nokf += 1
+          printf, uokf, file_basename(l0_file)
+          printf, uoka, file_basename(l0_file)
+        endif
       endelse
 
-      qual = q_ok
-      nokf += 1
-      printf, uokf, file_basename(l0_file)
-      printf, uoka, file_basename(l0_file)
-    endelse
+      gif_path = filepath(string(c, format=gif_file), $
+                          root=quicklook_dir)
 
-    gif_path = filepath(gif_file, root=quicklook_dir)
-
-    ; write GIF file
-    xyouts, 6, ydim-20, gif_file, color=white, charsize=1.0, /device
-    xyouts, 6, 30, string(imin, imax, format='(%"min/max: %0.1f, %0.1f")'), $
-            color=white, charsize=1.0, /device
-    xyouts, 6, 13, string(power, run->epoch('quicklook_gamma'), $
-                          format='(%"scaling: pb ^ %0.1f, gamma=%0.1f")'), $
-            color=white, charsize=1.0, /device
-    save = tvrd()
-    write_gif, gif_path, save, rlut, glut, blut
+      ; write GIF file
+      xyouts, 6, ydim - 20, file_basename(gif_path), $
+              color=white, charsize=1.0, /device
+      xyouts, 6, 30, string(imin, imax[c], format='(%"min/max: %0.1f, %0.1f")'), $
+              color=white, charsize=1.0, /device
+      xyouts, 6, 13, string(power, run->epoch('quicklook_gamma'), $
+                            format='(%"scaling: pb ^ %0.1f, gamma=%0.1f")'), $
+              color=white, charsize=1.0, /device
+      save = tvrd()
+      write_gif, gif_path, save, rlut, glut, blut
+    endfor
 
     istring     = string(format='(i5)',   num_img)
     exptime_str = string(format='(f5.2)', exptime)
