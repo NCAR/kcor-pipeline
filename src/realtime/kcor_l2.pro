@@ -54,8 +54,9 @@ pro kcor_l2, l1_filename, $
   theta += !pi
   theta = rot(reverse(theta), pangle + run->epoch('rotation_correction'), 1)
 
-  ; TODO: not ready to release this yet
-  ;qmk4 = gauss_smooth(qmk4, 3, /edge_truncate)
+  if (keyword_set(smooth_sky)) then begin
+    qmk4 = gauss_smooth(qmk4, 3, /edge_truncate)
+  endif
 
   ; sky polarization removal on coordinate-transformed data
   case strlowcase(run->config('realtime/skypol_method')) of
