@@ -31,7 +31,7 @@ pro kcor_nrgf_annotations, year, name_month, day, hour, minute, second, doy, $
   endif
   xyouts, right - 6, top - 29 - line++ * line_height + keyword_set(cropped) * 12, $
           string(hour, minute, second, $
-                 (~keyword_set(cropped)) ? ' to' : '', $
+                 (~keyword_set(cropped) && ~keyword_set(averaged)) ? ' to' : '', $
                  format='(%"%02d:%02d:%02d UT%s")'), $
           /device, alignment=1.0, charsize=charsize, color=annotation_color
 
