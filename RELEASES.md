@@ -408,4 +408,5 @@
   fixed annotation issue in non-averaged NRGF GIFs
 2.0.11 [Mar 25, 2020]
   new epoch for bad occulter value
-2.0.12
+2.0.12 [Mar 26, 2020]
+  handle no OK files in realtime processing

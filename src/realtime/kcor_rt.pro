@@ -183,6 +183,10 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
 
     kcor_process_files, ok_files, run=run, mean_phase1=mean_phase1, $
                         log_name='kcor/rt', error=error
+
+    mg_log, 'moving processed files to level0 dir', name='kcor/rt', /info
+    file_move, l0_fits_files, l0_dir, /overwrite
+
     if (n_elements(error) eq 0L) then begin
       mg_log, 'no L0 files to process, quitting', name='kcor/rt', /error
       goto, done
@@ -192,9 +196,6 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     failed_indices = where(error ne 0L, n_failed_files, /null)
     mg_log, '%d processed files', n_processed_files, name='kcor/rt', /debug
     mg_log, '%d failed files', n_failed_files, name='kcor/rt', /debug
-
-    mg_log, 'moving processed files to level0 dir', name='kcor/rt', /info
-    file_move, l0_fits_files, l0_dir, /overwrite
 
     if (file_test(l1_dir, /directory)) then begin
       cd, l1_dir
