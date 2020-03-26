@@ -15,8 +15,9 @@ pro kcor_rowcol_image_l0, run=run
                                subdir=[run.date, 'level0'], $
                                root=raw_basedir), $
                       count=n_files)
-  if (n_files eq 0L) then begin
-    mg_log, 'no L0 files', name='kcor/eod', /warn
+
+  if (n_files lt 2L) then begin
+    mg_log, 'not enough L0 files (%d)', n_files,name='kcor/eod', /warn
     return
   endif
 
@@ -92,8 +93,8 @@ pro kcor_rowcol_image_l2, run=run
                                subdir=[run.date, 'level2'], $
                                root=raw_basedir), $
                       count=n_files)
-  if (n_files eq 0L) then begin
-    mg_log, 'no L2 files', name='kcor/eod', /warn
+  if (n_files lt 2L) then begin
+    mg_log, 'not enough L2 files (%d)', n_files, name='kcor/eod', /warn
     return
   endif
 
