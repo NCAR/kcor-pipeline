@@ -403,6 +403,7 @@
   added back missing DOY label on GIFs
 2.0.9 [Feb 7, 2020]
   fixed issue creating synoptic maps if p/ directory not already created
-2.0.10
+2.0.10 [Mar 25, 2020]
   handle failures in the L1/L2 processing more gracefully, recording in level2/failed.ls
   fixed annotation issue in non-averaged NRGF GIFs
+  new epoch for bad occulter value
