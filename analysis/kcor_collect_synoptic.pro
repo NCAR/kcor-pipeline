@@ -1,7 +1,26 @@
 ; docformat = 'rst'
 
-function kcor_collect_synoptic, start_date, end_date, radius=radius, times=times, run=run
+;+
+; :Params:
+;   start_date : in, required, type=string
+;     start date in the form "YYYYMMDD"
+;   end_date : in, required, type=string
+;     end date in the form "YYYYMMDD"
+;
+; :Keywords:
+;   radius : in, optional, type=float, default=1.8
+;   times : out, optional, type=dblarr
+;   cadence : in, optional, type=integer, default=24
+;     number of images per day
+;   run : in, required, type=object
+;     KCor run object
+;-
+function kcor_collect_synoptic, start_date, end_date, $
+                                radius=radius, times=times, cadence=cadence, $
+                                run=run
   compile_opt strictarr
+
+  _cadence = n_elements(cadence) eq 0L ? 24L : cadence
 
   n_bins = 720
   _radius = n_elements(radius) eq 0L ? 1.8 : radius
@@ -18,7 +37,7 @@ function kcor_collect_synoptic, start_date, end_date, radius=radius, times=times
   mg_log, '%d days to check', n_days, /info
 
   ; allocate results
-  map = fltarr(n_days, n_bins)
+  map = fltarr(n_days * _cadence, n_bins)
   times = lonarr(n_days, 6)
 
   for d = 0L, n_days - 1L do begin
@@ -30,15 +49,14 @@ function kcor_collect_synoptic, start_date, end_date, radius=radius, times=times
     times[d, 1] = month
     times[d, 2] = day
 
-    l1_files = file_search(filepath('*_*_kcor_l1.fts.gz', $
+    l2_files = file_search(filepath('*_*_kcor_l2.fts.gz', $
                                     subdir=string(year, month, day, $
                                                   format='(%"%04d/%02d/%02d")'), $
                                     root='/hao/acos'), $
-                           count=n_l1_files)
+                           count=n_l2_files)
 
-    if (n_l1_files lt 20) then continue
-
-    filename = l1_files[19]
+    for i = 0L, _cadence - 1L do begin
+    filename = l2_files[19]
     basename = file_basename(filename)
 
     hour  = long(strmid(basename, 9, 2))
@@ -58,8 +76,7 @@ function kcor_collect_synoptic, start_date, end_date, radius=radius, times=times
 
     map[d, *] = kcor_annulus_gridmeans(image, _radius, sun_pixels, nbins=n_bins)
 
-    ; correct for bad BSACLE for dates before July 16, 2015
-    if (d lt 444) then map[d, *] /= 1000.0
+    endfor
   endfor
 
   return, map
@@ -74,7 +91,7 @@ end_date = '20170509'
 ;radii = ['1.1', '1.3', '1.8']
 radii = ['1.12', '1.15']
 
-config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
+config_filename = filepath('kcor.reprocess.cfg', $
                            subdir=['..', 'config'], $
                            root=mg_src_root())
 
