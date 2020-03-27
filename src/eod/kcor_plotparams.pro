@@ -103,7 +103,11 @@ pro kcor_plotparams, date, list=list, run=run
     darkshut = strtrim(sxpar(hdu, 'DARKSHUT', count=qdarkshut))
     cover    = strtrim(sxpar(hdu, 'COVER',    count=qcover))
 
-    occltrid = sxpar(hdu, 'OCCLTRID', count=qoccltrid)
+    if (run->epoch('use_occulter_id')) then begin
+      occltrid = sxpar(hdu, 'OCCLTRID', count=qoccltrid)
+    endif else begin
+      occltrid = run->epoch('occulter_id')
+    endelse
 
     tcamfocs = sxpar(hdu, 'TCAMFOCS', count=qtcamfocs)
     rcamfocs = sxpar(hdu, 'RCAMFOCS', count=qrcamfocs)

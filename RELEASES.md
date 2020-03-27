@@ -413,3 +413,4 @@
 2.0.13 [Mar 26, 2020]
   handle no OK files in end-of-day processing
 2.0.14
+  fix to check whether to use occulter ID in end-of-day processing
