@@ -418,3 +418,4 @@
   fix to handle saturated images in quality control
 2.0.16
   no files to process log message change from error to info
+  add L2 archive scripts
