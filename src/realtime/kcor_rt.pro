@@ -188,7 +188,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     file_move, l0_fits_files, l0_dir, /overwrite
 
     if (n_elements(error) eq 0L) then begin
-      mg_log, 'no L0 files to process, quitting', name='kcor/rt', /error
+      mg_log, 'no L0 files to process, quitting', name='kcor/rt', /info
       goto, done
     endif
 

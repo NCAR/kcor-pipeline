@@ -417,3 +417,4 @@
 2.0.15 [Apr 1, 2020]
   fix to handle saturated images in quality control
 2.0.16
+  no files to process log message change from error to info
