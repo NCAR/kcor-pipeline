@@ -444,8 +444,8 @@ function kcor_quality, date, l0_fits_files, append=append, $
         pb = reform(img[*, *, 0, *])
 
         shifted_mask = [[[mask]], [[mask]]]
-        xcen = axcen
-        ycen = aycen
+        xcen = fltarr(2) + axcen
+        ycen = fltarr(2) + aycen
 
         goto, next
       endif
