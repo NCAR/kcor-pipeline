@@ -336,8 +336,9 @@ pro kcor_create_averages, date, l2_files, run=run
 
     save = tvrd()
 
+    gif_basename = strmid(savename, 0, 23) + '_avg.gif'
+
     if (numavg gt 1L) then begin
-      gif_basename = strmid(savename, 0, 23) + '_avg.gif'
       write_gif, gif_basename, save, red, green, blue
       if (run->config('realtime/distribute')) then begin
         file_copy, gif_basename, fullres_dir, /overwrite
