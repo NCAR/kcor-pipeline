@@ -289,6 +289,12 @@ pro kcor_l1, ok_filename, $
                                       cam1_badlines
   endif
 
+  if (run->epoch('remove_vertical_artifact')) then begin
+    mg_log, 'correcting bad columns', $
+             name=log_name, /debug
+    kcor_correct_vertical_artifact, img
+  endif
+
   ; find image centers & radii of raw images
 
   ; camera 0 (reflected)
