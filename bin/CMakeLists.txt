@@ -47,6 +47,8 @@ configure_file(kcor_simulate_processing.in kcor_simulate_processing @ONLY)
 
 configure_file(kcor_verify_dates.sh.in kcor_verify_dates.sh @ONLY)
 
+configure_file(runkcor_nrgf.sh.in runkcor_nrgf.sh @ONLY)
+
 configure_file(runkcor_env.sh.in runkcor_env.sh @ONLY)
 
 install(PROGRAMS
@@ -76,13 +78,14 @@ install(PROGRAMS
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_purge_range.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_remove.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_remove_range.sh
+          ${CMAKE_CURRENT_BINARY_DIR}/runkcor_nrgf.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_env.sh
-	  ${CMAKE_CURRENT_BINARY_DIR}/kcor
-	  ${CMAKE_CURRENT_BINARY_DIR}/kcordb
-	  ${CMAKE_CURRENT_BINARY_DIR}/kcorcat
-	  ${CMAKE_CURRENT_BINARY_DIR}/kcor_verify_dates.sh
-	  kcor_verify.sh
-	  ${CMAKE_CURRENT_BINARY_DIR}/kcor_simulate
-	  ${CMAKE_CURRENT_BINARY_DIR}/kcor_simulate_data
-	  ${CMAKE_CURRENT_BINARY_DIR}/kcor_simulate_processing
+          ${CMAKE_CURRENT_BINARY_DIR}/kcor
+          ${CMAKE_CURRENT_BINARY_DIR}/kcordb
+          ${CMAKE_CURRENT_BINARY_DIR}/kcorcat
+          ${CMAKE_CURRENT_BINARY_DIR}/kcor_verify_dates.sh
+          kcor_verify.sh
+          ${CMAKE_CURRENT_BINARY_DIR}/kcor_simulate
+          ${CMAKE_CURRENT_BINARY_DIR}/kcor_simulate_data
+          ${CMAKE_CURRENT_BINARY_DIR}/kcor_simulate_processing
         DESTINATION bin)

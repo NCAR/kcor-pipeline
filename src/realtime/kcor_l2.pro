@@ -5,6 +5,7 @@ pro kcor_l2, l1_filename, $
              intensity, qmk4, umk4, $
              flat_vdimref, $
              nomask=nomask, $
+             l2_filename=l2_filename, $
              run=run, $
              log_name=log_name, $
              error=error

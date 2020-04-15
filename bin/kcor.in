@@ -607,7 +607,7 @@ def copy_files(date, src, spec, dst, *, verbose=False):
         shutil.copy2(f, dst_dir)
 
 
-# stage sub-command
+# locate sub-command
 def locate(args):
     # get config file
     config_filename = os.path.join(PIPELINE_DIR,
@@ -630,6 +630,16 @@ def locate(args):
             with open(routing_file, "r") as f:
                 print(f.read().strip())
 
+
+# nrgf sub-command
+def nrgf(args):
+    cmd = [os.path.join(PIPELINE_DIR, "bin", f"runkcor_nrgf.sh"),
+           args.flags,
+           args.dates[0],
+           args.filename]
+
+    process = launch_process(cmd, stdout=None, stderr=subprocess.PIPE)
+    print("[%d] %s" % (process.pid, " ".join(cmd)))
 
 
 def print_help(args):
@@ -864,6 +874,17 @@ if __name__ == '__main__':
     locate_parser.add_argument("-f", "--flags", type=str, help=flags_help,
                                default="reprocess")
     locate_parser.set_defaults(func=locate, parser=locate_parser)
+
+    # nrgf sub-command
+    nrgf_parser = subparsers.add_parser("nrgf",
+                                          help="process a L0 file to a NRGF")
+    nrgf_parser.add_argument("date", type=str, nargs="*",
+                              help="date to run on in the form YYYYMMDD",
+                              metavar="date")
+    nrgf_parser.add_argument("-f", "--flags", type=str, help=flags_help,
+                               default="latest")
+    nrgf_parser.add_argument("--filename", type=str, "L0 basename to process")
+    nrgf_parser.set_defaults(func=nrgf, parser=nrgf_parser)
 
     # parse args and call appropriate sub-command
     args = parser.parse_args()
