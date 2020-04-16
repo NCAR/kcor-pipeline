@@ -44,11 +44,11 @@ pro kcor_nrgf_wrapper, date, l0_basename, config_filename=config_filename
   l0_filename = filepath(file_basename(l0_basename), root=l0_dir)
   unchecked_l0_filename = filepath(file_basename(l0_basename), root=date_dir)
 
-  if (filetest(l0_basename, /regular)) then begin
+  if (file_test(l0_basename, /regular)) then begin
     l0_filename = l0_basename
-  endif else if (filetest(l0_filename, /regular)) then begin
+  endif else if (file_test(l0_filename, /regular)) then begin
     ; nothing to do
-  endif else if (filetest(unchecked_l0_filename, /regular)) then begin
+  endif else if (file_test(unchecked_l0_filename, /regular)) then begin
     l0_filename = unchecked_l0_filename
   endif else begin
     message, string(l0_basename, format='(%"%s not found")')
@@ -61,6 +61,7 @@ pro kcor_nrgf_wrapper, date, l0_basename, config_filename=config_filename
            intensity=intensity, $
            q=q, $
            u=u, $
+           flat_vdimref=flat_vdimref, $
            log_name=log_name, $
            error=l1_error
 

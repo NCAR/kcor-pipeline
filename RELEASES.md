@@ -420,3 +420,4 @@
   no files to process log message change from error to info
   add L2 archive scripts
   add epoch option for fixing vertical line (default: NO)
+  added nrgf sub-command to kcor utility to process single files

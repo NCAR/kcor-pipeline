@@ -635,11 +635,12 @@ def locate(args):
 def nrgf(args):
     cmd = [os.path.join(PIPELINE_DIR, "bin", f"runkcor_nrgf.sh"),
            args.flags,
-           args.dates[0],
+           args.date[0],
            args.filename]
 
     process = launch_process(cmd, stdout=None, stderr=subprocess.PIPE)
     print("[%d] %s" % (process.pid, " ".join(cmd)))
+    terminated = wait_for(process)
 
 
 def print_help(args):
@@ -883,7 +884,7 @@ if __name__ == '__main__':
                               metavar="date")
     nrgf_parser.add_argument("-f", "--flags", type=str, help=flags_help,
                                default="latest")
-    nrgf_parser.add_argument("--filename", type=str, "L0 basename to process")
+    nrgf_parser.add_argument("--filename", type=str, help="L0 basename to process")
     nrgf_parser.set_defaults(func=nrgf, parser=nrgf_parser)
 
     # parse args and call appropriate sub-command
