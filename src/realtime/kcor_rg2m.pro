@@ -113,7 +113,7 @@ pro kcor_rg2m, fits_list, fits=fits, run=run
     mg_log, 'r0       [pixels]: %f', r0, name='kcor/rt', /debug
 
     ; compute normalized, radially-graded filter
-    for_nrgf, img, xcen, ycen, r0, imgflt
+    imgflt = mlso_nrgf(img, xcen, ycen, r0)
 
     imin = min(imgflt)
     imax = max(imgflt)

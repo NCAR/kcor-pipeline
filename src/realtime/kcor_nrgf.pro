@@ -198,7 +198,7 @@ pro kcor_nrgf, fits_file, $
   mg_log, 'r0       [pixels]: %0.2f', r0, name=log_name, /debug
 
   ; compute normalized, radially-graded filter
-  for_nrgf, img, xcen, ycen, r0, filtered_image
+  filtered_image = mlso_nrgf(img, xcen, ycen, r0)
 
   ; NOTE: FOR_NRGF changes xcen/ycen, so must set them back to the correct
   ; values
