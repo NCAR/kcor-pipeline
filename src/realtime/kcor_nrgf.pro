@@ -102,6 +102,8 @@ end
 ;   04 Mar 2016 Generate a 16 bit fits nrgf image in addition to a gif.
 ;-
 pro kcor_nrgf, fits_file, $
+               mean_r=mean_r, $
+               sdev_r=sdev_r, $
                cropped=cropped, $
                averaged=averaged, $
                daily=daily, $
@@ -198,7 +200,11 @@ pro kcor_nrgf, fits_file, $
   mg_log, 'r0       [pixels]: %0.2f', r0, name=log_name, /debug
 
   ; compute normalized, radially-graded filter
-  filtered_image = mlso_nrgf(img, xcen, ycen, r0)
+  filtered_image = mlso_nrgf(img, xcen, ycen, r0, $
+                             radius=nrgf_r, mean_r=nrgf_mean_r, sdev_r=nrgf_sdev_r)
+  if (run->config('realtime/nrgf_profiles')) then begin
+    kcor_nrgf_profile, fits_file, nrgf_r, nrgf_mean_r, nrgf_sdev_r, run=run
+  endif
 
   ; NOTE: FOR_NRGF changes xcen/ycen, so must set them back to the correct
   ; values

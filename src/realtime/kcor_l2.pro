@@ -55,7 +55,7 @@ pro kcor_l2, l1_filename, $
   theta += !pi
   theta = rot(reverse(theta), pangle + run->epoch('rotation_correction'), 1)
 
-  if (keyword_set(smooth_sky)) then begin
+  if (run->config('realtime/smooth_sky')) then begin
     qmk4 = gauss_smooth(qmk4, 3, /edge_truncate)
   endif
 

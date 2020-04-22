@@ -47,7 +47,7 @@
 ;   Version 2.0 July 2014
 ;-
 function mlso_nrgf, im, xctr, yctr, r0, $
-                    mean_r=iavg_r, sdev_r=sdev_r, $
+                    radius=radius, mean_r=iavg_r, sdev_r=sdev_r, $
                     min_value=min_vlaue, max_value=max_value
   compile_opt strictarr
 
@@ -111,6 +111,7 @@ function mlso_nrgf, im, xctr, yctr, r0, $
   ; array locations.
   r = fix(shift(dist(xdim, ydim), xctr, yctr))
 
+  radius = findgen(r_min - r0 + 1) + r0
   for i = r0, r_min do begin
     ; calculate the number and the one-dimensional array locations of the
     ; points with same distance "i" from the Sun-disk center
@@ -123,7 +124,7 @@ function mlso_nrgf, im, xctr, yctr, r0, $
 
     ; compute the radial mean intensity and variance
     points = _im[coord_r [0, *], coord_r[1, *]]
-    nan_indices = where(points eq -8888.0 or points eq -9999.0, /nan)
+    nan_indices = where(points eq -8888.0 or points eq -9999.0, /null)
     points[nan_indices] = !values.f_nan
     moments = moment(points, /nan)
 
