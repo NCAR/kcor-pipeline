@@ -366,8 +366,7 @@ pro kcor_process_files, ok_files, $
 
     ; skip first good image of the day
     if (~kcor_state(/first_image, run=run)) then begin
-      mg_log, 'skipping first good science image %d/%d: %s', $
-              fnum, n_ok_files, file_basename(l0_file), $
+      mg_log, 'skipping first good science image', $
               name=log_name, /info
       first_skipped = 1B
       continue
