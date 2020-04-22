@@ -417,7 +417,10 @@
 2.0.15 [Apr 1, 2020]
   fix to handle saturated images in quality control
 2.0.16
+  using new distortion for new cameras installed on 20191216
   no files to process log message change from error to info
   add L2 archive scripts
   add epoch option for fixing vertical line (default: NO)
+  add config option for using smooth sky
   added nrgf sub-command to kcor utility to process single files
+  producing NRGF profile plots
