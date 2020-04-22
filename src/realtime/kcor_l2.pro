@@ -158,6 +158,10 @@ pro kcor_l2, l1_filename, $
   endcase
   fxaddpar, l2_header, 'SKYPOLRM', skypol_method, skypol_method_comment
 
+  
+  fxaddpar, l2_header, 'SKYSM', run->config('realtime/smooth_sky') ? 'T' : 'F', $
+            ' was sky smoothed before subtracting from corona'
+
   fxaddpar, l2_header, 'DATAMIN', min(corona, /nan), ' minimum value of data', $
             format='(E0.4)'
   fxaddpar, l2_header, 'DATAMAX', max(corona, /nan), ' maximum value of data', $
