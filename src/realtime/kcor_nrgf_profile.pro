@@ -15,23 +15,17 @@ pro kcor_nrgf_profile, fits_filename, nrgf_r, nrgf_mean_r, nrgf_sdev_r, run=run
   loadct, 0, /silent
   tvlct, r, g, b, /get
 
-  !p.multi = [0, 1, 2]
-
   plot, nrgf_r, nrgf_mean_r, $
         title=string(file_basename(fits_filename), $
                      format='(%"Radial means of NRGF for %s")'), $
-        xrange=[0, 512], xstyle=1, xtitle='Radius [pixels]', $
-        ytitle='Radial mean', $
+        xrange=[110, 512], xstyle=1, xtitle='Radius [pixels]', $
+        /ylog, yrange=[1.0e-9, 2.0e-6], ystyle=1, ytitle='Radial mean', $
         background=255, color=0
 
-  plot, nrgf_r, nrgf_sdev_r, $
-        title=string(file_basename(fits_filename), $
-                     format='(%"Radial standard deviations of NRGF for %s")'), $
-        xrange=[0, 512], xstyle=1, xtitle='Radius [pixels]', $
-        ytitle='Standard deviation', $
-        background=255, color=0
-
-  !p.multi = 0
+  oplot, nrgf_r, nrgf_mean_r + nrgf_sdev_r, $
+        color=0, linestyle=1
+  oplot, nrgf_r, nrgf_mean_r - nrgf_sdev_r, $
+        color=0, linestyle=1
 
   im = tvrd()
 
