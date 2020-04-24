@@ -204,9 +204,9 @@ pro kcor_l2, l1_filename, $
                     run=run, nomask=nomask, log_name=log_name, $
                     level=2
 
-  ; create NRG (normalized, radially-graded) GIF image
+  ; create NRGF (normalized, radially-graded filter) GIF image
   cd, l2_dir
-  if (date_struct.second lt 15 and fix(date_struct.minute / 2) * 2 eq date_struct.minute $
+  if (date_struct.second lt 15 and date_struct.minute mod 2 eq 0 $
         and ~keyword_set(nomask)) then begin
     kcor_nrgf, l2_filename, run=run, log_name=log_name
     mg_log, /check_math, name=log_name, /debug
