@@ -202,7 +202,9 @@ pro kcor_nrgf, fits_file, $
   ; compute normalized, radially-graded filter
   filtered_image = mlso_nrgf(img, xcen, ycen, r0, $
                              radius=nrgf_r, mean_r=nrgf_mean_r, sdev_r=nrgf_sdev_r)
-  if (run->config('realtime/nrgf_profiles')) then begin
+  if (run->config('realtime/nrgf_profiles') $
+        && keyword_set(averaged) $
+        && ~keyword_set(cropped)) then begin
     kcor_nrgf_profile, fits_file, nrgf_r, nrgf_mean_r, nrgf_sdev_r, run=run
   endif
 
