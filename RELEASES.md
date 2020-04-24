@@ -424,3 +424,4 @@
   add config option for using smooth sky (default: NO)
   added nrgf sub-command to kcor utility to process single files
   producing NRGF profile plots
+2.0.17
