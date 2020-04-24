@@ -416,11 +416,11 @@
   fix to check whether to use occulter ID in end-of-day processing
 2.0.15 [Apr 1, 2020]
   fix to handle saturated images in quality control
-2.0.16
+2.0.16 [Apr 24, 2020]
   using new distortion for new cameras installed on 20191216
   no files to process log message change from error to info
   add L2 archive scripts
   add epoch option for fixing vertical line (default: NO)
-  add config option for using smooth sky
+  add config option for using smooth sky (default: NO)
   added nrgf sub-command to kcor utility to process single files
   producing NRGF profile plots
