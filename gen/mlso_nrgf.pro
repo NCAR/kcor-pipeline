@@ -123,7 +123,7 @@ function mlso_nrgf, im, xctr, yctr, r0, $
     coord_r = array_indices(r, points_r)
 
     ; compute the radial mean intensity and variance
-    points = _im[coord_r [0, *], coord_r[1, *]]
+    points = _im[coord_r[0, *], coord_r[1, *]]
     nan_indices = where(points eq -8888.0 or points eq -9999.0, /null)
     points[nan_indices] = !values.f_nan
     moments = moment(points, /nan)
@@ -132,15 +132,15 @@ function mlso_nrgf, im, xctr, yctr, r0, $
     sdev_r[i - r0] = sqrt(moments[1])    ; store the radial standard deviation
 
     ; compute the normalized radial graded intensity
-    output[coord_r [0, *], coord_r[1, *]] = $
+    output[coord_r[0, *], coord_r[1, *]] = $
        (_im[coord_r[0, *], coord_r[1, *]] - iavg_r[i - r0]) $
        / sdev_r[i - r0]
 
-    ; output[coord_r [0, *], coord_r [1, *]] = $
+    ; output[coord_r[0, *], coord_r[1, *]] = $
     ;    abs(_im[coord_r [0, *], coord_r[1, *]] - iavg_r[i - r0]) $
     ;    / sdev_r [i - r0]
 
-    ; output[coord_r[0, *], coord_r [1, *]] = $
+    ; output[coord_r[0, *], coord_r[1, *]] = $
     ;    (_im[coord_r[0, *], coord_r[1, *]] - iavg_r[i - r0])
   endfor
 
