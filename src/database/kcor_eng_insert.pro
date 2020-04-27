@@ -168,9 +168,9 @@ pro kcor_eng_insert, date, fits_list, $
     if (strpos(tcamycen, '*') ne -1) then tcamycen = 'NULL'
 
     fits_file = file_basename(fts_file, '.gz') ; remove '.gz' from file name.
-		
+
     ; get IDs from relational tables
-		
+
     level_count = db->query('SELECT count(level_id) FROM kcor_level WHERE level=''%s''', $
                             level, fields=fields)
     if (level_count.count_level_id_ eq 0) then begin
@@ -182,7 +182,7 @@ pro kcor_eng_insert, date, fits_list, $
     level_results = db->query('SELECT * FROM kcor_level WHERE level=''%s''', $
                               level, fields=fields)
     level_num = level_results.level_id	
-		
+
     ; DB insert command
     db->execute, 'INSERT INTO kcor_eng (file_name, date_obs, obs_day, rcamfocs, tcamfocs, modltrt, o1focs, kcor_sgsdimv, kcor_sgsdims, level, bunit, bzero, bscale, rcamxcen, rcamycen, tcamxcen, tcamycen, rcam_rad, tcam_rad, mean_phase1, cover, darkshut, diffuser, calpol, distort, labviewid, socketcamid, kcor_sw_id, kcor_hw_id) VALUES (''%s'', ''%s'', %d, %s, %s, %s, %s, %s, %s, %d, ''%s'', %d, %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', %d, %d) ', $
                  fits_file, date_obs, obsday_index, kcor_fitsfloat2db(rcamfocs), $
