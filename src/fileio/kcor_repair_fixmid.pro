@@ -15,7 +15,7 @@ pro kcor_repair_fixmid, image=im, header=header
   if (n_elements(header) gt 0L) then begin
     names = ['DIFFUSER', 'CALPOL', 'COVER', 'DARKSHUT']
     for n = 0L, n_elements(names) - 1L do begin
-      if (strtim(sxpar(header, names[n]), 2) eq 'mid') then begin
+      if (strtrim(sxpar(header, names[n]), 2) eq 'mid') then begin
         fxaddpar, header, names[n], 'out'
       endif
     endfor
