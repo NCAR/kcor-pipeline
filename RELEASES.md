@@ -424,7 +424,7 @@
   add config option for using smooth sky (default: NO)
   added nrgf sub-command to kcor utility to process single files
   producing NRGF profile plots
-2.0.17
+2.0.17 [Apr 29, 2020]
   epoch to remove bad data on 20200422
   epoch to save good data with bad metadata on 20200425
   NRGF annotation fix
