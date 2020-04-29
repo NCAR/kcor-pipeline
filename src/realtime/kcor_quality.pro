@@ -287,7 +287,9 @@ function kcor_quality, date, l0_fits_files, append=append, $
     run.time = date_obs
 
     if (~run->epoch('process')) then begin
-      mg_log, 'skipping files from this epoch', name='kcor/rt', /warn
+      mg_log, '%d/%d: skipping files from this epoch [%s]', $
+              num_img, n_l0_fits_files, strmid(file_basename(l0_file), 0, 15), $
+              name='kcor/rt', /warn
       printf, udev, l0_file
       continue
     endif
