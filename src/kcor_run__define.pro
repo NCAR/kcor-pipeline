@@ -451,7 +451,7 @@ end
 ; Get properties.
 ;-
 pro kcor_run::getProperty, config_contents=config_contents, $
-                           date=date, $
+                           date=date, time=time, $
                            config_filename=config_filename, $
                            pipe_dir=pipe_dir, $
                            resources_dir=resources_dir, $
@@ -464,6 +464,7 @@ pro kcor_run::getProperty, config_contents=config_contents, $
   endif
 
   if (arg_present(date)) then date = self.date
+  if (arg_present(time)) then self.epochs->getProperty, datetime=time
   if (arg_present(config_filename)) then config_filename = self.config_filename
 
   if (arg_present(pipe_dir)) then pipe_dir = self.pipe_dir
