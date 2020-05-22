@@ -10,6 +10,18 @@
 ;     corona
 ;   date_obs : in, required, type=string
 ;     observation date
+;
+; :Keywords:
+;   scaled_image : out, optional, type=lonarr
+;     set to a named variable to retrieve the scaled image
+;   nomask : in, optional, type=boolean
+;     set to not mask the occulter
+;   run : in, required, type=object
+;     KCor run object
+;   log_name : in, optional, type=string
+;     logger name to send log messages to
+;   level : in, required, type=integer
+;     level 1 or 2
 ;-
 pro kcor_create_gif, filename, corona, date_obs, $
                      scaled_image=scaled_image, $
