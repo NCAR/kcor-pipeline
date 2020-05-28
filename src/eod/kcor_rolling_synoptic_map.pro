@@ -136,6 +136,10 @@ pro kcor_rolling_synoptic_map, database=db, run=run
             smooth_kernel=smooth_kernel, $
             charsize=charsize
 
+  xyouts, 0.97, 0.485, /normal, alignment=1.0, $
+          string(minv, maxv, format='(%"min/max: %0.3g, %0.3g")'), $
+          charsize=charsize, color=128
+
   im = tvrd()
 
   p_dir = filepath('p', subdir=run.date, root=run->config('processing/raw_basedir'))
