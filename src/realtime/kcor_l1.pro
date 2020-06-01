@@ -474,6 +474,14 @@ pro kcor_l1, ok_filename, $
   img0 = reverse(img0, 2)           ; y-axis inversion
   img1 = reform(img[*, *, 0, 1])    ; camera 1 [transmitted]
 
+  cubic = run->config('realtime/cubic')
+  if (cubic) then begin   ; cubic
+    interpolation_method = 2L
+    cubic_coefficient = -0.5
+  endif else begin    ; bilinear interpolation
+    interpolation_method = 2L
+  endelse
+
   ; epoch values like distortion correction filename can change during the day
   dc_path = filepath(run->epoch('distortion_correction_filename'), $
                      root=run.resources_dir)
@@ -481,7 +489,7 @@ pro kcor_l1, ok_filename, $
 
   dat1 = img0
   dat2 = img1
-  kcor_apply_dist, dat1, dat2, dx1_c, dy1_c, dx2_c, dy2_c
+  kcor_apply_dist, dat1, dat2, dx1_c, dy1_c, dx2_c, dy2_c, cubic=cubic
   cimg0 = dat1
   cimg1 = dat2
 
@@ -537,7 +545,7 @@ pro kcor_l1, ok_filename, $
   for s = 0, 2 do begin
     dat1 = cal_data[*, *, 0, s]
     dat2 = cal_data[*, *, 1, s]
-    kcor_apply_dist, dat1, dat2, dx1_c, dy1_c, dx2_c, dy2_c
+    kcor_apply_dist, dat1, dat2, dx1_c, dy1_c, dx2_c, dy2_c, cubic=cubic
     cal_data[*, *, 0, s] = dat1
     cal_data[*, *, 1, s] = dat2
   endfor
@@ -552,7 +560,7 @@ pro kcor_l1, ok_filename, $
   endif
 
   for s = 0, 2 do begin
-    camera_0 = kcor_fshift(cal_data[*, *, 0, s], deltax, deltay)
+    camera_0 = kcor_fshift(cal_data[*, *, 0, s], deltax, deltay, interp=interpolation_method)
     camera_1 = cal_data[*, *, 1, s]
 
     mg_log, 'cameras used: %s', cameras, name=log_name, /debug
@@ -586,13 +594,13 @@ pro kcor_l1, ok_filename, $
                                      1, $
                                      xsize - 1 - sun_xyr0[0], $
                                      sun_xyr0[1], $
-                                     cubic=-0.5)
+                                     cubic=cubic_coefficient)
       cal_data_new[*, *, 1, s] = rot(reverse(cal_data[*, *, 1, s], 1), $
                                      pangle + run->epoch('rotation_correction'), $
                                      1, $
                                      xsize - 1 - sun_xyr1[0], $
                                      sun_xyr1[1], $
-                                     cubic=-0.5)
+                                     cubic=cubic_coefficient)
       case cameras of
         '0': cal_data_combined_center[*, *, s] = cal_data_new[*, *, 0, s]
         '1': cal_data_combined_center[*, *, s] = cal_data_new[*, *, 1, s]

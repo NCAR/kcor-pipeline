@@ -20,8 +20,12 @@
 ;     x-coefficents for camera 1 image
 ;   dy2_c : in, required, type="fltarr(4, 4)"
 ;     y-coefficents for camera 1 image
+;
+; :Keywords:
+;   cubic : in, optional, type=boolean
+;     set to use cubic interpolation, otherwise use bilinear
 ;-
-pro kcor_apply_dist, dat1, dat2, dx1_c, dy1_c, dx2_c, dy2_c
+pro kcor_apply_dist, dat1, dat2, dx1_c, dy1_c, dx2_c, dy2_c, cubic=cubic
   compile_opt strictarr
 
   type = size(dat1, /type)
@@ -32,14 +36,15 @@ pro kcor_apply_dist, dat1, dat2, dx1_c, dy1_c, dx2_c, dy2_c
   x = rebin(dindgen(nx), nx, ny)
   y = rebin(reform(dindgen(ny), 1, ny), nx, ny)
 
+  if (keyword_set(cubic)) then cubic_coefficient = -0.5
   dat1 = interpolate(double(dat1), $
                      x + kcor_eval_surf(dx1_c, x, y), $
                      y + kcor_eval_surf(dy1_c, x, y), $
-                     cubic=-0.5, missing=0.0, /double)
+                     cubic=cubic_coefficient, missing=0.0, /double)
   dat2 = interpolate(double(dat2), $
                      x + kcor_eval_surf(dx2_c, x, y), $
                      y + kcor_eval_surf(dy2_c, x, y), $
-                     cubic=-0.5, missing=0.0, /double)
+                     cubic=cubic_coefficient, missing=0.0, /double)
   dat1 = fix(dat1, type=type)
   dat2 = fix(dat2, type=type)
 end

@@ -1,7 +1,7 @@
 ; docformat = 'rst'
 
 ;+
-; To provide a shifted image in units of fractional pixels. 
+; To provide a shifted image in units of fractional pixels.
 ;
 ; :Returns:
 ;   oimage
@@ -20,11 +20,11 @@
 ; :Keywords:
 ;   interp : in, optional, type=integer, default=2
 ;     specify method of interpolation; default value is 2 (cubic convolution
-;     interpolation). See IDL manual for details. 
+;     interpolation). See IDL manual for details.
 ;
 ; :History:
 ;   version 1.0  T.Sakao written on 95.06.30 (Fri)
-;           1.1  96.01.16 (Tue) Option interp added. 
+;           1.1  96.01.16 (Tue) Option interp added.
 ;-
 function kcor_fshift, data, x, y, interp=itp
   compile_opt strictarr
