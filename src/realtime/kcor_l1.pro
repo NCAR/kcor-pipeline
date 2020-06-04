@@ -550,6 +550,11 @@ pro kcor_l1, ok_filename, $
     cal_data[*, *, 1, s] = dat2
   endfor
 
+  ; save intermediate result if realtime/save_intermediate
+  writefits, filepath(string(strmid(file_basename(ok_filename), 0, 20), $
+                             format='(%"%s_distcor.fts")'), root=l1_dir), $
+             cal_data, header
+
   ; compute image average from cameras 0 & 1
   cal_data_combined = dblarr(xsize, ysize, 3)
 
@@ -561,6 +566,11 @@ pro kcor_l1, ok_filename, $
 
   for s = 0, 2 do begin
     camera_0 = kcor_fshift(cal_data[*, *, 0, s], deltax, deltay, interp=interpolation_method)
+    ; save intermediate result if realtime/save_intermediate
+    writefits, filepath(string(strmid(file_basename(ok_filename), 0, 20), s, $
+                               format='(%"%s_shift-s%d.fts")'), root=l1_dir), $
+                cal_data, header
+
     camera_1 = cal_data[*, *, 1, s]
 
     mg_log, 'cameras used: %s', cameras, name=log_name, /debug
