@@ -314,7 +314,7 @@ pro kcor_l1, ok_filename, $
 
   theta0 = atan(- yy0, - xx0)
   theta0 += !pi
-    
+
   ; inside and outside radius for masks
   r_in  = fix(occulter / run->epoch('plate_scale')) + run->epoch('r_in_offset')
   r_out = run->epoch('r_out')
@@ -469,6 +469,13 @@ pro kcor_l1, ok_filename, $
   mg_log, 'elapsed time for demod_matrix: %0.1f sec', demod_time, $
           name=log_name, /debug
 
+  ; save intermediate result if realtime/save_intermediate
+  if (run->config('realtime/save_intermediate')) then begin
+    writefits, filepath(string(strmid(file_basename(ok_filename), 0, 20), $
+                               format='(%"%s_demod.fts")'), root=l1_dir), $
+               cal_data, header
+  endif
+
   ; apply distortion correction for raw images
   img0 = reform(img[*, *, 0, 0])    ; camera 0 [reflected]
   img0 = reverse(img0, 2)           ; y-axis inversion
@@ -551,9 +558,11 @@ pro kcor_l1, ok_filename, $
   endfor
 
   ; save intermediate result if realtime/save_intermediate
-  writefits, filepath(string(strmid(file_basename(ok_filename), 0, 20), $
-                             format='(%"%s_distcor.fts")'), root=l1_dir), $
-             cal_data, header
+  if (run->config('realtime/save_intermediate')) then begin
+    writefits, filepath(string(strmid(file_basename(ok_filename), 0, 20), $
+                               format='(%"%s_distcor.fts")'), root=l1_dir), $
+               cal_data, header
+  endif
 
   ; compute image average from cameras 0 & 1
   cal_data_combined = dblarr(xsize, ysize, 3)
@@ -566,12 +575,15 @@ pro kcor_l1, ok_filename, $
 
   for s = 0, 2 do begin
     camera_0 = kcor_fshift(cal_data[*, *, 0, s], deltax, deltay, interp=interpolation_method)
-    ; save intermediate result if realtime/save_intermediate
-    writefits, filepath(string(strmid(file_basename(ok_filename), 0, 20), s, $
-                               format='(%"%s_shift-s%d.fts")'), root=l1_dir), $
-                cal_data, header
-
     camera_1 = cal_data[*, *, 1, s]
+
+    ; save intermediate result if realtime/save_intermediate
+    if (run->config('realtime/save_intermediate')) then begin
+      writefits, filepath(string(strmid(file_basename(ok_filename), 0, 20), s, $
+                                 format='(%"%s_shift-s%d.fts")'), root=l1_dir), $
+                  camera_0, header
+    endif
+
 
     mg_log, 'cameras used: %s', cameras, name=log_name, /debug
     case cameras of
