@@ -169,7 +169,8 @@ pro kcor_correct_camera, im, header, $
   for p = 0L, n_polstates - 1L do begin
     for c = 0L, n_cameras_to_correct - 1L do begin
       camera = camera_indices[c]
-      x = im[*, *, p, camera]
+      x = shift(im[*, *, p, camera], run->config('realtime/xshift_camera_correction'), 0)
+      ;x = im[*, *, p, camera]
       im[*, *, p, camera] = fp[*, *, 0, camera] $
                               + fp[*, *, 1, camera] * x $
                               + fp[*, *, 2, camera] * x^2 $
