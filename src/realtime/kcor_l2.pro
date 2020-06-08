@@ -50,7 +50,7 @@ pro kcor_l2, l1_filename, $
 
   center_offset = run->config('realtime/center_offset')
   rad  = sqrt((xx + center_offset[0])^ 2.0 + (yy + center_offset[1]) ^ 2.0)
-  
+
   theta = atan(- yy, - xx)
   theta += !pi
   theta = rot(reverse(theta), pangle + run->epoch('rotation_correction'), 1)
