@@ -176,6 +176,8 @@ pro kcor_correct_camera, im, header, $
                               + fp[*, *, 2, camera] * x^2 $
                               + fp[*, *, 3, camera] * x^3 $
                               + fp[*, *, 4, camera] * x^4
+      im[*, *, p, camera] = shift(im[*, *, p, camera], $
+                                  - run->config('realtime/xshift_camera_correction'), 0)
     endfor
   endfor
 
