@@ -27,6 +27,9 @@ pro kcor_gain_rms, config_filename
   rms = fltarr(n_calib_files, 2)
   jds = dblarr(n_calib_files)
 
+  d = shift(dist(1024, 1024), 512, 512)
+  annulus_indices = where(d lt 500 and d gt 200, n_annulus)
+
   for f = 0L, n_calib_files - 1L do begin
     basename = file_basename(calib_files[f])
     print, f + 1, n_calib_files, basename, format='(%"%d/%d: %s")'
@@ -35,25 +38,18 @@ pro kcor_gain_rms, config_filename
     jds[f] = julday(date_parts[1], date_parts[2], date_parts[0])
     gain = mg_nc_getdata(calib_files[f], 'Gain')
     for c = 0L, 1L do begin
-      ;m = mean(gain[xpos:xpos + width - 1L, ypos:ypos + height - 1L, c])
-      ;rms[f, c] = mg_rms(gain[xpos:xpos + width - 1L, ypos:ypos + height - 1L, c])
-      rms[f, c] = stddev(gain[xpos:xpos + width - 1L, ypos:ypos + height - 1L, c])
-      ;rms[f, c] /= m
-;      print, rms[f, c]
-      if (rms[f, c] gt 40.0) then begin
-        print, rms[f, c]
-        print, 'over 40.0'
-      endif
+      camera_gain = reform(gain[*, *, c])
+      rms[f, c] = stddev(camera_gain[annulus_indices]) / median(camera_gain[annulus_indices])
     endfor
   endfor
 
-  window, xsize=800, ysize=400, /free
+  window, xsize=900, ysize=500, /free
   range = mg_range(rms)
   ;range = [0.9999, 1.0002]
   !null = label_date(date_format='%Y-%N-%D')
   plot, jds, rms[*, 0], /nodata, $
         yrange=range, xstyle=1, ystyle=1, xtickformat='label_date', $
-        title=string(glob, format='(%"Std Dev (cam 0: red, cam 1: green) [cal files for %s]")')
+        title=string(glob, format='(%"Std Dev / median (cam 0: red, cam 1: green) [cal files for %s]")')
   oplot, jds, rms[*, 0], psym=1, symsize=0.5, color='0000ff'x
   oplot, jds, rms[*, 1], psym=2, symsize=0.5, color='00ff00'x
 

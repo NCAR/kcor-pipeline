@@ -54,7 +54,7 @@ pro kcor_plot_gain_images, config_filename
       plot, gain[*, 512, c], $
             xstyle=1, ystyle=1, yrange=[0.0, 2500.0], $
             psym=3, $
-            title=string(c, format='(%"2 pixel shifted cal file [cameras %d]")'), $
+            title=string(c, format='(%"Shifted cal file [cameras %d]")'), $
             charsize=charsize
     endfor
 
@@ -75,7 +75,7 @@ end
 
 ; main-level example program
 
-config_filename = filepath('kcor.xshift.cfg', $
+config_filename = filepath('kcor.xshift-5.cfg', $
                            subdir=['..', 'config'], $
                            root=mg_src_root())
 kcor_plot_gain_images, config_filename
