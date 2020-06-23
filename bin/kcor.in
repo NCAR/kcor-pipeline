@@ -579,7 +579,8 @@ def stage_date(parser, date, flags, dst):
         try:
             copy_date(date, src, dst)
         except FileNotFoundError:
-            parser.error(f"files not found in {src}")
+            print(f"files not found for {date} in {src}")
+            #parser.error(f"files not found in {src}")
     else:
         parser.error(f"{date_dir} does not exist")
 
