@@ -481,14 +481,6 @@ pro kcor_l1, ok_filename, $
   img0 = reverse(img0, 2)           ; y-axis inversion
   img1 = reform(img[*, *, 0, 1])    ; camera 1 [transmitted]
 
-  cubic = run->config('realtime/cubic')
-  if (cubic) then begin   ; cubic
-    interpolation_method = 2L
-    cubic_coefficient = -0.5
-  endif else begin    ; bilinear interpolation
-    interpolation_method = 2L
-  endelse
-
   ; epoch values like distortion correction filename can change during the day
   dc_path = filepath(run->epoch('distortion_correction_filename'), $
                      root=run.resources_dir)
@@ -574,7 +566,7 @@ pro kcor_l1, ok_filename, $
   endif
 
   for s = 0, 2 do begin
-    camera_0 = kcor_fshift(cal_data[*, *, 0, s], deltax, deltay, interp=interpolation_method)
+    camera_0 = kcor_fshift(cal_data[*, *, 0, s], deltax, deltay, interp=1)
     camera_1 = cal_data[*, *, 1, s]
 
     ; save intermediate result if realtime/save_intermediate
@@ -616,13 +608,13 @@ pro kcor_l1, ok_filename, $
                                      1, $
                                      xsize - 1 - sun_xyr0[0], $
                                      sun_xyr0[1], $
-                                     cubic=cubic_coefficient)
+                                     /interp)
       cal_data_new[*, *, 1, s] = rot(reverse(cal_data[*, *, 1, s], 1), $
                                      pangle + run->epoch('rotation_correction'), $
                                      1, $
                                      xsize - 1 - sun_xyr1[0], $
                                      sun_xyr1[1], $
-                                     cubic=cubic_coefficient)
+                                     /interp)
       case cameras of
         '0': cal_data_combined_center[*, *, s] = cal_data_new[*, *, 0, s]
         '1': cal_data_combined_center[*, *, s] = cal_data_new[*, *, 1, s]
