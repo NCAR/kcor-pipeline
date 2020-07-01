@@ -20,6 +20,8 @@
 ;     reads the `calibration_files.txt` file in the process directory
 ;   config_filename : in, optional, type=string
 ;     filename of configuration file; `config_filename` or `run` is required
+;   cal_filename : out, optional, type=string
+;     set to a named variable to retrieve the filename of the cal file produced
 ;   status : out, optional, type=long
 ;     set to a named variable to retrieve the status of the calibration
 ;     calculation: 0 for success, 1 for incomplete data, 2 for error
@@ -30,6 +32,7 @@ pro kcor_reduce_calibration, date, $
                              catalog_dir=catalog_dir, $
                              filelist=filelist, $
                              config_filename=config_filename, $
+                             cal_filename=outfile, $
                              status=status, $
                              run=run
   common kcor_random, seed

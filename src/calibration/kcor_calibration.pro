@@ -94,7 +94,13 @@ pro kcor_calibration, date, $
 
   kcor_reduce_calibration, date, run=run, filelist=filelist, $
                            catalog_dir=catalog_dir, $
+                           cal_filename=cal_filename, $
                            status=cal_status
+
+  if (cal_status eq 0L) then begin
+    kcor_plot_calibration, cal_filename, $
+                           run=run, gain_norm_stddev=gain_norm_stddev
+  endif
 
   cal_files = kcor_read_calibration_text(date, $
                                          run->config('processing/process_basedir'), $
@@ -139,6 +145,12 @@ pro kcor_calibration, date, $
   ; send notification
   if (run->config('notifications/send') $
         && n_elements(run->config('notifications/email')) gt 0L) then begin
+    case cal_status of
+      0: cal_status_text = 'Successful calibration reduction'
+      1: cal_status_text = 'Incomplete data for calibration reduction'
+      2: cal_status_text = 'Error during calibration reduction'
+      else: cal_status_text = 'Unknown error during calibration reduction'
+    endcase
     msg = [string(date, $
                   format='(%"KCor calibration for %s")'), $
            '', $
@@ -150,7 +162,10 @@ pro kcor_calibration, date, $
            string(n_cal_files, $
                   format='(%"number of OK cal files: %d")'), $
            string(n_all_cal_files, $
-                  format='(%"number of cal files: %d")')]
+                  format='(%"number of cal files: %d")'), $
+           cal_status_text $
+             + (cal_status eq 0L ? string(gain_norm_stddev, $
+                                          format='(%" [std dev / median: %0.4f / %0.4f]")') : '')]
 
     spawn, 'echo $(whoami)@$(hostname)', who, error_result, exit_status=status
     if (status eq 0L) then begin

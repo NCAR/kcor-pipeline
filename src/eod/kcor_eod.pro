@@ -317,7 +317,10 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
       ; produce calibration for tomorrow
       if (run->config('eod/reduce_calibration') $
           && run->epoch('produce_calibration')) then begin
-        kcor_reduce_calibration, date, run=run
+        kcor_reduce_calibration, date, run=run, status=cal_status, cal_filename=cal_filename
+        if (cal_status eq 0L) then begin
+          kcor_plot_calibration, cal_filename, run=run, gain_norm_stddev=gain_norm_stddev
+        endif
       endif else begin
         mg_log, 'skipping reducing calibration', name='kcor/eod', /info
       endelse
@@ -452,6 +455,12 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   if (run->config('notifications/send') $
         && n_elements(run->config('notifications/email')) gt 0L) then begin
+    case cal_status of
+      0: cal_status_text = 'Successful calibration reduction'
+      1: cal_status_text = 'Incomplete data for calibration reduction'
+      2: cal_status_text = 'Error during calibration reduction'
+      else: cal_status_text = 'Unknown error during calibration reduction'
+    endcase
     msg = [string(date, $
                   format='(%"KCor end-of-day processing for %s")'), $
            '', $
@@ -467,7 +476,10 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
            string(n_failed_files, $
                   format='(%"number of files failing L1/L2 processing: %d")'), $
            string(n_nrgf_files, $
-                  format='(%"number of NRGFs: %d")')]
+                  format='(%"number of NRGFs: %d")'), $
+           cal_status_text $
+             + (cal_status eq 0L ? string(gain_norm_stddev, $
+                                          format='(%" [std dev / median: %0.4f / %0.4f]")') : '')]
 
     if (n_missing gt 0L) then begin
       msg = [msg, $
