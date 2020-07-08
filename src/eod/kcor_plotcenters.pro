@@ -155,7 +155,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
     dc_img0 = img0
     dc_img1 = img1
-    kcor_apply_dist, dc_img0, dc_img1, dx1_c, dy1_c, dx2_c, dy2_c, cubic=run->config('realtime/cubic')
+    kcor_apply_dist, dc_img0, dc_img1, dx1_c, dy1_c, dx2_c, dy2_c
 
     cal  = 0
     eng  = 0

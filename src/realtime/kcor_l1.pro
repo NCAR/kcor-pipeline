@@ -488,7 +488,7 @@ pro kcor_l1, ok_filename, $
 
   dat1 = img0
   dat2 = img1
-  kcor_apply_dist, dat1, dat2, dx1_c, dy1_c, dx2_c, dy2_c, cubic=cubic
+  kcor_apply_dist, dat1, dat2, dx1_c, dy1_c, dx2_c, dy2_c
   cimg0 = dat1
   cimg1 = dat2
 
@@ -544,7 +544,7 @@ pro kcor_l1, ok_filename, $
   for s = 0, 2 do begin
     dat1 = cal_data[*, *, 0, s]
     dat2 = cal_data[*, *, 1, s]
-    kcor_apply_dist, dat1, dat2, dx1_c, dy1_c, dx2_c, dy2_c, cubic=cubic
+    kcor_apply_dist, dat1, dat2, dx1_c, dy1_c, dx2_c, dy2_c
     cal_data[*, *, 0, s] = dat1
     cal_data[*, *, 1, s] = dat2
   endfor
