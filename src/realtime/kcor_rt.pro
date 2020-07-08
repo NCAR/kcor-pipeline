@@ -141,6 +141,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
 
     quicklook_gallery_dir = run->config('results/quicklook_gallery_dir')
     if (n_elements(quicklook_files) gt 0L && n_elements(quicklook_gallery_dir) gt 0L) then begin
+      if (~file_test(quicklook_gallery_dir, /directory) then file_mkdir, quicklook_gallery_dir
       mg_log, 'distributing %d quicklook files to gallery', $
               n_elements(quicklook_files), $
               name='kcor/rt', /info
