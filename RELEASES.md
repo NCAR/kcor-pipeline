@@ -433,3 +433,4 @@
 2.0.19 [Jun 17, 2020]
   removing display_{min,max} epoch values that were accidently included
 2.0.20
+  config option to distribute quicklooks to gallery

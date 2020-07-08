@@ -51,6 +51,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
                        dim_files=dim_files, $
                        nsy_files=nsy_files, $
                        sat_files=sat_files, $
+                       quicklook_files=quicklook_files, $
                        run=run
   compile_opt strictarr
 
@@ -119,6 +120,8 @@ function kcor_quality, date, l0_fits_files, append=append, $
   dev_list = list()
   nsy_list = list()
   sat_list = list()
+
+  quicklook_list = list()
 
   ;q_dir_unk    = q_path + 'unk/'    ; unknown images
   ;q_dir_eng    = q_path + 'eng/'    ; engineering images
@@ -829,6 +832,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
               color=white, charsize=1.0, /device
       save = tvrd()
       write_gif, gif_path, save, rlut, glut, blut
+      quicklook_list->add, gif_path
     endfor
 
     istring     = string(format='(i5)',   num_img)
@@ -872,6 +876,9 @@ function kcor_quality, date, l0_fits_files, append=append, $
 
   obj_destroy, [brt_list, cal_list, cld_list, dim_list, dev_list, nsy_list, $
                 sat_list]
+
+  quicklook_files = quicklook_list->toArray()
+  obj_destroy, quicklook_list
 
   ; delete empty files
   ; if (ncal eq 0) then file_delete, cal_qpath else printf, ulog, 'ncal: ', ncal
