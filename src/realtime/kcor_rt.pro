@@ -145,7 +145,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       mg_log, 'distributing %d quicklook files to gallery', $
               n_elements(quicklook_files), $
               name='kcor/rt', /info
-      file_copy, quicklook_files, quicklook_gallery_dir, /require_directory
+      file_copy, quicklook_files, quicklook_gallery_dir, /require_directory, /overwrite
     endif
 
     if (run->config('database/update')) then begin
