@@ -47,7 +47,9 @@ pro kcor_plot_gain_images, config_filename
                                       count=n_production_calfiles)
     production_gain = mg_nc_getdata(production_calfiles[-1], 'Gain')
 
-    window, xsize=800L, ysize=4 * 250L, /free, title=basename
+    title = string(basename, file_basename(config_filename), $
+                   format='(%"%s [%s]")')
+    window, xsize=800L, ysize=4 * 250L, /free, title=title
     !p.multi = [0, 1, 4]
 
     for c = 0L, 1L do begin
@@ -75,9 +77,13 @@ end
 
 ; main-level example program
 
-config_filename = filepath('kcor.xshift-5.cfg', $
-                           subdir=['..', 'config'], $
-                           root=mg_src_root())
-kcor_plot_gain_images, config_filename
+;xshifts = -1 * [2, 4, 6, 8, 10]
+xshifts = [-6]
+for s = 0L, n_elements(xshifts) - 1L do begin
+  config_filename = filepath(string(xshifts[s], format='(%"kcor.xshift-%d.cfg")'), $
+                             subdir=['..', 'config'], $
+                             root=mg_src_root())
+  kcor_plot_gain_images, config_filename
+endfor
 
 end
