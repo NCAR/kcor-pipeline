@@ -744,6 +744,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
 
       if (cal gt 0) then begin   ; calibration
         gif_file = string(l0_base, format='(%"%s_cam%%d_c.gif")')
+        quality_name = 'calibration'
         qual = q_cal
         if (c eq check_camera) then begin
           ncal += 1
@@ -753,6 +754,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
         endif
       endif else if (dev gt 0) then begin           ; device obscuration
         gif_file = string(l0_base, format='(%"%s_cam%%d_m.gif")')
+        quality_name = 'device obscuration'
         qual = q_dev
         if (c eq check_camera) then begin
           ndev += 1
@@ -762,6 +764,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
       endif else if (sat gt 0) then begin                      ; saturation
         tvcircle, run->epoch('rpixt'), xcen[c], ycen[c], blue, /device   ; sat circle
         gif_file = string(l0_base, format='(%"%s_cam%%d_t.gif")')
+        quality_name = 'saturated'
         qual = q_sat
         if (c eq check_camera) then begin
           nsat += 1
@@ -771,6 +774,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
       endif else if (bright gt 0) then begin     ; bright image
         tvcircle, rpixb, xcen[c], ycen[c], red, /device   ; bright circle
         gif_file = string(l0_base, format='(%"%s_cam%%d_b.gif")')
+        quality_name = 'bright'
         qual = q_brt
         if (c eq check_camera) then begin
           nbrt += 1
@@ -780,6 +784,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
       endif else if (clo gt 0) then begin          ; dim image
         tvcircle, rpixc, xcen[c], ycen[c], green,  /device   ; cloud circle
         gif_file = string(l0_base, format='(%"%s_cam%%d_d.gif")')
+        quality_name = 'dim'
         qual = q_dim
         if (c eq check_camera) then begin
           ndim += 1
@@ -789,6 +794,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
       endif else if (chi gt 0) then begin          ; cloudy image
         tvcircle, rpixc, xcen[c], ycen[c], green,  /device   ; cloud circle
         gif_file = string(l0_base, format='(%"%s_cam%%d_o.gif")')
+        quality_name = 'cloudy'
         qual = q_cld
         if (c eq check_camera) then begin
           ncld += 1
@@ -798,6 +804,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
       endif else if (noise gt 0) then begin        ; noisy
         tvcircle, rpixn, xcen[c], ycen[c], yellow, /device   ; noise circle
         gif_file = string(l0_base, format='(%"%s_cam%%d_n.gif")')
+        quality_name = 'noisy'
         qual = q_nsy
         if (c eq check_camera) then begin
           nnsy += 1
@@ -807,8 +814,10 @@ function kcor_quality, date, l0_fits_files, append=append, $
       endif else begin         ; good image
         if (eng gt 0) then begin   ; engineering
           gif_file = string(l0_base, format='(%"%s_cam%%d_e.gif")')
+          quality_name = 'engineering'
         endif else begin
           gif_file = string(l0_base, format='(%"%s_cam%%d_g.gif")')
+          quality_name = 'good'
         endelse
 
         qual = q_ok
@@ -830,6 +839,8 @@ function kcor_quality, date, l0_fits_files, append=append, $
       xyouts, 6, 13, string(power, run->epoch('quicklook_gamma'), $
                             format='(%"scaling: pb ^ %0.1f, gamma=%0.1f")'), $
               color=white, charsize=1.0, /device
+      xyouts, 1024 - 6, 13, quality_name, $
+              color=white, charsize=1.0, /device, alignment=1.0
       save = tvrd()
       write_gif, gif_path, save, rlut, glut, blut
       quicklook_list->add, gif_path
