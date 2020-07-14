@@ -881,14 +881,12 @@ pro kcor_l1, ok_filename, $
             string(code_date, $
                    format='(%" L1 data processing software (%s)")')
 
-  if (rcam_cor_filename ne '') then begin
-    fxaddpar, l1_header, 'RCAMCORR', file_basename(rcam_cor_filename), $
-              ''
-  endif
-  if (tcam_cor_filename ne '') then begin
-    fxaddpar, l1_header, 'TCAMCORR', file_basename(tcam_cor_filename), $
-              ''
-  endif
+  fxaddpar, l1_header, 'RCAMCORR', $
+            rcam_cor_filename eq '' ? !null : file_basename(rcam_cor_filename), $
+            run->epoch('rcamcorr_comment'), /null
+  fxaddpar, l1_header, 'TCAMCORR', $
+            tcam_cor_filename eq '' !null : file_basename(tcam_cor_filename), $
+            run->epoch('tcamcorr_comment'), /null
 
   fxaddpar, l1_header, 'FIXCAMLC', $
             run->config('calibration/interpolate_camera_correction') ? 1 : 0, $
