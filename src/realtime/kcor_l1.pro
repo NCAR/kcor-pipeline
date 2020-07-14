@@ -400,6 +400,31 @@ pro kcor_l1, ok_filename, $
   ; need to correct image before we correct with dark
   img_cor *= float(cal_numsum) / float(struct.numsum)
 
+  ; fill inside occulter with mean/median of annulus (over/under occult by 3)
+  gain_fill = gain_shift
+
+  annulus0_indices = where(rr0 gt (info_gain0[2] + 3) and rr0 lt 512.0, $
+                           n_annulus0)
+  fill_value0 = mean((gain_fill[*, *, 0])[annulus0_indices])
+  annulus1_indices = where(rr1 gt (info_gain1[2] + 3) and rr1 lt 512.0, $
+                           n_annulus1)
+  fill_value1 = mean((gain_fill[*, *, 1])[annulus1_indices])
+
+  mg_log, 'filling gain under occulter with cam 0: %0.2f, cam 1: %0.2f', $
+          fill_value0, fill_value1, $
+          name=log_name, /debug
+
+  ; replace under occulter (over occult by 1) of gain with mean/median
+  occulter0_indices = where(rr0 lt info_gain0[2] + 1, n_occulter0)
+  gain_tmp = gain_fill[*, *, 0]
+  gain_tmp[occulter0_indices] = fill_value0
+  gain_fill[*, *, 0] = gain_tmp
+
+  occulter1_indices = where(rr1 lt info_gain1[2] + 1, n_occulter1)
+  gain_tmp = gain_fill[*, *, 1]
+  gain_tmp[occulter1_indices] = fill_value1
+  gain_fill[*, *, 1] = gain_tmp
+
   ; apply dark and gain correction
   for b = 0, 1 do begin
     for s = 0, 3 do begin
@@ -436,7 +461,7 @@ pro kcor_l1, ok_filename, $
         endif
       endif
 
-      img_cor[*, *, s, b] = temporary(img_temp) / gain_shift[*, *, b]
+      img_cor[*, *, s, b] = temporary(img_temp) / gain_fill[*, *, b]
     endfor
   endfor
 
