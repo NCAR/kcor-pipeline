@@ -403,12 +403,14 @@ pro kcor_l1, ok_filename, $
   ; fill inside occulter with mean/median of annulus (over/under occult by 3)
   gain_fill = gain_shift
 
-  annulus0_indices = where(rr0 gt (info_gain0[2] + 3) and rr0 lt 512.0, $
+  n_bad_columns = 8.0   ; number of columns to not trust
+
+  annulus0_indices = where(rr0 gt (info_gain0[2] + 3) and rr0 lt 512.0 - n_bad_columns, $
                            n_annulus0)
   gain_tmp = gain_fill[*, *, 0]
   fill_value0 = mean(gain_tmp[annulus0_indices])
 
-  annulus1_indices = where(rr1 gt (info_gain1[2] + 3) and rr1 lt 512.0, $
+  annulus1_indices = where(rr1 gt (info_gain1[2] + 3) and rr1 lt 512.0 - n_bad_columns, $
                            n_annulus1)
   gain_tmp = gain_fill[*, *, 1]
   fill_value1 = mean(gain_tmp[annulus1_indices])
