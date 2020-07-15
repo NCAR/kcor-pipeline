@@ -405,13 +405,19 @@ pro kcor_l1, ok_filename, $
 
   annulus0_indices = where(rr0 gt (info_gain0[2] + 3) and rr0 lt 512.0, $
                            n_annulus0)
-  fill_value0 = mean((gain_fill[*, *, 0])[annulus0_indices])
+  gain_tmp = gain_fill[*, *, 0]
+  fill_value0 = mean(gain_tmp[annulus0_indices])
+
   annulus1_indices = where(rr1 gt (info_gain1[2] + 3) and rr1 lt 512.0, $
                            n_annulus1)
-  fill_value1 = mean((gain_fill[*, *, 1])[annulus1_indices])
+  gain_tmp = gain_fill[*, *, 1]
+  fill_value1 = mean(gain_tmp[annulus1_indices])
 
-  mg_log, 'filling gain under occulter with cam 0: %0.2f, cam 1: %0.2f', $
-          fill_value0, fill_value1, $
+  mg_log, 'filling gain under occulter with cam 0: %0.2f', $
+          fill_value0 / 1.0e6, $
+          name=log_name, /debug
+  mg_log, 'filling gain under occulter with cam 1: %0.2f', $
+          fill_value1 / 1.0e6, $
           name=log_name, /debug
 
   ; replace under occulter (over occult by 1) of gain with mean/median
@@ -910,7 +916,7 @@ pro kcor_l1, ok_filename, $
             rcam_cor_filename eq '' ? !null : file_basename(rcam_cor_filename), $
             run->epoch('rcamcorr_comment'), /null
   fxaddpar, l1_header, 'TCAMCORR', $
-            tcam_cor_filename eq '' !null : file_basename(tcam_cor_filename), $
+            tcam_cor_filename eq '' ? !null : file_basename(tcam_cor_filename), $
             run->epoch('tcamcorr_comment'), /null
 
   fxaddpar, l1_header, 'FIXCAMLC', $
