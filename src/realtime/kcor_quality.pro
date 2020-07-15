@@ -839,7 +839,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
       xyouts, 6, 13, string(power, run->epoch('quicklook_gamma'), $
                             format='(%"scaling: pb ^ %0.1f, gamma=%0.1f")'), $
               color=white, charsize=1.0, /device
-      xyouts, 1024 - 6, 13, quality_name, $
+      xyouts, xdim - 6, ydim - 20, quality_name, $
               color=white, charsize=1.0, /device, alignment=1.0
       save = tvrd()
       write_gif, gif_path, save, rlut, glut, blut
