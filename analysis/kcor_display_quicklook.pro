@@ -24,7 +24,7 @@ pro kcor_display_quicklook, l0_filename, $
   date_obs = sxpar(header, 'DATE-OBS')
   ut_date = kcor_parse_dateobs(date_obs, hst_date=hst_date)
   date = string(hst_date.year, hst_date.month, hst_date.day, $
-                format='(%"%02d%02d%02d")')
+                format='(%"%04d%02d%02d")')
   config_filename = filepath('kcor.production.cfg', $
                              subdir=['..', 'config'], $
                              root=mg_src_root())
@@ -43,9 +43,17 @@ pro kcor_display_quicklook, l0_filename, $
     else: message, 'invalid MAXIMUM'
   endcase
 
+  indent = '  '
   for c = 0, 1 do begin
     window, xsize=xsize, ysize=ysize, /free, title=string(c, format='(%"Camera %d")')
-    tv, bytscl(pb[*, *, c] ^ _display_exponent, min=_display_min, max=_display_max[c])
+    print, c, format='(%"camera %d:")'
+    print, indent, _display_minimum, format='(%"%smin: %0.2f")'
+    print, indent, _display_maximum[c], format='(%"%smax: %0.2f")'
+    print, indent, _display_exponent, format='(%"%sexp: %0.2f")'
+    print, indent, _display_gamma, format='(%"%sgamma: %0.2f")'
+    tv, bytscl(pb[*, *, c] ^ _display_exponent, $
+               min=_display_minimum, $
+               max=_display_maximum[c])
   endfor
 
   ; cleanup
