@@ -53,7 +53,7 @@ pro kcor_l2, l1_filename, $
 
   theta = atan(- yy, - xx)
   theta += !pi
-  theta = rot(reverse(theta), pangle + run->epoch('rotation_correction'), 1)
+  theta = rot(reverse(theta), pangle + run->epoch('rotation_correction'), 1, /interp)
 
   if (run->config('realtime/smooth_sky')) then begin
     qmk4 = gauss_smooth(qmk4, 3, /edge_truncate)
@@ -68,7 +68,7 @@ pro kcor_l2, l1_filename, $
         qmk4_new = float(qmk4)
 
         ; umk4 contains the corona
-        umk4_new = float(umk4) - float(rot(qmk4, 45.0)) + run->epoch('skypol_bias')
+        umk4_new = float(umk4) - float(rot(qmk4, 45.0, /interp)) + run->epoch('skypol_bias')
       end
     'sine2theta': begin
         mg_log, 'correcting sky polarization with sine2theta (%d params) method', $

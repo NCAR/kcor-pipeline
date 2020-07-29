@@ -556,7 +556,7 @@ pro kcor_l1, ok_filename, $
 
   theta1 = atan(- sun_yy1, - sun_xx1)
   theta1 += !pi
-  theta1 = rot(reverse(theta1), pangle + run->epoch('rotation_correction'), 1)
+  theta1 = rot(reverse(theta1), pangle + run->epoch('rotation_correction'), 1, /interp)
 
   ; combine I, Q, U images from camera 0 and camera 1
 
@@ -662,7 +662,7 @@ pro kcor_l1, ok_filename, $
 
     theta1 = atan(- yy1, - xx1)
     theta1 += !pi
-    theta1 = rot(reverse(theta1), pangle + run->epoch('rotation_correction'), 1)
+    theta1 = rot(reverse(theta1), pangle + run->epoch('rotation_correction'), 1, /interp)
 
     ; polar coordinates
     qmk4 = - cal_data_combined_center[*, *, 1] * sin(2.0 * theta1) $
