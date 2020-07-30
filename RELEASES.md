@@ -431,6 +431,7 @@
 2.0.18 [Jun 17, 2020]
   option to x-shift camera correction coefficients
 2.0.19 [Jun 17, 2020]
-  removing display_{min,max} epoch values that were accidently included
+  removing display_{min,max} epoch values that were accidentally included
 2.0.20
   config option to distribute quicklooks to gallery
+  move x-shift camera correction value to epoch file
