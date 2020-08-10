@@ -1,6 +1,6 @@
 ; docformat = 'rst'
 
-pro kcor_plot_gain_images, config_filename
+pro kcor_plot_gain_images, config_filename, compare=compare
   compile_opt strictarr
 
   scale = 4L
@@ -35,22 +35,23 @@ pro kcor_plot_gain_images, config_filename
   ;      1
   ;endfor
   
-  charsize = 1.75
+  charsize = keyword_set(compare) ? 1.75 : 1.2
+
+  original_device = !d.name
+  device, get_decomposed=original_decomposed
+  set_plot, 'Z'
+  device, decomposed=0
 
   for f = 0L, n_calib_files - 1L do begin
     basename = file_basename(calib_files[f])
     print, f + 1, n_calib_files, basename, format='(%"%d/%d: %s")'
     gain = mg_nc_getdata(calib_files[f], 'Gain')
 
-    production_calfiles = file_search(filepath(strmid(basename, 0, 8) + '*.ncdf', $
-                                               root='/hao/mlsodata1/Data/KCor/calib_files'), $
-                                      count=n_production_calfiles)
-    production_gain = mg_nc_getdata(production_calfiles[-1], 'Gain')
-
     title = string(basename, file_basename(config_filename), $
                    format='(%"%s [%s]")')
-    window, xsize=800L, ysize=4 * 250L, /free, title=title
-    !p.multi = [0, 1, 4]
+    mg_window, xsize=12.0, ysize=(keyword_set(compare) ? 4L : 2L) * 5.0, $
+               /inches, /free, title=title
+    !p.multi = [0, 1, keyword_set(compare) ? 4 : 2]
 
     for c = 0L, 1L do begin
       plot, gain[*, 512, c], $
@@ -60,30 +61,41 @@ pro kcor_plot_gain_images, config_filename
             charsize=charsize
     endfor
 
-    for c = 0L, 1L do begin
-      plot, production_gain[*, 512, c], $
-            xstyle=1, ystyle=1, yrange=[0.0, 2500.0], $
-            psym=3, $
-            title=string(c, format='(%"Production cal file [cameras %d]")'), $
-            charsize=charsize
-    endfor
+    if (keyword_set(compare)) then begin
+      production_calfiles = file_search(filepath(strmid(basename, 0, 8) + '*.ncdf', $
+                                                 root='/hao/mlsodata1/Data/KCor/calib_files'), $
+                                        count=n_production_calfiles)
+      production_gain = mg_nc_getdata(production_calfiles[-1], 'Gain')
+
+      for c = 0L, 1L do begin
+        plot, production_gain[*, 512, c], $
+              xstyle=1, ystyle=1, yrange=[0.0, 2500.0], $
+              psym=3, $
+              title=string(c, format='(%"Production cal file [cameras %d]")'), $
+              charsize=charsize
+      endfor
+    endif
 
     !p.multi = 0
+
+    im = tvrd(true=0)
+    write_png, filepath(string(basename, format='(%"%s-profile.png")'), $
+                        subdir='gain-profiles', $
+                        root='.'), $
+               im
   endfor
 
+  set_plot, original_device
+  device, decomposed=original_decomposed
   obj_destroy, run
 end
 
 
 ; main-level example program
 
-;xshifts = -1 * [2, 4, 6, 8, 10]
-xshifts = [-6]
-for s = 0L, n_elements(xshifts) - 1L do begin
-  config_filename = filepath(string(xshifts[s], format='(%"kcor.xshift-%d.cfg")'), $
-                             subdir=['..', 'config'], $
-                             root=mg_src_root())
-  kcor_plot_gain_images, config_filename
-endfor
+config_filename = filepath('kcor.production.cfg', $
+                           subdir=['..', 'config'], $
+                           root=mg_src_root())
+kcor_plot_gain_images, config_filename, compare=0B
 
 end
