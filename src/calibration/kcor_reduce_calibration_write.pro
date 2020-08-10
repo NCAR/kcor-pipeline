@@ -46,6 +46,12 @@ pro kcor_reduce_calibration_write, data, metadata, $
   ncdf_attput, cid, /global, 'epoch_version', run->epoch('cal_epoch_version')
   ncdf_attput, cid, /global, 'flat-date-obs', metadata.flat_date_obs
 
+  version = kcor_find_code_version(revision=revision, date=code_date)
+  ncdf_attput, cid, /global, $
+               'version', string(version, revision, $
+                                 format='(%"%s [%s]")')
+
+
   ; define dimensions
   filesdim = ncdf_dimdef(cid, 'Number of Files', n_elements(file_list))
   pixels0dim = ncdf_dimdef(cid, 'Number of Pixels for Beam 0', n_elements(pixels0) / 2)
