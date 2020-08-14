@@ -32,14 +32,8 @@ pro kcor_daily_o1focus_plot, run=run
     header = headfits(raw_files[r])
 
     date_obs = sxpar(header, 'DATE-OBS')
-    hour = strmid(date_obs, 11, 2)
-    minute = strmid(date_obs, 14, 2)
-    second = strmid(date_obs, 17, 2)
-    hst_time = kcor_ut2hst(hour + minute + second)
-    hour = long(strmid(hst_time, 0, 2))
-    minute = long(strmid(hst_time, 2, 2))
-    second = long(strmid(hst_time, 4, 2))
-    times[r] = hour + (minute + second / 60.0) / 60.0
+    hst_time = kcor_dateobs2hst(date_obs)
+    times[r] = kcor_decimal_time(hst_time)
 
     o1focus[r] = sxpar(header, 'O1FOCS')
   endfor
