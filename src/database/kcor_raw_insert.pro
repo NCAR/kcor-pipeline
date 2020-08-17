@@ -102,14 +102,14 @@ pro kcor_raw_insert, date, fits_list, quality, $
     ; extract desired items from header
     kcor_read_rawdata, fts_file, header=hdu, $
                        repair_routine=run->epoch('repair_routine'), $
-                       state_state=run->epoch('start_state')
+                       start_state=run->epoch('start_state')
 
     date_obs = sxpar(hdu, 'DATE-OBS', count=qdate_obs)
     date_end = sxpar(hdu, 'DATE-END', count=qdate_end)
 
     kcor_read_rawdata, fts_file, image=image, $
                        repair_routine=run->epoch('repair_routine'), $
-                       state_state=run->epoch('start_state')
+                       start_state=run->epoch('start_state')
 
     mean_int_img0 = mean(image[*, *, 0, 0])
     mean_int_img1 = mean(image[*, *, 1, 0])

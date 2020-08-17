@@ -45,7 +45,7 @@ pro kcor_detect_badlines, run=run
                         root=raw_basedir)
     kcor_read_rawdata, filename, image=im, $
                        repair_routine=run->epoch('repair_routine'), $
-                       state_state=run->epoch('start_state')
+                       start_state=run->epoch('start_state')
 
     n_checked_images += 1L
 

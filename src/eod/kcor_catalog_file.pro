@@ -22,7 +22,7 @@ pro kcor_catalog_file, filename, run=run
   ; read FITS header and read selected keyword parameters
   kcor_read_rawdata, filename, header=header, $
                      repair_routine=run->epoch('repair_routine'), $
-                     state_state=run->epoch('start_state')
+                     start_state=run->epoch('start_state')
 
   datatype = sxpar(header, 'DATATYPE')
   diffuser = strtrim(sxpar(header, 'DIFFUSER'))
@@ -46,7 +46,7 @@ pro kcor_catalog_file, filename, run=run
     ; print a measure of every image in the cube
     kcor_read_rawdata, filename, image=image, $
                        repair_routine=run->epoch('repair_routine'), $
-                       state_state=run->epoch('start_state')
+                       start_state=run->epoch('start_state')
     for camera = 0, 1 do begin
       for sequence = 0, 3 do begin
          printf, science_lun, mean(image[*, *, sequence, camera]), $
@@ -70,7 +70,7 @@ pro kcor_catalog_file, filename, run=run
     ; print a measure of every image in the cube
     kcor_read_rawdata, filename, image=image, $
                        repair_routine=run->epoch('repair_routine'), $
-                       state_state=run->epoch('start_state')
+                       start_state=run->epoch('start_state')
     for camera = 0, 1 do begin
       for sequence = 0, 3 do begin
         printf, calibration_lun, format='(e12.5, "   ", $)', mean(image[*, *, sequence, camera])
