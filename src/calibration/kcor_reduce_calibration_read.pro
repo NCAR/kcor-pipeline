@@ -32,7 +32,8 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
   mg_log, 'testing %s...', filenames[0], name='kcor/cal', /debug
 
   kcor_read_rawdata, filenames[0], header=header, $
-                     repair_routine=run->epoch('repair_routine')
+                     repair_routine=run->epoch('repair_routine'), $
+                     state_state=run->epoch('start_state')
   header = fitshead2struct(header)
 
   ; set epoch values to the beginning of the calibration
@@ -65,7 +66,8 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
     if (~file_test(filenames[f], /regular)) then filenames[f] += '.gz'
 
     kcor_read_rawdata, filenames[f], image=thisdata, header=header, $
-                       repair_routine=run->epoch('repair_routine')
+                       repair_routine=run->epoch('repair_routine'), $
+                       state_state=run->epoch('start_state')
 
     ; must set time before querying run object
     date_obs = sxpar(header, 'DATE-OBS', count=qdate_obs)

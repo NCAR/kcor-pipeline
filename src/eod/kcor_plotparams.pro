@@ -76,7 +76,8 @@ pro kcor_plotparams, date, list=list, run=run
     l0_file = list[i]
 
     kcor_read_rawdata, l0_file, header=hdu, $
-                       repair_routine=run->epoch('repair_routine')
+                       repair_routine=run->epoch('repair_routine'), $
+                       state_state=run->epoch('start_state')
 
     ; get FITS header size
     hdusize = size(hdu)

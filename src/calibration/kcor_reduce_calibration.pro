@@ -62,7 +62,8 @@ pro kcor_reduce_calibration, date, $
     for f = 0L, n_files - 1L do begin
       kcor_read_rawdata, filelist[f], header=hdu, $
                          repair_routine=run->epoch('repair_routine'), $
-                         errmsg=errmsg
+                         errmsg=errmsg, $
+                         start_state=run->epoch('start_state')
       if (errmsg ne '') then begin
         mg_log, 'error reading %s', filelist[f], name='kcor/cal', /error
         mg_log, errmsg, name='kcor/cal', /error

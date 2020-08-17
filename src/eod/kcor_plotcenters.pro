@@ -142,7 +142,8 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
     endif
 
     kcor_read_rawdata, l0_file, image=img, header=hdu, $
-                       repair_routine=run->epoch('repair_routine')
+                       repair_routine=run->epoch('repair_routine'), $
+                       state_state=run->epoch('start_state')
 
     img0 = reform(img[*, *, 0, 0])
     img0 = reverse(img0, 2)  ; y-axis inversion

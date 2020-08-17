@@ -251,7 +251,8 @@ function kcor_quality, date, l0_fits_files, append=append, $
     num_img += 1
     run.time = strmid(file_basename(l0_file), 9, 6)
     kcor_read_rawdata, l0_file, image=img, header=hdu, $
-                       repair_routine=run->epoch('repair_routine')
+                       repair_routine=run->epoch('repair_routine'), $
+                       state_state=run->epoch('start_state')
     img = float(img)
 
     mg_log, 'checking %d/%d: %s', $
@@ -269,7 +270,8 @@ function kcor_quality, date, l0_fits_files, append=append, $
       wait, delay_time
 
       kcor_read_rawdata, l0_file, image=img, header=hdu, $
-                         repair_routine=run->epoch('repair_routine')
+                         repair_routine=run->epoch('repair_routine'), $
+                         state_state=run->epoch('start_state')
       n_dims = size(img, /n_dimensions)
       if (n_dims ne 4) then begin
         mg_log, 'wrong number of dimensions for image: %d', n_dims, $
