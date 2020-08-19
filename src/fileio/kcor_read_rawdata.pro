@@ -38,7 +38,7 @@ pro kcor_read_rawdata, filename, $
   endcase
 
   if (arg_present(im) && n_elements(start_state) gt 0L && start_state ne 0L) then begin
-    im = shift(im, 0, 0, -start_state, 0)
+    im = shift(im, 0, 0, start_state, 0)
   endif
 
   if (n_elements(repair_routine) gt 0L && repair_routine ne '') then begin
