@@ -109,9 +109,7 @@ pro kcor_rowcol_image_l2, run=run
   meancols = fltarr(nx, n_files)
 
   for f = 0L, n_files - 1L do begin
-    kcor_read_rawdata, files[f], image=im, $
-                       repair_routine=run->epoch('repair_routine'), $
-                       start_state=run->epoch('start_state')
+    im = readfits(files[f])
 
     medrows[f, *] = median(im, dimension=1)
     medcols[*, f] = median(im, dimension=2)
