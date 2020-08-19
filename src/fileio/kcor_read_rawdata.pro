@@ -37,7 +37,7 @@ pro kcor_read_rawdata, filename, $
     else: return
   endcase
 
-  if (n_elements(start_state) gt 0L && start_state ne 0L) then begin
+  if (arg_present(im) && n_elements(start_state) gt 0L && start_state ne 0L) then begin
     im = shift(im, 0, 0, -start_state, 0)
   endif
 
