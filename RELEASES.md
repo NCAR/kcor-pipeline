@@ -436,3 +436,7 @@
   config option to distribute quicklooks to gallery
   move x-shift camera correction value to epoch file
   ability to fix data taken in the wrong polarization sequence
+  daily/monthly O1 focus engineering plots
+  added complete version metadata to cal files
+  filling flats outside of annulus with mean value
+  use bilinear for most interpolations, cubic for distortion
