@@ -4,8 +4,12 @@
 ; Display quicklook images for both cameras of a raw file.
 ;
 ; :Params:
-;   l0_filename : in, required, type=string
-;     filename of a raw KCor file
+;   pb : in, required, type=fltarr
+;     pB array
+;   quality : in, required, type=string
+;     quality name
+;   output_filename : in, required, type=string
+;     filename of output quicklook file
 ;
 ; :Keywords:
 ;   minimum : in, optional, type=float, default=-10.0
@@ -18,13 +22,16 @@
 ;     gamma to use for display
 ;   colortable : in, optional, type=integer, default=0
 ;     colortable number 0-74 as passed to `LOADCT`, default is 0 (black/white)
+;   dimensions : in, optional, type=lonarr(2)
+;     size of output image, default is the size of the input `pb` image
 ;-
-pro kcor_display_quicklook, l0_filename, $
+pro kcor_display_quicklook, pb, quality, output_filename, $
                             minimum=display_minimum, $
                             maximum=display_maximum, $
                             exponent=display_exponent, $
                             gamma=display_gamma, $
-                            colortable=colortable
+                            colortable=colortable, $
+                            dimensions=dimensions
   compile_opt strictarr
   on_error, 2
 
