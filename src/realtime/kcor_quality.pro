@@ -665,7 +665,13 @@ function kcor_quality, date, l0_fits_files, append=append, $
       pb_m = pb * shifted_mask
     endelse
 
-    radius = 0.0
+    rsunpix = rsun / run->epoch('plate_scale')   ; 1.0 rsun [pixels]
+    radius = rsunpix
+
+    fitsloc  = strpos(l0_file, '.fts')
+    l0_basename = file_basename(l0_file)
+    l0_base = strmid(l0_basename, 0, fitsloc)
+
     case 1 of
       cal gt 0: begin                                      ; calibration
           gif_basename = string(l0_base, format='(%"%s_cam%%d_c.gif")')
@@ -745,15 +751,9 @@ function kcor_quality, date, l0_fits_files, append=append, $
         end
     endcase
 
-    rsunpix = rsun / run->epoch('plate_scale')   ; 1.0 rsun [pixels]
-
-    fitsloc  = strpos(l0_file, '.fts')
-    l0_basename = file_basename(l0_file)
-    l0_base = strmid(l0_basename, 0, fitsloc)
-
     for c = 0, 1 do begin
       gif_filename = filepath(string(c, format=gif_basename), root=quicklook_dir)
-      kcor_quicklook, pb_m, shifted_mask, quality_name, gif_filename, $
+      kcor_quicklook, pb_m[*, * , c], shifted_mask, quality_name, gif_filename, $
                       camera=c, $
                       l0_basename=l0_base, $
                       xcenter=xcen[c], ycenter=ycen[c], radius=radius, $

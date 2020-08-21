@@ -42,18 +42,20 @@ pro kcor_quicklook, pb, mask, $
   compile_opt strictarr
   on_error, 2
 
+  mg_log, 'starting quicklook...', name='kcor/rt', /info
+
   original_device = !d.name
   device, get_decomposed=original_decomposed
   tvlct, original_rgb, /get
 
   ; set up graphics window & color table
   set_plot, 'Z'
-  device, set_resolution=dimensions, $
+  device, set_resolution=display_dimensions, $
           decomposed=0, $
           set_colors=256, $
           z_buffering=0
 
-  loadct, colortbale, ncolors=250, /silent
+  loadct, colortable, ncolors=250, /silent
   gamma_ct, display_gamma, /current
 
   ; define color levels for annotation
@@ -77,20 +79,15 @@ pro kcor_quicklook, pb, mask, $
 
   tvlct, rlut, glut, blut, /get
 
-  power_pb = pb ^ display_exponent
-  _display_maximum = n_elements(display_maximum) eq 0L ? max(power_pb) : display_maximum
-  display_pb = bytscl(power_pb, $
-                      min=display_minimum, $
-                      max=_display_maximum, $
-                      top=249)
-  display_pb *= mask
-
   ; resize if needed
-  pb_dimensions = size(display_pb, /dimensions)
+  pb_dimensions = size(pb, /dimensions)
   if (~array_equal(pb_dimensions, display_dimensions)) then begin
-    display_pb = congrid(display_pb, display_dimensions[0], display_dimensions[1])
+    resized_pb = congrid(pb, display_dimensions[0], display_dimensions[1])
     scale_factors = display_dimensions / pb_dimensions
-  endif else scale_factors = fltarr(2) + 1.0
+  endif else begin
+    resized_pb = pb
+    scale_factors = fltarr(2) + 1.0
+  endelse
 
   scaled_xcenter = scale_factors[0] * xcenter
   scaled_ycenter = scale_factors[1] * ycenter
@@ -99,14 +96,27 @@ pro kcor_quicklook, pb, mask, $
   scaled_axcenter = scale_factors[0] * axcenter
   scaled_aycenter = scale_factors[1] * aycenter
 
+  power_pb = resized_pb ^ display_exponent
+  _display_maximum = n_elements(display_maximum) eq 0L ? max(power_pb) : display_maximum
+  display_pb = bytscl(power_pb, $
+                      min=display_minimum, $
+                      max=_display_maximum, $
+                      top=249)
+  display_pb *= mask
+
+  mg_log, 'max: %0.1f', max(display_pb), name='kcor/rt', /debug
+
   tv, display_pb
+
+  mg_log, '%s', file_basename(output_filename), name='kcor/rt', /debug
+  mg_log, 'quality: %s', quality, name='kcor/rt', /debug
 
   if (quality ne 'calibration' and quality ne 'device obscuration' and quality ne 'saturated') then begin
     ; occulter disc
     tvcircle, scaled_occulter_radius, $
               scaled_xcenter, $
               scaled_ycenter, $
-              scaledgrey, /device, /fill   
+              grey, /device, /fill   
     ; 1.0 Rsun circle
     tvcircle, scaled_radius, $
               scaled_xcenter, $
@@ -132,8 +142,8 @@ pro kcor_quicklook, pb, mask, $
     ; camera 1 is flipped vertically
     if (camera eq 1) then north_angle *= -1
 
-    north_x = north_r * cos(north_angle * !dtor) + xcenter
-    north_y = north_r * sin(north_angle * !dtor) + ycenter
+    north_x = north_r * cos(north_angle * !dtor) + scaled_xcenter
+    north_y = north_r * sin(north_angle * !dtor) + scaled_ycenter
 
     north_orientation = north_angle - 90.0
     north_angle mod= 360.0

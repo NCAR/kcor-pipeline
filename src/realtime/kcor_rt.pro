@@ -135,7 +135,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
                             dim_files=dim_files, $
                             nsy_files=nsy_files, $
                             sat_files=sat_files, $
-                            galley_quicklook_files=gallery_quicklook_files, $
+                            gallery_quicklook_files=gallery_quicklook_files, $
                             run=run)
     mg_log, '%d OK L0 files', n_elements(ok_files), name='kcor/rt', /info
 
