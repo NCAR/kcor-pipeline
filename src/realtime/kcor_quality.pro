@@ -51,7 +51,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
                        dim_files=dim_files, $
                        nsy_files=nsy_files, $
                        sat_files=sat_files, $
-                       quicklook_files=quicklook_files, $
+                       gallery_quicklook_files=gallery_quicklook_files, $
                        run=run
   compile_opt strictarr
 
@@ -186,39 +186,39 @@ function kcor_quality, date, l0_fits_files, append=append, $
   readu, umask, mask
   free_lun, umask
 
-  ; set up graphics window & color table
-  set_plot, 'Z'
-  ; window, 0, xsize=1024, ysize=1024, retain=2
-
-  device, set_resolution=[1024, 1024], $
-          decomposed=0, $
-          set_colors=256, $
-          z_buffering=0
+  ; ; set up graphics window & color table
+  ; set_plot, 'Z'
+  ; ; window, 0, xsize=1024, ysize=1024, retain=2
+  ;
+  ; device, set_resolution=[1024, 1024], $
+  ;         decomposed=0, $
+  ;         set_colors=256, $
+  ;         z_buffering=0
 
   ;lct, filepath('bwy5.lut', root=run.resources_dir)   ; color table
-  loadct, 0, ncolors=250, /silent
-  gamma_ct, run->epoch('quicklook_gamma'), /current
+  ; loadct, 0, ncolors=250, /silent
+  ; gamma_ct, run->epoch('quicklook_gamma'), /current
 
-  ; define color levels for annotation
-  yellow = 250
-  tvlct, 255, 255, 0, yellow
-
-  grey   = 251
-  tvlct, 127, 127, 127, grey
-
-  blue   = 252
-  tvlct, 0, 0, 255, blue
-
-  green  = 253
-  tvlct, 0, 255, 0, green
-
-  red    = 254
-  tvlct, 255, 0, 0, red
-
-  white  = 255
-  tvlct, 255, 255, 255, white
-
-  tvlct, rlut, glut, blut, /get
+  ; ; define color levels for annotation
+  ; yellow = 250
+  ; tvlct, 255, 255, 0, yellow
+  ;
+  ; grey   = 251
+  ; tvlct, 127, 127, 127, grey
+  ;
+  ; blue   = 252
+  ; tvlct, 0, 0, 255, blue
+  ;
+  ; green  = 253
+  ; tvlct, 0, 255, 0, green
+  ;
+  ; red    = 254
+  ; tvlct, 255, 0, 0, red
+  ;
+  ; white  = 255
+  ; tvlct, 255, 255, 255, white
+  ;
+  ; tvlct, rlut, glut, blut, /get
 
   ; open file containing a list of kcor L0 FITS files
   mg_log, 'inventory for current run...', name='kcor/rt', /debug
@@ -665,12 +665,118 @@ function kcor_quality, date, l0_fits_files, append=append, $
       pb_m = pb * shifted_mask
     endelse
 
-    ; intensity scaling
-    power = run->epoch('quicklook_power')
-    pb_s = pb_m ^ power   ; apply exponential power
+    radius = 0.0
+    case 1 of
+      cal gt 0: begin                                      ; calibration
+          gif_basename = string(l0_base, format='(%"%s_cam%%d_c.gif")')
+          quality_name = 'calibration'
+          qual = q_cal
+          ncal += 1
+          printf, ucal, l0_file
+          cal_list->add, l0_file
+          file_copy, l0_file, cdate_dir, /overwrite   ; copy l0 file to cdate_dir
+        end
+      dev gt 0: begin                                      ; device obscuration        
+          gif_basename = string(l0_base, format='(%"%s_cam%%d_m.gif")')
+          quality_name = 'device obscuration'
+          qual = q_dev
+          ndev += 1
+          printf, udev, l0_file
+          dev_list->add, l0_file
+        end
+      sat gt 0: begin                                      ; saturation
+          radius = run->epoch('rpixt')
+          gif_basename = string(l0_base, format='(%"%s_cam%%d_t.gif")')
+          quality_name = 'saturated'
+          qual = q_sat
+          nsat += 1
+          printf, usat, l0_file
+          sat_list->add, l0_file
+        end
+      bright gt 0: begin                                   ; bright image
+          radius = rpixb
+          gif_basename = string(l0_base, format='(%"%s_cam%%d_b.gif")')
+          quality_name = 'bright'
+          qual = q_brt
+          nbrt += 1
+          printf, ubrt, l0_file
+          brt_list->add, l0_file
+        end
+      clo gt 0: begin                                      ; dim image
+          radius = rpixc
+          gif_basename = string(l0_base, format='(%"%s_cam%%d_d.gif")')
+          quality_name = 'dim'
+          qual = q_dim
+          ndim += 1
+          printf, udim, l0_file
+          dim_list->add, l0_file
+        end
+      chi gt 0: begin                                      ; cloudy image
+          radius = rpixc
+          gif_file = string(l0_base, format='(%"%s_cam%%d_o.gif")')
+          quality_name = 'cloudy'
+          qual = q_cld
+          ncld += 1
+          printf, ucld, l0_file
+          cld_list->add, l0_file
+        end
+      noise gt 0: begin                                    ; noisy
+          radius = rpixn
+          gif_basename = string(l0_base, format='(%"%s_cam%%d_n.gif")')
+          quality_name = 'noisy'
+          qual = q_nsy
+          nnsy += 1
+          printf, unsy, l0_file
+          nsy_list->add, l0_file
+        end
+      else: begin                                          ; good image
+          if (eng gt 0) then begin   ; engineering
+            gif_basename = string(l0_base, format='(%"%s_cam%%d_e.gif")')
+            quality_name = 'engineering'
+          endif else begin
+            gif_basename = string(l0_base, format='(%"%s_cam%%d_g.gif")')
+            quality_name = 'good'
+          endelse
 
-    imin = -10.0
-    imax = [max(pb_s[*, *, 0]), max(pb_s[*, *, 1])]
+          qual = q_ok
+          nokf += 1
+          printf, uokf, file_basename(l0_file)
+          printf, uoka, file_basename(l0_file)
+        end
+    endcase
+
+    rsunpix = rsun / run->epoch('plate_scale')   ; 1.0 rsun [pixels]
+
+    fitsloc  = strpos(l0_file, '.fts')
+    l0_basename = file_basename(l0_file)
+    l0_base = strmid(l0_basename, 0, fitsloc)
+
+    for c = 0, 1 do begin
+      gif_filename = filepath(string(c, format=gif_basename), root=quicklook_dir)
+      kcor_quicklook, pb_m, shifted_mask, quality_name, gif_filename, $
+                      camera=c, $
+                      l0_basename=l0_base, $
+                      xcenter=xcen[c], ycenter=ycen[c], radius=radius, $
+                      axcenter=axcen, aycenter=aycen, $
+                      occulter_radius=rdisc_pix[c], $
+                      pangle=pangle, $
+                      minimum=-10.0, $
+                      exponent=run->epoch('quicklook_exponent'), $
+                      gamma=run->epoch('quicklook_gamma'), $
+                      colortable=run->epoch('quicklook_colortable'), $
+                      dimensions=run->epoch('quicklook_dimensions')
+
+      quicklook_list->add, gif_filename
+    endfor
+
+
+
+    ; intensity scaling
+    ; power = run->epoch('quicklook_exponent')
+    ; pb_s = pb_m ^ power   ; apply exponential power
+
+    ; imin = -10.0
+    ; imax = [max(pb_s[*, *, 0]), max(pb_s[*, *, 1])]
 
     mg_log, 'pB max: %0.1f, %0.1f', max(pb[*, *, 0]), max(pb[*, *, 1]), $
             name='kcor/rt', /debug
@@ -678,175 +784,170 @@ function kcor_quality, date, l0_fits_files, append=append, $
       mg_log, 'pB rot max: %0.1f, %0.1f', max(pb_rot[*, *, 0]), max(pb_rot[*, *, 1]), $
               name='kcor/rt', /debug
     endif
-    mg_log, 'pB m max: %0.1f, %0.1f', max(pb_m[*, *, 0]), max(pb_m[*, *, 1]), $
-              name='kcor/rt', /debug
-    mg_log, 'pB s max: %0.1f, %0.1f', max(pb_s[*, *, 0]), max(pb_s[*, *, 1]), $
-            name='kcor/rt', /debug
-
-    ; imin = 0.0
-    ; imax = 40.0
+    ; mg_log, 'pB m max: %0.1f, %0.1f', max(pb_m[*, *, 0]), max(pb_m[*, *, 1]), $
+    ;           name='kcor/rt', /debug
+    ; mg_log, 'pB s max: %0.1f, %0.1f', max(pb_s[*, *, 0]), max(pb_s[*, *, 1]), $
+    ;         name='kcor/rt', /debug
 
     ; scale pixel intensities
-    for c = 0, 1 do begin
+    ;for c = 0, 1 do begin
       ; linear scaling: 0-249
-      pb_sb = bytscl(pb_s[*, *, c], min=imin, max=imax[c], top=249)
-      pb_sb *= shifted_mask
+      ; pb_sb = bytscl(pb_s[*, *, c], min=imin, max=imax[c], top=249)
+      ; pb_sb *= shifted_mask
+      ;
+      ; ; display image
+      ; tv, pb_sb
 
-      ; display image
-      tv, pb_sb
-
-      rsunpix = rsun / run->epoch('plate_scale')   ; 1.0 rsun [pixels]
-      irsunpix = fix(rsunpix + 0.5)                ; 1.0 rsun [integer pixels]
 
       ; annotate image
 
       ; skip annotation (except file name) for calibration images
-      if (cal eq 0 and dev eq 0 and sat eq 0) then begin
-        ; draw circle at 1.0 Rsun
-        tvcircle, rdisc_pix[c], xcen[c], ycen[c], grey, /device, /fill  ; occulter disc 
-        tvcircle, rsunpix, xcen[c], ycen[c], yellow, /device         ; 1.0 Rsun circle
-        tvcircle, 3.0 * rsunpix, xcen[c], ycen[c], grey, /device     ; 3.0 Rsun circle
-
-        ; draw "+" at sun center
-        plots, [axcen - 5, axcen + 5], [aycen, aycen], color=green, /device
-        plots, [axcen, axcen], [aycen - 5, aycen + 5], color=green, /device
-
-        if (dev eq 0) then begin
-          north_r = 498.5
-          north_angle = 90.0 + pangle
-
-          ; camera 1 is flipped vertically
-          if (c eq 1) then north_angle *= -1
-
-          north_x = north_r * cos(north_angle * !dtor) + xcen[c]
-          north_y = north_r * sin(north_angle * !dtor) + ycen[c]
-
-          north_orientation = north_angle - 90.0
-          north_angle mod= 360.0
-          if ((north_angle lt 0.0 && north_angle gt -180.0) $
-              || (north_angle gt 180.0)) then begin
-            north_orientation += 180.0
-          endif
-          xyouts, north_x, north_y, string(pangle - 180.0, $
-                                           format='(%"NORTH (p-angle: %0.1f)")'), $
-                  color=green, charsize=1.0, /device, $
-                  alignment=0.5, orientation=north_orientation
-        endif
-      endif
+      ; if (cal eq 0 and dev eq 0 and sat eq 0) then begin
+      ;   ; draw circle at 1.0 Rsun
+      ;   tvcircle, rdisc_pix[c], xcen[c], ycen[c], grey, /device, /fill  ; occulter disc
+      ;   tvcircle, rsunpix, xcen[c], ycen[c], yellow, /device         ; 1.0 Rsun circle
+      ;   tvcircle, 3.0 * rsunpix, xcen[c], ycen[c], grey, /device     ; 3.0 Rsun circle
+      ;
+      ;   ; draw "+" at sun center
+      ;   plots, [axcen - 5, axcen + 5], [aycen, aycen], color=green, /device
+      ;   plots, [axcen, axcen], [aycen - 5, aycen + 5], color=green, /device
+      ;
+      ;   if (dev eq 0) then begin
+      ;     north_r = 498.5
+      ;     north_angle = 90.0 + pangle
+      ;
+      ;     ; camera 1 is flipped vertically
+      ;     if (c eq 1) then north_angle *= -1
+      ;
+      ;     north_x = north_r * cos(north_angle * !dtor) + xcen[c]
+      ;     north_y = north_r * sin(north_angle * !dtor) + ycen[c]
+      ;
+      ;     north_orientation = north_angle - 90.0
+      ;     north_angle mod= 360.0
+      ;     if ((north_angle lt 0.0 && north_angle gt -180.0) $
+      ;         || (north_angle gt 180.0)) then begin
+      ;       north_orientation += 180.0
+      ;     endif
+      ;     xyouts, north_x, north_y, string(pangle - 180.0, $
+      ;                                      format='(%"NORTH (p-angle: %0.1f)")'), $
+      ;             color=green, charsize=1.0, /device, $
+      ;             alignment=0.5, orientation=north_orientation
+      ;   endif
+      ; endif
 
       ; create GIF file name, draw circle (as needed)
-      fitsloc  = strpos(l0_file, '.fts')
-      gif_file = 'kcor.gif'   ; default gif file name
-      qual     = 'unk'
+      ; fitsloc  = strpos(l0_file, '.fts')
+      ; gif_file = 'kcor.gif'   ; default gif file name
+      ; qual     = 'unk'
 
       ; write GIF image
 
-      l0_basename = file_basename(l0_file)
-      l0_base = strmid(l0_basename, 0, fitsloc)
-
-      if (cal gt 0) then begin   ; calibration
-        gif_file = string(l0_base, format='(%"%s_cam%%d_c.gif")')
-        quality_name = 'calibration'
-        qual = q_cal
-        if (c eq check_camera) then begin
-          ncal += 1
-          printf, ucal, l0_file
-          cal_list->add, l0_file
-          file_copy, l0_file, cdate_dir, /overwrite   ; copy l0 file to cdate_dir
-        endif
-      endif else if (dev gt 0) then begin           ; device obscuration
-        gif_file = string(l0_base, format='(%"%s_cam%%d_m.gif")')
-        quality_name = 'device obscuration'
-        qual = q_dev
-        if (c eq check_camera) then begin
-          ndev += 1
-          printf, udev, l0_file
-          dev_list->add, l0_file
-        endif
-      endif else if (sat gt 0) then begin                      ; saturation
-        tvcircle, run->epoch('rpixt'), xcen[c], ycen[c], blue, /device   ; sat circle
-        gif_file = string(l0_base, format='(%"%s_cam%%d_t.gif")')
-        quality_name = 'saturated'
-        qual = q_sat
-        if (c eq check_camera) then begin
-          nsat += 1
-          printf, usat, l0_file
-          sat_list->add, l0_file
-        endif
-      endif else if (bright gt 0) then begin     ; bright image
-        tvcircle, rpixb, xcen[c], ycen[c], red, /device   ; bright circle
-        gif_file = string(l0_base, format='(%"%s_cam%%d_b.gif")')
-        quality_name = 'bright'
-        qual = q_brt
-        if (c eq check_camera) then begin
-          nbrt += 1
-          printf, ubrt, l0_file
-          brt_list->add, l0_file
-        endif
-      endif else if (clo gt 0) then begin          ; dim image
-        tvcircle, rpixc, xcen[c], ycen[c], green,  /device   ; cloud circle
-        gif_file = string(l0_base, format='(%"%s_cam%%d_d.gif")')
-        quality_name = 'dim'
-        qual = q_dim
-        if (c eq check_camera) then begin
-          ndim += 1
-          printf, udim, l0_file
-          dim_list->add, l0_file
-        endif
-      endif else if (chi gt 0) then begin          ; cloudy image
-        tvcircle, rpixc, xcen[c], ycen[c], green,  /device   ; cloud circle
-        gif_file = string(l0_base, format='(%"%s_cam%%d_o.gif")')
-        quality_name = 'cloudy'
-        qual = q_cld
-        if (c eq check_camera) then begin
-          ncld += 1
-          printf, ucld, l0_file
-          cld_list->add, l0_file
-        endif
-      endif else if (noise gt 0) then begin        ; noisy
-        tvcircle, rpixn, xcen[c], ycen[c], yellow, /device   ; noise circle
-        gif_file = string(l0_base, format='(%"%s_cam%%d_n.gif")')
-        quality_name = 'noisy'
-        qual = q_nsy
-        if (c eq check_camera) then begin
-          nnsy += 1
-          printf, unsy, l0_file
-          nsy_list->add, l0_file
-        endif
-      endif else begin         ; good image
-        if (eng gt 0) then begin   ; engineering
-          gif_file = string(l0_base, format='(%"%s_cam%%d_e.gif")')
-          quality_name = 'engineering'
-        endif else begin
-          gif_file = string(l0_base, format='(%"%s_cam%%d_g.gif")')
-          quality_name = 'good'
-        endelse
-
-        qual = q_ok
-        if (c eq check_camera) then begin
-          nokf += 1
-          printf, uokf, file_basename(l0_file)
-          printf, uoka, file_basename(l0_file)
-        endif
-      endelse
-
-      gif_path = filepath(string(c, format=gif_file), $
-                          root=quicklook_dir)
-
-      ; write GIF file
-      xyouts, 6, ydim - 20, file_basename(gif_path), $
-              color=white, charsize=1.0, /device
-      xyouts, 6, 30, string(imin, imax[c], format='(%"min/max: %0.1f, %0.1f")'), $
-              color=white, charsize=1.0, /device
-      xyouts, 6, 13, string(power, run->epoch('quicklook_gamma'), $
-                            format='(%"scaling: pb ^ %0.1f, gamma=%0.1f")'), $
-              color=white, charsize=1.0, /device
-      xyouts, xdim - 6, ydim - 20, quality_name, $
-              color=white, charsize=1.0, /device, alignment=1.0
-      save = tvrd()
-      write_gif, gif_path, save, rlut, glut, blut
-      quicklook_list->add, gif_path
-    endfor
+    ;   l0_basename = file_basename(l0_file)
+    ;   l0_base = strmid(l0_basename, 0, fitsloc)
+    ;
+    ;   if (cal gt 0) then begin   ; calibration
+    ;     gif_file = string(l0_base, format='(%"%s_cam%%d_c.gif")')
+    ;     quality_name = 'calibration'
+    ;     qual = q_cal
+    ;     if (c eq check_camera) then begin
+    ;       ncal += 1
+    ;       printf, ucal, l0_file
+    ;       cal_list->add, l0_file
+    ;       file_copy, l0_file, cdate_dir, /overwrite   ; copy l0 file to cdate_dir
+    ;     endif
+    ;   endif else if (dev gt 0) then begin           ; device obscuration
+    ;     gif_file = string(l0_base, format='(%"%s_cam%%d_m.gif")')
+    ;     quality_name = 'device obscuration'
+    ;     qual = q_dev
+    ;     if (c eq check_camera) then begin
+    ;       ndev += 1
+    ;       printf, udev, l0_file
+    ;       dev_list->add, l0_file
+    ;     endif
+    ;   endif else if (sat gt 0) then begin                      ; saturation
+    ;     tvcircle, run->epoch('rpixt'), xcen[c], ycen[c], blue, /device   ; sat circle
+    ;     gif_file = string(l0_base, format='(%"%s_cam%%d_t.gif")')
+    ;     quality_name = 'saturated'
+    ;     qual = q_sat
+    ;     if (c eq check_camera) then begin
+    ;       nsat += 1
+    ;       printf, usat, l0_file
+    ;       sat_list->add, l0_file
+    ;     endif
+    ;   endif else if (bright gt 0) then begin     ; bright image
+    ;     tvcircle, rpixb, xcen[c], ycen[c], red, /device   ; bright circle
+    ;     gif_file = string(l0_base, format='(%"%s_cam%%d_b.gif")')
+    ;     quality_name = 'bright'
+    ;     qual = q_brt
+    ;     if (c eq check_camera) then begin
+    ;       nbrt += 1
+    ;       printf, ubrt, l0_file
+    ;       brt_list->add, l0_file
+    ;     endif
+    ;   endif else if (clo gt 0) then begin          ; dim image
+    ;     tvcircle, rpixc, xcen[c], ycen[c], green,  /device   ; cloud circle
+    ;     gif_file = string(l0_base, format='(%"%s_cam%%d_d.gif")')
+    ;     quality_name = 'dim'
+    ;     qual = q_dim
+    ;     if (c eq check_camera) then begin
+    ;       ndim += 1
+    ;       printf, udim, l0_file
+    ;       dim_list->add, l0_file
+    ;     endif
+    ;   endif else if (chi gt 0) then begin          ; cloudy image
+    ;     tvcircle, rpixc, xcen[c], ycen[c], green,  /device   ; cloud circle
+    ;     gif_file = string(l0_base, format='(%"%s_cam%%d_o.gif")')
+    ;     quality_name = 'cloudy'
+    ;     qual = q_cld
+    ;     if (c eq check_camera) then begin
+    ;       ncld += 1
+    ;       printf, ucld, l0_file
+    ;       cld_list->add, l0_file
+    ;     endif
+    ;   endif else if (noise gt 0) then begin        ; noisy
+    ;     tvcircle, rpixn, xcen[c], ycen[c], yellow, /device   ; noise circle
+    ;     gif_file = string(l0_base, format='(%"%s_cam%%d_n.gif")')
+    ;     quality_name = 'noisy'
+    ;     qual = q_nsy
+    ;     if (c eq check_camera) then begin
+    ;       nnsy += 1
+    ;       printf, unsy, l0_file
+    ;       nsy_list->add, l0_file
+    ;     endif
+    ;   endif else begin         ; good image
+    ;     if (eng gt 0) then begin   ; engineering
+    ;       gif_file = string(l0_base, format='(%"%s_cam%%d_e.gif")')
+    ;       quality_name = 'engineering'
+    ;     endif else begin
+    ;       gif_file = string(l0_base, format='(%"%s_cam%%d_g.gif")')
+    ;       quality_name = 'good'
+    ;     endelse
+    ;
+    ;     qual = q_ok
+    ;     if (c eq check_camera) then begin
+    ;       nokf += 1
+    ;       printf, uokf, file_basename(l0_file)
+    ;       printf, uoka, file_basename(l0_file)
+    ;     endif
+    ;   endelse
+    ;
+    ;   gif_path = filepath(string(c, format=gif_file), $
+    ;                       root=quicklook_dir)
+    ;
+    ;   ; write GIF file
+    ;   xyouts, 6, ydim - 20, file_basename(gif_path), $
+    ;           color=white, charsize=1.0, /device
+    ;   xyouts, 6, 30, string(imin, imax[c], format='(%"min/max: %0.1f, %0.1f")'), $
+    ;           color=white, charsize=1.0, /device
+    ;   xyouts, 6, 13, string(power, run->epoch('quicklook_gamma'), $
+    ;                         format='(%"scaling: pb ^ %0.1f, gamma=%0.1f")'), $
+    ;           color=white, charsize=1.0, /device
+    ;   xyouts, xdim - 6, ydim - 20, quality_name, $
+    ;           color=white, charsize=1.0, /device, alignment=1.0
+    ;   save = tvrd()
+    ;   write_gif, gif_path, save, rlut, glut, blut
+    ;   quicklook_list->add, gif_path
+    ; endfor
 
     istring     = string(format='(i5)',   num_img)
     exptime_str = string(format='(f5.2)', exptime)
@@ -890,7 +991,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
   obj_destroy, [brt_list, cal_list, cld_list, dim_list, dev_list, nsy_list, $
                 sat_list]
 
-  quicklook_files = quicklook_list->toArray()
+  gallery_quicklook_files = quicklook_list->toArray()
   obj_destroy, quicklook_list
 
   ; delete empty files
@@ -912,7 +1013,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
   endif
 
   cd, start_dir
-  set_plot, 'X'
+  ; set_plot, 'X'
 
   n_ok_files = file_lines(okf_dpath)
   if (n_ok_files gt 0L) then begin

@@ -135,17 +135,17 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
                             dim_files=dim_files, $
                             nsy_files=nsy_files, $
                             sat_files=sat_files, $
-                            quicklook_files=quicklook_files, $
+                            galley_quicklook_files=gallery_quicklook_files, $
                             run=run)
     mg_log, '%d OK L0 files', n_elements(ok_files), name='kcor/rt', /info
 
     quicklook_gallery_dir = run->config('results/quicklook_gallery_dir')
-    if (n_elements(quicklook_files) gt 0L && n_elements(quicklook_gallery_dir) gt 0L) then begin
+    if (n_elements(gallery_quicklook_files) gt 0L && n_elements(quicklook_gallery_dir) gt 0L) then begin
       if (~file_test(quicklook_gallery_dir, /directory)) then file_mkdir, quicklook_gallery_dir
       mg_log, 'distributing %d quicklook files to gallery', $
-              n_elements(quicklook_files), $
+              n_elements(gallery_quicklook_files), $
               name='kcor/rt', /info
-      file_copy, quicklook_files, quicklook_gallery_dir, /require_directory, /overwrite
+      file_copy, gallery_quicklook_files, quicklook_gallery_dir, /require_directory, /overwrite
     endif
 
     if (run->config('database/update')) then begin

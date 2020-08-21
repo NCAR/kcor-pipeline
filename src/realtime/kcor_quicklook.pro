@@ -1,0 +1,178 @@
+; docformat = 'rst'
+
+;+
+; Display quicklook images for both cameras of a raw file.
+;
+; :Params:
+;   pb : in, required, type=fltarr
+;     pB array
+;   quality : in, required, type=string
+;     quality name
+;   output_filename : in, required, type=string
+;     filename of output quicklook file
+;
+; :Keywords:
+;   minimum : in, optional, type=float, default=-10.0
+;     minimum to use for display
+;   maximum : in, optional, type=float
+;     maximum to use for display, default is maximum of annulus values by camera
+;   exponent : in, optional, type=float, default=0.7
+;     exponent to use for display
+;   gamma : in, optional, type=float, default=0.6
+;     gamma to use for display
+;   colortable : in, optional, type=integer, default=0
+;     colortable number 0-74 as passed to `LOADCT`, default is 0 (black/white)
+;   dimensions : in, optional, type=lonarr(2)
+;     size of output image, default is the size of the input `pb` image
+;-
+pro kcor_quicklook, pb, mask, $
+                    quality, output_filename, $
+                    l0_basename=l0_basename, $
+                    camera=camera, $
+                    xcenter=xcenter, ycenter=ycenter, radius=radius, $
+                    axcenter=axcenter, aycenter=aycenter, $
+                    occulter_radius=occulter_radius, $
+                    pangle=pangle, $
+                    minimum=display_minimum, $
+                    maximum=display_maximum, $
+                    exponent=display_exponent, $
+                    gamma=display_gamma, $
+                    colortable=colortable, $
+                    dimensions=display_dimensions
+  compile_opt strictarr
+  on_error, 2
+
+  original_device = !d.name
+  device, get_decomposed=original_decomposed
+  tvlct, original_rgb, /get
+
+  ; set up graphics window & color table
+  set_plot, 'Z'
+  device, set_resolution=dimensions, $
+          decomposed=0, $
+          set_colors=256, $
+          z_buffering=0
+
+  loadct, colortbale, ncolors=250, /silent
+  gamma_ct, display_gamma, /current
+
+  ; define color levels for annotation
+  yellow = 250
+  tvlct, 255, 255, 0, yellow
+
+  grey   = 251
+  tvlct, 127, 127, 127, grey
+
+  blue   = 252
+  tvlct, 0, 0, 255, blue
+
+  green  = 253
+  tvlct, 0, 255, 0, green
+
+  red    = 254
+  tvlct, 255, 0, 0, red
+
+  white  = 255
+  tvlct, 255, 255, 255, white
+
+  tvlct, rlut, glut, blut, /get
+
+  power_pb = pb ^ display_exponent
+  _display_maximum = n_elements(display_maximum) eq 0L ? max(power_pb) : display_maximum
+  display_pb = bytscl(power_pb, $
+                      min=display_minimum, $
+                      max=_display_maximum, $
+                      top=249)
+  display_pb *= mask
+
+  ; resize if needed
+  pb_dimensions = size(display_pb, /dimensions)
+  if (~array_equal(pb_dimensions, display_dimensions)) then begin
+    display_pb = congrid(display_pb, display_dimensions[0], display_dimensions[1])
+    scale_factors = display_dimensions / pb_dimensions
+  endif else scale_factors = fltarr(2) + 1.0
+
+  scaled_xcenter = scale_factors[0] * xcenter
+  scaled_ycenter = scale_factors[1] * ycenter
+  scaled_radius = mean(scale_factors) * radius
+  scaled_occulter_radius = mean(scale_factors) * occulter_radius
+  scaled_axcenter = scale_factors[0] * axcenter
+  scaled_aycenter = scale_factors[1] * aycenter
+
+  tv, display_pb
+
+  if (quality ne 'calibration' and quality ne 'device obscuration' and quality ne 'saturated') then begin
+    ; occulter disc
+    tvcircle, scaled_occulter_radius, $
+              scaled_xcenter, $
+              scaled_ycenter, $
+              scaledgrey, /device, /fill   
+    ; 1.0 Rsun circle
+    tvcircle, scaled_radius, $
+              scaled_xcenter, $
+              scaled_ycenter, $
+              yellow, /device
+    ; 3.0 Rsun circle
+    tvcircle, 3.0 * scaled_radius, $
+              scaled_xcenter, $
+              scaled_ycenter, $
+              grey, /device
+
+    ; draw "+" at sun center
+    plots, scaled_axcenter + [- 5, 5], $
+           scaled_aycenter + fltarr(2), $
+           color=green, /device
+    plots, scaled_axcenter + fltarr(2), $
+           scaled_aycenter + [- 5, 5], $
+           color=green, /device
+
+    north_r = mean(scale_factors) * 498.5
+    north_angle = 90.0 + pangle
+
+    ; camera 1 is flipped vertically
+    if (camera eq 1) then north_angle *= -1
+
+    north_x = north_r * cos(north_angle * !dtor) + xcenter
+    north_y = north_r * sin(north_angle * !dtor) + ycenter
+
+    north_orientation = north_angle - 90.0
+    north_angle mod= 360.0
+    if ((north_angle lt 0.0 && north_angle gt -180.0) $
+        || (north_angle gt 180.0)) then begin
+      north_orientation += 180.0
+    endif
+    xyouts, north_x, north_y, string(pangle - 180.0, $
+                                     format='(%"NORTH (p-angle: %0.1f)")'), $
+            color=green, charsize=1.0, /device, $
+            alignment=0.5, orientation=north_orientation
+  endif
+
+  ; extra annotation for other quality types
+  case quality of
+    'saturated': tvcircle, scaled_radius, scaled_xcenter, scaled_ycenter, blue, /device
+    'bright': tvcircle, scaled_radius, scaled_xcenter, scaled_ycenter, red, /device
+    'dim': tvcircle, scaled_radius, scaled_xcenter, scaled_ycenter, green, /device
+    'cloudy': tvcircle, scaled_radius, scaled_xcenter, scaled_ycenter, green,  /device
+    'noisy': tvcircle, scaled_radius, scaled_xcenter, scaled_ycenter, yellow, /device
+    else:
+  endcase
+
+  ; common annotations
+  xyouts, 6, display_dimensions[1] - 20, file_basename(l0_basename), $
+          color=white, charsize=1.0, /device
+  xyouts, 6, 30, string(display_minimum, _display_maximum, format='(%"min/max: %0.1f, %0.1f")'), $
+          color=white, charsize=1.0, /device
+  xyouts, 6, 13, string(display_exponent, display_gamma, $
+                        format='(%"scaling: pb ^ %0.1f, gamma=%0.1f")'), $
+          color=white, charsize=1.0, /device
+  xyouts, display_dimensions[0] - 6, display_dimensions[1] - 20, quality, $
+          color=white, charsize=1.0, /device, alignment=1.0
+
+  write_gif, output_filename, tvrd(), rlut, glut, blut
+
+  ; cleanup
+  done:
+  tvlct, original_rgb
+  device, decomposed=original_decomposed
+  set_plot, original_device
+end
