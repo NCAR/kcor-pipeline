@@ -42,8 +42,6 @@ pro kcor_quicklook, pb, mask, $
   compile_opt strictarr
   on_error, 2
 
-  mg_log, 'starting quicklook...', name='kcor/rt', /info
-
   original_device = !d.name
   device, get_decomposed=original_decomposed
   tvlct, original_rgb, /get
@@ -104,12 +102,7 @@ pro kcor_quicklook, pb, mask, $
                       top=249)
   display_pb *= mask
 
-  mg_log, 'max: %0.1f', max(display_pb), name='kcor/rt', /debug
-
   tv, display_pb
-
-  mg_log, '%s', file_basename(output_filename), name='kcor/rt', /debug
-  mg_log, 'quality: %s', quality, name='kcor/rt', /debug
 
   if (quality ne 'calibration' and quality ne 'device obscuration' and quality ne 'saturated') then begin
     ; occulter disc
