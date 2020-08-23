@@ -727,7 +727,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
           cld_list->add, l0_file
         end
       noise gt 0: begin                                    ; noisy
-          radius = run->epoch('rpixn')
+          radius = rpixn
           gif_basename = string(l0_base, format='(%"%s_cam%%d_n.gif")')
           quality_name = 'noisy'
           qual = q_nsy

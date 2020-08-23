@@ -99,7 +99,9 @@ pro kcor_quicklook, pb, mask, $
   mg_log, 'scaled_occulter_radius: %0.1f', scaled_occulter_radius, name='kcor/rt', /debug
 
   power_pb = resized_pb ^ display_exponent
-  _display_maximum = n_elements(display_maximum) eq 0L ? max(power_pb) : display_maximum
+  _display_maximum = n_elements(display_maximum) eq 0L $
+                       ? max(pb ^ display_exponent) $
+                       : display_maximum
   display_pb = bytscl(power_pb, $
                       min=display_minimum, $
                       max=_display_maximum, $
