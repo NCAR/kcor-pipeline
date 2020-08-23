@@ -43,15 +43,16 @@ pro kcor_quicklook, pb, mask, $
   on_error, 2
 
   original_device = !d.name
-  device, get_decomposed=original_decomposed
-  tvlct, original_rgb, /get
-
-  ; set up graphics window & color table
   set_plot, 'Z'
+  
+  device, get_decomposed=original_decomposed
+
   device, set_resolution=display_dimensions, $
           decomposed=0, $
           set_colors=256, $
           z_buffering=0
+
+  tvlct, original_rgb, /get
 
   loadct, colortable, ncolors=250, /silent
   gamma_ct, display_gamma, /current
