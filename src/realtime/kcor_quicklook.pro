@@ -30,6 +30,7 @@ pro kcor_quicklook, pb, mask, $
                     l0_basename=l0_basename, $
                     camera=camera, $
                     xcenter=xcenter, ycenter=ycenter, radius=radius, $
+                    solar_radius=solar_radius, $
                     axcenter=axcenter, aycenter=aycenter, $
                     occulter_radius=occulter_radius, $
                     pangle=pangle, $
@@ -46,14 +47,12 @@ pro kcor_quicklook, pb, mask, $
   set_plot, 'Z'
   
   device, get_decomposed=original_decomposed
-
   device, set_resolution=display_dimensions, $
           decomposed=0, $
           set_colors=256, $
           z_buffering=0
 
   tvlct, original_rgb, /get
-
   loadct, colortable, ncolors=250, /silent
   gamma_ct, display_gamma, /current
 
@@ -91,9 +90,13 @@ pro kcor_quicklook, pb, mask, $
   scaled_xcenter = scale_factors[0] * xcenter
   scaled_ycenter = scale_factors[1] * ycenter
   scaled_radius = mean(scale_factors) * radius
+  scaled_solar_radius = mean(scale_factors) * solar_radius
   scaled_occulter_radius = mean(scale_factors) * occulter_radius
   scaled_axcenter = scale_factors[0] * axcenter
   scaled_aycenter = scale_factors[1] * aycenter
+
+  mg_log, 'scaled_radius: %0.1f', scaled_radius, name='kcor/rt', /debug
+  mg_log, 'scaled_occulter_radius: %0.1f', scaled_occulter_radius, name='kcor/rt', /debug
 
   power_pb = resized_pb ^ display_exponent
   _display_maximum = n_elements(display_maximum) eq 0L ? max(power_pb) : display_maximum
@@ -106,18 +109,24 @@ pro kcor_quicklook, pb, mask, $
   tv, display_pb
 
   if (quality ne 'calibration' and quality ne 'device obscuration' and quality ne 'saturated') then begin
+    mg_log, 'not calibration, device, or saturated', name='kcor/rt', /debug
+    mg_log, 'scaled_xcenter: %0.1f, scaled_ycenter: %0.1f', scaled_xcenter, scaled_ycenter, $
+            name='kcor/rt', /debug
+    mg_log, 'scaled_radius: %0.1f', scaled_radius, $
+            name='kcor/rt', /debug
+    mg_log, 'yellow: %d', yellow, name='kcor/rt', /debug
     ; occulter disc
     tvcircle, scaled_occulter_radius, $
               scaled_xcenter, $
               scaled_ycenter, $
               grey, /device, /fill   
     ; 1.0 Rsun circle
-    tvcircle, scaled_radius, $
+    tvcircle, scaled_solar_radius, $
               scaled_xcenter, $
               scaled_ycenter, $
               yellow, /device
     ; 3.0 Rsun circle
-    tvcircle, 3.0 * scaled_radius, $
+    tvcircle, 3.0 * scaled_solar_radius, $
               scaled_xcenter, $
               scaled_ycenter, $
               grey, /device
@@ -162,7 +171,7 @@ pro kcor_quicklook, pb, mask, $
   endcase
 
   ; common annotations
-  xyouts, 6, display_dimensions[1] - 20, file_basename(l0_basename), $
+  xyouts, 6, display_dimensions[1] - 20, file_basename(output_filename), $
           color=white, charsize=1.0, /device
   xyouts, 6, 30, string(display_minimum, _display_maximum, format='(%"min/max: %0.1f, %0.1f")'), $
           color=white, charsize=1.0, /device

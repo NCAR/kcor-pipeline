@@ -665,8 +665,8 @@ function kcor_quality, date, l0_fits_files, append=append, $
       pb_m = pb * shifted_mask
     endelse
 
-    rsunpix = rsun / run->epoch('plate_scale')   ; 1.0 rsun [pixels]
-    radius = rsunpix
+    solar_radius = rsun / run->epoch('plate_scale')   ; 1.0 rsun [pixels]
+    radius = solar_radius
 
     fitsloc  = strpos(l0_file, '.fts')
     l0_basename = file_basename(l0_file)
@@ -700,7 +700,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
           sat_list->add, l0_file
         end
       bright gt 0: begin                                   ; bright image
-          radius = rpixb
+          radius = run->epoch('rpixb')
           gif_basename = string(l0_base, format='(%"%s_cam%%d_b.gif")')
           quality_name = 'bright'
           qual = q_brt
@@ -709,7 +709,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
           brt_list->add, l0_file
         end
       clo gt 0: begin                                      ; dim image
-          radius = rpixc
+          radius = run->epoch('rpixc')
           gif_basename = string(l0_base, format='(%"%s_cam%%d_d.gif")')
           quality_name = 'dim'
           qual = q_dim
@@ -718,7 +718,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
           dim_list->add, l0_file
         end
       chi gt 0: begin                                      ; cloudy image
-          radius = rpixc
+          radius = run->epoch('rpixc')
           gif_file = string(l0_base, format='(%"%s_cam%%d_o.gif")')
           quality_name = 'cloudy'
           qual = q_cld
@@ -727,7 +727,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
           cld_list->add, l0_file
         end
       noise gt 0: begin                                    ; noisy
-          radius = rpixn
+          radius = run->epoch('rpixn')
           gif_basename = string(l0_base, format='(%"%s_cam%%d_n.gif")')
           quality_name = 'noisy'
           qual = q_nsy
@@ -758,6 +758,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
                       l0_basename=l0_base, $
                       xcenter=xcen[c], ycenter=ycen[c], radius=radius, $
                       axcenter=axcen, aycenter=aycen, $
+                      solar_radius=solar_radius, $
                       occulter_radius=rdisc_pix[c], $
                       pangle=pangle, $
                       minimum=-10.0, $
