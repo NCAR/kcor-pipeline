@@ -683,7 +683,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
           file_copy, l0_file, cdate_dir, /overwrite   ; copy l0 file to cdate_dir
         end
       dev gt 0: begin                                      ; device obscuration        
-          gif_basename = string(l0_base, format='(%"%s_cam%%d%%ss_m.gif")')
+          gif_basename = string(l0_base, format='(%"%s_cam%%d%%s_m.gif")')
           quality_name = 'device obscuration'
           qual = q_dev
           ndev += 1
@@ -757,7 +757,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
       gallery_gif_filename = filepath(string(c, '_gallery', format=gif_basename), $
                                       root=quicklook_dir)
 
-      kcor_quicklook, pb_m[*, * , c], shifted_mask, quality_name, gif_filename, $
+      kcor_quicklook, pb_m[*, * , c], shifted_mask[*, *, c], quality_name, gif_filename, $
                       camera=c, $
                       l0_basename=l0_base, $
                       xcenter=xcen[c], ycenter=ycen[c], radius=radius, $
@@ -770,7 +770,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
                       gamma=run->epoch('quicklook_gamma'), $
                       colortable=run->epoch('quicklook_colortable'), $
                       dimensions=run->epoch('quicklook_dimensions')
-      kcor_quicklook, pb_m[*, * , c], shifted_mask, quality_name, gallery_gif_filename, $
+      kcor_quicklook, pb_m[*, * , c], shifted_mask[*, *, c], quality_name, gallery_gif_filename, $
                       camera=c, $
                       l0_basename=l0_base, $
                       xcenter=xcen[c], ycenter=ycen[c], radius=radius, $

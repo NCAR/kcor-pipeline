@@ -45,10 +45,13 @@ pro kcor_quicklook, pb, mask, $
 
   original_device = !d.name
   set_plot, 'Z'
-  
+
+  mg_log, 'display_dimensions: [%s]', strjoin(strtrim(display_dimensions, 2), ', '), $
+          name='kcor/rt', /debug
+
   device, get_decomposed=original_decomposed
-  device, set_resolution=display_dimensions, $
-          decomposed=0, $
+  device, set_resolution=display_dimensions
+  device, decomposed=0, $
           set_colors=256, $
           z_buffering=0
 
@@ -78,7 +81,8 @@ pro kcor_quicklook, pb, mask, $
   tvlct, rlut, glut, blut, /get
 
   mg_log, 'camera %d', camera, name='kcor/rt', /debug
-
+  help, pb, output=help_output
+  mg_log, 'pb: %s', help_output, name='kcor/rt', /debug
   mg_log, 'radius: %0.1f', radius, name='kcor/rt', /debug
   mg_log, 'solar_radius: %0.1f', solar_radius, name='kcor/rt', /debug
   mg_log, 'occulter_radius: %0.1f', occulter_radius, name='kcor/rt', /debug
@@ -86,10 +90,15 @@ pro kcor_quicklook, pb, mask, $
   ; resize if needed
   pb_dimensions = size(pb, /dimensions)
   if (~array_equal(pb_dimensions, display_dimensions)) then begin
+    ; TODO: use FREBIN?
     resized_pb = congrid(pb, display_dimensions[0], display_dimensions[1])
-    scale_factors = display_dimensions / pb_dimensions
+    resized_mask = byte(round(congrid(mask, display_dimensions[0], display_dimensions[1])))
+    help, resized_pb, output=resized_pb_output
+    mg_log, 'resized_pb: %s', resized_pb_output, name='kcor/rt', /debug
+    scale_factors = float(display_dimensions) / float(pb_dimensions)
   endif else begin
     resized_pb = pb
+    resized_mask = mask
     scale_factors = fltarr(2) + 1.0
   endelse
 
@@ -113,7 +122,7 @@ pro kcor_quicklook, pb, mask, $
                       min=display_minimum, $
                       max=_display_maximum, $
                       top=249)
-  display_pb *= mask
+  display_pb *= resized_mask
 
   tv, display_pb
 
@@ -190,7 +199,10 @@ pro kcor_quicklook, pb, mask, $
   xyouts, display_dimensions[0] - 6, display_dimensions[1] - 20, quality, $
           color=white, charsize=1.0, /device, alignment=1.0
 
-  write_gif, output_filename, tvrd(), rlut, glut, blut
+  save = tvrd()
+  help, save, output=save_output
+  mg_log, 'save: %s', strjoin(save_output, ' '), name='kcor/rt', /debug
+  write_gif, output_filename, save, rlut, glut, blut
 
   ; cleanup
   done:
