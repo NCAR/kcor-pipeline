@@ -674,7 +674,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
 
     case 1 of
       cal gt 0: begin                                      ; calibration
-          gif_basename = string(l0_base, format='(%"%s_cam%%d_c.gif")')
+          gif_basename = string(l0_base, format='(%"%s_cam%%d%%s_c.gif")')
           quality_name = 'calibration'
           qual = q_cal
           ncal += 1
@@ -683,7 +683,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
           file_copy, l0_file, cdate_dir, /overwrite   ; copy l0 file to cdate_dir
         end
       dev gt 0: begin                                      ; device obscuration        
-          gif_basename = string(l0_base, format='(%"%s_cam%%d_m.gif")')
+          gif_basename = string(l0_base, format='(%"%s_cam%%d%%ss_m.gif")')
           quality_name = 'device obscuration'
           qual = q_dev
           ndev += 1
@@ -692,7 +692,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
         end
       sat gt 0: begin                                      ; saturation
           radius = run->epoch('rpixt')
-          gif_basename = string(l0_base, format='(%"%s_cam%%d_t.gif")')
+          gif_basename = string(l0_base, format='(%"%s_cam%%d%%s_t.gif")')
           quality_name = 'saturated'
           qual = q_sat
           nsat += 1
@@ -701,7 +701,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
         end
       bright gt 0: begin                                   ; bright image
           radius = run->epoch('rpixb')
-          gif_basename = string(l0_base, format='(%"%s_cam%%d_b.gif")')
+          gif_basename = string(l0_base, format='(%"%s_cam%%d%%s_b.gif")')
           quality_name = 'bright'
           qual = q_brt
           nbrt += 1
@@ -710,7 +710,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
         end
       clo gt 0: begin                                      ; dim image
           radius = run->epoch('rpixc')
-          gif_basename = string(l0_base, format='(%"%s_cam%%d_d.gif")')
+          gif_basename = string(l0_base, format='(%"%s_cam%%d%%s_d.gif")')
           quality_name = 'dim'
           qual = q_dim
           ndim += 1
@@ -719,7 +719,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
         end
       chi gt 0: begin                                      ; cloudy image
           radius = run->epoch('rpixc')
-          gif_file = string(l0_base, format='(%"%s_cam%%d_o.gif")')
+          gif_file = string(l0_base, format='(%"%s_cam%%d%%s_o.gif")')
           quality_name = 'cloudy'
           qual = q_cld
           ncld += 1
@@ -728,7 +728,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
         end
       noise gt 0: begin                                    ; noisy
           radius = rpixn
-          gif_basename = string(l0_base, format='(%"%s_cam%%d_n.gif")')
+          gif_basename = string(l0_base, format='(%"%s_cam%%d%%s_n.gif")')
           quality_name = 'noisy'
           qual = q_nsy
           nnsy += 1
@@ -737,10 +737,10 @@ function kcor_quality, date, l0_fits_files, append=append, $
         end
       else: begin                                          ; good image
           if (eng gt 0) then begin   ; engineering
-            gif_basename = string(l0_base, format='(%"%s_cam%%d_e.gif")')
+            gif_basename = string(l0_base, format='(%"%s_cam%%d%%s_e.gif")')
             quality_name = 'engineering'
           endif else begin
-            gif_basename = string(l0_base, format='(%"%s_cam%%d_g.gif")')
+            gif_basename = string(l0_base, format='(%"%s_cam%%d%%s_g.gif")')
             quality_name = 'good'
           endelse
 
@@ -752,7 +752,11 @@ function kcor_quality, date, l0_fits_files, append=append, $
     endcase
 
     for c = 0, 1 do begin
-      gif_filename = filepath(string(c, format=gif_basename), root=quicklook_dir)
+      gif_filename = filepath(string(c, '', format=gif_basename), $
+                              root=quicklook_dir)
+      gallery_gif_filename = filepath(string(c, '_gallery', format=gif_basename), $
+                                      root=quicklook_dir)
+
       kcor_quicklook, pb_m[*, * , c], shifted_mask, quality_name, gif_filename, $
                       camera=c, $
                       l0_basename=l0_base, $
@@ -761,13 +765,27 @@ function kcor_quality, date, l0_fits_files, append=append, $
                       solar_radius=solar_radius, $
                       occulter_radius=rdisc_pix[c], $
                       pangle=pangle, $
-                      minimum=-10.0, $
+                      minimum=run->epoch('quicklook_min'), $
                       exponent=run->epoch('quicklook_exponent'), $
                       gamma=run->epoch('quicklook_gamma'), $
                       colortable=run->epoch('quicklook_colortable'), $
                       dimensions=run->epoch('quicklook_dimensions')
+      kcor_quicklook, pb_m[*, * , c], shifted_mask, quality_name, gallery_gif_filename, $
+                      camera=c, $
+                      l0_basename=l0_base, $
+                      xcenter=xcen[c], ycenter=ycen[c], radius=radius, $
+                      axcenter=axcen, aycenter=aycen, $
+                      solar_radius=solar_radius, $
+                      occulter_radius=rdisc_pix[c], $
+                      pangle=pangle, $
+                      minimum=run->epoch('gallery_quicklook_min'), $
+                      maximum=run->epoch('gallery_quicklook_max'), $
+                      exponent=run->epoch('gallery_quicklook_exponent'), $e
+                      gamma=run->epoch('gallery_quicklook_gamma'), $
+                      colortable=run->epoch('gallery_quicklook_colortable'), $
+                      dimensions=run->epoch('gallery_quicklook_dimensions')
 
-      quicklook_list->add, gif_filename
+      quicklook_list->add, gallery_gif_filename
     endfor
 
 
