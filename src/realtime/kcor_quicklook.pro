@@ -77,6 +77,12 @@ pro kcor_quicklook, pb, mask, $
 
   tvlct, rlut, glut, blut, /get
 
+  mg_log, 'camera %d', camera, name='kcor/rt', /debug
+
+  mg_log, 'radius: %0.1f', radius, name='kcor/rt', /debug
+  mg_log, 'solar_radius: %0.1f', solar_radius, name='kcor/rt', /debug
+  mg_log, 'occulter_radius: %0.1f', occulter_radius, name='kcor/rt', /debug
+
   ; resize if needed
   pb_dimensions = size(pb, /dimensions)
   if (~array_equal(pb_dimensions, display_dimensions)) then begin
@@ -96,6 +102,7 @@ pro kcor_quicklook, pb, mask, $
   scaled_aycenter = scale_factors[1] * aycenter
 
   mg_log, 'scaled_radius: %0.1f', scaled_radius, name='kcor/rt', /debug
+  mg_log, 'scaled_solar_radius: %0.1f', scaled_solar_radius, name='kcor/rt', /debug
   mg_log, 'scaled_occulter_radius: %0.1f', scaled_occulter_radius, name='kcor/rt', /debug
 
   power_pb = resized_pb ^ display_exponent
