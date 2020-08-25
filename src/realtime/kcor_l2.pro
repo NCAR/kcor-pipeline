@@ -51,10 +51,6 @@ pro kcor_l2, l1_filename, $
   center_offset = run->config('realtime/center_offset')
   rad  = sqrt((xx + center_offset[0])^ 2.0 + (yy + center_offset[1]) ^ 2.0)
 
-  theta = atan(- yy, - xx)
-  theta += !pi
-  theta = rot(reverse(theta), pangle + run->epoch('rotation_correction'), 1, /interp)
-
   if (run->config('realtime/smooth_sky')) then begin
     qmk4 = gauss_smooth(qmk4, 3, /edge_truncate)
   endif
@@ -73,6 +69,11 @@ pro kcor_l2, l1_filename, $
     'sine2theta': begin
         mg_log, 'correcting sky polarization with sine2theta (%d params) method', $
                 run->epoch('sine2theta_nparams'), name=log_name, /debug
+
+        theta = atan(- yy, - xx)
+        theta += !pi
+        theta = rot(reverse(theta), pangle + run->epoch('rotation_correction'), 1, /interp)
+
         kcor_sine2theta_method, umk4, qmk4, intensity, radsun, theta, rad, $
                                 q_new=qmk4_new, u_new=umk4_new, $
                                 run=run
