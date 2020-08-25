@@ -14,9 +14,12 @@ pro kcor_rolling_o1focus_plot, database=db, run=run
 
   n_days = 28
 
+  p_dir = filepath('p', subdir=run.date, $
+                   root=run->config('processing/raw_basedir'))
+  if (~file_test(p_dir, /directory)) then file_mkdir, p_dir
+
   filename = filepath(string(run.date, n_days, format='(%"%s.kcor.%dday.o1focus.gif")'), $
-                      subdir=[run.date, 'p'], $
-                      root=run->config('processing/raw_basedir'))
+                      root=p_dir)
 
   end_date_tokens = long(kcor_decompose_date(run.date))
   end_date = string(end_date_tokens, format='(%"%04d-%02d-%02d")')

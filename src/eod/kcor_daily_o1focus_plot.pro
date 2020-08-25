@@ -10,9 +10,12 @@
 pro kcor_daily_o1focus_plot, run=run
   compile_opt strictarr
 
+  p_dir = filepath('p', subdir=run.date, $
+                   root=run->config('processing/raw_basedir'))
+  if (~file_test(p_dir, /directory)) then file_mkdir, p_dir
+
   filename = filepath(string(run.date, format='(%"%s.kcor.daily.o1focus.gif")'), $
-                      subdir=[run.date, 'p'], $
-                      root=run->config('processing/raw_basedir'))
+                      root=p_dir)
 
   raw_files = file_search(filepath('*.fts*', $
                                   subdir=[run.date, 'level0'], $
