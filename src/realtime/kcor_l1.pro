@@ -557,7 +557,9 @@ pro kcor_l1, ok_filename, $
 
   theta1 = atan(- sun_yy1, - sun_xx1)
   theta1 += !pi
-  theta1 = rot(reverse(theta1), pangle + run->epoch('rotation_correction'), 1, /interp)
+; TODO: don't rotate
+;  theta1 = rot(reverse(theta1), pangle + run->epoch('rotation_correction'), 1, /interp)
+  theta1 = reverse(theta1)
 
   ; combine I, Q, U images from camera 0 and camera 1
 
@@ -619,13 +621,6 @@ pro kcor_l1, ok_filename, $
     endcase
   endfor
 
-  ; polar coordinate images (mk4 scheme)
-  qmk4 = - cal_data_combined[*, *, 1] * sin(2.0 * theta1) $
-           + cal_data_combined[*, *, 2] * cos(2.0 * theta1)
-  umk4 = cal_data_combined[*, *, 1] * cos(2.0 * theta1) $
-           + cal_data_combined[*, *, 2] * sin(2.0 * theta1)
-
-  intensity = cal_data_combined[*, *, 0]
   mg_log, 'performing polarization coord transformation', $
           name=log_name, /debug
 
@@ -663,7 +658,8 @@ pro kcor_l1, ok_filename, $
 
     theta1 = atan(- yy1, - xx1)
     theta1 += !pi
-    theta1 = rot(reverse(theta1), pangle + run->epoch('rotation_correction'), 1, /interp)
+    ;theta1 = rot(reverse(theta1), pangle + run->epoch('rotation_correction'), 1, /interp)
+    theta1 = reverse(theta1)
 
     ; polar coordinates
     qmk4 = - cal_data_combined_center[*, *, 1] * sin(2.0 * theta1) $
@@ -674,7 +670,18 @@ pro kcor_l1, ok_filename, $
     intensity = cal_data_combined_center[*, *, 0]
   endif else begin
     mg_log, 'skipping shfting image to center', name=log_name, /debug
+
+    ; polar coordinate images (mk4 scheme)
+    qmk4 = - cal_data_combined[*, *, 1] * sin(2.0 * theta1) $
+           + cal_data_combined[*, *, 2] * cos(2.0 * theta1)
+    umk4 = cal_data_combined[*, *, 1] * cos(2.0 * theta1) $
+           + cal_data_combined[*, *, 2] * sin(2.0 * theta1)
+
+    intensity = cal_data_combined[*, *, 0]
   endelse
+
+  qmk4 = rot(qmk4, pangle + run->epoch('rotation_correction'), 1, /interp)
+  umk4 = rot(umk4, pangle + run->epoch('rotation_correction'), 1, /interp)
 
   ; output array
   data = [[[umk4]], [[qmk4]]]
