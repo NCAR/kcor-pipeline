@@ -442,3 +442,4 @@
   use bilinear for most interpolations, cubic for distortion
 2.0.21
   gallery quicklooks
+  fix for interpolation artifact

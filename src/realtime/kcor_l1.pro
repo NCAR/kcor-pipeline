@@ -632,18 +632,14 @@ pro kcor_l1, ok_filename, $
     cal_data_combined_center = dblarr(xsize, ysize, 3)
 
     for s = 0, 2 do begin
-      cal_data_new[*, *, 0, s] = rot(reverse(cal_data[*, *, 0, s], 1), $
-                                     pangle + run->epoch('rotation_correction'), $
-                                     1, $
-                                     xsize - 1 - sun_xyr0[0], $
-                                     sun_xyr0[1], $
-                                     /interp)
-      cal_data_new[*, *, 1, s] = rot(reverse(cal_data[*, *, 1, s], 1), $
-                                     pangle + run->epoch('rotation_correction'), $
-                                     1, $
-                                     xsize - 1 - sun_xyr1[0], $
-                                     sun_xyr1[1], $
-                                     /interp)
+      cal_data_new[*, *, 0, s] = kcor_fshift(reverse(cal_data[*, *, 0, s], 1), $
+                                             xsize - 1 - sun_xyr0[0], $
+                                             sun_xyr0[1], $
+                                             /interp)
+      cal_data_new[*, *, 1, s] = kcor_fshift(reverse(cal_data[*, *, 1, s], 1), $
+                                             xsize - 1 - sun_xyr1[0], $
+                                             sun_xyr1[1], $
+                                             /interp)
       case cameras of
         '0': cal_data_combined_center[*, *, s] = cal_data_new[*, *, 0, s]
         '1': cal_data_combined_center[*, *, s] = cal_data_new[*, *, 1, s]
@@ -680,8 +676,8 @@ pro kcor_l1, ok_filename, $
     intensity = cal_data_combined[*, *, 0]
   endelse
 
-  qmk4 = rot(qmk4, pangle + run->epoch('rotation_correction'), 1, /interp)
-  umk4 = rot(umk4, pangle + run->epoch('rotation_correction'), 1, /interp)
+  qmk4 = rot(qmk4, pangle + run->epoch('rotation_correction'), /interp)
+  umk4 = rot(umk4, pangle + run->epoch('rotation_correction'), /interp)
 
   ; output array
   data = [[[umk4]], [[qmk4]]]
