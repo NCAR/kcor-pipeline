@@ -46,9 +46,6 @@ pro kcor_quicklook, pb, mask, $
   original_device = !d.name
   set_plot, 'Z'
 
-  mg_log, 'display_dimensions: [%s]', strjoin(strtrim(display_dimensions, 2), ', '), $
-          name='kcor/rt', /debug
-
   device, get_decomposed=original_decomposed
   device, set_resolution=display_dimensions
   device, decomposed=0, $
@@ -80,21 +77,12 @@ pro kcor_quicklook, pb, mask, $
 
   tvlct, rlut, glut, blut, /get
 
-  mg_log, 'camera %d', camera, name='kcor/rt', /debug
-  help, pb, output=help_output
-  mg_log, 'pb: %s', help_output, name='kcor/rt', /debug
-  mg_log, 'radius: %0.1f', radius, name='kcor/rt', /debug
-  mg_log, 'solar_radius: %0.1f', solar_radius, name='kcor/rt', /debug
-  mg_log, 'occulter_radius: %0.1f', occulter_radius, name='kcor/rt', /debug
-
   ; resize if needed
   pb_dimensions = size(pb, /dimensions)
   if (~array_equal(pb_dimensions, display_dimensions)) then begin
     ; TODO: use FREBIN?
     resized_pb = congrid(pb, display_dimensions[0], display_dimensions[1])
     resized_mask = byte(round(congrid(mask, display_dimensions[0], display_dimensions[1])))
-    help, resized_pb, output=resized_pb_output
-    mg_log, 'resized_pb: %s', resized_pb_output, name='kcor/rt', /debug
     scale_factors = float(display_dimensions) / float(pb_dimensions)
   endif else begin
     resized_pb = pb
@@ -110,10 +98,6 @@ pro kcor_quicklook, pb, mask, $
   scaled_axcenter = scale_factors[0] * axcenter
   scaled_aycenter = scale_factors[1] * aycenter
 
-  mg_log, 'scaled_radius: %0.1f', scaled_radius, name='kcor/rt', /debug
-  mg_log, 'scaled_solar_radius: %0.1f', scaled_solar_radius, name='kcor/rt', /debug
-  mg_log, 'scaled_occulter_radius: %0.1f', scaled_occulter_radius, name='kcor/rt', /debug
-
   power_pb = resized_pb ^ display_exponent
   _display_maximum = n_elements(display_maximum) eq 0L $
                        ? max(pb ^ display_exponent) $
@@ -127,12 +111,6 @@ pro kcor_quicklook, pb, mask, $
   tv, display_pb
 
   if (quality ne 'calibration' and quality ne 'device obscuration' and quality ne 'saturated') then begin
-    mg_log, 'not calibration, device, or saturated', name='kcor/rt', /debug
-    mg_log, 'scaled_xcenter: %0.1f, scaled_ycenter: %0.1f', scaled_xcenter, scaled_ycenter, $
-            name='kcor/rt', /debug
-    mg_log, 'scaled_radius: %0.1f', scaled_radius, $
-            name='kcor/rt', /debug
-    mg_log, 'yellow: %d', yellow, name='kcor/rt', /debug
     ; occulter disc
     tvcircle, scaled_occulter_radius, $
               scaled_xcenter, $
@@ -200,8 +178,6 @@ pro kcor_quicklook, pb, mask, $
           color=white, charsize=1.0, /device, alignment=1.0
 
   save = tvrd()
-  help, save, output=save_output
-  mg_log, 'save: %s', strjoin(save_output, ' '), name='kcor/rt', /debug
   write_gif, output_filename, save, rlut, glut, blut
 
   ; cleanup
