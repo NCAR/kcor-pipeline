@@ -443,3 +443,4 @@
 2.0.21 [Aug 28, 2020]
   gallery quicklooks
   fix for interpolation artifact
+2.0.22
