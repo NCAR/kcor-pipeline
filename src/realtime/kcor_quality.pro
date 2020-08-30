@@ -389,6 +389,8 @@ function kcor_quality, date, l0_fits_files, append=append, $
       continue
     endif
 
+    rdisc_pix = fltarr(2)
+
     ; an image is assumed to be good unless conditions indicate otherwise
     cal    = 0   ; >0 indicates a  "calibration" image
     eng    = 0   ; >0 indicates an "engineering' image

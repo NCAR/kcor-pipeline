@@ -443,4 +443,5 @@
 2.0.21 [Aug 28, 2020]
   gallery quicklooks
   fix for interpolation artifact
-2.0.22
+2.0.22 [Aug 30, 2020]
+  fix for no plate scale value for certain qualities
