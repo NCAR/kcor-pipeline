@@ -524,7 +524,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
     mg_log, 'pB (cam %d) mean: %0.2f, median: %0.2f', $
             check_camera, $
             mean((pb[*, *, check_camera])[annulus_indices]), $
-            median((pb[*, *, check_camera])[annulus_indices]), $
+            median([(pb[*, *, check_camera])[annulus_indices]]), $
             name='kcor/rt', /debug
 
     ; rotate image by P-angle, no rotation for calibration or device-obscured
