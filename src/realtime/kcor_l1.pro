@@ -925,6 +925,8 @@ pro kcor_l1, ok_filename, $
 
   fxaddpar, l1_header, 'XCAMSHFT', run->epoch('xshift_camera_correction'), $
             ' [px] cam corr shift to align w/ img, + to left'
+  fxaddpar, l1_header, 'XCAMSHFT', run->epoch('xshift_camera_correction'), $
+            ' [px] cam corr shift to align w/ img, + to left'
 
   fxaddpar, l1_header, 'FIXCAMLC', $
             run->config('calibration/interpolate_camera_correction') ? 1 : 0, $
