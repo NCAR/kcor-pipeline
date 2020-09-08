@@ -50,7 +50,7 @@ pro kcor_plot_calibration, cal_filename, run=run, gain_norm_stddev=gain_norm_std
           xtitle='Column [pixels]', $
           yrange=gain_range, ystyle=1, $
           ytitle='Gain value [B/Bsun]', $
-          background=255, color=0, charsize=charsize
+          background=255, color=0, charsize=charsize, psym=3
     xyouts, 0.15, 0.5 * c + 0.25, /normal, $
             string(gain_norm_stddev[c], format='(%"std dev / median: %0.4f / %0.4f")'), $
             charsize=charsize
