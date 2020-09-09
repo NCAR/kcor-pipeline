@@ -923,9 +923,10 @@ pro kcor_l1, ok_filename, $
             tcam_cor_filename eq '' ? !null : file_basename(tcam_cor_filename), $
             run->epoch('tcamcorr_comment'), /null
 
-  fxaddpar, l1_header, 'XCAMSHFT', run->epoch('xshift_camera_correction'), $
+  xshift = run->epoch('xshift_camera_correction')
+  fxaddpar, l1_header, 'XCAMSFT0', xshift[0], $
             ' [px] cam corr shift to align w/ img, + to left'
-  fxaddpar, l1_header, 'XCAMSHFT', run->epoch('xshift_camera_correction'), $
+  fxaddpar, l1_header, 'XCAMSFT1', xshift[1], $
             ' [px] cam corr shift to align w/ img, + to left'
 
   fxaddpar, l1_header, 'FIXCAMLC', $
