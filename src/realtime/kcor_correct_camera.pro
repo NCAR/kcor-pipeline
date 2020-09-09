@@ -170,14 +170,14 @@ pro kcor_correct_camera, im, header, $
   for p = 0L, n_polstates - 1L do begin
     for c = 0L, n_cameras_to_correct - 1L do begin
       camera = camera_indices[c]
-      x = shift(im[*, *, p, camera], xshift[c], 0)
+      x = shift(im[*, *, p, camera], xshift[camera], 0)
       ;x = im[*, *, p, camera]
       im[*, *, p, camera] = fp[*, *, 0, camera] $
                               + fp[*, *, 1, camera] * x $
                               + fp[*, *, 2, camera] * x^2 $
                               + fp[*, *, 3, camera] * x^3 $
                               + fp[*, *, 4, camera] * x^4
-      im[*, *, p, camera] = shift(im[*, *, p, camera], - xshift[c], 0)
+      im[*, *, p, camera] = shift(im[*, *, p, camera], - xshift[camera], 0)
     endfor
   endfor
 
