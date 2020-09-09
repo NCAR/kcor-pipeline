@@ -446,3 +446,5 @@
 2.0.22 [Aug 30, 2020]
   fix for no plate scale value for certain qualities
 2.0.23
+  epochs for x-shift for camera correction
+  allowing each camera to have a separate x-shift for camera correction
