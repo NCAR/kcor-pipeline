@@ -165,7 +165,7 @@ pro kcor_calibration, date, $
                   format='(%"number of cal files: %d")'), $
            cal_status_text $
              + (cal_status eq 0L ? string(gain_norm_stddev, $
-                                          format='(%" [std dev / median: %0.4f / %0.4f]")') : '')]
+                                          format='(%" [std dev / median cam 0: %0.4f, cam 1: %0.4f]")') : '')]
 
     spawn, 'echo $(whoami)@$(hostname)', who, error_result, exit_status=status
     if (status eq 0L) then begin

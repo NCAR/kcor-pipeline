@@ -482,7 +482,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
                   format='(%"number of NRGFs: %d")'), $
            cal_status_text $
              + (cal_status eq 0L ? string(gain_norm_stddev, $
-                                          format='(%" [std dev / median: %0.4f / %0.4f]")') : '')]
+                                          format='(%" [std dev / median cam 0: %0.4f, cam 1: %0.4f]")') : '')]
 
     if (n_missing gt 0L) then begin
       msg = [msg, $
