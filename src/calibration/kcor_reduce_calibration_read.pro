@@ -33,6 +33,7 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
 
   kcor_read_rawdata, filenames[0], header=header, $
                      repair_routine=run->epoch('repair_routine'), $
+                     xshift=run->epoch('xshift_camera'), $
                      start_state=run->epoch('start_state')
   header = fitshead2struct(header)
 
@@ -67,6 +68,7 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
 
     kcor_read_rawdata, filenames[f], image=thisdata, header=header, $
                        repair_routine=run->epoch('repair_routine'), $
+                       xshift=run->epoch('xshift_camera'), $
                        start_state=run->epoch('start_state')
 
     ; must set time before querying run object

@@ -33,6 +33,7 @@ pro kcor_rowcol_image_l0, run=run
   for f = 0L, n_files - 1L do begin
     kcor_read_rawdata, files[f], image=im, header=header, $
                        repair_routine=run->epoch('repair_routine'), $
+                       xshift=run->epoch('xshift_camera'), $
                        start_state=run->epoch('start_state')
     exposure = sxpar(header, 'EXPTIME')
 

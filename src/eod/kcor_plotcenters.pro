@@ -143,6 +143,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
     kcor_read_rawdata, l0_file, image=img, header=hdu, $
                        repair_routine=run->epoch('repair_routine'), $
+                       xshift=run->epoch('xshift_camera'), $
                        start_state=run->epoch('start_state')
 
     img0 = reform(img[*, *, 0, 0])

@@ -101,6 +101,7 @@ pro mlso_sgs_insert, date, fits_list, $
     ; extract desired items from header
     kcor_read_rawdata, fts_file, header=hdu, $
                        repair_routine=run->epoch('repair_routine'), $
+                       xshift=run->epoch('xshift_camera'), $
                        start_state=run->epoch('start_state')
 
     date_obs  = sxpar(hdu, 'DATE-OBS', count=qdate_obs)

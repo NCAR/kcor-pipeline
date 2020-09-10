@@ -25,6 +25,7 @@ pro kcor_read_rawdata, filename, $
                        image=im, header=header, $
                        repair_routine=repair_routine, $
                        errmsg=errmsg, $
+                       xshift=xshift, $
                        start_state=start_state
   compile_opt strictarr
 
@@ -36,6 +37,14 @@ pro kcor_read_rawdata, filename, $
     arg_present(header): header = headfits(filename, errmsg=errmsg, /silent)
     else: return
   endcase
+
+  if (arg_present(im) && n_elements(xshift) gt 0L) then begin
+    for c = 0, 1 do begin
+      if (xshift[c] ne 0L) then begin
+        im[*, *, *, c] = shift(im[*, *, *, c], xshift[c], 0, 0)
+      endif
+    endfor
+  endif
 
   if (arg_present(im) && n_elements(start_state) gt 0L && start_state ne 0L) then begin
     im = shift(im, 0, 0, start_state, 0)
