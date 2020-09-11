@@ -13,3 +13,4 @@
 /stream/stream.html
 /stream/stream.c
 /stream/stream.cpython-*.so
+/stream/__pycache__
