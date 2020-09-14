@@ -72,8 +72,9 @@ def quicklook(root, datetime):
 
 
 if __name__ == "__main__":
-    root = "/hao/sunset/Data/KCor/raw.aero/20200908"
+    stream_root = "/hao/dawn/Data/KCor/stream.aero/20200908"
+    raw_root = "/hao/dawn/Data/KCor/raw.aero/20200908"
     datetime = "20200908_172438"
-    q = quicklook(root, datetime)
+    q = quicklook(stream_root, datetime)
     display_image(q[0])
     display_image(q[1])
