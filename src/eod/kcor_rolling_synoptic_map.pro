@@ -147,7 +147,7 @@ pro kcor_rolling_synoptic_map, database=db, run=run
 
   output_filename = filepath(string(run.date, $
                                     100.0 * 1.3, $
-                                    format='(%"%s.28day.synoptic.r%03d.gif")'), $
+                                    format='(%"%s.kcor.28day.synoptic.r%03d.gif")'), $
                              root=p_dir)
   write_gif, output_filename, im, rgb[*, 0], rgb[*, 1], rgb[*, 2]
 
@@ -164,7 +164,7 @@ sxaddpar, primary_header, 'DATE-END', end_date, $
 
   fits_filename = filepath(string(run.date, $
                                   100.0 * radius, $
-                                  format='(%"%s.28day.synoptic.r%03d.fts")'), $
+                                  format='(%"%s.kcor.28day.synoptic.r%03d.fts")'), $
                            root=p_dir)
   writefits, fits_filename, map, primary_header
 

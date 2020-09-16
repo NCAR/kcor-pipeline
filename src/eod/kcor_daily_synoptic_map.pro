@@ -174,7 +174,7 @@ pro kcor_daily_synoptic_map, radius=radius, run=run
 
   output_filename = filepath(string(run.date, $
                                     100.0 * _radius, $
-                                    format='(%"%s.daily.synoptic.r%03d.gif")'), $
+                                    format='(%"%s.kcor.daily.synoptic.r%03d.gif")'), $
                              root=p_dir)
   write_gif, output_filename, im, rgb[*, 0], rgb[*, 1], rgb[*, 2]
 
@@ -204,7 +204,7 @@ pro kcor_daily_synoptic_map, radius=radius, run=run
 
   fits_filename = filepath(string(run.date, $
                                   100.0 * _radius, $
-                                  format='(%"%s.daily.synoptic.r%03d.fts")'), $
+                                  format='(%"%s.kcor.daily.synoptic.r%03d.fts")'), $
                            root=p_dir)
   writefits, fits_filename, map, primary_header
 
