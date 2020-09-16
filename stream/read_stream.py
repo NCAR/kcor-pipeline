@@ -23,7 +23,7 @@ def read_raw_stream(raw_filename):
     return(im)
 
 
-def display_image(im, dpi=80):
+def display_image(im, dpi=80, minimum=-20.0, maximum=200.0):
     """Display an image with no axes at full resolution.
     """
     height, width = im.shape
@@ -32,7 +32,7 @@ def display_image(im, dpi=80):
     fig = plt.figure(figsize=figsize)
     ax = fig.add_axes([0, 0, 1, 1])
     ax.axis("off")
-    ax.imshow(im, cmap="Greys_r", origin="lower")
+    ax.imshow(im, cmap="Greys_r", origin="lower", vmin=minimum, vmax=maximum)
     plt.show()
 
 
@@ -73,14 +73,14 @@ def remove_aerosol(frames):
     """Remove aerosols from frames. `frames` is a `uint16` array of shape
     `numsum, N_CAMERAS, N_STATES, HEIGHT, WIDTH`.
     """
-    frames_mean = np.median(frames, axis=0).astype(np.uint16)
-    frames_median = np.median(frames, axis=0).astype(np.uint16)
+    frames_mean = np.median(frames, axis=0).astype(frames.dtype)
+    frames_median = np.median(frames, axis=0).astype(frames.dtype)
 
     numsum = frames.shape[0]
     ss = 4.0 / 44.0 / np.sqrt(44.0)
     threshold = numsum * 0.90
 
-    corrected = np.empty((N_CAMERAS, N_STATES, HEIGHT, WIDTH), dtype=np.uint16)
+    corrected = np.empty((N_CAMERAS, N_STATES, HEIGHT, WIDTH), dtype=frames.dtype)
 
     for c in range(N_CAMERAS):
         for s in range(N_STATES):
@@ -111,16 +111,17 @@ if __name__ == "__main__":
     output_root = "/hao/dawn/Data/KCor/raw.aero-removed/20200908"
 
     #datetimes = ["20200908_172438"]
-    #datetimes = ["20200908_172438", "20200908_172453"]
-    all_raw_files = glob.glob(os.path.join(raw_root, "*_kcor.fts.gz"))
-    datetimes =  [os.path.basename(f)[0:15] for f in all_raw_files]
+    #datetimes = ["20200908_172453"]
+    datetimes = ["20200908_172438", "20200908_172453"]
+    #all_raw_files = glob.glob(os.path.join(raw_root, "*_kcor.fts.gz"))
+    #datetimes =  [os.path.basename(f)[0:15] for f in all_raw_files]
     for dt in datetimes:
         print(f"Reading {dt}...")
         frames, numsum = read_time(stream_root, dt)
 
         print(f"Summing {dt}...")
-        #average_image = (naive_sum(frames) / 2**5).astype(np.uint16)
-        average_image = remove_aerosol(frames).astype(np.uint16)
+        average_image = (naive_sum(frames) / 2**5).astype(np.uint16)
+        #average_image = 16 * remove_aerosol(frames.astype(np.float32)).astype(np.uint16)
 
         metadata_filename = glob.glob(os.path.join(raw_root, f"{dt}*.fts.gz"))[0]
         output_basename = os.path.basename(metadata_filename)
