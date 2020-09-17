@@ -291,7 +291,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     success = n_missing eq 0L && n_wrongsize eq 0L
   endelse
 
-  cal_status = 2L
+  cal_status = 3L
 
   done_validating:
 
@@ -464,6 +464,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
       0: cal_status_text = 'Successful calibration reduction'
       1: cal_status_text = 'Incomplete data for calibration reduction'
       2: cal_status_text = 'Error during calibration reduction'
+      3: cal_status_text = 'Calibration skipped due to missing files'
       else: cal_status_text = 'Unknown error during calibration reduction'
     endcase
     msg = [string(date, $
