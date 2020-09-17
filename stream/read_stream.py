@@ -73,6 +73,7 @@ def remove_aerosol(frames):
     """Remove aerosols from frames. `frames` is a `uint16` array of shape
     `numsum, N_CAMERAS, N_STATES, HEIGHT, WIDTH`.
     """
+
     frames_mean = np.median(frames, axis=0).astype(frames.dtype)
     frames_median = np.median(frames, axis=0).astype(frames.dtype)
 
@@ -106,9 +107,13 @@ def quicklook(stream_root, datetime):
 
 
 if __name__ == "__main__":
-    stream_root = "/hao/dawn/Data/KCor/stream.aero/20200908"
-    raw_root = "/hao/dawn/Data/KCor/raw.aero/20200908"
-    output_root = "/hao/dawn/Data/KCor/raw.aero-removed/20200908"
+    #stream_root = "/hao/dawn/Data/KCor/stream.aero/20200908"
+    #raw_root = "/hao/dawn/Data/KCor/raw.aero/20200908"
+    #output_root = "/hao/dawn/Data/KCor/raw.aero-removed/20200908"
+
+    stream_root = "/data/kcorAero/20200908"
+    raw_root = "/export/data1/Data/KCor/raw/20200908/level0"
+    output_root = "/export/data1/Data/KCor/raw.aero-removed/20200908"
 
     #datetimes = ["20200908_172438"]
     #datetimes = ["20200908_172453"]
@@ -118,16 +123,22 @@ if __name__ == "__main__":
     for dt in datetimes:
         print(f"Reading {dt}...")
         frames, numsum = read_time(stream_root, dt)
+        print(frames.shape)
+        print(f"  min={np.min(frames)} max={np.max(frames)}")
 
-        print(f"Summing {dt}...")
-        average_image = (naive_sum(frames) / 2**5).astype(np.uint16)
-        #average_image = 16 * remove_aerosol(frames.astype(np.float32)).astype(np.uint16)
-
-        metadata_filename = glob.glob(os.path.join(raw_root, f"{dt}*.fts.gz"))[0]
+         metadata_filename = glob.glob(os.path.join(raw_root, f"{dt}*.fts.gz"))[0]
         output_basename = os.path.basename(metadata_filename)
         output_filename = os.path.join(os.path.join(output_root, output_basename))
 
         print(f"Writing {dt}...")
         metadata_hdulist = astropy.io.fits.open(metadata_filename)
-        metadata_hdulist[0].data = average_image
+
+        if numsum > 0:
+            print(f"Summing {dt}...")
+            #average_image = (naive_sum(frames) / 2**5).astype(np.uint16)
+            average_image = 16 * remove_aerosol(frames).astype(np.uint16)
+            print(f"  min={np.min(average_image)} max={np.max(average_image)}")
+
+            metadata_hdulist[0].data = average_image
+
         metadata_hdulist.writeto(output_filename, output_verify="ignore") 
