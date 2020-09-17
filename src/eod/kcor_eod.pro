@@ -291,6 +291,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     success = n_missing eq 0L && n_wrongsize eq 0L
   endelse
 
+  cal_status = 2L
+
   done_validating:
 
   if (success) then begin
