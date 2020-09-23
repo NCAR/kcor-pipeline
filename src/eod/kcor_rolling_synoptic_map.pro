@@ -155,7 +155,7 @@ pro kcor_rolling_synoptic_map, database=db, run=run
   sxdelpar, primary_header, 'DATE'
   sxaddpar, primary_header, 'DATE-OBS', start_date, $
             ' [UTC] start date of synoptic map', after='EXTEND'
-sxaddpar, primary_header, 'DATE-END', end_date, $
+  sxaddpar, primary_header, 'DATE-END', end_date, $
             ' [UTC] end date of synoptic map', $
             format='(F0.2)', after='DATE-OBS'
   sxaddpar, primary_header, 'HEIGHT', radius, $
