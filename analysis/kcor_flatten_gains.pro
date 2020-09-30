@@ -74,7 +74,7 @@ pro kcor_flatten_gains, date, $
 
       for f = 0L, n_darks - 1L do begin
         kcor_read_rawdata, cal_filenames[dark_indices[f]], image=im, header=header, $
-                           xshift=original_xshift
+                           xshift=xshift
         kcor_correct_camera, im, header, run=run, logger_name='kcor/cal'
 
         dark += mean(im, dimension=3)
@@ -82,7 +82,7 @@ pro kcor_flatten_gains, date, $
 
       for f = 0L, n_flats - 1L do begin
         kcor_read_rawdata, cal_filenames[flat_indices[f]], image=im, header=header, $
-                           xshift=original_xshift
+                           xshift=xshift
         kcor_correct_camera, im, header, run=run, logger_name='kcor/cal'
 
         transmission = run->epoch(sxpar(header, 'DIFFSRID'))
