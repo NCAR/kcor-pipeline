@@ -3,8 +3,6 @@
 pro kcor_flatten_gains, date, $
                         cam0_xrange=cam0_xrange, $
                         cam1_xrange=cam1_xrange, $
-                        cam0_yrange=cam0_yrange, $
-                        cam1_yrange=cam1_yrange, $
                         run=run
   compile_opt strictarr
 ;  on_error, 2
@@ -19,9 +17,6 @@ pro kcor_flatten_gains, date, $
 
   _cam0_xrange = n_elements(cam0_xrange) gt 0L ? cam0_xrange :  [0, 0]
   _cam1_xrange = n_elements(cam1_xrange) gt 0L ? cam1_xrange :  [0, 0]
-
-  _cam0_yrange = n_elements(cam0_yrange) gt 0L ? cam0_yrange :  [0, 0]
-  _cam1_yrange = n_elements(cam1_yrange) gt 0L ? cam1_yrange :  [0, 0]
 
   ; find flat files
   cal_catalog_filename = filepath('calibration_files.txt', $
@@ -68,20 +63,18 @@ pro kcor_flatten_gains, date, $
   loadct, 0
 
   original_xshift = run->epoch('xshift_camera')
-  original_yshift = [0, 0]
 
-  for cam0_yshift = _cam0_yrange[0], _cam0_yrange[1] do begin
-    for cam1_yshift = _cam1_yrange[0], _cam1_yrange[1] do begin
-      yshift = original_yshift + [cam0_yshift, cam1_yshift]
-      print, yshift, format='(%"-- trying yshift: [%d, %d]")'
+  for cam0_xshift = _cam0_xrange[0], _cam0_xrange[1] do begin
+    for cam1_xshift = _cam1_xrange[0], _cam1_xrange[1] do begin
+      xshift = original_xshift + [cam0_xshift, cam1_xshift]
+      print, xshift, format='(%"-- trying xshift: [%d, %d]")'
 
       dark = fltarr(1024, 1024, 2)
       flat = fltarr(1024, 1024, 2)
 
       for f = 0L, n_darks - 1L do begin
         kcor_read_rawdata, cal_filenames[dark_indices[f]], image=im, header=header, $
-                           xshift=original_xshift, $
-                           yshift=yshift
+                           xshift=original_xshift
         kcor_correct_camera, im, header, run=run, logger_name='kcor/cal'
 
         dark += mean(im, dimension=3)
@@ -89,8 +82,7 @@ pro kcor_flatten_gains, date, $
 
       for f = 0L, n_flats - 1L do begin
         kcor_read_rawdata, cal_filenames[flat_indices[f]], image=im, header=header, $
-                           xshift=original_xshift, $
-                           yshift=yshift
+                           xshift=original_xshift
         kcor_correct_camera, im, header, run=run, logger_name='kcor/cal'
 
         transmission = run->epoch(sxpar(header, 'DIFFSRID'))
@@ -113,7 +105,7 @@ pro kcor_flatten_gains, date, $
       y = 512  ; height of gain profile
 
       window, xsize=800, ysize=800, $
-              title=string(yshift, format='(%"yshift: [%d, %d]")'), $
+              title=string(xshift, format='(%"xshift: [%d, %d]")'), $
               /free
       !p.multi = [0, 1, 2]
       for c = 0, 1 do begin
@@ -147,7 +139,7 @@ mg_log, logger=logger, name='kcor/cal'
 logger->setProperty, level=3
 
 kcor_flatten_gains, date, $
-                    cam0_yrange=[-24, 24], $
+                    cam1_xrange=[-24, 24], $
                     run=run
 
 obj_destroy, run
