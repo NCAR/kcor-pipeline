@@ -78,7 +78,7 @@ def remove_aerosol(frames):
     frames_median = np.median(frames, axis=0).astype(frames.dtype)
 
     numsum = frames.shape[0]
-    ss = 4.0 / 44.0 / np.sqrt(44.0)
+    ss = 4.0 / 44.0 * np.sqrt(44.0)
     threshold = numsum * 0.90
 
     corrected = np.empty((N_CAMERAS, N_STATES, HEIGHT, WIDTH), dtype=frames.dtype)
