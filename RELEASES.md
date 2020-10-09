@@ -24,7 +24,7 @@
 1.2.1 [May 31, 2017]
   fix for horizontal correction not being applied
   better headers
-  better email notications
+  better email notifications
 1.2.2 [Jun 1, 2017]
   typo in end-of-day
 1.2.3 [Jun 1, 2017]
