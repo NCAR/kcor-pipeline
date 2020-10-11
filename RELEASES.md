@@ -445,7 +445,7 @@
   fix for interpolation artifact
 2.0.22 [Aug 30, 2020]
   fix for no plate scale value for certain qualities
-2.0.23
+2.0.23 [Oct 11, 2020]
   epochs for x-shift for camera correction
   separating epoch values for permanent x-shift vs. x-shift just for camera linearity correction
   allowing each camera to have a separate x-shift for camera correction
