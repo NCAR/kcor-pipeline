@@ -449,3 +449,4 @@
   epochs for x-shift for camera correction
   separating epoch values for permanent x-shift vs. x-shift just for camera linearity correction
   allowing each camera to have a separate x-shift for camera correction
+2.0.24
