@@ -14,14 +14,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-# camera information
+# default camera information
 N_CAMERAS = 2
 N_STATES = 4
 HEIGHT = 1024
 WIDTH = 1024
 N_ADC = 4
 
-# stream file information
+# default stream file information
 N_IMAGES_PER_FILE = 2
 
 
@@ -149,7 +149,7 @@ def remove_aerosol(frames):
     return(corrected)
 
 
-def quicklook(stream_root, datetime, n_cameras=2):
+def quicklook(stream_root, datetime):
     """Calculate simple averaged quicklook image from a file location and
     date/time.
     """
@@ -157,28 +157,44 @@ def quicklook(stream_root, datetime, n_cameras=2):
     #average_image = naive_sum(frames)
     average_image = remove_aerosol(frames)
     return([corona(average_image[cam, :, :, :])
-              for cam in np.arange(n_cameras, dtype=np.int16)])
+              for cam in np.arange(N_CAMERAS, dtype=np.int16)])
 
 def main():
+    # TODO: the date and config filename should come from the command line
     date = "20200911"
     script_location = os.path.dirname(os.path.abspath(__file__))
+
+    # TODO: this should get inserted in the config/build process
+    version = "2.0.24"
 
     # read options from config file
     stream_config_filename = os.path.join(script_location, "stream.cfg")
     options = configparser.ConfigParser()
     options.read(stream_config_filename)
 
+    global N_CAMERAS, N_STATES, HEIGHT, WIDTH, N_ADC, N_IMAGES_PER_FILE
+    N_CAMERAS = options.getint("image_format", "n_cameras", fallback=N_CAMERAS)
+    N_STATES = options.getint("image_format", "n_states", fallback=N_STATES)
+    HEIGHT = options.getint("image_format", "height", fallback=HEIGHT)
+    WIDTH = options.getint("image_format", "width", fallback=WIDTH)
+    N_ADC = options.getint("image_format", "n_adc", fallback=N_ADC)
+    N_IMAGES_PER_FILE = options.getint("image_format", "n_images_per_file",
+        fallback=N_IMAGES_PER_FILE)
+
     output_root = os.path.join(options.get("results", "root"), date)
     stream_root = os.path.join(options.get("stream_data", "root"), date)
     raw_root = os.path.join(options.get("raw_data", "root"), date, "level0")
-    lut_root = os.path.join(options.get("LUTs", "root"))
-    lut_identifier = os.path.join(options.get("LUTs", "identifier"))
+    lut_root = options.get("LUTs", "root")
+    lut_identifier = options.get("LUTs", "identifier")
 
-    print(f"output root : {output_root}")
-    print(f"stream root : {stream_root}")
-    print(f"raw root : {raw_root}")
-    print(f"LUT root : {lut_root}")
+    print(f"KCor pipeline {version} -- stream processing")
+    print("-" * 80)
+    print(f"output root    : {output_root}")
+    print(f"stream root    : {stream_root}")
+    print(f"raw root       : {raw_root}")
+    print(f"LUT root       : {lut_root}")
     print(f"LUT identifier : {lut_identifier}")
+    print("")
 
     all_raw_files = glob.glob(os.path.join(raw_root, "*_kcor.fts.gz"))
     all_raw_files = sorted(all_raw_files)
@@ -186,8 +202,8 @@ def main():
     #datetimes = ["20200908_172438"]
     #datetimes = ["20200908_172453"]
     #datetimes = ["20200908_172438", "20200908_172453"]
-    #datetimes = ["20200911_213854"]
-    datetimes =  [os.path.basename(f)[0:15] for f in all_raw_files]
+    datetimes = ["20200911_213854"]
+    #datetimes =  [os.path.basename(f)[0:15] for f in all_raw_files]
     for dt in datetimes:
         metadata_filename = glob.glob(os.path.join(raw_root, f"{dt}*.fts.gz"))[0]
         output_basename = os.path.basename(metadata_filename)
@@ -203,13 +219,14 @@ def main():
         luts = {0: read_luts(lut_root, rcam_id, lut_identifier),
                 1: read_luts(lut_root, tcam_id, lut_identifier)}
         
-        print(f"Reading {dt}...")
+        print(f"Processing {dt}...")
+        print(f"  reading {dt}...")
         frames, numsum = read_time(stream_root, dt, luts)
-        print(frames.shape)
+        print(f"  {frames.shape[0]} images")
 
         if numsum > 0:
             print(f"  min={np.min(frames)} max={np.max(frames)}")
-            print(f"Summing {dt}...")
+            print(f"  summing {dt}...")
             average_image = (naive_sum(frames) / 2**16).astype(np.uint16)
             #average_image = remove_aerosol(frames).astype(np.uint16)
             #average_image = 2**4 * median_image(frames).astype(np.uint16)
@@ -217,7 +234,7 @@ def main():
 
             metadata_hdulist[0].data = average_image
 
-        print(f"Writing {dt}...")
+        print(f"  writing {dt}...")
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", AstropyUserWarning)
             metadata_hdulist.writeto(output_filename, output_verify="ignore") 
