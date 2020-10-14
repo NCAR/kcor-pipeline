@@ -1,3 +1,9 @@
+"""Module to handle KCor stream image files and to construct average files with
+the standard processing (applying LUTs, averaging, etc) as well as more novel
+algorithms to remove aerosols.
+"""
+
+import configparser
 import glob
 import os
 import warnings
@@ -8,12 +14,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+# camera information
 N_CAMERAS = 2
 N_STATES = 4
 HEIGHT = 1024
 WIDTH = 1024
-N_IMAGES_PER_FILE = 2
 N_ADC = 4
+
+# stream file information
+N_IMAGES_PER_FILE = 2
 
 
 def read_raw_stream(raw_filename):
@@ -37,20 +46,20 @@ def read_lut(lut_filename):
     return(lut)
 
 
-def read_luts(lut_root, camera_id, number):
-    """Read the `N_ADC` files associated with a given `camera_id` and `number`,
+def read_luts(lut_root, camera_id, lut_id):
+    """Read the `N_ADC` files associated with a given `camera_id` and `lut_id`,
     i.e., "20200615". Returns a list of length `N_ADC`.
     """
     luts = [read_lut(os.path.join(lut_root,
-        f"Photonfocus_MV-D1024E_{camera_id}_adc{adc}_{number}.bin"))
+        f"Photonfocus_MV-D1024E_{camera_id}_adc{adc}_{lut_id}.bin"))
             for adc in range(N_ADC)]
     return(luts)
 
 
 def apply_lut(im, lut):
-    """ Expands a raw unsigned 16-bit integer stream image of size
-    `N_STATES, HEIGHT, WIDTH` to an unsigned 32-bit integer array of the same
-    shape using the given LUTs.
+    """Expands a raw unsigned 16-bit integer stream image of size
+    `N_IMAGES, N_STATES, HEIGHT, WIDTH` to an unsigned 32-bit integer array of
+    the same shape using the given LUTs.
     """
     new_im = np.empty_like(im, dtype=np.uint32)
     for i in range(im.shape[0]):
@@ -140,7 +149,7 @@ def remove_aerosol(frames):
     return(corrected)
 
 
-def quicklook(stream_root, datetime):
+def quicklook(stream_root, datetime, n_cameras=2):
     """Calculate simple averaged quicklook image from a file location and
     date/time.
     """
@@ -148,26 +157,28 @@ def quicklook(stream_root, datetime):
     #average_image = naive_sum(frames)
     average_image = remove_aerosol(frames)
     return([corona(average_image[cam, :, :, :])
-              for cam in np.arange(N_CAMERAS, dtype=np.int16)])
+              for cam in np.arange(n_cameras, dtype=np.int16)])
 
-
-if __name__ == "__main__":
+def main():
     date = "20200911"
+    script_location = os.path.dirname(os.path.abspath(__file__))
 
-    # [RESULTS]
-    #output_root = "/export/data1/Data/KCor/raw.aero-median/20200911"
-    output_root = "/hao/dawn/Data/KCor/raw.aero-removed-test/20200911"
+    # read options from config file
+    stream_config_filename = os.path.join(script_location, "stream.cfg")
+    options = configparser.ConfigParser()
+    options.read(stream_config_filename)
 
-    # [STREAM_DATA]
-    stream_root = "/hao/dawn/Data/KCor/stream.aero/20200911"
+    output_root = os.path.join(options.get("results", "root"), date)
+    stream_root = os.path.join(options.get("stream_data", "root"), date)
+    raw_root = os.path.join(options.get("raw_data", "root"), date, "level0")
+    lut_root = os.path.join(options.get("LUTs", "root"))
+    lut_identifier = os.path.join(options.get("LUTs", "identifier"))
 
-    # [RAW_DATA]
-    #raw_root = "/hao/dawn/Data/KCor/raw.aero/20200908"
-    raw_root = "/hao/mlsodata1/Data/KCor/raw/20200911/level0"
-
-    # [LUTs]
-    lut_root = "/hao/dawn/Data/KCor/LUTs"
-    lut_number = "20200615"
+    print(f"output root : {output_root}")
+    print(f"stream root : {stream_root}")
+    print(f"raw root : {raw_root}")
+    print(f"LUT root : {lut_root}")
+    print(f"LUT identifier : {lut_identifier}")
 
     all_raw_files = glob.glob(os.path.join(raw_root, "*_kcor.fts.gz"))
     all_raw_files = sorted(all_raw_files)
@@ -175,8 +186,8 @@ if __name__ == "__main__":
     #datetimes = ["20200908_172438"]
     #datetimes = ["20200908_172453"]
     #datetimes = ["20200908_172438", "20200908_172453"]
-    datetimes = ["20200911_213854"]
-    #datetimes =  [os.path.basename(f)[0:15] for f in all_raw_files]
+    #datetimes = ["20200911_213854"]
+    datetimes =  [os.path.basename(f)[0:15] for f in all_raw_files]
     for dt in datetimes:
         metadata_filename = glob.glob(os.path.join(raw_root, f"{dt}*.fts.gz"))[0]
         output_basename = os.path.basename(metadata_filename)
@@ -189,8 +200,8 @@ if __name__ == "__main__":
         metadata_hdulist = astropy.io.fits.open(metadata_filename)
         tcam_id = metadata_hdulist[0].header["TCAMID"]
         rcam_id = metadata_hdulist[0].header["RCAMID"]
-        luts = {0: read_luts(lut_root, rcam_id, lut_number),
-                1: read_luts(lut_root, tcam_id, lut_number)}
+        luts = {0: read_luts(lut_root, rcam_id, lut_identifier),
+                1: read_luts(lut_root, tcam_id, lut_identifier)}
         
         print(f"Reading {dt}...")
         frames, numsum = read_time(stream_root, dt, luts)
@@ -210,3 +221,6 @@ if __name__ == "__main__":
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", AstropyUserWarning)
             metadata_hdulist.writeto(output_filename, output_verify="ignore") 
+
+if __name__ == "__main__":
+    main()
