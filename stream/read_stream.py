@@ -1,7 +1,9 @@
 import glob
 import os
+import warnings
 
 import astropy.io.fits
+from astropy.utils.exceptions import AstropyUserWarning
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -11,16 +13,53 @@ N_STATES = 4
 HEIGHT = 1024
 WIDTH = 1024
 N_IMAGES_PER_FILE = 2
+N_ADC = 4
 
 
 def read_raw_stream(raw_filename):
-    """Read raw stream data file.
+    """Read a raw stream data file. Returns an array of unsigned 16-bit integers
+    of size `N_IMAGES_PER_FILE, N_STATES, HEIGHT, WIDTH`.
     """
     with open(raw_filename) as raw_file:
         im = np.fromfile(raw_file, dtype=np.uint16)
         im = im.reshape(N_IMAGES_PER_FILE, N_STATES, HEIGHT, WIDTH)
 
     return(im)
+
+
+def read_lut(lut_filename):
+    """Read a single `.bin` LUT file, returning a 4096 element 32-bit unsigned
+    integer array.
+    """
+    with open(lut_filename) as lut_file:
+        lut = np.fromfile(lut_file, dtype=np.uint32)
+
+    return(lut)
+
+
+def read_luts(lut_root, camera_id, number):
+    """Read the `N_ADC` files associated with a given `camera_id` and `number`,
+    i.e., "20200615". Returns a list of length `N_ADC`.
+    """
+    luts = [read_lut(os.path.join(lut_root,
+        f"Photonfocus_MV-D1024E_{camera_id}_adc{adc}_{number}.bin"))
+            for adc in range(N_ADC)]
+    return(luts)
+
+
+def apply_lut(im, lut):
+    """ Expands a raw unsigned 16-bit integer stream image of size
+    `N_STATES, HEIGHT, WIDTH` to an unsigned 32-bit integer array of the same
+    shape using the given LUTs.
+    """
+    new_im = np.empty_like(im, dtype=np.uint32)
+    for i in range(im.shape[0]):
+        for s in range(N_STATES):
+            for adc in range(N_ADC):
+                adc_lut = lut[adc]
+                new_im[i, s, :, adc::N_ADC] = adc_lut[im[i, s, :, adc::N_ADC]]
+
+    return(new_im)
 
 
 def display_image(im, dpi=80, minimum=-20.0, maximum=200.0):
@@ -36,7 +75,7 @@ def display_image(im, dpi=80, minimum=-20.0, maximum=200.0):
     plt.show()
 
 
-def read_time(root, datetime):
+def read_time(root, datetime, luts):
     """Read all the files corresponding to a date/time in a given directory, and
     place into an array with shape `(numsum, n_cameras, n_states, height, width)`.
     """
@@ -46,12 +85,13 @@ def read_time(root, datetime):
     # TODO: should check that len(all_files[i]) is the same for all i
 
     shape = (numsum, N_CAMERAS, N_STATES, HEIGHT, WIDTH)
-    frames = np.empty(shape, dtype=np.uint16)
+    frames = np.empty(shape, dtype=np.uint32)
 
     for c, cam_files in enumerate(all_files):
         for i, f in enumerate(cam_files):
+            basename = os.path.basename(f)
             frames[i * N_IMAGES_PER_FILE:(i + 1) * N_IMAGES_PER_FILE, c, :, :, :] \
-              = read_raw_stream(f)
+              = apply_lut(read_raw_stream(f), luts[c])
 
     return(frames, numsum)
 
@@ -67,6 +107,11 @@ def naive_sum(frames):
     of shape `numsum, N_CAMERAS, N_STATES, HEIGHT, WIDTH`.
     """
     return(np.sum(frames.astype(np.float32), axis=0))
+
+
+def median_image(frames):
+    """Get the median image."""
+    return(np.median(frames, axis=0).astype(frames.dtype))
 
 
 def remove_aerosol(frames):
@@ -107,38 +152,61 @@ def quicklook(stream_root, datetime):
 
 
 if __name__ == "__main__":
-    #stream_root = "/hao/dawn/Data/KCor/stream.aero/20200908"
-    #raw_root = "/hao/dawn/Data/KCor/raw.aero/20200908"
-    #output_root = "/hao/dawn/Data/KCor/raw.aero-removed/20200908"
+    date = "20200911"
 
-    stream_root = "/data/kcorAero/20200908"
-    raw_root = "/export/data1/Data/KCor/raw/20200908/level0"
-    output_root = "/export/data1/Data/KCor/raw.aero-removed/20200908"
+    # [RESULTS]
+    #output_root = "/export/data1/Data/KCor/raw.aero-median/20200911"
+    output_root = "/hao/dawn/Data/KCor/raw.aero-removed-test/20200911"
+
+    # [STREAM_DATA]
+    stream_root = "/hao/dawn/Data/KCor/stream.aero/20200911"
+
+    # [RAW_DATA]
+    #raw_root = "/hao/dawn/Data/KCor/raw.aero/20200908"
+    raw_root = "/hao/mlsodata1/Data/KCor/raw/20200911/level0"
+
+    # [LUTs]
+    lut_root = "/hao/dawn/Data/KCor/LUTs"
+    lut_number = "20200615"
+
+    all_raw_files = glob.glob(os.path.join(raw_root, "*_kcor.fts.gz"))
+    all_raw_files = sorted(all_raw_files)
 
     #datetimes = ["20200908_172438"]
     #datetimes = ["20200908_172453"]
-    datetimes = ["20200908_172438", "20200908_172453"]
-    #all_raw_files = glob.glob(os.path.join(raw_root, "*_kcor.fts.gz"))
+    #datetimes = ["20200908_172438", "20200908_172453"]
+    datetimes = ["20200911_213854"]
     #datetimes =  [os.path.basename(f)[0:15] for f in all_raw_files]
     for dt in datetimes:
-        print(f"Reading {dt}...")
-        frames, numsum = read_time(stream_root, dt)
-        print(frames.shape)
-        print(f"  min={np.min(frames)} max={np.max(frames)}")
-
-         metadata_filename = glob.glob(os.path.join(raw_root, f"{dt}*.fts.gz"))[0]
+        metadata_filename = glob.glob(os.path.join(raw_root, f"{dt}*.fts.gz"))[0]
         output_basename = os.path.basename(metadata_filename)
         output_filename = os.path.join(os.path.join(output_root, output_basename))
 
-        print(f"Writing {dt}...")
+        if os.path.exists(output_filename):
+            print(f"Skipping {dt}...")
+            continue
+
         metadata_hdulist = astropy.io.fits.open(metadata_filename)
+        tcam_id = metadata_hdulist[0].header["TCAMID"]
+        rcam_id = metadata_hdulist[0].header["RCAMID"]
+        luts = {0: read_luts(lut_root, rcam_id, lut_number),
+                1: read_luts(lut_root, tcam_id, lut_number)}
+        
+        print(f"Reading {dt}...")
+        frames, numsum = read_time(stream_root, dt, luts)
+        print(frames.shape)
 
         if numsum > 0:
+            print(f"  min={np.min(frames)} max={np.max(frames)}")
             print(f"Summing {dt}...")
-            #average_image = (naive_sum(frames) / 2**5).astype(np.uint16)
-            average_image = 16 * remove_aerosol(frames).astype(np.uint16)
+            average_image = (naive_sum(frames) / 2**16).astype(np.uint16)
+            #average_image = remove_aerosol(frames).astype(np.uint16)
+            #average_image = 2**4 * median_image(frames).astype(np.uint16)
             print(f"  min={np.min(average_image)} max={np.max(average_image)}")
 
             metadata_hdulist[0].data = average_image
 
-        metadata_hdulist.writeto(output_filename, output_verify="ignore") 
+        print(f"Writing {dt}...")
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", AstropyUserWarning)
+            metadata_hdulist.writeto(output_filename, output_verify="ignore") 
