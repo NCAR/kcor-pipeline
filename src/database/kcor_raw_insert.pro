@@ -103,7 +103,8 @@ pro kcor_raw_insert, date, fits_list, quality, $
     kcor_read_rawdata, fts_file, image=image, header=hdu, $
                        repair_routine=run->epoch('repair_routine'), $
                        xshift=run->epoch('xshift_camera'), $
-                       start_state=run->epoch('start_state')
+                       start_state=run->epoch('start_state'), $
+                       raw_data_prefix=run->epoch('raw_data_prefix')
 
     date_obs = sxpar(hdu, 'DATE-OBS', count=qdate_obs)
     date_end = sxpar(hdu, 'DATE-END', count=qdate_end)

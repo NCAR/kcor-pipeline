@@ -64,7 +64,8 @@ pro kcor_l1, ok_filename, $
   kcor_read_rawdata, ok_filename, image=img, header=header, $
                      repair_routine=run->epoch('repair_routine'), $
                      xshift=run->epoch('xshift_camera'), $
-                     start_state=run->epoch('start_state')
+                     start_state=run->epoch('start_state'), $
+                     raw_data_prefix=run->epoch('raw_data_prefix')
 
   type = fxpar(header, 'DATATYPE')
   mg_log, 'type: %s', strmid(type, 0, 3), name=log_name, /debug

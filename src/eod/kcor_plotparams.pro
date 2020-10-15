@@ -78,7 +78,8 @@ pro kcor_plotparams, date, list=list, run=run
     kcor_read_rawdata, l0_file, header=hdu, $
                        repair_routine=run->epoch('repair_routine'), $
                        xshift=run->epoch('xshift_camera'), $
-                       start_state=run->epoch('start_state')
+                       start_state=run->epoch('start_state'), $
+                       raw_data_prefix=run->epoch('raw_data_prefix')
 
     ; get FITS header size
     hdusize = size(hdu)

@@ -253,7 +253,8 @@ function kcor_quality, date, l0_fits_files, append=append, $
     kcor_read_rawdata, l0_file, image=img, header=hdu, $
                        repair_routine=run->epoch('repair_routine'), $
                        xshift=run->epoch('xshift_camera'), $
-                       start_state=run->epoch('start_state')
+                       start_state=run->epoch('start_state'), $
+                       raw_data_prefix=run->epoch('raw_data_prefix')
     img = float(img)
 
     mg_log, 'checking %d/%d: %s', $
@@ -273,7 +274,8 @@ function kcor_quality, date, l0_fits_files, append=append, $
       kcor_read_rawdata, l0_file, image=img, header=hdu, $
                          repair_routine=run->epoch('repair_routine'), $
                          xshift=run->epoch('xshift_camera'), $
-                         start_state=run->epoch('start_state')
+                         start_state=run->epoch('start_state'), $
+                         raw_data_prefix=run->epoch('raw_data_prefix')
       n_dims = size(img, /n_dimensions)
       if (n_dims ne 4) then begin
         mg_log, 'wrong number of dimensions for image: %d', n_dims, $

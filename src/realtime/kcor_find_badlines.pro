@@ -67,7 +67,8 @@ filename = filepath(basename, $
 kcor_read_rawdata, filename, image=im, header=header, $
                    repair_routine=run->epoch('repair_routine'), $
                    xshift=run->epoch('xshift_camera'), $
-                   start_state=run->epoch('start_state')
+                   start_state=run->epoch('start_state'), $
+                   raw_data_prefix=run->epoch('raw_data_prefix')
 
 corona0 = kcor_corona(im[*, *, *, 0])
 corona1 = kcor_corona(im[*, *, *, 1])

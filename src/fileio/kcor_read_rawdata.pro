@@ -26,14 +26,27 @@ pro kcor_read_rawdata, filename, $
                        repair_routine=repair_routine, $
                        errmsg=errmsg, $
                        xshift=xshift, $
-                       start_state=start_state
+                       start_state=start_state, $
+                       raw_data_prefix=raw_data_prefix
   compile_opt strictarr
 
   errmsg = ''
 
   case 1 of
-    arg_present(im) && arg_present(header): im = readfits(filename, header, /silent)
-    arg_present(im): im = readfits(filename, /silent)
+    arg_present(im) && arg_present(header): begin
+        if (keyword_set(raw_data_prefix)) then begin
+          im = kcor_old_readfits(filename, header)
+        endif else begin
+          im = readfits(filename, header, /silent)
+        endelse
+      end
+    arg_present(im): begin
+        if (keyword_set(raw_data_prefix)) then begin
+          im = kcor_old_readfits(filename, header)
+        endif else begin
+          im = readfits(filename, /silent)
+        endelse
+      end
     arg_present(header): header = headfits(filename, errmsg=errmsg, /silent)
     else: return
   endcase

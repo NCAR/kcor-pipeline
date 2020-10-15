@@ -34,7 +34,8 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
   kcor_read_rawdata, filenames[0], header=header, $
                      repair_routine=run->epoch('repair_routine'), $
                      xshift=run->epoch('xshift_camera'), $
-                     start_state=run->epoch('start_state')
+                     start_state=run->epoch('start_state'), $
+                     raw_data_prefix=run->epoch('raw_data_prefix')
   header = fitshead2struct(header)
 
   ; set epoch values to the beginning of the calibration
@@ -69,7 +70,8 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
     kcor_read_rawdata, filenames[f], image=thisdata, header=header, $
                        repair_routine=run->epoch('repair_routine'), $
                        xshift=run->epoch('xshift_camera'), $
-                       start_state=run->epoch('start_state')
+                       start_state=run->epoch('start_state'), $
+                       raw_data_prefix=run->epoch('raw_data_prefix')
 
     ; must set time before querying run object
     date_obs = sxpar(header, 'DATE-OBS', count=qdate_obs)

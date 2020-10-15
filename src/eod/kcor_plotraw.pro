@@ -105,7 +105,8 @@ pro kcor_plotraw, date, list=list, run=run, $
     kcor_read_rawdata, raw_nrgf_files[f], image=im, header=header, $
                        repair_routine=run->epoch('repair_routine'), $
                        xshift=run->epoch('xshift_camera'), $
-                       start_stat=run->epoch('start_state')
+                       start_stat=run->epoch('start_state'), $
+                       raw_data_prefix=run->epoch('raw_data_prefix')
 
     bitpix   = fix(sxpar(header, 'BITPIX'))
     if (bitpix gt 16) then begin

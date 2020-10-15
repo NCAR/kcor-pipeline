@@ -64,7 +64,8 @@ pro kcor_reduce_calibration, date, $
                          repair_routine=run->epoch('repair_routine'), $
                          errmsg=errmsg, $
                          xshift=run->epoch('xshift_camera'), $
-                         start_state=run->epoch('start_state')
+                         start_state=run->epoch('start_state'), $
+                         raw_data_prefix=run->epoch('raw_data_prefix')
       if (errmsg ne '') then begin
         mg_log, 'error reading %s', filelist[f], name='kcor/cal', /error
         mg_log, errmsg, name='kcor/cal', /error
