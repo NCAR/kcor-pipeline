@@ -16,8 +16,11 @@
 function kcor_old_readfits, filename, header
   compile_opt strictarr
 
+  ext = strmid(filename, strpos(filename, '.', /reverse_search) + 1L)
+  compress = strlowcase(ext) eq 'gz'
+
   ; read header in the normal manner, if it is requested
-  if arg_present(header) then header = headfits(filename, /silent)
+  header = headfits(filename, /silent)
 
   ; the offset of the data into the file is the size of the header, 2 blocks of
   ; 2880 bytes (FITS headers must be in multiples of 2880 bytes), plus the 4
@@ -25,10 +28,17 @@ function kcor_old_readfits, filename, header
   offset = 2880L * 2L + 4L
 
   im = uintarr(1024, 1024, 4, 2)
-  openr, lun, filename, /get_lun
+  openr, lun, filename, /get_lun, compress=compress, /swap_if_little_endian
   point_lun, lun, offset
   readu, lun, im
   free_lun, lun
+
+  bzero = sxpar(header, 'BZERO', count=n_bzero)
+
+  im -= uint(bzero)
+
+  sxaddpar, header, 'BZERO', 0
+  sxaddpar, header, 'O_BZERO', bzero, ' Original BZERO Value'
 
   return, im
 end
