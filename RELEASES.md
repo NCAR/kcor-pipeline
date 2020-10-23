@@ -452,3 +452,4 @@
 2.0.24 [Oct 23, 2020]
   using KCOR_OLD_READFITS to handle old raw FITS files with extra 4 bytes before data
   new epoch for bad start state for 20201020
+2.0.25
