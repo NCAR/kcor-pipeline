@@ -95,7 +95,8 @@ pro kcor_calibration, date, $
   kcor_reduce_calibration, date, run=run, filelist=filelist, $
                            catalog_dir=catalog_dir, $
                            cal_filename=cal_filename, $
-                           status=cal_status
+                           status=cal_status, $
+                           start_state=start_state
 
   if (cal_status eq 0L) then begin
     kcor_plot_calibration, cal_filename, $
@@ -146,10 +147,11 @@ pro kcor_calibration, date, $
   if (run->config('notifications/send') $
         && n_elements(run->config('notifications/email')) gt 0L) then begin
     case cal_status of
-      0: cal_status_text = 'Successful calibration reduction'
-      1: cal_status_text = 'Incomplete data for calibration reduction'
-      2: cal_status_text = 'Error during calibration reduction'
-      else: cal_status_text = 'Unknown error during calibration reduction'
+      0: cal_status_text = 'successful calibration reduction'
+      1: cal_status_text = 'incomplete data for calibration reduction'
+      2: cal_status_text = 'error during calibration reduction'
+      3: cal_status_text = string(start_state, format='(%"bad polarization sequence (recommended start_state: %d)")')
+      else: cal_status_text = 'unknown error during calibration reduction'
     endcase
     msg = [string(date, $
                   format='(%"KCor calibration for %s")'), $
@@ -194,6 +196,7 @@ pro kcor_calibration, date, $
       0: cal_status_msg = 'success'
       1: cal_status_msg = 'incomplete'
       2: cal_status_msg = 'problems'
+      3: cal_status_msg = 'problems'
       else: cal_status_msg = string(cal_status, format='(%"unknown status: %d")')
     endcase
 

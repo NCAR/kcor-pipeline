@@ -24,7 +24,11 @@
 ;     set to a named variable to retrieve the filename of the cal file produced
 ;   status : out, optional, type=long
 ;     set to a named variable to retrieve the status of the calibration
-;     calculation: 0 for success, 1 for incomplete data, 2 for error
+;     calculation: 0 for success, 1 for incomplete data, 2 for error, 3 bad
+;     start_state
+;   start_state : out, optional, type=long
+;     set to a named variable to retrieve the recommended start_state, should
+;     be 0 for good data
 ;   run : in, optional, type=object
 ;     `kcor_run` object; `config_filename` or `run` is required
 ;-
@@ -34,6 +38,7 @@ pro kcor_reduce_calibration, date, $
                              config_filename=config_filename, $
                              cal_filename=outfile, $
                              status=status, $
+                             start_state=start_state, $
                              run=run
   common kcor_random, seed
 
@@ -111,10 +116,28 @@ pro kcor_reduce_calibration, date, $
                                 run=run
 
   if (n_elements(data) eq 0L) then begin
-    mg_log, 'incomplete cal data, exiting', name='kcor/cal', /info
+    mg_log, 'incomplete cal data, exiting', name='kcor/cal', /error
     status = 1
     goto, done
   endif
+
+  ; check polarization state sequence on 0 deg calibration image
+  zero_indices = where(abs(metadata.angles) lt 0.1, n_zero_degree)
+  if (n_zero_degree gt 0L) then begin
+    test_image = data.calibration[*, *, *, *, zero_indices[0]]
+    valid = kcor_check_calibration(test_image, start_state=start_state)
+    if (~valid) then begin
+      mg_log, 'bad polarization start state', name='kcor/cal', /error
+      mg_log, 'recommended start_state: %d', $
+              start_state, name='kcor/cal', /error
+      status = 3
+      goto, done
+    endif
+  endif else begin
+    mg_log, 'no 0 degree calibration data, exiting', name='kcor/cal', /error
+    status = 1
+    goto, done
+  endelse
 
   sz = size(data.gain, /dimensions)
   mg_log, 'done reading data', name='kcor/cal', /info

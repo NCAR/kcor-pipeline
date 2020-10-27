@@ -320,7 +320,9 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
       ; produce calibration for tomorrow
       if (run->config('eod/reduce_calibration') $
           && run->epoch('produce_calibration')) then begin
-        kcor_reduce_calibration, date, run=run, status=cal_status, cal_filename=cal_filename
+        kcor_reduce_calibration, date, run=run, $
+                                 status=cal_status, start_state=start_state, $
+                                 cal_filename=cal_filename
         if (cal_status eq 0L) then begin
           kcor_plot_calibration, cal_filename, run=run, gain_norm_stddev=gain_norm_stddev
         endif
@@ -461,10 +463,10 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   if (run->config('notifications/send') $
         && n_elements(run->config('notifications/email')) gt 0L) then begin
     case cal_status of
-      0: cal_status_text = 'Successful calibration reduction'
-      1: cal_status_text = 'Incomplete data for calibration reduction'
-      2: cal_status_text = 'Error during calibration reduction'
-      3: cal_status_text = 'Calibration reduction skipped'
+      0: cal_status_text = 'successful calibration reduction'
+      1: cal_status_text = 'incomplete data for calibration reduction'
+      2: cal_status_text = 'error during calibration reduction'
+      3: cal_status_text = string(start_state, format='(%"bad polarization sequence (recommended start_state: %d)")')
       else: cal_status_text = 'Unknown error during calibration reduction'
     endcase
     msg = [string(date, $

@@ -38,8 +38,6 @@ function kcor_check_calibration, im, start_state=start_state
     ; 1, 2, 3, 0 -> 1
     ; any other order -> -1
     start_state = (where(mean_order eq correct_order[0]))[0]
-    print, mean_order
-    print, start_state
     if (~array_equal(shift(mean_order, -start_state), correct_order)) then begin
       start_state = -1L
     endif
