@@ -291,7 +291,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     success = n_missing eq 0L && n_wrongsize eq 0L
   endelse
 
-  cal_status = 3L
+  cal_status = 4L
+  start_state = 0L
 
   done_validating:
 
@@ -467,7 +468,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
       1: cal_status_text = 'incomplete data for calibration reduction'
       2: cal_status_text = 'error during calibration reduction'
       3: cal_status_text = string(start_state, format='(%"bad polarization sequence (recommended start_state: %d)")')
-      else: cal_status_text = 'Unknown error during calibration reduction'
+      4: cal_status_text = 'calibration reduction skipped'
+      else: cal_status_text = 'unknown error during calibration reduction'
     endcase
     msg = [string(date, $
                   format='(%"KCor end-of-day processing for %s")'), $
