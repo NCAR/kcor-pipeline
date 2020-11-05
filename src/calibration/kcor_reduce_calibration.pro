@@ -124,15 +124,20 @@ pro kcor_reduce_calibration, date, $
   ; check polarization state sequence on 0 deg calibration image
   zero_indices = where(abs(metadata.angles) lt 0.1, n_zero_degree)
   if (n_zero_degree gt 0L) then begin
-    test_image = data.calibration[*, *, *, *, zero_indices[0]]
-    valid = kcor_check_calibration(test_image, start_state=start_state)
-    if (~valid) then begin
-      mg_log, 'bad polarization start state', name='kcor/cal', /error
-      mg_log, 'recommended start_state: %d', $
-              start_state, name='kcor/cal', /error
-      status = 3
-      goto, done
-    endif
+    for i = 0L, n_zero_degree - 1L do begin
+      test_image = data.calibration[*, *, *, *, zero_indices[i]]
+      valid = kcor_check_calibration(test_image, start_state=start_state)
+      if (~valid) then begin
+        mg_log, 'bad polarization start state', name='kcor/cal', /error
+        mg_log, 'recommended start_state: %d', $
+                start_state, name='kcor/cal', /error
+        status = 3
+        goto, done
+      endif else begin
+        mg_log, 'valid start state for %d/%d', i + 1, n_zero_degree, $
+                name='kcor/cal', /debug
+      endelse
+    endfor
   endif else begin
     mg_log, 'no 0 degree calibration data, exiting', name='kcor/cal', /error
     status = 1
