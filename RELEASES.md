@@ -452,6 +452,6 @@
 2.0.24 [Oct 23, 2020]
   using KCOR_OLD_READFITS to handle old raw FITS files with extra 4 bytes before data
   new epoch for bad start state for 20201020
-2.0.25
+2.0.25 [Nov 6, 2020]
   fix for late image on last day of rolling synoptic map
   epoch fix for O1ID on 20201029-20201030
