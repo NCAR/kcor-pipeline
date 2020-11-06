@@ -76,7 +76,7 @@ pro kcor_l1, ok_filename, $
   run.time = date_obs
 
   ; extract information from calibration file
-  cal_file = run->epoch('cal_file', error=cal_file_error)
+  cal_file = run->epoch('cal_file', error_code=cal_file_error)
   switch cal_file_error of
     0: break
     1: mg_log, 'no cal files of correct cal epoch', name=log_name, /error
@@ -1061,8 +1061,16 @@ pro kcor_l1, ok_filename, $
   fxaddpar, l1_header, 'FILTERID', struct.filterid, $
             ' ID bandpass filter'
 
-  o1id = run->epoch('use_O1id') ? run->epoch(struct.o1id) : run->epoch('O1id')
-  fxaddpar, l1_header, 'O1ID', o1id, ' ID objective (O1) lens' 
+  if (run->epoch('use_O1id')) then begin
+    o1id = run->epoch(struct.o1id, found=found, error_message=error_message)
+    if (~found) then begin
+      mg_log, error_message, name=log_name, /error
+      o1id = ''
+    endif
+  endif else begin
+    o1id = run->epoch('O1id')
+  endelse
+  fxaddpar, l1_header, 'O1ID', o1id, ' ID objective (O1) lens'
 
   if (check_lyotstop ne 0) then begin
     fxaddpar, l1_header, 'LYOTSTOP', struct.lyotstop, $ 

@@ -83,12 +83,19 @@ end
 ; :Keywords:
 ;   time : in, required, type=string
 ;     time at which epoch value is requested as UT time in the form "HHMMSS"
+;   error_code : out, optional, type=integer
+;     set to a named variable to retrieve the error code in finding a cal file
+;   found : out, optional, type=boolean
+;     set to a named variable to retrieve if `name` was found in the epochs
+;   error_message : out, optional, type=string
+;     set to a named variable to retrieve an error message if `FOUND` is false
 ;-
-function kcor_run::epoch, name, time=time, error=error
+function kcor_run::epoch, name, time=time, error_code=error_code, $
+                          found=found, error_message=error_message
   compile_opt strictarr
   on_error, 2
 
-  error = 0L
+  error_code = 0L
 
   if (n_elements(time) gt 0L) then begin
     hst_time = kcor_ut2hst(time)
@@ -103,12 +110,13 @@ function kcor_run::epoch, name, time=time, error=error
     endif else hst_time = kcor_ut2hst(time)
 
     calfile = self->_find_calfile(self.date, hst_time, error=find_cal_file_error)
-    error = find_cal_file_error
+    error_code = find_cal_file_error
 
     return, calfile
   endif
 
-  value = self.epochs->get(name, datetime=datetime)
+  value = self.epochs->get(name, datetime=datetime, $
+                           found=found, error_message=error_message)
 
   return, value
 end
