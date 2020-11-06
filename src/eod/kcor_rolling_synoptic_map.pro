@@ -59,7 +59,7 @@ pro kcor_rolling_synoptic_map, database=db, run=run
     endif
 
     date = dates[r]
-    date_index = mlso_dateobs2jd(date) - start_date_jd
+    date_index = mlso_dateobs2jd(date) - start_date_jd - 10.0/24.0
     date_index = floor(date_index)
 
     if (ptr_valid(data[r]) && n_elements(*data[r]) gt 0L) then begin
@@ -185,7 +185,7 @@ end
 
 ; main-level example program
 
-date = '20200104'
+date = '20201105'
 config_filename = filepath('kcor.reprocess.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())
