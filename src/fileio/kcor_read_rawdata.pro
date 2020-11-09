@@ -35,16 +35,16 @@ pro kcor_read_rawdata, filename, $
   case 1 of
     arg_present(im) && arg_present(header): begin
         if (keyword_set(raw_data_prefix)) then begin
-          im = kcor_old_readfits(filename, header)
+          im = kcor_old_readfits(filename, header, errmsg=errmsg)
         endif else begin
-          im = readfits(filename, header, /silent)
+          im = readfits(filename, header, /silent, errmsg=errmsg)
         endelse
       end
     arg_present(im): begin
         if (keyword_set(raw_data_prefix)) then begin
-          im = kcor_old_readfits(filename, header)
+          im = kcor_old_readfits(filename, header, errmsg=errsg)
         endif else begin
-          im = readfits(filename, /silent)
+          im = readfits(filename, /silent, errmsg=errmsg)
         endelse
       end
     arg_present(header): header = headfits(filename, errmsg=errmsg, /silent)

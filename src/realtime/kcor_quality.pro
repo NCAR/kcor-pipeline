@@ -254,7 +254,12 @@ function kcor_quality, date, l0_fits_files, append=append, $
                        repair_routine=run->epoch('repair_routine'), $
                        xshift=run->epoch('xshift_camera'), $
                        start_state=run->epoch('start_state'), $
-                       raw_data_prefix=run->epoch('raw_data_prefix')
+                       raw_data_prefix=run->epoch('raw_data_prefix'), $
+                       errmsg=errmsg
+    if (errmsg ne '') then begin
+      mg_log, errmsg, name='kcor/rt', /warn
+    endif
+
     img = float(img)
 
     mg_log, 'checking %d/%d: %s', $

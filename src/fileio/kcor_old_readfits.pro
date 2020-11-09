@@ -13,8 +13,11 @@
 ;   header : out, optional, type=strarr
 ;     set to a named variable to retrieve the FITS header as a string array
 ;-
-function kcor_old_readfits, filename, header
+function kcor_old_readfits, filename, header, errmsg=errmsg
   compile_opt strictarr
+  on_ioerror, bad_file
+
+  errmsg = ''
 
   ext = strmid(filename, strpos(filename, '.', /reverse_search) + 1L)
   compress = strlowcase(ext) eq 'gz'
@@ -39,6 +42,15 @@ function kcor_old_readfits, filename, header
 
   sxaddpar, header, 'BZERO', 0
   sxaddpar, header, 'O_BZERO', bzero, ' Original BZERO Value'
+
+  return, im
+
+  bad_file:
+  if (arg_present(errmsg)) then begin
+    errmsg = !error_state.msg
+  endif else begin
+    print, !error_state.msg
+  endelse
 
   return, im
 end
