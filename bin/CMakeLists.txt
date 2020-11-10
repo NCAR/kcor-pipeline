@@ -10,6 +10,8 @@ configure_file(runkcor_calibrate_range.sh.in runkcor_calibrate_range.sh @ONLY)
 configure_file(runkcor_eod.sh.in runkcor_eod.sh @ONLY)
 configure_file(runkcor_eod_range.sh.in runkcor_eod_range.sh @ONLY)
 
+configure_file(runkcor_eodcheck.sh.in runkcor_eodcheck.sh @ONLY)
+
 configure_file(runkcor_process.sh.in runkcor_process.sh @ONLY)
 configure_file(runkcor_process_range.sh.in runkcor_process_range.sh @ONLY)
 
@@ -60,6 +62,7 @@ install(PROGRAMS
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_calibrate_list.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_eod.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_eod_range.sh
+          ${CMAKE_CURRENT_BINARY_DIR}/runkcor_eodcheck.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_process.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_process_range.sh
           ${CMAKE_CURRENT_BINARY_DIR}/runkcor_script.sh

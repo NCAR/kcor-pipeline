@@ -457,3 +457,4 @@
   epoch fix for O1ID on 20201029-20201030
 2.0.26
   error messages for truncated raw FITS files
+  end-of-day check script
