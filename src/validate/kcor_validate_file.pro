@@ -221,6 +221,15 @@ function kcor_validate_file, filename, validation_spec_filename, $
     goto, done
   endif
 
+  unzipped_size = kcor_zipsize(filename, run=run, logger_name=logger_name)
+  kcor_raw_size = run->epoch('raw_filesize')   ; bytes
+  if (unzipped_size ne kcor_raw_size) then begin
+    error_list->add, string(unzipped_size, kcor_raw_size, $
+                            format='(%"bad raw file size: %d bytes (should be: %d bytes)")')
+    is_valid = 0B
+    goto, done
+  endif
+
   fits_open, filename, fcb
   fits_read, fcb, primary_data, primary_header, exten_no=0
   fits_close, fcb

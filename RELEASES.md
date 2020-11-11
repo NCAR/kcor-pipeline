@@ -458,3 +458,4 @@
 2.0.26
   error messages for truncated raw FITS files
   end-of-day check script
+  check raw file size when validating FITS keywords
