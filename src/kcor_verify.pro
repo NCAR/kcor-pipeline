@@ -471,6 +471,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
     mg_log, '%d files in tar list with bad unzipped size', $
             n_bad_sizes, $
             name=logger_name, /error
+    status = 1L
   endif
 
   ; TEST: check that any file listed in the log is also in the list - no missing
