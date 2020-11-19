@@ -259,8 +259,9 @@ pro kcor_reduce_calibration, date, $
 
   ; write the calibration data
   tokens = strsplit(file_list[0], '_', /extract)
+  first_date = tokens[0]
   first_time = tokens[1]
-  outfile_basename = string(date, $
+  outfile_basename = string(first_date, $
                             first_time, $
                             run->epoch('cal_epoch_version'), $
                             kcor_find_code_version(), $
