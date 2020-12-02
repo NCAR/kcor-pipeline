@@ -121,8 +121,9 @@ pro kcor_reduce_calibration, date, $
     goto, done
   endif
 
-  ; check polarization state sequence on 0 deg calibration image
-  zero_indices = where(abs(metadata.angles) lt 0.1, n_zero_degree)
+  ; check polarization state sequence on 0 deg (180 deg is equivalent to 0 deg)
+  ; calibration image
+  zero_indices = where(abs(metadata.angles mod 180.0) lt 0.1, n_zero_degree)
   if (n_zero_degree gt 0L) then begin
     for i = 0L, n_zero_degree - 1L do begin
       test_image = data.calibration[*, *, *, *, zero_indices[i]]
