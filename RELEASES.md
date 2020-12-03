@@ -461,3 +461,4 @@
   check raw file size when validating FITS keywords
   name of cal file now matches exact time of first cal image
   handle 180 deg cal pol images as 0 deg for warnings
+2.0.27
