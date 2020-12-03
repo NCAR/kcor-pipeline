@@ -455,7 +455,7 @@
 2.0.25 [Nov 6, 2020]
   fix for late image on last day of rolling synoptic map
   epoch fix for O1ID on 20201029-20201030
-2.0.26
+2.0.26 [Nov 3, 2020]
   error messages for truncated raw FITS files
   end-of-day check script
   check raw file size when validating FITS keywords
