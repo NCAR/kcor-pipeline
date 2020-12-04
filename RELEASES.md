@@ -463,3 +463,5 @@
   handle 180 deg cal pol images as 0 deg for warnings
 2.0.27 [Dec 4, 2020]
   fix for validation errors
+2.0.28 [Dec 4, 2020]
+  fix for validating L1/L2 file size against raw file size
