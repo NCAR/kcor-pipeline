@@ -32,7 +32,7 @@ pro kcor_validate, fits_files, spec_filename, type, $
 
   for f = 0L, n_elements(fits_files) - 1L do begin
     is_valid = kcor_validate_file(fits_files[f], spec_filename, $
-                                  error_msg=error_msg)
+                                  error_msg=error_msg, run=run)
     if (~is_valid) then begin
       n_problem_files++
       n_problems += n_elements(error_msg)

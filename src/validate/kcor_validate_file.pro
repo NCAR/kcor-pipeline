@@ -201,7 +201,7 @@ end
 ;     the first problem encountered), empty string if no problem
 ;-
 function kcor_validate_file, filename, validation_spec_filename, $
-                             error_msg=error_msg
+                             error_msg=error_msg, run=run
   compile_opt strictarr
 
   error_list = list()
