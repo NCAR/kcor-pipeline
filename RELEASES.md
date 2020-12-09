@@ -467,4 +467,6 @@
   fix for validating L1/L2 file size against raw file size
 2.0.29 [Dec 9, 2020]
   fix for missing DIFFSIR FITS keyword for the morning of 20150320
-2.0.30
+2.0.30 [Dec 9, 2020]
+  fix for CALPOLID, RCAMLUT, TCAMLUT keywords for 20150320
+

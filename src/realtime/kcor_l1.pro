@@ -1054,7 +1054,8 @@ pro kcor_l1, ok_filename, $
             ' [deg C] modulator temperature', format = '(f8.3)'
 
   ; component identifiers
-  fxaddpar, l1_header, 'CALPOLID', struct.calpolid, $
+  fxaddpar, l1_header, 'CALPOLID', $
+            run->epoch('use_calpolid') ? struct.calpolid : run->epoch('calpolid'), $
             ' ID polarizer'
   fxaddpar, l1_header, 'DIFFSRID', diffsrid, $
             run->epoch('use_diffsrid') ? ' ID diffuser' : run->epoch('diffsrid_comment')
