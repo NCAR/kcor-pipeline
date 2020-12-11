@@ -1094,8 +1094,8 @@ pro kcor_l1, ok_filename, $
     tcamlut = run->epoch('tcamlut')
   endelse
 
-  fxaddpar, l1_header, 'RCAMID', rcamid, ' ' + run->epoch('rcamid_comment') 
-  fxaddpar, l1_header, 'TCAMID', tcamid, ' ' + run->epoch('tcamid_comment')  
+  fxaddpar, l1_header, 'RCAMID', rcamid, ' ' + run->epoch('rcamid_comment')
+  fxaddpar, l1_header, 'TCAMID', tcamid, ' ' + run->epoch('tcamid_comment')
   fxaddpar, l1_header, 'RCAMLUT', rcamlut, ' ' + run->epoch('rcamlut_comment')
   fxaddpar, l1_header, 'TCAMLUT', tcamlut, ' ' + run->epoch('tcamlut_comment')
 
