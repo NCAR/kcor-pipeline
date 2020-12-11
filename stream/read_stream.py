@@ -123,12 +123,16 @@ def median_image(frames):
     return(np.median(frames, axis=0).astype(frames.dtype))
 
 
+def plot_point(data, med, upper_limit):
+    plt.plot(data)
+
+
 def remove_aerosol(frames):
     """Remove aerosols from frames. `frames` is a `uint16` array of shape
     `numsum, N_CAMERAS, N_STATES, HEIGHT, WIDTH`.
     """
 
-    frames_mean = np.median(frames, axis=0).astype(frames.dtype)
+    frames_mean = np.mean(frames, axis=0).astype(frames.dtype)
     frames_median = np.median(frames, axis=0).astype(frames.dtype)
 
     numsum = frames.shape[0]
@@ -137,15 +141,26 @@ def remove_aerosol(frames):
 
     corrected = np.empty((N_CAMERAS, N_STATES, HEIGHT, WIDTH), dtype=frames.dtype)
 
+    check_camera = 0
+    check_x = 270
+    check_y = 810
+
     for c in range(N_CAMERAS):
         for s in range(N_STATES):
             for h in range(HEIGHT):
                 for w in range(WIDTH):
-                    ind = np.where(np.abs(frames[:, c, s, h, w] - frames_median[c, s, h, w]) < ss * np.sqrt(frames_median[c, s, h, w]))
+                    upper_limit = ss * np.sqrt(frames_median[c, s, h, w])
+                    ind = np.where(np.abs(frames[:, c, s, h, w] - frames_median[c, s, h, w]) < upper_limit)
                     if ind[0].size > threshold:
                         corrected[c, s, h, w] = np.mean(frames[ind, c, s, h, w])
                     else:
                         corrected[c, s, h, w] = frames_mean[c, s, h, w]
+                    if c == check_camera and w == check_x and h == check_y:
+                        print(f"ind[0].size = {ind[0].size}")
+                        print(f"upper_limit = {upper_limit}")
+                        print(corrected[c, s, h, w])
+                        plot_point(frames[:, c, s, h, w], frames_median[c, s, h, w], upper_limit)
+
     return(corrected)
 
 
@@ -159,13 +174,14 @@ def quicklook(stream_root, datetime):
     return([corona(average_image[cam, :, :, :])
               for cam in np.arange(N_CAMERAS, dtype=np.int16)])
 
+
 def main():
     # TODO: the date and config filename should come from the command line
-    date = "20200911"
+    date = "20201008"
     script_location = os.path.dirname(os.path.abspath(__file__))
 
     # TODO: this should get inserted in the config/build process
-    version = "2.0.24"
+    version = "2.0.25"
 
     # read options from config file
     stream_config_filename = os.path.join(script_location, "stream.cfg")
@@ -182,6 +198,7 @@ def main():
         fallback=N_IMAGES_PER_FILE)
 
     output_root = os.path.join(options.get("results", "root"), date)
+    write_removed_list = options.getboolean("results", "write_removed_list", fallback=True)
     stream_root = os.path.join(options.get("stream_data", "root"), date)
     raw_root = os.path.join(options.get("raw_data", "root"), date, "level0")
     lut_root = options.get("LUTs", "root")
@@ -189,12 +206,16 @@ def main():
 
     print(f"KCor pipeline {version} -- stream processing")
     print("-" * 80)
-    print(f"output root    : {output_root}")
-    print(f"stream root    : {stream_root}")
-    print(f"raw root       : {raw_root}")
-    print(f"LUT root       : {lut_root}")
-    print(f"LUT identifier : {lut_identifier}")
+    print(f"output root        : {output_root}")
+    print(f"write removed list : {'YES' if write_removed_list else 'NO'}")
+    print(f"stream root        : {stream_root}")
+    print(f"raw root           : {raw_root}")
+    print(f"LUT root           : {lut_root}")
+    print(f"LUT identifier     : {lut_identifier}")
     print("")
+
+    if not os.path.exists(output_root):
+        os.mkdir(output_root)
 
     all_raw_files = glob.glob(os.path.join(raw_root, "*_kcor.fts.gz"))
     all_raw_files = sorted(all_raw_files)
@@ -202,12 +223,15 @@ def main():
     #datetimes = ["20200908_172438"]
     #datetimes = ["20200908_172453"]
     #datetimes = ["20200908_172438", "20200908_172453"]
-    datetimes = ["20200911_213854"]
+    #datetimes = ["20200911_213854"]
+    datetimes = ["20201008_222714"]
+    datetimes = []
     #datetimes =  [os.path.basename(f)[0:15] for f in all_raw_files]
+    removed = []
     for dt in datetimes:
         metadata_filename = glob.glob(os.path.join(raw_root, f"{dt}*.fts.gz"))[0]
         output_basename = os.path.basename(metadata_filename)
-        output_filename = os.path.join(os.path.join(output_root, output_basename))
+        output_filename = os.path.join(output_root, output_basename)
 
         if os.path.exists(output_filename):
             print(f"Skipping {dt}...")
@@ -218,26 +242,36 @@ def main():
         rcam_id = metadata_hdulist[0].header["RCAMID"]
         luts = {0: read_luts(lut_root, rcam_id, lut_identifier),
                 1: read_luts(lut_root, tcam_id, lut_identifier)}
-        
+
         print(f"Processing {dt}...")
         print(f"  reading {dt}...")
         frames, numsum = read_time(stream_root, dt, luts)
-        print(f"  {frames.shape[0]} images")
+        print(f"  {frames.shape[0]} stream images")
+
+        metadata_hdulist[0].header["AEROSOL"] = (numsum > 0, " aerosols removed")
 
         if numsum > 0:
             print(f"  min={np.min(frames)} max={np.max(frames)}")
             print(f"  summing {dt}...")
-            average_image = (naive_sum(frames) / 2**16).astype(np.uint16)
-            #average_image = remove_aerosol(frames).astype(np.uint16)
+            #average_image = (naive_sum(frames) / 2**16).astype(np.uint16)
+            average_image = remove_aerosol(frames).astype(np.uint16)
             #average_image = 2**4 * median_image(frames).astype(np.uint16)
             print(f"  min={np.min(average_image)} max={np.max(average_image)}")
 
             metadata_hdulist[0].data = average_image
 
+            removed.append(output_basename)
+
         print(f"  writing {dt}...")
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", AstropyUserWarning)
             metadata_hdulist.writeto(output_filename, output_verify="ignore") 
+
+    if write_removed_list:
+        with open(os.path.join(output_root, "removed.log"), "w") as f:
+            for r in removed:
+                f.write(f"{r}\n")
+
 
 if __name__ == "__main__":
     main()
