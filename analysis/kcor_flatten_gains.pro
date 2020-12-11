@@ -1,5 +1,8 @@
 ; docformat = 'rst'
 
+;+
+; Try to x-shift flats for a given day to make them flat.
+;-
 pro kcor_flatten_gains, date, $
                         cam0_xrange=cam0_xrange, $
                         cam1_xrange=cam1_xrange, $
@@ -52,8 +55,17 @@ pro kcor_flatten_gains, date, $
   print, n_flats, format='(%"found %d flats...")'
 
   cal_filenames = filepath(cal_filenames, $
-                           subdir=[date, 'level0'], $
+                           subdir=[date], $
                            root=run->config('processing/raw_basedir'))
+  if (~file_test(cal_filenames[0], /regular)) then begin
+    cal_filenames = filepath(cal_filenames, $
+                             subdir=[date, 'level0'], $
+                             root=run->config('processing/raw_basedir'))
+    if (~file_test(cal_filenames[0], /regular)) then begin
+      message, 'cannot find cal files'
+    endif
+  endif
+
 
   gain_norm_stddev = fltarr(2)
   d = shift(dist(1024, 1024), 512, 512)
@@ -129,8 +141,8 @@ end
 
 ; main-level example program
 
-date = '20170622'
-config_filename = filepath('kcor.reprocess.cfg', $
+date = '20201009'
+config_filename = filepath('kcor.latest.cfg', $
                            subdir=['..', 'config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
@@ -139,7 +151,7 @@ mg_log, logger=logger, name='kcor/cal'
 logger->setProperty, level=3
 
 kcor_flatten_gains, date, $
-                    cam1_xrange=[-24, 24], $
+                    cam1_xrange=[-8, 6], $
                     run=run
 
 obj_destroy, run
