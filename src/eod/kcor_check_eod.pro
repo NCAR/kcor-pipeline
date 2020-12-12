@@ -51,7 +51,7 @@ pro kcor_check_eod, date, config_filename=config_filename
           name=log_name, /info
   mg_log, 'unprocessed level 0 files: %d', n_unprocessed_raw_files, $
           name=log_name, /info
-  mg_log, 'level 0 tarball %sfound', n_level0_tarball gt 0L ? '' : 'not', $
+  mg_log, 'level 0 tarball %sfound', n_level0_tarball gt 0L ? '' : 'not ', $
           name=log_name, /info
 
   ; if there were raw files, but no level 0 tarball send an email notification
