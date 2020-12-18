@@ -473,3 +473,4 @@
   more epoch fixes for RCAMID, TCAMID for around 20150318-20150324
 2.0.32
   add cs_gateway directory option, similar to hpss_gateway
+  change name of section in routing file from locations to kcor
