@@ -50,6 +50,12 @@ function kcor_state, lock=lock, $
     lock_file = filepath('.lock', root=raw_dir)
     processed_file = filepath('.processed', root=raw_dir)
 
+    logger_name = 'kcor/' + run.mode
+    mg_log, 'checking ', lock_file, name=logger_name, /debug
+    mg_log, 'lock file: %s', file_test(lock_file) ? 'present' : 'not present', $
+            name=logger_name, /debug
+    mg_log, 'processed file: %s', file_test(processed_file) ? 'present' : 'not present', $
+            name=logger_name, /debug
     available = ~file_test(lock_file) && ~file_test(processed_file)
 
     if (keyword_set(lock)) then begin
@@ -57,7 +63,11 @@ function kcor_state, lock=lock, $
         openw, lun, lock_file, /get_lun
         printf, lun, mg_pid()
         free_lun, lun
-      endif
+      endif else begin
+        mod_time = systime(0, file_modtime(lock_file))
+        mg_log, 'lock file mod time: %s', mod_time, name=logger_name, /debug
+      endelse
+      mg_log, '%savailable', available ? '' : 'not ', name=logger_name, /debug
       return, available
     endif
 
@@ -70,6 +80,7 @@ function kcor_state, lock=lock, $
     endif
 
     if (keyword_set(processed)) then begin
+      mg_log, 'setting processed file', name=logger_name, /debug
       openw, lun, processed_file, /get_lun
       printf, lun, mg_pid()
       free_lun, lun

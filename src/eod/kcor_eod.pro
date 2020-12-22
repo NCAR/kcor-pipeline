@@ -75,6 +75,12 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     goto, done
   endif
 
+  available = kcor_state(/lock, run=run)
+  if (~available) then begin
+    mg_log, 'raw directory locked, quitting', name='kcor/eod', /info
+    goto, done
+  endif
+
   q_dir = filepath('q', subdir=date, root=run->config('processing/raw_basedir'))
   quality_plot = filepath(string(date, format='(%"%s.kcor.quality.png")'), $
                           root=q_dir)
@@ -575,6 +581,10 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   done:
 
   mg_log, /check_math, name='kcor/eod', /debug
+
+  if (n_elements(available) gt 0L && available) then begin
+    !null = kcor_state(/unlock, run=run)
+  endif
 
   eod_time = toc(eod_clock)
   mg_log, 'done, eod processing time: %s', $
