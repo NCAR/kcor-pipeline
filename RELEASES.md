@@ -477,3 +477,4 @@
   fix for multiple end-of-day processes running in near real-time mode
 2.0.33 [Dec 23, 2020]
   fix for typo in KCOR_STATE
+2.0.34
