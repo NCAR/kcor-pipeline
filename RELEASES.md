@@ -475,3 +475,5 @@
   add cs_gateway directory option, similar to hpss_gateway
   change name of section in routing file from locations to kcor
   fix for multiple end-of-day processes running in near real-time mode
+2.0.33 [Dec 23, 2020]
+  fix for typo in KCOR_STATE

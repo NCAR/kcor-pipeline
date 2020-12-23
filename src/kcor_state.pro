@@ -51,7 +51,7 @@ function kcor_state, lock=lock, $
     processed_file = filepath('.processed', root=raw_dir)
 
     logger_name = 'kcor/' + run.mode
-    mg_log, 'checking ', lock_file, name=logger_name, /debug
+    mg_log, 'checking %s', lock_file, name=logger_name, /debug
     mg_log, 'lock file: %s', file_test(lock_file) ? 'present' : 'not present', $
             name=logger_name, /debug
     mg_log, 'processed file: %s', file_test(processed_file) ? 'present' : 'not present', $
