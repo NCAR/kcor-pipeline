@@ -145,6 +145,18 @@ pro kcor_reduce_calibration, date, $
     goto, done
   endelse
 
+  ; check for a complete set of angles, need 4 angles differing by 45 degrees:
+  ; 0 (or 180), 45, 90, and 135, or 22.5, 67.5, 112.5, and 157.5
+  required_angles = [0.0, 45.0, 90.0, 135.0]
+  if (not kcor_check_angles(required_angles, metadata.angles)) then begin
+    if (not kcor_check_angles(required_angles + 22.5, metadata.angles)) then begin
+      mg_log, 'required angles for full calibration data set not present', $
+              name='kcor/cal', /error
+      status = 1
+      goto, done
+    endif
+  endif
+
   sz = size(data.gain, /dimensions)
   mg_log, 'done reading data', name='kcor/cal', /info
 
