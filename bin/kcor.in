@@ -557,10 +557,10 @@ def raw_basedir(date, config_filename):
         routing_file = config.get("processing", "routing_file")
         routing = configparser.ConfigParser()
         routing.read(routing_file)
-        date_ranges = routing.options("locations")
+        date_ranges = routing.options("kcor")
         for r in date_ranges:
             if pathlib.PurePath(date).match(r):
-                raw_basedir = routing.get("locations", r)
+                raw_basedir = routing.get("kcor", r)
                 return raw_basedir
         return None
 
