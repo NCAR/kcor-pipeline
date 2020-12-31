@@ -300,6 +300,112 @@ end
 
 
 ;+
+; Verify that the given filename is on a remote server with correct file size,
+; group, and permissions.
+;
+; :Params:
+;   date : in, required, type=string
+;     date in the form YYYYMMDD
+;   local_filename : in, required, type=string
+;     local filename to check against
+;   remote_server : in, required, type=string
+;     remote_server
+;   remote_basedir : in, required, type=string
+;     base directory on remote server, i.e., final remote filename will be::
+;
+;       remote_server:remote_basedir/YYYY/local_filename
+;
+; :Keywords:
+;   logger_name : in, type=string
+;     name of logger
+;   run : in, required, type=object
+;     KCor run object
+;   status : out, optional, type=integer
+;     set to a named variable to retrieve the error status for the query,
+;     0 for none, 1 for unable to compare, 2 for not matching
+;-
+pro kcor_verify_remote, date, local_filename, remote_server, remote_basedir, $
+                        logger_name=logger_name, run=run, $
+                        status=status
+  compile_opt strictarr
+
+  status = 0L
+  year = strmid(date, 0, 4)
+
+  if (~file_test(local_filename, /regular)) then begin
+    mg_log, 'local file %s not found', local_filename, name=logger_name, /error
+    status = 1L
+    goto, remote_done
+  endif
+
+  local_filesize = mg_filesize(local_filename)
+  basename = file_basename(local_filename)
+  remote_filename = filepath(basename, subdir=year, root=remote_basedir)
+
+  ssh_key = run->config('results/ssh_key')
+  ssh_key_str = ssh_key eq '' ? '' : string(ssh_key, format='(%"-i %s")')
+
+  cmd = string(ssh_key_str, $
+               remote_server, $
+               remote_filename, $
+               format='(%"ssh %s %s ls -l %s")')
+  spawn, cmd, output, error_output, exit_status=exit_status
+  if (exit_status ne 0L) then begin
+    mg_log, 'problem checking file on %s:%s', $
+            remote_server, $
+            remote_filename, $
+            name=logger_name, /error
+    mg_log, 'command: %s', cmd, name=logger_name, /error
+    mg_log, '%s', strjoin(error_output, ' '), name=logger_name, /error
+    status = 1L
+    goto, remote_done
+  endif
+
+  tokens = strsplit(output[0], /extract, count=n_tokens)
+  if (n_tokens ne 9) then begin
+    mg_log, 'bad format for ls -l output', name=logger_name, /error
+    mg_log, 'output: %s', output[0], name=logger_name, /debug
+    status = 2L
+    goto, remote_done
+  endif
+
+  permissions = tokens[0]
+  group = tokens[3]
+  remote_filesize = long64(tokens[4])
+
+  if (strmid(permissions, 0, 10) ne '-rw-rw----') then begin
+    mg_log, 'bad remote permissions: %s', permissions, name=logger_name, /error
+    status = 2L
+    goto, remote_done
+  endif
+
+  if (group ne 'cordyn') then begin
+    mg_log, 'bad remote group: %s', group, name=logger_name, /error
+    status = 2L
+    goto, remote_done
+  endif
+
+  if (remote_filesize ne local_filesize) then begin
+    mg_log, 'non-matching file sizes (local: %s B, remote %s B)', $
+            mg_float2str(local_filesize, places_sep=','), $
+            mg_float2str(remote_filesize, places_sep=','), $
+            name=logger_name, /error
+    status = 2L
+    goto, remote_done
+  endif else begin
+    mg_log, 'file size on %s: %s', $
+            remote_server, $
+            mg_float2str(local_filesize, places_sep=','), $
+            name=logger_name, /info
+  endelse
+
+  remote_done:
+  mg_log, 'verified %s tarball on %s', basename, remote_server, $
+          name=logger_name, /info
+end
+
+
+;+
 ; Verify the integrity of the data for a given date.
 ;
 ; :Params:
@@ -318,7 +424,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   compile_opt strictarr
 
   status = 0L
-  logger_name = 'kcor/verify'
+  ;logger_name = 'kcor/verify'
 
   valid_date = kcor_valid_date(date, msg=msg)
   if (~valid_date) then begin
@@ -369,6 +475,9 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   ; don't check days with no data
   l0_tarball_filename = filepath(date + '_kcor_l0.tgz', $
                                  subdir=[date, 'level0'], $
+                                 root=run->config('processing/raw_basedir'))
+  l1_tarball_filename = filepath(date + '_kcor_l1.tgz', $
+                                 subdir=[date, 'level1'], $
                                  root=run->config('processing/raw_basedir'))
   l2_tarball_filename = filepath(date + '_kcor_l2.tgz', $
                                  subdir=[date, 'level2'], $
@@ -715,9 +824,11 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   ; TEST: tgz size
 
   l0_tarball_size = mg_filesize(l0_tarball_filename)
+  l1_tarball_size = mg_filesize(l1_tarball_filename)
   l2_tarball_size = mg_filesize(l2_tarball_filename)
 
   l0_tarball_mtime = (file_info(l0_tarball_filename)).mtime
+  l1_tarball_mtime = (file_info(l1_tarball_filename)).mtime
   l2_tarball_mtime = (file_info(l2_tarball_filename)).mtime
 
   if (~file_test(l0_tarball_filename, /regular)) then begin
@@ -728,6 +839,12 @@ pro kcor_verify, date, config_filename=config_filename, status=status
       mg_log, 'no L0 tarball', name=logger_name, /error
       status = 1
     endelse
+    goto, compress_ratio_done
+  endif
+
+  if (~file_test(l1_tarball_filename, /regular)) then begin
+    mg_log, 'no L1 tarball', name=logger_name, /error
+    status = 1
     goto, compress_ratio_done
   endif
 
@@ -795,7 +912,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
 ;
 ;  extra_files_done:
 
-  ; TEST: check HPSS for L0/L2 tarball of correct size, ownership, and
+  ; TEST: check HPSS for L0/L1/L2 tarball of correct size, ownership, and
   ; protections
 
   check_hpss = 1B
@@ -809,13 +926,38 @@ pro kcor_verify, date, config_filename=config_filename, status=status
                       logger_name=logger_name, run=run
     kcor_verify_hpss, date, $
                       string(year, date, $
+                             format='(%"/CORDYN/KCOR/%s/%s_kcor_l1.tgz")'), $
+                      l1_tarball_filename, $
+                      status=l1_hpss_status, $
+                      logger_name=logger_name, run=run
+    kcor_verify_hpss, date, $
+                      string(year, date, $
                              format='(%"/CORDYN/KCOR/%s/%s_kcor_l2.tgz")'), $
                       l2_tarball_filename, $
                       status=l2_hpss_status, $
                       logger_name=logger_name, run=run
-    status or= l0_hpss_status or l2_hpss_status
+    status or= l0_hpss_status or l1_hpss_status or l2_hpss_status
   endif else begin
     mg_log, 'skipping HPSS check', name=logger_name, /info
+  endelse
+
+
+  ; check Campaign Storage
+  remote_server = run->config('verification/archive_remote_server')
+  check_campaign_storage = n_elements(remote_server) gt 0L
+  if (check_campaign_storage) then begin
+    remote_basedir = run->config('verification/archive_remote_basedir')
+    kcor_verify_remote, date, l0_tarball_filename, remote_server, remote_basedir, $
+                        logger_name=logger_name, run=run, $
+                        status=status
+    kcor_verify_remote, date, l1_tarball_filename, remote_server, remote_basedir, $
+                        logger_name=logger_name, run=run, $
+                        status=status
+    kcor_verify_remote, date, l2_tarball_filename, remote_server, remote_basedir, $
+                        logger_name=logger_name, run=run, $
+                        status=status
+  endif else begin
+    mg_log, 'skipping Campaign Storage check', name=logger_name, /info
   endelse
 
   done:
@@ -832,34 +974,14 @@ end
 
 ; main-level example program
 
-logger_name = 'kcor/verify'
-cfile = 'kcor.production.cfg'
-config_filename = filepath(cfile, subdir=['..', 'config'], root=mg_src_root())
+config_filename = filepath('kcor.production.cfg', $
+                           subdir=['..', 'config'], $
+                           root=mg_src_root())
 
-dates = ['20190702', '20190709', '20190710']
+dates = ['20201228', '20201229']
 for d = 0L, n_elements(dates) - 1L do begin
-  run = kcor_run(dates[d], config_filename=config_filename)
-  hpss_filename = string(strmid(dates[d], 0, 4), dates[d], $
-                    format='(%"/CORDYN/KCOR/%s/%s_kcor_l0.tgz")')
-  hpss_hash = kcor_verify_hpss_hash(hpss_filename, run=run, status=status)
-
-  local_filename = filepath(string(dates[d], format='(%"%s_kcor_l0.tgz")'), $
-                            subdir=[dates[d], 'level0'], $
-                            root=run->config('processing/raw_basedir'))
-  local_hash = kcor_md5_hash(local_filename, run=run, status=status)
-
-  print, hpss_hash eq local_hash
-
-  obj_destroy, run
-
-;  kcor_verify, dates[d], config_filename=config_filename
-
-;  if (d lt n_elements(dates) - 1L) then begin
-;    mg_log, name=logger_name, logger=logger
-;    logger->setProperty, format='%(time)s %(levelshortname)s: %(message)s'
-;    mg_log, '-----------------------------------', name=logger_name, /info
-;  endif
+  kcor_verify, dates[d], config_filename=config_filename, status=status
+  print, status, format='(%"status: %d")'
 endfor
-
 
 end

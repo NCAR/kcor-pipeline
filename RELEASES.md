@@ -478,3 +478,5 @@
 2.0.33 [Dec 23, 2020]
   fix for typo in KCOR_STATE
 2.0.34
+  verification checks archive on Campaign Storage
+
