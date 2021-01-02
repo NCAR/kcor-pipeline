@@ -31,6 +31,8 @@ function kcor_state, lock=lock, $
   compile_opt strictarr, logical_predicate
   on_error, 2
 
+  logger_name = run.logger_name
+
   if (keyword_set(first_image)) then begin
     raw_dir = filepath(run.date, root=run->config('processing/raw_basedir'))
     state_file = filepath('.first_image', root=raw_dir)
@@ -50,7 +52,6 @@ function kcor_state, lock=lock, $
     lock_file = filepath('.lock', root=raw_dir)
     processed_file = filepath('.processed', root=raw_dir)
 
-    logger_name = 'kcor/' + run.mode
     mg_log, 'checking %s', lock_file, name=logger_name, /debug
     mg_log, 'lock file: %s', file_test(lock_file) ? 'present' : 'not present', $
             name=logger_name, /debug
