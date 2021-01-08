@@ -141,7 +141,9 @@ pro kcor_archive_l2, run=run
         ; link tarball into CS directory
         file_link, filepath(tarfile, root=l2_dir), $
                    dst_tarfile
-      endif
+      endif else begin
+        mg_log, 'cs_gateway not specified, not sent to CS', name='kcor/eod', /info
+      endelse
     endif
   endif else begin
     mg_log, 'no files for L2 tarball/tarlist, not creating', $

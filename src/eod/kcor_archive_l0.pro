@@ -145,7 +145,9 @@ pro kcor_archive_l0, run=run, reprocess=reprocess
   
       file_link, filepath(tarfile, root=l0_dir), $
                  dst_tarfile
-    endif
+    endif else begin
+      mg_log, 'cs_gateway not specified, not sent to CS', name='kcor/eod', /info
+    endelse
   endif else begin
     mg_log, 'not sending to CS', name='kcor/eod', /info
   endelse
