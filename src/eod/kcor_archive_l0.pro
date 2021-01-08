@@ -126,7 +126,7 @@ pro kcor_archive_l0, run=run, reprocess=reprocess
 
   if (run->config('eod/send_to_hpss') && ~keyword_set(reprocess)) then begin
     cs_gateway = run->config('results/cs_gateway')
-    if (n_elements(cs_gateway) gt 0L) then begin
+    if (n_elements(cs_gateway) gt 0L && strlen(cs_gateway) gt 0L) then begin
       ; create CS gateway directory if needed
       if (~file_test(cs_gateway, /directory)) then begin
         file_mkdir, cs_gateway
