@@ -481,4 +481,6 @@
   verification checks archive on Campaign Storage
 2.0.35 [Jan 11, 2021]
   new tapered occulter
+2.0.36 [Jan 11, 2021]
+  forgot new occulter value
 
