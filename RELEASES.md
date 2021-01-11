@@ -479,5 +479,6 @@
   fix for typo in KCOR_STATE
 2.0.34 [Jan 1, 2021]
   verification checks archive on Campaign Storage
-2.0.35
+2.0.35 [Jan 11, 2021]
+  new tapered occulter
 
