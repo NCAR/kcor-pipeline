@@ -616,10 +616,20 @@ def locate(args):
                                    f"kcor.{args.flags}.cfg")
 
     if args.dates:
-        for d in args.dates:
-            # get raw_basedir
-            raw_bdir = raw_basedir(d, config_filename)
-            print(f"{d}: {raw_bdir}")
+        for e in args.dates:
+            for r in e.split(','):
+                if r.find('-') < 0:
+                    dates = [r]
+                else:
+                    try:
+                        dates = expand_date_range(r)
+                    except IndexError:
+                        args.parser.error(r"bad date range expression: {r}")
+    
+                for d in dates:
+                    # get raw_basedir
+                    raw_bdir = raw_basedir(d, config_filename)
+                    print(f"{d}: {raw_bdir}")
     else:
         config = configparser.ConfigParser()
         config.read(config_filename)
