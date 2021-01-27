@@ -94,7 +94,9 @@ pro kcor_plot_l2, run=run
              [1.0e-09, 4.0e-08]]
   plate_scale = run->epoch('plate_scale')
 
-  times = fltarr(n_l2_files)
+  dates = strarr(n_l2_files)
+  times = strarr(n_l2_files)
+  float_times = fltarr(n_l2_files)
   skytrans = fltarr(n_l2_files)
   mean_pb = fltarr(n_elements(radii), n_l2_files)
   for f = 0L, n_l2_files - 1L do begin
@@ -104,7 +106,9 @@ pro kcor_plot_l2, run=run
 
     date_obs = sxpar(header, 'DATE-OBS')
     date = kcor_parse_dateobs(date_obs, hst_date=hst_date)
-    times[f] = hst_date.ehour + 10.0
+    dates[f] = string(date.year, date.month, date.day, format='(%"%04d%02d%02d")')
+    times[f] = string(date.hour, date.minute, date.second, format='(%"%02d%02d%02d")')
+    float_times[f] = hst_date.ehour + 10.0
 
     strans = fxpar(header, 'SKYTRANS', /null)
     skytrans[f] = n_elements(strans) eq 0L ? !values.f_nan : strans
@@ -131,7 +135,7 @@ pro kcor_plot_l2, run=run
           z_buffering=0
   loadct, 0, /silent
 
-  plot, times, skytrans, $
+  plot, float_times, skytrans, $
         title=string(run.date, format='(%"Sky transmission correction for %s")'), $
         xtitle='Hours [UT]', $
         yrange=skytrans_range, ystyle=1, $
@@ -148,7 +152,7 @@ pro kcor_plot_l2, run=run
   device, set_resolution=[772, 500], decomposed=0, set_colors=256, z_buffering=0
 
   for r = 0L, n_elements(radii) - 1L do begin
-    plot, times, reform(mean_pb[r, *]), $
+    plot, float_times, reform(mean_pb[r, *]), $
           title=string(radii[r], run.date, $
                        format='(%"KCor mean pB @ %0.2f R_sun for %s")'), $
           xmargin=[11, 3], xticklen=1.0, xtitle='Hours [UT]', $
@@ -156,7 +160,7 @@ pro kcor_plot_l2, run=run
           ytickformat='(E0.1)', $
           background=255, color=200, charsize=charsize, psym=1
 
-    plot, times, reform(mean_pb[r, *]), /noerase, $
+    plot, float_times, reform(mean_pb[r, *]), /noerase, $
           title=string(radii[r], run.date, $
                        format='(%"KCor mean pB @ %0.2f R_sun for %s")'), $
           xmargin=[11, 3], xticklen=0.025, xtitle='Hours [UT]', $
@@ -169,6 +173,18 @@ pro kcor_plot_l2, run=run
                                format='(%"%s.kcor.mean-pb-%0.2f.gif")'), $
                         root=plots_dir), $
                im
+    openw, lun, filepath(string(run.date, radii[r], $
+                                format='(%"%s.kcor.mean-pb-%0.2f.txt")'), $
+                         root=plots_dir), $
+           /get_lun
+    printf, lun, 'MLSO K-Coronagraph'
+    printf, lun, radii[r], format='(%"Polarization brightness (pB) azimuthally averaged over 360 degrees at %0.2f Rsun")'
+    printf, lun, 'Date', 'Time', 'pB', 'Height', format='(%"%s, %s, %s, %s")'
+    for i = 0L, n_elements(mean_pb[r, *]) - 1L do begin
+      printf, lun, dates[i], times[i], mean_pb[r, i], radii[r], $
+              format='(%"%s, %s, %0.5g, %0.2f")'
+    endfor
+    free_lun, lun
   endfor
 
   done:
@@ -180,7 +196,7 @@ end
 
 ; main-level program
 
-date = '20160603'
+date = '20210106'
 config_filename = filepath('kcor.latest.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())
