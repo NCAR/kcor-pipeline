@@ -9,6 +9,7 @@
 /analysis/kcor-duty-cycle.sav
 /analysis/duty-cycle.ps
 /analysis/duty-cycle-histogram.ps
+/analysis/kcor_good_times.txt
 .ipynb_checkpoints
 /stream/stream.html
 /stream/stream.c
