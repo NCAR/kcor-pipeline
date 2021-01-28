@@ -177,9 +177,17 @@ pro kcor_plot_l2, run=run
                                 format='(%"%s.kcor.mean-pb-%0.2f.txt")'), $
                          root=plots_dir), $
            /get_lun
-    printf, lun, 'MLSO K-Coronagraph'
-    printf, lun, radii[r], format='(%"Polarization brightness (pB) azimuthally averaged over 360 degrees at %0.2f Rsun")'
-    printf, lun, 'Date', 'Time', 'pB', 'Height', format='(%"%s, %s, %s, %s")'
+
+
+
+    printf, lun, 'This text file contains calibrated polarization brightness (pB) measurements of'
+    printf, lun, 'the low corona from the Mauna Loa Solar Observatory K-Coronagraph (K-Cor) over'
+    printf, lun, 'one observing day. Each measurement is the azimuthally-averaged (i.e. averaged'
+    printf, lun, 'over all angles around the corona) pB measurement at the height indicated in the'
+    printf, lun, 'table.'
+    printf, lun
+    printf, lun, 'Date [yr mm dd]', 'Time [hr mm ss]', 'pB intensity', 'Height', $
+            format='(%"%s, %s, %s, %s")'
     for i = 0L, n_elements(mean_pb[r, *]) - 1L do begin
       printf, lun, dates[i], times[i], mean_pb[r, i], radii[r], $
               format='(%"%s, %s, %0.5g, %0.2f")'
