@@ -186,11 +186,18 @@ pro kcor_plot_l2, run=run
     printf, lun, 'over all angles around the corona) pB measurement at the height indicated in the'
     printf, lun, 'table.'
     printf, lun
-    printf, lun, 'Date [yr mm dd]', 'Time [hr mm ss]', 'pB intensity', 'Height', $
-            format='(%"%s, %s, %s, %s")'
+    printf, lun, 'Date', 'Time', 'pB intensity', 'Height', $
+            format='(%"%-15s   %-15s   %-15s   %-22s")'
+    printf, lun, '[yr mm dd]', '[hr mm ss]', '[B/Bsun]', '[Rsun from sun center]', $
+            format='(%"%-15s   %-15s   %-15s   %-22s")'
+    printf, lun, string(bytarr(15) + (byte('-'))[0]), $
+                 string(bytarr(15) + (byte('-'))[0]), $
+                 string(bytarr(15) + (byte('-'))[0]), $
+                 string(bytarr(22) + (byte('-'))[0]), $
+                 format='(%"%-15s   %-15s   %-15s   %-22s")'
     for i = 0L, n_elements(mean_pb[r, *]) - 1L do begin
       printf, lun, dates[i], times[i], mean_pb[r, i], radii[r], $
-              format='(%"%s, %s, %0.5g, %0.2f")'
+              format='(%"%-15s   %-15s   %15.5g   %22.2f")'
     endfor
     free_lun, lun
   endfor
