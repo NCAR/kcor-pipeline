@@ -484,3 +484,4 @@
 2.0.36 [Jan 11, 2021]
   forgot new occulter value
 2.0.37
+  writing azimuthally averaged pB for a fixed height to a text file
