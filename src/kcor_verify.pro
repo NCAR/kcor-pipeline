@@ -915,7 +915,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   ; TEST: check HPSS for L0/L1/L2 tarball of correct size, ownership, and
   ; protections
 
-  check_hpss = 1B
+  check_hpss = 0B
   if (check_hpss) then begin
     year = strmid(date, 0, 4)
     kcor_verify_hpss, date, $

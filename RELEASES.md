@@ -485,3 +485,5 @@
   forgot new occulter value
 2.0.37
   writing azimuthally averaged pB for a fixed height to a text file
+  weekly verification does not check HPSS any more
+
