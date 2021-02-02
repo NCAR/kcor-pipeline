@@ -483,7 +483,6 @@
   new tapered occulter
 2.0.36 [Jan 11, 2021]
   forgot new occulter value
-2.0.37
+2.0.37 [Feb 2, 2021]
   writing azimuthally averaged pB for a fixed height to a text file
   weekly verification does not check HPSS any more
-
