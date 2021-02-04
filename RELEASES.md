@@ -487,3 +487,4 @@
   writing azimuthally averaged pB for a fixed height to a text file
   weekly verification does not check HPSS any more
 2.0.38
+  produce an NRGF for every 15 second image

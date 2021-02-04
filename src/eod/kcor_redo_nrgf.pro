@@ -100,6 +100,16 @@ pro kcor_redo_nrgf, date, run=run
     kcor_nrgf, daily_average_files[f], run=run, /averaged, /daily, /cropped, log_name='kcor/eod'
   endfor
 
+  ; create NRGF 15-second files
+  l2_files = file_search(filepath('*_kcor_l2.fts.gz', $
+                                  subdir=[date, 'level2'], $
+                                  root=run->config('processing/raw_basedir')), $
+                        count=n_l2_files)
+  for i = 0L, n_l2_files - 1L do begin
+    kcor_nrgf, l2_files[f], run=run, log_name='kcor/eod'
+    kcor_nrgf, l2_files[f], /cropped, run=run, log_name='kcor/eod'
+  endfor
+
   ; zip new NRGF FITS files (including daily average)
   unzipped_nrgf_glob = '*_nrgf*.fts'
   unzipped_nrgf_files = file_search(unzipped_nrgf_glob, count=n_nrgf_files)
