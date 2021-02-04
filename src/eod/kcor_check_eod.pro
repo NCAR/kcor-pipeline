@@ -63,6 +63,11 @@ pro kcor_check_eod, date, config_filename=config_filename
       mg_log, 'sending notification to %s', run->config('notifications/email'), $
               name=log_name, /info
 
+      machine_log = filepath(string(date, format='(%"%s.kcor.machine.log")'),
+                             root=run->config('processing/raw_basedir'))
+      t1_log = filepath(string(date, format='(%"%s.kcor.t1.log")'),
+                        root=run->config('processing/raw_basedir'))
+
       spawn, 'echo $(whoami)@$(hostname)', who, error_result, exit_status=status
       if (status eq 0L) then begin
         who = who[0]
@@ -72,7 +77,9 @@ pro kcor_check_eod, date, config_filename=config_filename
 
       msg = [string(n_processed_raw_files, format='(%"processed level 0 files: %d")'), $
              string(n_unprocessed_raw_files, format='(%"unprocessed level 0 files: %d")'), $
-             string(n_level0_tarball gt 0L ? '' : 'not', format='(%"level 0 tarball %sfound")'), $
+             string(n_level0_tarball gt 0L ? '' : 'not ', format='(%"level 0 tarball %sfound")'), $
+             string(file_test(machine_log, /regular) ? '' : 'not ', format='(%"machine log %spresent")'), $
+             string(file_test(t1_log, /regular) ? '' : 'not ', format='(%"t1 log %spresent")'), $
              '', $
              string(mg_src_root(/filename), who, format='(%"Sent from %s (%s)")')]
 
