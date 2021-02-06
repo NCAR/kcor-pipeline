@@ -105,7 +105,7 @@ pro kcor_redo_nrgf, date, run=run
                                   subdir=[date, 'level2'], $
                                   root=run->config('processing/raw_basedir')), $
                         count=n_l2_files)
-  for i = 0L, n_l2_files - 1L do begin
+  for f = 0L, n_l2_files - 1L do begin
     kcor_nrgf, l2_files[f], run=run, log_name='kcor/eod'
     kcor_nrgf, l2_files[f], /cropped, run=run, log_name='kcor/eod'
   endfor

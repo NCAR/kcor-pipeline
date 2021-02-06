@@ -381,9 +381,19 @@ pro kcor_nrgf, fits_file, $
               format='(f10.3)'
 
     ; write NRG FITS file
-    remove_loc = strpos(fits_file, '.fts')
+    if (keyword_set(averaged)) then begin
+      remove_loc = strpos(fits_file, '.fts')
+      if (keyword_set(daily)) then begin
+        remove_loc = strpos(fits_file, '_extavg.fts')
+      endif else begin
+        remove_loc = strpos(fits_file, '_avg.fts')
+      endelse
+    endif else begin
+      remove_loc = strpos(fits_file, '.fts')
+    endelse
     rfts_file = string(strmid(fits_file, 0, remove_loc), $
-                       format='(%"%s_nrgf.fts")')
+                       keyword_set(daily) ? '_extavg' : (keyword_set(averaged) ? '_avg' : ''), $
+                       format='(%"%s_nrgf%s.fts")')
 
     writefits, rfts_file, simg, rhdu
     mg_log, 'wrote FITS file %s', file_basename(rfts_file), name=log_name, /info
