@@ -157,11 +157,6 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
                                         status=db_status, $
                                         log_name='kcor/rt')
       if (db_status eq 0L) then begin
-        kcor_sw_insert, date, $
-                        run=run, database=database, $
-                        sw_index=sw_index, $
-                        log_name='kcor/rt'
-
         kcor_raw_insert, date, ok_files, 'oka', $
                          run=run, database=db, obsday_index=obsday_index, $
                          log_name='kcor/rt'
@@ -420,6 +415,10 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
                            run=run, $
                            database=db, $
                            obsday_index=obsday_index, log_name='kcor/rt'
+          kcor_sw_insert, date, $
+                          run=run, database=db, $
+                          sw_index=sw_index, $
+                          log_name='kcor/rt'
           kcor_eng_insert, date, l2_fits_files, $
                            mean_phase1=mean_phase1, $
                            sw_index=sw_index, $
