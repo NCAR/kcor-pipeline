@@ -22,6 +22,10 @@ if PY3:
 else:
     import ConfigParser as configparser
 
+from astropy.io import fits
+from astropy.utils.exceptions import AstropyUserWarning
+
+
 # set to True to not launch real scripts
 TEST = False
 
@@ -126,6 +130,76 @@ def list_processes(args):
         pid = p['pid']
         cmdline = p['cmdline']
         print(f'[{pid}] ({start_time} running {time_running}): {cmdline}')
+
+
+# ls sub-command
+
+def file_lines(filename):
+    n_lines = 0
+    
+    with open(filename, "r") as f:
+        for line in f.readlines():
+            n_lines += 1
+    return(n_lines)
+
+
+def get_fits_boolean(header, keyword):
+    return(header[keyword] == "in" if keyword in header else False)
+
+
+
+def list_files(files):
+    for f in files:
+        filename, file_extension = os.path.splitext(f)
+        basename = os.path.basename(f)
+        if os.path.isdir(f):
+            n_subfiles = len(glob.glob(os.path.join(f, "*")))
+            name = f"{basename}/"
+            print(f"{name:36s}  {n_subfiles:,} files")
+        elif os.path.isfile(f):
+            if file_extension == ".tgz":
+                size = os.stat(f).st_size
+                print(f"{basename:36s}  {size:,} bytes")
+            else:
+                try:
+                    with fits.open(f) as fits_file:
+                        header = fits_file[0].header
+                        diffuser = get_fits_boolean(header, "DIFFUSER")
+                        calpol = get_fits_boolean(header, "CALPOL")
+                        darkshutter = get_fits_boolean(header, "DARKSHUT")
+                        if darkshutter:
+                            type = "dark"
+                        elif calpol:
+                            calpang = header["CALPANG"] if "CALPANG" in header else 0.0
+                            type = f"cal {calpang:0.1f} deg"
+                        elif diffuser:
+                            type = "flat"
+                        else:
+                            type = "science"
+                    print(f"{basename:36s}  {type:13s}")
+                except OSError:
+                    if file_extension in [".log", ".olog", ".txt", ".cfg", ".tarlist"]:
+                        n_lines = file_lines(f)
+                        s = "s" if n_lines != 1 else ""
+                        print(f"{basename:36s}  {n_lines:,} line{s}")
+                    else:
+                        size = os.stat(f).st_size
+                        print(f"{basename:36s}  {size:,} bytes")
+        else:
+            print(f"{f} - unknown item")
+
+
+def ls(args):
+    files = [f for f in args.files if os.path.isfile(f)]
+    dirs = [d for d in args.files if os.path.isdir(d)]
+
+    if len(files) == 0 and len(dirs) == 1:
+        items = [f for f in glob.glob(os.path.join(dirs[0], "*"))]
+        files = [f for f in items if os.path.isfile(f)]
+        dirs = [d for d in items if os.path.isdir(d)]
+
+    list_files(sorted(dirs))
+    list_files(sorted(files))
 
 
 # validate sub-command
@@ -686,6 +760,14 @@ if __name__ == '__main__':
                                         help='list KCor processes')
     list_parser.set_defaults(func=list_processes, parser=list_parser)
 
+    # ls sub-command
+    ls_parser = subparsers.add_parser("ls",
+                                      help="list KCor data files")
+    ls_parser.add_argument("files", nargs="*",
+                           default=".",
+                           help="KCor files(s)",
+                           metavar="file(s)")
+    ls_parser.set_defaults(func=ls, parser=ls_parser)
 
     # log sub-command
     log_parser = subparsers.add_parser('log',
