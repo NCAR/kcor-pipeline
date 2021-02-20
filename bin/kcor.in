@@ -147,6 +147,9 @@ def get_fits_boolean(header, keyword):
     return(header[keyword] == "in" if keyword in header else False)
 
 
+def get_fits_float(header, keyword):
+    return(header[keyword] if keyword in header else None)
+
 
 def list_files(files):
     for f in files:
@@ -171,12 +174,17 @@ def list_files(files):
                             type = "dark"
                         elif calpol:
                             calpang = header["CALPANG"] if "CALPANG" in header else 0.0
-                            type = f"cal {calpang:0.1f} deg"
+                            type = f"cal {calpang:0.1f}°"
                         elif diffuser:
                             type = "flat"
                         else:
                             type = "science"
-                    print(f"{basename:36s}  {type:13s}")
+                        exposure = get_fits_float(header, "EXPTIME")
+                        exposure = f"{exposure:0.3f} ms" if exposure is not None else 10 * "-"
+                        sgsscint = get_fits_float(header, "SGSSCINT")
+                        seeing = f"{sgsscint:7.3f} arcsec seeing" if sgsscint is not None else 21 * "-"
+
+                    print(f"{basename:36s}  {type:10s}  {exposure}  {seeing}")
                 except OSError:
                     if file_extension in [".log", ".olog", ".txt", ".cfg", ".tarlist"]:
                         n_lines = file_lines(f)
@@ -190,41 +198,44 @@ def list_files(files):
 
 
 def ls(args):
-    files = [f for f in args.files if os.path.isfile(f)]
-    dirs = [d for d in args.files if os.path.isdir(d)]
-
-    if len(files) == 0 and len(dirs) == 1:
-        items = [f for f in glob.glob(os.path.join(dirs[0], "*"))]
-        files = [f for f in items if os.path.isfile(f)]
-        dirs = [d for d in items if os.path.isdir(d)]
-
-    list_files(sorted(dirs))
-    list_files(sorted(files))
+    try:
+        files = [f for f in args.files if os.path.isfile(f)]
+        dirs = [d for d in args.files if os.path.isdir(d)]
+    
+        if len(files) == 0 and len(dirs) == 1:
+            items = [f for f in glob.glob(os.path.join(dirs[0], "*"))]
+            files = [f for f in items if os.path.isfile(f)]
+            dirs = [d for d in items if os.path.isdir(d)]
+    
+        list_files(sorted(dirs))
+        list_files(sorted(files))
+    except KeyboardInterrupt:
+        pass
 
 
 # validate sub-command
 def validate(args):
     dates = ','.join(args.dates)
 
-    cmd = [os.path.join(PIPELINE_DIR, 'bin', 'kcor_verify_dates.sh'),
+    cmd = [os.path.join(PIPELINE_DIR, "bin", "kcor_verify_dates.sh"),
            args.flags,
            dates]
 
     process = launch_process(cmd, stdout=None, stderr=subprocess.PIPE)
-    print('[%d] %s' % (process.pid, ' '.join(cmd)))
+    print("[%d] %s" % (process.pid, " ".join(cmd)))
             
     terminated = wait_for(process)
 
 
 # log sub-command
 def filter_log(args):
-    date_prog = re.compile('^\d{8}$')
-    logfiles = [os.path.join(LOG_DIR, f'{f}.{args.type}.log') if date_prog.match(f) else f
+    date_prog = re.compile("^\d{8}$")
+    logfiles = [os.path.join(LOG_DIR, f"{f}.{args.type}.log") if date_prog.match(f) else f
                 for f in args.logfiles]
 
     follow = args.follow
     if follow and len(logfiles) > 1:
-        print('cannot follow multiple files')
+        print("cannot follow multiple files")
         return
 
     if args.prune is not None:
@@ -235,20 +246,20 @@ def filter_log(args):
     if args.level:
         level = args.level.upper()
     elif args.critical:
-        level = 'CRITICAL'
+        level = "CRITICAL"
     elif args.error:
-        level = 'ERROR'
+        level = "ERROR"
     elif args.warn:
-        level = 'WARN'
+        level = "WARN"
     elif args.info:
-        level = 'INFO'
+        level = "INFO"
     else:
-        level = 'DEBUG'
+        level = "DEBUG"
 
     try:
         level_index = LEVELS.index(level)
     except ValueError:
-        print('invalid level: %s' % level)
+        print("invalid level: %s" % level)
         parser.print_help()
         return
 
