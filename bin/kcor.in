@@ -150,8 +150,57 @@ def get_fits_boolean(header, keyword):
 def get_fits_float(header, keyword):
     return(header[keyword] if keyword in header else None)
 
+def value2str(v):
+    if type(v) == str:
+        return(f"{v:10s}")
+    elif type(v) == float:
+        return(f"{v:8.3f}")
+    elif type(v) == int:
+        return(f"{v:8d}")
+    elif type(v) == bool:
+        return(f"{v!s:5s}")
+    elif v is None:
+        return 5 * "-"
+    return(f"{v}")
 
-def list_files(files):
+
+def list_fits_file(f, columns):
+    basename = os.path.basename(f)
+    line = f"{basename:36s}"
+    with fits.open(f) as fits_file:
+        primary_header = fits_file[0].header
+        for c in columns:
+            v = primary_header[c] if c in primary_header else None
+            v = value2str(v)
+            line += f"  {v}"
+    print(line)
+
+
+def list_fits_file_default(f):
+    basename = os.path.basename(f)
+    with fits.open(f) as fits_file:
+        header = fits_file[0].header
+        diffuser = get_fits_boolean(header, "DIFFUSER")
+        calpol = get_fits_boolean(header, "CALPOL")
+        darkshutter = get_fits_boolean(header, "DARKSHUT")
+        if darkshutter:
+            type = "dark"
+        elif calpol:
+            calpang = header["CALPANG"] if "CALPANG" in header else 0.0
+            type = f"cal {calpang:0.1f}°"
+        elif diffuser:
+            type = "flat"
+        else:
+            type = "science"
+        exposure = get_fits_float(header, "EXPTIME")
+        exposure = f"{exposure:0.3f} ms" if exposure is not None else 10 * "-"
+        sgsscint = get_fits_float(header, "SGSSCINT")
+        seeing = f"{sgsscint:7.3f} arcsec seeing" if sgsscint is not None else 21 * "-"
+
+    print(f"{basename:36s}  {type:10s}  {exposure}  {seeing}")
+
+
+def list_files(files, columns=None):
     for f in files:
         filename, file_extension = os.path.splitext(f)
         basename = os.path.basename(f)
@@ -165,26 +214,10 @@ def list_files(files):
                 print(f"{basename:36s}  {size:,} bytes")
             else:
                 try:
-                    with fits.open(f) as fits_file:
-                        header = fits_file[0].header
-                        diffuser = get_fits_boolean(header, "DIFFUSER")
-                        calpol = get_fits_boolean(header, "CALPOL")
-                        darkshutter = get_fits_boolean(header, "DARKSHUT")
-                        if darkshutter:
-                            type = "dark"
-                        elif calpol:
-                            calpang = header["CALPANG"] if "CALPANG" in header else 0.0
-                            type = f"cal {calpang:0.1f}°"
-                        elif diffuser:
-                            type = "flat"
-                        else:
-                            type = "science"
-                        exposure = get_fits_float(header, "EXPTIME")
-                        exposure = f"{exposure:0.3f} ms" if exposure is not None else 10 * "-"
-                        sgsscint = get_fits_float(header, "SGSSCINT")
-                        seeing = f"{sgsscint:7.3f} arcsec seeing" if sgsscint is not None else 21 * "-"
-
-                    print(f"{basename:36s}  {type:10s}  {exposure}  {seeing}")
+                    if args.columns is None:
+                        list_fits_file_default(f)
+                    else:
+                        list_fits_file(f, columns)
                 except OSError:
                     if file_extension in [".log", ".olog", ".txt", ".cfg", ".tarlist"]:
                         n_lines = file_lines(f)
@@ -208,7 +241,7 @@ def ls(args):
             dirs = [d for d in items if os.path.isdir(d)]
     
         list_files(sorted(dirs))
-        list_files(sorted(files))
+        list_files(sorted(files), columns=args.columns)
     except KeyboardInterrupt:
         pass
 
@@ -778,6 +811,9 @@ if __name__ == "__main__":
                            default=".",
                            help="KCor files(s)",
                            metavar="file(s)")
+    ls_parser.add_argument("--columns", type=str, nargs="*",
+                           help="FITS keyword names to display",
+                           default=None)
     ls_parser.set_defaults(func=ls, parser=ls_parser)
 
     # log sub-command
