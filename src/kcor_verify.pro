@@ -426,6 +426,14 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   status = 0L
   ;logger_name = 'kcor/verify'
 
+  catch, error
+  if (error ne 0) then begin
+    catch, /cancel
+    error = 1L
+    mg_log, /last_error, /critical
+    goto, done
+  endif
+  
   valid_date = kcor_valid_date(date, msg=msg)
   if (~valid_date) then begin
     mg_log, msg, name=logger_name, /error
@@ -843,13 +851,13 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   endif
 
   if (~file_test(l1_tarball_filename, /regular)) then begin
-    mg_log, 'no L1 tarball', name=logger_name, /error
+    mg_log, 'no L1 tarball', name=logger_name, /warn
     status = 1
     goto, compress_ratio_done
   endif
 
   if (~file_test(l2_tarball_filename, /regular)) then begin
-    mg_log, 'no L2 tarball', name=logger_name, /error
+    mg_log, 'no L2 tarball', name=logger_name, /warn
     status = 1
     goto, compress_ratio_done
   endif
@@ -947,15 +955,21 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   check_campaign_storage = n_elements(remote_server) gt 0L
   if (check_campaign_storage) then begin
     remote_basedir = run->config('verification/archive_remote_basedir')
-    kcor_verify_remote, date, l0_tarball_filename, remote_server, remote_basedir, $
-                        logger_name=logger_name, run=run, $
-                        status=status
-    kcor_verify_remote, date, l1_tarball_filename, remote_server, remote_basedir, $
-                        logger_name=logger_name, run=run, $
-                        status=status
-    kcor_verify_remote, date, l2_tarball_filename, remote_server, remote_basedir, $
-                        logger_name=logger_name, run=run, $
-                        status=status
+    if (file_test(l0_tarball_filename, /regular)) then begin
+      kcor_verify_remote, date, l0_tarball_filename, remote_server, remote_basedir, $
+                          logger_name=logger_name, run=run, $
+                          status=status
+    endif
+    if (file_test(l1_tarball_filename, /regular)) then begin
+      kcor_verify_remote, date, l1_tarball_filename, remote_server, remote_basedir, $
+                          logger_name=logger_name, run=run, $
+                          status=status
+    endif
+    if (file_test(l2_tarball_filename, /regular)) then begin
+      kcor_verify_remote, date, l2_tarball_filename, remote_server, remote_basedir, $
+                          logger_name=logger_name, run=run, $
+                          status=status
+    endif
   endif else begin
     mg_log, 'skipping Campaign Storage check', name=logger_name, /info
   endelse

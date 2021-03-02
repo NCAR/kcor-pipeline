@@ -488,3 +488,4 @@
   weekly verification does not check HPSS any more
 2.0.38
   produce an NRGF for every 15 second image
+  handle errors in verification more robustly
