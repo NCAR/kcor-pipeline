@@ -486,6 +486,6 @@
 2.0.37 [Feb 2, 2021]
   writing azimuthally averaged pB for a fixed height to a text file
   weekly verification does not check HPSS any more
-2.0.38
+2.0.38 [Mar 4, 2021]
   produce an NRGF for every 15 second image
   handle errors in verification more robustly
