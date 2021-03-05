@@ -491,3 +491,4 @@
   handle errors in verification more robustly
 2.0.39 [Mar 5, 2021]
   fix bug where date/time for epoch reads was not set until after reading a file
+2.0.40
