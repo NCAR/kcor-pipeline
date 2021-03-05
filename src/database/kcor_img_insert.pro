@@ -178,7 +178,15 @@ pro kcor_img_insert, date, fits_list, $
 
     ; get IDs from relational tables
     producttype_count = db->query('SELECT count(producttype_id) FROM mlso_producttype WHERE producttype=''%s''', $
-                                  producttype, fields=fields)
+                                  producttype, fields=fields, $
+                                  status=status, error_message=error_message, sql_statement=sql_cmd)
+    if (status ne 0L) then begin
+      mg_log, 'error querying mlso_producttype table', name=log_name, /error
+      mg_log, 'status: %d, error message: %s', status, error_message, $
+              name=log_name, /error
+      mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
+      continue
+    endif
     if (producttype_count.count_producttype_id_ eq 0) then begin
       ; if given producttype is not in the mlso_producttype table, set it to
       ; 'unknown' and log error
@@ -186,11 +194,27 @@ pro kcor_img_insert, date, fits_list, $
       mg_log, 'producttype: %s', producttype, name=log_name, /error
     endif
     producttype_results = db->query('SELECT * FROM mlso_producttype WHERE producttype=''%s''', $
-                                    producttype, fields=fields)
+                                    producttype, fields=fields, $
+                                    status=status, error_message=error_message, sql_statement=sql_cmd)
+    if (status ne 0L) then begin
+      mg_log, 'error querying mlso_producttype table', name=log_name, /error
+      mg_log, 'status: %d, error message: %s', status, error_message, $
+              name=log_name, /error
+      mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
+      continue
+    endif
     producttype_num = producttype_results.producttype_id	
-		
+
     filetype_count = db->query('SELECT count(filetype_id) FROM mlso_filetype WHERE filetype=''%s''', $
-                               filetype, fields=fields)
+                               filetype, fields=fields, $
+                               status=status, error_message=error_message, sql_statement=sql_cmd)
+    if (status ne 0L) then begin
+      mg_log, 'error querying mlso_producttype table', name=log_name, /error
+      mg_log, 'status: %d, error message: %s', status, error_message, $
+              name=log_name, /error
+      mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
+      continue
+    endif
     if (filetype_count.count_filetype_id_ eq 0) then begin
       ; if given filetype is not in the mlso_filetype table, set it to 'unknown'
       ; and log error
@@ -198,7 +222,15 @@ pro kcor_img_insert, date, fits_list, $
       mg_log, 'filetype: %s', filetype, name=log_name, /error
     endif
     filetype_results = db->query('SELECT * FROM mlso_filetype WHERE filetype=''%s''', $
-                                 filetype, fields=fields)
+                                 filetype, fields=fields, $
+                                 status=status, error_message=error_message, sql_statement=sql_cmd)
+    if (status ne 0L) then begin
+      mg_log, 'error querying mlso_producttype table', name=log_name, /error
+      mg_log, 'status: %d, error message: %s', status, error_message, $
+              name=log_name, /error
+      mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
+      continue
+    endif
     filetype_num = filetype_results.filetype_id	
 
     level_num = kcor_get_level_id(level, database=db, count=level_found)
@@ -210,7 +242,6 @@ pro kcor_img_insert, date, fits_list, $
                  level_num, quality, producttype_num, $
                  filetype_num, numsum, exptime, $
                  status=status, error_message=error_message, sql_statement=sql_cmd
-
     if (status eq 0L) then begin
       if (is_nrgf) then begin
         case 1 of
