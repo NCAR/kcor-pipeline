@@ -61,6 +61,16 @@ pro kcor_l1, ok_filename, $
   if (~file_test(ok_filename, /regular)) then begin
     message, string(file_basename(ok_filename), format='(%"%s not found")')
   endif
+
+  dt = strmid(file_basename(ok_filename), 0, 15)
+  run.time = string(strmid(dt, 0, 4), $
+                    strmid(dt, 4, 2), $
+                    strmid(dt, 6, 2), $
+                    strmid(dt, 9, 2), $
+                    strmid(dt, 11, 2), $
+                    strmid(dt, 13, 2), $
+                    format='(%"%s-%s-%sT%s-%s-%s")')
+  mg_log, 'start_state: %d', run->epoch('start_state'), name=log_name, /debug
   kcor_read_rawdata, ok_filename, image=img, header=header, $
                      repair_routine=run->epoch('repair_routine'), $
                      xshift=run->epoch('xshift_camera'), $

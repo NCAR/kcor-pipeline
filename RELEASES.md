@@ -490,3 +490,4 @@
   produce an NRGF for every 15 second image
   handle errors in verification more robustly
 2.0.39
+  fix bug where date/time for epoch reads was not set until after reading a file
