@@ -55,7 +55,7 @@ function mlso_obsday_insert, date, $
 
     db->getProperty, host_name=host
     mg_log, 'connected to %s', host, name=log_name, /info
-  endif
+  endelse
 
   obs_day = strmid(date, 0, 4) + '-' + strmid(date, 4, 2) + '-' + strmid(date, 6, 2)
   obs_day_index = 0
