@@ -495,3 +495,4 @@
   adding more database checks for errors
 2.0.41 [Mar 5, 2021]
   re-using database connection instead of connecting in end-of-day
+2.0.42
