@@ -493,3 +493,4 @@
   fix bug where date/time for epoch reads was not set until after reading a file
 2.0.40 [Mar 5, 2021]
   adding more database checks for errors
+2.0.41
