@@ -180,8 +180,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     kcor_create_differences, date, l2_zipped_files, run=run
     kcor_zip_files, filepath('*minus*.fts', root=l2_dir), run=run
 
-    kcor_create_averages, date, l2_zipped_files, run=run
-    kcor_redo_nrgf, date, run=run
+    kcor_create_averages, date, l2_zipped_files, run=run, database=db
+    kcor_redo_nrgf, date, run=run, database=db
   endif
 
   oka_filename = filepath('oka.ls', subdir=[date, 'q'], $
@@ -401,8 +401,6 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     endif else begin
       mg_log, 'error connecting to database', name='kcor/eod', /warn
     endelse
-
-    obj_destroy, db
   endif else begin
     mg_log, 'skipping updating database', name='kcor/eod', /info
   endelse
@@ -579,6 +577,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   endelse
 
   done:
+
+  if (obj_valid(db)) then obj_destroy, db
 
   mg_log, /check_math, name='kcor/eod', /debug
 

@@ -39,18 +39,23 @@ function mlso_obsday_insert, date, $
   ;       .mysqldb. The "config_section" parameter specifies
   ;       which group of data to use.
 
-  db = mgdbmysql()
-  db->connect, config_filename=run->config('database/config_filename'), $
-               config_section=run->config('database/config_section'), $
-               status=status, error_message=error_message
-  if (status ne 0L) then begin
-    mg_log, 'failed to connect to database', name=log_name, /error
-    mg_log, '%s', error_message, name=log_name, /error
-    return, !null
-  endif
+  if (obj_valid(db)) then begin
+    created_db = 0B
+  endif else begin
+    created_db = 1B
+    db = mgdbmysql()
+    db->connect, config_filename=run->config('database/config_filename'), $
+                 config_section=run->config('database/config_section'), $
+                 status=status, error_message=error_message
+    if (status ne 0L) then begin
+      mg_log, 'failed to connect to database', name=log_name, /error
+      mg_log, '%s', error_message, name=log_name, /error
+      return, !null
+    endif
 
-  db->getProperty, host_name=host
-  mg_log, 'connected to %s', host, name=log_name, /info
+    db->getProperty, host_name=host
+    mg_log, 'connected to %s', host, name=log_name, /info
+  endif
 
   obs_day = strmid(date, 0, 4) + '-' + strmid(date, 4, 2) + '-' + strmid(date, 6, 2)
   obs_day_index = 0
@@ -99,9 +104,11 @@ function mlso_obsday_insert, date, $
     endif
   endelse
 
-  if (~arg_present(db)) then obj_destroy, db
-								 
-  return, obs_day_index							 
+  ; free database connection if we created it and we are not passing it out of
+  ; this routine
+  if (~arg_present(db) && (created_db eq 1B)) then obj_destroy, db
+
+  return, obs_day_index
 end
 
 
