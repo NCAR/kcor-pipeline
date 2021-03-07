@@ -41,6 +41,7 @@ function mlso_obsday_insert, date, $
 
   if (obj_valid(db)) then begin
     created_db = 0B
+    status = 0B
   endif else begin
     created_db = 1B
     db = mgdbmysql()
