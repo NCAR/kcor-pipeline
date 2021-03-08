@@ -334,6 +334,18 @@ end
 
 
 ;+
+; Hook for superclasses.
+;
+; :Params:
+;   sql_statement : in, required, type=string
+;     SQL statement to report
+;-
+pro mgdbmysql::report_statement, sql_statement
+  compile_opt strictarr
+end
+
+
+;+
 ; Perform a query and retrieve the results.
 ;
 ; :Returns:
@@ -406,6 +418,7 @@ function mgdbmysql::query, sql_query, $
     21: _sql_query = string(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16, arg17, arg18, arg19, arg20, format='(%"' + sql_query + '")')
   endcase
 
+  self->report_statement, _sql_query
   status = mg_mysql_query(self.connection, _sql_query)
   if (status ne 0) then begin
     error_message = self->last_error_message()
@@ -750,6 +763,7 @@ pro mgdbmysql::execute, sql_query, $
                             format=sql_query_fmt)
   endcase
 
+  self->report_statement, _sql_query
   status = mg_mysql_query(self.connection, _sql_query)
   if (status ne 0) then begin
     error_message = self->last_error_message()
