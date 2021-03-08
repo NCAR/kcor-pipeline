@@ -4,7 +4,7 @@ rm -rf build
 mkdir build
 cd build
 
-IDL_ROOT_DIR=/opt/share/idl8.6/idl86
+IDL_ROOT_DIR=/opt/share/idl8.8/idl88
 #IDL_ROOT_DIR=/opt/share/idl8.7.3/idl87
 
 ~mgalloy/software/bin/cmake \
