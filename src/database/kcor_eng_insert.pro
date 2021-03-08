@@ -17,7 +17,7 @@
 ;     `kcor_run` object
 ;   obsday_index : in, required, type=integer
 ;     index into mlso_numfiles database table
-;   database : in, optional, type=MGdbMySql object
+;   database : in, optional, type=KCordbMySql object
 ;     database connection to use
 ;   mean_phase1 : in, optional, type=fltarr
 ;     mean_phase1 for each file in `filelist`   
@@ -42,7 +42,7 @@
 ;-
 pro kcor_eng_insert, date, fits_list, $
                      run=run, $
-                     database=database, $
+                     database=db, $
                      obsday_index=obsday_index, $
                      mean_phase1=mean_phase1, $
                      sw_index=sw_index, $
@@ -55,23 +55,8 @@ pro kcor_eng_insert, date, fits_list, $
   endif
 
   ; connect to MLSO database
-
-  ; Note: The connect procedure accesses DB connection information in the file
-  ;       .mysqldb. The "config_section" parameter specifies
-  ;       which group of data to use.
-  if (obj_valid(database)) then begin
-    db = database
-
-    db->getProperty, host_name=host
-    mg_log, 'using connection to %s', host, name='kcor/rt', /debug
-  endif else begin
-    db = mgdbmysql()
-    db->connect, config_filename=run->config('database/config_filename'), $
-                 config_section=run->config('database/config_section')
-
-    db->getProperty, host_name=host
-    mg_log, 'connected to %s', host, name='kcor/rt', /info
-  endelse
+  db->getProperty, host_name=host
+  mg_log, 'using connection to %s', host, name='kcor/rt', /debug
 
   year    = strmid(date, 0, 4)   ; YYYY
   month   = strmid(date, 4, 2)   ; MM
@@ -162,7 +147,6 @@ pro kcor_eng_insert, date, fits_list, $
     labviewid   = sxpar(hdu, 'OBSSWID', count=qlabviewid)
     socketcamid = sxpar(hdu, 'SOCKETCA', count=qsocketcamid)
 
-
     ; check for out of bounds values
     if (strpos(tcamxcen, '*') ne -1) then tcamxcen = 'NULL'
     if (strpos(tcamycen, '*') ne -1) then tcamycen = 'NULL'
@@ -171,7 +155,7 @@ pro kcor_eng_insert, date, fits_list, $
 
     ; get IDs from relational tables
 
-    level_count = db->query('SELECT count(level_id) FROM kcor_level WHERE level=''%s''', $
+    level_count = db->query('select count(level_id) from kcor_level where level=''%s''', $
                             level, fields=fields)
     if (level_count.count_level_id_ eq 0) then begin
       ; if given level is not in the kcor_level table, set it to 'unknown' and
@@ -179,12 +163,12 @@ pro kcor_eng_insert, date, fits_list, $
       level = 'unk'
       mg_log, 'level: %s', level, name='kcor/rt', /error
     endif
-    level_results = db->query('SELECT * FROM kcor_level WHERE level=''%s''', $
+    level_results = db->query('select * from kcor_level where level=''%s''', $
                               level, fields=fields)
     level_num = level_results.level_id	
 
     ; DB insert command
-    db->execute, 'INSERT INTO kcor_eng (file_name, date_obs, obs_day, rcamfocs, tcamfocs, modltrt, o1focs, kcor_sgsdimv, kcor_sgsdims, level, bunit, bzero, bscale, rcamxcen, rcamycen, tcamxcen, tcamycen, rcam_rad, tcam_rad, mean_phase1, cover, darkshut, diffuser, calpol, distort, labviewid, socketcamid, kcor_sw_id, kcor_hw_id) VALUES (''%s'', ''%s'', %d, %s, %s, %s, %s, %s, %s, %d, ''%s'', %d, %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', %d, %d) ', $
+    db->execute, 'insert into kcor_eng (file_name, date_obs, obs_day, rcamfocs, tcamfocs, modltrt, o1focs, kcor_sgsdimv, kcor_sgsdims, level, bunit, bzero, bscale, rcamxcen, rcamycen, tcamxcen, tcamycen, rcam_rad, tcam_rad, mean_phase1, cover, darkshut, diffuser, calpol, distort, labviewid, socketcamid, kcor_sw_id, kcor_hw_id) values (''%s'', ''%s'', %d, %s, %s, %s, %s, %s, %s, %d, ''%s'', %d, %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', %d, %d) ', $
                  fits_file, date_obs, obsday_index, kcor_fitsfloat2db(rcamfocs), $
                  kcor_fitsfloat2db(tcamfocs), $
                  kcor_fitsfloat2db(modltrt), kcor_fitsfloat2db(o1focs), $
@@ -211,7 +195,6 @@ pro kcor_eng_insert, date, fits_list, $
   endwhile
 
   done:
-  if (~obj_valid(database)) then obj_destroy, db
   cd, start_dir
 
   mg_log, 'done', name='kcor/rt', /info

@@ -17,7 +17,7 @@
 ;     `kcor_run` object
 ;   obsday_index : in, required, type=integer
 ;     index into mlso_numfiles database table
-;   database : in, optional, type=MGdbMySql object
+;   database : in, optional, type=KCordbMySql object
 ;     database connection to use
 ;
 ; :Examples:
@@ -36,7 +36,7 @@
 ;-
 pro mlso_sgs_insert, date, fits_list, $
                      run=run, $
-                     database=database, $
+                     database=db, $
                      obsday_index=obsday_index
   compile_opt strictarr
   on_error, 2
@@ -47,24 +47,8 @@ pro mlso_sgs_insert, date, fits_list, $
   endif
 
   ; connect to MLSO database
-
-  ; Note: The connect procedure accesses DB connection information in the file
-  ;       .mysqldb. The "config_section" parameter specifies which group of data
-  ;       to use.
-
-  if (obj_valid(database)) then begin
-    db = database
-
-    db->getProperty, host_name=host
-    mg_log, 'using connection to %s', host, name='kcor/rt', /debug
-  endif else begin
-    db = mgdbmysql()
-    db->connect, config_filename=run->config('database/config_filename'), $
-                 config_section=run->config('database/config_section')
-
-    db->getProperty, host_name=host
-    mg_log, 'connected to %s', host, name='kcor/rt', /info
-  endelse
+  db->getProperty, host_name=host
+  mg_log, 'using connection to %s', host, name='kcor/rt', /debug
 
   year    = strmid(date, 0, 4)             ; yyyy
   month   = strmid(date, 4, 2)             ; mm
@@ -146,7 +130,6 @@ pro mlso_sgs_insert, date, fits_list, $
   endwhile
 
   done:
-  if (~obj_valid(database)) then obj_destroy, db
   cd, start_dir
 
   mg_log, 'done', name='kcor/rt', /info

@@ -10,7 +10,7 @@
 ; :Keywords:
 ;   run : in, required, type=object
 ;     `kcor_run` object
-;   database : in, optional, type=MGdbMySql object
+;   database : in, optional, type=KCordbMySql object
 ;     database connection to use
 ;   log_name : in, required, type=string
 ;     log name to use for logging, i.e., "kcor/rt", "kcor/eod", etc.
@@ -38,31 +38,15 @@
 ;               database entries to determine whether a new entry is needed.
 ;-
 pro kcor_sw_insert, date, run=run, $
-                    database=database, $
+                    database=db, $
                     sw_index=sw_index, $
                     log_name=log_name
   compile_opt strictarr
   on_error, 2
 
   ; connect to MLSO database.
-
-  ; Note: The connect procedure accesses DB connection information in the file
-  ;       .mysqldb. The "config_section" parameter specifies
-  ;       which group of data to use.
-
-  if (obj_valid(database)) then begin
-    db = database
-
-    db->getProperty, host_name=host
-    mg_log, 'using connection to %s', host, name=log_name, /debug
-  endif else begin
-    db = mgdbmysql()
-    db->connect, config_filename=run->config('database/config_filename'), $
-                 config_section=run->config('database/config_section')
-
-    db->getProperty, host_name=host
-    mg_log, 'connected to %s', host, name=log_name, /info
-  endelse
+  db->getProperty, host_name=host
+  mg_log, 'using connection to %s', host, name=log_name, /debug
 
   sw_index = 0L   ; updated with correct index if all goes well
   sw_version = kcor_find_code_version(revision=sw_revision)
@@ -82,7 +66,7 @@ pro kcor_sw_insert, date, run=run, $
               'proc_date', $
               'sw_version', $
               'sw_revision']
-    db->execute, 'INSERT INTO kcor_sw (%s) VALUES (''%s'', ''%s'', ''%s'', ''%s'') ', $
+    db->execute, 'insert into kcor_sw (%s) values (''%s'', ''%s'', ''%s'', ''%s'') ', $
                  strjoin(fields, ', '), $
                  date, $
                  proc_date, $
@@ -120,7 +104,6 @@ pro kcor_sw_insert, date, run=run, $
   endelse
 
   done:
-  if (~obj_valid(database)) then obj_destroy, db
   mg_log, 'done', name=log_name, /info
 end
 

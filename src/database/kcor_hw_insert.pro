@@ -31,30 +31,14 @@
 ;                 '20170214_190619_kcor.fts']
 ;     kcor_hw_insert, date, filelist
 ;-
-pro kcor_hw_insert, date, fits_list, run=run, database=database, log_name=log_name, $
+pro kcor_hw_insert, date, fits_list, run=run, database=db, log_name=log_name, $
                     hw_ids=hw_ids
   compile_opt strictarr
   on_error, 2
 
   ; connect to MLSO database.
-
-  ; Note: The connect procedure accesses DB connection information in the file
-  ;       .mysqldb. The "config_section" parameter specifies
-  ;       which group of data to use.
-
-  if (obj_valid(database)) then begin
-    db = database
-
-    db->getProperty, host_name=host
-    mg_log, 'using connection to %s', host, name=log_name, /debug
-  endif else begin
-    db = mgdbmysql()
-    db->connect, config_filename=run->config('database/config_filename'), $
-                 config_section=run->config('database/config_section')
-
-    db->getProperty, host_name=host
-    mg_log, 'connected to %s', host, name=log_name, /info
-  endelse
+  db->getProperty, host_name=host
+  mg_log, 'using connection to %s', host, name=log_name, /debug
 
   ; change to proper processing directory
   archive_dir = filepath('', subdir=kcor_decompose_date(date), $
@@ -77,7 +61,7 @@ pro kcor_hw_insert, date, fits_list, run=run, database=database, log_name=log_na
   date_format = '(C(CYI, "-", CMOI2.2, "-", CDI2.2, "T", CHI2.2, ":", CMI2.2, ":", CSI2.2))'
 
   ; get last kcor_hw entry (latest proc_date) to compare to
-  latest_hw = kcor_find_latest_row(run=run, database=database, $
+  latest_hw = kcor_find_latest_row(run=run, database=db, $
                                    log_name=log_name, error=error)
 
   if (error ne 0L) then begin
@@ -213,7 +197,6 @@ pro kcor_hw_insert, date, fits_list, run=run, database=database, log_name=log_na
 
   done:
   cd, start_dir
-  if (~obj_valid(database)) then obj_destroy, db
   mg_log, 'done', name=log_name, /info
 end
 

@@ -49,7 +49,7 @@ pro kcor_mission_insert, date, run=run
   ;       /home/stanger/.mysqldb. The "config_section" parameter specifies which
   ;       group of data to use.
 
-  db = mgdbmysql()
+  db = kcordbmysql()
   db->connect, config_filename=run->config('database/config_filename'), $
                config_section=run->config('database/config_section')
 

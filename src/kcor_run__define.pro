@@ -232,6 +232,13 @@ pro kcor_run::setup_loggers, rotate_logs=rotate_logs
                        level=log_level, $
                        filename=log_filename
 
+  ; rotate database log(s)
+  if (keyword_set(rotate_logs) && mode eq 'realtime' && reprocess) then begin
+    db_log_filename = filepath(self.date + '.kcor.db.log', root=log_dir)
+    max_log_version = self->config('logging/max_version')
+    mg_rotate_log, log_filename, max_version=max_log_version
+  endif
+
   ; can setup other loggers just by changing MODE property
   if (self.mode ne 'eod' && self.mode ne 'realtime') then begin
     mg_log, name='kcor/' + self.mode, logger=logger

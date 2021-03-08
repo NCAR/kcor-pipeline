@@ -184,6 +184,8 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       endif else begin
         mg_log, 'skipping database because unable to connect', name='kcor/rt', /warn
       endelse
+
+      obj_destroy, db
     endif
 
     kcor_process_files, ok_files, run=run, mean_phase1=mean_phase1, $

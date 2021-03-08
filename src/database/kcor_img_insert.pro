@@ -19,7 +19,7 @@
 ;     `kcor_run` object
 ;   obsday_index : in, required, type=integer
 ;     index into mlso_numfiles database table
-;   database : in, optional, type=MGdbMySql object
+;   database : in, optional, type=KCordbMySql object
 ;     database connection to use
 ;   log_name : in, required, type=string
 ;     log name to use for logging, i.e., "kcor/rt", "kcor/eod", etc.
@@ -49,7 +49,7 @@
 pro kcor_img_insert, date, fits_list, $
                      level2=level2, $
                      run=run, $
-                     database=database, $
+                     database=db, $
                      obsday_index=obsday_index, $
                      log_name=log_name, $
                      hw_ids=hw_ids
@@ -57,28 +57,13 @@ pro kcor_img_insert, date, fits_list, $
   on_error, 2
 
   if (keyword_set(level2)) then begin
-    kcor_hw_insert, date, fits_list, run=run, database=database, log_name=log_name, $
+    kcor_hw_insert, date, fits_list, run=run, database=db, log_name=log_name, $
                     hw_ids=hw_ids
   endif
 
   ; connect to MLSO database
-
-  ; Note: The connect procedure accesses DB connection information in the file
-  ;       .mysqldb. The "config_section" parameter specifies which group of data
-  ;       to use.
-  if (obj_valid(database)) then begin
-    db = database
-
-    db->getProperty, host_name=host
-    mg_log, 'using connection to %s', host, name=log_name, /debug
-  endif else begin
-    db = mgdbmysql()
-    db->connect, config_filename=run->config('database/config_filename'), $
-                 config_section=run->config('database/config_section')
-
-    db->getProperty, host_name=host
-    mg_log, 'connected to %s', host, name=log_name, /info
-  endelse
+  db->getProperty, host_name=host
+  mg_log, 'using connection to %s', host, name=log_name, /debug
 
   year    = strmid (date, 0, 4)	; yyyy
   month   = strmid (date, 4, 2)	; mm
@@ -101,6 +86,39 @@ pro kcor_img_insert, date, fits_list, $
   n_pb_avg_added = 0L
   n_pb_extavg_added = 0L
   n_nrgf_extavg_added = 0L
+
+  ; The decision is to not include non-FITS in the database because raster
+  ; files (GIFs) will be created for every image in database. However, since
+  ; we may add them later, or other file types, we'll keep the field in the
+  ; kcor_img database table.
+  filetype   = 'fits'
+  filetype_count = db->query('select count(filetype_id) from mlso_filetype where filetype=''%s''', $
+                             filetype, fields=fields, $
+                             status=status, error_message=error_message, sql_statement=sql_cmd)
+  if (status ne 0L) then begin
+    mg_log, 'error querying mlso_filetype table', name=log_name, /error
+    mg_log, 'status: %d, error message: %s', status, error_message, $
+            name=log_name, /error
+    mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
+    continue
+  endif
+  if (filetype_count.count_filetype_id_ eq 0) then begin
+    ; if given filetype is not in the mlso_filetype table, set it to 'unknown'
+    ; and log error
+    filetype = 'unknown'
+    mg_log, 'filetype: %s', filetype, name=log_name, /error
+  endif
+  filetype_results = db->query('select * from mlso_filetype where filetype=''%s''', $
+                               filetype, fields=fields, $
+                               status=status, error_message=error_message, sql_statement=sql_cmd)
+  if (status ne 0L) then begin
+    mg_log, 'error querying mlso_filetype table', name=log_name, /error
+    mg_log, 'status: %d, error message: %s', status, error_message, $
+            name=log_name, /error
+    mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
+    continue
+  endif
+  filetype_num = filetype_results.filetype_id	
 
   while (++i lt nfiles) do begin
     fts_file = fits_list[i]
@@ -168,16 +186,10 @@ pro kcor_img_insert, date, fits_list, $
       endcase
     endelse
 
-    ; The decision is to not include non-FITS in the database because raster
-    ; files (GIFs) will be created for every image in database. However, since
-    ; we may add them later, or other file types, we'll keep the field in the
-    ; kcor_img database table.
-    filetype   = 'fits'
-
     fits_file = file_basename(fts_file, '.gz') ; remove '.gz' from file name.
 
     ; get IDs from relational tables
-    producttype_count = db->query('SELECT count(producttype_id) FROM mlso_producttype WHERE producttype=''%s''', $
+    producttype_count = db->query('select count(producttype_id) from mlso_producttype where producttype=''%s''', $
                                   producttype, fields=fields, $
                                   status=status, error_message=error_message, sql_statement=sql_cmd)
     if (status ne 0L) then begin
@@ -193,7 +205,7 @@ pro kcor_img_insert, date, fits_list, $
       producttype = 'unknown'
       mg_log, 'producttype: %s', producttype, name=log_name, /error
     endif
-    producttype_results = db->query('SELECT * FROM mlso_producttype WHERE producttype=''%s''', $
+    producttype_results = db->query('select * from mlso_producttype where producttype=''%s''', $
                                     producttype, fields=fields, $
                                     status=status, error_message=error_message, sql_statement=sql_cmd)
     if (status ne 0L) then begin
@@ -205,39 +217,11 @@ pro kcor_img_insert, date, fits_list, $
     endif
     producttype_num = producttype_results.producttype_id	
 
-    filetype_count = db->query('SELECT count(filetype_id) FROM mlso_filetype WHERE filetype=''%s''', $
-                               filetype, fields=fields, $
-                               status=status, error_message=error_message, sql_statement=sql_cmd)
-    if (status ne 0L) then begin
-      mg_log, 'error querying mlso_producttype table', name=log_name, /error
-      mg_log, 'status: %d, error message: %s', status, error_message, $
-              name=log_name, /error
-      mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
-      continue
-    endif
-    if (filetype_count.count_filetype_id_ eq 0) then begin
-      ; if given filetype is not in the mlso_filetype table, set it to 'unknown'
-      ; and log error
-      filetype = 'unknown'
-      mg_log, 'filetype: %s', filetype, name=log_name, /error
-    endif
-    filetype_results = db->query('SELECT * FROM mlso_filetype WHERE filetype=''%s''', $
-                                 filetype, fields=fields, $
-                                 status=status, error_message=error_message, sql_statement=sql_cmd)
-    if (status ne 0L) then begin
-      mg_log, 'error querying mlso_producttype table', name=log_name, /error
-      mg_log, 'status: %d, error message: %s', status, error_message, $
-              name=log_name, /error
-      mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
-      continue
-    endif
-    filetype_num = filetype_results.filetype_id	
-
     level_num = kcor_get_level_id(level, database=db, count=level_found)
     if (level_found eq 0) then mg_log, 'using unknown level', name=log_name, /error
 
     ; DB insert command
-    db->execute, 'INSERT INTO kcor_img (file_name, date_obs, date_end, obs_day, carrington_rotation, level, quality, producttype, filetype, numsum, exptime) VALUES (''%s'', ''%s'', ''%s'', %d, %d, %d, %d, %d, %d, %d, %f)', $
+    db->execute, 'insert into kcor_img (file_name, date_obs, date_end, obs_day, carrington_rotation, level, quality, producttype, filetype, numsum, exptime) values (''%s'', ''%s'', ''%s'', %d, %d, %d, %d, %d, %d, %d, %f)', $
                  fits_file, date_obs, date_end, obsday_index, carrington_rotation, $
                  level_num, quality, producttype_num, $
                  filetype_num, numsum, exptime, $
@@ -264,7 +248,7 @@ pro kcor_img_insert, date, fits_list, $
   endwhile
 
   ; update number of files in mlso_numfiles
-  num_files_results = db->query('SELECT * FROM mlso_numfiles WHERE day_id=''%d''', obsday_index)
+  num_files_results = db->query('select * from mlso_numfiles where day_id=''%d''', obsday_index)
   n_pb_files = num_files_results.num_kcor_pb_fits + n_pb_added
   n_nrgf_files = num_files_results.num_kcor_nrgf_fits + n_nrgf_added
   n_pb_avg_files = num_files_results.num_kcor_pb_avg_fits + n_pb_avg_added
@@ -295,7 +279,7 @@ pro kcor_img_insert, date, fits_list, $
              n_nrgf_extavg_files]
   set_expression += '=' + strtrim(n_files, 2)
   set_expression = strjoin(set_expression, ', ')
-  db->execute, 'UPDATE mlso_numfiles SET %s WHERE day_id=''%d''', $
+  db->execute, 'update mlso_numfiles set %s where day_id=''%d''', $
                set_expression, obsday_index, $
                status=status, error_message=error_message, sql_statement=sql_cmd
   if (status ne 0L) then begin
@@ -306,7 +290,6 @@ pro kcor_img_insert, date, fits_list, $
   endif
 
   done:
-  if (~obj_valid(database)) then obj_destroy, db
   cd, start_dir
 
   mg_log, 'done', name=log_name, /info

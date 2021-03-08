@@ -6,7 +6,7 @@
 ;     `kcor_run` object
 ;   obsday_index : in, required, type=integer
 ;     index into mlso_numfiles database table
-;   database : in, optional, type=MGdbMySql object
+;   database : in, optional, type=KCordbMySql object
 ;     database connection to use
 ;   log_name : in, required, type=string
 ;     name of log to send log messages to
@@ -43,5 +43,4 @@ pro kcor_nrgf_clear, run=run, $
             name=log_name, /error
     mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
   endif
-
 end

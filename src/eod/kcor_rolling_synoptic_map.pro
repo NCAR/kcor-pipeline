@@ -190,7 +190,7 @@ config_filename = filepath('kcor.reprocess.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
-db = mgdbmysql()
+db = kcordbmysql()
 db->connect, config_filename=run->config('database/config_filename'), $
              config_section=run->config('database/config_section')
 

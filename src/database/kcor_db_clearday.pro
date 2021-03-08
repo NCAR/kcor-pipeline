@@ -13,7 +13,7 @@
 ;     `kcor_run` object
 ;   obsday_index : in, required, type=integer
 ;     index into mlso_numfiles database table
-;   database : in, optional, type=MGdbMySql object
+;   database : in, optional, type=KCordbMySql object
 ;     database connection to use
 ;   log_name : in, required, type=string
 ;     name of log to send log messages to
@@ -25,7 +25,7 @@ pro kcor_db_clearday_cleartable, table, $
   compile_opt strictarr
 
   mg_log, 'clearing %s table', table, name=log_name, /info
-  db->execute, 'DELETE FROM %s WHERE obs_day=%d', $
+  db->execute, 'delete from %s where obs_day=%d', $
                table, obsday_index, $
                status=status, error_message=error_message, sql_statement=sql_cmd, $
                n_affected_rows=n_affected_rows
@@ -48,7 +48,7 @@ end
 ;     `kcor_run` object
 ;   obsday_index : in, required, type=integer
 ;     index into mlso_numfiles database table
-;   database : in, optional, type=MGdbMySql object
+;   database : in, optional, type=KCordbMySql object
 ;     database connection to use
 ;   log_name : in, required, type=string
 ;     name of log to send log messages to
@@ -56,28 +56,14 @@ end
 ;     set to just clear the calibration for a day
 ;-
 pro kcor_db_clearday, run=run, $
-                      database=database, $
+                      database=db, $
                       obsday_index=obsday_index, $
                       log_name=log_name, $
                       calibration=calibration
   compile_opt strictarr
 
-  ; Note: The connect procedure accesses DB connection information in the file
-  ;       .mysqldb. The "config_section" parameter specifies which group of data
-  ;       to use.
-  if (obj_valid(database)) then begin
-    db = database
-
-    db->getProperty, host_name=host
-    mg_log, 'using connection to %s', host, name=log_name, /debug
-  endif else begin
-    db = mgdbmysql()
-    db->connect, config_filename=run->config('database/config_filename'), $
-                 config_section=run->config('database/config_section')
-
-    db->getProperty, host_name=host
-    mg_log, 'connected to %s...', host, name=log_name, /info
-  endelse
+  db->getProperty, host_name=host
+  mg_log, 'using connection to %s', host, name=log_name, /debug
 
   day = db->query('select * from mlso_numfiles where day_id=%d', obsday_index, $
                   status=status, error_message=error_message, sql_statement=sql_cmd)
@@ -107,7 +93,7 @@ pro kcor_db_clearday, run=run, $
                             'nrgf_lowresgif', $
                             'nrgf_fullresgif']
     fields_expression = strjoin(fields + '=0', ', ')
-    db->execute, 'UPDATE mlso_numfiles SET %s WHERE day_id=''%d''', $
+    db->execute, 'update mlso_numfiles set %s where day_id=''%d''', $
                  fields_expression, $
                  obsday_index, $
                  status=status, error_message=error_message, sql_statement=sql_cmd
@@ -120,7 +106,7 @@ pro kcor_db_clearday, run=run, $
 
     ; mlso_sgs
     mg_log, 'clearing mlso_sgs table', name=log_name, /info
-    db->execute, 'DELETE FROM mlso_sgs WHERE obs_day=''%s'' AND source=''k''', $
+    db->execute, 'delete from mlso_sgs where obs_day=%d and source=''k''', $
                  obsday_index, $
                  status=status, error_message=error_message, sql_statement=sql_cmd, $
                  n_affected_rows=n_affected_rows
@@ -157,7 +143,6 @@ pro kcor_db_clearday, run=run, $
                                log_name=log_name
 
   done:
-  if (~obj_valid(database)) then obj_destroy, db
   mg_log, 'done', name=log_name, /info
 end
 

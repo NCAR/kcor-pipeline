@@ -19,7 +19,7 @@
 ;     `kcor_run` object
 ;   obsday_index : in, required, type=integer
 ;     index into mlso_numfiles database table
-;   database : in, optional, type=MGdbMySql object
+;   database : in, optional, type=KCordbMySql object
 ;     database connection to use
 ;
 ; :Examples:
@@ -39,29 +39,14 @@
 pro kcor_cal_insert, date, fits_list, quality, $
                      catalog_dir=catalog_dir, $
                      run=run, $
-                     database=database, $
+                     database=db, $
                      obsday_index=obsday_index
   compile_opt strictarr
   on_error, 2
 
   ; connect to MLSO database
-
-  ; Note: The connect procedure accesses DB connection information in the file
-  ;       .mysqldb. The "config_section" parameter specifies
-  ;       which group of data to use.
-  if (obj_valid(database)) then begin
-    db = database
-
-    db->getProperty, host_name=host
-    mg_log, 'using connection to %s', host, name='kcor/eod', /debug
-  endif else begin
-    db = mgdbmysql()
-    db->connect, config_filename=run->config('database/config_filename'), $
-                 config_section=run->config('database/config_section')
-
-    db->getProperty, host_name=host
-    mg_log, 'connected to %s', host, name='kcor/eod', /info
-  endelse
+  db->getProperty, host_name=host
+  mg_log, 'using connection to %s', host, name='kcor/eod', /debug
 
   l0_dir = filepath('level0', subdir=date, root=run->config('processing/raw_basedir'))
   _catalog_dir = n_elements(catalog_dir) eq 0L ? l0_dir : catalog_dir
@@ -210,7 +195,6 @@ pro kcor_cal_insert, date, fits_list, quality, $
   endwhile
 
   done:
-  if (~obj_valid(database)) then obj_destroy, db
   cd, start_dir
 
   mg_log, 'done', name='kcor/eod', /info
