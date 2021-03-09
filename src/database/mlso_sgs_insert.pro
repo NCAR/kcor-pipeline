@@ -116,7 +116,7 @@ pro mlso_sgs_insert, date, fits_list, $
     sgsloop_str  = kcor_getsgs(hdu, 'SGSLOOP')
 		
     ; DB insert command
-    db->execute, 'INSERT INTO mlso_sgs (date_obs, obs_day, source, sgsdimv, sgsdims, sgssumv, sgsrav, sgsras, sgsrazr, sgsdecv, sgsdecs, sgsdeczr, sgsscint, sgssums, sgsloop) VALUES (''%s'', %d, ''%s'', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) ', $
+    db->execute, 'insert into mlso_sgs (date_obs, obs_day, source, sgsdimv, sgsdims, sgssumv, sgsrav, sgsras, sgsrazr, sgsdecv, sgsdecs, sgsdeczr, sgsscint, sgssums, sgsloop) VALUES (''%s'', %d, ''%s'', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) ', $
                  date_obs, obsday_index, sgs_source, sgsdimv_str, sgsdims_str, $
                  sgssumv_str, sgsrav_str, sgsras_str, sgsrazr_str, sgsdecv_str, $
                  sgsdecs_str, sgsdeczr_str, sgsscint_str, sgssums_str, sgsloop_str, $

@@ -20,13 +20,13 @@
 function kcor_get_level_id, level_name, database=db, count=count
   compile_opt strictarr
 
-  q = 'SELECT count(level_id) FROM kcor_level WHERE level=''%s'''
+  q = 'select count(level_id) from kcor_level where level=''%s'''
   count_result = db->query(q, level_name)
   count = count_result.count_level_id_
 
   _level_name = count eq 0 ? 'unk' : level_name
 
-  level_results = db->query('SELECT * FROM kcor_level WHERE level=''%s''', $
+  level_results = db->query('select * from kcor_level where level=''%s''', $
                             _level_name, fields=fields)
   return, level_results.level_id
 end

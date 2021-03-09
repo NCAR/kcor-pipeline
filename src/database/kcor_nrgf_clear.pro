@@ -17,12 +17,12 @@ pro kcor_nrgf_clear, run=run, $
                      log_name=log_name
   compile_opt strictarr
 
-  query = 'SELECT * FROM mlso_producttype WHERE producttype=''nrgf'''
+  query = 'select * from mlso_producttype where producttype=''nrgf'''
   producttype_results = db->query(query, fields=fields)
   producttype_id = producttype_results.producttype_id
 
   mg_log, 'clearing NRGF from kcor_img table', name=log_name, /info
-  db->execute, 'DELETE FROM kcor_img WHERE producttype=%d AND obs_day=%d', $
+  db->execute, 'delete from kcor_img where producttype=%d and obs_day=%d', $
                producttype_id, obsday_index, $
                status=status, error_message=error_message, sql_statement=sql_cmd
   if (status ne 0L) then begin
@@ -34,7 +34,7 @@ pro kcor_nrgf_clear, run=run, $
 
   fields = 'num_kcor_nrgf_' + ['fits', 'lowresgif', 'fullresgif'] + '=0'
   fields_expr = strjoin(fields, ', ')
-  db->execute, 'UPDATE mlso_numfiles SET %s WHERE day_id=%d', $
+  db->execute, 'update mlso_numfiles set %s where day_id=%d', $
                fields_expr, obsday_index, $
                status=status, error_message=error_message, sql_statement=sql_cmd
   if (status ne 0L) then begin

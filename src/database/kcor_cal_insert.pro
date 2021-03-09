@@ -163,18 +163,18 @@ pro kcor_cal_insert, date, fits_list, quality, $
     fits_file = file_basename(fts_file, '.gz') ; remove '.gz' from file name
 	
     ; get IDs from relational tables
-    level_count = db->query('SELECT count(level_id) FROM kcor_level WHERE level=''%s''', $
+    level_count = db->query('select count(level_id) from kcor_level where level=''%s''', $
                             level, fields=fields)
     if (level_count.count_level_id_ eq 0) then begin
       ; If given level is not in the kcor_level table, set it to 'unknown' and log error
       level = 'unk'
       mg_log, 'level: %s', level, name='kcor/eod', /error
     endif
-    level_results = db->query('SELECT * FROM kcor_level WHERE level=''%s''', $
+    level_results = db->query('select * from kcor_level where level=''%s''', $
                               level, fields=fields)
     level_num = level_results.level_id	
     
-    db->execute, 'INSERT INTO kcor_cal (file_name, date_obs, date_end, obs_day, level, quality, numsum, exptime, cover, darkshut, diffuser, calpol, calpang, mean_int_img0, mean_int_img1, mean_int_img2, mean_int_img3, mean_int_img4, mean_int_img5, mean_int_img6, mean_int_img7, rcamid, tcamid, rcamlut, tcamlut, rcamfocs, tcamfocs, modltrid, modltrt, occltrid, o1id, o1focs, calpolid, diffsrid, filterid, kcor_sgsdimv, kcor_sgsdims) VALUES (''%s'', ''%s'', ''%s'', %d, %d, %d, %d, %f, ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, ''%s'', %f, ''%s'', ''%s'', %f, ''%s'', ''%s'', ''%s'', %s, %s) ', $
+    db->execute, 'insert into kcor_cal (file_name, date_obs, date_end, obs_day, level, quality, numsum, exptime, cover, darkshut, diffuser, calpol, calpang, mean_int_img0, mean_int_img1, mean_int_img2, mean_int_img3, mean_int_img4, mean_int_img5, mean_int_img6, mean_int_img7, rcamid, tcamid, rcamlut, tcamlut, rcamfocs, tcamfocs, modltrid, modltrt, occltrid, o1id, o1focs, calpolid, diffsrid, filterid, kcor_sgsdimv, kcor_sgsdims) values (''%s'', ''%s'', ''%s'', %d, %d, %d, %d, %f, ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, ''%s'', %f, ''%s'', ''%s'', %f, ''%s'', ''%s'', ''%s'', %s, %s) ', $
                  fits_file, date_obs, date_end, obsday_index, level_num, quality[i], $
                  numsum, exptime, cover, darkshut, diffuser, calpol, calpang, $
                  mean_int_img0, mean_int_img1, mean_int_img2, mean_int_img3, $
