@@ -20,16 +20,21 @@
 function kcor_getsgs, header, name, float=float
   compile_opt strictarr
 
-    value = sxpar(header, name, count=count)
-    if (count eq 0) then return, keyword_set(float) ? !values.f_nan : 'NULL'
+    value = fxpar(header, name, count=count, /null)
+    type = size(value, /type)
+    if (count eq 0 || n_elements(value) eq 0L) then begin
+      return, keyword_set(float) ? !values.f_nan : 'NULL'
+    endif
 
     if (keyword_set(float)) then begin
-      value = size(value, /type) eq 7 ? !values.f_nan : float(value)
+      if (type eq 5) then value = float(value)
+      if (type eq 7) then value = !values.f_nan
     endif else begin
-      value = size(value, /type) eq 7 $
-                ? strtrim(value, 2) $
-                : string(value, format='(%"%f")')
-      if (value eq 'NaN') then value = 'NULL'
+      if (type eq 4 || type eq 5) then begin
+        value = string(value, format='(%"%f")')
+      endif else begin
+        value = strtrim(value, 2)
+      endelse
     endelse
 
     return, value
