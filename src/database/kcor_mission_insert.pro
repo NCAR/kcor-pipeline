@@ -41,15 +41,8 @@ pro kcor_mission_insert, date, run=run
     return
   endif
 
-  ;--------------------------
-  ; Connect to MLSO database.
-  ;--------------------------
-
-  ; Note: The connect procedure accesses DB connection information in the file
-  ;       /home/stanger/.mysqldb. The "config_section" parameter specifies which
-  ;       group of data to use.
-
-  db = kcordbmysql()
+  ; connect to MLSO database.
+  db = kcordbmysql(logger_name='kcor/eod')
   db->connect, config_filename=run->config('database/config_filename'), $
                config_section=run->config('database/config_section')
 

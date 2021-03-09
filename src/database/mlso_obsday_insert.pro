@@ -46,7 +46,7 @@ function mlso_obsday_insert, date, $
     created_db = 1B
     log_filename = filepath(string(run.date, format='(%"%s.kcor.db.log")'), $
                             root=run->config('logging/dir'))
-    db = kcordbmysql(log_filename=log_filename)
+    db = kcordbmysql(logger_name=log_name, log_filename=log_filename)
     db->connect, config_filename=run->config('database/config_filename'), $
                  config_section=run->config('database/config_section'), $
                  status=status, error_message=error_message
