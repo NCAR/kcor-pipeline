@@ -65,7 +65,16 @@ function mlso_obsday_insert, date, $
 	
   ; check to see if passed observation day date is in mlso_numfiles table
   obs_day_results = db->query('select count(obs_day) from mlso_numfiles where obs_day=''%s''', $
-                              obs_day, fields=fields)
+                              obs_day, fields=fields, $
+                              status=status, error_message=error_message, sql_statement=sql_cmd)
+  if (status ne 0L) then begin
+    mg_log, 'error querying mlso_numfiles table', name=log_name, /error
+    mg_log, 'status: %d, error message: %s', status, error_message, $
+            name=log_name, /error
+    mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
+    return, !null
+  endif
+
   obs_day_count = obs_day_results.count_obs_day_
 
   if (obs_day_count eq 0) then begin
@@ -78,13 +87,31 @@ function mlso_obsday_insert, date, $
       mg_log, 'status: %d, error message: %s', status, error_message, $
               name=log_name, /error
       mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
+      return, !null
     endif
 		
-    obs_day_index = db->query('select last_insert_id()')	
+    obs_day_index = db->query('select last_insert_id()', $
+                              status=status, error_message=error_message, sql_statement=sql_cmd)
+    if (status ne 0L) then begin
+      mg_log, 'error querying last_insert_id()', name=log_name, /error
+      mg_log, 'status: %d, error message: %s', status, error_message, $
+              name=log_name, /error
+      mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
+      return, !null
+    endif
   endif else begin
     ; if it is in the database, get the corresponding index, day_id
     obs_day_results = db->query('select day_id from mlso_numfiles where obs_day=''%s''', $
-                                obs_day, fields=fields)	
+                                obs_day, fields=fields, $
+                                status=status, error_message=error_message, sql_statement=sql_cmd)
+    if (status ne 0L) then begin
+      mg_log, 'error querying mlso_numfiles table', name=log_name, /error
+      mg_log, 'status: %d, error message: %s', status, error_message, $
+              name=log_name, /error
+      mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
+      return, !null
+    endif
+
     obs_day_index = obs_day_results.day_id
 
     ; remove multiple entries

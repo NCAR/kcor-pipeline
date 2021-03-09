@@ -18,19 +18,41 @@ pro kcor_nrgf_clear, run=run, $
   compile_opt strictarr
 
   query = 'select * from mlso_producttype where producttype=''nrgf'''
-  producttype_results = db->query(query, fields=fields)
+  producttype_results = db->query(query, fields=fields, $
+                                  status=status, error_message=error_message, sql_statement=sql_cmd)
+  if (status ne 0L) then begin
+    mg_log, 'error querying mlso_producttype table', name=log_name, /error
+    mg_log, 'status: %d, error message: %s', status, error_message, $
+            name=log_name, /error
+    mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
+    goto, done
+  endif
+
   producttype_id = producttype_results.producttype_id
 
   mg_log, 'clearing NRGF from kcor_img table', name=log_name, /info
   db->execute, 'delete from kcor_img where producttype=%d and obs_day=%d', $
                producttype_id, obsday_index, $
-               status=status, error_message=error_message, sql_statement=sql_cmd
+               status=status, error_message=error_message, sql_statement=sql_cmd, $
+               n_affected_rows=n_affected_rows, $
+               n_warnings=n_warnings
   if (status ne 0L) then begin
     mg_log, 'error clearing kcor_img table', name=log_name, /error
     mg_log, 'status: %d, error message: %s', status, error_message, $
             name=log_name, /error
     mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
+    goto, done
   endif
+
+  if (n_warnings gt 0L) then begin
+    mg_log, '%d warnings', n_warnings, name=log_name, /warn
+    warnings = db_query('show warnings')
+    for w = 0L, n_warnings - 1L do begin
+      help, warnings[w], /structure, output=output
+      mg_log, strjoin(output, ' '), name=log_name, /warn
+    endfor
+  endif
+  mg_log, '%d rows deleted', n_affected_rows, name=log_name, /info
 
   fields = 'num_kcor_nrgf_' + ['fits', 'lowresgif', 'fullresgif'] + '=0'
   fields_expr = strjoin(fields, ', ')
@@ -42,5 +64,8 @@ pro kcor_nrgf_clear, run=run, $
     mg_log, 'status: %d, error message: %s', status, error_message, $
             name=log_name, /error
     mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
+    goto, done
   endif
+
+  done:
 end
