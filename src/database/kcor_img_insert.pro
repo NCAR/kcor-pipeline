@@ -100,7 +100,7 @@ pro kcor_img_insert, date, fits_list, $
     mg_log, 'status: %d, error message: %s', status, error_message, $
             name=log_name, /error
     mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
-    continue
+    goto, done
   endif
   if (filetype_count.count_filetype_id_ eq 0) then begin
     ; if given filetype is not in the mlso_filetype table, set it to 'unknown'
@@ -116,7 +116,7 @@ pro kcor_img_insert, date, fits_list, $
     mg_log, 'status: %d, error message: %s', status, error_message, $
             name=log_name, /error
     mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
-    continue
+    goto, done
   endif
   filetype_num = filetype_results.filetype_id	
 
