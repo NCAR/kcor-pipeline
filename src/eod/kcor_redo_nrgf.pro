@@ -12,7 +12,7 @@
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;-
-pro kcor_redo_nrgf, date, run=run, database=db
+pro kcor_redo_nrgf, date, run=run
   compile_opt strictarr
 
   mg_log, 'Redoing NRGFs', name='kcor/eod', /info
@@ -198,7 +198,7 @@ pro kcor_redo_nrgf, date, run=run, database=db
 
   done:
   cd, current_dir
-  if (obj_valid(db) && ~arg_present(db)) then obj_destroy, db
+  if (obj_valid(db)) then obj_destroy, db
 end
 
 

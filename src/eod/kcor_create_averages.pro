@@ -23,7 +23,7 @@
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;- 
-pro kcor_create_averages, date, l2_files, run=run, database=db
+pro kcor_create_averages, date, l2_files, run=run
   compile_opt strictarr
 
   mg_log, 'creating average movies', name='kcor/eod', /info
@@ -619,7 +619,7 @@ pro kcor_create_averages, date, l2_files, run=run, database=db
 
   done:
   cd, current
-  if (obj_valid(db) && ~arg_present(db)) then obj_destroy, db
+  if (obj_valid(db)) then obj_destroy, db
   mg_log, 'done', name='kcor/eod', /info
 end
 

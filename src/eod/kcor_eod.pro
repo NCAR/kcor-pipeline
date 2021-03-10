@@ -180,8 +180,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     kcor_create_differences, date, l2_zipped_files, run=run
     kcor_zip_files, filepath('*minus*.fts', root=l2_dir), run=run
 
-    kcor_create_averages, date, l2_zipped_files, run=run, database=db
-    kcor_redo_nrgf, date, run=run, database=db
+    kcor_create_averages, date, l2_zipped_files, run=run
+    kcor_redo_nrgf, date, run=run
   endif
 
   oka_filename = filepath('oka.ls', subdir=[date, 'q'], $
