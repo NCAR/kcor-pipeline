@@ -56,8 +56,17 @@ function mlso_obsday_insert, date, $
       return, !null
     endif
 
-    db->getProperty, host_name=host
+    db->getProperty, host_name=host, $
+                     client_version=client_version, $
+                     client_info=client_info, $
+                     server_version=server_version, $
+                     server_info=server_info, $
+                     proto_info=proto_info, $
+                     host_info=host_info
     mg_log, 'connected to %s', host, name=log_name, /info
+    mg_log, 'client version: %s (%d)', client_info, client_version, name=log_name, /debug
+    mg_log, 'server version: %s (%d)', server_info, server_version, name=log_name, /debug
+    mg_log, 'connected: %s (%d)', host_info, proto_info, name=log_name, /debug
   endelse
 
   obs_day = strmid(date, 0, 4) + '-' + strmid(date, 4, 2) + '-' + strmid(date, 6, 2)
