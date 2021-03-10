@@ -66,30 +66,18 @@ pro kcor_mission_insert, date, run=run
   day     = strmid(date, 6, 2)                   ; dd
   pdate_dash = year + '-' + month + '-' + day + '%'	; yyyy-mm-dd%
 
-  db->execute, 'DELETE FROM kcor_mission WHERE date like ''%s''', pdate_dash, $
-               status=status, error_message=error_message, sql_statement=sql_cmd
+  db->execute, 'delete from kcor_mission where date like ''%s''', pdate_dash, $
+               status=status
+  if (status ne 0L) then goto, done
 
-  mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/eod', /info
-  mg_log, 'status: %d, error message: %s', status, error_message, $
-          name='kcor/eod', /info
-
-  ;-----------------------
-  ; Directory definitions.
-  ;-----------------------
-
+  ; directory definitions
   fts_dir = filepath('', subdir=[year, month, day], root=run->config('results/archive_dir'))
 
-  ;----------------
-  ; Move to fts_dir.
-  ;----------------
-
+  ; move to fts_dir
   cd, current=start_dir
   cd, fts_dir
 
-  ;------------------------------------------------
-  ; Create list of fits files in current directory.
-  ;------------------------------------------------
-
+  ; create list of fits files in current directory
   fits_list = file_search('*kcor_l1.5.fts*', count=nfiles)
 
   if (nfiles eq 0) then begin
@@ -172,20 +160,16 @@ pro kcor_mission_insert, date, run=run
     date_cal  = cal_year + '-' + cal_month + '-' + cal_day
     fits_file = strmid(fts_file, 0, 27)
 
-    ;--- DB insert command.
-
-    db->execute, 'INSERT INTO kcor_mission (date, mlso_url, doi_url, telescope, instrument, location, origin, object, wavelength, wavefwhm, resolution, fov_min, fov_max, bitpix, xdim, ydim) VALUES (''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, %f, %f, %f, %d, %d, %d) ', $
+    ; DB insert command
+    db->execute, 'insert into kcor_mission (date, mlso_url, doi_url, telescope, instrument, location, origin, object, wavelength, wavefwhm, resolution, fov_min, fov_max, bitpix, xdim, ydim) values (''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, %f, %f, %f, %d, %d, %d) ', $
                  date_mission, $
                  run->epoch('mlso_url'), $
                  run->epoch('doi_url'), telescop, instrume, location, $
                  origin, object, wavelnth, wavefwhm, resolution, $
                  fov_min, fov_max, bitpix, naxis1, naxis2, $
-                 status=status, error_message=error_message, sql_statement=sql_cmd
-
-    mg_log, '%s: status: %d, error message: %s', status, error_message, $
-            name='kcor/eod', /debug
-    mg_log, 'sql_cmd: %s', sql_cmd, name='kcor/eod', /debug
-    if (i eq 0) then  goto, done
+                 status=status
+    if (status ne 0L) then continue
+    if (i eq 0) then goto, done
   endwhile
 
   done:

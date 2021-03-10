@@ -27,16 +27,11 @@ pro kcor_db_clearday_cleartable, table, $
   mg_log, 'clearing %s table', table, name=log_name, /info
   db->execute, 'delete from %s where obs_day=%d', $
                table, obsday_index, $
-               status=status, error_message=error_message, sql_statement=sql_cmd, $
+               status=status, $
                n_affected_rows=n_affected_rows
-  if (status ne 0L) then begin
-    mg_log, 'error clearing %s table', table, name=log_name, /error
-    mg_log, 'status: %d, error message: %s', status, error_message, $
-            name=log_name, /error
-    mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
-  endif else begin
+  if (status eq 0L) then begin
     mg_log, '%d rows deleted', n_affected_rows, name=log_name, /info
-  endelse
+  endif
 end
 
 

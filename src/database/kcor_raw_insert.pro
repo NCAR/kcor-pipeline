@@ -77,7 +77,8 @@ pro kcor_raw_insert, date, fits_list, quality, $
   ; get IDs from relational tables
   level = 'L0'
   level_count = db->query('select count(level_id) from kcor_level where level=''%s''', $
-                          level, fields=fields)
+                          level, status=status)
+  if (status ne 0L) then goto, done
   if (level_count.count_level_id_ eq 0) then begin
     ; if given level is not in the kcor_level table, set it to 'unknown' and
     ; log error
@@ -85,18 +86,21 @@ pro kcor_raw_insert, date, fits_list, quality, $
     mg_log, 'level: %s', level, name=log_name, /error
   endif
   level_results = db->query('select * from kcor_level where level=''%s''', $
-                            level, fields=fields)
+                            level, status=status)
+  if (status ne 0L) then goto, done
   level_num = level_results.level_id	
 
   quality_count = db->query('select count(quality_id) from kcor_quality where quality=''%s''', $
-                            quality, fields=fields)
+                            quality, status=status)
+  if (status ne 0L) then goto, done
   if (quality_count.count_quality_id_ eq 0) then begin
     ; if given quality is not in the kcor_quality table, exit
     mg_log, 'unknown quality: %s', quality, name=log_name, /error
     goto, done
   endif
   quality_results = db->query('select * from kcor_quality where quality=''%s''', $
-                              quality, fields=fields)
+                              quality, status=status)
+  if (status ne 0L) then goto, done
   quality_id = quality_results.quality_id
 
   for i = 0L, n_files - 1L do begin
@@ -154,14 +158,8 @@ pro kcor_raw_insert, date, fits_list, quality, $
                  mean_int_img4, mean_int_img5, mean_int_img6, mean_int_img7, $
                  median_int_img0, median_int_img1, median_int_img2, median_int_img3, $
                  median_int_img4, median_int_img5, median_int_img6, median_int_img7, $
-                 status=status, error_message=error_message, sql_statement=sql_cmd
-
-    if (status ne 0L) then begin
-      mg_log, 'error inserting in kcor_raw table', name=log_name, /error
-      mg_log, 'status: %d, error message: %s', status, error_message, $
-              name=log_name, /error
-      mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
-    endif
+                 status=status
+    if (status ne 0L) then continue
   endfor
 
   done:

@@ -163,7 +163,7 @@ pro kcor_hw_insert, date, fits_list, run=run, database=db, log_name=log_name, $
                 'proc_date', $
                 compare_fields]
       fields_expr = strjoin(fields, ', ')
-      db->execute, 'INSERT INTO kcor_hw (%s) VALUES (''%s'', ''%s'', ''%s'', %11.7f, ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'') ', $
+      db->execute, 'insert into kcor_hw (%s) values (''%s'', ''%s'', ''%s'', %11.7f, ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'') ', $
                    fields_expr, $
                    date_obs, $
                    proc_date, $        ; generated
@@ -178,14 +178,11 @@ pro kcor_hw_insert, date, fits_list, run=run, database=db, log_name=log_name, $
                    occltrid, $
                    filterid, $
                    calpolid, $
-                   status=status, error_message=error_message, sql_statement=sql_cmd
-      if (status ne 0L) then begin
-        mg_log, '%d, error message: %s', status, error_message, $
-                name=log_name, /error
-        mg_log, 'sql_cmd: %s', sql_cmd, name=log_name, /error
-      endif
+                   status=status
+      if (status ne 0L) then continue
 
-      hw = db->query('select last_insert_id()')
+      hw = db->query('select last_insert_id()', status=status)
+      if (status ne 0L) then continue
       hw_ids[i] = hw.last_insert_id__
 
       file_hw.hw_id = hw_ids[i]

@@ -22,13 +22,10 @@ function kcor_find_latest_row, run=run, database=db, $
   mg_log, 'using connection to %s', host, name=log_name, /debug
 
   q = 'select * from kcor_hw where date = (select max(date) from kcor_hw)'
-  latest_proc_date = db->query(q, status=status, error_message=error_msg)
-
+  latest_proc_date = db->query(q, status=status)
   if (status ne 0L) then begin
     error = 1L
     mg_log, 'problem querying database', name=logger_name, /error
-    mg_log, error_msg, name=logger_name, /error
-
     return, !null
   endif
 

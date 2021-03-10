@@ -120,13 +120,8 @@ pro mlso_sgs_insert, date, fits_list, $
                  date_obs, obsday_index, sgs_source, sgsdimv_str, sgsdims_str, $
                  sgssumv_str, sgsrav_str, sgsras_str, sgsrazr_str, sgsdecv_str, $
                  sgsdecs_str, sgsdeczr_str, sgsscint_str, sgssums_str, sgsloop_str, $
-                 status=status, error_message=error_message, sql_statement=sql_cmd
-    if (status ne 0L) then begin
-      mg_log, 'error inserting to mlso_sgs table', name='kcor/rt', /error
-      mg_log, 'status: %d, error message: %s', status, error_message, $
-              name='kcor/rt', /error
-      mg_log, 'SQL command: %s', sql_cmd, name='kcor/rt', /error
-    endif
+                 status=status
+    if (status ne 0L) then continue
   endwhile
 
   done:

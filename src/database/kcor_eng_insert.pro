@@ -156,7 +156,8 @@ pro kcor_eng_insert, date, fits_list, $
     ; get IDs from relational tables
 
     level_count = db->query('select count(level_id) from kcor_level where level=''%s''', $
-                            level, fields=fields)
+                            level, fields=fields, status=status)
+    if (status ne 0L) then goto, done
     if (level_count.count_level_id_ eq 0) then begin
       ; if given level is not in the kcor_level table, set it to 'unknown' and
       ; log error
@@ -164,7 +165,8 @@ pro kcor_eng_insert, date, fits_list, $
       mg_log, 'level: %s', level, name='kcor/rt', /error
     endif
     level_results = db->query('select * from kcor_level where level=''%s''', $
-                              level, fields=fields)
+                              level, fields=fields, status=status)
+    if (status ne 0L) then goto, done
     level_num = level_results.level_id	
 
     ; DB insert command
@@ -186,12 +188,7 @@ pro kcor_eng_insert, date, fits_list, $
                  sw_index, $
                  hw_ids[i], $
                  status=status, error_message=error_message, sql_statement=sql_cmd
-    if (status ne 0L) then begin
-      mg_log, 'error inserting into kcor_eng table', name='kcor/rt', /error
-      mg_log, 'status: %d, error message: %s', status, error_message, $
-              name='kcor/rt', /error
-      mg_log, 'SQL command: %s', sql_cmd, name='kcor/rt', /error
-    endif
+    if (status ne 0L) then continue
   endwhile
 
   done:

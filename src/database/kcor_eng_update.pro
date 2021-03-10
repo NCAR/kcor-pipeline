@@ -50,20 +50,14 @@ pro kcor_eng_update, date, nrgf_files, $
     l2_filename = strmid(file_basename(nrgf_files[f]), 0, 20) + '_l2.fts.gz'
 
     mg_log, 'updating db for %s', l2_filename, name='kcor/eod', /info
-    db->execute, 'UPDATE kcor_eng SET l0inthorizmeancam0=%f,l0inthorizmeancam1=%f, l0inthorizmediancam0=%f, l0inthorizmediancam1=%f, l0intazimeancam0=%f,l0intazimeancam1=%f, l0intazimediancam0=%f, l0intazimediancam1=%f WHERE file_name=''%s''', $
+    db->execute, 'update kcor_eng set l0inthorizmeancam0=%f,l0inthorizmeancam1=%f, l0inthorizmediancam0=%f, l0inthorizmediancam1=%f, l0intazimeancam0=%f,l0intazimeancam1=%f, l0intazimediancam0=%f, l0intazimediancam1=%f where file_name=''%s''', $
                  line_means[0, f], line_means[1, f], $
                  line_medians[0, f], line_medians[1, f], $
                  azi_means[0, f], azi_means[1, f], $
                  azi_medians[0, f], azi_medians[1, f], $
                  file_basename(l2_filename, '.gz'), $
                  status=status, error_message=error_message, sql_statement=sql_cmd
-    if (status ne 0L) then begin
-      mg_log, 'error updating values in kcor_eng table for obsday index %d', $
-              obsday_index, name='kcor/eod', /error
-      mg_log, 'status: %d, error message: %s', status, error_message, $
-              name='kcor/eod', /error
-      mg_log, 'SQL command: %s', sql_cmd, name='kcor/eod', /error
-    endif
+    if (status ne 0L) then continue
   endfor
 
   done:

@@ -94,14 +94,8 @@ pro kcor_img_insert, date, fits_list, $
   filetype   = 'fits'
   filetype_count = db->query('select count(filetype_id) from mlso_filetype where filetype=''%s''', $
                              filetype, fields=fields, $
-                             status=status, error_message=error_message, sql_statement=sql_cmd)
-  if (status ne 0L) then begin
-    mg_log, 'error querying mlso_filetype table', name=log_name, /error
-    mg_log, 'status: %d, error message: %s', status, error_message, $
-            name=log_name, /error
-    mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
-    goto, done
-  endif
+                             status=status)
+  if (status ne 0L) then goto, done
   if (filetype_count.count_filetype_id_ eq 0) then begin
     ; if given filetype is not in the mlso_filetype table, set it to 'unknown'
     ; and log error
@@ -109,15 +103,9 @@ pro kcor_img_insert, date, fits_list, $
     mg_log, 'filetype: %s', filetype, name=log_name, /error
   endif
   filetype_results = db->query('select * from mlso_filetype where filetype=''%s''', $
-                               filetype, fields=fields, $
-                               status=status, error_message=error_message, sql_statement=sql_cmd)
-  if (status ne 0L) then begin
-    mg_log, 'error querying mlso_filetype table', name=log_name, /error
-    mg_log, 'status: %d, error message: %s', status, error_message, $
-            name=log_name, /error
-    mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
-    goto, done
-  endif
+                               filetype, $
+                               status=status)
+  if (status ne 0L) then goto, done
   filetype_num = filetype_results.filetype_id	
 
   while (++i lt nfiles) do begin
@@ -190,15 +178,9 @@ pro kcor_img_insert, date, fits_list, $
 
     ; get IDs from relational tables
     producttype_count = db->query('select count(producttype_id) from mlso_producttype where producttype=''%s''', $
-                                  producttype, fields=fields, $
-                                  status=status, error_message=error_message, sql_statement=sql_cmd)
-    if (status ne 0L) then begin
-      mg_log, 'error querying mlso_producttype table', name=log_name, /error
-      mg_log, 'status: %d, error message: %s', status, error_message, $
-              name=log_name, /error
-      mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
-      continue
-    endif
+                                  producttype, $
+                                  status=status)
+    if (status ne 0L) then continue
     if (producttype_count.count_producttype_id_ eq 0) then begin
       ; if given producttype is not in the mlso_producttype table, set it to
       ; 'unknown' and log error
@@ -206,15 +188,9 @@ pro kcor_img_insert, date, fits_list, $
       mg_log, 'producttype: %s', producttype, name=log_name, /error
     endif
     producttype_results = db->query('select * from mlso_producttype where producttype=''%s''', $
-                                    producttype, fields=fields, $
-                                    status=status, error_message=error_message, sql_statement=sql_cmd)
-    if (status ne 0L) then begin
-      mg_log, 'error querying mlso_producttype table', name=log_name, /error
-      mg_log, 'status: %d, error message: %s', status, error_message, $
-              name=log_name, /error
-      mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
-      continue
-    endif
+                                    producttype, $
+                                    status=status)
+    if (status ne 0L) then continue
     producttype_num = producttype_results.producttype_id	
 
     level_num = kcor_get_level_id(level, database=db, count=level_found)
@@ -225,7 +201,7 @@ pro kcor_img_insert, date, fits_list, $
                  fits_file, date_obs, date_end, obsday_index, carrington_rotation, $
                  level_num, quality, producttype_num, $
                  filetype_num, numsum, exptime, $
-                 status=status, error_message=error_message, sql_statement=sql_cmd
+                 status=status
     if (status eq 0L) then begin
       if (is_nrgf) then begin
         case 1 of
@@ -240,10 +216,7 @@ pro kcor_img_insert, date, fits_list, $
         endcase
       endelse
     endif else begin
-      mg_log, 'error inserting in kcor_img table', name=log_name, /error
-      mg_log, 'status: %d, error message: %s', status, error_message, $
-              name=log_name, /error
-      mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
+      continue
     endelse
   endwhile
 
@@ -281,13 +254,8 @@ pro kcor_img_insert, date, fits_list, $
   set_expression = strjoin(set_expression, ', ')
   db->execute, 'update mlso_numfiles set %s where day_id=''%d''', $
                set_expression, obsday_index, $
-               status=status, error_message=error_message, sql_statement=sql_cmd
-  if (status ne 0L) then begin
-    mg_log, 'error updating mlso_numfiles table', name=log_name, /error
-    mg_log, 'status: %d, error message: %s', status, error_message, $
-            name=log_name, /error
-    mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
-  endif
+               status=status
+  if (status ne 0L) then goto, done
 
   done:
   cd, start_dir

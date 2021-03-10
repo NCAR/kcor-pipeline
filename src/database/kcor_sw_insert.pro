@@ -56,7 +56,8 @@ pro kcor_sw_insert, date, run=run, $
 
   ; check to see if passed observation day date is already in the kcor_sw table
   q = 'select count(sw_id) from kcor_sw where sw_version=''%s'' and sw_revision=''%s'''
-  sw_id_results = db->query(q, sw_version, sw_revision)
+  sw_id_results = db->query(q, sw_version, sw_revision, status=status)
+  if (status ne 0L) then goto, done
   sw_id_count = sw_id_results.count_sw_id_
 
   if (sw_id_count eq 0L) then begin
@@ -72,32 +73,19 @@ pro kcor_sw_insert, date, run=run, $
                  proc_date, $
                  sw_version, $
                  sw_revision, $
-                 status=status, error_message=error_message, sql_statement=sql_cmd
-    if (status ne 0L) then begin
-      mg_log, 'error inserting a new kcor_sw row...', name=log_name, /error
-      mg_log, '%d, error message: %s', status, error_message, $
-              name=log_name, /error
-      mg_log, 'sql_cmd: %s', sql_cmd, name=log_name, /error
-    endif
+                 status=status
+    if (status ne 0L) then goto, done
 
-    sw_index  = db->query('select last_insert_id()', $
-                          status=status, error_message=error_message, sql_statement=sql_cmd)
-    if (status ne 0L) then begin
-      mg_log, 'error finding ID of inserted kcor_sw row...', name=log_name, /error
-      mg_log, '%d, error message: %s', status, error_message, $
-              name=log_name, /error
-      mg_log, 'sql_cmd: %s', sql_cmd, name=log_name, /error
-    endif
+    sw_index  = db->query('select last_insert_id()', status=status)
+    if (status ne 0L) then goto, done
   endif else begin
     ; if it is in the database, get the corresponding sw_id
     q = 'select sw_id from kcor_sw where sw_version=''%s'' and sw_revision=''%s'''
     sw_results = db->query(q, sw_version, sw_revision, $
-                           status=status, error_message=error_message, sql_statement=sql_cmd)
+                           status=status)
     if (status ne 0L) then begin
       mg_log, 'error finding ID of existing kcor_sw row...', name=log_name, /error
-      mg_log, '%d, error message: %s', status, error_message, $
-              name=log_name, /error
-      mg_log, 'sql_cmd: %s', sql_cmd, name=log_name, /error
+      goto, done
     endif
 
     sw_index = sw_results.sw_id

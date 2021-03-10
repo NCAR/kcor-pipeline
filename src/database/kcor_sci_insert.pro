@@ -116,15 +116,8 @@ pro kcor_sci_insert, date, files, $
                  db->escape_string(r111), $
                  db->escape_string(r13), $
                  db->escape_string(r18), $
-                 status=status, $
-                 error_message=error_message, $
-                 sql_statement=sql_cmd
-    if (status ne 0L) then begin
-      mg_log, 'error inserting into kcor_sci table', name='kcor/eod', /error
-      mg_log, 'status: %d, error message: %s', status, error_message, $
-              name='kcor/eod', /error
-      mg_log, 'SQL command: %s', sql_cmd, name='kcor/eod', /error
-    endif
+                 status=status
+    if (status ne 0L) then continue
   endfor
 
   done:

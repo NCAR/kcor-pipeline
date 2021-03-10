@@ -90,37 +90,16 @@ function mlso_obsday_insert, date, $
     ; if not already in table, create a new entry for the passed observation day
     db->execute, 'insert into mlso_numfiles (obs_day) values (''%s'') ', $
                  obs_day, $
-                 status=status, error_message=error_message, sql_statement=sql_cmd
-    if (status ne 0L) then begin
-      mg_log, 'error inserting into mlso_numfiles table', name=log_name, /error
-      mg_log, 'status: %d, error message: %s', status, error_message, $
-              name=log_name, /error
-      mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
-      return, !null
-    endif
-		
-    obs_day_index = db->query('select last_insert_id()', $
-                              status=status, error_message=error_message, sql_statement=sql_cmd)
-    if (status ne 0L) then begin
-      mg_log, 'error querying last_insert_id()', name=log_name, /error
-      mg_log, 'status: %d, error message: %s', status, error_message, $
-              name=log_name, /error
-      mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
-      return, !null
-    endif
+                 status=status
+    if (status ne 0L) then return, !null
+
+    obs_day_index = db->query('select last_insert_id()', status=status)
+    if (status ne 0L) then return, !null
   endif else begin
     ; if it is in the database, get the corresponding index, day_id
     obs_day_results = db->query('select day_id from mlso_numfiles where obs_day=''%s''', $
-                                obs_day, fields=fields, $
-                                status=status, error_message=error_message, sql_statement=sql_cmd)
-    if (status ne 0L) then begin
-      mg_log, 'error querying mlso_numfiles table', name=log_name, /error
-      mg_log, 'status: %d, error message: %s', status, error_message, $
-              name=log_name, /error
-      mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
-      return, !null
-    endif
-
+                                obs_day, status=status)
+    if (status ne 0L) then return, !null
     obs_day_index = obs_day_results.day_id
 
     ; remove multiple entries
@@ -128,12 +107,9 @@ function mlso_obsday_insert, date, $
       for i = 2L, n_elements(obs_day_index) - 1L do begin
         mg_log, 'deleting redundant day_id=%d', obs_day_index[i], name=log_name, /warn
         db->execute, 'delete from mlso_numfiles where day_id=%d', obs_day_index[i], $
-                     status=status, error_message=error_message, sql_statement=sql_cmd
+                     status=status
         if (status ne 0L) then begin
           mg_log, 'error deleting redundant mlso_numfiles entry', name=log_name, /error
-          mg_log, 'status: %d, error message: %s', status, error_message, $
-                  name=log_name, /error
-          mg_log, 'SQL command: %s', sql_cmd, name=log_name, /error
         endif
       endfor
 
