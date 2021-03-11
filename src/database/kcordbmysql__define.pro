@@ -14,11 +14,13 @@ pro kcordbmysql::report_error, sql_statement=sql_cmd, $
 end
 
 
-pro kcordbmysql::report_warnings, n_warnings=n_warnings
+pro kcordbmysql::report_warnings, sql_statement=sql_cmd, n_warnings=n_warnings
   compile_opt strictarr
 
   if (n_warnings gt 0L) then begin
-    mg_log, '%d warnings', n_warnings, name=self.logger_name, /warn
+    mg_log, '%d warnings for SQL statement', n_warnings, $
+            name=self.logger_name, /warn
+    mg_log, 'SQL command: %s', sql_cmd, name=self.logger_name, /warn
     warnings = self->query('show warnings', status=status)
     if (status ne 0L) then begin
       mg_log, 'error retrieving warnings', name=self.logger_name, /error
