@@ -118,7 +118,7 @@ $command = "create table kcor_eng (
   darkshut              char(3),
   diffuser              char(3),
   calpol                char(3),
-  distort               char(50),
+  distort               char(75),
   labviewid             varchar(20),
   socketcamid           varchar(20),
   kcor_sw_id            int(10),
