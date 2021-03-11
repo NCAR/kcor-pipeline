@@ -26,9 +26,19 @@ function kcor_get_level_id, level_name, database=db, count=count
   count = count_result.count_level_id_
 
   _level_name = count eq 0 ? 'unk' : level_name
-
   level_results = db->query('select * from kcor_level where level=''%s''', $
-                            _level_name, status-status)
+                            _level_name, status=status)
   if (status ne 0L) then return, -1
   return, level_results.level_id
+end
+
+
+; main-level example program
+
+db = kcordbmysql()
+db->connect, config_filename='/home/mgalloy/.mysqldb', config_section='mgalloy@webdev'
+level_id = kcor_get_level_id('L2', database=db, count=count)
+help, level_id
+obj_destroy, db
+
 end
