@@ -37,6 +37,7 @@ pro kcor_redo_nrgf, date, run=run
       mg_log, 'error connecting to database', name='kcor/eod', /warn
       goto, done
     endelse
+    if (obj_valid(db)) then obj_destroy, db
   endif else begin
     mg_log, 'skipping updating database', name='kcor/eod', /info
   endelse
@@ -164,6 +165,11 @@ pro kcor_redo_nrgf, date, run=run
   ; add new NRGF files to database
   if (run->config('database/update')) then begin
     if (n_nrgf_files gt 0L) then begin
+      obsday_index = mlso_obsday_insert(date, $
+                                        run=run, $
+                                        database=db, $
+                                        status=db_status, $
+                                        log_name='kcor/eod')
       mg_log, 'adding %d NRGF files to database', n_nrgf_files, $
               name='kcor/eod', /info
       kcor_img_insert, date, unzipped_nrgf_files, run=run, database=db, $
