@@ -91,7 +91,7 @@ $command = "create table kcor_hw (
   tcamlut     char(14),
   modltrid    char(1),
   o1id        char(14),
-  occltrid    char(10),
+  occltrid    char(20),
   filterid    char(12),
   calpolid    char(12)
 )";
