@@ -497,4 +497,5 @@
   re-using database connection instead of connecting in end-of-day
 2.0.42 [Mar 5, 2021]
   typo
-2.0.43
+2.0.43 [Mar 11, 2021]
+  fix for database timing out
