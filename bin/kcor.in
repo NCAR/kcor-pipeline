@@ -217,8 +217,10 @@ def versions(args):
     if args.oldest:
         f = [v for v in versions_list if v[1] is not None and v[1][0] != "-"]
         s = sorted(f, key=lambda v: packaging.version.parse(v[1]))
-        d, v, r = s[0]
-        print(f"{d}: {v:12s} {r:8s}")
+        for d, v, r in s:
+            if v != "<unknown>":
+                print(f"{d}: {v:12s} {r:8s}")
+                break
     elif args.summary:
         f = [v for v in versions_list if v[1] is not None and v[1][0] != "-"]
         s = sorted(f, key=lambda v: packaging.version.parse(v[1]))
@@ -245,6 +247,8 @@ def versions(args):
 def get_version(date, cursor):
     null_version = "----------"
     null_revision = "--------"
+    unknown_version = "<unknown>"
+    unknown_revision = "<unknown>"
 
     year  = date[0:4]
     month = date[4:6]
@@ -265,7 +269,7 @@ def get_version(date, cursor):
         else:
             sw_id = row[0]
             if sw_id is None:
-                return(date, null_version, null_revision)
+                return(date, unknown_version, unknown_revision)
 
             q = f"select * from MLSO.kcor_sw where sw_id={sw_id};"
             cursor.execute(q)
