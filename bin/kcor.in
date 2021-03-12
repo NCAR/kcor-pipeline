@@ -215,9 +215,27 @@ def versions(args):
         connection.close()
 
     if args.oldest:
-        s = sorted([v for v in versions_list if v[1] is not None and v[1][0] != "-"], key=lambda v: packaging.version.parse(v[1]))
+        f = [v for v in versions_list if v[1] is not None and v[1][0] != "-"]
+        s = sorted(f, key=lambda v: packaging.version.parse(v[1]))
         d, v, r = s[0]
         print(f"{d}: {v:12s} {r:8s}")
+    elif args.summary:
+        f = [v for v in versions_list if v[1] is not None and v[1][0] != "-"]
+        s = sorted(f, key=lambda v: packaging.version.parse(v[1]))
+        current_version = ''
+        n_dates = 0
+        for d, v, r in s:
+            if v == current_version:
+                n_dates += 1
+            else:
+                if n_dates != 0:
+                    plural = "s" if n_dates > 1 else ""
+                    print(f"{current_version}: {n_dates} day{plural}")
+                current_version = v
+                n_dates = 1
+        else:
+            if n_dates > 0:
+                print(f"{current_version}: {n_dates} day{plural}")
     else:
         for d, v, r in versions_list:
             if v is not None:
@@ -938,6 +956,8 @@ if __name__ == "__main__":
                                  default="latest")
     versions_parser.add_argument("-o", "--oldest", action="store_true",
                                  help="set to only display the oldest version")
+    versions_parser.add_argument("-s", "--summary", action="store_true",
+                                 help="set to display a summary of versions")
     versions_parser.set_defaults(func=versions, parser=versions_parser)
 
     # ls sub-command
