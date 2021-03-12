@@ -5,6 +5,7 @@ import datetime
 from email.mime.text import MIMEText
 import glob
 import os
+import packaging.version
 import pathlib
 import psutil
 import re
@@ -200,18 +201,30 @@ def list_processes(args):
 def versions(args):
     dates = split_dates(",".join(args.dates), args.parser.error)
     host, user, password, port, database = get_login(args.flags, args.parser.error)
+
+    versions_list = []
     try:
         connection = mysql.connector.connect(host=host, user=user, password=password)
         cursor = connection.cursor()
         for d in dates:
-            display_version(d, cursor)
-        cursor.close()
-        connection.close()
+            versions_list.append(get_version(d, cursor))
     except mysql.connector.Error as e:
         print(e)
+    finally:
+        cursor.close()
+        connection.close()
+
+    if args.oldest:
+        s = sorted([v for v in versions_list if v[1] is not None and v[1][0] != "-"], key=lambda v: packaging.version.parse(v[1]))
+        d, v, r = s[0]
+        print(f"{d}: {v:12s} {r:8s}")
+    else:
+        for d, v, r in versions_list:
+            if v is not None:
+                print(f"{d}: {v:12s} {r:8s}")
 
 
-def display_version(date, cursor):
+def get_version(date, cursor):
     null_version = "----------"
     null_revision = "--------"
 
@@ -222,7 +235,7 @@ def display_version(date, cursor):
     cursor.execute(q)
     row = cursor.fetchone()
     if row is None:
-        return
+        return(date, None, None)
     else:
         day_id = row[0]
 
@@ -230,21 +243,19 @@ def display_version(date, cursor):
         cursor.execute(q)
         row = cursor.fetchone()
         if row is None:
-            version = null_version
-            revision = null_revision
+            return(date, null_version, null_revision)
         else:
             sw_id = row[0]
+            if sw_id is None:
+                return(date, null_version, null_revision)
 
             q = f"select * from MLSO.kcor_sw where sw_id={sw_id};"
             cursor.execute(q)
             row = cursor.fetchone()
             if row is None:
-                version = null_version
-                revision = null_revision
+                return(date, null_version, null_revision)
             else:
-                version = row[2]
-                revision = row[3]
-    print(f"{date}: {version:12s} {revision:10s}")
+                return(date, row[2], row[3])
 
 
 # ls sub-command
@@ -925,6 +936,8 @@ if __name__ == "__main__":
                                  metavar="date-expr")
     versions_parser.add_argument("-f", "--flags", type=str, help=flags_help,
                                  default="latest")
+    versions_parser.add_argument("-o", "--oldest", action="store_true",
+                                 help="set to only display the oldest version")
     versions_parser.set_defaults(func=versions, parser=versions_parser)
 
     # ls sub-command
