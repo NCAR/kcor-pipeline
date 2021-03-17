@@ -58,7 +58,7 @@ pro kcor_calibration, date, $
     mg_log, 'skipping reducing calibration', name='kcor/eod', /info
     goto, done
   endif
-      
+
   if (n_elements(filelist_filename) gt 0L) then begin
     n_files = file_lines(filelist_filename)
     filelist = strarr(n_files)

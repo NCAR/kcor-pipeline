@@ -13,7 +13,7 @@
 ;   header : out, optional, type=strarr
 ;     set to a named variable to retrieve the FITS header as a string array
 ;-
-function kcor_old_readfits, filename, header, errmsg=errmsg
+function kcor_old_readfits, filename, header, errmsg=errmsg, datatype=datatype
   compile_opt strictarr
   on_ioerror, bad_file
 
@@ -30,7 +30,8 @@ function kcor_old_readfits, filename, header, errmsg=errmsg
   ; extra bytes
   offset = 2880L * 2L + 4L
 
-  im = uintarr(1024, 1024, 4, 2)
+  _datatype = n_elements(datatype) eq 0L ? 12 : datatype  ; 12 = uint
+  im = make_array(1024, 1024, 4, 2, type=_datatype)
   openr, lun, filename, /get_lun, compress=compress, /swap_if_little_endian
   point_lun, lun, offset
   readu, lun, im

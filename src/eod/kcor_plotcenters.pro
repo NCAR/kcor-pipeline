@@ -145,7 +145,8 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
                        repair_routine=run->epoch('repair_routine'), $
                        xshift=run->epoch('xshift_camera'), $
                        start_state=run->epoch('start_state'), $
-                       raw_data_prefix=run->epoch('raw_data_prefix')
+                       raw_data_prefix=run->epoch('raw_data_prefix'), $
+                       datatype=run->epoch('raw_datatype')
 
     img0 = reform(img[*, *, 0, 0])
     img0 = reverse(img0, 2)  ; y-axis inversion

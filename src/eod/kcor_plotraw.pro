@@ -106,7 +106,8 @@ pro kcor_plotraw, date, list=list, run=run, $
                        repair_routine=run->epoch('repair_routine'), $
                        xshift=run->epoch('xshift_camera'), $
                        start_stat=run->epoch('start_state'), $
-                       raw_data_prefix=run->epoch('raw_data_prefix')
+                       raw_data_prefix=run->epoch('raw_data_prefix'), $
+                       datatype=run->epoch('raw_datatype')
 
     bitpix   = fix(sxpar(header, 'BITPIX'))
     if (bitpix gt 16) then begin

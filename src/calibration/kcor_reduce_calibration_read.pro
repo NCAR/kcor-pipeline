@@ -35,7 +35,8 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
                      repair_routine=run->epoch('repair_routine'), $
                      xshift=run->epoch('xshift_camera'), $
                      start_state=run->epoch('start_state'), $
-                     raw_data_prefix=run->epoch('raw_data_prefix')
+                     raw_data_prefix=run->epoch('raw_data_prefix'), $
+                     datatype=run->epoch('raw_datatype')
   header = fitshead2struct(header)
 
   ; set epoch values to the beginning of the calibration
@@ -67,11 +68,21 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
     ; check for zipped file if the FTS file is not present
     if (~file_test(filenames[f], /regular)) then filenames[f] += '.gz'
 
+    dt = strmid(file_basename(ok_filename), 0, 15)
+    run.time = string(strmid(dt, 0, 4), $
+                      strmid(dt, 4, 2), $
+                      strmid(dt, 6, 2), $
+                      strmid(dt, 9, 2), $
+                      strmid(dt, 11, 2), $
+                      strmid(dt, 13, 2), $
+                      format='(%"%s-%s-%sT%s-%s-%s")')
+    if (~run->epoch('process') || ~run->epoch('produce_calibration')) then continue
     kcor_read_rawdata, filenames[f], image=thisdata, header=header, $
                        repair_routine=run->epoch('repair_routine'), $
                        xshift=run->epoch('xshift_camera'), $
                        start_state=run->epoch('start_state'), $
-                       raw_data_prefix=run->epoch('raw_data_prefix')
+                       raw_data_prefix=run->epoch('raw_data_prefix'), $
+                       datatype=run->epoch('raw_datatype')
 
     ; must set time before querying run object
     date_obs = sxpar(header, 'DATE-OBS', count=qdate_obs)

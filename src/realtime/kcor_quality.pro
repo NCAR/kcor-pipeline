@@ -255,6 +255,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
                        xshift=run->epoch('xshift_camera'), $
                        start_state=run->epoch('start_state'), $
                        raw_data_prefix=run->epoch('raw_data_prefix'), $
+                       datatype=run->epoch('raw_datatype'), $
                        errmsg=errmsg
     if (errmsg ne '') then begin
       mg_log, errmsg, name='kcor/rt', /warn
@@ -280,7 +281,8 @@ function kcor_quality, date, l0_fits_files, append=append, $
                          repair_routine=run->epoch('repair_routine'), $
                          xshift=run->epoch('xshift_camera'), $
                          start_state=run->epoch('start_state'), $
-                         raw_data_prefix=run->epoch('raw_data_prefix')
+                         raw_data_prefix=run->epoch('raw_data_prefix'), $
+                         datatype=run->epoch('raw_datatype')
       n_dims = size(img, /n_dimensions)
       if (n_dims ne 4) then begin
         mg_log, 'wrong number of dimensions for image: %d', n_dims, $

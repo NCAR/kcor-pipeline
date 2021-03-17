@@ -27,6 +27,7 @@ pro kcor_read_rawdata, filename, $
                        errmsg=errmsg, $
                        xshift=xshift, $
                        start_state=start_state, $
+                       datatype=datatype, $
                        raw_data_prefix=raw_data_prefix
   compile_opt strictarr
 
@@ -35,14 +36,14 @@ pro kcor_read_rawdata, filename, $
   case 1 of
     arg_present(im) && arg_present(header): begin
         if (keyword_set(raw_data_prefix)) then begin
-          im = kcor_old_readfits(filename, header, errmsg=errmsg)
+          im = kcor_old_readfits(filename, header, errmsg=errmsg, datatype=datatype)
         endif else begin
           im = readfits(filename, header, /silent, errmsg=errmsg)
         endelse
       end
     arg_present(im): begin
         if (keyword_set(raw_data_prefix)) then begin
-          im = kcor_old_readfits(filename, header, errmsg=errsg)
+          im = kcor_old_readfits(filename, header, errmsg=errsg, datatype=datatype)
         endif else begin
           im = readfits(filename, /silent, errmsg=errmsg)
         endelse

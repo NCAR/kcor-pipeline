@@ -560,7 +560,7 @@ pro kcor_create_averages, date, l2_files, run=run
     endif
   endif
 
-  ; create extag fullres 1024x1024 FITS
+  ; create extavg fullres 1024x1024 FITS
   ;   - save times used to make the daily average image in the header
   ;   - create 10 FITS keywords, each holds 4 image times to accommodate up to
   ;     40 images in the average
@@ -627,8 +627,8 @@ end
 ; main-level example program
 
 ; setup
-date = '20190812'
-config_filename = filepath('kcor.averaging.cfg', $
+date = '20210307'
+config_filename = filepath('kcor.latest.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
