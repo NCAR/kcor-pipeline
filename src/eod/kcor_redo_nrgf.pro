@@ -86,8 +86,11 @@ pro kcor_redo_nrgf, date, run=run
                                        subdir=[date, 'level2'], $
                                        root=run->config('processing/raw_basedir')), $
                               count=n_average_files)
+  nrgf_average_files = strarr(n_average_files)
   for f = 0L, n_average_files - 1L do begin
-    kcor_nrgf, average_files[f], run=run, /averaged, log_name='kcor/eod'
+    kcor_nrgf, average_files[f], run=run, /averaged, $
+               fits_filename=fits_filename, log_name='kcor/eod'
+    nrgf_average_files[f] = fits_filename
     kcor_nrgf, average_files[f], run=run, /averaged, /cropped, log_name='kcor/eod'
   endfor
 
@@ -144,6 +147,24 @@ pro kcor_redo_nrgf, date, run=run
       for f = 0L, n_nrgf_files - 1L do begin
         if (file_test(gif_filenames[f])) then begin
           file_copy, gif_filenames[f], nrgf_dir, /overwrite
+        endif
+      endfor
+
+      ; copy NRGF average cropped GIF files to cropped dir and NRGF average
+      ; GIF files to NRGF dir
+      mg_log, 'coping %d GIF files to NRGF and cropped dirs', n_average_files, $
+              name='kcor/eod', /info
+      for f = 0L, n_average_files - 1L do begin
+        pos = strpos(nrgf_average_files[f], '.fts')
+        basename = strmid(nrgf_average_files[f], 0, pos)
+        mg_log, basename, name='kcor/eod', /debug
+        nrgf_average_gif_filename = basename + '.gif'
+        nrgf_average_cropped_gif_filename = basename + '_cropped.gif'
+        if (file_test(nrgf_average_gif_filename)) then begin
+          file_copy, nrgf_average_gif_filename, nrgf_dir, /overwrite
+        endif
+        if (file_test(nrgf_average_cropped_gif_filename)) then begin
+          file_copy, nrgf_average_cropped_gif_filename, cropped_dir, /overwrite
         endif
       endfor
 

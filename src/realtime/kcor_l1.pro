@@ -631,6 +631,9 @@ pro kcor_l1, ok_filename, $
     endcase
   endfor
 
+  ; multiply by ad hoc non-linearity correction factor
+  cal_data *= run->epoch('nonlinearity-correction-factor')
+
   mg_log, 'performing polarization coord transformation', $
           name=log_name, /debug
 

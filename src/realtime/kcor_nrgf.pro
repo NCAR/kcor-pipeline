@@ -108,7 +108,8 @@ pro kcor_nrgf, fits_file, $
                averaged=averaged, $
                daily=daily, $
                run=run, $
-               log_name=log_name
+               log_name=log_name, $
+               fits_filename=fits_filename
   compile_opt strictarr
 
   ; read L1 FITS image
@@ -330,21 +331,25 @@ pro kcor_nrgf, fits_file, $
 
   ; create NRGF GIF file
   save = tvrd()
-  fts_loc  = strpos(fits_file, '.fts')
-  if (keyword_set(averaged)) then begin
-    if (keyword_set(daily)) then begin
-      fts_loc -= 1 + 3 + 3   ; remove _extavg too
-    endif else begin
-      fts_loc -= 1 + 3   ; remove _avg too
-    endelse
-  endif
-  gif_file = string(strmid(fits_file, 0, fts_loc), $
-                    keyword_set(daily) ? '_extavg' : '', $
-                    keyword_set(cropped) ? '_cropped' : '', $
-                    format='(%"%s_nrgf%s%s.gif")')
 
-  write_gif, gif_file, save, red, green, blue
-  mg_log, 'wrote GIF file %s', file_basename(gif_file), name=log_name, /debug
+  if (keyword_set(averaged)) then begin
+    remove_loc = strpos(fits_file, '.fts')
+    if (keyword_set(daily)) then begin
+      remove_loc = strpos(fits_file, '_extavg.fts')
+    endif else begin
+      remove_loc = strpos(fits_file, '_avg.fts')
+    endelse
+  endif else begin
+    remove_loc = strpos(fits_file, '.fts')
+  endelse
+
+  type = keyword_set(daily) ? '_extavg' : (keyword_set(averaged) ? '_avg' : '')
+  type += keyword_set(cropped) ? '_cropped' : ''
+  gif_filename = string(strmid(fits_file, 0, remove_loc), type, $
+                        format='(%"%s_nrgf%s.gif")')
+
+  write_gif, gif_filename, save, red, green, blue
+  mg_log, 'wrote GIF file %s', file_basename(gif_filename), name=log_name, /debug
 
   if (~keyword_set(cropped)) then begin
     ; create short integer image
@@ -369,9 +374,9 @@ pro kcor_nrgf, fits_file, $
     fxaddpar, rhdu, 'BSCALE', bscale, $
               ' Normalized Radially-Graded H.Morgan+S.Fineschi', $
               format='(f10.3)'
-    fxaddpar, rhdu, 'DATAMIN', datamin, ' minimum value of  data', $
+    fxaddpar, rhdu, 'DATAMIN', datamin, ' minimum value of data', $
               format='(f10.3)'
-    fxaddpar, rhdu, 'DATAMAX', datamax, ' maximum value of  data', $
+    fxaddpar, rhdu, 'DATAMAX', datamax, ' maximum value of data', $
               format='(f10.3)'
     fxaddpar, rhdu, 'DISPMIN', dispmin, ' minimum value for display', $
               format='(f10.3)'
@@ -380,23 +385,13 @@ pro kcor_nrgf, fits_file, $
     fxaddpar, rhdu, 'DISPEXP', 1, ' exponent value for display (d=b^dispexp)', $
               format='(f10.3)'
 
-    ; write NRG FITS file
-    if (keyword_set(averaged)) then begin
-      remove_loc = strpos(fits_file, '.fts')
-      if (keyword_set(daily)) then begin
-        remove_loc = strpos(fits_file, '_extavg.fts')
-      endif else begin
-        remove_loc = strpos(fits_file, '_avg.fts')
-      endelse
-    endif else begin
-      remove_loc = strpos(fits_file, '.fts')
-    endelse
-    rfts_file = string(strmid(fits_file, 0, remove_loc), $
-                       keyword_set(daily) ? '_extavg' : (keyword_set(averaged) ? '_avg' : ''), $
-                       format='(%"%s_nrgf%s.fts")')
+    ; write NRGF FITS file
+    fits_filename = string(strmid(fits_file, 0, remove_loc), $
+                           keyword_set(daily) ? '_extavg' : (keyword_set(averaged) ? '_avg' : ''), $
+                           format='(%"%s_nrgf%s.fts")')
 
-    writefits, rfts_file, simg, rhdu
-    mg_log, 'wrote FITS file %s', file_basename(rfts_file), name=log_name, /info
+    writefits, fits_filename, simg, rhdu
+    mg_log, 'wrote FITS file %s', file_basename(fits_filename), name=log_name, /info
   endif
 end
 
