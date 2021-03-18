@@ -256,7 +256,7 @@ def versions(args):
                 print(f"{current_version}: {n_dates} day{plural}")
     else:
         for d, v, r in versions_list:
-            if v is not None:
+            if v is not None and filter(v):
                 print(f"{d}: {v:12s} {r:8s}")
 
 
@@ -264,13 +264,15 @@ def make_version_filter(filter_expression):
     def null_filter(version):
         return True
 
+    if filter_expression is None:
+        return(null_filter)
+
+    spec = packaging.specifiers.SpecifierSet(filter_expression)
+
     def filter_function(version):
         return packaging.version.parse(version) in spec
 
-    if filter_expression is None:
-        return( null_filter)
 
-    spec = packaging.specifiers.SpecifierSet(filter_expression)
     return(filter_function)
 
 
