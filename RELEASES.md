@@ -499,5 +499,5 @@
   typo
 2.0.43 [Mar 11, 2021]
   fix for database timing out
-2.0.44
+2.0.44 [Mar 18, 2021]
   fix for not distributing average NRGF files
