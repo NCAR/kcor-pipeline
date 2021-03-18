@@ -501,3 +501,4 @@
   fix for database timing out
 2.0.44 [Mar 18, 2021]
   fix for not distributing average NRGF files
+2.0.45
