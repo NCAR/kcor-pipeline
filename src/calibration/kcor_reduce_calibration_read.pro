@@ -68,7 +68,7 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
     ; check for zipped file if the FTS file is not present
     if (~file_test(filenames[f], /regular)) then filenames[f] += '.gz'
 
-    dt = strmid(file_basename(ok_filename), 0, 15)
+    dt = strmid(file_basename(filenames[f]), 0, 15)
     run.time = string(strmid(dt, 0, 4), $
                       strmid(dt, 4, 2), $
                       strmid(dt, 6, 2), $
