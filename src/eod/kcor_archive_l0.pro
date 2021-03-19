@@ -139,17 +139,17 @@ pro kcor_archive_l0, run=run, reprocess=reprocess
       ; non-existent file will return 0 from FILE_TEST with just /SYMLINK
       if (file_test(dst_tarfile, /symlink) $
             || file_test(dst_tarfile, /dangling_symlink)) then begin
-        mg_log, 'removing link to tarball in CS gateway', name='kcor/eod', /warn
+        mg_log, 'removing link to tarball in Campaign Storage gateway', name='kcor/eod', /warn
         file_delete, dst_tarfile
       endif
   
       file_link, filepath(tarfile, root=l0_dir), $
                  dst_tarfile
     endif else begin
-      mg_log, 'cs_gateway not specified, not sent to CS', name='kcor/eod', /info
+      mg_log, 'cs_gateway not specified, not sent to Campaign Storage', name='kcor/eod', /info
     endelse
   endif else begin
-    mg_log, 'not sending to CS', name='kcor/eod', /info
+    mg_log, 'not sending to Campaign Storage', name='kcor/eod', /info
   endelse
 
   done:
