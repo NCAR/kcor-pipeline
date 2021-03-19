@@ -502,3 +502,5 @@
 2.0.44 [Mar 18, 2021]
   fix for not distributing average NRGF files
 2.0.45
+  fix for crash in calibration data reading
+  fix for not distributing NRGF cropped GIF files

@@ -152,29 +152,35 @@ pro kcor_redo_nrgf, date, run=run
 
       ; copy NRGF average cropped GIF files to cropped dir and NRGF average
       ; GIF files to NRGF dir
-      mg_log, 'coping %d GIF files to NRGF and cropped dirs', n_average_files, $
+      mg_log, 'copying %d averaged NRGF GIF files to NRGF and cropped dirs', n_average_files, $
               name='kcor/eod', /info
       for f = 0L, n_average_files - 1L do begin
         pos = strpos(nrgf_average_files[f], '.fts')
         basename = strmid(nrgf_average_files[f], 0, pos)
-        mg_log, basename, name='kcor/eod', /debug
         nrgf_average_gif_filename = basename + '.gif'
         nrgf_average_cropped_gif_filename = basename + '_cropped.gif'
         if (file_test(nrgf_average_gif_filename)) then begin
           file_copy, nrgf_average_gif_filename, nrgf_dir, /overwrite
-        endif
+        endif else begin
+          mg_log, 'cannot find %s', nrgf_average_gif_filename, name='kcor/eod', /error
+        endelse
         if (file_test(nrgf_average_cropped_gif_filename)) then begin
           file_copy, nrgf_average_cropped_gif_filename, cropped_dir, /overwrite
-        endif
+        endif else begin
+          mg_log, 'cannot find %s', nrgf_average_cropped_gif_filename, name='kcor/eod', /error
+        endelse
       endfor
 
       mg_log, 'copying %d NRGF files to cropped dir', n_nrgf_files, $
               name='kcor/eod', /info
+      pos = strpos(zipped_nrgf_files[0], '_nrgf') + 5
       cropped_gif_filenames = strmid(zipped_nrgf_files, 0, pos) + '_cropped.gif'
       for f = 0L, n_nrgf_files - 1L do begin
         if (file_test(cropped_gif_filenames[f])) then begin
           file_copy, cropped_gif_filenames[f], cropped_dir, /overwrite
-        endif
+        endif else begin
+          mg_log, 'cannot find %s', cropped_gif_filenames[f], name='kcor/eod', /error
+        endelse
       endfor
     endif else begin
       mg_log, 'no NRGF files to distribute', name='kcor/eod', /info
