@@ -504,3 +504,4 @@
 2.0.45 [Mar 19, 2021]
   fix for crash in calibration data reading
   fix for not distributing NRGF cropped GIF files
+2.0.46
