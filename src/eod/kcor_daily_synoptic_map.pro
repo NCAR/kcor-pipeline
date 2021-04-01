@@ -106,10 +106,14 @@ pro kcor_daily_synoptic_map, radius=radius, run=run
     background = 255
   endelse
 
-  razr_diffs = sgsrazr[1:-1] - sgsrazr[0:-2]
-  deczr_diffs = sgsdeczr[1:-1] - sgsdeczr[0:-2]
-  pointing_diffs = razr_diffs or deczr_diffs
-  pointing_changes_indices = where(pointing_diffs, n_pointing_changes)
+  if (n_files lt 2L) then begin
+    n_pointing_changes = 0L
+  endif else begin
+    razr_diffs = sgsrazr[1:-1] - sgsrazr[0:-2]
+    deczr_diffs = sgsdeczr[1:-1] - sgsdeczr[0:-2]
+    pointing_diffs = razr_diffs or deczr_diffs
+    pointing_changes_indices = where(pointing_diffs, n_pointing_changes)
+  endelse
 
   if (n_pointing_changes gt 0L) then begin
     normalized_bins = (bin_indices[pointing_changes_indices] + 1) / float(n_bins)

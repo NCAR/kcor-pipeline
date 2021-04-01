@@ -505,3 +505,4 @@
   fix for crash in calibration data reading
   fix for not distributing NRGF cropped GIF files
 2.0.46
+  fix for when only a single L2 file produced
