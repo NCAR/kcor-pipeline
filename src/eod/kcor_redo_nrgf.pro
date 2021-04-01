@@ -86,13 +86,15 @@ pro kcor_redo_nrgf, date, run=run
                                        subdir=[date, 'level2'], $
                                        root=run->config('processing/raw_basedir')), $
                               count=n_average_files)
-  nrgf_average_files = strarr(n_average_files)
-  for f = 0L, n_average_files - 1L do begin
-    kcor_nrgf, average_files[f], run=run, /averaged, $
-               fits_filename=fits_filename, log_name='kcor/eod'
-    nrgf_average_files[f] = fits_filename
-    kcor_nrgf, average_files[f], run=run, /averaged, /cropped, log_name='kcor/eod'
-  endfor
+  if (n_average_files gt 0L) then begin
+    nrgf_average_files = strarr(n_average_files)
+    for f = 0L, n_average_files - 1L do begin
+      kcor_nrgf, average_files[f], run=run, /averaged, $
+                 fits_filename=fits_filename, log_name='kcor/eod'
+      nrgf_average_files[f] = fits_filename
+      kcor_nrgf, average_files[f], run=run, /averaged, /cropped, log_name='kcor/eod'
+    endfor
+  endif
 
   ; create NRGF daily average file corresponding to daily average file
   daily_average_files = file_search(filepath('*_kcor_l2_extavg.fts.gz', $
