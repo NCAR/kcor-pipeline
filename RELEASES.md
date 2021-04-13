@@ -506,4 +506,5 @@
   fix for not distributing NRGF cropped GIF files
 2.0.46 [Apr 1, 2021]
   fix for when only a single L2 file produced
-2.0.47
+2.0.47 [Apr 13, 2021]
+  ignore distortion test data on 20210413
