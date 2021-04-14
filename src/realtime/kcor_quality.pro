@@ -318,7 +318,6 @@ function kcor_quality, date, l0_fits_files, append=append, $
     datatype = sxpar(hdu, 'DATATYPE', count=qdatatype)
 
     diffuser = strtrim(sxpar(hdu, 'DIFFUSER', count=qdiffuser))
-    occulter = strlowcase(strtrim(sxpar(hdu, 'OCCLTRID', count=qocculter), 2))
     calpol   = strtrim(sxpar(hdu, 'CALPOL',   count=qcalpol))
     calpang  = sxpar(hdu, 'CALPANG',  count=qcalpang)
     darkshut = strtrim(sxpar(hdu, 'DARKSHUT', count=qdarkshut))
@@ -426,7 +425,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
 
     ; check mechanism positions
 
-    if (occulter eq 'grid') then begin
+    if (occltrid eq 'GRID') then begin
       dev += 1
     endif
 
