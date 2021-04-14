@@ -510,3 +510,4 @@
   ignore distortion test data on 20210413
 2.0.48 [Apr 14, 2021]
   handle OCCLTRID=GRID FITS keyword
+2.0.49
