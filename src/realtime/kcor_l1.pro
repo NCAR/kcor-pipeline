@@ -678,7 +678,7 @@ pro kcor_l1, ok_filename, $
 
     intensity = cal_data_combined_center[*, *, 0]
   endif else begin
-    mg_log, 'skipping shfting image to center', name=log_name, /debug
+    mg_log, 'skipping shifting image to center', name=log_name, /debug
 
     ; polar coordinate images (mk4 scheme)
     qmk4 = - cal_data_combined[*, *, 1] * sin(2.0 * theta1) $
@@ -691,10 +691,11 @@ pro kcor_l1, ok_filename, $
 
   qmk4 = rot(qmk4, pangle + run->epoch('rotation_correction'), 1, /interp)
   umk4 = rot(umk4, pangle + run->epoch('rotation_correction'), 1, /interp)
+  intensity = rot(intensity, pangle + run->epoch('rotation_correction'), 1, /interp)
 
   ; output array
-  ;data = [[[intensity]], [[umk4]], [[qmk4]]]
-  data = [[[umk4]], [[qmk4]]]
+  data = [[[umk4]], [[qmk4]], [[intensity]]]
+  ;data = [[[umk4]], [[qmk4]]]
 
   kcor_create_gif, ok_filename, umk4, date_obs, $
                    level=1, $
