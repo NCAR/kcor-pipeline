@@ -88,6 +88,7 @@ install(PROGRAMS
           ${CMAKE_CURRENT_BINARY_DIR}/kcorcat
           ${CMAKE_CURRENT_BINARY_DIR}/kcor_verify_dates.sh
           kcor_verify.sh
+          kcor_makelog.sh
           ${CMAKE_CURRENT_BINARY_DIR}/kcor_simulate
           ${CMAKE_CURRENT_BINARY_DIR}/kcor_simulate_data
           ${CMAKE_CURRENT_BINARY_DIR}/kcor_simulate_processing
