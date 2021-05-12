@@ -59,11 +59,11 @@ pro kcor_create_averages, date, l2_files, run=run
   hst = ''
   daily_hst = ''
 
-  n_skip = 2                         ; number of daily times to skip
+  n_skip = 0                         ; number of daily times to skip
 
   date_julian = dblarr(8)
 
-  ; Set up julian date intervals for averaging  
+  ; Set up julian date intervals for averaging
   ; Currently: 	average 8 images over a maximum of 3 minutes
   ;             create 1 daily average of 40 images over a maximum of 15 minutes
 
@@ -215,7 +215,7 @@ pro kcor_create_averages, date, l2_files, run=run
           last = i
         endif
 
-        if (dailycount lt 48  and  date_julian[i] - firsttime lt dailyavgval) then begin
+        if (dailycount lt 48 and date_julian[i] - firsttime lt dailyavgval) then begin
           if (dailycount eq n_skip) then begin
             daily_hst = hst
             daily_savename = strmid(file_basename(l2_file), 0, 23)
@@ -439,11 +439,12 @@ pro kcor_create_averages, date, l2_files, run=run
 
   daily = fltarr(1024, 1024)
   ; don't use the first 8 images (2 min.) of the day
-  for i = 8L, dailycount - 1L do begin
+  n_daily_skip = dailycount lt 40L ? 0L : 8L
+  for i = n_daily_skip, dailycount - 1L do begin
     daily += dailyavg[*, *, i] 
   endfor
 
-  daily /= float(dailycount) - 8.0
+  daily /= float(dailycount) - float(n_daily_skip)
 
   display_factor = 1.0e6
   tv, bytscl((display_factor * bscale * daily)^display_exp, $

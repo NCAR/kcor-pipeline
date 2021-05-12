@@ -511,3 +511,4 @@
 2.0.48 [Apr 14, 2021]
   handle OCCLTRID=GRID FITS keyword
 2.0.49
+  fix for handling extended averages with only a few files
