@@ -26,6 +26,8 @@ else:
 try:
     from astropy.io import fits
     from astropy.utils.exceptions import AstropyUserWarning
+    import warnings
+    warnings.simplefilter("ignore", category=AstropyUserWarning)
     ls_requirements = True
 except ModuleNotFoundError as e:
     ls_requirements = False
@@ -349,6 +351,7 @@ def list_fits_file(f, columns):
     basename = os.path.basename(f)
     line = f"{basename:36s}"
     with fits.open(f) as fits_file:
+        fits_file[0].verify("fix")
         primary_header = fits_file[0].header
         for c in columns:
             v = primary_header[c] if c in primary_header else None
@@ -360,6 +363,7 @@ def list_fits_file(f, columns):
 def list_fits_file_default(f):
     basename = os.path.basename(f)
     with fits.open(f) as fits_file:
+        fits_file[0].verify("fix")
         header = fits_file[0].header
         diffuser = get_fits_boolean(header, "DIFFUSER")
         calpol = get_fits_boolean(header, "CALPOL")
