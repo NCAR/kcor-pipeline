@@ -2,7 +2,7 @@
 
 DATA_PATH=$1
 
-FILES=$(find ${DATA_PATH} -name '*.fts.gz')
+FILES=$(find ${DATA_PATH} -name '*_kcor.fts.gz')
 for f in ${FILES}; do
   s=$(gunzip -l $f)  
   read -ra arr -d '' <<< "$s"
