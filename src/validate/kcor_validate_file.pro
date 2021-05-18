@@ -36,8 +36,10 @@ function kcor_validate_file_checkspec, keyword_name, specline, $
             'int': type = 3
             'float': type = 5
             'str': type = 7
+            else: if (obj_valid(error_list)) then begin error_list->add, string(parts[1], format='(invalid type: %s)')
           endcase
         end
+      else: if (obj_valid(error_list)) then begin error_list->add, string(parts[0], format='(invalid spec attribute: %s)')
     endcase
   endfor
 
@@ -68,7 +70,7 @@ function kcor_validate_file_checkspec, keyword_name, specline, $
       if (type eq 4 || type eq 5) then begin
         if (abs(keyword_value - value) gt tolerance) then begin
           if (obj_valid(error_list)) then begin
-            error_msg = string(keyword_name, keyword_value, $
+            error_msg = string(keyword_name, strtrim(keyword_value, 2), $
                                format='(%"%s: wrong value: %s")')
             error_list->add, error_msg
           endif
@@ -77,7 +79,7 @@ function kcor_validate_file_checkspec, keyword_name, specline, $
       endif else begin
         if (keyword_value ne value) then begin
           if (obj_valid(error_list)) then begin
-            error_msg = string(keyword_name, keyword_value, $
+            error_msg = string(keyword_name, strtrim(keyword_value, 2), $
                                format='(%"%s: wrong value: %s")')
             error_list->add, error_msg
           endif
@@ -91,7 +93,7 @@ function kcor_validate_file_checkspec, keyword_name, specline, $
     ind = where(keyword_value eq values, count)
     if (count ne 1L) then begin
       if (obj_valid(error_list)) then begin
-        error_msg = string(keyword_value, format='(%"not one of possible values: %s")')
+        error_msg = string(strtrim(keyword_value, 2), format='(%"not one of possible values: %s")')
         error_list->add, error_msg
       endif
       is_valid = 0B
