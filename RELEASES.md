@@ -515,3 +515,4 @@
   new epoch for malformed OCCLTRID value on 20210513
   adding intensity to level 1 files
 2.0.50
+  better error messages for file validation

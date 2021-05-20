@@ -36,10 +36,12 @@ function kcor_validate_file_checkspec, keyword_name, specline, $
             'int': type = 3
             'float': type = 5
             'str': type = 7
-            else: if (obj_valid(error_list)) then begin error_list->add, string(parts[1], format='(invalid type: %s)')
+            else: if (obj_valid(error_list)) then error_list->add, string(keyword_name, parts[1], $
+                                                                          format='(%"%s: invalid type: %s")')
           endcase
         end
-      else: if (obj_valid(error_list)) then begin error_list->add, string(parts[0], format='(invalid spec attribute: %s)')
+      else: if (obj_valid(error_list)) then error_list->add, string(keyword_name, parts[0], $
+                                                                    format='(%"%s: invalid spec attribute: %s")')
     endcase
   endfor
 
@@ -213,6 +215,8 @@ function kcor_validate_file, filename, validation_spec_filename, type, $
   if (error ne 0L) then begin
     catch, /cancel
     error_list->add, !error_state.msg
+    help, output=output, /last_message
+    error_list->add, output, /extract
     is_valid = 0B
     goto, done
   endif
@@ -269,33 +273,39 @@ end
 
 ; main-level example program
 
-date = '20190331'
-basename = '20190401_012502_kcor.fts.gz'
+; date = '20190331'
+; basename = '20190401_012502_kcor.fts.gz'
+; 
+; filename = filepath(basename, $
+;                     subdir=[date, 'level0'], $
+;                     root='/hao/mlsodata1/Data/KCor/raw')
+; 
+; spec_filename = 'kcor.l0.validation.cfg'
+; is_valid = kcor_validate_file(filename, spec_filename, error_msg=error_msg)
+; print, is_valid ? 'valid' : 'not valid', format='(%"L0 FITS file is %s")'
+; if (~is_valid) then begin
+;   print, transpose(error_msg)
+; endif
+
+
+date = '20210520'
+basename = '20210520_174548_kcor.fts.gz'
 
 filename = filepath(basename, $
                     subdir=[date, 'level0'], $
-                    root='/hao/mlsodata1/Data/KCor/raw')
+                    root='/hao/dawn/Data/KCor/raw')
 
-spec_filename = 'kcor.l0.validation.cfg'
-is_valid = kcor_validate_file(filename, spec_filename, error_msg=error_msg)
+config_filename = filepath('kcor.production.cfg', $
+                           subdir=['..', '..', 'config'], $
+                           root=mg_src_root())
+run = kcor_run(date, config_filename=config_filename)
+validation_spec = 'kcor.l0.validation.cfg'
+is_valid = kcor_validate_file(filename, validation_spec, 'L0', error_msg=error_msg, run=run)
 print, is_valid ? 'valid' : 'not valid', format='(%"L0 FITS file is %s")'
 if (~is_valid) then begin
   print, transpose(error_msg)
 endif
 
-
-date = '20131016'
-basename = '20131016_190704_kcor_l1.5.fts.gz'
-
-filename = filepath(basename, $
-                    subdir=[date, 'level1'], $
-                    root='/hao/twilight/Data/KCor/raw.latest')
-
-validation_spec = 'kcor.l15.validation.cfg'
-is_valid = kcor_validate_file(filename, validation_spec, error_msg=error_msg)
-print, is_valid ? 'valid' : 'not valid', format='(%"L1.5 FITS file is %s")'
-if (~is_valid) then begin
-  print, transpose(error_msg)
-endif
+obj_destroy, run
 
 end
