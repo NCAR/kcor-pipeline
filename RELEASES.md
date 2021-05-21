@@ -514,5 +514,6 @@
   fix for handling extended averages with only a few files
   new epoch for malformed OCCLTRID value on 20210513
   adding intensity to level 1 files
-2.0.50
+2.0.50 [May 21, 2021]
   better error messages for file validation
+  epoch for bad polarization state on 20210520
