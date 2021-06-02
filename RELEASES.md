@@ -517,4 +517,5 @@
 2.0.50 [May 21, 2021]
   better error messages for file validation
   epoch for bad polarization state on 20210520
-2.0.51
+2.0.51 [June 2, 2021]
+  epoch for images with wrong exposure time on 20210531
