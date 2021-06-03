@@ -519,4 +519,5 @@
   epoch for bad polarization state on 20210520
 2.0.51 [June 2, 2021]
   epoch for images with wrong exposure time on 20210531
-2.0.52
+2.0.52 [June 3, 2021]
+  fix for typo in epoch for 20210531
