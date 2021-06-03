@@ -521,3 +521,4 @@
   epoch for images with wrong exposure time on 20210531
 2.0.52 [June 3, 2021]
   fix for typo in epoch for 20210531
+2.0.53
