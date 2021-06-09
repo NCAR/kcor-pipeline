@@ -391,7 +391,8 @@ pro kcor_nrgf, fits_file, $
                            format='(%"%s_nrgf%s.fts")')
 
     writefits, fits_filename, simg, rhdu
-    mg_log, 'wrote FITS file %s', file_basename(fits_filename), name=log_name, /info
+    mg_log, 'wrote FITS file %s', file_basename(fits_filename), name=log_name, $
+            info=keyword_set(averaged) eq 0B, debug=keyword_set(averaged)
   endif
 end
 

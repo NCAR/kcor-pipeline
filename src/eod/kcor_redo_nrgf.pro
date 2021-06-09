@@ -89,6 +89,9 @@ pro kcor_redo_nrgf, date, run=run
   if (n_average_files gt 0L) then begin
     nrgf_average_files = strarr(n_average_files)
     for f = 0L, n_average_files - 1L do begin
+      mg_log, '%d/%d: creating NRGF for %s', $
+              f + 1, n_average_files, file_basename(fits_filename), $
+              name='kcor/eod', /info
       kcor_nrgf, average_files[f], run=run, /averaged, $
                  fits_filename=fits_filename, log_name='kcor/eod'
       nrgf_average_files[f] = fits_filename
