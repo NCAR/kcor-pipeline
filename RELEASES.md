@@ -522,3 +522,4 @@
 2.0.52 [June 3, 2021]
   fix for typo in epoch for 20210531
 2.0.53
+  fix for status of verification on non-remote check issues

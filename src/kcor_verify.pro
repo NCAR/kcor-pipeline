@@ -437,7 +437,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   valid_date = kcor_valid_date(date, msg=msg)
   if (~valid_date) then begin
     mg_log, msg, name=logger_name, /error
-    status = 1L
+    status or= 1L
     goto, done
   endif
 
@@ -447,20 +447,20 @@ pro kcor_verify, date, config_filename=config_filename, status=status
 
   if (n_elements(date) eq 0L) then begin
     mg_log, 'date argument is missing', name=logger_name, /error
-    status = 1L
+    status or= 1L
     goto, done
   endif
 
   if (~file_test(_config_filename, /regular)) then begin
     mg_log, 'config file not found', name=logger_name, /error
-    status = 1L
+    status or= 1L
     goto, done
   endif
 
   run = kcor_run(date, config_filename=_config_filename)
   if (~obj_valid(run)) then begin
     mg_log, 'invalid run', name=logger_name, /error
-    status = 1L
+    status or= 1L
     goto, done
   endif
 
@@ -520,17 +520,17 @@ pro kcor_verify, date, config_filename=config_filename, status=status
 
   if (~file_test(log_filename)) then begin 
     mg_log, 't1.log file not found', name=logger_name, /error
-    status = 1L
+    status or= 1L
     goto, test2_done
   endif
   if (~file_test(machine_log_filename)) then begin 
      mg_log, 'machine.log file not found', name=logger_name, /error
-     status = 1L
+     status or= 1L
      goto, test2_done
   endif
   if (~file_test(list_filename)) then begin 
     mg_log, 'tarlist file not found'
-    status = 1L
+    status or= 1L
     goto, test2_done
   endif 
 
@@ -552,14 +552,14 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   if ((n_log_lines ne n_list_lines - 3) || (n_list_lines eq 0)) then begin 
     mg_log, '# of lines in t1.log and tarlist do not match', $
             name=logger_name, /error
-    status = 1L
+    status or= 1L
     goto, test1_done
   endif
 
   if ((n_machine_log_lines ne n_log_lines)) then begin 
     mg_log, '# of lines in t1.log and machine.log do not match', $
             name=logger_name, /error
-    status = 1L
+    status or= 1L
     goto, test1_done
   endif
 
@@ -588,7 +588,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
     mg_log, '%d files in tar list with bad unzipped size', $
             n_bad_sizes, $
             name=logger_name, /error
-    status = 1L
+    status or= 1L
   endif
 
   ; TEST: check that any file listed in the log is also in the list - no missing
@@ -607,7 +607,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
     if (npick lt 1L) then begin
       mg_log, 'log file %s missing in tar list', log_name, $
               name=logger_name, /error
-      status = 1L
+      status or= 1L
       free_lun, lun
       goto, test1_done
     endif
@@ -615,7 +615,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
     if (npick lt 1L) then begin
       mg_log, 'log file %s in tar list %d times', log_name, npick, $
               name=logger_name, /error
-      status = 1L
+      status or= 1L
       free_lun, lun
       goto, test1_done
     endif
@@ -637,7 +637,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
               log_tokens[0], $
               machine_log_tokens[0], $
               name=logger_name, /error
-      status = 1L
+      status or= 1L
       free_lun, log_lun, machine_log, lun
       goto, test1_done
     endif
@@ -647,7 +647,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
               log_tokens[1], $
               machine_log_tokens[1], $
               name=logger_name, /error
-      status = 1L
+      status or= 1L
       free_lun, log_lun, machine_log, lun
       goto, test1_done
     endif
@@ -721,7 +721,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
     if (tokens[0] ne protection) then begin 
       mg_log, 'protection for %s is wrong: %s', filename, tokens[0], $
               name=logger_name, /error
-      status = 1L
+      status or= 1L
       free_lun, lun
       goto, test2_done
     endif
@@ -730,7 +730,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
     if (npick lt 1) then begin
       mg_log, 'extra file %s found in tar list', filename, $
               name=logger_name, /error
-      status = 1L
+      status or= 1L
       free_lun, lun
       goto, test2_done
     endif else begin 
@@ -777,7 +777,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
               name=logger_name, /error
       mg_log, 'command: %s', cmd, name=logger_name, /error
       mg_log, '%s', strjoin(error_output, ' '), name=logger_name, /error
-      status = 1L
+      status or= 1L
       goto, mlso_server_test_done
     endif
 
@@ -791,7 +791,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
         mg_log, '# of L0 on %s (%d) does not match t1.log (%d)', $
                 run->config('verification/raw_remote_server'), n_raw_files, n_log_lines, $
                 name=logger_name, /error
-        status = 1L
+        status or= 1L
         goto, mlso_server_test_done
       endelse
     endif else if (n_elements(n_list_lines) gt 0L) then begin
@@ -803,7 +803,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
         mg_log, '# of L0 on %s (%d) does not match tarlist (%d)', $
                 run->config('verification/raw_remote_server'), n_raw_files, n_list_lines - 2L, $
                 name=logger_name, /error
-        status = 1L
+        status or= 1L
         goto, mlso_server_test_done
       endelse
     endif else begin
@@ -845,20 +845,20 @@ pro kcor_verify, date, config_filename=config_filename, status=status
               name=logger_name, /warn
     endif else begin
       mg_log, 'no L0 tarball', name=logger_name, /error
-      status = 1
+      status or= 1
     endelse
     goto, compress_ratio_done
   endif
 
   if (~file_test(l1_tarball_filename, /regular)) then begin
     mg_log, 'no L1 tarball', name=logger_name, /warn
-    status = 1
+    status or= 1
     goto, compress_ratio_done
   endif
 
   if (~file_test(l2_tarball_filename, /regular)) then begin
     mg_log, 'no L2 tarball', name=logger_name, /warn
-    status = 1
+    status or= 1
     goto, compress_ratio_done
   endif
 
@@ -888,7 +888,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
           or (compress_ratio gt run->config('verification/max_compression_ratio'))) then begin
       mg_log, 'unusual compression ratio %0.2f', compress_ratio, $
               name=logger_name, /warn
-      status = 1L
+      status or= 1L
       goto, compress_ratio_done
     endif
   endif else begin
@@ -958,17 +958,20 @@ pro kcor_verify, date, config_filename=config_filename, status=status
     if (file_test(l0_tarball_filename, /regular)) then begin
       kcor_verify_remote, date, l0_tarball_filename, remote_server, remote_basedir, $
                           logger_name=logger_name, run=run, $
-                          status=status
+                          status=cs_status
+      status or= cs_status
     endif
     if (file_test(l1_tarball_filename, /regular)) then begin
       kcor_verify_remote, date, l1_tarball_filename, remote_server, remote_basedir, $
                           logger_name=logger_name, run=run, $
-                          status=status
+                          status=cs_status
+      status or= cs_status
     endif
     if (file_test(l2_tarball_filename, /regular)) then begin
       kcor_verify_remote, date, l2_tarball_filename, remote_server, remote_basedir, $
                           logger_name=logger_name, run=run, $
-                          status=status
+                          status=cs_status
+      status or= cs_status
     endif
   endif else begin
     mg_log, 'skipping Campaign Storage check', name=logger_name, /info
