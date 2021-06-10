@@ -818,12 +818,12 @@ pro kcor_verify, date, config_filename=config_filename, status=status
 
   mlso_server_test_done:
 
-  ; skip tarball and HPSS checks if there were no good quality files
+  ; skip tarball and archive checks if there were no good quality files
   oka_filename = filepath('oka.ls', $
                           subdir=[date, 'q'], $
                           root=run->config('processing/raw_basedir'))
   if (~file_test(oka_filename, /regular) || file_lines(oka_filename) eq 0L) then begin
-    mg_log, 'no good quality files, skipping tarball and HPSS checks', $
+    mg_log, 'no good quality files, skipping tarball and archive checks', $
             name=logger_name, /info
     goto, done
   endif
@@ -946,7 +946,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
                       logger_name=logger_name, run=run
     status or= l0_hpss_status or l1_hpss_status or l2_hpss_status
   endif else begin
-    mg_log, 'skipping HPSS check', name=logger_name, /info
+    mg_log, 'skipping HPSS check', name=logger_name, /debug
   endelse
 
 
