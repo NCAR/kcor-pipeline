@@ -22,6 +22,7 @@ function kcor_validate_file_checkspec, keyword_name, specline, $
     parts = strsplit(tokens[t], '=', /extract, count=n_parts)
     case parts[0] of
       'required': required = 1B
+      'optional': required = 0B
       'value': value = parts[1]
       'values': begin
           values = strsplit(strmid(parts[1], 1, strlen(parts[1]) - 2), $
