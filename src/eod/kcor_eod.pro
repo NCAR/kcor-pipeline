@@ -163,6 +163,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
       l1_zipped_files = file_search(l1_zipped_fits_glob, count=n_l1_zipped_files)
       cd, l0_dir
     endif else begin
+      n_l1_zipped_files = 0L
       n_l2_zipped_files = 0L
     endelse
 
@@ -298,7 +299,9 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   endelse
 
   cal_status = 4L
-  start_state = 0L
+
+  ; default start_state if KCOR_REDUCE_CALIBRATION is not performed
+  start_state = lonarr(2)
 
   done_validating:
 
@@ -471,7 +474,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
       0: cal_status_text = 'successful calibration reduction'
       1: cal_status_text = 'incomplete data for calibration reduction'
       2: cal_status_text = 'error during calibration reduction'
-      3: cal_status_text = string(start_state, format='(%"bad polarization sequence (recommended start_state: %d)")')
+      3: cal_status_text = string(start_state, format='(%"bad polarization sequence (recommended start_state: [%d, %d])")')
       4: cal_status_text = 'calibration reduction skipped'
       else: cal_status_text = 'unknown error during calibration reduction'
     endcase
