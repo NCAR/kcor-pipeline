@@ -3,9 +3,6 @@
 ;+
 ; Check polarization states to make sure they are in the correct order.
 ;
-; Only need to check one camera since polarization is before the beam-splitter,
-; which  ensure both cameras get the same polarization.
-;
 ; :Returns:
 ;   0 (for failure) or 1 (for success)
 ;
@@ -14,41 +11,43 @@
 ;     0 degree polarization calibration image
 ;
 ; :Keywords:
-;   start_state : out, optional, type=integer
+;   start_state : out, optional, type=lonarr(2)
 ;     set to a named variable to retrieve the suggested `start_state`
 ;-
 function kcor_check_calibration, im, start_state=start_state
   compile_opt strictarr
 
-  check_camera = 0
+  start_state = lonarr(2)
+  is_valid = 1B
+  for check_camera = 0L, 1L do begin
+    mean_states = mean(mean(im[*, *, *, check_camera], dimension=1), dimension=1)
+    mean_order = sort(mean_states)
 
-  mean_states = mean(mean(im[*, *, *, check_camera], dimension=1), dimension=1)
-  mean_order = sort(mean_states)
-
-  ; the correct order is half-plus, high, low, half-minus
-  correct_order = [2, 3, 0, 1]
-  if (array_equal(mean_order, correct_order)) then begin
-    start_state = 0L
-    return, 1B
-  endif else begin
-    ; mean_order -> start_state
-    ; 2, 3, 0, 1 -> 0
-    ; 3, 0, 1, 2 -> 3
-    ; 0, 1, 2, 3 -> 2
-    ; 1, 2, 3, 0 -> 1
-    ; any other order -> -1
-    start_state = (where(mean_order eq correct_order[0]))[0]
-    if (~array_equal(shift(mean_order, -start_state), correct_order)) then begin
-      start_state = -1L
-    endif
-    return, 0B
-  endelse
+    ; the correct order is half-plus, high, low, half-minus
+    correct_order = [2, 3, 0, 1]
+    if (array_equal(mean_order, correct_order)) then begin
+      start_state[check_camera] = 0L
+    endif else begin
+      ; mean_order -> start_state
+      ; 2, 3, 0, 1 -> 0
+      ; 3, 0, 1, 2 -> 3
+      ; 0, 1, 2, 3 -> 2
+      ; 1, 2, 3, 0 -> 1
+      ; any other order -> -1
+      start_state[check_camera] = (where(mean_order eq correct_order[0]))[0]
+      if (~array_equal(shift(mean_order, -start_state[check_camera]), correct_order)) then begin
+        start_state[check_camera] = -1L
+      endif
+      is_valid = 0B
+    endelse
+  endfor
+  return, is_valid
 end
 
 
 ; main-level example program
 
-root = '/hao/mlsodata1/Data/KCor/raw/20201018/level0'
+root = '/hao/dawn/Data/KCor/raw/20201018/level0'
 basename = '20201018_201418_kcor.fts.gz'
 
 ; root = '/hao/mlsodata1/Data/KCor/raw/20201024/level0'

@@ -12,8 +12,8 @@
 ;     repaired image
 ;   header : out, optional, type=strarr
 ;     repaired header
-;   start_state : in, optional, type=integer, default=0
-;     start state
+;   start_state : in, optional, type=integer, default=lonarr(2)
+;     start state by camera
 ;   repair_routine : in, optional, type=string
 ;     if present, repair routine will be called; interface is::
 ;
@@ -60,8 +60,10 @@ pro kcor_read_rawdata, filename, $
     endfor
   endif
 
-  if (arg_present(im) && n_elements(start_state) gt 0L && start_state ne 0L) then begin
-    im = shift(im, 0, 0, start_state, 0)
+  if (arg_present(im) && (n_elements(start_state) gt 0L) && ~array_equal(start_state, lonarr(2))) then begin
+    for c = 0L, 1L do begin
+      im[*, *, *, c] = shift(im[*, *, *, c], 0, 0, start_state[c])
+    endfor
   endif
 
   if (n_elements(repair_routine) gt 0L && repair_routine ne '') then begin

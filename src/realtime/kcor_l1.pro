@@ -70,11 +70,12 @@ pro kcor_l1, ok_filename, $
                     strmid(dt, 11, 2), $
                     strmid(dt, 13, 2), $
                     format='(%"%s-%s-%sT%s-%s-%s")')
-  mg_log, 'start_state: %d', run->epoch('start_state'), name=log_name, /debug
+  start_state = run->epoch('start_state')
+  mg_log, 'start_state: [%d, %d]', start_state, name=log_name, /debug
   kcor_read_rawdata, ok_filename, image=img, header=header, $
                      repair_routine=run->epoch('repair_routine'), $
                      xshift=run->epoch('xshift_camera'), $
-                     start_state=run->epoch('start_state'), $
+                     start_state=start_state, $
                      raw_data_prefix=run->epoch('raw_data_prefix'), $
                      datatype=run->epoch('raw_datatype')
 

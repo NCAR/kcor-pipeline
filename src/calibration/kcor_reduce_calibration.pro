@@ -26,9 +26,9 @@
 ;     set to a named variable to retrieve the status of the calibration
 ;     calculation: 0 for success, 1 for incomplete data, 2 for error, 3 bad
 ;     start_state
-;   start_state : out, optional, type=long
+;   start_state : out, optional, type=lonarr(2)
 ;     set to a named variable to retrieve the recommended start_state, should
-;     be 0 for good data
+;     be [0, 0] for good data
 ;   run : in, optional, type=object
 ;     `kcor_run` object; `config_filename` or `run` is required
 ;-
@@ -131,8 +131,8 @@ pro kcor_reduce_calibration, date, $
       valid = kcor_check_calibration(test_image, start_state=start_state)
       if (~valid) then begin
         mg_log, 'bad polarization start state', name='kcor/cal', /error
-        mg_log, 'recommended start_state: %d', $
-                start_state, name='kcor/cal', /error
+        mg_log, 'recommended start_state: [%d, %d]', $
+                start_state[0], start_state[1], name='kcor/cal', /error
         status = 3
         goto, done
       endif else begin
