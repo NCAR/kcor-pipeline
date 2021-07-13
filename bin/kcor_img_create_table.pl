@@ -89,6 +89,7 @@ if (! $sth)
 # TODO: define other indices.
 $command = "CREATE TABLE kcor_img (
   img_id                INT (10) AUTO_INCREMENT PRIMARY KEY,
+  dt_created            timestamp default current_timestamp,
   file_name             CHAR (50) NOT NULL, 
   date_obs              DATETIME NOT NULL, 
   date_end              DATETIME NOT NULL, 
