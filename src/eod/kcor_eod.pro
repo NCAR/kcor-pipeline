@@ -147,6 +147,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   ; copy config file to YYYYMMDD/ directory
   file_copy, config_filename, filepath('kcor.cfg', root=date_dir), /overwrite
 
+  kcor_realtime_lag, run=run
+
   cd, l0_dir
 
   l1_dir = filepath('level1', root=date_dir)
@@ -565,6 +567,18 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
                      : string(n_rt_errors, n_eod_errors, $
                               format='(%" - %d rt, %d eod errors")')
 
+    attachments = [quality_plot]
+
+    ; add realtime lag image, if it was produced, i.e., if this run was done
+    ; in realtime
+    lag_basename = string(run.date, format='(%"%s.kcor.rt-lag.gif")')
+    lag_filename = filepath(lag_basename, $
+                            subdir=[run.date, 'p'], $
+                            root=run->config('processing/raw_basedir'))
+    if (file_test(lag_filename, /regular)) then begin
+      attachments = [attachments, lag_filename]
+    endif
+
     mg_log, 'sending notification to %s', run->config('notifications/email'), $
             name='kcor/eod', /info
     kcor_send_mail, run->config('notifications/email'), $
@@ -573,7 +587,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
                            n_errors_msg, $
                            format='(%"KCor end-of-day processing for %s (%s%s)")'), $
                     msg, $
-                    attachments=quality_plot, $
+                    attachments=attachments, $
                     logger_name='kcor/eod'
   endif else begin
     mg_log, 'not sending notification email', name='kcor/eod', /warn
