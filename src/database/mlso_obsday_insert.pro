@@ -135,5 +135,6 @@ run = kcor_run(date, $
 										
 obs_day_num = mlso_obsday_insert(date, run=run, log_name='kcor/rt')
 print, obs_day_num
+obj_destroy, run
 
 end
