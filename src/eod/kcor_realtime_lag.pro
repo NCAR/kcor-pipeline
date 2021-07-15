@@ -97,7 +97,9 @@ pro kcor_realtime_lag, run=run
 
   lag_basename = string(run.date, format='(%"%s.kcor.rt-lag.gif")')
   raw_basedir = run->config('processing/raw_basedir')
-  lag_filename = filepath(lag_basename, subdir=[run.date, 'p'], root=raw_basedir)
+  p_dir = filepath('p', subdir=run.date, root=raw_basedir)
+  if (~file_test(p_dir, /directory)) then file_mkdir, p_dir
+  lag_filename = filepath(lag_basename, root=p_dir)
   write_gif, lag_filename, im
 
   done:
@@ -112,7 +114,7 @@ end
 ; .compile ../kcor_dateobs2julian
 ; .compile ../../lib/mysql/mgdbmysql__define
 
-date = '20210713'
+date = '20210714'
 config_filename = filepath('kcor.production.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())
