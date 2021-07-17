@@ -9,6 +9,7 @@ else
 fi
 
 LOCAL_PATH=/export/data1/Data/KCor/cme-alerts
+SSH_KEY=${HOME}/.ssh/id_rsa
 
 # copy the following files to LOCAL_PATH:
 #   raw/YYYYMMDD/p/YYYYMMDD.HHMMSS.cme.profile.png
@@ -17,7 +18,7 @@ LOCAL_PATH=/export/data1/Data/KCor/cme-alerts
 
 # create directory to copy to and copy into it
 mkdir -p ${LOCAL_PATH}/${DATE}
-scp -rq ${REMOTE_SERVER}.mlso.ucar.edu:${REMOTE_PATH}/${DATE}/p/*cme* ${LOCAL_PATH}/${DATE}
+scp -rq -i ${SSH_KEY} ${REMOTE_SERVER}.mlso.ucar.edu:${REMOTE_PATH}/${DATE}/p/*cme* ${LOCAL_PATH}/${DATE}
 
 # remove directory if nothing was copied
 find ${LOCAL_PATH} -maxdepth 1 -empty -exec rmdir {} \;
