@@ -10,7 +10,6 @@ fi
 
 LOCAL_PATH=/export/data1/Data/KCor/cme-alerts
 SSH_KEY=${HOME}/.ssh/id_rsa2
-LOG_FILE=${LOCAL_PATH}/${DATE}.log
 
 # copy the following files to LOCAL_PATH:
 #   raw/YYYYMMDD/p/YYYYMMDD.HHMMSS.cme.profile.png
@@ -20,7 +19,6 @@ LOG_FILE=${LOCAL_PATH}/${DATE}.log
 # create directory to copy to and copy into it
 mkdir -p ${LOCAL_PATH}/${DATE}
 cmd="scp -rq -i ${SSH_KEY} ${REMOTE_SERVER}.mlso.ucar.edu:${REMOTE_PATH}/${DATE}/p/*cme* ${LOCAL_PATH}/${DATE}"
-echo ${cmd} > ${LOG_FILE}
 $cmd
 
 # remove directory if nothing was copied
