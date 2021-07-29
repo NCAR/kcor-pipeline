@@ -525,3 +525,4 @@
   fix for status of verification on non-remote check issues
   allow start_state to vary by camera
   produce realtime lag plot
+2.0.54
