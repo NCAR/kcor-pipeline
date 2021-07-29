@@ -521,7 +521,7 @@
   epoch for images with wrong exposure time on 20210531
 2.0.52 [June 3, 2021]
   fix for typo in epoch for 20210531
-2.0.53
+2.0.53 [July 29, 2021]
   fix for status of verification on non-remote check issues
   allow start_state to vary by camera
   produce realtime lag plot
