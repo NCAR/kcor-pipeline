@@ -65,7 +65,7 @@ pro kcor_realtime_lag, run=run
   web_lag = web_time - creation_time
 
   original_device = !d.name
-  device, decomposed=original_decomposed
+  device, get_decomposed=original_decomposed
   tvlct, original_rgb, /get
 
   set_plot, 'Z'
