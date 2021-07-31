@@ -527,3 +527,5 @@
   produce realtime lag plot
 2.0.54 [Jul 31, 2021]
   fix crash from display on cronjob run
+2.0.55
+
