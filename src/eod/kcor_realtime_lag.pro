@@ -65,10 +65,10 @@ pro kcor_realtime_lag, run=run
   web_lag = web_time - creation_time
 
   original_device = !d.name
-  device, get_decomposed=original_decomposed
-  tvlct, original_rgb, /get
 
   set_plot, 'Z'
+  device, get_decomposed=original_decomposed
+  tvlct, original_rgb, /get
   device, set_resolution=[700, 400], $
           decomposed=0, $
           set_colors=256, $
@@ -103,9 +103,9 @@ pro kcor_realtime_lag, run=run
   write_gif, lag_filename, im
 
   done:
-  if (n_elements(original_device) gt 0L) then set_plot, original_device
   if (n_elements(original_rgb) gt 0L) then tvlct, original_rgb
   if (n_elements(original_decomposed) gt 0L) then device, decomposed=original_decomposed
+  if (n_elements(original_device) gt 0L) then set_plot, original_device
 end
 
 
