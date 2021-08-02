@@ -531,4 +531,4 @@
   only produce realtime lag plot if updating database
   fix crash from display on cronjob run
 2.0.56
-
+  fix for checking cal data for correct start state by camera
