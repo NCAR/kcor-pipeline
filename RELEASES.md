@@ -534,3 +534,4 @@
   fix for checking cal data for correct start state by camera
   new epoch for missing RCAMID on 20210730
 2.0.57
+  typo in {R,T}CAMLUT names in 20210730 epoch
