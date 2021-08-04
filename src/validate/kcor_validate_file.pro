@@ -60,6 +60,7 @@ function kcor_validate_file_checkspec, keyword_name, specline, $
   ;if (keyword_type ne type) then begin
   ;  error_msg = string(keyword_type, type, $
   ;                     format='(%"type of keyword (%d) not spec type (%d)")')
+  ;  error_list->add, error_msg
   ;  return, 0B
   ;endif
 
@@ -289,20 +290,21 @@ end
 ; endif
 
 
-date = '20210520'
-basename = '20210520_174548_kcor.fts.gz'
+date = '20210803'
+basename = '20210803_170343_kcor_l2.fts.gz'
 
 filename = filepath(basename, $
-                    subdir=[date, 'level0'], $
+                    subdir=[date, 'level2'], $
                     root='/hao/dawn/Data/KCor/raw')
 
 config_filename = filepath('kcor.production.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
-validation_spec = 'kcor.l0.validation.cfg'
-is_valid = kcor_validate_file(filename, validation_spec, 'L0', error_msg=error_msg, run=run)
-print, is_valid ? 'valid' : 'not valid', format='(%"L0 FITS file is %s")'
+validation_spec = 'kcor.l2.validation.cfg'
+level = 'L2'
+is_valid = kcor_validate_file(filename, validation_spec, level, error_msg=error_msg, run=run)
+print, level, is_valid ? 'valid' : 'not valid', format='(%"%s FITS file is %s")'
 if (~is_valid) then begin
   print, transpose(error_msg)
 endif
