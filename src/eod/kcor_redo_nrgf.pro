@@ -94,7 +94,7 @@ pro kcor_redo_nrgf, date, run=run
               name='kcor/eod', /info
       kcor_nrgf, average_files[f], run=run, /averaged, $
                  fits_filename=fits_filename, log_name='kcor/eod'
-      nrgf_average_files[f] = average_files[f]
+      nrgf_average_files[f] = fits_filename
       kcor_nrgf, average_files[f], run=run, /averaged, /cropped, log_name='kcor/eod'
     endfor
   endif
