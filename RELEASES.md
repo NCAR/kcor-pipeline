@@ -535,6 +535,6 @@
   new epoch for missing RCAMID on 20210730
 2.0.57 [Aug 4, 2021]
   typo in {R,T}CAMLUT names in 20210730 epoch
-2.0.58
+2.0.58 [Aug 6, 2021]
   reverting error not distributing NRGF average GIF files
 
