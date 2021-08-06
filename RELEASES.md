@@ -537,4 +537,4 @@
   typo in {R,T}CAMLUT names in 20210730 epoch
 2.0.58 [Aug 6, 2021]
   reverting error not distributing NRGF average GIF files
-
+2.0.59
