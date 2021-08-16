@@ -538,3 +538,4 @@
 2.0.58 [Aug 6, 2021]
   reverting error not distributing NRGF average GIF files
 2.0.59
+  report total time per level 0 image in realtime processing log
