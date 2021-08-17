@@ -542,3 +542,4 @@
   distribute difference images
 2.0.60 [Aug 17, 2021]
   zip difference FITS files
+2.0.61
