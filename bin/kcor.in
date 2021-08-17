@@ -569,7 +569,7 @@ def missing(args):
             config_filename = os.path.join(PIPELINE_DIR, "config", config_basename)
             if not os.path.isfile(config_filename):
                 basename = os.path.basename(config_filename)
-                error(f"configuration file does not exist: {basename}")
+                args.parser.error(f"configuration file does not exist: {basename}")
             kcor_config = configparser.ConfigParser()
             kcor_config.read(config_filename)
 
@@ -578,9 +578,9 @@ def missing(args):
                 raw_remote_dir = kcor_config.get("verification", "raw_remote_dir")
                 raw_remote_dir = os.path.join(raw_remote_dir, d)
             except configparser.NoSectionError:
-                args.error("no verification section in config file")
+                args.parser.error("no verification section in config file")
             except configparser.NoOptionError:
-                args.error("raw remote server options not present in config file")
+                args.parser.error("raw remote server options not present in config file")
 
             print(f"REMOTE_LOCATION={raw_remote_server}:{raw_remote_dir}")
             print()
@@ -1135,7 +1135,7 @@ if __name__ == "__main__":
        metavar="date-expr")
     missing_parser.add_argument("-f", "--flags", type=str, help=flags_help,
        default="latest")
-    missing_parser.add_argument("-s", "--script", help="create script",
+    missing_parser.add_argument("-s", "--script", help="create bash script",
         action="store_true")
     missing_parser.set_defaults(func=missing, parser=missing_parser)
 
