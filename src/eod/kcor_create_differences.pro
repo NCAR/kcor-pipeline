@@ -32,9 +32,11 @@ pro kcor_create_differences, date, l2_files, run=run
   mg_log, 'creating difference movies', name='kcor/eod', /info
 
   date_parts = kcor_decompose_date(date)
+  archive_dir = filepath('', subdir=date_parts, root=run->config('results/archive_basedir'))
   fullres_dir = filepath('', subdir=date_parts, root=run->config('results/fullres_basedir'))
   cropped_dir = filepath('', subdir=date_parts, root=run->config('results/croppedgif_basedir'))
   if (run->config('realtime/distribute')) then begin
+    if (~file_test(archive_dir, /directory)) then file_mkdir, archive_dir
     if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
     if (~file_test(cropped_dir, /directory)) then file_mkdir, fullres_dir
   endif
@@ -385,9 +387,8 @@ pro kcor_create_differences, date, l2_files, run=run
       writefits, fits_basename, subimg, goodheader
 
       if (run->config('realtime/distribute')) then begin
-        ; TODO: eventually these will be distributed
-        ;file_copy, gif_basename, fullres_dir, /overwrite
-        ;file_copy, fits_basename, fullres_dir, /overwrite
+        file_copy, gif_basename, fullres_dir, /overwrite
+        file_copy, fits_basename, archive_dir, /overwrite
       endif
 
       newsub = 0
@@ -403,8 +404,7 @@ pro kcor_create_differences, date, l2_files, run=run
     kcor_create_mp4, difference_gif_filenames, difference_mp4_filename, $
                      run=run, status=status
     if (status eq 0 && run->config('realtime/distribute')) then begin
-      ; TODO: distribute when the quality of these is correct
-      ;file_copy, difference_mp4_filename, fullres_dir, /overwrite
+      file_copy, difference_mp4_filename, fullres_dir, /overwrite
     endif
   endif else begin
     mg_log, 'no difference GIFs, not creating difference mp4', $
