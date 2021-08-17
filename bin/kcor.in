@@ -563,9 +563,33 @@ def missing(args):
 
         present_files = [os.path.basename(f) for f in present_files]
 
+        if args.script:
+            print("#!/bin/sh")
+            config_basename = f"kcor.{args.flags}.cfg"
+            config_filename = os.path.join(PIPELINE_DIR, "config", config_basename)
+            if not os.path.isfile(config_filename):
+                basename = os.path.basename(config_filename)
+                error(f"configuration file does not exist: {basename}")
+            kcor_config = configparser.ConfigParser()
+            kcor_config.read(config_filename)
+
+            try:
+                raw_remote_server = kcor_config.get("verification", "raw_remote_server")
+                raw_remote_dir = kcor_config.get("verification", "raw_remote_dir")
+                raw_remote_dir = os.path.join(raw_remote_dir, d)
+            except configparser.NoSectionError:
+                args.error("no verification section in config file")
+            except configparser.NoOptionError:
+                args.error("raw remote server options not present in config file")
+
+            print(f"REMOTE_LOCATION={raw_remote_server}:{raw_remote_dir}")
+            print()
         for cf in created_files:
             if cf not in present_files and cf + ".gz" not in present_files:
-                print(cf)
+                if args.script:
+                    print(f"scp $REMOTE_LOCATION/{cf} .")
+                else:
+                    print(cf)
 
 
 def get_raw_dir(date, flags, error):
@@ -1111,6 +1135,8 @@ if __name__ == "__main__":
        metavar="date-expr")
     missing_parser.add_argument("-f", "--flags", type=str, help=flags_help,
        default="latest")
+    missing_parser.add_argument("-s", "--script", help="create script",
+        action="store_true")
     missing_parser.set_defaults(func=missing, parser=missing_parser)
 
     # process, eod, rt, cal sub-commands
