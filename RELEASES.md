@@ -540,3 +540,4 @@
 2.0.59 [Aug 17, 2021]
   report total time per level 0 image in realtime processing log
   distribute difference images
+2.0.60
