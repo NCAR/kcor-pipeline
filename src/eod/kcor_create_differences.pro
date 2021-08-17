@@ -388,7 +388,9 @@ pro kcor_create_differences, date, l2_files, run=run
 
       if (run->config('realtime/distribute')) then begin
         file_copy, gif_basename, fullres_dir, /overwrite
-        file_copy, fits_basename, archive_dir, /overwrite
+
+        kcor_zip_files, fits_basename, run=run
+        file_copy, fits_basename + '.gz', archive_dir, /overwrite
       endif
 
       newsub = 0
