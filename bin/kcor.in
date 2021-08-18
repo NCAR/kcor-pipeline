@@ -549,10 +549,11 @@ def missing(args):
     dates = split_dates(",".join(args.dates), args.parser.error)
     for d in dates:
         raw_dir = get_raw_dir(d, args.flags, args.parser.error)
-        present_files1 = glob.glob(os.path.join(raw_dir, d, "*.fts*"))
-        present_files2 = glob.glob(os.path.join(raw_dir, d, "level0", "*.fts*"))
+        raw_datedir = os.path.join(raw_dir, d)
+        present_files1 = glob.glob(os.path.join(raw_datedir, "*.fts*"))
+        present_files2 = glob.glob(os.path.join(raw_datedir, "level0", "*.fts*"))
         present_files = present_files1 + present_files2
-        machine_log = os.path.join(raw_dir, d, f"{d}.kcor.machine.log")
+        machine_log = os.path.join(raw_datedir, f"{d}.kcor.machine.log")
         if os.path.exists(machine_log):
             with open(machine_log, "r") as f:
                 created_files = [line.split()[0] for line in f]
@@ -583,11 +584,12 @@ def missing(args):
                 args.parser.error("raw remote server options not present in config file")
 
             print(f"REMOTE_LOCATION={raw_remote_server}:{raw_remote_dir}")
+            print(f"LOCAL_LOCATION={raw_datedir}")
             print()
         for cf in created_files:
             if cf not in present_files and cf + ".gz" not in present_files:
                 if args.script:
-                    print(f"scp $REMOTE_LOCATION/{cf} .")
+                    print(f"scp $REMOTE_LOCATION/{cf} $LOCAL_LOCATION")
                 else:
                     print(cf)
 
