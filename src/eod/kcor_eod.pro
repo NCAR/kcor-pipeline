@@ -230,9 +230,16 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
                     line_means=line_means, line_medians=line_medians, $
                     azi_means=azi_means, azi_medians=azi_medians
     endif
+  endif
 
+  nrgf_avg_glob = filepath('*_kcor_l2_nrgf_avg.fts.gz', $
+                           subdir=[date, 'level2'], $
+                           root=run->config('processing/raw_basedir'))
+  nrgf_avg_files = file_search(nrgf_avg_glob, count=n_nrgf_avg_files)
+  if (n_nrgf_avg_files gt 0L) then begin
     if (run->config('eod/create_daily_movies')) then begin
-      kcor_create_animations, date, list=nrgf_files, run=run
+      nrgf_avg_timestamps = strmid(file_basename(nrgf_avg_files), 0, 15)
+      kcor_create_animations, date, timestamps=nrgf_avg_timestamps, run=run
     endif
   endif
 

@@ -9,12 +9,12 @@
 ;     date in the form 'YYYYMMDD'
 ;
 ; :Keywords:
-;   list : in, required, type=strarr
-;     list of NRGF files to process
+;   timestamps : in, required, type=strarr
+;     timestamps for frames
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;-
-pro kcor_create_animations, date, list=nrgf_files, run=run
+pro kcor_create_animations, date, timestamps=timestamps, run=run
   compile_opt strictarr
 
   mg_log, 'creating animations', name='kcor/eod', /info
@@ -36,10 +36,11 @@ pro kcor_create_animations, date, list=nrgf_files, run=run
   cd, current=current
   cd, l2_dir
 
-  nrgf_gif_filenames = file_basename(nrgf_files, '.fts.gz') + '.gif'
-  gif_filenames = file_basename(nrgf_files, '_nrgf.fts.gz') + '.gif'
-  cropped_nrgf_gif_filenames = file_basename(nrgf_files, '.fts.gz') + '_cropped.gif'
-  cropped_gif_filenames = file_basename(nrgf_files, '_nrgf.fts.gz') + '_cropped.gif'
+  ; TODO: remove _avg also
+  nrgf_gif_filenames = timestamps + '_kcor_l2_nrgf_avg.gif'
+  gif_filenames = timestamps + '_kcor_l2.gif'
+  cropped_nrgf_gif_filenames = timestamps + '_kcor_l2_nrgf_cropped.gif'
+  cropped_gif_filenames = timestamps + '_kcor_l2_cropped.gif'
 
   n_gif_filenames = n_elements(gif_filenames)
 
