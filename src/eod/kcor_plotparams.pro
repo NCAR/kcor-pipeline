@@ -206,21 +206,21 @@ pro kcor_plotparams, date, list=list, run=run
           z_buffering=0
   !p.multi = [0, 1, 2]
 
-  mg_rangeplot, hours, sgs_dimv, $
-                title=pdate + ' KCor SGS DIM (Sky transmission)', $
-                xtitle='Hours [UT]', ytitle='Relative sky transmission - DIM [volts]', $
-                xrange=[16.0, 28.0], $
-                /ynozero, ystyle=1, yrange=[3.0, 10.0], $
-                background=255, color=0, charsize=1.0, $
-                clip_thick=2.0, psym=1
+  mg_range_plot, hours, sgs_dimv, $
+                 title=pdate + ' KCor SGS DIM (Sky transmission)', $
+                 xtitle='Hours [UT]', ytitle='Relative sky transmission - DIM [volts]', $
+                 xrange=[16.0, 28.0], $
+                 /ynozero, ystyle=1, yrange=[3.0, 10.0], $
+                 background=255, color=0, charsize=1.0, $
+                 clip_thick=2.0, psym=1
 
   ; use fixed y-axis scaling
-  mg_rangeplot, hours, sgs_scin, $
-                title=pdate + ' KCor SGS Scintillation', $
-                xtitle='Hours [UT]', ytitle='Scintillation [arcsec]', $
-                xrange=[16.0, 28.0], ystyle=1, yrange=[0.0, 8.0], $
-                background=255, color=0, charsize=1.0, $
-                clip_thick=2.0
+  mg_range_plot, hours, sgs_scin, $
+                 title=pdate + ' KCor SGS Scintillation', $
+                 xtitle='Hours [UT]', ytitle='Scintillation [arcsec]', $
+                 xrange=[16.0, 28.0], ystyle=1, yrange=[0.0, 8.0], $
+                 background=255, color=0, charsize=1.0, $
+                 clip_thick=2.0
 
   rav_min = min(sgs_rav - sgs_ras, /nan)
   rav_max = max(sgs_rav + sgs_ras, /nan)
