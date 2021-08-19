@@ -36,7 +36,6 @@ pro kcor_create_animations, date, timestamps=timestamps, run=run
   cd, current=current
   cd, l2_dir
 
-  ; TODO: remove _avg also
   nrgf_gif_filenames = timestamps + '_kcor_l2_nrgf_avg.gif'
   gif_filenames = timestamps + '_kcor_l2.gif'
   cropped_nrgf_gif_filenames = timestamps + '_kcor_l2_nrgf_cropped.gif'
