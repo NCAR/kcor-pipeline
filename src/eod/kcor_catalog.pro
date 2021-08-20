@@ -38,6 +38,11 @@ pro kcor_catalog, date, list=list, run=run, catalog_dir=catalog_dir
     catalog_dir = filepath(date, root=run->config('processing/raw_basedir'))
   endelse
 
+  if (file_test(catalog_dir, /directory)) then begin
+    mg_log, 'raw directory does not exist', name='kcor/eod', /warn
+    goto, done
+  endif
+
   cd, catalog_dir
 
   if (n_elements(list) eq 0L) then begin
@@ -56,5 +61,7 @@ pro kcor_catalog, date, list=list, run=run, catalog_dir=catalog_dir
             name='kcor/eod', /info
     kcor_catalog_file, fits_file, run=run
   endfor
+
+  done:
 end
 
