@@ -544,3 +544,4 @@
   zip difference FITS files
 2.0.61
   decreased cadence of frames in mp4s
+  change epochs file to produce calibration for 20131204
