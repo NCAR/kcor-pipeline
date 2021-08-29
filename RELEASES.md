@@ -542,6 +542,6 @@
   distribute difference images
 2.0.60 [Aug 17, 2021]
   zip difference FITS files
-2.0.61
+2.0.61 [Aug 29, 2021]
   decreased cadence of frames in mp4s
   change epochs file to produce calibration for 20131204
