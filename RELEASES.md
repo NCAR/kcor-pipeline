@@ -548,3 +548,4 @@
 2.0.62 [Aug 29, 2021]
   fix for checking if catalog directory exists in end-of-day
 2.0.63
+  producing HPR and HPR diff GIFs
