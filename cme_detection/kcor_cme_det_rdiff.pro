@@ -86,7 +86,12 @@ pro kcor_cme_det_rdiff, hmap, maps, date_orig, outfile, hdiff, mdiff, $
                 'UTC observation average date/time'
 
       ; Write the output file.
-      if keyword_set(store) then fxwrite, outfile, hdiff, mdiff
+      if keyword_set(store) then begin
+        fxwrite, outfile, hdiff, mdiff
+        gif_filename = filepath(file_basename(outfile, '.fts.gz') + '.gif', $
+                                root=file_dirname(outfile))
+        kcor_cme_det_hpr_gif, gif_filename, mdiff
+      endif
     endelse
   endelse
 end

@@ -92,6 +92,11 @@ pro kcor_cme_det_remap, header, image, outfile, hmap, map
     fxaddpar, hmap, 'history', 'Converted to helioprojective-radial coordinates'
 
     ; Write the output file.
-    if (keyword_set(store)) then fxwrite, outfile, hmap, map
+    if (keyword_set(store)) then begin
+      fxwrite, outfile, hmap, map
+      gif_filename = filepath(file_basename(outfile, '.fts.gz') + '.gif', $
+                              root=file_dirname(outfile))
+      kcor_cme_det_hpr_gif, gif_filename, hmap
+    endif
   endelse
 end
