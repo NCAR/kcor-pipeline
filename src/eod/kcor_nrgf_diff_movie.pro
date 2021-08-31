@@ -19,17 +19,14 @@ pro kcor_nrgf_diff_movie, run=run
   compile_opt strictarr
 
    ; set image dimensions to 1024 x 512
-   newarray = bytarr(1024, 512)
-
-basename = ''
-newname = ''
-animation_name = ''
+   combined_image = bytarr(1024, 512)
 
   ; set default values
 
   ; [secs] maximum DESIRED time difference between diff and NRGF image (no data
   ; gaps)
   numsec = 80.0D
+
   ; [secs] maximum REQUIRED (not to exceed) time difference between diff and
   ; NRGF image when gaps present
   maxsec = 300.0D
@@ -38,31 +35,30 @@ animation_name = ''
 
   ; used to find NRGF images in units of fraction of a day in seconds
   goodtime = numsec / secs_per_day
+
   ; used to find NRGF if data gaps in fraction of a day in seconds
   maxtime = maxsec / secs_per_day
+
   ; used to determine if data gap present; initialize to 1 day
   savetime = secs_per_day / secs_per_day
 
-  read_subt = 1     ; flag to determine if a new subt. image should be read in. 1=yes, 0=no
-  ncount = 0        ; counter for number of good nrgf/subt pairs
-  end_of_data = 0   ; use flag to find last good image matches
-  no_subt = 0       ; Set to one if no subtraction images are present
+  read_subt = 1B     ; flag to determine if a new diff image should be read in
+  ncount = 0L        ; counter for number of good nrgf/subt pairs
+  end_of_data = 0B   ; use flag to find last good image matches
 
-  ; read in list of good subtraction gifs and 2 min avg nrgf gifs
+  ; read in list of good diff GIFs and 2 min average NRGF GIFs
 
   diff_gifs = file_search(filepath('*minus*_good.gif', $
                                    subdir=[run.date, 'level2'], $
                                    root=raw->config('processing/raw_basedir')), $
                           count=n_diff_gifs)
-;spawn,'ls *minus*_good.gif >& subt.ls'
   nrgf_average_gifs = file_search(filepath('*l2_nrgf_avg.gif', $
                                    subdir=[run.date, 'level2'], $
                                    root=raw->config('processing/raw_basedir')), $
                           count=n_nrgf_average_gifs)
- ;spawn,'ls *l2_nrgf_avg.gif >& nrgf.ls'
 
   if (n_diff_gifs eq 0L) then begin
-    no_subt = 1
+    mg_log, 'no subtractions available for this day', name=run.logger_name, /warn
     goto, done
   endif
 
@@ -116,7 +112,7 @@ animation_name = ''
     if (delta_time lt goodtime) then begin
       nrgf_keep[ncount] = nrgf_file
       diff_keep[ncount] = diff_file
-      print, 'found a good nrgf file'
+      print, 'found a good NRGF file'
       read_subt = 1B
       ; found a good image so reset to start looking for next good image
       savetime = 1.0D
@@ -124,37 +120,46 @@ animation_name = ''
     endif else if (delta_time lt savetime) then begin
       ; time difference decreasing (i.e. closer to subt) but want something
       ; closer
-      savetime = delta_time         ; save current img time difference to check for future data gaps
-      saveimg = nrgf_file           ; save current image filename in case of future data gaps
+
+      ; save current img time difference to check for future data gaps
+      savetime = delta_time
+      ; save current image filename in case of future data gaps
+      saveimg = nrgf_file
+
       read_subt = 0
     endif else if (delta_time ge savetime) and (savetime lt maxtime) then begin    
       ; time difference increasing; probably data gap. Use previous image if
       ; meets less strict criteria
-      nrgf_keep(ncount) = saveimg
-      diff_keep(ncount) = diff_file
-      print, 'found an acceptable nrgf file'
+      nrgf_keep[ncount] = saveimg
+      diff_keep[ncount] = diff_file
+      print, 'found an acceptable NRGF file'
       read_subt = 1B
       savetime = 1.0D
       ncount += 1L
     endif else if (delta_time ge savetime) and (savetime ge maxtime) then begin
       ; no good image found to match subtraction 
-      read_subt = 1B              ; need to read in a new subtraction 
+      read_subt = 1B   ; need to read in a new subtraction 
       savetime = 1.0D
-      print, 'NO acceptable nrgf found '
+      print, 'NO acceptable NRGF found '
     endif
 
     ; when the last diff image is found; continue reading NRGFs to find a match
     if ((current_diff eq n_diff_gifs) and (current_nrgf eq n_nrgf_average_gifs)) then end_of_data = 1B
+
+    ; still have some NRGF images
     if ((current_diff eq n_diff_gifs) and (current_nrgf lt n_nrgf_average_gifs)) then begin
-      ; still have some NRGF images
-      if (read_subt eq 1) then end_of_data = 1B  ; no more NRGFs within time range
-      if (read_subt eq 0) then end_of_data = 0B  ; keep going to find last good NRGF
+      ; no more NRGFs within time range
+      if (read_subt eq 1) then end_of_data = 1B
+
+      ; keep going to find last good NRGF
+      if (read_subt eq 0) then end_of_data = 0B
     endif
   endwhile
 
-   mg_log, 'number of subtraction images = %d', n_diff_gifs, name=run.logger_name, /info
+  mg_log, 'number of difference images: %d', n_diff_gifs, name=run.logger_name, /info
 
-  for i=0L, ncount - 1L  do begin
+  frame_filenames = strarr(ncount)
+  for i = 0L, ncount - 1L  do begin
     read_gif, nrgf_keep[i], nrgfimg
     read_gif, diff_keep[i], subtimg
 
@@ -162,39 +167,31 @@ animation_name = ''
     ftspos   = strpos(diff_keep[i], '_kcor')
     basename = strmid(diff_keep[i], 0, ftspos - 2)
 
-    nrgfimg = rebin(nrgfimg, 512, 512)
-    subtimg = rebin(subtimg, 512, 512)
+    nrgf_image = rebin(nrgfimg, 512, 512)
+    diff_image = rebin(subtimg, 512, 512)
 
-    ; put NRGF image on left and subtraction on the right side of the window
-    newarray[0:511, *] = nrgfimg
-    newarray[512:1023, *] = subtimg
-    
+    ; put NRGF image on left and difference on the right side of the window
+    combined_image[0:511, *] = nrgf_image
+    combined_image[512:1023, *] = diff_image
+
     ; create GIF name and save image
-    newname = basename + '_kcor_l2_nrgf_and_diff.gif'
-    write_gif, newname, newarray
+    frame_filenames[i] = filepath(basename + '_kcor_l2_nrgf_and_diff.gif', $
+                                  subdir=[run.date, 'level2'], $
+                                  root=raw->config('processing/raw_basedir'))
+    write_gif, frame_filenames[i], combined_image
   endfor
 
-;  create list with names of side-by-side gifs
-spawn, 'ls *kcor_l2_nrgf_and_diff.gif >& nrgf_and_subt.ls'
+  ; create movie filename
+  ; note: there are a handful of days when there is only 1 K-Cor diff image,
+  ;       if that is the case then add that info to the filename
+  basename = string(strmid(diff_keep[0], 0, 8), $
+                    n_diff_gifs eq 1L ? 'one_frame_only_' : '', $
+                    format='(%"%s_kcor_l2_nrgf_and_diff_%smovie.gif")')
+  movie_name = filepath(basename, $
+                        subdir=[run.date, 'level2'], $
+                        root=raw->config('processing/raw_basedir'))
 
-; Create movie filename
-basename = strmid(diff_keep[0], 0, 8)  ;  remove the seconds from the filename. 
-movie_name = basename + '_kcor_l2_nrgf_and_subt_movie.gif'
-
-; There are a handful of days when there is only 1 K-Cor subtraction image
-; If that is the case then add that info to the filename
-IF (n_diff_gifs eq 1) THEN movie_name = basename + '_kcor_l2_nrgf_and_subt_one_frame_only_movie.gif'
-
-GET_LUN, MOVIENAME
-OPENW,MOVIENAME,'animation_name'
-printf, MOVIENAME, movie_name    ;save movie filename to create animate filename 
-CLOSE, MOVIENAME
-
-  ; TODO: make mp4 instead of animated GIF
-spawn,'convert -delay 10 -loop 0 `cat nrgf_and_subt.ls` `cat animation_name` '
+  kcor_create_mp4, frame_filenames, movie_name, run=run, status=status
 
   done:
-  if (no_subt eq 1) then begin
-    mg_log, 'no subtractions available for this day', name=run.logger_name, /warn
-  endif
 end

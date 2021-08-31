@@ -240,6 +240,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     if (run->config('eod/create_daily_movies')) then begin
       nrgf_avg_timestamps = strmid(file_basename(nrgf_avg_files), 0, 15)
       kcor_create_animations, date, timestamps=nrgf_avg_timestamps, run=run
+      kcor_nrgf_diff_movie, run=run
     endif
   endif
 
