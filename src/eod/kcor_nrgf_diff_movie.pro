@@ -50,11 +50,11 @@ pro kcor_nrgf_diff_movie, run=run
 
   diff_gifs = file_search(filepath('*minus*_good.gif', $
                                    subdir=[run.date, 'level2'], $
-                                   root=raw->config('processing/raw_basedir')), $
+                                   root=run->config('processing/raw_basedir')), $
                           count=n_diff_gifs)
   nrgf_average_gifs = file_search(filepath('*l2_nrgf_avg.gif', $
                                    subdir=[run.date, 'level2'], $
-                                   root=raw->config('processing/raw_basedir')), $
+                                   root=run->config('processing/raw_basedir')), $
                           count=n_nrgf_average_gifs)
 
   if (n_diff_gifs eq 0L) then begin
@@ -81,20 +81,22 @@ pro kcor_nrgf_diff_movie, run=run
     ; determine time of images
 
     ; extract subtraction time from filename
-    diff_year   = fix(strmid(diff_file,  0, 4))
-    diff_month  = fix(strmid(diff_file,  4, 2))
-    diff_day    = fix(strmid(diff_file,  6, 2))
-    diff_hour   = fix(strmid(diff_file,  9, 2))
-    diff_minute = fix(strmid(diff_file, 11, 2))
-    diff_second = fix(strmid(diff_file, 13, 2))
+    diff_basename = file_basename(diff_file)
+    diff_year   = fix(strmid(diff_basename,  0, 4))
+    diff_month  = fix(strmid(diff_basename,  4, 2))
+    diff_day    = fix(strmid(diff_basename,  6, 2))
+    diff_hour   = fix(strmid(diff_basename,  9, 2))
+    diff_minute = fix(strmid(diff_basename, 11, 2))
+    diff_second = fix(strmid(diff_basename, 13, 2))
 
     ; extract NRGF time from filename
-    nrgf_year   = fix(strmid(nrgf_file,  0, 4))
-    nrgf_month  = fix(strmid(nrgf_file,  4, 2))
-    nrgf_day    = fix(strmid(nrgf_file,  6, 2))
-    nrgf_hour   = fix(strmid(nrgf_file,  9, 2))
-    nrgf_minute = fix(strmid(nrgf_file, 11, 2))
-    nrgf_second = fix(strmid(nrgf_file, 13, 2))
+    nrgf_basename = file_basename(nrgf_file)
+    nrgf_year   = fix(strmid(nrgf_basename,  0, 4))
+    nrgf_month  = fix(strmid(nrgf_basename,  4, 2))
+    nrgf_day    = fix(strmid(nrgf_basename,  6, 2))
+    nrgf_hour   = fix(strmid(nrgf_basename,  9, 2))
+    nrgf_minute = fix(strmid(nrgf_basename, 11, 2))
+    nrgf_second = fix(strmid(nrgf_basename, 13, 2))
 
     ; use diff time to find nearest NRGF image 
     ; convert to julian date to make it easier to find difference between times 
@@ -112,7 +114,7 @@ pro kcor_nrgf_diff_movie, run=run
     if (delta_time lt goodtime) then begin
       nrgf_keep[ncount] = nrgf_file
       diff_keep[ncount] = diff_file
-      print, 'found a good NRGF file'
+      mg_log, 'found a good NRGF file', name=run.logger_name, /debug
       read_subt = 1B
       ; found a good image so reset to start looking for next good image
       savetime = 1.0D
@@ -132,7 +134,7 @@ pro kcor_nrgf_diff_movie, run=run
       ; meets less strict criteria
       nrgf_keep[ncount] = saveimg
       diff_keep[ncount] = diff_file
-      print, 'found an acceptable NRGF file'
+      mg_log, 'found an acceptable NRGF file', name=run.logger_name, /debug
       read_subt = 1B
       savetime = 1.0D
       ncount += 1L
@@ -140,7 +142,7 @@ pro kcor_nrgf_diff_movie, run=run
       ; no good image found to match subtraction 
       read_subt = 1B   ; need to read in a new subtraction 
       savetime = 1.0D
-      print, 'NO acceptable NRGF found '
+      mg_log, 'NO acceptable NRGF found ', name=run.logger_name, /debug
     endif
 
     ; when the last diff image is found; continue reading NRGFs to find a match
@@ -175,23 +177,35 @@ pro kcor_nrgf_diff_movie, run=run
     combined_image[512:1023, *] = diff_image
 
     ; create GIF name and save image
-    frame_filenames[i] = filepath(basename + '_kcor_l2_nrgf_and_diff.gif', $
-                                  subdir=[run.date, 'level2'], $
-                                  root=raw->config('processing/raw_basedir'))
+    frame_filenames[i] = basename + '_kcor_l2_nrgf_and_diff.gif'
     write_gif, frame_filenames[i], combined_image
   endfor
 
   ; create movie filename
   ; note: there are a handful of days when there is only 1 K-Cor diff image,
   ;       if that is the case then add that info to the filename
-  basename = string(strmid(diff_keep[0], 0, 8), $
+  basename = string(strmid(file_basename(diff_keep[0]), 0, 8), $
                     n_diff_gifs eq 1L ? 'one_frame_only_' : '', $
-                    format='(%"%s_kcor_l2_nrgf_and_diff_%smovie.gif")')
+                    format='(%"%s_kcor_l2_nrgf_and_diff_%smovie.mp4")')
   movie_name = filepath(basename, $
                         subdir=[run.date, 'level2'], $
-                        root=raw->config('processing/raw_basedir'))
+                        root=run->config('processing/raw_basedir'))
 
   kcor_create_mp4, frame_filenames, movie_name, run=run, status=status
 
   done:
+end
+
+
+; main-level example program
+
+date = '20210801'
+config_basename = 'kcor.latest.cfg'
+config_filename = filepath(config_basename, $
+                           subdir=['..', '..', 'config'], $
+                           root=mg_src_root())
+run = kcor_run(date, config_filename=config_filename)
+kcor_nrgf_diff_movie, run=run
+obj_destroy, run
+
 end
