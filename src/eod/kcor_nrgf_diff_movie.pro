@@ -185,8 +185,8 @@ pro kcor_nrgf_diff_movie, run=run
   ; note: there are a handful of days when there is only 1 K-Cor diff image,
   ;       if that is the case then add that info to the filename
   basename = string(strmid(file_basename(diff_keep[0]), 0, 8), $
-                    n_diff_gifs eq 1L ? 'one_frame_only_' : '', $
-                    format='(%"%s_kcor_l2_nrgf_and_diff_%smovie.mp4")')
+                    n_diff_gifs eq 1L ? '_one_frame_only' : '', $
+                    format='(%"%s_kcor_l2_nrgf_and_diff%s.mp4")')
   movie_name = filepath(basename, $
                         subdir=[run.date, 'level2'], $
                         root=run->config('processing/raw_basedir'))
