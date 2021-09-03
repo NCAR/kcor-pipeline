@@ -94,9 +94,9 @@ pro kcor_cme_det_remap, header, image, outfile, hmap, map
     ; Write the output file.
     if (keyword_set(store)) then begin
       fxwrite, outfile, hmap, map
-      gif_filename = filepath(file_basename(outfile, '.fts.gz') + '.gif', $
+      gif_filename = filepath(file_basename(outfile, '.fts') + '.gif', $
                               root=file_dirname(outfile))
-      kcor_cme_det_hpr_gif, gif_filename, hmap
+      kcor_cme_det_hpr_gif, gif_filename, map
     endif
   endelse
 end

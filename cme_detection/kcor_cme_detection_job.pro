@@ -75,7 +75,8 @@ pro kcor_cme_detection_job, date, $
                           root=run->config('logging/dir'))
   mg_rotate_log, log_filename, max_version=run->config('logging/max_version')
   mg_log, logger=logger, name='kcor/cme'
-  logger->setProperty, filename=log_filename
+  logger->setProperty, filename=log_filename, $
+                       format='%(time)s %(levelshortname)s: %(routine)s: %(message)s'
 
   kcor_cme_det_setdate, date
   kcor_cme_det_reset

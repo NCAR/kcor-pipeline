@@ -12,6 +12,9 @@
 pro kcor_cme_det_hpr_gif, output_filename, mdiff
   compile_opt strictarr
 
+  n_dims = size(mdiff, /n_dimensions)
+  if (n_dims ne 2) then return
+
   dims = size(mdiff, /dimensions)
   resized_dims = [4 * dims[0], 2 * dims[1]]
   resized_image = rebin(mdiff, resized_dims)
@@ -72,10 +75,10 @@ end
 
 ; main-level example program
 
-;f = '20210829_205704_kcor_l2_hpr_rd.fts.gz'
-f = '20210507_192030_kcor_l2_hpr_rd.fts.gz'
+;f = '20210829_205704_kcor_l2_hpr_rd.fts'
+f = '20210507_192030_kcor_l2_hpr_rd.fts'
 mdiff = readfits(f, header)
-gif_filename = file_basename(f, '.fts.gz') + '.gif'
+gif_filename = file_basename(f, '.fts') + '.gif'
 kcor_cme_det_rdiff_gif, gif_filename, mdiff
 
 end

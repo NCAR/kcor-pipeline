@@ -89,13 +89,13 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
         ; remap the image into helioprojective radial coordinates
         break_file, files[ifile], disk, dir, name, ext
         name = name + '_hpr'
-        hpr_out_file = concat_dir(hpr_out_dir, name + ext)
+        hpr_out_file = concat_dir(hpr_out_dir, name + '.fts')
         kcor_cme_det_remap, header, image, hpr_out_file, hmap, map
         boost_array, maps, map
 
         ; form the running difference maps
         name = name + '_rd'
-        diff_out_file = concat_dir(diff_out_dir, name + ext)
+        diff_out_file = concat_dir(diff_out_dir, name + '.fts')
         kcor_cme_det_rdiff, hmap, double(maps), date_orig, diff_out_file, $
                             hdiff, mdiff, store=store
 

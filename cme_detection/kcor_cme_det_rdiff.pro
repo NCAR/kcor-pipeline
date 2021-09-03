@@ -88,7 +88,7 @@ pro kcor_cme_det_rdiff, hmap, maps, date_orig, outfile, hdiff, mdiff, $
       ; Write the output file.
       if keyword_set(store) then begin
         fxwrite, outfile, hdiff, mdiff
-        gif_filename = filepath(file_basename(outfile, '.fts.gz') + '.gif', $
+        gif_filename = filepath(file_basename(outfile, '.fts') + '.gif', $
                                 root=file_dirname(outfile))
         kcor_cme_det_hpr_gif, gif_filename, mdiff
       endif
