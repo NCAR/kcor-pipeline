@@ -550,3 +550,4 @@
 2.0.63 [Sep 3, 2021]
   produce HPR and HPR diff GIFs in CME detection
   produce combined NRGF and difference image movie in end-of-day
+2.0.64
