@@ -547,6 +547,6 @@
   change epochs file to produce calibration for 20131204
 2.0.62 [Aug 29, 2021]
   fix for checking if catalog directory exists in end-of-day
-2.0.63
+2.0.63 [Sep 3, 2021]
   produce HPR and HPR diff GIFs in CME detection
   produce combined NRGF and difference image movie in end-of-day
