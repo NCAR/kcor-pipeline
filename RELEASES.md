@@ -550,7 +550,7 @@
 2.0.63 [Sep 3, 2021]
   produce HPR and HPR diff GIFs in CME detection
   produce combined NRGF and difference image movie in end-of-day
-2.0.64
+2.0.64 [Sep 13, 2021]
   name CME HPR/HPR diff FITS files appropriately, i.e, .fts not .fts.gz
   check for invalid HPR/HPR diff data when writing GIF
   fix for writing HPR GIF files
