@@ -554,3 +554,5 @@
   name CME HPR/HPR diff FITS files appropriately, i.e, .fts not .fts.gz
   check for invalid HPR/HPR diff data when writing GIF
   fix for writing HPR GIF files
+2.0.65
+
