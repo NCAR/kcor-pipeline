@@ -18,8 +18,12 @@
 pro kcor_nrgf_diff_movie, run=run
   compile_opt strictarr
 
-   ; set image dimensions to 1024 x 512
-   combined_image = bytarr(1024, 512)
+  fullres_dir = filepath('', $
+                         subdir=date_parts=kcor_decompose_date(run.date), $
+                         root=run->config('results/fullres_basedir'))
+
+  ; set image dimensions to 1024 x 512
+  combined_image = bytarr(1024, 512)
 
   ; set default values
 
@@ -179,6 +183,9 @@ pro kcor_nrgf_diff_movie, run=run
     ; create GIF name and save image
     frame_filenames[i] = basename + '_kcor_l2_nrgf_and_diff.gif'
     write_gif, frame_filenames[i], combined_image
+    if (run->config('realtime/distribute')) then begin
+      file_copy, frame_filenames[i], fullres_dir, /overwrite
+    endif
   endfor
 
   ; create movie filename
@@ -192,7 +199,10 @@ pro kcor_nrgf_diff_movie, run=run
                         root=run->config('processing/raw_basedir'))
 
   kcor_create_mp4, frame_filenames, movie_name, run=run, status=status
-
+  if (status eq 0L && run->config('realtime/distribute')) then begin
+    file_copy, movie_name, fullres_dir, /overwrite
+  endif
+  
   done:
 end
 
