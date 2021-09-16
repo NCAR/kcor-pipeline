@@ -555,4 +555,4 @@
   check for invalid HPR/HPR diff data when writing GIF
   fix for writing HPR GIF files
 2.0.65
-
+  distribute combined NRGF and difference GIFs and mp4s

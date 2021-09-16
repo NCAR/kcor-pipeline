@@ -19,7 +19,7 @@ pro kcor_nrgf_diff_movie, run=run
   compile_opt strictarr
 
   fullres_dir = filepath('', $
-                         subdir=date_parts=kcor_decompose_date(run.date), $
+                         subdir=kcor_decompose_date(run.date), $
                          root=run->config('results/fullres_basedir'))
 
   ; set image dimensions to 1024 x 512
