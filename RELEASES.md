@@ -557,3 +557,4 @@
 2.0.65
   distribute combined NRGF and difference GIFs and mp4s
   epoch fixes for 2015 calibration files
+  updating SGS plots

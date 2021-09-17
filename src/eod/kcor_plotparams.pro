@@ -54,12 +54,18 @@ pro kcor_plotparams, date, list=list, run=run
   mod_temp   = fltarr(nimg)
 
   sgs_dimv   = fltarr(nimg)
-  sgs_scin   = fltarr(nimg)
+  sgs_dims   = fltarr(nimg)
+  sgs_scint  = fltarr(nimg)
+
+  sgs_sumv   = fltarr(nimg)
+  sgs_sums   = fltarr(nimg)
+
   sgs_rav    = fltarr(nimg)
   sgs_ras    = fltarr(nimg)
+  sgs_razr   = fltarr(nimg)
+
   sgs_decv   = fltarr(nimg)
   sgs_decs   = fltarr(nimg)
-  sgs_razr   = fltarr(nimg)
   sgs_deczr  = fltarr(nimg)
 
   hours      = fltarr(nimg)
@@ -123,21 +129,33 @@ pro kcor_plotparams, date, list=list, run=run
 
     if (run->epoch('use_sgs')) then begin
       sgs_dimv[i]  = kcor_getsgs(hdu, 'SGSDIMV', /float)
-      sgs_scin[i]  = kcor_getsgs(hdu, 'SGSSCINT', /float)
+      sgs_dims[i]  = kcor_getsgs(hdu, 'SGSDIMS', /float)
+      sgs_scint[i] = kcor_getsgs(hdu, 'SGSSCINT', /float)
+
+      sgs_sumv[i]  = kcor_getsgs(hdu, 'SGSSUMV', /float)
+      sgs_sums[i]  = kcor_getsgs(hdu, 'SGSSUMS', /float)
+
       sgs_rav[i]   = kcor_getsgs(hdu, 'SGSRAV', /float)
       sgs_ras[i]   = kcor_getsgs(hdu, 'SGSRAS', /float)
+      sgs_razr[i]  = kcor_getsgs(hdu, 'SGSRAZR', /float)
+
       sgs_decv[i]  = kcor_getsgs(hdu, 'SGSDECV', /float)
       sgs_decs[i]  = kcor_getsgs(hdu, 'SGSDECS', /float)
-      sgs_razr[i]  = kcor_getsgs(hdu, 'SGSRAZR', /float)
       sgs_deczr[i] = kcor_getsgs(hdu, 'SGSDECZR', /float)
     endif else begin
       sgs_dimv[i]  = !values.f_nan
-      sgs_scin[i]  = !values.f_nan
+      sgs_dims[i]  = !values.f_nan
+      sgs_scint[i] = !values.f_nan
+
+      sgs_sumv[i]  = !values.f_nan
+      sgs_sums[i]  = !values.f_nan
+
       sgs_rav[i]   = !values.f_nan
       sgs_ras[i]   = !values.f_nan
+      sgs_razr[i]  = !values.f_nan
+
       sgs_decv[i]  = !values.f_nan
       sgs_decs[i]  = !values.f_nan
-      sgs_razr[i]  = !values.f_nan
       sgs_deczr[i] = !values.f_nan
     endelse
 
@@ -153,7 +171,7 @@ pro kcor_plotparams, date, list=list, run=run
             strmid(datatype, 0, 3), $
             name='kcor/eod', /debug
     mg_log, '%s%8.3f %8.3f %8.3f', $
-            indent, modltrt, sgs_dimv[i], sgs_scin[i], $
+            indent, modltrt, sgs_dimv[i], sgs_scint[i], $
             name='kcor/eod', /debug
     mg_log, '%s%8.3f %8.3f %10.3f', $
             indent, tcamfocs, rcamfocs, o1focs, $
@@ -196,31 +214,126 @@ pro kcor_plotparams, date, list=list, run=run
     endif
   endfor
 
-  eng_gif_filename  = filepath(date + '.sgs.eng.gif', root=plots_dir)
-
-  mg_log, 'eng gif: %s', file_basename(eng_gif_filename), name='kcor/eod', /debug
+  time_range = [16.0, 28.0]
 
   ; set up graphics window & color table for sgs.eng.gif
   set_plot, 'Z'
-  device, set_resolution=[772, 1000], decomposed=0, set_colors=256, $
+  device, set_resolution=[772, 1000], $
+          decomposed=0, $
+          set_colors=256, $
           z_buffering=0
-  !p.multi = [0, 1, 2]
+
+  !p.multi = [0, 1, 3]
 
   mg_range_plot, hours, sgs_dimv, $
                  title=pdate + ' KCor SGS DIM (Sky transmission)', $
                  xtitle='Hours [UT]', ytitle='Relative sky transmission - DIM [volts]', $
-                 xrange=[16.0, 28.0], $
-                 /ynozero, ystyle=1, yrange=[3.0, 10.0], $
+                 xrange=time_range, $
+                 /ynozero, ystyle=1, yrange=run->epoch('sgsdimv_range'), $
                  background=255, color=0, charsize=1.0, $
                  clip_thick=2.0, psym=1
 
-  ; use fixed y-axis scaling
-  mg_range_plot, hours, sgs_scin, $
+  mg_range_plot, hours, sgs_dims, $
+                 title=pdate + ' KCor SGS DIMS (Sky transmission std dev)', $
+                 xtitle='Hours [UT]', ytitle='Relative sky transmission - DIM [volts]', $
+                 xrange=time_range, $
+                 /ynozero, ystyle=1, yrange=run->epoch('sgsdims_range'), $
+                 background=255, color=0, charsize=1.0, $
+                 clip_thick=2.0, psym=1
+
+  mg_range_plot, hours, sgs_scint, $
                  title=pdate + ' KCor SGS Scintillation', $
                  xtitle='Hours [UT]', ytitle='Scintillation [arcsec]', $
-                 xrange=[16.0, 28.0], ystyle=1, yrange=[0.0, 8.0], $
+                 xrange=time_range, $
+                 ystyle=1, yrange=run->epoch('sgsscint_range'), $
                  background=255, color=0, charsize=1.0, $
                  clip_thick=2.0
+
+  sgs_seeing_gif_filename  = filepath(date + '.kcor.sgs.seeing.gif', root=plots_dir)
+  mg_log, 'SGS seeing GIF: %s', file_basename(sgs_seeing_gif_filename), name='kcor/eod', /debug
+  write_gif, sgs_seeing_gif_filename, tvrd()
+
+  !p.multi = [0, 1, 2]
+
+  mg_range_plot, hours, sgs_sumv, $
+                 title=pdate + ' KCor SGS SUMV', $
+                 xtitle='Hours [UT]', ytitle='?', $
+                 xrange=time_range, $
+                 /ynozero, ystyle=1, yrange=run->epoch('sgssumv_range'), $
+                 background=255, color=0, charsize=1.0, $
+                 clip_thick=2.0, psym=1
+
+  mg_range_plot, hours, sgs_sums, $
+                 title=pdate + ' KCor SGS SUMS', $
+                 xtitle='Hours [UT]', ytitle='?', $
+                 xrange=time_range, $
+                 /ynozero, ystyle=1, yrange=run->epoch('sgssums_range'), $
+                 background=255, color=0, charsize=1.0, $
+                 clip_thick=2.0, psym=1
+
+  sgs_signal_gif_filename  = filepath(date + '.kcor.sgs.signal.gif', root=plots_dir)
+  mg_log, 'SGS signal GIF: %s', file_basename(sgs_signal_gif_filename), name='kcor/eod', /debug
+  write_gif, sgs_signal_gif_filename, tvrd()
+
+  !p.multi = [0, 1, 3]
+
+  mg_range_plot, hours, sgs_rav, $
+                 title=pdate + ' KCor RAV', $
+                 xtitle='Hours [UT]', ytitle='RA [degrees]', $
+                 xrange=time_range, $
+                 /ynozero, ystyle=1, yrange=run->epoch('sgsrav_range'), $
+                 background=255, color=0, charsize=1.0, $
+                 clip_thick=2.0, psym=1
+
+  mg_range_plot, hours, sgs_ras, $
+                 title=pdate + ' KCor RAS', $
+                 xtitle='Hours [UT]', ytitle='RA [degrees]', $
+                 xrange=time_range, $
+                 /ynozero, ystyle=1, yrange=run->epoch('sgsras_range'), $
+                 background=255, color=0, charsize=1.0, $
+                 clip_thick=2.0, psym=1
+  
+  mg_range_plot, hours, sgs_razr, $
+                 title=pdate + ' KCor RAZR', $
+                 xtitle='Hours [UT]', ytitle='RA [degrees]', $
+                 xrange=time_range, $
+                 ystyle=1, yrange=run->epoch('sgsrazr_range'), $
+                 background=255, color=0, charsize=1.0, $
+                 clip_thick=2.0
+
+  sgs_ra_gif_filename  = filepath(date + '.kcor.sgs.ra.gif', root=plots_dir)
+  mg_log, 'SGS RA GIF: %s', file_basename(sgs_ra_gif_filename), name='kcor/eod', /debug
+  write_gif, sgs_ra_gif_filename, tvrd()
+
+  !p.multi = [0, 1, 3]
+
+  mg_range_plot, hours, sgs_decv, $
+                 title=pdate + ' KCor DECV', $
+                 xtitle='Hours [UT]', ytitle='DEC [degrees]', $
+                 xrange=time_range, $
+                 /ynozero, ystyle=1, yrange=run->epoch('sgsdecv_range'), $
+                 background=255, color=0, charsize=1.0, $
+                 clip_thick=2.0, psym=1
+
+  mg_range_plot, hours, sgs_decs, $
+                 title=pdate + ' KCor DECS', $
+                 xtitle='Hours [UT]', ytitle='DEC [degrees]', $
+                 xrange=time_range, $
+                 /ynozero, ystyle=1, yrange=run->epoch('sgsdecs_range'), $
+                 background=255, color=0, charsize=1.0, $
+                 clip_thick=2.0, psym=1
+  
+  mg_range_plot, hours, sgs_deczr, $
+                 title=pdate + ' KCor DECZR', $
+                 xtitle='Hours [UT]', ytitle='DEC [degrees]', $
+                 xrange=time_range, $
+                 ystyle=1, yrange=run->epoch('sgsdeczr_range'), $
+                 background=255, color=0, charsize=1.0, $
+                 clip_thick=2.0
+
+  sgs_dec_gif_filename  = filepath(date + '.kcor.sgs.dec.gif', root=plots_dir)
+  mg_log, 'SGS DEC GIF: %s', file_basename(sgs_dec_gif_filename), name='kcor/eod', /debug
+  write_gif, sgs_dec_gif_filename, tvrd()
 
   rav_min = min(sgs_rav - sgs_ras, /nan)
   rav_max = max(sgs_rav + sgs_ras, /nan)
@@ -243,9 +356,6 @@ pro kcor_plotparams, date, list=list, run=run
     deczr_max = 100.0
   endif
   mg_log, 'SGSDECZR min=%f, max=%f', deczr_min, deczr_max, name='kcor/eod', /debug
-
-  save = tvrd()
-  write_gif, eng_gif_filename, save
 
   done:
   cd, start_dir
