@@ -223,14 +223,17 @@ pro kcor_plotparams, date, list=list, run=run
           set_colors=256, $
           z_buffering=0
 
-  !p.multi = [0, 1, 3]
+  charsize = 0.5
+
+  n_plots = 3
+  !p.multi = [0, 1, n_plots]
 
   mg_range_plot, hours, sgs_dimv, $
                  title=pdate + ' KCor SGS DIM (Sky transmission)', $
                  xtitle='Hours [UT]', ytitle='Relative sky transmission - DIM [volts]', $
                  xrange=time_range, $
                  /ynozero, ystyle=1, yrange=run->epoch('sgsdimv_range'), $
-                 background=255, color=0, charsize=1.0, $
+                 background=255, color=0, charsize=n_plots * charsize, $
                  clip_thick=2.0, psym=1
 
   mg_range_plot, hours, sgs_dims, $
@@ -238,7 +241,7 @@ pro kcor_plotparams, date, list=list, run=run
                  xtitle='Hours [UT]', ytitle='Relative sky transmission - DIM [volts]', $
                  xrange=time_range, $
                  /ynozero, ystyle=1, yrange=run->epoch('sgsdims_range'), $
-                 background=255, color=0, charsize=1.0, $
+                 background=255, color=0, charsize=n_plots * charsize, $
                  clip_thick=2.0, psym=1
 
   mg_range_plot, hours, sgs_scint, $
@@ -246,21 +249,22 @@ pro kcor_plotparams, date, list=list, run=run
                  xtitle='Hours [UT]', ytitle='Scintillation [arcsec]', $
                  xrange=time_range, $
                  ystyle=1, yrange=run->epoch('sgsscint_range'), $
-                 background=255, color=0, charsize=1.0, $
+                 background=255, color=0, charsize=n_plots * charsize, $
                  clip_thick=2.0
 
   sgs_seeing_gif_filename  = filepath(date + '.kcor.sgs.seeing.gif', root=plots_dir)
   mg_log, 'SGS seeing GIF: %s', file_basename(sgs_seeing_gif_filename), name='kcor/eod', /debug
   write_gif, sgs_seeing_gif_filename, tvrd()
 
-  !p.multi = [0, 1, 2]
+  n_plots = 2
+  !p.multi = [0, 1,  n_plots]
 
   mg_range_plot, hours, sgs_sumv, $
                  title=pdate + ' KCor SGS SUMV', $
                  xtitle='Hours [UT]', ytitle='?', $
                  xrange=time_range, $
                  /ynozero, ystyle=1, yrange=run->epoch('sgssumv_range'), $
-                 background=255, color=0, charsize=1.0, $
+                 background=255, color=0, charsize=n_plots * charsize, $
                  clip_thick=2.0, psym=1
 
   mg_range_plot, hours, sgs_sums, $
@@ -268,21 +272,22 @@ pro kcor_plotparams, date, list=list, run=run
                  xtitle='Hours [UT]', ytitle='?', $
                  xrange=time_range, $
                  /ynozero, ystyle=1, yrange=run->epoch('sgssums_range'), $
-                 background=255, color=0, charsize=1.0, $
+                 background=255, color=0, charsize=n_plots * charsize, $
                  clip_thick=2.0, psym=1
 
   sgs_signal_gif_filename  = filepath(date + '.kcor.sgs.signal.gif', root=plots_dir)
   mg_log, 'SGS signal GIF: %s', file_basename(sgs_signal_gif_filename), name='kcor/eod', /debug
   write_gif, sgs_signal_gif_filename, tvrd()
 
-  !p.multi = [0, 1, 3]
+  n_plots = 3
+  !p.multi = [0, 1, n_plots]
 
   mg_range_plot, hours, sgs_rav, $
                  title=pdate + ' KCor RAV', $
                  xtitle='Hours [UT]', ytitle='RA [degrees]', $
                  xrange=time_range, $
                  /ynozero, ystyle=1, yrange=run->epoch('sgsrav_range'), $
-                 background=255, color=0, charsize=1.0, $
+                 background=255, color=0, charsize=n_plots * charsize, $
                  clip_thick=2.0, psym=1
 
   mg_range_plot, hours, sgs_ras, $
@@ -298,21 +303,22 @@ pro kcor_plotparams, date, list=list, run=run
                  xtitle='Hours [UT]', ytitle='RA [degrees]', $
                  xrange=time_range, $
                  ystyle=1, yrange=run->epoch('sgsrazr_range'), $
-                 background=255, color=0, charsize=1.0, $
+                 background=255, color=0, charsize=n_plots * charsize, $
                  clip_thick=2.0
 
   sgs_ra_gif_filename  = filepath(date + '.kcor.sgs.ra.gif', root=plots_dir)
   mg_log, 'SGS RA GIF: %s', file_basename(sgs_ra_gif_filename), name='kcor/eod', /debug
   write_gif, sgs_ra_gif_filename, tvrd()
 
-  !p.multi = [0, 1, 3]
+  n_plots = 3
+  !p.multi = [0, 1, n_plots]
 
   mg_range_plot, hours, sgs_decv, $
                  title=pdate + ' KCor DECV', $
                  xtitle='Hours [UT]', ytitle='DEC [degrees]', $
                  xrange=time_range, $
                  /ynozero, ystyle=1, yrange=run->epoch('sgsdecv_range'), $
-                 background=255, color=0, charsize=1.0, $
+                 background=255, color=0, charsize=n_plots * charsize, $
                  clip_thick=2.0, psym=1
 
   mg_range_plot, hours, sgs_decs, $
@@ -320,7 +326,7 @@ pro kcor_plotparams, date, list=list, run=run
                  xtitle='Hours [UT]', ytitle='DEC [degrees]', $
                  xrange=time_range, $
                  /ynozero, ystyle=1, yrange=run->epoch('sgsdecs_range'), $
-                 background=255, color=0, charsize=1.0, $
+                 background=255, color=0, charsize=n_plots * charsize, $
                  clip_thick=2.0, psym=1
   
   mg_range_plot, hours, sgs_deczr, $
@@ -328,7 +334,7 @@ pro kcor_plotparams, date, list=list, run=run
                  xtitle='Hours [UT]', ytitle='DEC [degrees]', $
                  xrange=time_range, $
                  ystyle=1, yrange=run->epoch('sgsdeczr_range'), $
-                 background=255, color=0, charsize=1.0, $
+                 background=255, color=0, charsize=n_plots * charsize, $
                  clip_thick=2.0
 
   sgs_dec_gif_filename  = filepath(date + '.kcor.sgs.dec.gif', root=plots_dir)
@@ -368,9 +374,9 @@ end
 
 ; main-level example program
 
-date = '20130930'
+date = '20210801'
 run = kcor_run(date, $
-               config_filename=filepath('kcor.mgalloy.mahi.latest.cfg', $
+               config_filename=filepath('kcor.latest.cfg', $
                                         subdir=['..', '..', 'config'], $
                                         root=mg_src_root()))
 list = file_search(filepath('*.fts.gz', $
