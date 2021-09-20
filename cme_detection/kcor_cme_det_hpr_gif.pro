@@ -23,7 +23,7 @@ pro kcor_cme_det_hpr_gif, output_filename, mdiff
   g = r
   b = r
 
-  scaled_image = bytscl(resized_image)
+  scaled_image = bytscl(resized_image, min=-5.0e-10, max=3.0e-9)
 
   ; setup graphics
   original_device = !d.name
