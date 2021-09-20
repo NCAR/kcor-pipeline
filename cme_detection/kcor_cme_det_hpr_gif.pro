@@ -36,6 +36,12 @@ pro kcor_cme_det_hpr_gif, output_filename, mdiff
           z_buffering=0
   loadct, 0, /silent
 
+  ; reverse color table to get a blue-green-yellow color table
+  ; loadct, 64, /silent
+  ; tvlct, rgb, /get
+  ; rgb = reverse(rgb, 1)
+  ; tvlct, rgb
+
   xgap = 10
   ygap = 5
   line_height = 12
