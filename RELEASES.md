@@ -561,3 +561,4 @@
   updating SGS plots
   better CME HPR GIF scaling
 2.0.66
+  distribute 28 day rolling synoptic map FITS files

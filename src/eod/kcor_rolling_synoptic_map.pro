@@ -168,6 +168,17 @@ pro kcor_rolling_synoptic_map, database=db, run=run
                            root=p_dir)
   writefits, fits_filename, map, primary_header
 
+  synoptic_maps_basedir = run->config('results/synoptic_maps_basedir')
+  if (n_elements(synoptic_maps_basedir) gt 0L) then begin
+    date_parts = kcor_decompose_date(run.date)
+    synoptic_maps_dir = filepath('', $
+                                 subdir=[date_parts[0], date_parts[1]], $
+                                 root=synoptic_maps_basedir
+    if (~file_test(synoptic_maps_dir, /directory)) then file_mkdir, synoptic_maps_dir
+    mg_log, 'distributing 28 day rolling synoptic map...', name=logger_name, /info
+    file_copy, fits_filename, synoptic_maps_dir, /overwrite
+  endif
+
   ; clean up
   done:
   if (n_elements(rgb) gt 0L) then tvlct, rgb
