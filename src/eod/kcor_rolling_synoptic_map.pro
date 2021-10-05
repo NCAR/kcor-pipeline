@@ -173,7 +173,7 @@ pro kcor_rolling_synoptic_map, database=db, run=run
     date_parts = kcor_decompose_date(run.date)
     synoptic_maps_dir = filepath('', $
                                  subdir=[date_parts[0], date_parts[1]], $
-                                 root=synoptic_maps_basedir
+                                 root=synoptic_maps_basedir)
     if (~file_test(synoptic_maps_dir, /directory)) then file_mkdir, synoptic_maps_dir
     mg_log, 'distributing 28 day rolling synoptic map...', name=logger_name, /info
     file_copy, fits_filename, synoptic_maps_dir, /overwrite
