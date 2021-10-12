@@ -383,7 +383,7 @@ def list_fits_file_default(f):
         sgsscint = get_fits_float(header, "SGSSCINT")
         seeing = f"{sgsscint:9.3f} arcsec seeing" if sgsscint is not None else 21 * "-"
 
-    print(f"{basename:30s}  {level:2s}  {type:10s}  {occulter:12s}  {seeing}")
+    print(f"{basename:40s}  {level:2s}  {type:10s}  {occulter:12s}  {seeing}")
 
 
 def list_files(files, columns=None):
