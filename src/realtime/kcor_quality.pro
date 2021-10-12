@@ -169,7 +169,7 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
   endif
 
   ; print information
-  mg_log, 'checking quality for %s', date, name='kcor/rt', /info
+  mg_log, 'checking quality for %s', date, name=run.logger_name, /info
 
   ; initialize count variables
   nokf = 0
@@ -225,15 +225,13 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
   ;
   ; tvlct, rlut, glut, blut, /get
 
-  ; open file containing a list of kcor L0 FITS files
-  mg_log, 'inventory for current run...', name='kcor/rt', /debug
-  header = 'filename                 datatype    exp  cov drk dif pol angle  qual'
-  mg_log, header, name='kcor/noformat', /debug
+  mg_log, 'inventory for current run...', name=run.logger_name, /debug
+  if (~keyword_set(eod)) then begin
+    header = 'filename                 datatype    exp  cov drk dif pol angle  qual'
+    mg_log, header, name='kcor/noformat', /debug
+  endif
 
   num_img = 0
-
-  quicklook_dir = filepath('', subdir=['level0', 'quicklook'], root=date_dir)
-  if (~file_test(quicklook_dir, /directory)) then file_mkdir, quicklook_dir
 
   n_l0_fits_files = n_elements(l0_fits_files)
 
@@ -249,7 +247,7 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
   endcase
 
   mg_log, 'performing quality check with camera %d', check_camera, $
-          name='kcor/rt', /info
+          name=run.logger_name, /info
 
   ; image file loop
   foreach l0_file, l0_fits_files do begin
@@ -263,23 +261,23 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
                        datatype=run->epoch('raw_datatype'), $
                        errmsg=errmsg
     if (errmsg ne '') then begin
-      mg_log, errmsg, name='kcor/rt', /warn
+      mg_log, errmsg, name=run.logger_name, /warn
     endif
 
     img = float(img)
 
     mg_log, 'checking %d/%d: %s', $
             num_img, n_l0_fits_files, file_basename(l0_file), $
-            name='kcor/rt', /debug
+            name=run.logger_name, /debug
 
     ; catch problems where file is not completely written yet
     n_dims = size(img, /n_dimensions)
     if (n_dims ne 4) then begin
       mg_log, 'wrong number of dimensions for image: %d', n_dims, $
-              name='kcor/rt', /warn
+              name=run.logger_name, /warn
       delay_time = 3.0   ; seconds
       mg_log, 'attempting another read after %0.2f s delay', delay_time, $
-              name='kcor/rt', /warn
+              name=run.logger_name, /warn
       wait, delay_time
 
       kcor_read_rawdata, l0_file, image=img, header=hdu, $
@@ -291,7 +289,7 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
       n_dims = size(img, /n_dimensions)
       if (n_dims ne 4) then begin
         mg_log, 'wrong number of dimensions for image: %d', n_dims, $
-                name='kcor/rt', /warn
+                name=run.logger_name, /warn
         continue
       endif
     endif
@@ -310,7 +308,7 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
     if (~run->epoch('process')) then begin
       mg_log, '%d/%d: skipping files from this epoch [%s]', $
               num_img, n_l0_fits_files, strmid(file_basename(l0_file), 0, 15), $
-              name='kcor/rt', /warn
+              name=run.logger_name, /warn
       printf, udev, l0_file
       continue
     endif
@@ -395,13 +393,13 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
 
     ; verify that image size agrees with FITS header information
     if (nelem ne np) then begin
-      mg_log, 'nelem: %d, ne np: %d', nelem, np, name='kcor/rt', /warn
+      mg_log, 'nelem: %d, ne np: %d', nelem, np, name=run.logger_name, /warn
       continue
     endif
 
     ; verify that image is Level 0
     if (level ne 'L0')  then begin
-      mg_log, 'not level 0 data', name='kcor/rt', /warn
+      mg_log, 'not level 0 data', name=run.logger_name, /warn
       continue
     endif
 
@@ -469,7 +467,7 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
       if (sat) then begin
         mg_log, 'saturated: %d pixels (max %d) > %0.1f', $
                 n_saturated_pixels, run->epoch('smax_max_count'), run->epoch('smax'), $
-                name='kcor/rt', /debug
+                name=run.logger_name, /debug
         pb = reform(img[*, *, 0, *])
 
         shifted_mask = [[[mask]], [[mask]]]
@@ -525,7 +523,7 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
                                       chisq=chisq, $
                                       /center_guess, $
                                       max_center_difference=run->epoch('max_center_difference'), $
-                                      log_name='kcor/rt')
+                                      log_name=run.logger_name)
         xcen[c] = center_info[0]        ; x offset
         ycen[c] = center_info[1]        ; y offset
         rdisc_pix[c] = center_info[2]   ; radius of occulter [pixels]
@@ -536,7 +534,7 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
         shifted_mask[*, *, c] = d ge (rdisc_pix[c] + 3.0) and d lt 504
         mg_log, 'cam: %d, xcen: %0.1f, ycen: %0.1f, rdisc_pix: %0.1f', $
                 c, xcen[c], ycen[c], rdisc_pix[c], $
-                name='kcor/rt', /debug
+                name=run.logger_name, /debug
       endfor
     endelse
 
@@ -545,7 +543,7 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
             check_camera, $
             mean((pb[*, *, check_camera])[annulus_indices]), $
             median([(pb[*, *, check_camera])[annulus_indices]]), $
-            name='kcor/rt', /debug
+            name=run.logger_name, /debug
 
     ; rotate image by P-angle, no rotation for calibration or device-obscured
     ; images
@@ -566,7 +564,7 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
     if (dobright gt 0) then begin
       bmax = run->epoch('bmax') * numsum / 512.0
       if ((bitpix ne 16) and (bitpix ne 32)) then begin
-        mg_log, 'unexpected BITPIX: %d', bitpix, name='kcor/rt', /error
+        mg_log, 'unexpected BITPIX: %d', bitpix, name=run.logger_name, /error
         goto, next
       endif
       rpixb = run->epoch('rpixb')   ; circle radius [pixels]
@@ -582,7 +580,7 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
       if (bright) then begin
         mg_log, 'bright: %d pixels (max %0.1f) > %0.1f', $
                 n_bright_pixels, nray / 5, bmax, $
-                name='kcor/rt', /debug
+                name=run.logger_name, /debug
       endif
     endif
 
@@ -614,11 +612,11 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
       if (clo) then begin
         mg_log, 'dim: %d radial scans (max %0.1f) < %0.1f', $
                 n_cloudy_lo, nray / 5, cmin, $
-                name='kcor/rt', /debug
+                name=run.logger_name, /debug
       endif
 
       if (chi) then begin
-        mg_log, 'cloudy: %0.1f > %0.1f', cave, cmax, name='kcor/rt', /debug
+        mg_log, 'cloudy: %0.1f > %0.1f', cave, cmax, name=run.logger_name, /debug
       endif
     endif
 
@@ -669,7 +667,7 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
       noise = total_bad ge total_bad_limit
       if (noise) then begin
         mg_log, 'noisy: %d bad pixels > %d', total_bad, total_bad_limit, $
-                name='kcor/rt', /debug
+                name=run.logger_name, /debug
       endif
     endif
 
@@ -681,7 +679,7 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
       pb_m = pb
     endif else if (nx ne xdim or ny ne ydim) then begin
       mg_log, 'image dimensions incompatible with mask: %d, %d, %d, %d', $
-              nx, ny, xdim, ydim, name='kcor/rt', /warn
+              nx, ny, xdim, ydim, name=run.logger_name, /warn
       pb_m = pb
     endif else begin
       pb_m = pb * shifted_mask
@@ -777,12 +775,17 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
         end
     endcase
 
-    quicklook_creation_time = strlowcase(run->config('quicklooks/creation_time'))
+    quicklook_creation_time = run->config('quicklooks/creation_time')
+    mode = keyword_set(eod) ? 'eod' : 'realtime'
+    produce_quicklooks = n_elements(quicklook_creation_time) gt 0L and strlowcase(quicklook_creation_time) eq mode
     quicklook_type = strlowcase(run->config('quicklooks/type'))
     produce_normal_quicklook = quicklook_type eq 'normal' or quicklook_type eq 'both'
     produce_gallery_quicklook = quicklook_type eq 'gallery' or quicklook_type eq 'both'
 
-    if (quicklook_creation_time eq (keyword_set(eod) ? 'eod' : 'realtime')) then begin
+    if (produce_quicklooks) then begin
+      quicklook_dir = filepath('', subdir=['level0', 'quicklook'], root=date_dir)
+      if (~file_test(quicklook_dir, /directory)) then file_mkdir, quicklook_dir
+
       for c = 0, 1 do begin
         if (produce_normal_quicklook) then begin
           gif_filename = filepath(string(c, '', format=gif_basename), $
@@ -832,10 +835,10 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
     ; imax = [max(pb_s[*, *, 0]), max(pb_s[*, *, 1])]
 
     mg_log, 'pB max: %0.1f, %0.1f', max(pb[*, *, 0]), max(pb[*, *, 1]), $
-            name='kcor/rt', /debug
+            name=run.logger_name, /debug
     if (n_elements(pb_rot) gt 0L) then begin
       mg_log, 'pB rot max: %0.1f, %0.1f', max(pb_rot[*, *, 0]), max(pb_rot[*, *, 1]), $
-              name='kcor/rt', /debug
+              name=run.logger_name, /debug
     endif
     ; mg_log, 'pB m max: %0.1f, %0.1f', max(pb_m[*, *, 0]), max(pb_m[*, *, 1]), $
     ;           name='kcor/rt', /debug
@@ -1013,14 +1016,16 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
     calpang_str  = string(format='(f7.2)', calpang)
     qual_str     = string(format='(a4)', qual)
 
-    mg_log, '%s%s%s%s%s%s%s%s%s', $
-            file_basename(l0_file), datatype_str, exptime_str, cover_str, darkshut_str, $
-            diffuser_str, calpol_str, calpang_str, qual_str, $
-            name='kcor/noformat', /debug
-    mg_log, '%d/%d: %s [%s] (%s)', $
-            num_img, n_l0_fits_files, file_basename(l0_file), $
-            strmid(datatype, 0, 3), qual, $
-            name='kcor/rt', /info
+    if (~keyword_set(eod)) then begin
+      mg_log, '%s%s%s%s%s%s%s%s%s', $
+              file_basename(l0_file), datatype_str, exptime_str, cover_str, darkshut_str, $
+              diffuser_str, calpol_str, calpang_str, qual_str, $
+              name='kcor/noformat', /debug
+      mg_log, '%d/%d: %s [%s] (%s)', $
+              num_img, n_l0_fits_files, file_basename(l0_file), $
+              strmid(datatype, 0, 3), qual, $
+              name=run.logger_name, /info
+    endif
   endforeach   ; end of image loop
 
   if (~keyword_set(eod)) then begin
@@ -1063,7 +1068,7 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
   ;if (file_test(okf_qpath)) then file_copy, okf_qpath, okf_dpath, /overwrite
   if (file_test(okf_qpath) && ~keyword_set(eod)) then begin
     mg_log, 'moving %s/q/%s to %s/%s', date, okf_list, date, okf_list, $
-            name='kcor/rt', /debug
+            name=run.logger_name, /debug
     file_move, okf_qpath, okf_dpath, /overwrite
   endif
 
@@ -1086,9 +1091,9 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
   qtime = toc()
   mg_log, 'checked %d images (%d OK images) in %0.1f sec', $
           num_img, n_ok_files, qtime, $
-          name='kcor/rt', /info
-  mg_log, '%0.1f sec/image', qtime / num_img, name='kcor/rt', /info
-  mg_log, 'done', name='kcor/rt', /info
+          name=run.logger_name, /info
+  mg_log, '%0.1f sec/image', qtime / num_img, name=run.logger_name, /info
+  mg_log, 'done', name=run.logger_name, /info
 
   return, ok_files
 end
