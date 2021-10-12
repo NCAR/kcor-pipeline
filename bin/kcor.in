@@ -367,7 +367,7 @@ def list_fits_file_default(f):
         header = fits_file[0].header
         diffuser = get_fits_boolean(header, "DIFFUSER")
         calpol = get_fits_boolean(header, "CALPOL")
-        darkshutter = get_fits_boolean(header, "DARKSHUT")
+        darkshutter = get_fits_boolean(header, "DARKSHUT") or get_fits_boolean(header, "COVER")
         if darkshutter:
             type = "dark"
         elif calpol:
@@ -377,12 +377,13 @@ def list_fits_file_default(f):
             type = "flat"
         else:
             type = "science"
-        exposure = get_fits_float(header, "EXPTIME")
-        exposure = f"{exposure:0.3f} ms" if exposure is not None else 10 * "-"
-        sgsscint = get_fits_float(header, "SGSSCINT")
-        seeing = f"{sgsscint:7.3f} arcsec seeing" if sgsscint is not None else 21 * "-"
 
-    print(f"{basename:36s}  {type:10s}  {exposure}  {seeing}")
+        level = header["LEVEL"]
+        occulter = header["OCCLTRID"]
+        sgsscint = get_fits_float(header, "SGSSCINT")
+        seeing = f"{sgsscint:9.3f} arcsec seeing" if sgsscint is not None else 21 * "-"
+
+    print(f"{basename:30s}  {level:2s}  {type:10s}  {occulter:12s}  {seeing}")
 
 
 def list_files(files, columns=None):
