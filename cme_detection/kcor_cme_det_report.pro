@@ -144,8 +144,21 @@ pro kcor_cme_det_report, time, widget=widget
 
     free_lun, out
 
+    hour  = long(strmid(time, 0, 2))
+  
+    year  = long(strmid(simple_date, 0, 4))
+    month = long(strmid(simple_date, 4, 2))
+    day   = long(strmid(simple_date, 6, 2))
+  
+    if (hour lt 10) then begin
+      jd = julday(month, day, year) + 1.0d
+      caldat, jd, month, day, year
+    endif
+  
+    ut_date = string(year, month, day, format='(%"%04d-%02d-%02d")')
+
     ; form a subject line for the email
-    subject = string(simple_date, time, $
+    subject = string(ut_date, time, $
                      format='(%"MLSO K-Cor report for CME on %s ending at %s UT")')
 
     from_email = n_elements(run->config('cme/from_email')) eq 0L $

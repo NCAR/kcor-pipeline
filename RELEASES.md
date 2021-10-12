@@ -563,3 +563,4 @@
 2.0.66
   distribute 28 day rolling synoptic map FITS files
   allow quicklooks to be created in realtime or at the end-of-day
+  use UT date in subject of notification email for CME detection
