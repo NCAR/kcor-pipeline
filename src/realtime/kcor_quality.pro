@@ -40,10 +40,13 @@
 ; :Keywords:
 ;   append : in, optional, type=boolean
 ;     if set, append log information to existing log file
+;   eod : in, optional, type=boolean
+;     if set, do end-of-day quality check, i.e., write quicklooks, but not the
+;     inventory files
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;-
-function kcor_quality, date, l0_fits_files, append=append, $
+function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
                        brt_files=brt_files, $
                        cal_files=cal_files, $
                        cld_files=cld_files, $
@@ -128,8 +131,8 @@ function kcor_quality, date, l0_fits_files, append=append, $
   ;q_dir_ugly   = q_path + 'ugly/'   ; ugly quality images
 
   ; create sub-directories for image categories
-  file_mkdir, q_dir
-  file_mkdir, cdate_dir
+  if (~file_test(q_dir, /directory)) then file_mkdir, q_dir
+  if (~file_test(cdate_dir, /directory)) then file_mkdir, cdate_dir
 
   ; move to 'date' directory
   cd, current=start_dir   ; save current directory
@@ -137,31 +140,33 @@ function kcor_quality, date, l0_fits_files, append=append, $
 
   doview = 0
 
-  ; open log file
-  openw, uokf, okf_qpath, /get_lun   ; open new file for writing
+  if (~keyword_set(eod)) then begin
+    ; open log file
+    openw, uokf, okf_qpath, /get_lun   ; open new file for writing
 
-  ; open to write in append mode
-  if (keyword_set(append)) then begin
-    openw, uoka, oka_qpath, /append, /get_lun
+    ; open to write in append mode
+    if (keyword_set(append)) then begin
+      openw, uoka, oka_qpath, /append, /get_lun
 
-    openw, ubrt, brt_qpath, /append, /get_lun
-    openw, ucal, cal_qpath, /append, /get_lun
-    openw, ucld, cld_qpath, /append, /get_lun
-    openw, udev, dev_qpath, /append, /get_lun
-    openw, udim, dim_qpath, /append, /get_lun
-    openw, unsy, nsy_qpath, /append, /get_lun
-    openw, usat, sat_qpath, /append, /get_lun
-  endif else begin   ; open NEW file for writing
-    openw, uoka, oka_qpath, /get_lun
+      openw, ubrt, brt_qpath, /append, /get_lun
+      openw, ucal, cal_qpath, /append, /get_lun
+      openw, ucld, cld_qpath, /append, /get_lun
+      openw, udev, dev_qpath, /append, /get_lun
+      openw, udim, dim_qpath, /append, /get_lun
+      openw, unsy, nsy_qpath, /append, /get_lun
+      openw, usat, sat_qpath, /append, /get_lun
+    endif else begin   ; open NEW file for writing
+      openw, uoka, oka_qpath, /get_lun
 
-    openw, ubrt, brt_qpath, /get_lun
-    openw, ucal, cal_qpath, /get_lun
-    openw, ucld, cld_qpath, /get_lun
-    openw, udev, dev_qpath, /get_lun
-    openw, udim, dim_qpath, /get_lun
-    openw, unsy, nsy_qpath, /get_lun
-    openw, usat, sat_qpath, /get_lun
-  endelse
+      openw, ubrt, brt_qpath, /get_lun
+      openw, ucal, cal_qpath, /get_lun
+      openw, ucld, cld_qpath, /get_lun
+      openw, udev, dev_qpath, /get_lun
+      openw, udim, dim_qpath, /get_lun
+      openw, unsy, nsy_qpath, /get_lun
+      openw, usat, sat_qpath, /get_lun
+    endelse
+  endif
 
   ; print information
   mg_log, 'checking quality for %s', date, name='kcor/rt', /info
@@ -695,17 +700,19 @@ function kcor_quality, date, l0_fits_files, append=append, $
           quality_name = 'calibration'
           qual = q_cal
           ncal += 1
-          printf, ucal, l0_file
           cal_list->add, l0_file
-          file_copy, l0_file, cdate_dir, /overwrite   ; copy l0 file to cdate_dir
+          if (~keyword_set(eod)) then begin
+            printf, ucal, l0_file
+            file_copy, l0_file, cdate_dir, /overwrite   ; copy l0 file to cdate_dir
+          endif
         end
       dev gt 0: begin                                      ; device obscuration        
           gif_basename = string(l0_base, format='(%"%s_cam%%d%%s_m.gif")')
           quality_name = 'device obscuration'
           qual = q_dev
           ndev += 1
-          printf, udev, l0_file
           dev_list->add, l0_file
+          if (~keyword_set(eod)) then printf, udev, l0_file
         end
       sat gt 0: begin                                      ; saturation
           radius = run->epoch('rpixt')
@@ -713,8 +720,8 @@ function kcor_quality, date, l0_fits_files, append=append, $
           quality_name = 'saturated'
           qual = q_sat
           nsat += 1
-          printf, usat, l0_file
           sat_list->add, l0_file
+          if (~keyword_set(eod)) then printf, usat, l0_file
         end
       bright gt 0: begin                                   ; bright image
           radius = run->epoch('rpixb')
@@ -722,8 +729,8 @@ function kcor_quality, date, l0_fits_files, append=append, $
           quality_name = 'bright'
           qual = q_brt
           nbrt += 1
-          printf, ubrt, l0_file
           brt_list->add, l0_file
+          if (~keyword_set(eod)) then printf, ubrt, l0_file
         end
       clo gt 0: begin                                      ; dim image
           radius = run->epoch('rpixc')
@@ -731,8 +738,8 @@ function kcor_quality, date, l0_fits_files, append=append, $
           quality_name = 'dim'
           qual = q_dim
           ndim += 1
-          printf, udim, l0_file
           dim_list->add, l0_file
+          if (~keyword_set(eod)) then printf, udim, l0_file
         end
       chi gt 0: begin                                      ; cloudy image
           radius = run->epoch('rpixc')
@@ -740,8 +747,8 @@ function kcor_quality, date, l0_fits_files, append=append, $
           quality_name = 'cloudy'
           qual = q_cld
           ncld += 1
-          printf, ucld, l0_file
           cld_list->add, l0_file
+          if (~keyword_set(eod)) then printf, ucld, l0_file
         end
       noise gt 0: begin                                    ; noisy
           radius = rpixn
@@ -749,8 +756,8 @@ function kcor_quality, date, l0_fits_files, append=append, $
           quality_name = 'noisy'
           qual = q_nsy
           nnsy += 1
-          printf, unsy, l0_file
           nsy_list->add, l0_file
+          if (~keyword_set(eod)) then printf, unsy, l0_file
         end
       else: begin                                          ; good image
           if (eng gt 0) then begin   ; engineering
@@ -763,49 +770,59 @@ function kcor_quality, date, l0_fits_files, append=append, $
 
           qual = q_ok
           nokf += 1
-          printf, uokf, file_basename(l0_file)
-          printf, uoka, file_basename(l0_file)
+          if (~keyword_set(eod)) then begin
+            printf, uokf, file_basename(l0_file)
+            printf, uoka, file_basename(l0_file)
+          endif
         end
     endcase
 
-    for c = 0, 1 do begin
-      gif_filename = filepath(string(c, '', format=gif_basename), $
-                              root=quicklook_dir)
-      gallery_gif_filename = filepath(string(c, '_gallery', format=gif_basename), $
-                                      root=quicklook_dir)
+    quicklook_creation_time = strlowcase(run->config('quicklooks/creation_time'))
+    quicklook_type = strlowcase(run->config('quicklooks/type'))
+    produce_normal_quicklook = quicklook_type eq 'normal' or quicklook_type eq 'both'
+    produce_gallery_quicklook = quicklook_type eq 'gallery' or quicklook_type eq 'both'
 
-      kcor_quicklook, pb_m[*, * , c], shifted_mask[*, *, c], quality_name, gif_filename, $
-                      camera=c, $
-                      l0_basename=l0_base, $
-                      xcenter=xcen[c], ycenter=ycen[c], radius=radius, $
-                      axcenter=axcen, aycenter=aycen, $
-                      solar_radius=solar_radius, $
-                      occulter_radius=rdisc_pix[c], $
-                      pangle=pangle, $
-                      minimum=run->epoch('quicklook_min'), $
-                      exponent=run->epoch('quicklook_exponent'), $
-                      gamma=run->epoch('quicklook_gamma'), $
-                      colortable=run->epoch('quicklook_colortable'), $
-                      dimensions=run->epoch('quicklook_dimensions')
-      kcor_quicklook, pb_m[*, * , c], shifted_mask[*, *, c], quality_name, gallery_gif_filename, $
-                      camera=c, $
-                      l0_basename=l0_base, $
-                      xcenter=xcen[c], ycenter=ycen[c], radius=radius, $
-                      axcenter=axcen, aycenter=aycen, $
-                      solar_radius=solar_radius, $
-                      occulter_radius=rdisc_pix[c], $
-                      pangle=pangle, $
-                      minimum=run->epoch('gallery_quicklook_min'), $
-                      maximum=run->epoch('gallery_quicklook_max'), $
-                      exponent=run->epoch('gallery_quicklook_exponent'), $e
-                      gamma=run->epoch('gallery_quicklook_gamma'), $
-                      colortable=run->epoch('gallery_quicklook_colortable'), $
-                      dimensions=run->epoch('gallery_quicklook_dimensions')
+    if (quicklook_creation_time eq (keyword_set(eod) ? 'eod' : 'realtime')) then begin
+      for c = 0, 1 do begin
+        if (produce_normal_quicklook) then begin
+          gif_filename = filepath(string(c, '', format=gif_basename), $
+                                  root=quicklook_dir)
+          kcor_quicklook, pb_m[*, * , c], shifted_mask[*, *, c], quality_name, gif_filename, $
+                          camera=c, $
+                          l0_basename=l0_base, $
+                          xcenter=xcen[c], ycenter=ycen[c], radius=radius, $
+                          axcenter=axcen, aycenter=aycen, $
+                          solar_radius=solar_radius, $
+                          occulter_radius=rdisc_pix[c], $
+                          pangle=pangle, $
+                          minimum=run->epoch('quicklook_min'), $
+                          exponent=run->epoch('quicklook_exponent'), $
+                          gamma=run->epoch('quicklook_gamma'), $
+                          colortable=run->epoch('quicklook_colortable'), $
+                          dimensions=run->epoch('quicklook_dimensions')
+        endif
+        if (produce_gallery_quicklook) then begin
+          gallery_gif_filename = filepath(string(c, '_gallery', format=gif_basename), $
+                                          root=quicklook_dir)
+          kcor_quicklook, pb_m[*, * , c], shifted_mask[*, *, c], quality_name, gallery_gif_filename, $
+                          camera=c, $
+                          l0_basename=l0_base, $
+                          xcenter=xcen[c], ycenter=ycen[c], radius=radius, $
+                          axcenter=axcen, aycenter=aycen, $
+                          solar_radius=solar_radius, $
+                          occulter_radius=rdisc_pix[c], $
+                          pangle=pangle, $
+                          minimum=run->epoch('gallery_quicklook_min'), $
+                          maximum=run->epoch('gallery_quicklook_max'), $
+                          exponent=run->epoch('gallery_quicklook_exponent'), $e
+                          gamma=run->epoch('gallery_quicklook_gamma'), $
+                          colortable=run->epoch('gallery_quicklook_colortable'), $
+                          dimensions=run->epoch('gallery_quicklook_dimensions')
 
-      quicklook_list->add, gallery_gif_filename
-    endfor
-
-
+          quicklook_list->add, gallery_gif_filename
+        endif
+      endfor
+    endif
 
     ; intensity scaling
     ; power = run->epoch('quicklook_exponent')
@@ -1006,15 +1023,17 @@ function kcor_quality, date, l0_fits_files, append=append, $
             name='kcor/rt', /info
   endforeach   ; end of image loop
 
-  free_lun, ucal
-  free_lun, udev
-  free_lun, ubrt
-  free_lun, udim
-  free_lun, ucld
-  free_lun, usat
-  free_lun, unsy
-  free_lun, uokf
-  free_lun, uoka
+  if (~keyword_set(eod)) then begin
+    free_lun, ucal
+    free_lun, udev
+    free_lun, ubrt
+    free_lun, udim
+    free_lun, ucld
+    free_lun, usat
+    free_lun, unsy
+    free_lun, uokf
+    free_lun, uoka
+  endif
 
   brt_files = brt_list->toArray()
   cal_files = cal_list->toArray()
@@ -1042,7 +1061,7 @@ function kcor_quality, date, l0_fits_files, append=append, $
 
   ; move 'okf_list' to 'date' directory
   ;if (file_test(okf_qpath)) then file_copy, okf_qpath, okf_dpath, /overwrite
-  if (file_test(okf_qpath)) then begin
+  if (file_test(okf_qpath) && ~keyword_set(eod)) then begin
     mg_log, 'moving %s/q/%s to %s/%s', date, okf_list, date, okf_list, $
             name='kcor/rt', /debug
     file_move, okf_qpath, okf_dpath, /overwrite
@@ -1054,9 +1073,11 @@ function kcor_quality, date, l0_fits_files, append=append, $
   n_ok_files = file_lines(okf_dpath)
   if (n_ok_files gt 0L) then begin
     ok_files = strarr(n_ok_files)
-    openr, ok_lun, okf_dpath, /get_lun
-    readf, ok_lun, ok_files
-    free_lun, ok_lun
+    if (~keyword_set(eod)) then begin
+      openr, ok_lun, okf_dpath, /get_lun
+      readf, ok_lun, ok_files
+      free_lun, ok_lun
+    endif
   endif else begin
     ok_files = !null
   endelse

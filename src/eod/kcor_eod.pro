@@ -151,6 +151,13 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   cd, l0_dir
 
+  quicklook_creation_time = strlowcase(run->config('quicklooks/creation_time'))
+  if (quicklook_creation_time eq 'eod') then begin
+    l0_files = file_search(filepath('*.fts*', root=l0_dir), count=n_l0_files)
+    ok_files = kcor_quality(date, l0_fits_files, /eod, $
+                            run=run)
+  endif
+
   l1_dir = filepath('level1', root=date_dir)
   l2_dir = filepath('level2', root=date_dir)
 
