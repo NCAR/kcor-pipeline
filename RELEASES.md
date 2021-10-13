@@ -563,4 +563,6 @@
 2.0.66
   distribute 28 day rolling synoptic map FITS files
   allow quicklooks to be created in realtime or at the end-of-day
+  set style of quicklooks to be normal, gallery, or both
   use UT date in subject of notification email for CME detection
+  better SGS plot titles and ranges
