@@ -59,6 +59,7 @@ pro kcor_plotparams, date, list=list, run=run
 
   sgs_sumv   = fltarr(nimg)
   sgs_sums   = fltarr(nimg)
+  sgs_loop   = fltarr(nimg)
 
   sgs_rav    = fltarr(nimg)
   sgs_ras    = fltarr(nimg)
@@ -134,6 +135,7 @@ pro kcor_plotparams, date, list=list, run=run
 
       sgs_sumv[i]  = kcor_getsgs(hdu, 'SGSSUMV', /float)
       sgs_sums[i]  = kcor_getsgs(hdu, 'SGSSUMS', /float)
+      sgs_loop[i]  = kcor_getsgs(hdu, 'SGSLOOP', /float)
 
       sgs_rav[i]   = kcor_getsgs(hdu, 'SGSRAV', /float)
       sgs_ras[i]   = kcor_getsgs(hdu, 'SGSRAS', /float)
@@ -149,6 +151,7 @@ pro kcor_plotparams, date, list=list, run=run
 
       sgs_sumv[i]  = !values.f_nan
       sgs_sums[i]  = !values.f_nan
+      sgs_loop[i]  = !values.f_nan
 
       sgs_rav[i]   = !values.f_nan
       sgs_ras[i]   = !values.f_nan
@@ -229,47 +232,55 @@ pro kcor_plotparams, date, list=list, run=run
   !p.multi = [0, 1, n_plots]
 
   mg_range_plot, hours, sgs_dimv, $
-                 title=pdate + ' KCor SGS DIM (Sky transmission)', $
-                 xtitle='Hours [UT]', ytitle='Relative sky transmission - DIM [volts]', $
+                 title=pdate + ' KCor Spar Guider System (SGS) DIMV Relative Sky Transmission Mean Signal', $
+                 xtitle='Hours [UT]', ytitle='SGS DIMV Relative Sky Transmission [volts]', $
                  xrange=time_range, $
                  /ynozero, ystyle=1, yrange=run->epoch('sgsdimv_range'), $
                  background=255, color=0, charsize=n_plots * charsize, $
                  clip_thick=2.0, psym=1
 
   mg_range_plot, hours, sgs_dims, $
-                 title=pdate + ' KCor SGS DIMS (Sky transmission std dev)', $
-                 xtitle='Hours [UT]', ytitle='Relative sky transmission - DIM [volts]', $
+                 title=pdate + ' KCor Spar Guider System (SGS) DIMS Relative Sky Transmission Std Deviation', $
+                 xtitle='Hours [UT]', ytitle='SGS DIMS Relative Sky Transmission Std Deviation [volts]', $
                  xrange=time_range, $
                  /ynozero, ystyle=1, yrange=run->epoch('sgsdims_range'), $
                  background=255, color=0, charsize=n_plots * charsize, $
                  clip_thick=2.0, psym=1
 
   mg_range_plot, hours, sgs_scint, $
-                 title=pdate + ' KCor SGS Scintillation', $
-                 xtitle='Hours [UT]', ytitle='Scintillation [arcsec]', $
+                 title=pdate + ' KCor Spar Guider System (SGS) Scintillation (Atmospheric Seeing) Estimate', $
+                 xtitle='Hours [UT]', ytitle='SGS Scintillation (Seeing) Est. [arcsec]', $
                  xrange=time_range, $
                  ystyle=1, yrange=run->epoch('sgsscint_range'), $
                  background=255, color=0, charsize=n_plots * charsize, $
                  clip_thick=2.0
 
-  sgs_seeing_gif_filename  = filepath(date + '.kcor.sgs.seeing.gif', root=plots_dir)
+  sgs_seeing_gif_filename  = filepath(date + '.kcor.sgs.sky_transmission_and_seeing.gif', root=plots_dir)
   mg_log, 'SGS seeing GIF: %s', file_basename(sgs_seeing_gif_filename), name='kcor/eod', /debug
   write_gif, sgs_seeing_gif_filename, tvrd()
 
-  n_plots = 2
+  n_plots = 3
   !p.multi = [0, 1,  n_plots]
 
   mg_range_plot, hours, sgs_sumv, $
-                 title=pdate + ' KCor SGS SUMV', $
-                 xtitle='Hours [UT]', ytitle='?', $
+                 title=pdate + ' KCor Spar Guider System (SGS) SUMV Mean Sum Signal (Low Pass Filter of DIMV)', $
+                 xtitle='Hours [UT]', ytitle='SGS Mean Sum Signal [volts]', $
                  xrange=time_range, $
                  /ynozero, ystyle=1, yrange=run->epoch('sgssumv_range'), $
                  background=255, color=0, charsize=n_plots * charsize, $
                  clip_thick=2.0, psym=1
 
   mg_range_plot, hours, sgs_sums, $
-                 title=pdate + ' KCor SGS SUMS', $
-                 xtitle='Hours [UT]', ytitle='?', $
+                 title=pdate + ' KCor Spar Guider System (SGS) SUMS Sum Signal Std. Deviation (Low Pass Filter of DIMS)', $
+                 xtitle='Hours [UT]', ytitle='SGS Sum Signal Std Deviation [Volts]', $
+                 xrange=time_range, $
+                 /ynozero, ystyle=1, yrange=run->epoch('sgssums_range'), $
+                 background=255, color=0, charsize=n_plots * charsize, $
+                 clip_thick=2.0, psym=1
+
+  mg_range_plot, hours, sgs_loop, $
+                 title=pdate + ' KCor Spar Guider System (SGS) LOOP: Closed Loop Fraction 1=solar tracking, 0=drift', $
+                 xtitle='Hours [UT]', ytitle='SGS Closed Loop Fraction: 1 = solar tracking 0=drift', $
                  xrange=time_range, $
                  /ynozero, ystyle=1, yrange=run->epoch('sgssums_range'), $
                  background=255, color=0, charsize=n_plots * charsize, $
@@ -283,24 +294,24 @@ pro kcor_plotparams, date, list=list, run=run
   !p.multi = [0, 1, n_plots]
 
   mg_range_plot, hours, sgs_rav, $
-                 title=pdate + ' KCor RAV', $
-                 xtitle='Hours [UT]', ytitle='RA [degrees]', $
+                 title=pdate + ' KCor Spar Guider System (SGS) RAV Right Ascension Error Signal', $
+                 xtitle='Hours [UT]', ytitle='SGS RA Error Signal [volts]', $
                  xrange=time_range, $
                  /ynozero, ystyle=1, yrange=run->epoch('sgsrav_range'), $
                  background=255, color=0, charsize=n_plots * charsize, $
                  clip_thick=2.0, psym=1
 
   mg_range_plot, hours, sgs_ras, $
-                 title=pdate + ' KCor RAS', $
-                 xtitle='Hours [UT]', ytitle='RA [degrees]', $
+                 title=pdate + ' KCor Spar Guider System (SGS) RAS Right Ascension Std Deviation', $
+                 xtitle='Hours [UT]', ytitle='SGS RA Error Signal Std Dev [volts]', $
                  xrange=time_range, $
                  /ynozero, ystyle=1, yrange=run->epoch('sgsras_range'), $
                  background=255, color=0, charsize=1.0, $
                  clip_thick=2.0, psym=1
   
   mg_range_plot, hours, sgs_razr, $
-                 title=pdate + ' KCor RAZR', $
-                 xtitle='Hours [UT]', ytitle='RA [degrees]', $
+                 title=pdate + ' KCor Spar Guider System (SGS) RAZR Right Ascension Zero Point Offset', $
+                 xtitle='Hours [UT]', ytitle='SGS RAZR Zero Point Offset [arcsec]', $
                  xrange=time_range, $
                  ystyle=1, yrange=run->epoch('sgsrazr_range'), $
                  background=255, color=0, charsize=n_plots * charsize, $
@@ -314,24 +325,24 @@ pro kcor_plotparams, date, list=list, run=run
   !p.multi = [0, 1, n_plots]
 
   mg_range_plot, hours, sgs_decv, $
-                 title=pdate + ' KCor DECV', $
-                 xtitle='Hours [UT]', ytitle='DEC [degrees]', $
+                 title=pdate + ' KCor DECV: Spar Guider System (SGS) Declination Error Signal', $
+                 xtitle='Hours [UT]', ytitle='SGS DEC Error Signal [volts]', $
                  xrange=time_range, $
                  /ynozero, ystyle=1, yrange=run->epoch('sgsdecv_range'), $
                  background=255, color=0, charsize=n_plots * charsize, $
                  clip_thick=2.0, psym=1
 
   mg_range_plot, hours, sgs_decs, $
-                 title=pdate + ' KCor DECS', $
-                 xtitle='Hours [UT]', ytitle='DEC [degrees]', $
+                 title=pdate + ' KCor DECS: Spar Guider System (SGS) Declination Std Deviation', $
+                 xtitle='Hours [UT]', ytitle='SGS DEC Error Signal Std Dev [volts]', $
                  xrange=time_range, $
                  /ynozero, ystyle=1, yrange=run->epoch('sgsdecs_range'), $
                  background=255, color=0, charsize=n_plots * charsize, $
                  clip_thick=2.0, psym=1
   
   mg_range_plot, hours, sgs_deczr, $
-                 title=pdate + ' KCor DECZR', $
-                 xtitle='Hours [UT]', ytitle='DEC [degrees]', $
+                 title=pdate + ' KCor DECZR: Spar Guider System (SGS) Declination Zero Point Offset', $
+                 xtitle='Hours [UT]', ytitle='SGS DECZR Zero Point Offset [arcsec]', $
                  xrange=time_range, $
                  ystyle=1, yrange=run->epoch('sgsdeczr_range'), $
                  background=255, color=0, charsize=n_plots * charsize, $
