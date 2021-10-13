@@ -220,6 +220,7 @@ pro kcor_plotparams, date, list=list, run=run
   time_range = [16.0, 28.0]
 
   ; set up graphics window & color table for sgs.eng.gif
+  original_device = !d.name
   set_plot, 'Z'
   device, set_resolution=[772, 1000], $
           decomposed=0, $
@@ -293,6 +294,10 @@ pro kcor_plotparams, date, list=list, run=run
   n_plots = 3
   !p.multi = [0, 1, n_plots]
 
+  ; use daily min/max as range for SGSDECZR, unless all 0.0s
+  sgsrazr_range = [min(sgs_razr, max=sgs_razr_max), sgs_razr_max]
+  if (array_equal(sgsrazr_range, fltarr(2))) then sgsrazr_range = run->epoch('sgsrazr_range')
+
   mg_range_plot, hours, sgs_rav, $
                  title=pdate + ' KCor Spar Guider System (SGS) RAV Right Ascension Error Signal', $
                  xtitle='Hours [UT]', ytitle='SGS RA Error Signal [volts]', $
@@ -313,7 +318,7 @@ pro kcor_plotparams, date, list=list, run=run
                  title=pdate + ' KCor Spar Guider System (SGS) RAZR Right Ascension Zero Point Offset', $
                  xtitle='Hours [UT]', ytitle='SGS RAZR Zero Point Offset [arcsec]', $
                  xrange=time_range, $
-                 ystyle=1, yrange=run->epoch('sgsrazr_range'), $
+                 ystyle=1, yrange=sgsrazr_range, $
                  background=255, color=0, charsize=n_plots * charsize, $
                  clip_thick=2.0
 
@@ -323,6 +328,10 @@ pro kcor_plotparams, date, list=list, run=run
 
   n_plots = 3
   !p.multi = [0, 1, n_plots]
+
+  ; use daily min/max as range for SGSDECZR, unless all 0.0s
+  sgsdeczr_range = [min(sgs_deczr, max=sgs_deczr_max), sgs_deczr_max]
+  if (array_equal(sgsdeczr_range, fltarr(2))) then sgsdeczr_range = run->epoch('sgsdeczr_range')
 
   mg_range_plot, hours, sgs_decv, $
                  title=pdate + ' KCor DECV: Spar Guider System (SGS) Declination Error Signal', $
@@ -344,7 +353,7 @@ pro kcor_plotparams, date, list=list, run=run
                  title=pdate + ' KCor DECZR: Spar Guider System (SGS) Declination Zero Point Offset', $
                  xtitle='Hours [UT]', ytitle='SGS DECZR Zero Point Offset [arcsec]', $
                  xrange=time_range, $
-                 ystyle=1, yrange=run->epoch('sgsdeczr_range'), $
+                 ystyle=1, yrange=sgsdeczr_range, $
                  background=255, color=0, charsize=n_plots * charsize, $
                  clip_thick=2.0
 
@@ -377,7 +386,7 @@ pro kcor_plotparams, date, list=list, run=run
   done:
   cd, start_dir
   !p.multi = 0
-  set_plot, 'X'
+  set_plot, original_device
 
   mg_log, 'done', name='kcor/eod', /info
 end
