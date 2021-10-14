@@ -777,7 +777,7 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
 
     quicklook_creation_time = run->config('quicklooks/creation_time')
     mode = keyword_set(eod) ? 'eod' : 'realtime'
-    produce_quicklooks = n_elements(quicklook_creation_time) gt 0L and strlowcase(quicklook_creation_time) eq mode
+    produce_quicklooks = (n_elements(quicklook_creation_time) gt 0L) && (strlowcase(quicklook_creation_time) eq mode)
     quicklook_type = strlowcase(run->config('quicklooks/type'))
     produce_normal_quicklook = quicklook_type eq 'normal' or quicklook_type eq 'both'
     produce_gallery_quicklook = quicklook_type eq 'gallery' or quicklook_type eq 'both'
