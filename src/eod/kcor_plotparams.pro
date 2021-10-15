@@ -283,7 +283,7 @@ pro kcor_plotparams, date, list=list, run=run
                  title=pdate + ' KCor Spar Guider System (SGS) LOOP: Closed Loop Fraction 1=solar tracking, 0=drift', $
                  xtitle='Hours [UT]', ytitle='SGS Closed Loop Fraction: 1 = solar tracking 0=drift', $
                  xrange=time_range, $
-                 /ynozero, ystyle=1, yrange=run->epoch('sgssums_range'), $
+                 /ynozero, ystyle=1, yrange=run->epoch('sgsloop_range'), $
                  background=255, color=0, charsize=n_plots * charsize, $
                  clip_thick=2.0, psym=1
 
@@ -296,6 +296,7 @@ pro kcor_plotparams, date, list=list, run=run
 
   ; use daily min/max as range for SGSDECZR, unless all 0.0s
   sgsrazr_range = [min(sgs_razr, max=sgs_razr_max), sgs_razr_max]
+  sgsrazr_range += 0.1 * (sgsrazr_range[1] - sgsrazr_range[0]) * [-1.0, 1.0]
   if (array_equal(sgsrazr_range, fltarr(2))) then sgsrazr_range = run->epoch('sgsrazr_range')
 
   mg_range_plot, hours, sgs_rav, $
@@ -331,6 +332,7 @@ pro kcor_plotparams, date, list=list, run=run
 
   ; use daily min/max as range for SGSDECZR, unless all 0.0s
   sgsdeczr_range = [min(sgs_deczr, max=sgs_deczr_max), sgs_deczr_max]
+  sgsdeczr_range += 0.1 * (sgsdeczr_range[1] - sgsdeczr_range[0]) * [-1.0, 1.0]
   if (array_equal(sgsdeczr_range, fltarr(2))) then sgsdeczr_range = run->epoch('sgsdeczr_range')
 
   mg_range_plot, hours, sgs_decv, $
