@@ -400,7 +400,7 @@ def list_files(files, columns=None):
                 print(f"{basename:36s}  {size:,} bytes")
             else:
                 try:
-                    if args.columns is None:
+                    if columns is None:
                         list_fits_file_default(f)
                     else:
                         list_fits_file(f, columns)
@@ -428,9 +428,14 @@ def ls(args):
             items = [f for f in glob.glob(os.path.join(dirs[0], "*"))]
             files = [f for f in items if os.path.isfile(f)]
             dirs = [d for d in items if os.path.isdir(d)]
-    
+
+        if args.keywords is None:
+            columns = None
+        else:
+            columns = args.keywords.split(",")
+
         list_files(sorted(dirs))
-        list_files(sorted(files), columns=args.columns)
+        list_files(sorted(files), columns=columns)
     except KeyboardInterrupt:
         pass
 
@@ -1091,7 +1096,7 @@ if __name__ == "__main__":
                            default=".",
                            help="KCor files(s)",
                            metavar="file(s)")
-    ls_parser.add_argument("--columns", type=str, nargs="*",
+    ls_parser.add_argument("-k", "--keywords", type=str,
                            help="FITS keyword names to display",
                            default=None)
     ls_parser.set_defaults(func=ls, parser=ls_parser)
