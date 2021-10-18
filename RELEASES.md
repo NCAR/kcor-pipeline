@@ -560,7 +560,7 @@
   epoch fixes for 2015 calibration files
   updating SGS plots
   better CME HPR GIF scaling
-2.0.66
+2.0.66 [Oct 18, 2021]
   distribute 28 day rolling synoptic map FITS files
   allow quicklooks to be created in realtime or at the end-of-day
   set style of quicklooks to be normal, gallery, or both
