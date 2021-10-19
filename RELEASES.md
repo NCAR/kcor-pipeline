@@ -566,3 +566,5 @@
   set style of quicklooks to be normal, gallery, or both
   use UT date in subject of notification email for CME detection
   better SGS plot titles and ranges
+2.0.67
+  fix camera x-shift for 20150718, 20151213, 20151217, 20160503, 20170405
