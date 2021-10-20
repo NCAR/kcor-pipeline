@@ -568,3 +568,4 @@
   better SGS plot titles and ranges
 2.0.67 [Oct 20, 2021]
   fix camera x-shift for 20150718, 20151213, 20151217, 20160503, 20170405
+2.0.68
