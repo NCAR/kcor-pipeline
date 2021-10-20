@@ -89,7 +89,7 @@ pro kcor_realtime_lag, run=run
         xtickformat='label_date', xtitle='Observation time [UT]', $
         yrange=[0.0, 60.0 * n_hours], ystyle=1, yticks=n_hours, yminor=6, $
         ytitle='Lag [minutes]', $
-        title='Lag from data observation'
+        title='Lag from data observation to L2 creation (grey) and web (black)'
   oplot, creation_time, 24.0 * 60.0 * (process_lag), $
          psym=3, symsize=0.25, color=128
 
