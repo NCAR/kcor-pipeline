@@ -13,7 +13,8 @@ canonicalpath() {
   popd > /dev/null 2>&1
 }
 
-IDL=/home/mgalloy/bin/idl
+#IDL=/home/mgalloy/bin/idl
+IDL=/usr/local/idl873/idl87/bin/idl
 
 SCRIPT_LOC=$(canonicalpath $0)
 KCOR_CME_ROOT=$(dirname $SCRIPT_LOC)
