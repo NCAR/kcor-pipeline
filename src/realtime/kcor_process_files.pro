@@ -428,8 +428,8 @@ pro kcor_process_files, ok_files, $
   mg_log, /check_math, name=log_name, /debug
   mg_log, 'processed %d images in %0.1f sec', n_ok_files, total_time, $
           name=log_name, /info
-  if (image_time gt 15.0) then begin
-    mg_log, 'time/image: %0.1f sec [%d OK files]', image_time, name=log_name, /error
+  if (image_time gt 15.0 and ~keyword_set(eod)) then begin
+    mg_log, 'time/image: %0.1f sec [%d OK files]', image_time, n_ok_files, name=log_name, /error
   endif else begin
     mg_log, 'time/image: %0.1f sec', image_time, name=log_name, /info
   endelse
