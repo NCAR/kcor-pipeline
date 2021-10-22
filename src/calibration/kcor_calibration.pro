@@ -177,7 +177,8 @@ pro kcor_calibration, date, $
       who = 'unknown'
     endelse
 
-    log_dir = run->config('logging/dir')
+    log_dir = filepath(strmid(run.date, 0, 4), root=run->config('logging/basedir'))
+    if (~file_test(log_dir, /directory)) then file_mkdir, log_dir
 
     eod_logfile = filepath(run.date + '.eod.log', root=log_dir)
     eod_errors = kcor_filter_log(eod_logfile, /error, n_messages=n_eod_errors)

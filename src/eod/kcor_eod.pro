@@ -541,7 +541,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
       who = 'unknown'
     endelse
 
-    log_dir = run->config('logging/dir')
+    log_dir = filepath(strmid(run.date, 0, 4), root=run->config('logging/basedir'))
+    if (~file_test(log_dir, /directory)) then file_mkdir, log_dir
 
     realtime_logfile = filepath(run.date + '.realtime.log', root=log_dir)
     eod_logfile = filepath(run.date + '.eod.log', root=log_dir)

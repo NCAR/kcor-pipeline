@@ -25,7 +25,9 @@ pro kcor_report_results, date, run=run
   logs = ['reprocess', 'realtime', 'eod']
   for f = 0L, n_elements(logs) - 1L do begin
     basename = string(date, logs[f], format='(%"%s.%s.log")')
-    log_filename = filepath(basename, root=run->config('logging/dir'))
+    log_dir = filepath(strmid(run.date, 0, 4), root=run->config('logging/basedir'))
+    if (~file_test(log_dir, /directory)) then file_mkdir, log_dir
+    log_filename = filepath(basename, root=log_dir)
     if (file_test(log_filename, /regular)) then begin
       dst_filename = filepath(file_basename(basename, '.log') + '.olog', $
                               subdir=date, $

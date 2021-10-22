@@ -176,8 +176,8 @@ pro kcor_run::setup_loggers, rotate_logs=rotate_logs
   log_time_fmt = '(C(CYI4, "-", CMOI2.2, "-", CDI2.2, " " CHI2.2, ":", CMI2.2, ":", CSI2.2))'
 
   log_level = self->config('logging/level')
-  log_dir   = self->config('logging/dir')
-  if (~file_test(log_dir, /directory)) then file_mkdir, log_dir
+  log_dir = filepath(strmid(run.date, 0, 4), root=run->config('logging/basedir'))
+    if (~file_test(log_dir, /directory)) then file_mkdir, log_dir
 
   max_log_version = self->config('logging/max_version')
   mode            = self.mode

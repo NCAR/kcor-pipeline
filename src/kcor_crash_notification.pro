@@ -44,22 +44,26 @@ pro kcor_crash_notification, run=run, realtime=realtime, eod=eod, cme=cme
     return
   endif
 
+
+  log_dir = filepath(strmid(run.date, 0, 4), root=run->config('logging/basedir'))
+  if (~file_test(log_dir, /directory)) then file_mkdir, log_dir
+
   case 1 of
     keyword_set(realtime): begin
         rt_log_filename = filepath(run.date + '.realtime.log', $
-                                   root=run->config('logging/dir'))
+                                   root=log_dir)
         rt_errors = kcor_filter_log(rt_log_filename, /error, n_messages=n_rt_errors)
         name = 'real-time'
         body = [body, rt_log_filename, '', rt_errors]
       end
     keyword_set(eod): begin
-        eod_log_filename = filepath(run.date + '.eod.log', root=run->config('logging/dir'))
+        eod_log_filename = filepath(run.date + '.eod.log', root=log_dir)
         eod_errors = kcor_filter_log(eod_log_filename, /error, n_messages=n_eod_errors)
         name = 'end-of-day'
         body = [body, eod_log_filename, '', eod_errors]
       end
     keyword_set(cme): begin
-        cme_log_filename = filepath(run.date + '.cme.log', root=run->config('logging/dir'))
+        cme_log_filename = filepath(run.date + '.cme.log', root=log_dir)
         cme_errors = kcor_filter_log(cme_log_filename, /error, n_messages=n_cme_errors)
         name = 'cme'
         body = [body, cme_log_filename, '', cme_errors]
