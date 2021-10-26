@@ -1,5 +1,14 @@
 ; docformat = 'rst'
 
+;+
+; Analyze realtime processing time/image from::
+;
+;   grep time/image *.realtime.log > filename
+;
+; :Params:
+;   filename : in, required, type=string
+;     filename containing output from grep
+;-
 pro kcor_times, filename
   compile_opt strictarr
 
