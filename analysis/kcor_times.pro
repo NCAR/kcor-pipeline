@@ -30,7 +30,9 @@ pro kcor_times, filename
     year  = long(strmid(d, 0, 4))
     month = long(strmid(d, 5, 2))
     day   = long(strmid(d, 8, 2))
-    jds[i] = julday(month, day, year, hour, min, sec)
+    if (year gt 2020) then jds[i] = !values.f_nan else begin
+      jds[i] = julday(month, day, year, hour, min, sec)
+    endelse
     ; print, year, month, day, hour, min, sec, $
     ;        format='(%"%04d-%02d-%02dT%02d-%02d-%02d")'
   endfor
@@ -47,8 +49,8 @@ pro kcor_times, filename
         color='000000'x, background='ffffff'x, $
         title='Time/file in realtime processing', $
         xtickformat='label_date', xstyle=9, xtitle='Date of processing', $
-        ystyle=8, ytitle='Time/file (seconds)'
-  oplot, jds[[0, n_lines - 1]], fltarr(2) + 15.0, color='0000ff'x
+        ystyle=1, ytitle='Time/file (seconds)', yrange=[0.0, 40.0]
+  oplot, jds, fltarr(n_lines) + 15.0, color='0000ff'x
 end
 
 
