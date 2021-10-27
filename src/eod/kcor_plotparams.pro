@@ -361,6 +361,18 @@ pro kcor_plotparams, date, list=list, run=run
   mg_log, 'SGS DEC GIF: %s', file_basename(sgs_dec_gif_filename), name='kcor/eod', /debug
   write_gif, sgs_dec_gif_filename, tvrd()
 
+  engineering_basedir = run->config('results/engineering_basedir')
+  if (n_elements(engineering_basedir) gt 0L) then begin
+    engineering_dir = filepath('', $
+                               subdir=kcor_decompose_date(date), $
+                               root=engineering_basedir)
+    mg_log, 'distributing SGS plots...', name='kcor/eod', /info
+    file_copy, sgs_seeing_gif_filename, engineering_dir, /overwrite
+    file_copy, sgs_signal_gif_filename, engineering_dir, /overwrite
+    file_copy, sgs_ra_gif_filename, engineering_dir, /overwrite
+    file_copy, sgs_dec_gif_filename, engineering_dir, /overwrite
+  endif
+
   rav_min = min(sgs_rav - sgs_ras, /nan)
   rav_max = max(sgs_rav + sgs_ras, /nan)
   mg_log, 'SGSRAV min=%f, max=%f', rav_min, rav_max, name='kcor/eod', /debug

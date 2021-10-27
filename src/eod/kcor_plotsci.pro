@@ -78,6 +78,15 @@ pro kcor_plotsci, date, daily_science_file, run=run
                                          root=run->config('processing/raw_basedir'))
   write_gif, sci_intensity_plot_filename, plot_image, red, green, blue
 
+  engineering_basedir = run->config('results/engineering_basedir')
+  if (n_elements(engineering_basedir) gt 0L) then begin
+    engineering_dir = filepath('', $
+                               subdir=kcor_decompose_date(date), $
+                               root=engineering_basedir)
+    mg_log, 'distributing radial intensity plot...', name='kcor/eod', /info
+    file_copy, sci_intensity_plot_filename, engineering_dir, /overwrite
+  endif
+
   done:
 
   cd, orig_dir

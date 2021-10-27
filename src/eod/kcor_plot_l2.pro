@@ -151,6 +151,8 @@ pro kcor_plot_l2, run=run
 
   device, set_resolution=[772, 500], decomposed=0, set_colors=256, z_buffering=0
 
+  engineering_basedir = run->config('results/engineering_basedir')
+
   for r = 0L, n_elements(radii) - 1L do begin
     plot, float_times, reform(mean_pb[r, *]), $
           title=string(radii[r], run.date, $
@@ -169,16 +171,24 @@ pro kcor_plot_l2, run=run
           color=0, charsize=charsize, psym=1
 
     im = tvrd()
-    write_gif, filepath(string(run.date, radii[r], $
-                               format='(%"%s.kcor.mean-pb-%0.2f.gif")'), $
-                        root=plots_dir), $
-               im
+    mean_pb_filename = filepath(string(run.date, radii[r], $
+                                       format='(%"%s.kcor.mean-pb-%0.2f.gif")'), $
+                                root=plots_dir)
+    write_gif, mean_pb_filename, im
+
+    if (n_elements(engineering_basedir) gt 0L) then begin
+      engineering_dir = filepath('', $
+                                 subdir=kcor_decompose_date(date), $
+                                 root=engineering_basedir)
+      mg_log, 'distributing mean pB GIF at %0.2f R_sun...', radii[r], $
+              name='kcor/eod', /info
+      file_copy, mean_pb_filename, engineering_dir, /overwrite
+    endif
+
     openw, lun, filepath(string(run.date, radii[r], $
                                 format='(%"%s.kcor.mean-pb-%0.2f.txt")'), $
                          root=plots_dir), $
            /get_lun
-
-
 
     printf, lun, 'This text file contains calibrated polarization brightness (pB) measurements of'
     printf, lun, 'the low corona from the Mauna Loa Solar Observatory K-Coronagraph (K-Cor) over'

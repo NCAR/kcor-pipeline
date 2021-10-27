@@ -123,8 +123,9 @@ pro kcor_reprocess, date, run=run, error=error
     dirs = [run->config('results/archive_basedir'), $
             run->config('results/fullres_basedir'), $
             run->config('results/croppedgif_basedir'), $
+            run->config('results/engineering_basedir'), $
             run->config('results/nrgf_basedir')]
-    dir_names = ['archive', 'fullres', 'cropped GIF', 'NRGF'] + ' directory'
+    dir_names = ['archive', 'fullres', 'cropped GIF', 'engineering', 'NRGF'] + ' directory'
     for d = 0L, n_elements(dirs) - 1L do begin
       old_files = file_search(filepath(wildcard, $
                                        subdir=date_parts, $
