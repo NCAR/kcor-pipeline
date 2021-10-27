@@ -83,6 +83,7 @@ pro kcor_plotsci, date, daily_science_file, run=run
     engineering_dir = filepath('', $
                                subdir=kcor_decompose_date(date), $
                                root=engineering_basedir)
+    if (~file_test(engineering_dir, /directory)) then file_mkdir, engineering_dir
     mg_log, 'distributing radial intensity plot...', name='kcor/eod', /info
     file_copy, sci_intensity_plot_filename, engineering_dir, /overwrite
   endif

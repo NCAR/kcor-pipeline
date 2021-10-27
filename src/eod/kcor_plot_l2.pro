@@ -178,8 +178,9 @@ pro kcor_plot_l2, run=run
 
     if (n_elements(engineering_basedir) gt 0L) then begin
       engineering_dir = filepath('', $
-                                 subdir=kcor_decompose_date(date), $
+                                 subdir=kcor_decompose_date(run.date), $
                                  root=engineering_basedir)
+      if (~file_test(engineering_dir, /directory)) then file_mkdir, engineering_dir
       mg_log, 'distributing mean pB GIF at %0.2f R_sun...', radii[r], $
               name='kcor/eod', /info
       file_copy, mean_pb_filename, engineering_dir, /overwrite

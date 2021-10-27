@@ -366,6 +366,7 @@ pro kcor_plotparams, date, list=list, run=run
     engineering_dir = filepath('', $
                                subdir=kcor_decompose_date(date), $
                                root=engineering_basedir)
+    if (~file_test(engineering_dir, /directory)) then file_mkdir, engineering_dir
     mg_log, 'distributing SGS plots...', name='kcor/eod', /info
     file_copy, sgs_seeing_gif_filename, engineering_dir, /overwrite
     file_copy, sgs_signal_gif_filename, engineering_dir, /overwrite
