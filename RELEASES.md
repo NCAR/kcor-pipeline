@@ -571,3 +571,4 @@
 2.0.68 [Oct 27, 2021]
   fix camera x-shift for 20170405
   separate logs by year
+2.0.69
