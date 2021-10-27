@@ -572,3 +572,4 @@
   fix camera x-shift for 20170405
   separate logs by year
 2.0.69
+  distribute engineering plots: SGS, radial intensity, mean pB at height
