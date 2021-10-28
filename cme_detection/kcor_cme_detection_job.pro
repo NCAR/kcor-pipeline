@@ -66,13 +66,12 @@ pro kcor_cme_detection_job, date, $
     file_mkdir, kcor_hpr_diff_dir
   endif
 
-  if (~file_test(run->config('logging/dir'), /directory)) then begin
-    file_mkdir, run->config('logging/dir')
-  endif
+  log_dir = filepath(strmid(date, 0, 4), root=run->config('logging/base_dir'))
+  if (~file_test(log_dir, /directory)) then file_mkdir, log_dir
 
   ; setup cme log
   log_filename = filepath(string(date, format='(%"%s.cme.log")'), $
-                          root=run->config('logging/dir'))
+                          root=log_dir)
   mg_rotate_log, log_filename, max_version=run->config('logging/max_version')
   mg_log, logger=logger, name='kcor/cme'
   logger->setProperty, filename=log_filename, $
