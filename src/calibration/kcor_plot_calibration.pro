@@ -11,9 +11,12 @@ pro kcor_plot_calibration, cal_filename, run=run, gain_norm_stddev=gain_norm_std
 
   if (~file_test(plots_dir, /directory)) then file_mkdir, plots_dir
 
+  norm = 1.0e-6
+
   ; read gain
   cal_id = ncdf_open(cal_filename)
   ncdf_varget, cal_id, 'Gain', gain
+  gain *= norm
   ncdf_close, cal_id
 
   gain_norm_stddev = fltarr(2)
@@ -23,7 +26,7 @@ pro kcor_plot_calibration, cal_filename, run=run, gain_norm_stddev=gain_norm_std
   min_radius = 200.0
   max_radius = 500.0
   annulus_indices = where(d lt max_radius and d gt min_radius, n_annulus)
-  
+
   for c = 0, 1 do begin
     camera_gain = reform(gain[*, *, c])
     gain_stddev[c] = stddev(camera_gain[annulus_indices])
@@ -34,8 +37,7 @@ pro kcor_plot_calibration, cal_filename, run=run, gain_norm_stddev=gain_norm_std
   original_device = !d.name
   tvlct, original_rgb, /get
 
-  transmission = run->epoch('bopal')
-  gain_range = [0.0, 0.040]
+  gain_range = [0.0, 2500.0] * norm
   charsize = 1.15
   y = 512  ; height of gain profile
 
@@ -48,7 +50,7 @@ pro kcor_plot_calibration, cal_filename, run=run, gain_norm_stddev=gain_norm_std
   !p.multi = [0, 1, 2]
 
   for c = 0, 1 do begin
-    profile = gain[*, y, c] * transmission
+    profile = gain[*, y, c]
     nx = n_elements(profile)
     r = abs(findgen(nx) - (nx - 1) / 2.0)
     x = findgen(nx)
@@ -64,7 +66,7 @@ pro kcor_plot_calibration, cal_filename, run=run, gain_norm_stddev=gain_norm_std
     oplot, x[inside_indices], profile[inside_indices], color=195
     xyouts, 0.15, 0.5 * c + 0.175, /normal, $
             string(gain_stddev[c], gain_norm_stddev[c], $
-                   format='(%"std dev: %0.4f!Cstd dev / median: %0.4f!C")'), $
+                   format='(%"std dev: %0.3g!Cstd dev / median: %0.4f!C")'), $
             charsize=1.0, color=0
   endfor
 
