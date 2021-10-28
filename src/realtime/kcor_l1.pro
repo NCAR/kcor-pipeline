@@ -119,7 +119,7 @@ pro kcor_l1, ok_filename, $
 
   ncdf_varget, unit, 'Dark', dark_alfred
   ncdf_varget, unit, 'Gain', gain_alfred  ; gain_alfred is a dark corrected gain
-  gain_alfred /= 1e-6   ; this makes gain_alfred in units of B/Bsun
+  gain_alfred /= 1.0e-6   ; this makes gain_alfred in units of B/Bsun
   ncdf_varget, unit, 'Modulation Matrix', mmat
   ncdf_varget, unit, 'Demodulation Matrix', dmat
   ncdf_varget, unit, 'DIM Reference Voltage', flat_vdimref
