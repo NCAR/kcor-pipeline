@@ -66,7 +66,7 @@ pro kcor_cme_detection_job, date, $
     file_mkdir, kcor_hpr_diff_dir
   endif
 
-  log_dir = filepath(strmid(date, 0, 4), root=run->config('logging/base_dir'))
+  log_dir = filepath(strmid(date, 0, 4), root=run->config('logging/basedir'))
   if (~file_test(log_dir, /directory)) then file_mkdir, log_dir
 
   ; setup cme log
