@@ -38,7 +38,7 @@ pro kcor_plot_calibration, cal_filename, run=run, gain_norm_stddev=gain_norm_std
   tvlct, original_rgb, /get
 
   gain_range = [0.0, 2500.0] * norm
-  charsize = 1.15
+  charsize = 1.2
   y = 512  ; height of gain profile
 
   set_plot, 'Z'
@@ -64,9 +64,9 @@ pro kcor_plot_calibration, cal_filename, run=run, gain_norm_stddev=gain_norm_std
           ytitle='Gain value [B/Bsun]', $
           background=255, color=0, charsize=charsize, psym=3
     oplot, x[inside_indices], profile[inside_indices], color=195
-    xyouts, 0.15, 0.5 * c + 0.175, /normal, $
+    xyouts, 0.15, 0.5 * c + 0.20, /normal, $
             string(gain_stddev[c], gain_norm_stddev[c], $
-                   format='(%"std dev: %0.3g!Cstd dev / median: %0.4f!C")'), $
+                   format='(%"std dev: %0.3g!C!Cstd dev / median: %0.4f")'), $
             charsize=1.0, color=0
   endfor
 
