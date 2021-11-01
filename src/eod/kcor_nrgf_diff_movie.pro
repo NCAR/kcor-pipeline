@@ -1,14 +1,14 @@
 ;  docformat = 'rst'
 
 ;+
-;  Create animation of side-by-side K-Cor NRGF and K-Cor subtraction images.
+; Create animation of side-by-side K-Cor NRGF and K-Cor subtraction images.
 ;
 ; Read in NRGF average GIF images and subtraction GIF images.
 ; K-Cor subtraction images have a nominal 5 minute cadence (if no data gaps).
 ; K-Cor NRGF average images have a nominal 2 minute cadence (if no data gaps).
 ; Find NRGF image closest in time to subtraction image.
 ; If these are 'close' together in time then save these 2 images in a new
-; array then save as a new combined gif image`
+; array then save as a new combined GIF image.
 ; HOW CLOSE IN TIME SHOULD IMAGES BE?
 ; Want images less than `numsec` seconds apart where `numsec` is set as a
 ; default below.
@@ -72,7 +72,7 @@ pro kcor_nrgf_diff_movie, run=run
   current_diff = 0L
   current_nrgf = 0L
 
-  ; this logic should find the last good subt/nrgf match of the day
+  ; this logic should find the last good subtraction/NRGF match of the day
   while (end_of_data ne 1) do begin
     ; read in next NRGF image
     nrgf_file = nrgf_average_gifs[current_nrgf++]
