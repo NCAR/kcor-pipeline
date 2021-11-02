@@ -133,7 +133,7 @@ pro kcor_nrgf_diff_movie, run=run
       saveimg = nrgf_file
 
       read_subt = 0
-    endif else if (delta_time ge savetime) and (savetime lt maxtime) then begin    
+    endif else if (delta_time ge savetime) and (savetime lt maxtime) then begin
       ; time difference increasing; probably data gap. Use previous image if
       ; meets less strict criteria
       nrgf_keep[ncount] = saveimg
@@ -150,10 +150,12 @@ pro kcor_nrgf_diff_movie, run=run
     endif
 
     ; when the last diff image is found; continue reading NRGFs to find a match
-    if ((current_diff eq n_diff_gifs) and (current_nrgf eq n_nrgf_average_gifs)) then end_of_data = 1B
+    if ((current_diff eq n_diff_gifs) $
+         or (current_nrgf eq n_nrgf_average_gifs)) then end_of_data = 1B
 
     ; still have some NRGF images
-    if ((current_diff eq n_diff_gifs) and (current_nrgf lt n_nrgf_average_gifs)) then begin
+    if ((current_diff eq n_diff_gifs) $
+         and (current_nrgf lt n_nrgf_average_gifs)) then begin
       ; no more NRGFs within time range
       if (read_subt eq 1) then end_of_data = 1B
 

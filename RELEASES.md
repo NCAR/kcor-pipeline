@@ -571,5 +571,7 @@
 2.0.68 [Oct 27, 2021]
   fix camera x-shift for 20170405
   separate logs by year
-2.0.69
+2.0.69 [Nov 2, 2021]
   distribute engineering plots: SGS, radial intensity, mean pB at height
+  add epoch for 20211018
+  fix for bug in creation NRGF+subtraction movies
