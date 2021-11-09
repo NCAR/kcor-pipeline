@@ -437,7 +437,7 @@ def ls(args):
         list_files(sorted(dirs))
         list_files(sorted(files), columns=columns)
     except KeyboardInterrupt:
-        pass
+        print()
 
 
 # validate sub-command
@@ -527,7 +527,10 @@ def filter_file(logfile, level_index, follow):
                 if line == "":
                     try:
                         time.sleep(POLL_SECS)
-                    except (IOError, KeyboardInterrupt):
+                    except IOError:
+                        return
+                    except KeyboardInterrupt:
+                        print()
                         return
                     continue
 
@@ -535,7 +538,10 @@ def filter_file(logfile, level_index, follow):
                     matched_last_line = True
                     try:
                         print(line.rstrip())
-                    except (IOError, KeyboardInterrupt):
+                    except IOError:
+                        return
+                    except KeyboardInterrupt:
+                        print()
                         return
                 else:
                     if matched_last_line:
@@ -544,7 +550,10 @@ def filter_file(logfile, level_index, follow):
                         else:
                             try:
                                 print(line.rstrip())
-                            except (IOError, KeyboardInterrupt):
+                            except IOError:
+                                return
+                            except KeyboardInterrupt:
+                                print()
                                 return
     except IOError:
         print("Problem reading %s" % logfile)
