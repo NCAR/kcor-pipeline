@@ -577,3 +577,4 @@
   fix for bug in creation NRGF+subtraction movies
 2.0.70
   new epoch for start_state for 20211101
+  updated L1 OBJECT FITS keyword comment
