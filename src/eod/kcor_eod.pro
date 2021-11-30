@@ -57,14 +57,14 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   date_dir = filepath(date, root=run->config('processing/raw_basedir'))
   if (~file_test(date_dir, /directory)) then begin
-    mg_log, '%s does not exist', date_dir, name='kcor/eod', /error
-    goto, done
+    mg_log, '%s does not exist, creating...', date_dir, name='kcor/eod', /error
+    file_mkdir, date_dir
   endif
 
   l0_dir = filepath('level0', root=date_dir)
   if (~file_test(l0_dir, /directory)) then begin
-    mg_log, '%s does not exist', l0_dir, name='kcor/eod', /error
-    goto, done
+    mg_log, '%s does not exist, creating...', l0_dir, name='kcor/eod', /error
+    file_mkdir, l0_dir
   endif
 
   ; determine end-of-day is already done if t1.log has already been copied to
