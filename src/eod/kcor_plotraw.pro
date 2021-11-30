@@ -96,6 +96,8 @@ pro kcor_plotraw, date, list=list, run=run, $
   theta_degrees = findgen(360)
   theta = theta_degrees * !dtor
 
+  pol_state_by_camera = [0, 3]
+
   n_digits = floor(alog10(n_nrgf_files)) + 1L  ; for formatting
   for f = 0L, n_nrgf_files - 1L do begin
     mg_log, '%' + strtrim(n_digits, 2) + 'd/%d: %s', $
@@ -138,13 +140,25 @@ pro kcor_plotraw, date, list=list, run=run, $
     occulter = kcor_get_occulter_size(occltrid, run=run)
     radius_guess = occulter / run->epoch('plate_scale')   ; pixels
 
+    ; epoch values like distortion correction filename can change during the day
+    dc_path = filepath(run->epoch('distortion_correction_filename'), $
+                       root=run.resources_dir)
+    restore, dc_path   ; distortion correction file
+
+    im0 = reform(im[*, *, pol_state_by_camera[0], 0])    ; camera 0 [reflected]
+    im0 = reverse(im0, 2)           ; y-axis inversion
+    im1 = reform(im[*, *, pol_state_by_camera[1], 1])    ; camera 1 [transmitted]
+    kcor_apply_dist, im0, im1, dx1_c, dy1_c, dx2_c, dy2_c
+    im[*, *, pol_state_by_camera[0], 0] = im0
+    im[*, *, pol_state_by_camera[1], 1] = im1
+
     for c = 0, 1 do begin
-      line_means[c, f] = mean((im[*, y_profile_value, 0, c])[10:300])
-      line_medians[c, f] = median((im[*, y_profile_value, 0, c])[10:300])
+      line_means[c, f] = mean((im[*, y_profile_value, pol_state_by_camera[c], c])[10:300])
+      line_medians[c, f] = median((im[*, y_profile_value, pol_state_by_camera[c], c])[10:300])
       mg_log, 'camera %d: line mean: %0.1f, median: %0.1f', $
               c, line_means[c, f], line_medians[c, f], $
               name='kcor/eod', /debug
-      plot, reform(im[*, y_profile_value, 0, c]), $
+      plot, reform(im[*, y_profile_value, pol_state_by_camera[c], c]), $
             title=string(y_profile_value, c, $
                          format='(%"Line profile of intensity at y=%d for camera %d")'), $
             charsize=2.0, $
@@ -156,7 +170,7 @@ pro kcor_plotraw, date, list=list, run=run, $
     endfor
 
     for c = 0, 1 do begin
-      info_raw  = kcor_find_image(im[*, *, 0, c], $
+      info_raw  = kcor_find_image(im[*, *, pol_state_by_camera[c], c], $
                                   radius_guess, $
                                   /center_guess, $
                                   max_center_difference=run->epoch('max_center_difference'), $
@@ -169,7 +183,7 @@ pro kcor_plotraw, date, list=list, run=run, $
       y = radius * sun_pixels * sin(theta) + y_0
 
       ; need to get to a 2-dimensional array to index correctly
-      spatial_im = reform(im[*, *, 0, c])
+      spatial_im = reform(im[*, *, pol_state_by_camera[c], c])
       azi_profile = reform(spatial_im[round(x), round(y)])
 
       azi_means[c, f] = mean(azi_profile)
@@ -184,7 +198,7 @@ pro kcor_plotraw, date, list=list, run=run, $
                          format='(%"Azimuthal profile of intensity at r=%0.1f solar radius for camera %d")'), $
             charsize=2.0, $
             xticks=8, xtickv=findgen(9) * 45.0, $
-            xstyle=1, xtickformat='(I)', xtitle='Angle (degrees)', $
+            xstyle=1, xtickformat='(I)', xtitle='Angle [degrees]', $
             ytickformat='kcor_plotraw_ytickformat', $
             ystyle=1, yrange=[0, 70000], ytitle='Raw pixel value', $
             yticks=8, yminor=1, yticklen=1.0, ygridstyle=1
