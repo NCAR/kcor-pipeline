@@ -440,8 +440,8 @@ def ls(args):
         print()
 
 
-# validate sub-command
-def validate(args):
+# verify sub-command
+def verify(args):
     dates = ",".join(args.dates)
 
     cmd = [os.path.join(PIPELINE_DIR, "bin", "kcor_verify_dates.sh"),
@@ -623,7 +623,7 @@ def get_raw_dir(date, flags, error):
     try:
         raw_dir = kcor_config.get("processing", "raw_basedir")
     except configparser.NoSectionError:
-        error("no raw section in config file")
+        error("no processing section in config file")
     except configparser.NoOptionError:
         routing_filename = kcor_config.get("processing", "routing_file")
         routing_config = configparser.ConfigParser()
@@ -863,7 +863,7 @@ def simulate(args):
     except configparser.NoSectionError:
         args.parser.error("depot_basedir not specified")
 
-    raw_basedir = config.get("processing", "raw_basedir")
+    raw_basedir = get_raw_dir(args.dates[0], args.flags, args.parser.error)
     raw_dir = os.path.join(raw_basedir, args.dates[0])
 
     launch_interval = config.get("simulator", "launch_interval", fallback="60.0")
@@ -983,7 +983,7 @@ def stage_date(parser, date, flags, dst):
 
 
 def copy_date(date, src, dst):
-    copy_files(date, src, "*.log", dst)
+    copy_files(date, src, "*.log", dst, verbose=True)
     copy_files(date, src, "*.fts.gz", dst, verbose=True)
 
 
@@ -999,7 +999,7 @@ def copy_files(date, src, spec, dst, *, verbose=False):
         os.mkdir(dst_dir)
 
     if verbose:
-        print(f"staging {date} [{src}] ({len(files)} FITS files)...")
+        print(f"staging {date} [{src}] ({len(files)} {spec} files)...")
 
     for f in files:
         shutil.copy2(f, dst_dir)
@@ -1250,15 +1250,15 @@ if __name__ == "__main__":
     archive_parser.set_defaults(func=archive, parser=archive_parser)
 
 
-    # validate sub-command
-    validate_parser = subparsers.add_parser("validate",
-                                            help="validate previously processed dates")
-    validate_parser.add_argument("dates", type=str, nargs="*", help=date_help,
-                                 metavar="date-expr")
+    # verify sub-command
+    verify_parser = subparsers.add_parser("verify",
+                                          help="verify previously processed dates")
+    verify_parser.add_argument("dates", type=str, nargs="*", help=date_help,
+                               metavar="date-expr")
 
-    validate_parser.add_argument("-f", "--flags", type=str, help=flags_help,
+    verify_parser.add_argument("-f", "--flags", type=str, help=flags_help,
                                  default="latest")
-    validate_parser.set_defaults(func=validate, parser=validate_parser)
+    verify_parser.set_defaults(func=verify, parser=verify_parser)
 
 
     # purge sub-command
