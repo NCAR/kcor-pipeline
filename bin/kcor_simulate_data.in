@@ -64,7 +64,7 @@ def download_loop(depot_dir, raw_dir, batch_time, speedup_factor=1.0):
                  catalog[-1]['date'] - catalog[0]['date'])
 
     if len(logs) < 2 or len(logs) > 3:
-        logging.error('%d t1/t2 logs present, exiting...', len(logs))
+        logging.error("wrong number of machine/t1/t2 logs present (%d), exiting...", len(logs))
         return
 
     # if raw_dir does not exist, create it
