@@ -86,8 +86,8 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
 
     if (run->config('realtime/reprocess') $
           || run->config('realtime/update_processing')) then begin
-      kcor_reprocess, date, run=run, error=error
-      if (error ne 0L) then begin
+      kcor_reprocess, date, run=run, error=reprocess_error
+      if (reprocess_error ne 0L) then begin
         mg_log, 'error in reprocessing setup, exiting', name='kcor/rt', /error
         mg_log, 'see reprocessing log for details', name='kcor/rt', /error
         goto, done
@@ -189,20 +189,21 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     endif
 
     kcor_process_files, ok_files, run=run, mean_phase1=mean_phase1, $
-                        log_name='kcor/rt', error=error
+                        log_name='kcor/rt', error=process_errors
 
-    mg_log, 'moving processed files to level0 dir', name='kcor/rt', /info
+    mg_log, 'moving %d processed files to level0 dir', n_l0_fits_files, $
+            name='kcor/rt', /info
     file_move, l0_fits_files, l0_dir, /overwrite
 
-    if (n_elements(error) eq 0L) then begin
-      mg_log, 'no L0 files to process, quitting', name='kcor/rt', /info
-      goto, done
-    endif
-
-    processed_indices = where(error eq 0L, n_processed_files, /null)
-    failed_indices = where(error ne 0L, n_failed_files, /null)
-    mg_log, '%d processed files', n_processed_files, name='kcor/rt', /debug
-    mg_log, '%d failed files', n_failed_files, name='kcor/rt', /debug
+    if (n_elements(process_errors) eq 0L) then begin
+      n_processed_files = 0L
+      n_failed_files = 0L
+    endif else begin
+      processed_indices = where(process_errors eq 0L, n_processed_files, /null)
+      failed_indices = where(process_errors ne 0L, n_failed_files, /null)
+      mg_log, '%d processed files', n_processed_files, name='kcor/rt', /debug
+      mg_log, '%d failed files', n_failed_files, name='kcor/rt', /debug
+    endelse
 
     if (file_test(l1_dir, /directory)) then begin
       cd, l1_dir
