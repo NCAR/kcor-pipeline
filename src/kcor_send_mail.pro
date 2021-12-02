@@ -43,8 +43,9 @@ pro kcor_send_mail, address, subject, body, $
                    ? '' $
                    : (strjoin('-a ' + attachments, ' '))
 
-  cmd = string(subject, _attachments, address, body_filename, $
-               format='(%"mail -s ''%s'' %s -r $(whoami)@ucar.edu %s < %s")')
+  from_email = 'kcor-pipeline@ucar.edu'
+  cmd = string(subject, _attachments, from_email, address, body_filename, $
+               format='(%"mail -s ''%s'' %s -r %s %s < %s")')
   spawn, cmd, result, error_result, exit_status=error
   if (error ne 0L) then begin
     mg_log, 'problem with mail command: %s', cmd, name=logger_name, /error
