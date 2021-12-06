@@ -582,6 +582,6 @@
   new epoch for start_state for 20211119
   fix for realtime crashes when no OK level 0 files in a launch
   distortion correct raw files for profile plots
-2.0.72
+2.0.72 [Dec 6, 2021]
   new cal epoch for 20141026 1.0 ms data
   send non-CME detection notification emails from kcor-pipeline@ucar.edu
