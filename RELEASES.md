@@ -585,3 +585,4 @@
 2.0.72 [Dec 6, 2021]
   new cal epoch for 20141026 1.0 ms data
   send non-CME detection notification emails from kcor-pipeline@ucar.edu
+2.0.73
