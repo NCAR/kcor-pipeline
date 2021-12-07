@@ -145,11 +145,11 @@ pro kcor_rolling_synoptic_map, database=db, run=run
   p_dir = filepath('p', subdir=run.date, root=run->config('processing/raw_basedir'))
   if (~file_test(p_dir, /directory)) then file_mkdir, p_dir
 
-  output_filename = filepath(string(run.date, $
-                                    100.0 * 1.3, $
-                                    format='(%"%s.kcor.28day.synoptic.r%03d.gif")'), $
-                             root=p_dir)
-  write_gif, output_filename, im, rgb[*, 0], rgb[*, 1], rgb[*, 2]
+  gif_filename = filepath(string(run.date, $
+                                 100.0 * 1.3, $
+                                 format='(%"%s.kcor.28day.synoptic.r%03d.gif")'), $
+                          root=p_dir)
+  write_gif, gif_filename, im, rgb[*, 0], rgb[*, 1], rgb[*, 2]
 
   mkhdr, primary_header, map, /extend
   sxdelpar, primary_header, 'DATE'
@@ -175,8 +175,21 @@ pro kcor_rolling_synoptic_map, database=db, run=run
                                  subdir=[date_parts[0], date_parts[1]], $
                                  root=synoptic_maps_basedir)
     if (~file_test(synoptic_maps_dir, /directory)) then file_mkdir, synoptic_maps_dir
-    mg_log, 'distributing 28 day rolling synoptic map...', name=logger_name, /info
+    mg_log, 'distributing 28 day rolling synoptic map to synmaps dir...', $
+            name=logger_name, /info
     file_copy, fits_filename, synoptic_maps_dir, /overwrite
+    file_copy, gif_filename, synoptic_maps_dir, /overwrite
+  endif
+
+  engineering_basedir = run>config('results/engineering_basedir')
+  if (n_elements(engineering_basedir) gt 0L) then begin
+    date_parts = kcor_decompose_date(run.date)
+    eng_dir = filepath('', subdir=kcor_decompose_date(run.date), root=engineering_basedir)
+    if (~file_test(eng_dir, /directory)) then file_mkdir, eng_dir
+    mg_log, 'distributing 28 day rolling synoptic map to engineering...', $
+            name=logger_name, /info
+    file_copy, fits_filename, eng_dir, /overwrite
+    file_copy, fits_filename, eng_dir, /overwrite
   endif
 
   ; clean up

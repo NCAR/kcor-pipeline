@@ -369,9 +369,9 @@ pro kcor_plotparams, date, list=list, run=run
     if (~file_test(engineering_dir, /directory)) then file_mkdir, engineering_dir
     mg_log, 'distributing SGS plots...', name='kcor/eod', /info
     file_copy, sgs_seeing_gif_filename, engineering_dir, /overwrite
-    file_copy, sgs_signal_gif_filename, engineering_dir, /overwrite
-    file_copy, sgs_ra_gif_filename, engineering_dir, /overwrite
-    file_copy, sgs_dec_gif_filename, engineering_dir, /overwrite
+    ; file_copy, sgs_signal_gif_filename, engineering_dir, /overwrite
+    ; file_copy, sgs_ra_gif_filename, engineering_dir, /overwrite
+    ; file_copy, sgs_dec_gif_filename, engineering_dir, /overwrite
   endif
 
   rav_min = min(sgs_rav - sgs_ras, /nan)
