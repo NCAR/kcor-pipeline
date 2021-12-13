@@ -38,6 +38,7 @@ function kcor_state, lock=lock, $
     state_file = filepath('.first_image', root=raw_dir)
 
     if (~file_test(state_file)) then begin
+      mg_log, 'writing first image file', name=logger_name, /debug
       openw, lun, state_file, /get_lun
       printf, lun, mg_pid()
       free_lun, lun
@@ -61,6 +62,7 @@ function kcor_state, lock=lock, $
 
     if (keyword_set(lock)) then begin
       if (available) then begin
+        mg_log, 'writing lock file', name=logger_name, /debug
         openw, lun, lock_file, /get_lun
         printf, lun, mg_pid()
         free_lun, lun
@@ -75,13 +77,14 @@ function kcor_state, lock=lock, $
     if (keyword_set(unlock)) then begin
       locked = file_test(lock_file)
       if (locked) then begin
+        mg_log, 'removing lock file', name=logger_name, /debug
         file_delete, lock_file
       endif
       return, locked
     endif
 
     if (keyword_set(processed)) then begin
-      mg_log, 'setting processed file', name=logger_name, /debug
+      mg_log, 'writing processed file', name=logger_name, /debug
       openw, lun, processed_file, /get_lun
       printf, lun, mg_pid()
       free_lun, lun
