@@ -587,4 +587,5 @@
   send non-CME detection notification emails from kcor-pipeline@ucar.edu
 2.0.73 [Dec 13, 2021]
   send 28 day rolling synoptic maps to engineering directory
-2.0.74
+2.0.74 [Dec 13, 2021]
+  typo
