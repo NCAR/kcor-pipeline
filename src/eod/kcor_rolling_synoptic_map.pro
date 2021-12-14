@@ -181,7 +181,7 @@ pro kcor_rolling_synoptic_map, database=db, run=run
     file_copy, gif_filename, synoptic_maps_dir, /overwrite
   endif
 
-  engineering_basedir = run>config('results/engineering_basedir')
+  engineering_basedir = run->config('results/engineering_basedir')
   if (n_elements(engineering_basedir) gt 0L) then begin
     date_parts = kcor_decompose_date(run.date)
     eng_dir = filepath('', subdir=kcor_decompose_date(run.date), root=engineering_basedir)
