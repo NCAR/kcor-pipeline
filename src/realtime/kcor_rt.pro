@@ -96,6 +96,8 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       mg_log, 'skipping updating/reprocessing', name='kcor/rt', /debug
     endelse
 
+    kcor_remove_duplicates, raw_dir, l0_dir, logger_name=logger_name
+
     ; need to run on machine at MLSO since data are not zipped there, should not
     ; run or be needed in Boulder
     unzipped_glob = '*_kcor.fts'

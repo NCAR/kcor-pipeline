@@ -589,4 +589,5 @@
   send 28 day rolling synoptic maps to engineering directory
 2.0.74 [Dec 13, 2021]
   typo
-2.0.75
+2.0.75 [Dec 14, 2021]
+  remove level 0 files that have already been processed
