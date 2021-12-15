@@ -96,8 +96,6 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       mg_log, 'skipping updating/reprocessing', name='kcor/rt', /debug
     endelse
 
-    kcor_remove_duplicates, raw_dir, l0_dir, logger_name=logger_name
-
     ; need to run on machine at MLSO since data are not zipped there, should not
     ; run or be needed in Boulder
     unzipped_glob = '*_kcor.fts'
@@ -114,7 +112,9 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       endif
     endif
 
-    l0_fits_files = file_search('*_kcor.fts.gz', count=n_l0_fits_files)
+    l0_fits_files = kcor_remove_duplicates(raw_dir, l0_dir, $
+                                           count=n_l0_fits_files, $
+                                           logger_name=logger_name)
     if (n_l0_fits_files eq 0L) then begin
       mg_log, 'no L0 files to process in raw dir', name='kcor/rt', /info
       goto, done
