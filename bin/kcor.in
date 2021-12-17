@@ -381,9 +381,9 @@ def list_fits_file_default(f):
         level = header["LEVEL"]
         occulter = header["OCCLTRID"]
         sgsscint = get_fits_float(header, "SGSSCINT")
-        seeing = f"{sgsscint:9.3f} arcsec seeing" if sgsscint is not None else 21 * "-"
+        seeing = f"{sgsscint:7.1f} arcsec seeing" if sgsscint is not None else 20 * "-"
 
-    print(f"{basename:40s}  {level:2s}  {type:10s}  {occulter:12s}  {seeing}")
+    print(f"{basename:40s}  {level:2s}  {type:10s}  {occulter:18s}  {seeing}")
 
 
 def list_files(files, columns=None):
@@ -393,11 +393,11 @@ def list_files(files, columns=None):
         if os.path.isdir(f):
             n_subfiles = len(glob.glob(os.path.join(f, "*")))
             name = f"{basename}/"
-            print(f"{name:36s}  {n_subfiles:,} files")
+            print(f"{name:40s}  {n_subfiles:,} files")
         elif os.path.isfile(f):
             if file_extension == ".tgz":
                 size = os.stat(f).st_size
-                print(f"{basename:36s}  {size:,} bytes")
+                print(f"{basename:40s}  {size:,} bytes")
             else:
                 try:
                     if columns is None:
