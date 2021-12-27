@@ -37,6 +37,8 @@ pro kcor_publish_eng_plots, date, config_filename=config_filename
            '*.kcor.mean-pb-1.80.gif', $
            '*.kcor.28day.synoptic.r130.gif', $
            '*.kcor.28day.synoptic.r130.fts', $
+           '*.sgs.eng.gif', $
+           '*.kcor.sgs.seeing.gif', $
            '*.kcor.sgs.sky_transmission_and_seeing.gif']
   for g = 0L, n_elements(globs) - 1L do begin
     files = file_search(globs[g], count=n_files)
