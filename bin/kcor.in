@@ -270,7 +270,7 @@ def make_version_filter(filter_expression):
     if filter_expression is None:
         return(null_filter)
 
-    spec = packaging.specifiers.SpecifierSet(filter_expression)
+    spec = packaging.specifiers.SpecifierSet(filter_expression, prereleases=True)
 
     def filter_function(version):
         return packaging.version.parse(version) in spec
