@@ -72,9 +72,11 @@ pro kcor_daily_synoptic_map, radius=radius, run=run
 
     mins = 60 * (hst_hour - start_hour) + hst_minute + hst_second / 60.0
     i = long(n_bins * mins / (end_hour - start_hour) / 60L)
-    map[i, *] += r
-    counts[i] += 1
-    bin_indices[f] = i
+    if (i ge 0L and i lt n_bins) then begin
+      map[i, *] += r
+      counts[i] += 1
+      bin_indices[f] = i
+    endif
   endfor
 
   counts[where(counts eq 0L, /null)] = 1L
@@ -232,7 +234,7 @@ end
 ; main-level example
 
 ;dates = '202001' + ['01', '02', '04', '05', '06', '08', '17', '18', '19', '20']
-dates = ['20200118']
+dates = ['20150731']
 for d = 0L, n_elements(dates) - 1L do begin
   config_filename = filepath('kcor.reprocess.cfg', $
                              subdir=['..', '..', 'config'], $
