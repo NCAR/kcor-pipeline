@@ -593,3 +593,4 @@
   remove level 0 files that have already been processed
 2.0.76 [Jan 6, 2022]
   handle extremely long days in KCOR_DAILY_SYNOPTIC_MAP
+2.0.77
