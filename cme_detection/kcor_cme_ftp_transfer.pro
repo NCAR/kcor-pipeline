@@ -20,13 +20,24 @@
 ;   error_msg : out, optional, type=string
 ;     set to a named variable to retrieve the error message if `STATUS` was not
 ;     0
+;   verbose : in, optional, type=boolean
+;     set to produce verbose output
+;   cmd : out, optional, type=string
+;     set to a named variable to retrieve the command used to perform the FTP
+;     transfer
+;-
 pro kcor_cme_ftp_transfer, ftp_url, filename, email, $
-                           status=status, error_msg=error_msg
+                           status=status, $
+                           error_msg=error_msg, $
+                           verbose=verbose, $
+                           cmd=cmd
   compile_opt strictarr
 
+  _verbose = keyword_set(verbose) ? '-v' : ''
+
   ; TODO: need a silent option to not show progress
-  cmd = string(email, ftp_url, filename, $
-               format='(%"curl --ssl -k -s -S --user anonymous:%s %s -T %s")')
+  cmd = string(_verbose, email, ftp_url, filename, $
+               format='(%"curl --ssl -k %s -s -S --user anonymous:%s %s -T %s")')
   spawn, cmd, stdout, error_msg, exit_status=status
 end
 
@@ -58,7 +69,7 @@ print, ftp_url, format='(%"FTP URL: %s")'
 print, ftp_from_email, format='(%"FTP from email: %s")'
 
 kcor_cme_ftp_transfer, ftp_url, alert_filename, ftp_from_email, $
-                      status=status, error_msg=error_msg
+                       status=status, error_msg=error_msg
 
 print, status, format='(%"FTP status: %d")'
 if (status ne 0L) then print, error_msg
