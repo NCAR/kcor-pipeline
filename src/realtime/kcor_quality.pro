@@ -309,7 +309,7 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
       mg_log, '%d/%d: skipping files from this epoch [%s]', $
               num_img, n_l0_fits_files, strmid(file_basename(l0_file), 0, 15), $
               name=run.logger_name, /warn
-      printf, udev, l0_file
+      printf, udev, file_basename(l0_file)
       continue
     endif
 
@@ -700,7 +700,7 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
           ncal += 1
           cal_list->add, l0_file
           if (~keyword_set(eod)) then begin
-            printf, ucal, l0_file
+            printf, ucal, file_basename(l0_file)
             file_copy, l0_file, cdate_dir, /overwrite   ; copy l0 file to cdate_dir
           endif
         end
@@ -710,7 +710,7 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
           qual = q_dev
           ndev += 1
           dev_list->add, l0_file
-          if (~keyword_set(eod)) then printf, udev, l0_file
+          if (~keyword_set(eod)) then printf, udev, file_basename(l0_file)
         end
       sat gt 0: begin                                      ; saturation
           radius = run->epoch('rpixt')
@@ -719,7 +719,7 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
           qual = q_sat
           nsat += 1
           sat_list->add, l0_file
-          if (~keyword_set(eod)) then printf, usat, l0_file
+          if (~keyword_set(eod)) then printf, usat, file_basename(l0_file)
         end
       bright gt 0: begin                                   ; bright image
           radius = run->epoch('rpixb')
@@ -728,7 +728,7 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
           qual = q_brt
           nbrt += 1
           brt_list->add, l0_file
-          if (~keyword_set(eod)) then printf, ubrt, l0_file
+          if (~keyword_set(eod)) then printf, ubrt, file_basename(l0_file)
         end
       clo gt 0: begin                                      ; dim image
           radius = run->epoch('rpixc')
@@ -746,7 +746,7 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
           qual = q_cld
           ncld += 1
           cld_list->add, l0_file
-          if (~keyword_set(eod)) then printf, ucld, l0_file
+          if (~keyword_set(eod)) then printf, ucld, file_basename(l0_file)
         end
       noise gt 0: begin                                    ; noisy
           radius = rpixn
@@ -755,7 +755,7 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
           qual = q_nsy
           nnsy += 1
           nsy_list->add, l0_file
-          if (~keyword_set(eod)) then printf, unsy, l0_file
+          if (~keyword_set(eod)) then printf, unsy, file_basename(l0_file)
         end
       else: begin                                          ; good image
           if (eng gt 0) then begin   ; engineering
