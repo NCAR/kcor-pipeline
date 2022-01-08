@@ -76,6 +76,38 @@ pro kcor_cme_det_alert, itime, rsun, operator=operator
   kcor_cme_det_movie
   kcor_cme_det_email, time, edge, last_detected_image_time, operator=operator
 
+  ftp_url = run->config('cme/ftp_alerts_url')
+  if (n_elements(ftp_url) gt 0L) then begin
+    iso8601_fmt = '(C(CYI4.4, "-", CMI2.2, "-", CDI2.2, "T", CHI2.2, ":", CMI2.2, ":", CSI2.2, "Z"))'
+    issue_time = string(julday(), format=iso8601_fmt)
+    last_data_time = date_diff[-1].date_obs + 'Z'
+    start_time = date_diff[itime].date_obs + 'Z'
+    alert_json = kcor_cme_alert_initial(issue_time, last_data_time, start_time, $
+                                        position_angle=angle, $
+                                        speed=speed, $
+                                        height=edge, $
+                                        time_for_height=time)
+
+    json_filename = kcor_cme_alert_filename(start_time, issue_time)
+    kcor_cme_alert_text2file, alert_json, json_filename
+
+    ftp_from_email = run->config('cme/from_email')
+    if (n_elements(ftp_from_email) eq 0L) then ftp_from_email = ''
+
+    kcor_cme_ftp_transfer, ftp_url, json_filename, ftp_from_email, $
+                           status=ftp_status, $
+                           error_msg=ftp_error_msg, $
+                           cmd=ftp_cmd
+    if (ftp_status ne 0L) then begin
+      mg_log, 'FTP transferred with error %d', ftp_status, name='kcor/cme', /error
+      mg_log, 'FTP command: %s', ftp_cmd, name='kcor/cme', /error
+      for e = 0L, n_elements(ftp_error_msg) - 1L do begin
+        mg_log, ftp_error_msg[e], name='kcor/cme', /error
+      endfor
+    endif
+    file_delete, json_filename, /allow_nonexistent
+  endif
+
   ; If called with /OPERATOR, then delete the temporary definition of TAIREF to
   ; allow automatic CME detection to continue.
   if (keyword_set(operator)) then delvarx, tairef

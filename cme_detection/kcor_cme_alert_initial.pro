@@ -1,7 +1,7 @@
 ; docformat = 'rst'
 
 ;+
-; Return the text of the JSON heartbeat alert.
+; Return the text of the JSON initial alert.
 ;
 ; :Returns:
 ;   string
@@ -55,12 +55,18 @@ end
 
 ; main-level example program
 
-print, kcor_cme_alert_initial('2021-06-28T13:47:00Z', $
+event_time = '2021-06-28T19:28:12Z'
+issue_time = '2021-06-28T13:47:00Z'
+json = kcor_cme_alert_initial(issue_time, $
                               '2021-06-28T13:46Z', $
-                              '2021-06-28T19:28:12Z', $
+                              event_time, $
                               position_angle=315, $
                               speed=320.24, $
                               height=1.26, $
                               time_for_height='2021-06-28T19:28:12Z')
+
+alert_filename = kcor_cme_alert_filename(event_time, issue_time)
+kcor_cme_alert_text2file, json, alert_filename
+print, alert_filename
 
 end

@@ -102,11 +102,48 @@ pro kcor_cme_detection_job, date, $
     file_mkdir, datedir
   endif
 
+  iso8601_fmt = '(C(CYI4.4, "-", CMI2.2, "-", CDI2.2, "T", CHI2.2, ":", CMI2.2, ":", CSI2.2, "Z"))'
+
   ; If running in realtime mode, stop when KCOR_CME_DET_CHECK detects a stop
   ; *and* when it is after the cme_stop_time. If running a job on already
   ; existing files, stop after done with all the files.
+  wait_time = run->config('cme/wait_time')
+  heartbeat_interval = run->config('cme/heartbeat_interval')
   while (1B) do begin
     kcor_cme_det_check, stopped=stopped
+
+    ftp_url = run->config('cme/ftp_alerts_url')
+    if (n_elements(ftp_url) gt 0L) then begin
+      ; send heartbeat if within wait_time after an even heartbeat_interval time
+      current_time = string(julday(), format='(C(CHI2.2, CMI2.2, CSI2.2))')
+      secs = total(long(kcor_decompose_time(current_time)) * [60L * 60L, 60L, 1L], /preserve_type)
+      if (secs mod heartbeat_interval lt wait_time) then begin
+        issue_time = string(julday(), format=iso8601_fmt)
+        ; TODO: what if no data today?
+        last_data_time = date_diff[-1].date_obs + 'Z'
+        heartbeat_json = kcor_cme_alert_heartbeat(issue_time, $
+                                                  last_data_time, $
+                                                  ~cme_occurring)
+        ; TODO: heartbeat has no event time so reuse issue time
+        json_filename  = kcor_cme_alert_filename(issue_time, issue_time)
+        kcor_cme_alert_text2file, heartbeat_json, json_filename
+
+        ftp_from_email = run->config('cme/from_email')
+        if (n_elements(ftp_from_email) eq 0L) then ftp_from_email = ''
+        kcor_cme_ftp_transfer, ftp_url, json_filename, ftp_from_email, $
+                               status=ftp_status, $
+                               error_msg=ftp_error_msg, $
+                               cmd=ftp_cmd
+        if (ftp_status ne 0L) then begin
+          mg_log, 'FTP transferred with error %d', ftp_status, name='kcor/cme', /error
+          mg_log, 'FTP command: %s', ftp_cmd, name='kcor/cme', /error
+          for e = 0L, n_elements(ftp_error_msg) - 1L do begin
+            mg_log, ftp_error_msg[e], name='kcor/cme', /error
+          endfor
+        endif
+        file_delete, json_filename, /allow_nonexistent
+      endif
+    endif
 
     if (stopped) then begin
       if (cme_occurring) then begin
@@ -117,15 +154,13 @@ pro kcor_cme_detection_job, date, $
       endif
 
       if (keyword_set(realtime)) then begin
-        current_time = string(julday(), format='(C(CHI2.2, CMI2.2, CSI2.2))')
         if (current_time gt run->config('cme/stop_time')) then begin
           mg_log, 'current time %s later than stop time %s', $
                   current_time, run->config('cme/stop_time'), name='kcor/cme', /info
           break
         endif
-        mg_log, 'waiting %0.1f seconds...', run->config('cme/wait_time'), $
-                name='kcor/cme', /info
-        wait, run->config('cme/wait_time')
+        mg_log, 'waiting %0.1f seconds...', wait_time, name='kcor/cme', /info
+        wait, wait_time
       endif else begin
         break
       endelse
