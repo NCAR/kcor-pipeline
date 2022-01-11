@@ -595,3 +595,4 @@
   handle extremely long days in KCOR_DAILY_SYNOPTIC_MAP
 2.0.77 [Jan 11, 2022]
   epoch for exposure time differences on 20150420
+2.0.78
