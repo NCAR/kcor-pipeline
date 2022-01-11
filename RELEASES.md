@@ -596,3 +596,4 @@
 2.0.77 [Jan 11, 2022]
   epoch for exposure time differences on 20150420
 2.0.78
+  epoch for bad polarization start state on 20200816
