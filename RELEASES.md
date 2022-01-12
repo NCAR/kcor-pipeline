@@ -597,3 +597,4 @@
   epoch for exposure time differences on 20150420
 2.0.78
   epoch for bad polarization start state on 20200816
+  epoch for bad occulter ID on 20160914
