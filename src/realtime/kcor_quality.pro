@@ -737,7 +737,7 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
           qual = q_dim
           ndim += 1
           dim_list->add, l0_file
-          if (~keyword_set(eod)) then printf, udim, l0_file
+          if (~keyword_set(eod)) then printf, udim, file_basename(l0_file)
         end
       chi gt 0: begin                                      ; cloudy image
           radius = run->epoch('rpixc')
