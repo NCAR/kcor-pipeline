@@ -1,7 +1,7 @@
 ; docformat = 'rst'
 
 ;+
-; Find bad lines in a day's raw images.
+; Publish engineering products for a day that had already been processed.
 ;
 ; :Params:
 ;   date : in, required, type=string

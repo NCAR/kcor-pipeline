@@ -114,7 +114,7 @@ $command = "CREATE TABLE kcor_cal (
   tcamfocs       FLOAT (7, 3),
   modltrid       CHAR (1),
   modltrt        FLOAT(7, 2),
-  occltrid       CHAR (10),
+  occltrid       CHAR (20),
   o1id           CHAR (14),
   o1focs         FLOAT (8, 3),
   calpolid       CHAR (12) NOT NULL,

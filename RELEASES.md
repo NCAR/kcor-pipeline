@@ -593,5 +593,9 @@
   remove level 0 files that have already been processed
 2.0.76 [Jan 6, 2022]
   handle extremely long days in KCOR_DAILY_SYNOPTIC_MAP
-2.0.77
+2.0.77 [Jan 11, 2022]
   epoch for exposure time differences on 20150420
+2.0.78
+  epoch for bad polarization start state on 20200816
+  epoch for bad occulter ID on 20160914
+  put start state for a file in FITS header, quicklook, and calibration_files.txt

@@ -78,10 +78,10 @@ function kcor_read_calibration_text, date, process_basedir, $
            time_parts[0] + time_parts[1] / 60.0 + time_parts[2] / 3600.0, $
            dist=sunearth_dist
 
-      dark = tokens[6] eq 'in'                              ; dark in
-      flat = (tokens[8] eq 'in') && (tokens[10] eq 'out')   ; diff in, cal out
+      dark = tokens[10] eq 'in'                              ; dark in
+      flat = (tokens[12] eq 'in') && (tokens[14] eq 'out')   ; diff in, cal out
 
-      means = reform(float(tokens[14:21]) * sunearth_dist^2, 4, 2)
+      means = reform(float(tokens[18:25]) * sunearth_dist^2, 4, 2)
 
       gbuparams_filename = filepath(gbuparams_basename, subdir='..', root=mg_src_root())
       restore, filename=gbuparams_filename
@@ -115,7 +115,7 @@ function kcor_read_calibration_text, date, process_basedir, $
             endfor
           end
         else: begin
-            angle = float(tokens[12])
+            angle = float(tokens[16])
             !null = min(angle_values - angle, calpol_angle_index)
             calpol_angle_index mod= 8   ; 180.0 degrees is same as 0.0 degrees
             for p = 0, 3 do begin
