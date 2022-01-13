@@ -688,8 +688,8 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
     solar_radius = rsun / run->epoch('plate_scale')   ; 1.0 rsun [pixels]
     radius = solar_radius
 
-    fitsloc  = strpos(l0_file, '.fts')
     l0_basename = file_basename(l0_file)
+    fitsloc  = strpos(l0_basename, '.fts')
     l0_base = strmid(l0_basename, 0, fitsloc)
 
     case 1 of
@@ -802,7 +802,8 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
                           exponent=run->epoch('quicklook_exponent'), $
                           gamma=run->epoch('quicklook_gamma'), $
                           colortable=run->epoch('quicklook_colortable'), $
-                          dimensions=run->epoch('quicklook_dimensions')
+                          dimensions=run->epoch('quicklook_dimensions'), $
+                          start_state=run->epoch('start_state')
         endif
         if (produce_gallery_quicklook) then begin
           gallery_gif_filename = filepath(string(c, '_gallery', format=gif_basename), $

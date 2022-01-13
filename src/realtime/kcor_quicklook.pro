@@ -39,7 +39,8 @@ pro kcor_quicklook, pb, mask, $
                     exponent=display_exponent, $
                     gamma=display_gamma, $
                     colortable=colortable, $
-                    dimensions=display_dimensions
+                    dimensions=display_dimensions, $
+                    start_state=start_state
   compile_opt strictarr
   on_error, 2
 
@@ -176,7 +177,10 @@ pro kcor_quicklook, pb, mask, $
           color=white, charsize=1.0, /device
   xyouts, display_dimensions[0] - 6, display_dimensions[1] - 20, quality, $
           color=white, charsize=1.0, /device, alignment=1.0
-
+  xyouts, display_dimensions[0] - 6, $
+          13, $
+          string(start_state, format='(%"start state: %d, %d")'), $
+          color=white, charsize=1.0, /device, alignment=1.0
   save = tvrd()
   write_gif, output_filename, save, rlut, glut, blut
 

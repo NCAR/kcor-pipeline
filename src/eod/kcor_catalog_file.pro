@@ -66,18 +66,19 @@ pro kcor_catalog_file, filename, run=run
 
   ; datatype = calibration
   if (datatype eq 'calibration') then begin
+    start_state = run->epoch('start_state')
     openw, calibration_lun, filepath('calibration_files.txt', root=process_dir), $
            /append, /get_lun
     printf, calibration_lun, $
-            file_basename(filename), exposure, datatype, darkshut, diffuser, $
+            file_basename(filename), exposure, start_state, datatype, darkshut, diffuser, $
             calpol, calpang, $
-            format='(a, 3x, f10.4, 2x, "ms", 2x, "Data: ", a, 3x, "Dark: ", a, 3x, "Diff: ", a, 3x, "Cal: ", a, 3x, "Ang: ", f6.1, "  means: ", $)'
+            format='(a, 3x, f10.4, 2x, "ms", 2x, "start state: ", I0.0, x, I0.0, 2x "Data: ", a, 3x, "Dark: ", a, 3x, "Diff: ", a, 3x, "Cal: ", a, 3x, "Ang: ", f6.1, "  means: ", $)'
 
     ; print a measure of every image in the cube
     kcor_read_rawdata, filename, image=image, $
                        repair_routine=run->epoch('repair_routine'), $
                        xshift=run->epoch('xshift_camera'), $
-                       start_state=run->epoch('start_state'), $
+                       start_state=start_state, $
                        raw_data_prefix=run->epoch('raw_data_prefix'), $
                        datatype=run->epoch('raw_datatype')
     for camera = 0, 1 do begin

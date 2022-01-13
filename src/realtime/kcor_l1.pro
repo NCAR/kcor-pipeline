@@ -1016,6 +1016,11 @@ pro kcor_l1, ok_filename, $
             ' [pixel] camera 1 dist corrected occulter radius', $
             format='(f8.2)'
 
+  fxaddpar, l1_header, 'RCAMPOLS', start_state[0], $
+            ' first state used in polarization demodulation'
+  fxaddpar, l1_header, 'TCAMPOLS', start_state[1], $
+            ' first state used in polarization demodulation'
+
   if (~array_equal(center_offset, [0.0, 0.0])) then begin
     fxaddpar, l1_header, 'XOFFSET', center_offset[0], $
               ' [pixel] x-offset between occulter and sun centers', $
