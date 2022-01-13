@@ -821,7 +821,8 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
                           exponent=run->epoch('gallery_quicklook_exponent'), $e
                           gamma=run->epoch('gallery_quicklook_gamma'), $
                           colortable=run->epoch('gallery_quicklook_colortable'), $
-                          dimensions=run->epoch('gallery_quicklook_dimensions')
+                          dimensions=run->epoch('gallery_quicklook_dimensions'), $
+                          start_state=run->epoch('start_state')
 
           quicklook_list->add, gallery_gif_filename
         endif
