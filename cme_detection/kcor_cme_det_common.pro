@@ -41,4 +41,5 @@ common kcor_cme_detection, nlon, $
                            angle_history, $
                            running, $
                            simple_date, $
+                           last_heartbeat_jd, $
                            run

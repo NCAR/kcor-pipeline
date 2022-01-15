@@ -78,7 +78,7 @@ pro kcor_cme_det_alert, itime, rsun, operator=operator
 
   ftp_url = run->config('cme/ftp_alerts_url')
   if (n_elements(ftp_url) gt 0L) then begin
-    iso8601_fmt = '(C(CYI4.4, "-", CMI2.2, "-", CDI2.2, "T", CHI2.2, ":", CMI2.2, ":", CSI2.2, "Z"))'
+    iso8601_fmt = '(C(CYI4.4, "-", CMOI2.2, "-", CDI2.2, "T", CHI2.2, ":", CMI2.2, ":", CSI2.2, "Z"))'
     issue_time = string(julday(), format=iso8601_fmt)
     last_data_time = date_diff[-1].date_obs + 'Z'
     start_time = date_diff[itime].date_obs + 'Z'

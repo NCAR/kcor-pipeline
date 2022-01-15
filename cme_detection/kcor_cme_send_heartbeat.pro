@@ -1,0 +1,48 @@
+; docformat = 'rst'
+
+;+
+; Send the heartbeat alert.
+;-
+pro kcor_cme_send_heartbeat
+  compile_opt strictarr
+  @kcor_cme_det_common
+
+  iso8601_fmt = '(C(CYI4.4, "-", CMOI2.2, "-", CDI2.2, "T", CHI2.2, ":", CMI2.2, ":", CSI2.2, "Z"))'
+  wait_time = run->config('cme/wait_time')
+  heartbeat_interval = run->config('cme/heartbeat_interval')
+  ftp_url = run->config('cme/ftp_alerts_url')
+  if (n_elements(ftp_url) gt 0L) then begin
+    seconds_since_last_heartbeat = (julday() - last_heartbeat_jd) * 24.0 * 60.0 * 60.0
+    mg_log, 'last heartbeat %0.1f secs ago', seconds_since_last_heartbeat, $
+            name='kcor/cme', /debug
+    if ((seconds_since_last_heartbeat gt heartbeat_interval) $
+          && (n_elements(date_diff) gt 0L)) then begin
+      last_heartbeat_jd = julday()
+      issue_time = string(last_heartbeat_jd + 10.0D / 24.0D, format=iso8601_fmt)
+
+      mg_log, 'sending heartbeat...', name='kcor/cme', /info
+      last_data_time = date_diff[-1].date_obs + 'Z'
+      heartbeat_json = kcor_cme_alert_heartbeat(issue_time, $
+                                                last_data_time, $
+                                                ~cme_occurring)
+
+      json_filename  = kcor_cme_alert_filename(last_data_time, issue_time)
+      kcor_cme_alert_text2file, heartbeat_json, json_filename
+
+      ftp_from_email = run->config('cme/from_email')
+      if (n_elements(ftp_from_email) eq 0L) then ftp_from_email = ''
+      kcor_cme_ftp_transfer, ftp_url, json_filename, ftp_from_email, $
+                             status=ftp_status, $
+                             error_msg=ftp_error_msg, $
+                             cmd=ftp_cmd
+      if (ftp_status ne 0L) then begin
+        mg_log, 'FTP transferred with error %d', ftp_status, name='kcor/cme', /error
+        mg_log, 'FTP command: %s', ftp_cmd, name='kcor/cme', /error
+        for e = 0L, n_elements(ftp_error_msg) - 1L do begin
+          mg_log, ftp_error_msg[e], name='kcor/cme', /error
+        endfor
+      endif
+      file_delete, json_filename, /allow_nonexistent
+    endif
+  endif
+end
