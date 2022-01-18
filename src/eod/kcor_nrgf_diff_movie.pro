@@ -165,6 +165,10 @@ pro kcor_nrgf_diff_movie, run=run
   endwhile
 
   mg_log, 'number of difference images: %d', n_diff_gifs, name=run.logger_name, /info
+  if (ncount eq 0L) then begin
+    mg_log, 'no good or acceptable NRGF images', name=run.logger_name, /info
+    goto, done
+  endif
 
   frame_filenames = strarr(ncount)
   for i = 0L, ncount - 1L  do begin
