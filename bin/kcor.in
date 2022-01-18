@@ -115,7 +115,7 @@ def notify_completed(args, task):
 
         msg = MIMEText(text)
         msg["Subject"] = f"KCor {task} ({args.flags}) job completed for {dates} on {hostname}"
-        msg["From"] = f"{user}@ucar.edu"
+        msg["From"] = "kcor-pipeline@ucar.edu"
         msg["To"] = notification_email
 
         s = smtplib.SMTP("localhost")
