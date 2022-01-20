@@ -546,9 +546,13 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
     realtime_logfile = filepath(run.date + '.realtime.log', root=log_dir)
     eod_logfile = filepath(run.date + '.eod.log', root=log_dir)
+    cme_logfile = filepath(run.date + 'cme.log', root=log_dir)
 
     rt_errors = kcor_filter_log(realtime_logfile, /error, n_messages=n_rt_errors)
     eod_errors = kcor_filter_log(eod_logfile, /error, n_messages=n_eod_errors)
+    if (file_test(cme_logfile, /regular)) then begin
+      cme_errors = kcor_filter_log(cme_logfile, /error, n_messages=n_cme_errors)
+    endif
 
     if (n_rt_errors gt 0L) then begin
       msg = [msg, '', $
@@ -565,6 +569,16 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     endif else begin
       msg = [msg, '', '# No end-of-day log errors']
     endelse
+
+    if (file_test(cme_logfile, /regular)) then begin
+      if (n_eod_errors gt 0L) then begin
+        msg = [msg, '', $
+               string(n_eod_errors, format='(%"# CME log errors (%d errors)")'), $
+               '', eod_errors]
+      endif else begin
+        msg = [msg, '', '# No CME log errors']
+      endelse
+    endif else msg = [msg, '', '# No CME log']
 
     ; bad line warning messages in EOD log
     eod_warnings = kcor_filter_log(eod_logfile, /warn, n_messages=n_eod_warnings)
