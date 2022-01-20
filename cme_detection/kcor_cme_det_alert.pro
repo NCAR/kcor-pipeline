@@ -76,8 +76,16 @@ pro kcor_cme_det_alert, itime, rsun, operator=operator
   kcor_cme_det_movie
   kcor_cme_det_email, time, edge, last_detected_image_time, operator=operator
 
+  alerts_basedir = run->config('cme/alerts_basedir')
+  if (n_elements(alerts_basedir) gt 0L) then begin
+    alerts_dir = filepath('', $
+                          subdir=kcor_decompose_date(simple_date), $
+                          root=alerts_basedir)
+    if (~file_test(alerts_dir, /directory)) then file_mkdir, alerts_dir
+  endif
+
   ftp_url = run->config('cme/ftp_alerts_url')
-  if (n_elements(ftp_url) gt 0L) then begin
+  if (n_elements(alerts_dir) gt 0L || n_elements(ftp_url) gt 0L) then begin
     iso8601_fmt = '(C(CYI4.4, "-", CMOI2.2, "-", CDI2.2, "T", CHI2.2, ":", CMI2.2, ":", CSI2.2, "Z"))'
     issue_time = string(julday(), format=iso8601_fmt)
     last_data_time = date_diff[-1].date_obs + 'Z'
@@ -91,20 +99,25 @@ pro kcor_cme_det_alert, itime, rsun, operator=operator
     json_filename = kcor_cme_alert_filename(start_time, issue_time)
     kcor_cme_alert_text2file, alert_json, json_filename
 
-    ftp_from_email = run->config('cme/from_email')
-    if (n_elements(ftp_from_email) eq 0L) then ftp_from_email = ''
+    if (n_elements(ftp_url) gt 0L) then begin
+      ftp_from_email = run->config('cme/from_email')
+      if (n_elements(ftp_from_email) eq 0L) then ftp_from_email = ''
 
-    kcor_cme_ftp_transfer, ftp_url, json_filename, ftp_from_email, $
-                           status=ftp_status, $
-                           error_msg=ftp_error_msg, $
-                           cmd=ftp_cmd
-    if (ftp_status ne 0L) then begin
-      mg_log, 'FTP transferred with error %d', ftp_status, name='kcor/cme', /error
-      mg_log, 'FTP command: %s', ftp_cmd, name='kcor/cme', /error
-      for e = 0L, n_elements(ftp_error_msg) - 1L do begin
-        mg_log, ftp_error_msg[e], name='kcor/cme', /error
-      endfor
+      kcor_cme_ftp_transfer, ftp_url, json_filename, ftp_from_email, $
+                             status=ftp_status, $
+                             error_msg=ftp_error_msg, $
+                             cmd=ftp_cmd
+      if (ftp_status ne 0L) then begin
+        mg_log, 'FTP transferred with error %d', ftp_status, name='kcor/cme', /error
+        mg_log, 'FTP command: %s', ftp_cmd, name='kcor/cme', /error
+        for e = 0L, n_elements(ftp_error_msg) - 1L do begin
+          mg_log, ftp_error_msg[e], name='kcor/cme', /error
+        endfor
+      endif
     endif
+
+    if (n_elements(alerts_dir) gt 0L) then file_copy, json_filename, alerts_dir
+
     file_delete, json_filename, /allow_nonexistent
   endif
 
