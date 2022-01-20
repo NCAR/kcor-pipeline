@@ -603,3 +603,4 @@
   send all kcor command line utility emails from kcor-pipeline
 2.0.79
   handle the string 'NaN' in SGS values
+  fix distributing 28 day rolling synoptic GIF to engineering directory
