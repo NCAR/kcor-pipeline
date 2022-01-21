@@ -36,8 +36,10 @@ pro kcor_cme_ftp_transfer, ftp_url, filename, email, $
   _verbose = keyword_set(verbose) ? '-v' : ''
 
   ; TODO: need a silent option to not show progress
+  ;cmd = string(_verbose, email, ftp_url, filename, $
+  ;             format='(%"curl --ssl -k %s -s -S --user anonymous:%s %s -T %s")')
   cmd = string(_verbose, email, ftp_url, filename, $
-               format='(%"curl --ssl -k %s -s -S --user anonymous:%s %s -T %s")')
+               format='(%"curl --ssl -k %s --user anonymous:%s %s -T %s")')
   spawn, cmd, stdout, error_msg, exit_status=status
 end
 
