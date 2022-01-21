@@ -26,19 +26,21 @@ function kcor_cme_alert_initial, issue_time, last_data_time, start_time, $
   date_format = '(C(CYI4.4, "-", CMOI2.2, "-", CDI2.2, "T", CHI2.2, ":", CMI2.2, ":", CSI2.2, "Z"))'
   alert_time = string(julday(), format=date_format)
 
-  triggers = [{cme: {start_time: start_time, $
-                     pa: position_angle, $
-                     speed: speed, $
-                     time_at_height: {height: height, time: time_for_height}, $
-                     catalog: 'MLSO_KCOR'}}]
+  triggers = list({cme: {start_time: start_time, $
+                         pa: position_angle, $
+                         speed: speed, $
+                         time_at_height: {height: height, time: time_for_height}, $
+                         catalog: 'MLSO_KCOR'}})
 
-  inputs = [{coronagraph:{observatory: 'MLSO', instrument: 'K-Cor'}, $
-             products:[{product: 'White Light', last_data_time: last_data_time}]}]
+  inputs = list({coronagraph:{observatory: 'MLSO', $
+                              instrument: 'K-Cor', $
+                              products:list({product: 'White Light', $
+                                             last_data_time: last_data_time})}})
 
-  observations = [{all_clear: {all_clear_boolean: 'false', $
-                               all_clear_type: 'cme'}, $
-                   alert: {alert_type: 'ALERT', $
-                           alert_time: alert_time}}]
+  observations = list({all_clear: {all_clear_boolean: 'false', $
+                                   all_clear_type: 'cme'}, $
+                       alert: {alert_type: 'ALERT', $
+                               alert_time: alert_time}})
 
   submission = {sep_forecast_submission:{model: model, $
                                          issue_time: issue_time, $
@@ -48,6 +50,10 @@ function kcor_cme_alert_initial, issue_time, last_data_time, start_time, $
                                          observations: observations}}
 
   json = json_serialize(submission, /lowercase)
+
+  heap_free, triggers
+  heap_free, inputs
+  heap_free, observations
 
   return, json
 end

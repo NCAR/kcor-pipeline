@@ -20,11 +20,13 @@ function kcor_cme_alert_heartbeat, issue_time, last_data_time, all_clear
   model = {short_name: 'MLSO K-Cor', $
            spase_id: 'spase://CCMC/SimulationModel/MLSO/K-Cor/AutomatedCMEDetection'}
 
-  inputs = [{coronagraph:{observatory: 'MLSO', instrument: 'K-Cor'}, $
-             products:[{product: 'White Light', last_data_time: last_data_time}]}]
+  inputs = list({coronagraph:{observatory: 'MLSO', $
+                              instrument: 'K-Cor', $
+                              products:list({product: 'White Light', $
+                                             last_data_time: last_data_time})}})
 
-  observations = [{all_clear: {all_clear_boolean: boolean(all_clear), $
-                               all_clear_type: 'cme'}}]
+  observations = list({all_clear: {all_clear_boolean: boolean(all_clear), $
+                                   all_clear_type: 'cme'}})
 
   submission = {sep_forecast_submission:{model: model, $
                                          issue_time: issue_time, $
@@ -33,6 +35,9 @@ function kcor_cme_alert_heartbeat, issue_time, last_data_time, all_clear
                                          observations: observations}}
 
   json = json_serialize(submission, /lowercase)
+
+  heap_free, inputs
+  heap_free, observations
 
   return, json
 end
