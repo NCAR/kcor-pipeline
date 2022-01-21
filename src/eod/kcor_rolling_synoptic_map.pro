@@ -189,7 +189,7 @@ pro kcor_rolling_synoptic_map, database=db, run=run
     mg_log, 'distributing 28 day rolling synoptic map to engineering...', $
             name=logger_name, /info
     file_copy, fits_filename, eng_dir, /overwrite
-    file_copy, fits_filename, eng_dir, /overwrite
+    file_copy, gif_filename, eng_dir, /overwrite
   endif
 
   ; clean up

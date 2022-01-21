@@ -23,9 +23,9 @@
 ;   sdev_r : out, optional, type=fltarr(r_min - r0 + 1)
 ;     set to a named variable to retrieve the radial standard deviations
 ;   min_value : in, optional, type=float, default=-2.0
-;     theshold values below this minimum value
+;     threshold values below this minimum value
 ;   max_value : in, optional, type=float, default=4.0
-;     theshold values above this maximum value
+;     threshold values above this maximum value
 ;
 ; :Author:
 ;   Written by Silvano Fineschi and Sarah Gibson

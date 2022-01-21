@@ -595,7 +595,12 @@
   handle extremely long days in KCOR_DAILY_SYNOPTIC_MAP
 2.0.77 [Jan 11, 2022]
   epoch for exposure time differences on 20150420
-2.0.78
+2.0.78 [Jan 19, 2022]
   epoch for bad polarization start state on 20200816
   epoch for bad occulter ID on 20160914
   put start state for a file in FITS header, quicklook, and calibration_files.txt
+  handle no good or acceptable NRGF images for a day
+  send all kcor command line utility emails from kcor-pipeline
+2.0.79
+  handle the string 'NaN' in SGS values
+  fix distributing 28 day rolling synoptic GIF to engineering directory

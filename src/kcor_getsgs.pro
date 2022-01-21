@@ -22,7 +22,9 @@ function kcor_getsgs, header, name, float=float
 
     value = fxpar(header, name, count=count, /null)
     type = size(value, /type)
-    if (count eq 0 || n_elements(value) eq 0L) then begin
+    if ((count eq 0) $
+          || (n_elements(value) eq 0L) $
+          || (size(value, /type) eq 7 && strlowcase(strtrim(value, 2)) eq 'nan')) then begin
       return, keyword_set(float) ? !values.f_nan : 'NULL'
     endif
 
