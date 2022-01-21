@@ -601,7 +601,7 @@
   put start state for a file in FITS header, quicklook, and calibration_files.txt
   handle no good or acceptable NRGF images for a day
   send all kcor command line utility emails from kcor-pipeline
-2.0.79
+2.0.79 [Jan 21, 2022]
   handle the string 'NaN' in SGS values
   fix distributing 28 day rolling synoptic GIF to engineering directory
   add CME log errors section to eod notification email
