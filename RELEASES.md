@@ -605,4 +605,5 @@
   handle the string 'NaN' in SGS values
   fix distributing 28 day rolling synoptic GIF to engineering directory
   add CME log errors section to eod notification email
-2.0.80
+2.0.80 [Jan 21, 2022]
+  handle read errors in raw FITS files
