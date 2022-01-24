@@ -608,3 +608,4 @@
 2.0.80 [Jan 21, 2022]
   handle read errors in raw FITS files
 2.0.81
+  fixes for checking CME log during eod notification email

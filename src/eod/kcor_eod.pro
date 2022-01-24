@@ -546,7 +546,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
     realtime_logfile = filepath(run.date + '.realtime.log', root=log_dir)
     eod_logfile = filepath(run.date + '.eod.log', root=log_dir)
-    cme_logfile = filepath(run.date + 'cme.log', root=log_dir)
+    cme_logfile = filepath(run.date + '.cme.log', root=log_dir)
 
     rt_errors = kcor_filter_log(realtime_logfile, /error, n_messages=n_rt_errors)
     eod_errors = kcor_filter_log(eod_logfile, /error, n_messages=n_eod_errors)
@@ -571,7 +571,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     endelse
 
     if (file_test(cme_logfile, /regular)) then begin
-      if (n_eod_errors gt 0L) then begin
+      if (n_cme_errors gt 0L) then begin
         msg = [msg, '', $
                string(n_eod_errors, format='(%"# CME log errors (%d errors)")'), $
                '', eod_errors]
