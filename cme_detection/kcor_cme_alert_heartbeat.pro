@@ -14,7 +14,7 @@
 ;   all_clear : in, require, type=integer/boolean
 ;     whether we are clear of CMEs
 ;-
-function kcor_cme_alert_heartbeat, issue_time, last_data_time, all_clear
+function kcor_cme_alert_heartbeat, issue_time, last_data_time, all_clear, mode
   compile_opt strictarr
 
   model = {short_name: 'MLSO K-Cor', $
@@ -30,7 +30,7 @@ function kcor_cme_alert_heartbeat, issue_time, last_data_time, all_clear
 
   submission = {sep_forecast_submission:{model: model, $
                                          issue_time: issue_time, $
-                                         mode: 'nowcast', $
+                                         mode: mode, $
                                          inputs: inputs, $
                                          observations: observations}}
 

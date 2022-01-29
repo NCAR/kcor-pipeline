@@ -88,13 +88,15 @@ pro kcor_cme_det_alert, itime, rsun, operator=operator
   if (n_elements(alerts_dir) gt 0L || n_elements(ftp_url) gt 0L) then begin
     iso8601_fmt = '(C(CYI4.4, "-", CMOI2.2, "-", CDI2.2, "T", CHI2.2, ":", CMI2.2, ":", CSI2.2, "Z"))'
     issue_time = string(julday(), format=iso8601_fmt)
-    last_data_time = date_diff[-1].date_obs + 'Z'
-    start_time = date_diff[itime].date_obs + 'Z'
-    alert_json = kcor_cme_alert_initial(issue_time, last_data_time, start_time, $
+    last_data_time = tai2utc(utc2tai(date_diff[-1].date_obs), /truncate, /ccsds) + 'Z'
+    start_time = tai2utc(utc2tai(date_diff[itime].date_obs), /truncate, /ccsds) + 'Z'
+    time_for_height = tai2utc(tairef, /truncate, /ccsds) + 'Z'
+    mode = run->config('cme/mode')
+    alert_json = kcor_cme_alert_initial(issue_time, last_data_time, start_time, mode, $
                                         position_angle=angle, $
                                         speed=speed, $
                                         height=edge, $
-                                        time_for_height=time)
+                                        time_for_height=time_for_height)
 
     json_filename = kcor_cme_alert_filename(start_time, issue_time)
     kcor_cme_alert_text2file, alert_json, json_filename

@@ -12,7 +12,7 @@
 ;   all_clear : in, require, type=integer/boolean
 ;     whether we are clear of CMEs
 ;-
-function kcor_cme_alert_initial, issue_time, last_data_time, start_time, $
+function kcor_cme_alert_initial, issue_time, last_data_time, start_time, mode, $
                                  position_angle=position_angle, $
                                  speed=speed, $
                                  height=height, $
@@ -21,10 +21,6 @@ function kcor_cme_alert_initial, issue_time, last_data_time, start_time, $
 
   model = {short_name: 'MLSO K-Cor', $
            spase_id: 'spase://CCMC/SimulationModel/MLSO/K-Cor/AutomatedCMEDetection'}
-
-  ; TODO: should alert_time be the same as issue_time?
-  date_format = '(C(CYI4.4, "-", CMOI2.2, "-", CDI2.2, "T", CHI2.2, ":", CMI2.2, ":", CSI2.2, "Z"))'
-  alert_time = string(julday(), format=date_format)
 
   triggers = list({cme: {start_time: start_time, $
                          pa: position_angle, $
@@ -37,14 +33,14 @@ function kcor_cme_alert_initial, issue_time, last_data_time, start_time, $
                               products:list({product: 'White Light', $
                                              last_data_time: last_data_time})}})
 
-  observations = list({all_clear: {all_clear_boolean: 'false', $
+  observations = list({all_clear: {all_clear_boolean: false, $
                                    all_clear_type: 'cme'}, $
                        alert: {alert_type: 'ALERT', $
-                               alert_time: alert_time}})
+                               start_time: issue_time}})
 
   submission = {sep_forecast_submission:{model: model, $
                                          issue_time: issue_time, $
-                                         mode: 'nowcast', $
+                                         mode: mode, $
                                          triggers: triggers, $
                                          inputs: inputs, $
                                          observations: observations}}

@@ -32,10 +32,12 @@ pro kcor_cme_send_heartbeat
       issue_time = string(last_heartbeat_jd + 10.0D / 24.0D, format=iso8601_fmt)
 
       mg_log, 'creating heartbeat...', name='kcor/cme', /info
-      last_data_time = date_diff[-1].date_obs + 'Z'
+      last_data_time = tai2utc(utc2tai(date_diff[-1].date_obs), /truncate, /ccsds) + 'Z'
+      mode = run->config('cme/mode')
       heartbeat_json = kcor_cme_alert_heartbeat(issue_time, $
                                                 last_data_time, $
-                                                ~cme_occurring)
+                                                ~cme_occurring, $
+                                                mode)
 
       json_filename = kcor_cme_alert_filename(last_data_time, issue_time)
       kcor_cme_alert_text2file, heartbeat_json, json_filename
