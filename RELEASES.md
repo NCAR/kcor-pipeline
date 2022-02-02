@@ -610,5 +610,6 @@
 2.0.81
   fixes for checking CME log during eod notification email
   new and revised epochs for bad polarization start state and cameras to use
-    on 20200816, 20200828, 20201009, 20201020, 20201024, and 20201128
+    on 20141024, 20151125, 20171026, 20181022, 20200127, 20200816, 20200828,
+    20201009, 20201020, 20201024, 20201128, and 20220121
   black-and-white NRGF GIFs
