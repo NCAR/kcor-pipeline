@@ -607,7 +607,7 @@
   add CME log errors section to eod notification email
 2.0.80 [Jan 21, 2022]
   handle read errors in raw FITS files
-2.0.81
+2.0.81 [Feb 3, 2022]
   fixes for checking CME log during eod notification email
   new and revised epochs for bad polarization start state and cameras to use
     on 20141024, 20151125, 20171026, 20181022, 20200127, 20200816, 20200828,
