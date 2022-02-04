@@ -615,6 +615,6 @@
   ignoring NUMSUM=512 cal files on 20190612 so can get a good NUMSUM=171 cal
     file for cal epoch 21.1
   black-and-white NRGF GIFs
-2.0.82
+2.0.82 [Feb 4, 2020]
   more adjustments to epoch 21.1 on 20190612, 20190618, and 20190702
   epoch for cal data on 20190311
