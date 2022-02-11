@@ -620,4 +620,4 @@
   epoch for cal data on 20190311
 2.0.83
   removing cal epoch for 20211101
-  new epoch for bad polarization start state for 20220208
+  new epoch for bad polarization start state for 20160619 and 20220208
