@@ -623,3 +623,4 @@
   new epoch for bad polarization start state for 20160619 and 20220208
   new epoch for SGS guider error on 20180215
   new epoch for no corresponding cal files for 2.8 ms sci files on 20201018
+2.0.84
