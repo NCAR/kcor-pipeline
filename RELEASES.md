@@ -615,10 +615,10 @@
   ignoring NUMSUM=512 cal files on 20190612 so can get a good NUMSUM=171 cal
     file for cal epoch 21.1
   black-and-white NRGF GIFs
-2.0.82 [Feb 4, 2020]
+2.0.82 [Feb 4, 2022]
   more adjustments to epoch 21.1 on 20190612, 20190618, and 20190702
   epoch for cal data on 20190311
-2.0.83
+2.0.83 [Feb 14, 2022]
   removing cal epoch for 20211101
   new epoch for bad polarization start state for 20160619 and 20220208
   new epoch for SGS guider error on 20180215
