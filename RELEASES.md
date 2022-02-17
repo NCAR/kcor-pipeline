@@ -626,3 +626,5 @@
 2.0.84 [Feb 17, 2022]
   fix cal epoch 24 start time on 20201226
 2.0.85
+  new epochs for bad polarization start state on 20220211
+  fix for setting time for epoch lookup during row-col image creation
