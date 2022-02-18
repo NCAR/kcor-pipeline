@@ -628,3 +628,4 @@
 2.0.85 [Feb 18, 2022]
   new epochs for bad polarization start state on 20220211
   fix for setting time for epoch lookup during row-col image creation
+2.0.86
