@@ -630,3 +630,4 @@
   fix for setting time for epoch lookup during row-col image creation
 2.0.86 [Feb 18, 2022]
   fix typo in epochs file
+2.0.87
