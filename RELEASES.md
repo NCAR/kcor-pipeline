@@ -631,3 +631,4 @@
 2.0.86 [Feb 18, 2022]
   fix typo in epochs file
 2.0.87
+  more epochs fixes for bad polarization start state for 20220211
