@@ -119,7 +119,13 @@ pro kcor_raw_insert, date, fits_list, quality, $
                        xshift=run->epoch('xshift_camera'), $
                        start_state=run->epoch('start_state'), $
                        raw_data_prefix=run->epoch('raw_data_prefix'), $
-                       datatype=run->epoch('raw_datatype')
+                       datatype=run->epoch('raw_datatype'), $
+                       errmsg=errmsg
+
+    if (errmsg ne '') then begin
+      mg_log, errmsg, name=log_name, /warn
+      continue
+    endif
 
     date_obs = sxpar(hdu, 'DATE-OBS', count=qdate_obs)
     date_end = sxpar(hdu, 'DATE-END', count=qdate_end)
@@ -172,15 +178,26 @@ end
 
 ; main-level example program
 
-date = '20170305'
-filelist = ['20170305_185807_kcor.fts.gz', $
-            '20170305_185822_kcor.fts.gz', $
-            '20170305_185837_kcor.fts.gz']
+date = '20220123'
+basename = '20220123_221719_kcor.fts.gz'
 
 run = kcor_run(date, $
-               config_filename=filepath('kcor.mgalloy.mahi.latest.cfg', $
+               config_filename=filepath('kcor.production.cfg', $
                                         subdir=['..', '..', 'config'], $
                                         root=mg_src_root()))
-kcor_raw_insert, date, filelist, 'oka', run=run
+
+fts_file = filepath(basename, $
+                    subdir=[date, 'level0'], $
+                    root=run->config('processing/raw_basedir'))
+kcor_read_rawdata, fts_file, image=image, header=hdu, $
+                   errmsg=errmsg, $
+                   repair_routine=run->epoch('repair_routine'), $
+                   xshift=run->epoch('xshift_camera'), $
+                   start_state=run->epoch('start_state'), $
+                   raw_data_prefix=run->epoch('raw_data_prefix'), $
+                   datatype=run->epoch('raw_datatype')
+;kcor_raw_insert, date, filelist, 'oka', run=run
+
+obj_destroy, run
 
 end
