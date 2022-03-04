@@ -28,8 +28,8 @@ pro kcor_cme_send_heartbeat
   if (n_elements(alerts_dir) gt 0L || n_elements(ftp_url)) then begin
     if ((seconds_since_last_heartbeat gt heartbeat_interval) $
           && (n_elements(date_diff) gt 0L)) then begin
+      issue_time = kcor_cme_current_time(run=run)
       last_heartbeat_jd = julday()
-      issue_time = string(last_heartbeat_jd + 10.0D / 24.0D, format=iso8601_fmt)
 
       mg_log, 'creating heartbeat...', name='kcor/cme', /info
       last_data_time = tai2utc(utc2tai(date_diff[-1].date_obs), /truncate, /ccsds) + 'Z'
