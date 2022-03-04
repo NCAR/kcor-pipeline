@@ -886,8 +886,11 @@ def simulate(args):
     data_cmd = [os.path.join(PIPELINE_DIR, "bin", "kcor_simulate_data"),
                 "-r", raw_dir,
                 "-b", arrival_interval,
-                "-s", speedup_factor,
-                os.path.join(depot_basedir, args.dates[0])]
+                "-s", speedup_factor]
+    time_dir = config.get("simulator", "time_dir")
+    if time_dir is not None:
+        data_cmd += ["-t", time_dir]
+    data_cmd.append(os.path.join(depot_basedir, args.dates[0]))
     data_process = subprocess.Popen(data_cmd)
 
     try:

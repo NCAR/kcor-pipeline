@@ -21,6 +21,14 @@ logging.basicConfig(format='%(asctime)s %(message)s',
                     level=logging.DEBUG)
 
 
+def write_time(time_dir, observing_day, time):
+    """Write the simulator time to a file."""
+    basename = f"{observing_day}.time.txt"
+    filename = os.path.join(time_dir, basename)
+    with open(filename, "w") as f:
+        f.write(datetime.datetime.strftime(time, "%Y%m%d.%H%M%S"))
+
+
 def decompose_filename(f):
     parts = [f[0:4], f[4:6], f[6:8], f[9:11], f[11:13], f[13:15]]
     return tuple(int(p) for p in parts)
@@ -43,13 +51,18 @@ def catalog_depot(depot_dir):
     return catalog, logs
 
 
-def download_loop(depot_dir, raw_dir, batch_time, speedup_factor=1.0):
+def download_loop(depot_dir, raw_dir, batch_time, speedup_factor=1.0, time_dir=None):
     logging.info('starting KCor realtime data simulator...')
     logging.info(f'depot directory   : {depot_dir}')
     logging.info(f'raw directory     : {raw_dir}')
     logging.info(f'batch time        : {batch_time:0.1f} seconds')
     logging.info(f'download time     : {DOWNLOAD_TIME:0.1f} seconds')
     logging.info(f'speedup factor    : {speedup_factor:0.1f}x')
+    if time_dir is not None:
+        logging.info(f"time directory    : {time_dir}")
+        if not os.path.isdir(time_dir):
+            os.makedirs(time_dir)
+        observing_day = os.path.basename(raw_dir)
 
     start_time = datetime.datetime.now()
     catalog, logs = catalog_depot(depot_dir)
@@ -80,6 +93,9 @@ def download_loop(depot_dir, raw_dir, batch_time, speedup_factor=1.0):
         logging.info(f'running = {actual_now - start_time}')
         logging.info(f'sped up running = {speedup_factor * (actual_now - start_time)}')
 
+        if time_dir is not None:
+            write_time(time_dir, observing_day, now - delta)
+
         # date of next catalog file to copy
         next_date = catalog[0]['date']
 
@@ -89,6 +105,8 @@ def download_loop(depot_dir, raw_dir, batch_time, speedup_factor=1.0):
             next_date = None if not catalog else catalog[0]['date']
             logging.info('copying %s...' % c['filename'])
             shutil.copy(os.path.join(depot_dir, c['filename']), raw_dir)
+            if time_dir is not None:
+                write_time(time_dir, observing_day, now - delta)
             time.sleep(DOWNLOAD_TIME)
 
         # if nothing left in catalog, copy the logs and finish
@@ -128,6 +146,11 @@ if __name__ == '__main__':
                         help=speedup_factor_help,
                         default=1.0)
 
+    parser.add_argument("-t", "--time-dir",
+                        type=str,
+                        help="directory for simulator time files",
+                        default=None)
+
     parser.add_argument('-v', '--version',
                         action='version',
                         version=name)
@@ -137,6 +160,7 @@ if __name__ == '__main__':
 
     try:
         download_loop(args.depot_dir, raw_dir.lstrip(), args.batch_time,
-                      speedup_factor=args.speedup_factor)
+                      speedup_factor=args.speedup_factor,
+                      time_dir=args.time_dir)
     except KeyboardInterrupt:
         logging.info('quitting...')
