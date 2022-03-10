@@ -31,7 +31,7 @@ function kcor_cme_current_time, run=run
     date = long(kcor_decompose_date(strmid(datetime, 0, 8)))
     time = long(kcor_decompose_time(strmid(datetime, 9, 6)))
 
-    now = string(date, time, format='(%"%04d-%02d-%02dT%02d-%02d-%02dZ")')
+    now = string(date, time, format='(%"%04d-%02d-%02dT%02d:%02d:%02dZ")')
   endif else begin
     iso8601_fmt = '(C(CYI4.4, "-", CMOI2.2, "-", CDI2.2, "T", CHI2.2, ":", CMI2.2, ":", CSI2.2, "Z"))'
     ; add 10 hours to get UT time
