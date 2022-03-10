@@ -302,8 +302,12 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
     naxis4   = sxpar(hdu, 'NAXIS4',   count=qnaxis4)
     np       = naxis1 * naxis2 * naxis3 * naxis4 
 
-    date_obs = sxpar(hdu, 'DATE-OBS', count=qdate_obs)
-    run.time = date_obs
+    date_obs = sxpar(hdu, 'DATE-OBS', count=date_obs_found)
+    if (date_obs_found gt 0L) then begin
+      run.time = date_obs
+    endif else begin
+      mg_log, 'DATE-OBS not found', name=run.logger_name, /warn
+    endelse
 
     if (~run->epoch('process')) then begin
       mg_log, '%d/%d: skipping files from this epoch [%s]', $
