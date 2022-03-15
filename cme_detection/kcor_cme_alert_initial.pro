@@ -33,7 +33,7 @@ function kcor_cme_alert_initial, issue_time, last_data_time, start_time, mode, $
                               products:list({product: 'White Light', $
                                              last_data_time: last_data_time})}})
 
-  observations = list({all_clear: {all_clear_boolean: 'false', $
+  observations = list({all_clear: {all_clear_boolean: boolean(0B), $
                                    all_clear_type: 'cme'}, $
                        alert: {alert_type: 'ALERT', $
                                start_time: issue_time}})
