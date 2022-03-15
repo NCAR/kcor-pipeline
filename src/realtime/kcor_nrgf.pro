@@ -267,12 +267,13 @@ pro kcor_nrgf, fits_file, $
   erase
 
   ; load color table: quallab is blue->white for 0..249, and then various colors
-  lct, filepath('quallab.lut', root=run.resources_dir)
+  ;lct, filepath('quallab.lut', root=run.resources_dir)
+  loadct, 0, /silent
   tvlct, red, green, blue, /get
   annotation_color = 255
 
   ; display image and annotate
-  tv, bytscl(filtered_image, cmin, cmax, top=249)
+  tv, bytscl(filtered_image, cmin, cmax)
 
   top = keyword_set(cropped) ? out_ydim : 1024
   right = keyword_set(cropped) ? out_xdim : 1024

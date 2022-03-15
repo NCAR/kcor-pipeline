@@ -10,7 +10,6 @@ import smtplib
 template = '''KCor pipeline %s was just released. Changes for this version include:
 
 %s
-
 - KCor developer team'''
 
 

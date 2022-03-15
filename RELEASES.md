@@ -607,7 +607,31 @@
   add CME log errors section to eod notification email
 2.0.80 [Jan 21, 2022]
   handle read errors in raw FITS files
-2.0.81
+2.0.81 [Feb 3, 2022]
   fixes for checking CME log during eod notification email
   new and revised epochs for bad polarization start state and cameras to use
-    on 20200816, 20200828, 20201009, 20201020, 20201024, and 20201128
+    on 20141024, 20151125, 20171026, 20181022, 20200127, 20200816, 20200828,
+    20201009, 20201020, 20201024, 20201128, 20211101, and 20220121
+  ignoring NUMSUM=512 cal files on 20190612 so can get a good NUMSUM=171 cal
+    file for cal epoch 21.1
+  black-and-white NRGF GIFs
+2.0.82 [Feb 4, 2022]
+  more adjustments to epoch 21.1 on 20190612, 20190618, and 20190702
+  epoch for cal data on 20190311
+2.0.83 [Feb 14, 2022]
+  removing cal epoch for 20211101
+  new epoch for bad polarization start state for 20160619 and 20220208
+  new epoch for SGS guider error on 20180215
+  new epoch for no corresponding cal files for 2.8 ms sci files on 20201018
+2.0.84 [Feb 17, 2022]
+  fix cal epoch 24 start time on 20201226
+2.0.85 [Feb 18, 2022]
+  new epochs for bad polarization start state on 20220211
+  fix for setting time for epoch lookup during row-col image creation
+2.0.86 [Feb 18, 2022]
+  fix typo in epochs file
+2.0.87 [Mar 3, 2022]
+  more epoch fixes for bad polarization start states for 20220211
+2.0.88 [Mar 7, 2022
+  more epoch fixes for bad polarization start states for 20220303
+2.0.89

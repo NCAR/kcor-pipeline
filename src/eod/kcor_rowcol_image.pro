@@ -31,6 +31,14 @@ pro kcor_rowcol_image_l0, run=run
   medcols1 = fltarr(nx, n_files)
 
   for f = 0L, n_files - 1L do begin
+    dt = strmid(file_basename(files[f]), 0, 15)
+    run.time = string(strmid(dt, 0, 4), $
+                      strmid(dt, 4, 2), $
+                      strmid(dt, 6, 2), $
+                      strmid(dt, 9, 2), $
+                      strmid(dt, 11, 2), $
+                      strmid(dt, 13, 2), $
+                      format='(%"%s-%s-%sT%s-%s-%s")')
     kcor_read_rawdata, files[f], image=im, header=header, $
                        repair_routine=run->epoch('repair_routine'), $
                        xshift=run->epoch('xshift_camera'), $
@@ -177,7 +185,7 @@ end
 
 ; main-level example
 
-date = '20131027'
+date = '20201008'
 
 run = kcor_run(date, $
                config_filename=filepath('kcor.reprocess.cfg', $
