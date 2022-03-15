@@ -637,3 +637,4 @@
 2.0.89 [Mar 15, 202]
   x-shift in camera 1 for 20220303
 2.0.90
+  fix crashing bug in verification

@@ -340,7 +340,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
               machine_log_tokens[0], $
               name=logger_name, /error
       status or= 1L
-      free_lun, log_lun, machine_log, lun
+      free_lun, log_lun, machine_log_lun
       goto, test1_done
     endif
     if (log_tokens[1] ne machine_log_tokens[1]) then begin
@@ -350,7 +350,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
               machine_log_tokens[1], $
               name=logger_name, /error
       status or= 1L
-      free_lun, log_lun, machine_log, lun
+      free_lun, log_lun, machine_log_lun
       goto, test1_done
     endif
   endfor
