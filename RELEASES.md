@@ -632,6 +632,7 @@
   fix typo in epochs file
 2.0.87 [Mar 3, 2022]
   more epoch fixes for bad polarization start states for 20220211
-2.0.88 [Mar 7, 2022
+2.0.88 [Mar 7, 2022]
   more epoch fixes for bad polarization start states for 20220303
-2.0.89
+2.0.89 [Mar 15, 202]
+  x-shift in camera 1 for 20220303
