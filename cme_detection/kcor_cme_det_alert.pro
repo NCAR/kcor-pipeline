@@ -73,6 +73,13 @@ pro kcor_cme_det_alert, itime, rsun, operator=operator
           last_detected_image_time, $
           name='kcor/cme', /info
 
+  ; update list of CMEs
+  list_dir = run->config('cme/list_dir')
+  if (n_elements(list_dir) gt 0L) then begin
+    mg_log, 'Updating CME list... ', name='kcor/cme', /info
+    kcor_cme_update_list, simple_date, time, angle, 'all', list_dir
+  endif
+
   kcor_cme_det_movie
   kcor_cme_det_email, time, edge, last_detected_image_time, operator=operator
 
