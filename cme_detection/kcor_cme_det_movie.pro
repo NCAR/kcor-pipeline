@@ -99,6 +99,7 @@ pro kcor_cme_det_movie
   if (file_test(latest_gif_filename)) then begin
     file_delete, latest_gif_filename
   endif
+  file_delete, latest_gif_filename, /allow_non_existent
   file_link, moviefile + '.gif', latest_gif_filename
 
   mg_log, 'wrote file %s.gif', moviefile, name='kcor/cme', /info
