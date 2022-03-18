@@ -31,14 +31,18 @@ def launch_loop(date, config_flags, frequency, no_eod):
                date]
 
     while True:
-        logging.info(' '.join(realtime_cmd))
-        realtime_pid = subprocess.Popen(realtime_cmd).pid
-        logging.info('launched KCor realtime pipeline with pid %d', realtime_pid)
+        #logging.info(' '.join(realtime_cmd))
+        realtime_pid = subprocess.Popen(realtime_cmd,
+                                        stdout=subprocess.DEVNULL,
+                                        stderr=subprocess.DEVNULL).pid
+        logging.info(f"launched KCor realtime pipeline with pid {realtime_pid}")
         time.sleep(EOD_WAIT)
         if not no_eod:
-            logging.info(' '.join(eod_cmd))
-            eod_pid = subprocess.Popen(eod_cmd).pid
-            logging.info('launched KCor end-of-day pipeline with pid %d', eod_pid)
+            #logging.info(' '.join(eod_cmd))
+            eod_pid = subprocess.Popen(eod_cmd,
+                                       stdout=subprocess.DEVNULL,
+                                       stderr=subprocess.DEVNULL).pid
+            logging.info(f"launched KCor end-of-day pipeline with pid {eod_pid}")
             time.sleep(frequency - EOD_WAIT)
 
 

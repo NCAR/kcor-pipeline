@@ -58,7 +58,7 @@ pro kcor_cme_det_alert, itime, rsun, operator=operator
   if (keyword_set(operator)) then begin
     tairef = date_diff[itime].tai_avg
     time = tai2utc(tairef, /time, /truncate, /ccsds)
-    mg_log, 'Operator-generated alert at ' + time + ' UT', name='kcor/cme', /info
+    mg_log, 'Operator-generated alert at ' + time + ' UT', name='kcor/cme', /warn
   endif else begin
     time = tai2utc(tairef, /time, /truncate, /ccsds)
     edge = 60 * (lat[leadingedge[itime]] + 90) / rsun
@@ -71,7 +71,7 @@ pro kcor_cme_det_alert, itime, rsun, operator=operator
 
   mg_log, 'CME detected when images up to %s UT have been processed', $
           last_detected_image_time, $
-          name='kcor/cme', /info
+          name='kcor/cme', /warn
 
   ; update list of CMEs
   list_dir = run->config('cme/list_dir')

@@ -90,8 +90,9 @@ def download_loop(depot_dir, raw_dir, batch_time, speedup_factor=1.0, time_dir=N
 
         logging.info(f'now = {datetime.datetime.now()}')
         logging.info(f'sped up now = {now}')
-        logging.info(f'running = {actual_now - start_time}')
-        logging.info(f'sped up running = {speedup_factor * (actual_now - start_time)}')
+        logging.info(f'running time = {actual_now - start_time}')
+        logging.info(f'sped up running time = {speedup_factor * (actual_now - start_time)}')
+        logging.info(f"simulation time = {now - delta}")
 
         if time_dir is not None:
             write_time(time_dir, observing_day, now - delta)
