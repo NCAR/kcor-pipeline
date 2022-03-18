@@ -18,6 +18,8 @@
 pro kcor_cme_update_list, observing_date, time, position_angle, type, list_dir
   compile_opt strictarr
 
+  if (~file_test(list_dir, /directory)) then file_mkdir, list_dir
+
   basename = string(observing_date, type, format='(%"%s.kcor.cme.%s.txt")')
   filename = filepath(basename, root=list_dir)
 
