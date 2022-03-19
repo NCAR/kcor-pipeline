@@ -96,10 +96,7 @@ pro kcor_cme_det_movie
   write_gif, moviefile + '.gif', frames[*, *, 0], /close
 
   latest_gif_filename = filepath('kcor_latest_cme_detection.gif', root=moviedir)
-  if (file_test(latest_gif_filename)) then begin
-    file_delete, latest_gif_filename
-  endif
-  file_delete, latest_gif_filename, /allow_non_existent
+  file_delete, latest_gif_filename, /allow_nonexistent
   file_link, moviefile + '.gif', latest_gif_filename
 
   mg_log, 'wrote file %s.gif', moviefile, name='kcor/cme', /info
@@ -114,9 +111,7 @@ pro kcor_cme_det_movie
   oVid = 0
 
   latest_mp4_filename = filepath('kcor_latest_cme_detection.mp4', root=moviedir)
-  if (file_test(latest_mp4_filename)) then begin
-    file_delete, latest_mp4_filename
-  endif
+  file_delete, latest_mp4_filename, /allow_nonexistent
   file_link, moviefile + '.mp4', latest_mp4_filename
 
   mg_log, 'wrote file %s.mp4', moviefile, name='kcor/cme', /info
