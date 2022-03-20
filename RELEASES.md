@@ -634,8 +634,8 @@
   more epoch fixes for bad polarization start states for 20220211
 2.0.88 [Mar 7, 2022]
   more epoch fixes for bad polarization start states for 20220303
-2.0.89 [Mar 15, 202]
+2.0.89 [Mar 15, 2022]
   x-shift in camera 1 for 20220303
-2.0.90
+2.0.90 [Mar 20, 2022]
   fix crashing bug in verification
   added epochs for bad calibration on 20220316
