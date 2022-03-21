@@ -34,6 +34,34 @@ def decompose_filename(f):
     return tuple(int(p) for p in parts)
 
 
+def format_timedelta(tdelta):
+    """timedelta to string, use for measuring running time
+    """
+    period_names = ("hour", "minute", "second")
+    period_seconds = (3600, 60, 1)
+    period_desc = ("hrs", "mins", "secs")
+    round_i = 2
+  
+    s = ""
+    remainder = tdelta.total_seconds()
+    for i in range(len(period_names)):
+        q, remainder = divmod(remainder, period_seconds[i])
+        if int(q) > 0:
+            if not len(s)==0:
+                s += " "
+            s += f"{q:.0f} {period_desc[i]}"
+        if i == round_i:
+            break
+        if i == round_i+1:
+            s += f"{remainder} {period_desc[round_i]}"
+            break
+    
+    if s.strip() == "":
+        s = "0 secs"
+
+    return(s)
+
+
 def catalog_depot(depot_dir):
     '''KCor raw data filenames are of the form `20170131_022253_kcor.fts`; log
        files are of the form `20170131.kcor.t1.log`.'''
@@ -87,18 +115,19 @@ def download_loop(depot_dir, raw_dir, batch_time, speedup_factor=1.0, time_dir=N
     if not os.path.isdir(raw_dir):
         os.makedirs(raw_dir)
 
+    date_fmt = "%Y-%m-%d %H:%M:%S"
     file_number = 0
     while True:
         actual_now = datetime.datetime.now()
         now = start_time - speedup_factor * (start_time - actual_now)
 
-        logging.info(f"| now = {datetime.datetime.now()}")
-        logging.info(f"| sped up now = {now}")
-        logging.info(f"| running time = {actual_now - start_time}")
-        logging.info(f"| sped up running time = {speedup_factor * (actual_now - start_time)}")
-        logging.info(f"| simulation time = {now - delta}")
+        logging.info(f"| now: {datetime.datetime.now():{date_fmt}} (sped up: {now:{date_fmt}})")
+        running_time = format_timedelta(actual_now - start_time)
+        spedup_running_time = format_timedelta(speedup_factor * (actual_now - start_time))
+        logging.info(f"| running time = {running_time} (sped up: {spedup_running_time})")
+        logging.info(f"| simulation time: {now - delta:{date_fmt}}")
         time_left = start_time + duration / speedup_factor - now
-        logging.info(f"| time left = {time_left}")
+        logging.info(f"| time left: {format_timedelta(time_left)}")
 
         if time_dir is not None:
             write_time(time_dir, observing_day, now - delta)
@@ -111,7 +140,7 @@ def download_loop(depot_dir, raw_dir, batch_time, speedup_factor=1.0, time_dir=N
             c = catalog.pop(0)
             next_date = None if not catalog else catalog[0]['date']
             filename = c["filename"]
-            logging.info("{file_number + 1}/{n_files}: copying {filename}...")
+            logging.info(f"{file_number + 1}/{n_files}: copying {filename}...")
             shutil.copy(os.path.join(depot_dir, filename), raw_dir)
             file_number += 1
             if time_dir is not None:
