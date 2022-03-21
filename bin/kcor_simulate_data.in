@@ -121,7 +121,7 @@ def download_loop(depot_dir, raw_dir, batch_time, speedup_factor=1.0, time_dir=N
         actual_now = datetime.datetime.now()
         now = start_time - speedup_factor * (start_time - actual_now)
 
-        logging.info(f"| now             : {actualnow:{date_fmt}} (sped up: {now:{date_fmt}})")
+        logging.info(f"| now             : {actual_now:{date_fmt}} (sped up: {now:{date_fmt}})")
         logging.info(f"| simulation time : {now - delta:{date_fmt}}")
 
         running_time = format_timedelta(actual_now - start_time)
