@@ -781,8 +781,9 @@ def run_script(args):
 
 # CME detection sub-command
 def cme_detection(args):
+    extra_flags = ["/realtime"] if args.realtime else None
     for d in args.dates:
-        process_dates(d, "cmedetection", args.flags, args.no_wait)
+        process_dates(d, "cmedetection", args.flags, args.no_wait, extra_flags=extra_flags)
 
     notify_completed(args, "CME detection")
 
@@ -819,12 +820,14 @@ def remove(args):
     notify_completed(args, "remove")
 
 
-def process_dates(dates, script, flags, no_wait):
+def process_dates(dates, script, flags, no_wait, extra_flags=None):
     for d in dates.split(","):
         if d.find("-") < 0:
             cmd = [os.path.join(PIPELINE_DIR, "bin", f"runkcor_{script}.sh"),
                    flags,
                    d]
+            if extra_flags is not None:
+                cmd = cmd + extra_flags
 
             process = launch_process(cmd, stdout=None, stderr=subprocess.PIPE)
             print("[%d] %s" % (process.pid, " ".join(cmd)))
@@ -836,6 +839,8 @@ def process_dates(dates, script, flags, no_wait):
             cmd = [os.path.join(PIPELINE_DIR, "bin", f"runkcor_{script}_range.sh"),
                    flags,
                    r[0], r[1]]
+            if extra_flags is not None:
+                cmd = cmd + extra_flags
 
             process = launch_process(cmd, stdout=None, stderr=subprocess.PIPE)
             print("[%d] %s" % (process.pid, " ".join(cmd)))
@@ -1225,6 +1230,8 @@ if __name__ == "__main__":
     cme_parser.add_argument("-f", "--flags", type=str, help=flags_help,
                             default="latest")
     cme_parser.add_argument("--no-wait", action="store_true", help=nowait_help)
+    realtime_help = "set to use realtime setting instead of batch mode"
+    cme_parser.add_argument("--realtime", action="store_true", help=realtime_help)
     cme_parser.set_defaults(func=cme_detection, parser=cme_parser)
 
 
