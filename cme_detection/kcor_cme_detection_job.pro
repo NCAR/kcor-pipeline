@@ -121,6 +121,9 @@ pro kcor_cme_detection_job, date, $
       endif
 
       if (keyword_set(realtime)) then begin
+        current_time = kcor_cme_current_time(run=run)
+        current_time = strjoin(strmid(current_time, [11, 14, 17], 2))
+        current_time = kcor_ut2hst(current_time)
         if (current_time gt run->config('cme/stop_time')) then begin
           mg_log, 'current time %s later than stop time %s', $
                   current_time, run->config('cme/stop_time'), name='kcor/cme', /info
