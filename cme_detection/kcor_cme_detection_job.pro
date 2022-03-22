@@ -102,6 +102,8 @@ pro kcor_cme_detection_job, date, $
     file_mkdir, datedir
   endif
 
+  wait_time = run->config('cme/wait_time')
+
   ; If running in realtime mode, stop when KCOR_CME_DET_CHECK detects a stop
   ; *and* when it is after the cme_stop_time. If running a job on already
   ; existing files, stop after done with all the files.
