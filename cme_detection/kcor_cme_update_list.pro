@@ -6,7 +6,7 @@
 ; :Params:
 ;   observing_date : in, required, type=string
 ;     HST date in the form "YYYYMMDD"
-;   time : in, required, string
+;   time : in, required, type=string
 ;     UT date/time of CME
 ;   position_angle : in, required, type=float
 ;     position angle measured CCW from N
