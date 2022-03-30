@@ -16,8 +16,10 @@ pro kcor_cme_retract_email, retract_time, retract_position_angle
 
   ; write out the message to the temporary file
   openw, out, mailfile, /get_lun
-  printf, out, 'The Mauna Loa Observatory is retracting the CME alert at ' $
-                 + retract_time + ' UT at position angle ' $
+  printf, out, 'An observer at the Mauna Loa Observatory is retracting the ' $
+                 + ' CME alert produced by the automated CME detection ' $
+                 + ' software for the CME found at ' $
+                 + retract_time + ' UT and position angle ' $
                  + retract_position_angle + ' degrees.'
 
   spawn, 'echo $(whoami)@$(hostname)', who, error_result, exit_status=status
