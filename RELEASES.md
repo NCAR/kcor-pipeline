@@ -644,3 +644,4 @@
 2.0.92 [Mar 31, 2022]
   typo in epoch file
 2.0.93
+  plot just process lag if no access to database

@@ -147,7 +147,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   ; copy config file to YYYYMMDD/ directory
   file_copy, config_filename, filepath('kcor.cfg', root=date_dir), /overwrite
 
-  if (run->config('database/update')) then kcor_realtime_lag, run=run
+  kcor_realtime_lag, run=run
 
   cd, l0_dir
 

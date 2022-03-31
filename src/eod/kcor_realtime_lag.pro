@@ -12,26 +12,31 @@
 pro kcor_realtime_lag, run=run
   compile_opt strictarr
 
+  plot_web_lag = run->config('database/update')
+
   if (run->config('realtime/reprocess')) then begin
     mg_log, 'reprocessing, skipping realtime lag check', name=run.logger_name, /info
     goto, done
   endif
 
-  obs_day_num = mlso_obsday_insert(run.date, $
-                                   run=run, $
-                                   log_name='kcor/eod', $
-                                   database=db, $
-                                   status=status)
+  if (plot_web_lag) then begin
+    obs_day_num = mlso_obsday_insert(run.date, $
+                                     run=run, $
+                                     log_name='kcor/eod', $
+                                     database=db, $
+                                     status=status)
+    product_type = db->query('select * from mlso_producttype where producttype = "pB"', $
+                             status=status)
+    product_type = product_type[0].producttype_id
 
-  product_type = db->query('select * from mlso_producttype where producttype = "pB"', $
-                           status=status)
-  product_type = product_type[0].producttype_id
+    files = db->query('select * from kcor_img where obs_day=%d and producttype=%d', $
+                      obs_day_num, product_type, $
+                      status=status, count=n_files)
 
-  files = db->query('select * from kcor_img where obs_day=%d and producttype=%d', $
-                    obs_day_num, product_type, $
-                    status=status, count=n_files)
-  obj_destroy, db
-  if (n_files eq 0L) then goto, done
+    obj_destroy, db
+
+    if (n_files eq 0L) then goto, done
+  endif
 
   l2_dir = filepath('level2', $
                     subdir=run.date, $
@@ -48,21 +53,15 @@ pro kcor_realtime_lag, run=run
     header = headfits(filename)
     date_obs = sxpar(header, 'DATE-OBS')
     date_dp = sxpar(header, 'DATE_DP')
-    date_web = files[f].dt_created
-
-    ; print, date_obs, date_dp, date_web, format='(%"%s   %s   %s")'
 
     creation_time[f] = kcor_dateobs2julian(date_obs)
     process_time[f]  = kcor_dateobs2julian(date_dp)
-    web_time[f]      = kcor_dateobs2julian(date_web) - mg_utoffset() / 24.0
-    ; print, date_obs, $
-    ;        24.0 * 60.0 * (process_time[f] - creation_time[f]), $
-    ;        24.0 * 60.0 * (web_time[f] - creation_time[f]), $
-    ;        format='(%"date-obs: %s, process lag: %0.1f min, web lag: %0.1f min")'
-  endfor
 
-  process_lag = process_time - creation_time
-  web_lag = web_time - creation_time
+    if (plot_web_lag) then begin
+      date_web = files[f].dt_created
+      web_time[f] = kcor_dateobs2julian(date_web) - mg_utoffset() / 24.0
+    endif
+  endfor
 
   original_device = !d.name
 
@@ -80,18 +79,30 @@ pro kcor_realtime_lag, run=run
   end_hour   = 18   ; local time
   start_time = julday(date_parts[1], date_parts[2], date_parts[0], start_hour, 0, 0) + 10.0D / 24.0D
   end_time = julday(date_parts[1], date_parts[2], date_parts[0], end_hour, 0, 0) + 10.0D / 24.0D
-  n_hours = ceil(24.0 * max([web_lag, process_lag], /nan))
+
+  process_lag = process_time - creation_time
+  if (plot_web_lag) then begin
+    web_lag = web_time - creation_time
+    n_hours = ceil(24.0 * max([web_lag, process_lag], /nan))
+  endif else begin
+    n_hours = ceil(24.0 * max(process_lag, /nan))
+  endelse
+
   !null = label_date(date_format='%H:%I')
-  plot, creation_time, 24.0 * 60.0 * (web_time - creation_time), $
-        psym=4, symsize=0.25, $
-        color=0, background=255, $
-        xstyle=1, xrange=[start_time, end_time], xticks=(end_hour - start_hour) / 2, xminor=2, $
+  plot, creation_time, 24.0 * 60.0 * process_lag, $
+        psym=3, symsize=0.25, color=128, $
+        background=255, $
+        xstyle=1, xrange=[start_time, end_time], $
+        xticks=(end_hour - start_hour) / 2, xminor=2, $
         xtickformat='label_date', xtitle='Observation time [UT]', $
         yrange=[0.0, 60.0 * n_hours], ystyle=1, yticks=n_hours, yminor=6, $
         ytitle='Lag [minutes]', $
-        title=string(run.date, format='(%"%s lag from data obs to L2 creation (grey) and to web (black)")')
-  oplot, creation_time, 24.0 * 60.0 * (process_lag), $
-         psym=3, symsize=0.25, color=128
+        title=string(run.date, $
+                     format='(%"%s lag from data obs to L2 creation (grey) and to web (black)")')
+  if (plot_web_lag) then begin
+    oplot, creation_time, 24.0 * 60.0 * web_lag, $
+        psym=4, symsize=0.25, color=0
+  endif
 
   im = tvrd()
 
@@ -114,7 +125,7 @@ end
 ; .compile ../kcor_dateobs2julian
 ; .compile ../../lib/mysql/mgdbmysql__define
 
-date = '20210714'
+date = '20220328'
 config_filename = filepath('kcor.production.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())
