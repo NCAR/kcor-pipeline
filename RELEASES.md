@@ -641,4 +641,5 @@
   added epochs for bad calibration on 20220316
 2.0.91 [Mar 31, 2022]
   new epoch for bad polarization start state for 20140610
-2.0.92
+2.0.92 [Mar 31, 2022]
+  typo in epoch file
