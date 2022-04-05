@@ -643,5 +643,5 @@
   new epoch for bad polarization start state for 20140610
 2.0.92 [Mar 31, 2022]
   typo in epoch file
-2.0.93
+2.0.93 [Apr 5, 2022]
   plot just process lag if no access to database
