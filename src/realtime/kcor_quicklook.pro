@@ -157,6 +157,7 @@ pro kcor_quicklook, pb, mask, $
             alignment=0.5, orientation=north_orientation
   endif
 
+  ; TODO: should we do the following annotations?
   ; extra annotation for other quality types
   case quality of
     'saturated': tvcircle, scaled_radius, scaled_xcenter, scaled_ycenter, blue, /device
