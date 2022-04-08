@@ -645,4 +645,5 @@
   typo in epoch file
 2.0.93 [Apr 5, 2022]
   plot just process lag if no access to database
-2.0.94
+2.0.94 [Apr 8, 2022]
+  fix for plotting realtime lag without access to database

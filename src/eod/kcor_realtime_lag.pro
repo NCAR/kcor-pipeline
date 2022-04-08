@@ -19,6 +19,10 @@ pro kcor_realtime_lag, run=run
     goto, done
   endif
 
+  l2_dir = filepath('level2', $
+                    subdir=run.date, $
+                    root=run->config('processing/raw_basedir'))
+
   if (plot_web_lag) then begin
     obs_day_num = mlso_obsday_insert(run.date, $
                                      run=run, $
@@ -36,11 +40,14 @@ pro kcor_realtime_lag, run=run
     obj_destroy, db
 
     if (n_files eq 0L) then goto, done
-  endif
-
-  l2_dir = filepath('level2', $
-                    subdir=run.date, $
-                    root=run->config('processing/raw_basedir'))
+  endif else begin
+    filenames = file_search(filepath('*_kcor_l2.fts.gz', root=l2_dir), $
+                            count=n_files)
+    if (n_files gt 0L) then begin
+      files = replicate({file_name: ''}, n_files)
+      files.file_name = filenames
+    endif
+  endelse
 
   creation_time = dblarr(n_files)
   process_time = dblarr(n_files)
