@@ -647,3 +647,4 @@
   plot just process lag if no access to database
 2.0.94 [Apr 8, 2022]
   fix for plotting realtime lag without access to database
+2.0.95
