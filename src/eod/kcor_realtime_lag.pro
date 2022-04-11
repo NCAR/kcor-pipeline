@@ -95,8 +95,12 @@ pro kcor_realtime_lag, run=run
     n_hours = ceil(24.0 * max(process_lag, /nan))
   endelse
 
+  mg_log, 'n_hours: %0.1f'
+  n_hours <= 24.0    ; no more than 24.0 hour delay
+
   !null = label_date(date_format='%H:%I')
-  plot, creation_time, 24.0 * 60.0 * process_lag, $
+  plot, creation_time, $
+        24.0 * 60.0 * process_lag, $   ; minutes of lag
         psym=3, symsize=0.25, color=128, $
         background=255, $
         xstyle=1, xrange=[start_time, end_time], $
@@ -107,8 +111,9 @@ pro kcor_realtime_lag, run=run
         title=string(run.date, $
                      format='(%"%s lag from data obs to L2 creation (grey) and to web (black)")')
   if (plot_web_lag) then begin
-    oplot, creation_time, 24.0 * 60.0 * web_lag, $
-        psym=4, symsize=0.25, color=0
+    oplot, creation_time, $
+           24.0 * 60.0 * web_lag, $   ; minutes of lag
+           psym=4, symsize=0.25, color=0
   endif
 
   im = tvrd()
