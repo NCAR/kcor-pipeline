@@ -45,7 +45,7 @@ pro kcor_realtime_lag, run=run
                             count=n_files)
     if (n_files gt 0L) then begin
       files = replicate({file_name: ''}, n_files)
-      files.file_name = filenames
+      files.file_name = file_basename(filenames, '.gz')
     endif
   endelse
 
@@ -55,7 +55,6 @@ pro kcor_realtime_lag, run=run
 
   for f = 0L, n_files - 1L do begin
     filename = filepath(files[f].file_name + '.gz', $
-                        subdir=[], $
                         root=l2_dir)
     header = headfits(filename)
     date_obs = sxpar(header, 'DATE-OBS')
@@ -95,7 +94,7 @@ pro kcor_realtime_lag, run=run
     n_hours = ceil(24.0 * max(process_lag, /nan))
   endelse
 
-  mg_log, 'n_hours: %0.1f'
+  mg_log, 'n_hours: %0.1f', n_hours, name=run.logger_name, /debug
   n_hours <= 24.0    ; no more than 24.0 hour delay
 
   !null = label_date(date_format='%H:%I')
@@ -137,8 +136,8 @@ end
 ; .compile ../kcor_dateobs2julian
 ; .compile ../../lib/mysql/mgdbmysql__define
 
-date = '20220328'
-config_filename = filepath('kcor.production.cfg', $
+date = '20220330'
+config_filename = filepath('kcor.latest.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
