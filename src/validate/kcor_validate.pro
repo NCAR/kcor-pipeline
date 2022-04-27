@@ -93,5 +93,6 @@ pro kcor_validate, fits_files, spec_filename, type, $
 
   done:
 
+  mg_log, 'validation complete', name=logger_name, /info
   obj_destroy, body
 end
