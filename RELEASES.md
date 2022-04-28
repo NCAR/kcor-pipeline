@@ -649,7 +649,7 @@
   fix for plotting realtime lag without access to database
 2.0.95 [Apr 11, 2022]
   debugging info for plotting realtime lag error
-2.0.96 [Apri 12, 2022]
+2.0.96 [Apr 12, 2022]
   another fix for plotting realtime lag error without access to database
-2.0.97
+2.0.97 [Apr 28, 2022]
   more logging in validation to track crash in realtime
