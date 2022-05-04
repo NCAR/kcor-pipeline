@@ -199,7 +199,7 @@ pro kcor_cme_det_report, time, widget=widget
   itime          = n_elements(leadingedge) - 1
   issue_time     = kcor_cme_current_time(run=run)
   last_data_time = tai2utc(utc2tai(date_diff[-1].date_obs), /truncate, /ccsds) + 'Z'
-  start_time     = tai2utc(utc2tai(date_diff[itime].date_obs), /truncate, /ccsds) + 'Z'
+  end_time     = tai2utc(utc2tai(date_diff[itime].date_obs), /truncate, /ccsds) + 'Z'
   mode           = run->config('cme/mode')
   ; angle and speed are already set
   height          = 60 * (lat[leadingedge[itime]] + 90) / rsun
@@ -207,7 +207,7 @@ pro kcor_cme_det_report, time, widget=widget
 
   summary_json = kcor_cme_alert_summary(issue_time, $
                                         last_data_time, $
-                                        start_time, $
+                                        current_cme_start_time, $
                                         end_time, $
                                         mode, $
                                         position_angle=angle, $
@@ -215,8 +215,8 @@ pro kcor_cme_det_report, time, widget=widget
                                         height=height, $
                                         time_for_height=time_for_height)
 
-  json_filename = kcor_cme_alert_filename(start_time, issue_time)
-  kcor_cme_alert_text2file, alert_json, json_filename
+  json_filename = kcor_cme_alert_filename(last_data_time, issue_time)
+  kcor_cme_alert_text2file, summary_json, json_filename
   if (n_elements(ftp_url) gt 0L) then begin
     ftp_from_email = run->config('cme/from_email')
     if (n_elements(ftp_from_email) eq 0L) then ftp_from_email = ''

@@ -50,6 +50,8 @@ pro kcor_cme_det_alert, itime, rsun, operator=operator
   compile_opt strictarr
   @kcor_cme_det_common
 
+  current_cme_start_time = tai2utc(utc2tai(date_diff[itime].date_obs), /truncate, /ccsds) + 'Z'
+
   last_detected_image_tairef = date_diff[n_elements(detected) - 1L].tai_avg
   last_detected_image_time = tai2utc(last_detected_image_tairef, /time, /truncate, /ccsds)
 

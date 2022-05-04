@@ -9,8 +9,8 @@ pro kcor_cme_handle_retractions
   @kcor_cme_det_common
 
   list_dir = run->config('cme/list_dir')
-  cmes_to_retract = kcor_cme_find_retrations(simple_date, list_dir, $
-                                             count=n_cmes_to_retract)
+  cmes_to_retract = kcor_cme_find_retractions(simple_date, list_dir, $
+                                              count=n_cmes_to_retract)
 
   if (n_cmes_to_retract gt 0L) then begin
     mg_log, 'retracting %d CMEs...', n_cmes_to_retract, name='kcor/cme', /warn
