@@ -36,7 +36,7 @@ function kcor_cme_alert_summary, issue_time, $
   observations = list({all_clear: {all_clear_boolean: boolean(1B), $
                                    all_clear_type: 'cme'}, $
                        alert: {alert_type: 'SUMMARY', $
-                               start_time: issue_time, $
+                               start_time: start_time, $
                                end_time: end_time}})
 
   submission = {sep_forecast_submission:{model: model, $
