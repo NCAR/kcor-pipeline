@@ -16,7 +16,7 @@
 ;-
 pro kcor_cme_retract, observing_date, retract_time, retract_position_angle, list_dir
   compile_opt strictarr
-  @kcor_cme_common
+  @kcor_cme_det_common
 
   ; add to retracted CME list file
   kcor_cme_update_list, observing_date, $
