@@ -20,7 +20,7 @@ pro kcor_cme_retract_email, retract_time, retract_position_angle
                  + 'CME alert produced by the automated CME detection ' $
                  + 'software for the CME found at ' $
                  + retract_time + ' UT and position angle ' $
-                 + retract_position_angle + ' degrees.'
+                 + strtrim(long(retract_position_angle), 2) + ' degrees.'
 
   spawn, 'echo $(whoami)@$(hostname)', who, error_result, exit_status=status
   if (status eq 0L) then begin
@@ -37,8 +37,9 @@ pro kcor_cme_retract_email, retract_time, retract_position_angle
 
   free_lun, out
 
-  subject = string(retract_time, $
-                   format='(%"MLSO K-Cor retract CME alert from %s UT")')
+  ut_date = kcor_cme_ut_date(retract_time, simple_date)
+  subject = string(ut_date, retract_time, $
+                   format='(%"MLSO K-Cor retract CME alert from %s at %s UT")')
 
   from_email = n_elements(run->config('cme/from_email')) eq 0L $
                  ? '$(whoami)@ucar.edu' $

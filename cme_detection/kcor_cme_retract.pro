@@ -42,14 +42,14 @@ pro kcor_cme_retract, observing_date, retract_time, retract_position_angle, list
     issue_time = kcor_cme_current_time(run=run)
     last_data_time = tai2utc(utc2tai(date_diff[-1].date_obs), /truncate, /ccsds) + 'Z'
     mode = run->config('cme/mode')
-    retract_ut_date = kcor_cme_ut_date(rectract_time, simple_date)
+    retract_ut_date = kcor_cme_ut_date(retract_time, simple_date)
     retract_ut_datetime = string(retract_ut_date, retract_time, $
                                  format='(%"%sT%sZ")')
     alert_json = kcor_cme_alert_retract(issue_time, last_data_time, ~cme_occurring, mode, $
-                                        retract_time=retract_datetime, $
+                                        retract_time=retract_ut_datetime, $
                                         retract_position_angle=retract_position_angle)
 
-    json_filename = kcor_cme_alert_filename(retract_datetime, issue_time)
+    json_filename = kcor_cme_alert_filename(retract_ut_datetime, issue_time)
     kcor_cme_alert_text2file, alert_json, json_filename
 
     if (n_elements(ftp_url) gt 0L) then begin
