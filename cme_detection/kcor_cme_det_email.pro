@@ -158,18 +158,7 @@ pro kcor_cme_det_email, time, edge, last_detected_image_time, operator=operator
 
   free_lun, out
 
-  hour  = long(strmid(time, 0, 2))
-
-  year  = long(strmid(simple_date, 0, 4))
-  month = long(strmid(simple_date, 4, 2))
-  day   = long(strmid(simple_date, 6, 2))
-
-  if (hour lt 10) then begin
-    jd = julday(month, day, year) + 1.0d
-    caldat, jd, month, day, year
-  endif
-
-  ut_date = string(year, month, day, format='(%"%04d-%02d-%02d")')
+  ut_date = kcor_cme_ut_date(time, simple_date)
   subject = string(ut_date, time, $
                    format='(%"MLSO K-Cor possible CME on %s at %s UT")')
 

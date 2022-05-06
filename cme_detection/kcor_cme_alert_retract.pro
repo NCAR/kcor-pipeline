@@ -27,11 +27,12 @@ function kcor_cme_alert_retract, issue_time, last_data_time, all_clear, mode, $
                               products:list({product: 'White Light', $
                                              last_data_time: last_data_time})}})
 
-  comment = string(position_angle, format='(%"Canceling alert for CME at position angle %s")')
+  comment = string(retract_position_angle, $
+                   format='(%"Canceling alert for CME at position angle %s")')
   observations = list({all_clear: {all_clear_boolean: boolean(all_clear), $
                                    all_clear_type: 'cme'}, $
                        alert: {alert_type: 'CANCEL ALERT', $
-                               start_time: kcor_cme_expand_datetime(retract_time), $
+                               start_time: retract_time, $
                                comment: comment}})
 
   submission = {sep_forecast_submission:{model: model, $
