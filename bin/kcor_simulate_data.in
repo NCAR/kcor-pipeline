@@ -146,6 +146,7 @@ def download_loop(depot_dir, raw_dir, batch_time, speedup_factor=1.0, time_dir=N
             shutil.copy(os.path.join(depot_dir, filename), raw_dir)
             file_number += 1
             if time_dir is not None:
+                logging.info(f"| simulation time : {now - delta:{date_fmt}}")
                 write_time(time_dir, observing_day, now - delta)
             time.sleep(DOWNLOAD_TIME)
 
@@ -155,7 +156,7 @@ def download_loop(depot_dir, raw_dir, batch_time, speedup_factor=1.0, time_dir=N
                 logging.info('copying %s...', log_filename)
                 shutil.copy(os.path.join(depot_dir, log_filename), raw_dir)
             logging.info('done copying files')
-            return
+            #return
 
         downloading_time = (datetime.datetime.now() - actual_now).total_seconds()
         time.sleep(max(batch_time - downloading_time, 0.0))
