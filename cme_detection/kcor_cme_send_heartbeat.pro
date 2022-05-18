@@ -31,17 +31,28 @@ pro kcor_cme_send_heartbeat
     if ((seconds_since_last_heartbeat gt heartbeat_interval) $
           && (n_elements(date_diff) gt 0L)) then begin
       issue_time = kcor_cme_current_time(run=run)
+      last_data_time = tai2utc(utc2tai(date_diff[-1].date_obs), /truncate, /ccsds) + 'Z'
+      json_filename = kcor_cme_alert_filename(last_data_time, issue_time)
+      json_basename = file_basename(json_filename)
+
+      if (n_elements(alerts_dir) gt 0L $
+            && file_test(filepath(json_basename, root=alerts_dir), /regular)) then begin
+        mg_log, 'already sent heartbeat at this time, skipping...', name='kcor/cme', /warn
+        mg_log, 'last data time: %s', last_data_time, name='kcor/cme', /debug
+        mg_log, 'issue time: %s', issue_time, name='kcor/cme', /debug
+        return
+      endif
+
       last_heartbeat_jd = julday()
 
       mg_log, 'creating heartbeat...', name='kcor/cme', /info
-      last_data_time = tai2utc(utc2tai(date_diff[-1].date_obs), /truncate, /ccsds) + 'Z'
+
       mode = run->config('cme/mode')
       heartbeat_json = kcor_cme_alert_heartbeat(issue_time, $
                                                 last_data_time, $
                                                 ~cme_occurring, $
                                                 mode)
 
-      json_filename = kcor_cme_alert_filename(last_data_time, issue_time)
       kcor_cme_alert_text2file, heartbeat_json, json_filename
 
       if (n_elements(ftp_url)) then begin
@@ -60,7 +71,7 @@ pro kcor_cme_send_heartbeat
         endif
       endif
 
-      if (n_elements(alerts_dir)) then file_copy, json_filename, alerts_dir
+      if (n_elements(alerts_dir) gt 0L) then file_copy, json_filename, alerts_dir
 
       file_delete, json_filename, /allow_nonexistent
     endif
