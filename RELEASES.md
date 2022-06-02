@@ -654,3 +654,4 @@
 2.0.97 [Apr 28, 2022]
   more logging in validation to track crash in realtime
 2.0.98
+  more debug logging messages for when realtime hangs in validation
