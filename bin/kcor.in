@@ -5,6 +5,8 @@ import datetime
 from email.mime.text import MIMEText
 import fnmatch
 import glob
+import json
+import math
 import os
 import pathlib
 import psutil
@@ -465,6 +467,25 @@ def verify(args):
     print("[%d] %s" % (process.pid, " ".join(cmd)))
             
     terminated = wait_for(process)
+
+
+# alerts
+def list_alerts(args):
+    for f in args.json_files:
+        basename = os.path.basename(f)
+        with open(f) as jf:
+            alert = json.load(jf)
+        try:
+            submission = alert["sep_forecast_submission"]
+            observations = submission["observations"][0]
+            type = observations["alert"]["alert_type"] if "alert" in observations else "heartbeat"
+            all_clear = observations["all_clear"]["all_clear_boolean"]
+            all_clear_text = "clear" if all_clear else "CME"
+            pa = submission["triggers"][0]["cme"]["pa"] if "triggers" in submission else math.nan
+            pa_text = f"{pa:0.2f} deg" if math.isfinite(pa) else ""
+            print(f"{basename}   {type:12s}  {all_clear_text:5s}   {pa_text}")
+        except KeyError as e:
+            print(f"{basename}: invalid JSON alert file")
 
 
 # log sub-command
@@ -1140,6 +1161,13 @@ if __name__ == "__main__":
                            help="FITS keyword names to display",
                            default=None)
     ls_parser.set_defaults(func=ls, parser=ls_parser)
+
+    alert_parser = subparsers.add_parser("alert",
+                                         help="list JSON alerts")
+    alert_parser.add_argument("json_files", nargs="*",
+                              help="JSON alert files",
+                              metavar="json_file")
+    alert_parser.set_defaults(func=list_alerts, parser=alert_parser)
 
     # log sub-command
     log_parser = subparsers.add_parser("log",
