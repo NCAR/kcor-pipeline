@@ -632,6 +632,25 @@
   fix typo in epochs file
 2.0.87 [Mar 3, 2022]
   more epoch fixes for bad polarization start states for 20220211
-2.0.88 [Mar 7, 2022
+2.0.88 [Mar 7, 2022]
   more epoch fixes for bad polarization start states for 20220303
-2.0.89
+2.0.89 [Mar 15, 2022]
+  x-shift in camera 1 for 20220303
+2.0.90 [Mar 20, 2022]
+  fix crashing bug in verification
+  added epochs for bad calibration on 20220316
+2.0.91 [Mar 31, 2022]
+  new epoch for bad polarization start state for 20140610
+2.0.92 [Mar 31, 2022]
+  typo in epoch file
+2.0.93 [Apr 5, 2022]
+  plot just process lag if no access to database
+2.0.94 [Apr 8, 2022]
+  fix for plotting realtime lag without access to database
+2.0.95 [Apr 11, 2022]
+  debugging info for plotting realtime lag error
+2.0.96 [Apr 12, 2022]
+  another fix for plotting realtime lag error without access to database
+2.0.97 [Apr 28, 2022]
+  more logging in validation to track crash in realtime
+2.0.98

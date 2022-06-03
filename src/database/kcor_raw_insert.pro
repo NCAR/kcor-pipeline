@@ -107,10 +107,12 @@ pro kcor_raw_insert, date, fits_list, quality, $
     fts_file = fits_list[i]
 
     if (~file_test(fts_file)) then begin
-      mg_log, '%s (%s) not found', fts_file, quality, name=log_name, /warn
+      mg_log, '%s (%s) not found', file_basename(fts_file), quality, $
+              name=log_name, /warn
       continue
     endif else begin
-      mg_log, 'ingesting %s (%s)', fts_file, quality, name=log_name, /info
+      mg_log, 'ingesting %s (%s)', file_basename(fts_file), quality, $
+              name=log_name, /info
     endelse
 
     ; extract desired items from header

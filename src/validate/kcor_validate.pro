@@ -31,6 +31,8 @@ pro kcor_validate, fits_files, spec_filename, type, $
   n_problems      = 0L
 
   for f = 0L, n_elements(fits_files) - 1L do begin
+    mg_log, 'checking %s', file_basename(fits_files[f]), $
+            name=logger_name, /debug
     is_valid = kcor_validate_file(fits_files[f], spec_filename, type, $
                                   error_msg=error_msg, run=run)
     if (~is_valid) then begin
@@ -49,8 +51,13 @@ pro kcor_validate, fits_files, spec_filename, type, $
     endif
   endfor
 
+  if (n_problems eq 0L) then begin
+    mg_log, 'no invalid %s files', type, name=logger_name, /info
+    goto, done
+  endif
+
   ; send notification if some files are not valid
-  if (n_problems gt 0L && run->config('validation/send_warnings')) then begin
+  if (run->config('validation/send_warnings')) then begin
     mg_log, '%d invalid %s files', n_problems, type, $
             name=logger_name, /info
 
@@ -77,19 +84,20 @@ pro kcor_validate, fits_files, spec_filename, type, $
     endelse
 
     credit = string(mg_src_root(/filename), who, format='(%"Sent from %s (%s)")')
+    body->add, credit
 
     address = run->config('validation/email')
     subject = string(type, run.date, n_problems, n_problem_files, $
                      format='(%"KCor %s validation failures for %s (%d problems in %d files)")')
-    body->add, credit
 
     kcor_send_mail, address, subject, body->toArray(), $
                     error=error, logger_name=logger_name
   endif else begin
-    mg_log, 'no invalid %s files', type, name=logger_name, /info
+    mg_log, 'not sending validation failure email', name=logger_name, /warn
   endelse
 
   done:
 
+  mg_log, 'validation complete', name=logger_name, /info
   obj_destroy, body
 end

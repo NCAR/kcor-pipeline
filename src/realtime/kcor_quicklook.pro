@@ -48,12 +48,12 @@ pro kcor_quicklook, pb, mask, $
   set_plot, 'Z'
 
   device, get_decomposed=original_decomposed
-  device, set_resolution=display_dimensions
-  device, decomposed=0, $
+  tvlct, original_rgb, /get
+  device, set_resolution=display_dimensions, $
+          decomposed=0, $
           set_colors=256, $
           z_buffering=0
 
-  tvlct, original_rgb, /get
   loadct, colortable, ncolors=250, /silent
   gamma_ct, display_gamma, /current
 
@@ -157,6 +157,7 @@ pro kcor_quicklook, pb, mask, $
             alignment=0.5, orientation=north_orientation
   endif
 
+  ; TODO: should we do the following annotations?
   ; extra annotation for other quality types
   case quality of
     'saturated': tvcircle, scaled_radius, scaled_xcenter, scaled_ycenter, blue, /device
