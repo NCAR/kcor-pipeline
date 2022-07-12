@@ -1,23 +1,10 @@
 # KCor Pipeline
 
-The COronal Solar Magnetism Observatory (COSMO) K-coronagraph (K-Cor) is one of
-three proposed instruments in the COSMO facility suite. It is specifically
-designed to study the formation and dynamics of coronal mass ejections and the
-evolution of the density structure of the low corona. The K-Cor records the
-polarization brightness (pB) formed by Thomson scattering of photospheric light
-by coronal free electrons. The National Center for Atmospheric Research (NCAR),
-via the National Science Foundation (NSF), provided full funding for the COSMO
-K-Cor, which was deployed to the Mauna Loa Solar Observatory (MLSO) in Hawaii
-in September 2013, replacing the aging MLSO Mk4 K-coronameter.
+The COronal Solar Magnetism Observatory (COSMO) K-coronagraph (K-Cor) is one of three proposed instruments in the COSMO facility suite. It is specifically designed to study the formation and dynamics of coronal mass ejections and the evolution of the density structure of the low corona. The K-Cor records the polarization brightness (pB) formed by Thomson scattering of photospheric light by coronal free electrons. The National Center for Atmospheric Research (NCAR), via the National Science Foundation (NSF), provided full funding for the COSMO K-Cor, which was deployed to the Mauna Loa Solar Observatory (MLSO) in Hawaii in September 2013, replacing the aging MLSO Mk4 K-coronameter.
 
-This pipeline produces level 1 and level 2 data products from the raw data from
-the instrument. The level 1 product contains polarization brightness (pB)
-images of the corona and sky, pB of the sky only, and total intensity, while
-the level 2 product contains pB images with sky polarization removed.
+This pipeline produces level 1 and level 2 data products from the raw data from the instrument. The level 1 product contains polarization brightness (pB) images of the corona and sky, pB of the sky only, and total intensity, while the level 2 product contains pB images with sky polarization removed.
 
-There is a near real-time component of the pipeline which produces fully
-calibrated level 2 pB images along with an end-of-day component which produces
-averages, differences, and many engineering products.
+There is a near real-time component of the pipeline which produces fully calibrated level 2 pB images along with an end-of-day component which produces averages, differences, and many engineering products.
 
 
 ## Requirements
@@ -25,17 +12,18 @@ averages, differences, and many engineering products.
 * IDL 8 or later
 * cmake 3.1.3 or later
 * MySQL developer installation
-* python 2.7+ (including 3.x) in order to run command line utility script including the simulators, the production pipeline does not require python
+* Python 2.7+ (including 3.x) in order to run command line utility script including the simulators, the production pipeline does not strictly require Python
 
 
 ## Installation
 
 To build the KCor pipeline code, your system must have IDL, the MySQL client development package, and CMake 3.1.3 or later. Make sure these are installed on your system before continuing.
 
-### Configuring your system
+### Configuring for your system
 
 To configure the KCor pipeline for your system, do the following from the top-level of the pipeline source code (change the location of your IDL installation and the location where you want the pipeline to your needs):
 
+    cd kcor-pipeline
     mkdir build
     cmake \
       -DCMAKE_INSTALL_PREFIX:PATH=~/software/kcor-pipeline \
@@ -46,7 +34,7 @@ There are example configuration scripts, `linux_configure.sh` and `mac_configure
 
 ### Build and install
 
-Next, run:
+Next, to build and install the KCor pipeline, run:
 
     cd build
     make install
@@ -56,21 +44,17 @@ Next, run:
 
 ### Config file
 
-The options of the pipeline are specified via a configuration file. See the example file `kcor.user.machine.flags.cfg` in the `config` directory of the distribution for all the options and their documentation. The filename of the config file must match the pattern given by the example, i.e., replace "user" with your username, "machine" with the name of the machine the pipeline will run on, and "flags" with a memorable name such as "production", "latest", or "geometry-fix".
+The options of the pipeline are specified via a configuration file. See the configuration specification file `kcor.spec.cfg` in the `config` directory of the distribution for all the options and their documentation. The filename of the config file must match the pattern `kcor.[NAME].cfg` with a name such as "production", "latest", or "geometry-fix". These configuration files must be placed in the `config/` directory.
 
 All files with the `cfg` extension in the `config` directory will be copied into the installation during a `make install`.
 
-### Run the pipeline
+### Process a day
 
-To run the pipeline
+For example, to process the data from 20220712 with the `kcor.latest.cfg` configuration file use the `kcor` utility script in the `bin/` directory of the installation:
 
-### Run the simulator
+    kcor process -f latest 20220712
 
-To test the pipeline, use the `kcor_simulate` routine in the `bin` directory of the installation. For example,
-
-    $ kcor_simulate 20161127 latest
-
-to run the pipeline on the data from 20171127 using the config file with filename where flags is "latest".
+Creating the configuration file, in this case `kcor.latest.cfg`, is the main work in running the pipeline.
 
 
 ## Code for KCor pipeline
@@ -78,12 +62,12 @@ to run the pipeline on the data from 20171127 using the config file with filenam
 ### Directories
 
 * *analysis* for routines to perform various analyses of KCor data
-* *bin* for scripts
+* *bin* for shell and Python scripts
 * *cmake* for CMake modules
 * *cme_detection* for code for the automated CME detection pipeline
 * *config* for configuration files
 * *gen* for non-KCor-specific MLSO IDL routines used in the KCor pipeline
-* *hv* for helioviewer specific code
+* *hv* for helioviewer specific IDL code
 * *lib* for 3rd party IDL routines used in KCor pipeline
 * *observing* for KCor-related observing code
 * *resources* for data files such as color tables used in KCor pipeline
