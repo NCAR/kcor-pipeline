@@ -1,5 +1,25 @@
 # KCor Pipeline
 
+The COronal Solar Magnetism Observatory (COSMO) K-coronagraph (K-Cor) is one of
+three proposed instruments in the COSMO facility suite. It is specifically
+designed to study the formation and dynamics of coronal mass ejections and the
+evolution of the density structure of the low corona. The K-Cor records the
+polarization brightness (pB) formed by Thomson scattering of photospheric light
+by coronal free electrons. The National Center for Atmospheric Research (NCAR),
+via the National Science Foundation (NSF), provided full funding for the COSMO
+K-Cor, which was deployed to the Mauna Loa Solar Observatory (MLSO) in Hawaii
+in September 2013, replacing the aging MLSO Mk4 K-coronameter.
+
+This pipeline produces level 1 and level 2 data products from the raw data from
+the instrument. The level 1 product contains polarization brightness (pB)
+images of the corona and sky, pB of the sky only, and total intensity, while
+the level 2 product contains pB images with sky polarization removed.
+
+There is a near real-time component of the pipeline which produces fully
+calibrated level 2 pB images along with an end-of-day component which produces
+averages, differences, and many engineering products.
+
+
 ## Requirements
 
 * IDL 8 or later
@@ -54,11 +74,18 @@ to run the pipeline on the data from 20171127 using the config file with filenam
 
 ### Directories
 
+* *analysis* for routines to perform various analyses of KCor data
 * *bin* for scripts
+* *cmake* for CMake modules
+* *cme_detection* for code for the automated CME detection pipeline
 * *config* for configuration files
 * *gen* for non-KCor-specific MLSO IDL routines used in the KCor pipeline
+* *hv* for helioviewer specific code
 * *lib* for 3rd party IDL routines used in KCor pipeline
 * *observing* for KCor-related observing code
 * *resources* for data files such as color tables used in KCor pipeline
+* *scripts* for various scripts to be run on processed data
 * *src* for KCor pipeline IDL code
 * *ssw* for SSW IDL routines used in KCor pipeline
+* *stream* for code to remove aerosols in real-time from stream data
+* *unit* for unit tests
