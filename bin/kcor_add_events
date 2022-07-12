@@ -1,0 +1,46 @@
+#!/usr/bin/env python
+
+import argparse
+import glob
+import json
+import os
+
+import mysql
+import mysql.connector
+
+
+def update_database(event):
+    pass
+
+
+def parse_event(filename):
+    with open(filename, "r") as f:
+        alert = json.load(f)
+
+        observations = alert["sep_forecast_submission"]["observations"][0]
+        type = observations["alert"]["alert_type"] if "alert" in observations else "HEARTBEAT"
+        all_clear = observations["all_clear"]["all_clear_boolean"]
+
+        if type == "HEARTBEAT" and all_clear:
+            return(None)
+
+        return {"type": type}
+
+
+def add_events(event_dir):
+    json_files = glob.glob(os.path.join(event_dir, "*.json"))
+    for f in json_files:
+        event = parse_event(f)
+        if event is not None:
+            update_database(event)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="KCor add events")
+    parser.add_argument("event_dir", help="directory to check for JSON events")
+    args = parser.parse_args()
+    add_events(args.event_dir)
+
+
+if __name__ == "__main__":
+    main()
