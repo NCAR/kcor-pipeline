@@ -25,7 +25,7 @@ averages, differences, and many engineering products.
 * IDL 8 or later
 * cmake 3.1.3 or later
 * MySQL developer installation
-* python 2.7+ (including 3.x) in order to run the simulators, the production pipeline does not require python
+* python 2.7+ (including 3.x) in order to run command line utility script including the simulators, the production pipeline does not require python
 
 
 ## Installation
@@ -42,7 +42,7 @@ To configure the KCor pipeline for your system, do the following from the top-le
       -DIDL_ROOT_DIR:PATH=/opt/share/idl8.5/idl85 \
     ..
 
-There are example configuration scripts, `linux_configure.sh` and `mac_configure.sh`, in the pipeline source code.
+There are example configuration scripts, `linux_configure.sh` and `mac_configure.sh`, in the pipeline source code that are more detailed examples of the above configuration command.
 
 ### Build and install
 
@@ -60,6 +60,9 @@ The options of the pipeline are specified via a configuration file. See the exam
 
 All files with the `cfg` extension in the `config` directory will be copied into the installation during a `make install`.
 
+### Run the pipeline
+
+To run the pipeline
 
 ### Run the simulator
 
