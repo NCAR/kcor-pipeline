@@ -19,6 +19,8 @@ There is a near real-time component of the pipeline which produces fully calibra
 
 To build the KCor pipeline code, your system must have IDL, the MySQL client development package, and CMake 3.1.3 or later. Make sure these are installed on your system before continuing.
 
+These instructions will work on Linux and Mac systems. It should be possible to install the KCor pipeline on Windows systems, but it is not described here.
+
 ### Configuring for your system
 
 To configure the KCor pipeline for your system, do the following from the top-level of the pipeline source code (change the location of your IDL installation and the location where you want the pipeline to your needs):
