@@ -20,7 +20,7 @@ function kcor_cme_alert_retract, issue_time, last_data_time, all_clear, mode, $
   compile_opt strictarr
 
   model = {short_name: 'MLSO K-Cor', $
-           spase_id: 'spase://CCMC/SimulationModel/MLSO/K-Cor/AutomatedCMEDetection'}
+           spase_id: 'spase://NSF/Catalog/MLSO/K-Cor/AutomatedEventList'}
 
   inputs = list({coronagraph:{observatory: 'MLSO', $
                               instrument: 'K-Cor', $

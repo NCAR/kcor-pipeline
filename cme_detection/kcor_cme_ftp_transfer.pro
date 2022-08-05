@@ -78,7 +78,7 @@ if (status ne 0L) then print, error_msg
 
 file_delete, alert_filename
 ; $ cat /usr/tmp/mlso_kcor.2021-06-28T134500Z.2021-06-28T134700Z.json
-; {"sep_forecast_submission":{"model":{"short_name":"MLSO K-Cor","spase_id":"spase://CCMC/SimulationModel/MLSO/K-Cor/AutomatedCMEDetection"},"issue_time":"2021-06-28T13:47:00Z","mode":"nowcast","inputs":{"coronagraph":{"observatory":"MLSO","instrument":"K-Cor"},"products":{"product":"White Light","last_data_time":"2021-06-28T13:46:15Z"}},"observations":{"all_clear":{"all_clear_boolean":true,"all_clear_type":"cme"}}}}
+; {"sep_forecast_submission":{"model":{"short_name":"MLSO K-Cor","spase_id":"spase://NSF/Catalog/MLSO/K-Cor/AutomatedEventList},"issue_time":"2021-06-28T13:47:00Z","mode":"nowcast","inputs":{"coronagraph":{"observatory":"MLSO","instrument":"K-Cor"},"products":{"product":"White Light","last_data_time":"2021-06-28T13:46:15Z"}},"observations":{"all_clear":{"all_clear_boolean":true,"all_clear_type":"cme"}}}}
 
 obj_destroy, run
 
