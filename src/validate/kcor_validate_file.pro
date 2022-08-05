@@ -216,6 +216,7 @@ function kcor_validate_file, filename, validation_spec_filename, type, $
   catch, error
   if (error ne 0L) then begin
     catch, /cancel
+    mg_log, 'in error handler...', name=run.logger_name, /debug
     error_list->add, !error_state.msg
     help, output=output, /last_message
     error_list->add, output, /extract
@@ -248,6 +249,7 @@ function kcor_validate_file, filename, validation_spec_filename, type, $
   spec = mg_read_config(validation_spec_filename)
 
   ; check primary data
+  mg_log, 'checking primary data...', name=run.logger_name, /debug
   is_data_valid = kcor_validate_file_checkdata(primary_data, $
                                                'primary-data', $
                                                spec, $
@@ -255,6 +257,7 @@ function kcor_validate_file, filename, validation_spec_filename, type, $
   if (~is_data_valid) then is_valid = 0B
 
   ; check primary header against header spec
+  mg_log, 'checking primary header...', name=run.logger_name, /debug
   is_header_valid = kcor_validate_file_checkheader(primary_header, $
                                                    'primary-header', $
                                                    spec, $
