@@ -43,7 +43,16 @@ function kcor_cme_find_retractions, observing_date, list_dir, count=count
   readf, lun, retracted
   free_lun, lun
   
-  n_matches = mg_match(toretract, retracted, a_matches=retracted_indices)
+  ; remove comments from toretract list to be able to compare to list of already
+  ; retracted
+  _toretract = toretract
+  for c = 0L, n_toretract - 1L do begin
+    pos = strsplit(_toretract[c], count=count, length=len)
+    if (count gt 3L) then _toretract[c] = strmid(_toretract[c], 0, pos[2] + len[2])
+  endfor
+
+  ; now compare the list of CMEs to retract to the list of already retracted
+  n_matches = mg_match(_toretract, retracted, a_matches=retracted_indices)
   not_retracted_indices = mg_complement(retracted_indices, n_toretract, count=count)
   if (count eq 0L) then return, !null
 

@@ -16,7 +16,8 @@
 ;-
 function kcor_cme_alert_retract, issue_time, last_data_time, all_clear, mode, $
                                  retract_time=retract_time, $
-                                 retract_position_angle=retract_position_angle
+                                 retract_position_angle=retract_position_angle, $
+                                 comment=comment
   compile_opt strictarr
 
   model = {short_name: 'MLSO K-Cor', $
@@ -27,13 +28,18 @@ function kcor_cme_alert_retract, issue_time, last_data_time, all_clear, mode, $
                               products:list({product: 'White Light', $
                                              last_data_time: last_data_time})}})
 
-  comment = string(retract_position_angle, $
-                   format='(%"Canceling alert for CME at position angle %s")')
+  if (n_elements(comment) gt 0L && comment ne '') then begin
+    _comment = comment
+  endif else begin
+    _comment = string(retract_position_angle, $
+                      format='(%"Canceling alert for CME at position angle %s")')
+  endelse
+
   observations = list({all_clear: {all_clear_boolean: boolean(all_clear), $
                                    all_clear_type: 'cme'}, $
                        alert: {alert_type: 'CANCEL ALERT', $
                                start_time: retract_time, $
-                               comment: comment}})
+                               comment: _comment}})
 
   submission = {sep_forecast_submission:{model: model, $
                                          issue_time: issue_time, $

@@ -15,13 +15,16 @@ pro kcor_cme_handle_retractions
   if (n_cmes_to_retract gt 0L) then begin
     mg_log, 'retracting %d CMEs...', n_cmes_to_retract, name='kcor/cme', /warn
     for c = 0L, n_cmes_to_retract - 1L do begin
-      tokens = strsplit(cmes_to_retract[c], /extract)
-      time = tokens[0]
-      position_angle = tokens[1]
+      pos = strsplit(cmes_to_retract[c], count=count, length=len)
+      time = strmid(cmes_to_retract[c], pos[0], len[0])
+      position_angle = strmid(cmes_to_retract[c], pos[1], len[1])
       mg_log, 'retracting CME at %s at position angle %s', $
               time, position_angle, $
               name='kcor/cme', /warn
-      kcor_cme_retract, simple_date, time, position_angle, list_dir
+      if (count gt 3L) then begin
+        comment = strmid(cmes_to_retract[c], pos[3])
+      endif else comment = ''
+      kcor_cme_retract, simple_date, time, position_angle, list_dir, comment=comment
     endfor
   endif
 end

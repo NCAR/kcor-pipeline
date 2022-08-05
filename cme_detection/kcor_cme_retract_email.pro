@@ -1,6 +1,6 @@
 ; docformat = 'rst'
 
-pro kcor_cme_retract_email, retract_time, retract_position_angle
+pro kcor_cme_retract_email, retract_time, retract_position_angle, comment=comment
   compile_opt strictarr
   @kcor_cme_det_common
 
@@ -21,6 +21,10 @@ pro kcor_cme_retract_email, retract_time, retract_position_angle
                  + 'software for the CME found at ' $
                  + retract_time + ' UT and position angle ' $
                  + strtrim(long(retract_position_angle), 2) + ' degrees.'
+  if (n_elements(comment) gt 0L && comment ne '') then begin
+    printf, out
+    printf, out, 'Observer comment: ' + comment
+  endif
 
   spawn, 'echo $(whoami)@$(hostname)', who, error_result, exit_status=status
   if (status eq 0L) then begin

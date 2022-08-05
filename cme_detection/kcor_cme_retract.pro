@@ -14,7 +14,8 @@
 ;   list_dir : in, required, type=string
 ;     directory to write/update list file
 ;-
-pro kcor_cme_retract, observing_date, retract_time, retract_position_angle, list_dir
+pro kcor_cme_retract, observing_date, retract_time, retract_position_angle, list_dir, $
+                      comment=comment
   compile_opt strictarr
   @kcor_cme_det_common
 
@@ -26,7 +27,7 @@ pro kcor_cme_retract, observing_date, retract_time, retract_position_angle, list
                         list_dir
 
   ; send email retracting CME
-  kcor_cme_retract_email, retract_time, retract_position_angle
+  kcor_cme_retract_email, retract_time, retract_position_angle, comment=comment
 
   ; send JSON alert to alerts dir and alerts FTP URL
   alerts_basedir = run->config('cme/alerts_basedir')
@@ -47,7 +48,8 @@ pro kcor_cme_retract, observing_date, retract_time, retract_position_angle, list
                                  format='(%"%sT%sZ")')
     alert_json = kcor_cme_alert_retract(issue_time, last_data_time, ~cme_occurring, mode, $
                                         retract_time=retract_ut_datetime, $
-                                        retract_position_angle=retract_position_angle)
+                                        retract_position_angle=retract_position_angle, $
+                                        comment=comment)
 
     json_filename = kcor_cme_alert_filename(retract_ut_datetime, issue_time)
     kcor_cme_alert_text2file, alert_json, json_filename
