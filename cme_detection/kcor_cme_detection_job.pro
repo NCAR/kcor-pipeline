@@ -114,6 +114,7 @@ pro kcor_cme_detection_job, date, $
 
     kcor_cme_send_heartbeat
     kcor_cme_handle_retractions
+    kcor_cme_handle_human
 
     if (stopped) then begin
       if (cme_occurring) then begin
