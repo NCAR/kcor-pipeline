@@ -1,7 +1,7 @@
 ; docformat = 'rst'
 
 ;+
-; Return the text of the JSON heartbeat alert.
+; Return the text of the JSON retraction alert.
 ;
 ; :Returns:
 ;   string
