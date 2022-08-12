@@ -22,7 +22,8 @@ pro kcor_cme_handle_human
       mg_log, 'send CME at %s at position angle %s', $
               time, position_angle, $
               name='kcor/cme', /warn
-      kcor_cme_human, simple_date, time, position_angle, width, list_dir, comment=comment
+      kcor_cme_human, simple_date, time, position_angle, width, list_dir, $
+                      comment=comment, line=cmes_to_send[c]
     endfor
   endif
 end

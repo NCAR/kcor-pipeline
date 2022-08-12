@@ -17,17 +17,19 @@
 ;   comment : in, optional, type=string
 ;     free form comment from observer
 ;-
-pro kcor_cme_human, observing_date, start_time, position_angle, list_dir, $
-                    comment=comment
+pro kcor_cme_human, observing_date, start_time, position_angle, width, list_dir, $
+                    comment=comment, line=line
   compile_opt strictarr
   @kcor_cme_det_common
 
-  ; add to retracted CME list file
-  kcor_cme_update_list, observing_date, $
-                        start_time, $
-                        _position_angle, $
-                        'human-sent', $
-                        list_dir
+  ; add to list of human alerts already sent
+  human_sent_basename = string(observing_date, format='(%"%s.kcor.cme.human-sent.txt")')
+  human_sent_filename = filepath(human_sent_basename, root=list_dir)
+
+  openu, lun, human_sent_filename, /get_lun, /append
+  printf, lun, line
+  free_lun, lun
+
   ; send JSON alert to alerts dir and alerts FTP URL
   alerts_basedir = run->config('cme/alerts_basedir')
   if (n_elements(alerts_basedir) gt 0L) then begin
@@ -40,12 +42,15 @@ pro kcor_cme_human, observing_date, start_time, position_angle, list_dir, $
   ftp_url = run->config('cme/ftp_alerts_url')
   if (n_elements(alerts_dir) gt 0L || n_elements(ftp_url) gt 0L) then begin
     issue_time = kcor_cme_current_time(run=run)
-    last_data_time = tai2utc(utc2tai(date_diff[-1].date_obs), /truncate, /ccsds) + 'Z'
     mode = run->config('cme/mode')
     alert_ut_date = kcor_cme_ut_date(start_time, simple_date)
     alert_ut_datetime = string(alert_ut_date, start_time, $
                                format='(%"%sT%sZ")')
-    alert_json = kcor_cme_alert_human(issue_time, start_time, ~cme_occurring, mode, $
+    alert_json = kcor_cme_alert_human(issue_time, $
+                                      alert_ut_datetime, $
+                                      position_angle, $
+                                      ~cme_occurring, $
+                                      mode, $
                                       comment=comment)
 
     json_filename = kcor_cme_alert_filename(alert_ut_datetime, issue_time)

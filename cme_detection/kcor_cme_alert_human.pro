@@ -10,7 +10,7 @@
 ;   all_clear : in, require, type=integer/boolean
 ;     whether we are clear of CMEs
 ;-
-function kcor_cme_alert_human, issue_time, start_time, all_clear, mode, $
+function kcor_cme_alert_human, issue_time, start_time, position_angle, all_clear, mode, $
                                comment=comment
   compile_opt strictarr
 
@@ -24,8 +24,8 @@ function kcor_cme_alert_human, issue_time, start_time, all_clear, mode, $
   if (n_elements(comment) gt 0L && comment ne '') then begin
     _comment = comment
   endif else begin
-    _comment = string(retract_position_angle, $
-                      format='(%"Canceling alert for CME at position angle %s")')
+    _comment = string(position_angle, $
+                      format='(%"Observer alert for CME at position angle %s")')
   endelse
 
   observations = list({all_clear: {all_clear_boolean: boolean(all_clear), $

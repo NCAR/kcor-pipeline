@@ -5,7 +5,7 @@ function kcor_cme_find_human, observing_date, list_dir, count=count
 
   count = 0L
   human_basename = string(observing_date, format='(%"%s.kcor.cme.human.txt")')
-  human_filename = filepath(toretract_basename, root=list_dir)
+  human_filename = filepath(human_basename, root=list_dir)
   if (~file_test(human_filename)) then return, !null
   n_human = file_lines(human_filename)
   if (n_human eq 0L) then return, !null
@@ -23,9 +23,9 @@ function kcor_cme_find_human, observing_date, list_dir, count=count
 
   n_sent_human = file_lines(sent_human_filename)
   if (n_sent_human eq 0L) then return, human
-  sent_human= strarr(n_sent_human)
+  sent_human = strarr(n_sent_human)
   openr, lun, sent_human_filename, /get_lun
-  readf, lun, retracted
+  readf, lun, sent_human
   free_lun, lun
   
   ; now compare the list of CMEs to retract to the list of already retracted
