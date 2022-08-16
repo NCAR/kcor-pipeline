@@ -102,11 +102,19 @@ pro kcor_cme_detection_job, date, $
     file_mkdir, datedir
   endif
 
+  wait_time = run->config('cme/wait_time')
+
   ; If running in realtime mode, stop when KCOR_CME_DET_CHECK detects a stop
   ; *and* when it is after the cme_stop_time. If running a job on already
   ; existing files, stop after done with all the files.
+  last_heartbeat_jd = julday()
   while (1B) do begin
+    mg_log, 'main loop', name='kcor/cme', /info
     kcor_cme_det_check, stopped=stopped
+
+    kcor_cme_send_heartbeat
+    kcor_cme_handle_retractions
+    kcor_cme_handle_human
 
     if (stopped) then begin
       if (cme_occurring) then begin
@@ -117,15 +125,16 @@ pro kcor_cme_detection_job, date, $
       endif
 
       if (keyword_set(realtime)) then begin
-        current_time = string(julday(), format='(C(CHI2.2, CMI2.2, CSI2.2))')
+        current_time = kcor_cme_current_time(run=run)
+        current_time = strjoin(strmid(current_time, [11, 14, 17], 2))
+        current_time = kcor_ut2hst(current_time)
         if (current_time gt run->config('cme/stop_time')) then begin
           mg_log, 'current time %s later than stop time %s', $
                   current_time, run->config('cme/stop_time'), name='kcor/cme', /info
           break
         endif
-        mg_log, 'waiting %0.1f seconds...', run->config('cme/wait_time'), $
-                name='kcor/cme', /info
-        wait, run->config('cme/wait_time')
+        mg_log, 'waiting %0.1f seconds...', wait_time, name='kcor/cme', /info
+        wait, wait_time
       endif else begin
         break
       endelse
@@ -133,6 +142,6 @@ pro kcor_cme_detection_job, date, $
   endwhile
 
   done:
-  mg_log, 'quiting...', name='kcor/cme', /info
+  mg_log, 'quitting...', name='kcor/cme', /info
   if (obj_valid(run)) then obj_destroy, run
 end

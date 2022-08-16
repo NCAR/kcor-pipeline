@@ -1,7 +1,7 @@
 ; docformat = 'rst'
 
 ;+
-; Return the text of the JSON heartbeat alert.
+; Return the text of the JSON retraction alert.
 ;
 ; :Returns:
 ;   string
@@ -14,7 +14,10 @@
 ;   all_clear : in, require, type=integer/boolean
 ;     whether we are clear of CMEs
 ;-
-function kcor_cme_alert_heartbeat, issue_time, last_data_time, all_clear, mode
+function kcor_cme_alert_retract, issue_time, last_data_time, all_clear, mode, $
+                                 retract_time=retract_time, $
+                                 retract_position_angle=retract_position_angle, $
+                                 comment=comment
   compile_opt strictarr
 
   model = {short_name: 'MLSO K-Cor', $
@@ -25,8 +28,18 @@ function kcor_cme_alert_heartbeat, issue_time, last_data_time, all_clear, mode
                               products:list({product: 'White Light', $
                                              last_data_time: last_data_time})}})
 
+  if (n_elements(comment) gt 0L && comment ne '') then begin
+    _comment = comment
+  endif else begin
+    _comment = string(retract_position_angle, $
+                      format='(%"Canceling alert for CME at position angle %s")')
+  endelse
+
   observations = list({all_clear: {all_clear_boolean: boolean(all_clear), $
-                                   all_clear_type: 'cme'}})
+                                   all_clear_type: 'cme'}, $
+                       alert: {alert_type: 'CANCEL ALERT', $
+                               start_time: retract_time, $
+                               comment: _comment}})
 
   submission = {sep_forecast_submission:{model: model, $
                                          issue_time: issue_time, $
@@ -40,19 +53,4 @@ function kcor_cme_alert_heartbeat, issue_time, last_data_time, all_clear, mode
   heap_free, observations
 
   return, json
-end
-
-
-; main-level example program
-
-event_time     = '2021-06-28T13:45:00Z'
-issue_time     = '2021-06-28T13:47:00Z'
-last_data_time = '2021-06-28T13:46:15Z'
-
-heartbeat_string = kcor_cme_alert_heartbeat(issue_time, last_data_time, !true)
-filename = kcor_cme_alert_filename(event_time, issue_time)
-
-kcor_cme_alert_text2file, heartbeat_string, filename
-print, filename
-
 end

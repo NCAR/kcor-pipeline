@@ -37,8 +37,14 @@ CONFIG_FLAG=$1
 END_DATE=$3
 d=$DATE
 
+if [[ $# -gt 3 ]]; then
+  EXTRA=", ${4}"
+else
+  EXTRA=
+fi
+
 while [ $d != $END_DATE ]; do
-  cmd="$PROCESS_SCRIPT $CONFIG_FLAG $d"
+  cmd="$PROCESS_SCRIPT $CONFIG_FLAG $d ${EXTRA}"
   echo "$cmd"
   $cmd
   d=$(date +"%Y%m%d" -d "$d + 1 day")

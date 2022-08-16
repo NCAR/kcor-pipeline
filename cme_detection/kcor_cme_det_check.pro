@@ -50,8 +50,9 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
     if (ifile ge count) then begin
       mtime = (file_info(files)).mtime
       age = systime(1) - max(mtime)
+      ; TODO: should the realtime CME detection even have a stopping condition?
       if (age ge 1200) then begin   ; 600 sec originally
-        mg_log, 'no more files', name='kcor/cme', /info
+        mg_log, 'no more files in last %0.1f minutes', age / 60.0, name='kcor/cme', /info
         goto, stop_point
       endif
       if (keyword_set(widget)) then begin

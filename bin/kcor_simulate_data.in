@@ -21,9 +21,45 @@ logging.basicConfig(format='%(asctime)s %(message)s',
                     level=logging.DEBUG)
 
 
+def write_time(time_dir, observing_day, time):
+    """Write the simulator time to a file."""
+    basename = f"{observing_day}.time.txt"
+    filename = os.path.join(time_dir, basename)
+    with open(filename, "w") as f:
+        f.write(datetime.datetime.strftime(time, "%Y%m%d.%H%M%S"))
+
+
 def decompose_filename(f):
     parts = [f[0:4], f[4:6], f[6:8], f[9:11], f[11:13], f[13:15]]
     return tuple(int(p) for p in parts)
+
+
+def format_timedelta(tdelta):
+    """timedelta to string, use for measuring running time
+    """
+    period_names = ("hour", "minute", "second")
+    period_seconds = (3600, 60, 1)
+    period_desc = ("hrs", "mins", "secs")
+    round_i = 2
+  
+    s = ""
+    remainder = tdelta.total_seconds()
+    for i in range(len(period_names)):
+        q, remainder = divmod(remainder, period_seconds[i])
+        if int(q) > 0:
+            if not len(s)==0:
+                s += " "
+            s += f"{q:.0f} {period_desc[i]}"
+        if i == round_i:
+            break
+        if i == round_i+1:
+            s += f"{remainder} {period_desc[round_i]}"
+            break
+    
+    if s.strip() == "":
+        s = "0 secs"
+
+    return(s)
 
 
 def catalog_depot(depot_dir):
@@ -43,25 +79,33 @@ def catalog_depot(depot_dir):
     return catalog, logs
 
 
-def download_loop(depot_dir, raw_dir, batch_time, speedup_factor=1.0):
+def download_loop(depot_dir, raw_dir, batch_time, speedup_factor=1.0, time_dir=None):
     logging.info('starting KCor realtime data simulator...')
     logging.info(f'depot directory   : {depot_dir}')
     logging.info(f'raw directory     : {raw_dir}')
     logging.info(f'batch time        : {batch_time:0.1f} seconds')
     logging.info(f'download time     : {DOWNLOAD_TIME:0.1f} seconds')
     logging.info(f'speedup factor    : {speedup_factor:0.1f}x')
+    if time_dir is not None:
+        logging.info(f"time directory    : {time_dir}")
+        if not os.path.isdir(time_dir):
+            os.makedirs(time_dir)
+        observing_day = os.path.basename(raw_dir)
 
     start_time = datetime.datetime.now()
     catalog, logs = catalog_depot(depot_dir)
+
+    n_files = len(catalog)
 
     start_offset = speedup_factor * datetime.timedelta(seconds=batch_time)
     delta = start_time - catalog[0]['date'] - start_offset
 
     logging.info('%d files in depot...', len(catalog))
+    duration = catalog[-1]["date"] - catalog[0]["date"]
     logging.info('%s to %s (duration: %s)',
                  catalog[0]['date'],
                  catalog[-1]['date'],
-                 catalog[-1]['date'] - catalog[0]['date'])
+                 duration)
 
     if len(logs) < 2 or len(logs) > 3:
         logging.error("wrong number of machine/t1/t2 logs present (%d), exiting...", len(logs))
@@ -71,14 +115,24 @@ def download_loop(depot_dir, raw_dir, batch_time, speedup_factor=1.0):
     if not os.path.isdir(raw_dir):
         os.makedirs(raw_dir)
 
+    date_fmt = "%Y-%m-%d %H:%M:%S"
+    file_number = 0
     while True:
         actual_now = datetime.datetime.now()
         now = start_time - speedup_factor * (start_time - actual_now)
 
-        logging.info(f'now = {datetime.datetime.now()}')
-        logging.info(f'sped up now = {now}')
-        logging.info(f'running = {actual_now - start_time}')
-        logging.info(f'sped up running = {speedup_factor * (actual_now - start_time)}')
+        logging.info(f"| now             : {actual_now:{date_fmt}} (sped up: {now:{date_fmt}})")
+        logging.info(f"| simulation time : {now - delta:{date_fmt}}")
+
+        running_time = format_timedelta(actual_now - start_time)
+        spedup_running_time = format_timedelta(speedup_factor * (actual_now - start_time))
+        logging.info(f"| running time    : {running_time} (sped up: {spedup_running_time})")
+
+        time_left = start_time + duration / speedup_factor - now
+        logging.info(f"| time left       : {format_timedelta(time_left)}")
+
+        if time_dir is not None:
+            write_time(time_dir, observing_day, now - delta)
 
         # date of next catalog file to copy
         next_date = catalog[0]['date']
@@ -87,8 +141,13 @@ def download_loop(depot_dir, raw_dir, batch_time, speedup_factor=1.0):
         while catalog and next_date < now - delta:
             c = catalog.pop(0)
             next_date = None if not catalog else catalog[0]['date']
-            logging.info('copying %s...' % c['filename'])
-            shutil.copy(os.path.join(depot_dir, c['filename']), raw_dir)
+            filename = c["filename"]
+            logging.info(f"{file_number + 1}/{n_files}: copying {filename}...")
+            shutil.copy(os.path.join(depot_dir, filename), raw_dir)
+            file_number += 1
+            if time_dir is not None:
+                logging.info(f"| simulation time : {now - delta:{date_fmt}}")
+                write_time(time_dir, observing_day, now - delta)
             time.sleep(DOWNLOAD_TIME)
 
         # if nothing left in catalog, copy the logs and finish
@@ -97,7 +156,7 @@ def download_loop(depot_dir, raw_dir, batch_time, speedup_factor=1.0):
                 logging.info('copying %s...', log_filename)
                 shutil.copy(os.path.join(depot_dir, log_filename), raw_dir)
             logging.info('done copying files')
-            return
+            #return
 
         downloading_time = (datetime.datetime.now() - actual_now).total_seconds()
         time.sleep(max(batch_time - downloading_time, 0.0))
@@ -128,6 +187,11 @@ if __name__ == '__main__':
                         help=speedup_factor_help,
                         default=1.0)
 
+    parser.add_argument("-t", "--time-dir",
+                        type=str,
+                        help="directory for simulator time files",
+                        default=None)
+
     parser.add_argument('-v', '--version',
                         action='version',
                         version=name)
@@ -137,6 +201,7 @@ if __name__ == '__main__':
 
     try:
         download_loop(args.depot_dir, raw_dir.lstrip(), args.batch_time,
-                      speedup_factor=args.speedup_factor)
+                      speedup_factor=args.speedup_factor,
+                      time_dir=args.time_dir)
     except KeyboardInterrupt:
         logging.info('quitting...')

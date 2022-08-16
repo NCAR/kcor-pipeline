@@ -5,6 +5,8 @@ import datetime
 from email.mime.text import MIMEText
 import fnmatch
 import glob
+import json
+import math
 import os
 import pathlib
 import psutil
@@ -41,6 +43,12 @@ try:
 except ModuleNotFoundError as e:
     versions_requirements = False
 
+try:
+    import rich
+    rich_text = True
+except ModuleNotFoundError as e:
+    rich_text = False
+
 
 # set to True to not launch real scripts
 TEST = False
@@ -73,6 +81,13 @@ def display_time(seconds, granularity=2):
                 name = name.rstrip("s")
             result.append("%d %s" % (value, name))
     return " ".join(result[:granularity])
+
+
+def print_bold(text):
+    if rich_text:
+        rich.print("[bold magenta]" + text + "[/]")
+    else:
+        print(text)
 
 
 def format_timedelta(timedelta):
@@ -454,6 +469,25 @@ def verify(args):
     terminated = wait_for(process)
 
 
+# alerts
+def list_alerts(args):
+    for f in args.json_files:
+        basename = os.path.basename(f)
+        with open(f) as jf:
+            alert = json.load(jf)
+        try:
+            submission = alert["sep_forecast_submission"]
+            observations = submission["observations"][0]
+            type = observations["alert"]["alert_type"] if "alert" in observations else "heartbeat"
+            all_clear = observations["all_clear"]["all_clear_boolean"]
+            all_clear_text = "clear" if all_clear else "CME"
+            pa = submission["triggers"][0]["cme"]["pa"] if "triggers" in submission else math.nan
+            pa_text = f"{pa:0.2f} deg" if math.isfinite(pa) else ""
+            print(f"{basename}   {type:12s}  {all_clear_text:5s}   {pa_text}")
+        except KeyError as e:
+            print(f"{basename}: invalid JSON alert file")
+
+
 # log sub-command
 def filter_log(args):
     date_prog = re.compile("^\d{8}$")
@@ -486,7 +520,7 @@ def filter_log(args):
     try:
         level_index = LEVELS.index(level)
     except ValueError:
-        print("invalid level: %s" % level)
+        print(f"invalid level: {level}")
         parser.print_help()
         return
 
@@ -515,8 +549,10 @@ def filter_file(logfile, level_index, follow):
     loglevel_filter = "|".join(LEVELS[level_index:])
     loglevel_prog = re.compile(f".*({loglevel_filter}):.*")
     logstart_prog = re.compile("(\[\d*\] )?\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}")
+    exact_loglevel_prog = re.compile(f".*{LEVELS[level_index]}:.*")
 
     matched_last_line = False
+    exact_matched_last_line = False
 
     line = "not empty"
 
@@ -536,8 +572,12 @@ def filter_file(logfile, level_index, follow):
 
                 if loglevel_prog.match(line):
                     matched_last_line = True
+                    exact_matched_last_line = True if exact_loglevel_prog.match(line) else False
                     try:
-                        print(line.rstrip())
+                        if exact_matched_last_line:
+                            print(line.rstrip())
+                        else:
+                            print_bold(line.rstrip())
                     except IOError:
                         return
                     except KeyboardInterrupt:
@@ -547,16 +587,20 @@ def filter_file(logfile, level_index, follow):
                     if matched_last_line:
                         if logstart_prog.match(line):
                             matched_last_line = False
+                            exact_matched_last_line = False
                         else:
                             try:
-                                print(line.rstrip())
+                                if exact_matched_last_line:
+                                    print(line.rstrip())
+                                else:
+                                    print_bold(line.rstrip())
                             except IOError:
                                 return
                             except KeyboardInterrupt:
                                 print()
                                 return
     except IOError:
-        print("Problem reading %s" % logfile)
+        print(f"Problem reading {logfile}")
 
 
 # missing sub-command
@@ -781,8 +825,9 @@ def run_script(args):
 
 # CME detection sub-command
 def cme_detection(args):
+    extra_flags = ["/realtime"] if args.realtime else None
     for d in args.dates:
-        process_dates(d, "cmedetection", args.flags, args.no_wait)
+        process_dates(d, "cmedetection", args.flags, args.no_wait, extra_flags=extra_flags)
 
     notify_completed(args, "CME detection")
 
@@ -819,12 +864,14 @@ def remove(args):
     notify_completed(args, "remove")
 
 
-def process_dates(dates, script, flags, no_wait):
+def process_dates(dates, script, flags, no_wait, extra_flags=None):
     for d in dates.split(","):
         if d.find("-") < 0:
             cmd = [os.path.join(PIPELINE_DIR, "bin", f"runkcor_{script}.sh"),
                    flags,
                    d]
+            if extra_flags is not None:
+                cmd = cmd + extra_flags
 
             process = launch_process(cmd, stdout=None, stderr=subprocess.PIPE)
             print("[%d] %s" % (process.pid, " ".join(cmd)))
@@ -836,6 +883,8 @@ def process_dates(dates, script, flags, no_wait):
             cmd = [os.path.join(PIPELINE_DIR, "bin", f"runkcor_{script}_range.sh"),
                    flags,
                    r[0], r[1]]
+            if extra_flags is not None:
+                cmd = cmd + extra_flags
 
             process = launch_process(cmd, stdout=None, stderr=subprocess.PIPE)
             print("[%d] %s" % (process.pid, " ".join(cmd)))
@@ -886,8 +935,11 @@ def simulate(args):
     data_cmd = [os.path.join(PIPELINE_DIR, "bin", "kcor_simulate_data"),
                 "-r", raw_dir,
                 "-b", arrival_interval,
-                "-s", speedup_factor,
-                os.path.join(depot_basedir, args.dates[0])]
+                "-s", speedup_factor]
+    time_dir = config.get("simulator", "time_dir")
+    if time_dir is not None:
+        data_cmd += ["-t", time_dir]
+    data_cmd.append(os.path.join(depot_basedir, args.dates[0]))
     data_process = subprocess.Popen(data_cmd)
 
     try:
@@ -1110,6 +1162,13 @@ if __name__ == "__main__":
                            default=None)
     ls_parser.set_defaults(func=ls, parser=ls_parser)
 
+    alert_parser = subparsers.add_parser("alert",
+                                         help="list JSON alerts")
+    alert_parser.add_argument("json_files", nargs="*",
+                              help="JSON alert files",
+                              metavar="json_file")
+    alert_parser.set_defaults(func=list_alerts, parser=alert_parser)
+
     # log sub-command
     log_parser = subparsers.add_parser("log",
                                        help="filter/display log output")
@@ -1222,6 +1281,8 @@ if __name__ == "__main__":
     cme_parser.add_argument("-f", "--flags", type=str, help=flags_help,
                             default="latest")
     cme_parser.add_argument("--no-wait", action="store_true", help=nowait_help)
+    realtime_help = "set to use realtime setting instead of batch mode"
+    cme_parser.add_argument("--realtime", action="store_true", help=realtime_help)
     cme_parser.set_defaults(func=cme_detection, parser=cme_parser)
 
 
