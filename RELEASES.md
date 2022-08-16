@@ -655,3 +655,4 @@
   more logging in validation to track crash in realtime
 2.0.98
   more debug logging messages for when realtime hangs in validation
+  merged sep branch containing all JSON alert development
