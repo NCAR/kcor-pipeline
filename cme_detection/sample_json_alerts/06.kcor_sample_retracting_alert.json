@@ -1,0 +1,34 @@
+{ "sep_forecast_submission": 
+  {
+    "model": {
+      "short_name": "MLSO K-Cor",
+      "spase_id": "spase://CCMC/SimulationModel/MLSO/K-Cor/AutomatedCMEDetection"
+    },
+    "issue_time": "2021-06-28T20:03:26",
+    "mode": "nowcast",
+    "inputs": [
+      {
+        "coronagraph": {
+          "observatory":"MLSO",
+          "instrument": "K-Cor",
+          "products": [
+		    { "product": "White Light", "last_data_time":"2021-06-28T20:04:22Z" }
+          ]
+        }
+      }
+    ],
+    "observations": [
+        {
+            "all_clear": {
+                "all_clear_boolean": true,
+                "all_clear_type": "cme"
+            },
+            "alert": {
+                "alert_type": "CANCEL ALERT",
+                "start_time": "2021-06-28T19:24:02Z",
+                "comment": "Optional comment can go here."
+            }
+        }
+    ]
+  }
+}

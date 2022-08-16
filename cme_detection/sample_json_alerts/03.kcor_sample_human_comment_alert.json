@@ -1,0 +1,34 @@
+{ "sep_forecast_submission": 
+  {
+    "model": {
+      "short_name": "MLSO K-Cor",
+      "spase_id": "spase://CCMC/SimulationModel/MLSO/K-Cor/AutomatedCMEDetection"
+    },
+    "issue_time": "2021-06-28T20:03:26",
+    "mode": "nowcast",
+    "inputs": [
+      {
+        "coronagraph": {
+          "observatory":"MLSO",
+          "instrument": "K-Cor",
+	      "products": [
+		    { "product": "White Light" }
+          ]
+        }
+      }
+    ],
+    "observations": [
+        {
+            "all_clear": {
+                "all_clear_boolean": false,
+                "all_clear_type": "cme"
+            },
+            "alert": {
+                "alert_type": "OBSERVER ALERT",
+                "start_time": "2021-06-28T19:24:02Z",
+                "comment": "****Possible CME in Progress mcotter**** : Mon Jun 28 20:03:26 GMT 2021 Possible CME seen launching near PA: 310 deg at time 19:24:02 UT."
+            }
+        }
+    ]
+  }
+}
