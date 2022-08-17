@@ -653,6 +653,6 @@
   another fix for plotting realtime lag error without access to database
 2.0.97 [Apr 28, 2022]
   more logging in validation to track crash in realtime
-2.0.98
+2.0.98 [Aug 17, 2022]
   more debug logging messages for when realtime hangs in validation
-  merged sep branch containing all JSON alert development
+  create/send JSON files for all CME alerts
