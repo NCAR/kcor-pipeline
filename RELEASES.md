@@ -656,3 +656,4 @@
 2.0.98 [Aug 17, 2022]
   more debug logging messages for when realtime hangs in validation
   create/send JSON files for all CME alerts
+2.0.99
