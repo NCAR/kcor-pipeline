@@ -215,7 +215,7 @@ pro kcor_cme_det_report, time, widget=widget
                                         height=height, $
                                         time_for_height=time_for_height)
 
-  json_filename = kcor_cme_alert_filename(last_data_time, issue_time)
+  json_filename = kcor_cme_alert_filename(time_for_height, issue_time)
   kcor_cme_alert_text2file, summary_json, json_filename
   if (n_elements(ftp_url) gt 0L) then begin
     ftp_from_email = run->config('cme/from_email')
