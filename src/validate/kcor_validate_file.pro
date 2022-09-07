@@ -242,8 +242,15 @@ function kcor_validate_file, filename, validation_spec_filename, type, $
   endif
 
   fits_open, filename, fcb
-  fits_read, fcb, primary_data, primary_header, exten_no=0
+  fits_read, fcb, primary_data, primary_header, exten_no=0, /no_abort, message=msg
   fits_close, fcb
+
+  if (msg ne '') then begin
+    error_list->add, 'problem reading FITS file'
+    error_list->add, msg
+    is_valid = 0B
+    goto, done
+  endif
 
   ; read spec
   spec = mg_read_config(validation_spec_filename)
