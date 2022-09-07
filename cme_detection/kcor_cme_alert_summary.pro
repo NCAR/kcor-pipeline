@@ -37,7 +37,7 @@ function kcor_cme_alert_summary, issue_time, $
                                    all_clear_type: 'cme'}, $
                        alert: {alert_type: 'SUMMARY', $
                                start_time: start_time, $
-                               end_time: end_time}})
+                               end_time: time_for_height}})
 
   submission = {sep_forecast_submission:{model: model, $
                                          issue_time: issue_time, $
