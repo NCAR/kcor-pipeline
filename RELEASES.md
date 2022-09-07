@@ -656,4 +656,7 @@
 2.0.98 [Aug 17, 2022]
   more debug logging messages for when realtime hangs in validation
   create/send JSON files for all CME alerts
-2.0.99
+2.0.99 [Sep 7, 2022]
+  epoch fix for bad raw file
+  potential fix for realtime hangs in validation (/NO_ABORT on FITS_READ)
+  add last_data_time to observer JSON alerts

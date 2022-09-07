@@ -46,8 +46,10 @@ pro kcor_cme_human, observing_date, start_time, position_angle, width, list_dir,
     alert_ut_date = kcor_cme_ut_date(start_time, simple_date)
     alert_ut_datetime = string(alert_ut_date, start_time, $
                                format='(%"%sT%sZ")')
+    last_data_time = tai2utc(utc2tai(date_diff[-1].date_obs), /truncate, /ccsds) + 'Z'
     alert_json = kcor_cme_alert_human(issue_time, $
                                       alert_ut_datetime, $
+                                      last_data_time, $
                                       position_angle, $
                                       ~cme_occurring, $
                                       mode, $

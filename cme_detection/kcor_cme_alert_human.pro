@@ -10,7 +10,8 @@
 ;   all_clear : in, require, type=integer/boolean
 ;     whether we are clear of CMEs
 ;-
-function kcor_cme_alert_human, issue_time, start_time, position_angle, all_clear, mode, $
+function kcor_cme_alert_human, issue_time, start_time, last_data_time, $
+                               position_angle, all_clear, mode, $
                                comment=comment
   compile_opt strictarr
 
@@ -19,7 +20,8 @@ function kcor_cme_alert_human, issue_time, start_time, position_angle, all_clear
 
   inputs = list({coronagraph:{observatory: 'MLSO', $
                               instrument: 'K-Cor', $
-                              products:list({product: 'White Light'})}})
+                              products:list({product: 'White Light', $
+                                             last_data_time: last_data_time})}})
 
   if (n_elements(comment) gt 0L && comment ne '') then begin
     _comment = comment
