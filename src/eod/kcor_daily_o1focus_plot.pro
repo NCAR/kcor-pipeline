@@ -29,9 +29,15 @@ pro kcor_daily_o1focus_plot, run=run
             name=run.logger_name, /info
   endelse
 
-  times = fltarr(n_raw_files)
-  o1focus = fltarr(n_raw_files)
+  times = fltarr(n_raw_files) + !values.f_nan
+  o1focus = fltarr(n_raw_files) + !values.f_nan
   for r = 0L, n_raw_files - 1L do begin
+    run.time = strmid(file_basename(raw_files[r]), 9, 6)
+    if (~run->epoch('process')) then begin
+      mg_log, 'skipping %s', file_basename(raw_files[r]), name=run.logger_name, /warn
+      continue
+    endif
+
     header = headfits(raw_files[r])
 
     date_obs = sxpar(header, 'DATE-OBS')

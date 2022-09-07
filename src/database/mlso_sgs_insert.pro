@@ -83,6 +83,11 @@ pro mlso_sgs_insert, date, fits_list, $
     sgs_source = 'k'
 
     ; extract desired items from header
+    run.time = strmid(file_basename(fts_file), 9, 6)
+    if (~run->epoch('process')) then begin
+      mg_log, 'skipping %s', file_basename(fts_file), name='kcor/rt', /warn
+      continue
+    endif
     kcor_read_rawdata, fts_file, header=hdu, $
                        repair_routine=run->epoch('repair_routine'), $
                        xshift=run->epoch('xshift_camera'), $

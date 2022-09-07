@@ -82,6 +82,12 @@ pro kcor_plotparams, date, list=list, run=run
   for i = 0L, n_elements(list) - 1L do begin
     l0_file = list[i]
 
+    run.time = strmid(file_basename(l0_file), 9, 6)
+    if (~run->epoch('process')) then begin
+      mg_log, 'skipping %s', file_basename(l0_file), name=run.logger_name, /warn
+      continue
+    endif
+
     kcor_read_rawdata, l0_file, header=hdu, $
                        repair_routine=run->epoch('repair_routine'), $
                        xshift=run->epoch('xshift_camera'), $
