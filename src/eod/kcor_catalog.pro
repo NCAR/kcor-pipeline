@@ -56,6 +56,13 @@ pro kcor_catalog, date, list=list, run=run, catalog_dir=catalog_dir
   n_digits = long(alog10(n_files)) + 1L
   for f = 0L, n_files - 1L do begin
     fits_file = list[f]
+
+    run.time = strmid(file_basename(fits_file), 9, 6)
+    if (~run->epoch('process')) then begin
+      mg_log, 'skipping %s', file_basename(fits_file), name='kcor/eod', /warn
+      continue
+    endif
+
     mg_log, mg_format('%*d/%d: %s', n_digits, /simple), $
             f + 1, n_files, file_basename(fits_file), $
             name='kcor/eod', /info

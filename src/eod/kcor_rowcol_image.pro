@@ -17,7 +17,7 @@ pro kcor_rowcol_image_l0, run=run
                       count=n_files)
 
   if (n_files lt 2L) then begin
-    mg_log, 'not enough L0 files (%d)', n_files,name='kcor/eod', /warn
+    mg_log, 'not enough L0 files (%d)', n_files, name='kcor/eod', /warn
     return
   endif
 
@@ -39,6 +39,10 @@ pro kcor_rowcol_image_l0, run=run
                       strmid(dt, 11, 2), $
                       strmid(dt, 13, 2), $
                       format='(%"%s-%s-%sT%s-%s-%s")')
+    if (~run->epoch('process')) then begin
+      mg_log, 'skipping %s', file_basename(files[f]), name='kcor/eod', /warn
+      continue
+    endif                      
     kcor_read_rawdata, files[f], image=im, header=header, $
                        repair_routine=run->epoch('repair_routine'), $
                        xshift=run->epoch('xshift_camera'), $

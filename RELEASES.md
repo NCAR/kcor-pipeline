@@ -660,5 +660,5 @@
   epoch fix for bad raw file
   potential fix for realtime hangs in validation (/NO_ABORT on FITS_READ)
   add last_data_time to observer JSON alerts
-2.1.0
+2.1.0 [Sep 8, 2022]
   do not read at all files from a "no process" epoch
