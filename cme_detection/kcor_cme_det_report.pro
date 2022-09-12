@@ -107,11 +107,11 @@ pro kcor_cme_det_report, time, widget=widget
                                     format='(%"%04d%02d%02d.%02d%02d%02d.cme.plot.csv")'), $
                              root=plot_dir)
   openw, lun, plotvalues_file, /get_lun
-  printf, lun, 'date (seconds from 58/1/1), speed, position, radius'
+  printf, lun, 'date, speed, position, radius'
   tracked_indices = where(reform(tracked_pt), n_tracked_indices)
   for i = 0L, n_tracked_indices - 1L do begin
     printf, lun, $
-            date_diff[tracked_indices[i]].tai_avg, $
+            tai2utc(date_diff[tracked_indices[i]].tai_avg, /truncate, /ccsds) + 'Z', $
             velocity[tracked_indices[i]], $
             position[tracked_indices[i]], $
             radius[i], $
