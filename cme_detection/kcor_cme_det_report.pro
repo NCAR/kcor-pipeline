@@ -107,7 +107,7 @@ pro kcor_cme_det_report, time, widget=widget
                                     format='(%"%04d%02d%02d.%02d%02d%02d.cme.plot.csv")'), $
                              root=plot_dir)
   openw, lun, plotvalues_file, /get_lun
-  printf, lun, 'date (seconds from 58/1/1), velocity, position, radius'
+  printf, lun, 'date (seconds from 58/1/1), speed, position, radius'
   tracked_indices = where(reform(tracked_pt), n_tracked_indices)
   for i = 0L, n_tracked_indices - 1L do begin
     printf, lun, $
@@ -115,7 +115,7 @@ pro kcor_cme_det_report, time, widget=widget
             velocity[tracked_indices[i]], $
             position[tracked_indices[i]], $
             radius[i], $
-            format='(%"%f, %f, %f, %f")'
+            format='(%"%f, %d, %d, %0.2f")'
   endfor
   free_lun, lun
 
@@ -231,7 +231,9 @@ pro kcor_cme_det_report, time, widget=widget
       for e = 0L, n_elements(ftp_error_msg) - 1L do begin
         mg_log, ftp_error_msg[e], name='kcor/cme', /error
       endfor
-    endif
+    endif begin
+      mg_log, 'summary alert successfully sent', name='kcor/cme', /info
+    endelse
   endif
 
   if (n_elements(alerts_dir) gt 0L) then file_copy, json_filename, alerts_dir
