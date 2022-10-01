@@ -240,7 +240,7 @@ pro kcor_cme_det_report, time, widget=widget
       for e = 0L, n_elements(ftp_error_msg) - 1L do begin
         mg_log, ftp_error_msg[e], name='kcor/cme', /error
       endfor
-    endif begin
+    endif else begin
       mg_log, 'summary alert successfully sent', name='kcor/cme', /info
     endelse
   endif
