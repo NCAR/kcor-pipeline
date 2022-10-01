@@ -19,7 +19,12 @@ function kcor_get_occulter_size, occulter_id, run=run
     return, run->epoch('default_occulter_size')
   endif else begin
     ; later days use the first 8 characters to lookup in epoch file
-    return, run->epoch(strmid(occulter_id, 0, 8))
+    occulter_size = run->epoch(strmid(occulter_id, 0, 8), found=found)
+    if (~found) then begin
+      mg_log, 'occulter ID not found, using default', /error, name=run.logger_name
+      occulter_size = run->epoch('default_occulter_size')
+    endif
+    return, occulter_size
   endelse
 end
 

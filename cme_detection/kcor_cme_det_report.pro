@@ -110,12 +110,21 @@ pro kcor_cme_det_report, time, widget=widget
   printf, lun, 'date, speed, position, radius'
   tracked_indices = where(reform(tracked_pt), n_tracked_indices)
   for i = 0L, n_tracked_indices - 1L do begin
-    printf, lun, $
-            tai2utc(date_diff[tracked_indices[i]].tai_avg, /truncate, /ccsds) + 'Z', $
-            velocity[tracked_indices[i]], $
-            position[tracked_indices[i]], $
-            radius[i], $
-            format='(%"%f, %d, %d, %0.2f")'
+    ; only add points which have at least one non-NaN parameter and that are
+    ; since the last CME was detected
+    good_pt = finite(velocity[tracked_indices[i]]) $
+                || finite(position[tracked_indices[i]]) $
+                || finite(radius[tracked_indices[i]])
+    current_cme = date_diff[tracked_indices[i]].tai_avg gt tairef
+
+    if (current_cme && good_pt) then begin
+      printf, lun, $
+              tai2utc(date_diff[tracked_indices[i]].tai_avg, /truncate, /ccsds) + 'Z', $
+              velocity[tracked_indices[i]], $
+              position[tracked_indices[i]], $
+              radius[tracked_indices[i]], $
+              format='(%"%f, %d, %d, %0.2f")'
+    endif
   endfor
   free_lun, lun
 

@@ -663,3 +663,8 @@
 2.1.0 [Sep 8, 2022]
   do not read at all files from a "no process" epoch
 2.1.1
+  use default occulter size if occulter ID not found
+  fix indexing issue giving incorrect height values in CME report CSV file
+  improve formatting of CME report CSV file
+  only add points to CME report CSV file if at least on finite measurement and
+    since the current CME started
