@@ -19,7 +19,7 @@ pro kcor_cme_handle_human
                             position_angle=position_angle, $
                             width=width, $
                             comment=comment
-      mg_log, 'send CME at %s at position angle %s', $
+      mg_log, 'send CME at %s at position angle %0.1f', $
               time, position_angle, $
               name='kcor/cme', /warn
       kcor_cme_human, simple_date, time, position_angle, width, list_dir, $
