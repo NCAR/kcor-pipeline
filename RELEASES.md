@@ -668,3 +668,4 @@
   improve formatting of CME report CSV file
   only add points to CME report CSV file if at least on finite measurement and
     since the current CME started
+2.1.2
