@@ -672,3 +672,4 @@
   fixes for CME report formatting
   accept time of observer alert without colons
 2.1.3
+  more fixes for CME report CSV
