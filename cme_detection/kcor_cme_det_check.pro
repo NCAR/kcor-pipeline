@@ -192,7 +192,7 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
                     widget_control, wangle, set_value=string(angle, format='(%"%d")')
                     widget_control, wspeed, set_value=string(speed, format='(%"%0.2f")')
                   endif else begin
-                    mg_log, '%d degrees at %0.2f km/s', angle, speed, $
+                    mg_log, '%d degrees at %0.1f km/s', angle, speed, $
                             name='kcor/cme', /info
                   endelse
                   x = date_diff.tai_avg - tairef
@@ -239,8 +239,15 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
       if (n_elements(date_diff) gt 0L) then begin
         itime = n_elements(leadingedge) - 1
         tai0 = date_diff[itime].tai_avg
+        mg_log, 'ready to check if report needs to be sent', name='kcor/cme', /debug
+        mg_log, 'cme_occurring: %s', cme_occurring ? 'YES' : 'NO', name='kcor/cme', /debug
+        if (cme_occurring) then begin
+          mg_log, 'tai0 - tairef: %0.1f', tai0 - tairef, name='kcor/cme', /debug
+          mg_log, 'tairef: %0.1f', tairef, name='kcor/cme', /debug
+        endif
         if (cme_occurring && ((tai0 - tairef) gt 3600)) then begin
           ref_time = tai2utc(tairef, /time, /truncate, /ccsds)
+          mg_log, 'ready to send report', name='kcor/cme', /debug
           kcor_cme_det_report, ref_time
           cme_occurring = 0B
           mg_log, 'CME ended', name='kcor/cme', /info

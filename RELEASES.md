@@ -668,4 +668,6 @@
   improve formatting of CME report CSV file
   only add points to CME report CSV file if at least on finite measurement and
     since the current CME started
-2.1.2
+2.1.2 [Oct 3, 2022]
+  fixes for CME report formatting
+  accept time of observer alert without colons

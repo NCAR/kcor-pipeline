@@ -134,10 +134,10 @@ pro kcor_cme_det_email, time, edge, last_detected_image_time, operator=operator
     printf, out, 'The Mauna Loa K-coronagraph has detected a possible CME at ' + $
             time + ' UT with the following parameters:'
     printf, out
-    format = '(F10.2)'
-    printf, out, 'Radial distance from Sun center: ' + ntrim(edge, format) + ' Rsun'
+
+    printf, out, 'Radial distance from Sun center: ' + ntrim(edge, '(F10.2)') + ' Rsun'
     printf, out, 'Position angle: ' + ntrim(angle) + ' degrees'
-    printf, out, 'Initial speed: ' + ntrim(speed, format) + ' km/s'
+    printf, out, 'Initial speed: ' + ntrim(speed, '(F10.1)') + ' km/s'
     printf, out
     printf, out, last_detected_image_time, $
             format='(%"CME detected when images up to %s UT have been processed")'

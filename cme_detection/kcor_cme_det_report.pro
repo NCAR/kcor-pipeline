@@ -24,6 +24,8 @@ pro kcor_cme_det_report, time, widget=widget
     return
   endif
 
+  mg_log, 'CME alert email address set, will send report', name='kcor/cme', /debug
+
   last_time_index = n_elements(leading_edge) - 1L
 
   plot_dir = filepath('p', $
@@ -95,6 +97,8 @@ pro kcor_cme_det_report, time, widget=widget
   set_plot, original_device
   write_png, plot_file, im
 
+  mg_log, 'write CME report image file', name='kcor/cme', /debug
+
   !p.multi = 0
 
   ; create file of data values from plot
@@ -123,10 +127,12 @@ pro kcor_cme_det_report, time, widget=widget
               velocity[tracked_indices[i]], $
               position[tracked_indices[i]], $
               radius[tracked_indices[i]], $
-              format='(%"%f, %d, %d, %0.2f")'
+              format='(%"%s, %0.1f, %0.1f, %0.2f")'
     endif
   endfor
   free_lun, lun
+
+    mg_log, 'write CME report CSV file', name='kcor/cme', /debug
 
   ; create a temporary file for the message
   mailfile = mk_temp_file(dir=get_temp_dir(), 'cme_mail.txt', /random)

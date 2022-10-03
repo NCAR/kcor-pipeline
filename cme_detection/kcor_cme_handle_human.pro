@@ -19,10 +19,18 @@ pro kcor_cme_handle_human
                             position_angle=position_angle, $
                             width=width, $
                             comment=comment
+      if (strpos(time, ':') eq -1L) then begin
+        start_time = string(strmid(time, 0, 2), $
+                            strmid(time, 2, 2), $
+                            strmid(time, 4, 2), $
+                            format='(%"%s:%s:%s")')
+      endif else begin
+        start_time = time
+      endelse
       mg_log, 'send CME at %s at position angle %0.1f', $
-              time, position_angle, $
+              start_time, position_angle, $
               name='kcor/cme', /warn
-      kcor_cme_human, simple_date, time, position_angle, width, list_dir, $
+      kcor_cme_human, simple_date, start_time, position_angle, width, list_dir, $
                       comment=comment, line=cmes_to_send[c]
     endfor
   endif
