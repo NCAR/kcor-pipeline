@@ -117,9 +117,9 @@ pro kcor_cme_det_report, time, widget=widget
     ; only add points which have at least one non-NaN parameter and that are
     ; since the last CME was detected
     good_pt = finite(velocity[tracked_indices[i]]) $
-                || finite(position[tracked_indices[i]]) $
-                || finite(radius[tracked_indices[i]])
-    current_cme = date_diff[tracked_indices[i]].tai_avg gt tairef
+                && finite(position[tracked_indices[i]]) $
+                && finite(radius[tracked_indices[i]])
+    current_cme = date_diff[tracked_indices[i]].tai_avg gt current_cme_tai
 
     if (current_cme && good_pt) then begin
       printf, lun, $
