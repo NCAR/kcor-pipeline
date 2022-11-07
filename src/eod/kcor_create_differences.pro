@@ -312,14 +312,19 @@ pro kcor_create_differences, date, l2_files, run=run
         doy = (mday[month - 1]) + day
       endelse
 
-      ; 3) Create gif and fits images
+      ; 3) Create GIF and FITS images
 
       set_plot, 'Z'
-      device, set_resolution=[1024, 1024], decomposed=0, set_colors=256, $
+      device, set_resolution=[1024, 1024], $
+              decomposed=0, $
+              set_colors=256, $
               z_buffering=0
+
       display_min = -2.0e-8
       display_max =  2.0e-8
       display_factor = 1.0e6
+
+      loadct, 0, /silent
 
       tv, bytscl(display_factor * bscale * subimg, $
                  min=display_factor * display_min, $
