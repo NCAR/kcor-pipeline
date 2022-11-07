@@ -320,8 +320,8 @@ pro kcor_create_differences, date, l2_files, run=run
               set_colors=256, $
               z_buffering=0
 
-      display_min = -2.0e-8
-      display_max =  2.0e-8
+      display_min = -1.0e-8
+      display_max =  1.0e-8
       display_factor = 1.0e6
 
       loadct, 0, /silent
