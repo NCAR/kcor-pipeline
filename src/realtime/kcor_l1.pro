@@ -1176,7 +1176,7 @@ pro kcor_l1, ok_filename, $
             comment_padding + 'CAMERA OCCULTING KEYWORDS GROUPED BELOW', $
             before='RCAMXCEN'
   fxaddpar, l1_header, 'COMMENT', $
-            comment_padding + 'EPHEMERAL KEYWORDS GROUPED BELOW', $
+            comment_padding + 'EPHEMERIS KEYWORDS GROUPED BELOW', $
             before='RSUN_OBS'
   fxaddpar, l1_header, 'COMMENT', $
             comment_padding + 'ENGINEERING KEYWORDS GROUPED BELOW', $
