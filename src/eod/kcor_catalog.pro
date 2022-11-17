@@ -27,7 +27,7 @@ pro kcor_catalog, date, list=list, run=run, catalog_dir=catalog_dir
 
   ; if date directory does not exist in 'process_basedir', create it
   process_datedir = filepath(date, root=run->config('processing/process_basedir'))
-  if (~file_test (process_datedir, /directory)) then begin
+  if (~file_test(process_datedir, /directory)) then begin
     file_mkdir, process_datedir
   endif
 
