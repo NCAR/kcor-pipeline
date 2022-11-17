@@ -674,3 +674,4 @@
 2.1.3 [Oct 3, 2022]
   more fixes for CME report CSV
 2.1.4
+  fixes for difference image scales
