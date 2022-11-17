@@ -514,7 +514,7 @@ pro kcor_create_averages, date, l2_files, run=run
           orientation=90., /device
   xyouts, 1012, 512, 'West', color=255, charsize=1.2, alignment=0.5, $
           orientation=90., /device
-  xyouts, 4, 46, 'Level 1.5 Avg', color=255, charsize=1.2, /device
+  xyouts, 4, 46, 'Level 2 Avg', color=255, charsize=1.2, /device
   xyouts, 4, 26, string(display_min, display_max, $  
                         format='(%"min/max: %0.2g, %0.2g")'), $
           color=255, charsize=1.2, /device
