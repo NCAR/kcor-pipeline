@@ -675,3 +675,4 @@
   more fixes for CME report CSV
 2.1.4
   fixes for difference image scales
+  fix for bad polarization start state on 20221118
