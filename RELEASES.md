@@ -673,6 +673,6 @@
   accept time of observer alert without colons
 2.1.3 [Oct 3, 2022]
   more fixes for CME report CSV
-2.1.4
+2.1.4 [Nov 23, 2022]
   fixes for difference image scales
   fix for bad polarization start state on 20221118
