@@ -39,9 +39,10 @@ pro kcor_create_mp4, gif_filenames, mp4_filename, run=run, status=status
                  + '-vcodec libx264 -passlogfile kcor_tmp -r 20 %s")'
 
   cmd = string(run->config('externals/ffmpeg'), mp4_filename, format=cmd_format)
-  spawn, cmd, result, error_result, exit_status=status
+  bash_cmd = string(cmd, format='(%"sh -c \"%s\"")')
+  spawn, bash_cmd, result, error_result, exit_status=status
   if (status ne 0L) then begin
-    mg_log, 'problem creating mp4 with command: %s', cmd, $
+    mg_log, 'problem creating mp4 with command: %s', bash_cmd, $
             name='kcor/eod', /error
     mg_log, '%s', strjoin(error_result, ' '), name='kcor/eod', /error
   endif
@@ -55,9 +56,9 @@ end
 
 ; main-level example program
 
-date = '20190924'
+date = '20220830'
 
-config_filename = filepath('kcor.parker.cfg', $
+config_filename = filepath('kcor.latest.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
