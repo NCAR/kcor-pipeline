@@ -130,7 +130,7 @@ pro kcor_l2, l1_filename, $
   sxdelpar, l2_header, 'NAXIS3'
   fxaddpar, l2_header, 'OBJECT', 'Solar K-Corona', $
             ' white light polarization brightness'
-  fxaddpar, l2_header, 'PRODUCT', 'pB', 'Coronal polarization brightness'
+  fxaddpar, l2_header, 'PRODUCT', 'pB', ' coronal polarization brightness'
   fxaddpar, l2_header, 'LEVEL', 'L2', $
             ' level 2 pB intensity is fully-calibrated'
 
