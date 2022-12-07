@@ -43,6 +43,14 @@ pro kcor_cme_send_heartbeat
         return
       endif
 
+      if (n_elements(last_heartbeat_last_data_time) gt 0L $
+            && (last_data_time eq last_heartbeat_last_data_time)) then begin
+        mg_log, 'no new data since last heartbeat, skipping', name='kcor/cme', /debug
+        mg_log, 'last data time: %s', last_data_time, name='kcor/cme', /debug
+        mg_log, 'issue time: %s', issue_time, name='kcor/cme', /debug
+        return
+      endif else last_heartbeat_last_data_time = last_data_time
+
       last_heartbeat_jd = julday()
 
       mg_log, 'creating heartbeat...', name='kcor/cme', /info

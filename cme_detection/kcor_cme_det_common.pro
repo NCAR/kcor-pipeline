@@ -44,4 +44,5 @@ common kcor_cme_detection, nlon, $
                            running, $
                            simple_date, $
                            last_heartbeat_jd, $
+                           last_heartbeat_last_data_time, $
                            run
