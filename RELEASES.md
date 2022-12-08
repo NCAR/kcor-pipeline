@@ -679,3 +679,4 @@
 2.1.5 [Nov 28, 2022]
   fix for bad polarization start state on 20221123
 2.1.6
+  add PRODUCT FITS keyword
