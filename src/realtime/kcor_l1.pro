@@ -820,7 +820,7 @@ pro kcor_l1, ok_filename, $
 
   fxaddpar, l1_header, 'OBJECT', 'K-Corona+sky; sky', $
             ' img0=pB Corona+sky; img1=pB sky; img2=Tot Int'
-  fxaddpar, l2_header, 'PRODUCT', 'Calibrated intensity', ' total intensity'
+  fxaddpar, l2_header, 'PRODUCT', 'Calibrated intensity', ' pB corona+sky, pB sky, total intensity'
   fxaddpar, l1_header, 'DATATYPE', struct.datatype, ' type of data acquired'
   fxaddpar, l1_header, 'OBSERVER', struct.observer, $
             ' name of Mauna Loa observer'
