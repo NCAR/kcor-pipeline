@@ -330,6 +330,97 @@ def get_version(date, cursor):
                 return(date, row[2], row[3])
 
 
+# report sub-command
+def report(args):
+    if not versions_requirements:
+        args.parser.error("missing Python packages required for querying database")
+
+    dates = split_dates(",".join(args.dates), args.parser.error)
+    host, user, password, port, database = get_login(args.flags, args.parser.error)
+
+    try:
+        connection = mysql.connector.connect(host=host, user=user, password=password)
+        cursor = connection.cursor()
+        first_line = True
+        for d in dates:
+            if not first_line and args.verbose:
+                print()
+            get_report(d, cursor, verbose=args.verbose)
+            first_line = False
+    except mysql.connector.Error as e:
+        print(e)
+    finally:
+        cursor.close()
+        connection.close()
+
+
+def get_producttype(name:str, cursor):
+    q = f"select producttype_id from MLSO.mlso_producttype where producttype=\"{name}\""
+    cursor.execute(q)
+    row = cursor.fetchone()
+    return(row[0])
+
+
+def get_obsday(date:str, cursor):
+    q = f"select day_id from MLSO.mlso_numfiles where obs_day=\"{date[0:4]}-{date[4:6]}-{date[6:8]}\";"
+    cursor.execute(q)
+    row = cursor.fetchone()
+    if row is None:
+        return(None)
+    return(row[0])
+
+
+def get_count_by_producttype(producttype_id, obsday_id, cursor):
+    q = f"select count(*) from MLSO.kcor_img where obs_day={obsday_id} and producttype={producttype_id};"
+    cursor.execute(q)
+    row = cursor.fetchone()
+    return(row[0])
+
+
+def get_pb_timerange(obsday_id, cursor):
+    producttype_id = get_producttype("pB", cursor)
+    q = f"select date_obs from MLSO.kcor_img where obs_day={obsday_id} and producttype={producttype_id} order by date_obs;"
+    cursor.execute(q)
+    rows = cursor.fetchall()
+    if len(rows) == 0:
+        return(None)
+    first_dt = rows[0][0]
+    last_dt = rows[-1][0]
+    time_format = "%H:%M:%S"
+    return((first_dt.strftime(time_format), last_dt.strftime(time_format)))
+
+
+def get_report(date, cursor, verbose=False):
+    obsday_id = get_obsday(date, cursor)
+    if obsday_id is None:
+        print(f"{date} --- no data --- ")
+        return
+
+    time_range = get_pb_timerange(obsday_id, cursor)
+    if time_range is None:
+        print(f"{date} --- no data ---")
+        return
+
+    if verbose:
+        print(f"{date} [{time_range[0]} - {time_range[1]}]")
+
+        indent = 2 * " "
+        gap = 6 * " "
+        types = [["pB", "pbavg", "pbextavg"], ["nrgf", "nrgfavg", "nrgfextavg"]]
+        max_width = max([len(t) for row in types for t in row])
+        for row in types:
+            producttype_ids = [get_producttype(t, cursor) for t in row]
+            counts = [get_count_by_producttype(id, obsday_id, cursor) for id in producttype_ids]
+            labels = [f"{c} {'files' if c != 1 else 'file'}" for c in counts]
+            s = gap.join([f"{indent}{t:{max_width}s} : {label:10s}" for t, label in zip(row, labels)])
+            print(s)
+    else:
+        pb_id = get_producttype("pB", cursor)
+        n_pb = get_count_by_producttype(pb_id, obsday_id, cursor)
+        units = "pB file" if n_pb == 1 else "pB files"
+        n_files = f"{n_pb} {units}"
+        print(f"{date} {n_files:13s} [{time_range[0]} - {time_range[1]}]")
+
 # ls sub-command
 def file_lines(filename):
     n_lines = 0
@@ -1131,12 +1222,11 @@ if __name__ == "__main__":
 
 
     # list sub-command
-    list_parser = subparsers.add_parser("list",
-                                        help="list KCor processes")
+    list_parser = subparsers.add_parser("list", help="list KCor processes")
     list_parser.set_defaults(func=list_processes, parser=list_parser)
 
     # versions sub-command
-    versions_parser = subparsers.add_parser("versions", help="list versions")
+    versions_parser = subparsers.add_parser("versions", aliases="version", help="list versions")
     versions_parser.add_argument("dates", type=str, nargs="*", help=date_help,
                                  metavar="date-expr")
     versions_parser.add_argument("-f", "--flags", type=str, help=flags_help,
@@ -1149,6 +1239,16 @@ if __name__ == "__main__":
     versions_parser.add_argument("-s", "--summary", action="store_true",
                                  help="set to display a summary of versions")
     versions_parser.set_defaults(func=versions, parser=versions_parser)
+
+    # report sub-command
+    report_parser = subparsers.add_parser("report", help="report on date(s)")
+    report_parser.add_argument("dates", type=str, nargs="*", help=date_help,
+                               metavar="date-expr")
+    report_parser.add_argument("-f", "--flags", type=str, help=flags_help,
+                               default="latest")
+    report_parser.add_argument("-v", "--verbose", action="store_true",
+                               help="set to display verbose output")
+    report_parser.set_defaults(func=report, parser=report_parser)
 
     # ls sub-command
     ls_parser = subparsers.add_parser("ls",
