@@ -86,12 +86,13 @@ $command = "create table kcor_cme (
   obs_day               mediumint (5) not null,
 
   alert_type            enum('initial', 'observer', 'retraction', 'summary'),
-  retracted             bit,
+  retracted             boolean,
 
   issue_time            datetime not null,
-  last_data_time        datetime not null,
+  last_data_time        datetime,
   start_time            datetime not null,
-  end_time              datetime not null,
+  end_time              datetime,
+  in_progress           boolean,
 
   position_angle        float,
   speed                 float,
