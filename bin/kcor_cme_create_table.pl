@@ -78,6 +78,17 @@ if (! $sth)
   die () ;
   }
 
+$command = "DROP TABLE IF EXISTS kcor_cme_features" ;
+$sth     = $dbh->prepare ($command) ;
+
+$sth->execute () ;
+if (! $sth)
+  {
+  print "$command\n" ;
+  print "mysql error: $dbh->errstr\n" ;
+  die () ;
+  }
+
 # Define fields
 # Notes:
 # kcor_sw_id is the id number of the entry in the kcor_sw table relevant to this entry
@@ -101,6 +112,7 @@ $command = "create table kcor_cme (
 
   -- for observer and retraction alerts only
   comment               text,
+  confidence_level      enum('low', 'medium', 'high'),
 
   -- for summary reports only
   time_history          blob,
@@ -112,7 +124,34 @@ $command = "create table kcor_cme (
 
   foreign key (kcor_sw_id) references kcor_sw(sw_id),
   foreign key (obs_day) references mlso_numfiles(day_id)
-)" ;
+)";
+
+$sth = $dbh->prepare ($command) ;
+$sth->execute () ;
+if (! $sth)
+  {
+  print "$command\n" ;
+  print "mysql error: $dbh->errstr\n" ;
+  die () ;
+  }
+
+$command = "create table kcor_cme_features (
+  cme_feature_id        int(10) auto_increment primary key,
+
+  cme_id                int(10),
+  indices               blob,
+
+  -- from a fit for the feature
+  feature_speed         blob,
+  feature_acceleration  blob,
+  feature_width         blob,
+
+  final_height          float,
+  final_speed           float,
+  final_accelation      float,
+
+  foreign key (cme_id) references kcor_cme(cme_id)
+)";
 
 $sth = $dbh->prepare ($command) ;
 $sth->execute () ;
