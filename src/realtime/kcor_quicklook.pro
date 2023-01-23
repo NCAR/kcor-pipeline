@@ -164,20 +164,29 @@ pro kcor_quicklook, pb, mask, $
     'bright': tvcircle, scaled_radius, scaled_xcenter, scaled_ycenter, red, /device
     'dim': tvcircle, scaled_radius, scaled_xcenter, scaled_ycenter, green, /device
     'cloudy': tvcircle, scaled_radius, scaled_xcenter, scaled_ycenter, green,  /device
-    'noisy': tvcircle, scaled_radius, scaled_xcenter, scaled_ycenter, yellow, /device
+    'noisy': tvcircle, scaled_radius, scaled_xcenter, scaled_ycenter, yellow, /device, linestyle=1
     else:
   endcase
 
   ; common annotations
+  line_height = 17
+
   xyouts, 6, display_dimensions[1] - 20, file_basename(output_filename), $
           color=white, charsize=1.0, /device
   xyouts, 6, 30, string(display_minimum, _display_maximum, format='(%"min/max: %0.1f, %0.1f")'), $
           color=white, charsize=1.0, /device
-  xyouts, 6, 13, string(display_exponent, display_gamma, $
+  xyouts, 6, 30 - line_height, string(display_exponent, display_gamma, $
                         format='(%"scaling: pb ^ %0.1f, gamma=%0.1f")'), $
           color=white, charsize=1.0, /device
+
   xyouts, display_dimensions[0] - 6, display_dimensions[1] - 20, quality, $
           color=white, charsize=1.0, /device, alignment=1.0
+  if (quality eq 'noisy') then begin
+    xyouts, display_dimensions[0] - 6, display_dimensions[1] - 20 - line_height, $
+            'dotted line marks annulus of noise check', $
+            color=white, charsize=1.0, /device, alignment=1.0
+  endif
+
   xyouts, display_dimensions[0] - 6, $
           13, $
           string(start_state, format='(%"start state: %d, %d")'), $
