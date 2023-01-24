@@ -164,7 +164,7 @@ pro kcor_quicklook, pb, mask, $
     'bright': tvcircle, scaled_radius, scaled_xcenter, scaled_ycenter, red, /device
     'dim': tvcircle, scaled_radius, scaled_xcenter, scaled_ycenter, green, /device
     'cloudy': tvcircle, scaled_radius, scaled_xcenter, scaled_ycenter, green,  /device
-    'noisy': tvcircle, scaled_radius, scaled_xcenter, scaled_ycenter, yellow, /device, linestyle=1
+    'noisy': tvcircle, scaled_radius, scaled_xcenter, scaled_ycenter, yellow, /device, linestyle=2
     else:
   endcase
 
@@ -183,7 +183,7 @@ pro kcor_quicklook, pb, mask, $
           color=white, charsize=1.0, /device, alignment=1.0
   if (quality eq 'noisy') then begin
     xyouts, display_dimensions[0] - 6, display_dimensions[1] - 20 - line_height, $
-            'dotted line marks annulus of noise check', $
+            'dashed line marks annulus of noise check', $
             color=white, charsize=1.0, /device, alignment=1.0
   endif
 
