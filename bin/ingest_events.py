@@ -84,22 +84,25 @@ def get_obsday(dt, cursor):
 def ingest_event(event, cursor):
     if event["instrument"].lower() != "kcor": return
 
-    types = {"cme", "jet", "epl", "outflow"}
+    types = ["possible cme", "cme", "jet", "epl", "outflow"]
     found_types = [t for t in types if event["type"].find(t) >= 0]
     if len(found_types) == 0: return
     event["found_type"] = found_types[0]
+    print(f"type, found_type: {event['type']}, {event['found_type']}")
+    event["confidence_level"] = "high" if event["found_type"].lower() == "cme" else "low"
 
-    add_format = ("insert into MLSO.kcor_cme "
-                  "(obs_day, alert_type, event_type, start_time, end_time) "
-                  "values (%(obs_day)s, 'analyst', %(found_type)s, %(start_datetime)s, %(end_datetime)s)")
-    cursor.execute(add_format, event)
+    add_cmd_format = ("insert into MLSO.kcor_cme_alert "
+                  "(obs_day, alert_type, event_type, cme_type, start_time, end_time, confidence_level, comment) "
+                  "values (%(obs_day)s, 'analyst', %(type)s, %(found_type)s, %(start_datetime)s, %(end_datetime)s, %(confidence_level)s, %(comment)s)")
+    cursor.execute(add_cmd_format, event)
 
 
 def parse_row(row):
     start_datetime, end_datetime = parse_datetime(row[0], row[1])
-    return({"obs_day": 0, "start_datetime": start_datetime, "end_datetime": end_datetime,
-        "limb": row[2], "type": row[3], "instrument": row[4],
-        "comment": row[5] if len(row) > 5 else None})
+    event = {"obs_day": 0, "start_datetime": start_datetime, "end_datetime": end_datetime,
+        "limb": row[2], "type": row[3].lower(), "instrument": row[4],
+        "comment": row[5] if len(row) > 5 else None}
+    return(event)
 
 
 def parse_datetime(date_expression, time_expression):

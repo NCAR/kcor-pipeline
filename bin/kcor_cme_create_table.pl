@@ -67,17 +67,6 @@ else
 # Create new kcor_cme table.
 #-------------------------------
 
-$command = "DROP TABLE IF EXISTS kcor_cme" ;
-$sth     = $dbh->prepare ($command) ;
-
-$sth->execute () ;
-if (! $sth)
-  {
-  print "$command\n" ;
-  print "mysql error: $dbh->errstr\n" ;
-  die () ;
-  }
-
 $command = "DROP TABLE IF EXISTS kcor_cme_features" ;
 $sth     = $dbh->prepare ($command) ;
 
@@ -89,18 +78,54 @@ if (! $sth)
   die () ;
   }
 
-# Define fields
-# Notes:
-# kcor_sw_id is the id number of the entry in the kcor_sw table relevant to this entry
+$command = "DROP TABLE IF EXISTS kcor_cme_alert" ;
+$sth     = $dbh->prepare ($command) ;
+
+$sth->execute () ;
+if (! $sth)
+  {
+  print "$command\n" ;
+  print "mysql error: $dbh->errstr\n" ;
+  die () ;
+  }
+
+$command = "DROP TABLE IF EXISTS kcor_cme" ;
+$sth     = $dbh->prepare ($command) ;
+
+$sth->execute () ;
+if (! $sth)
+  {
+  print "$command\n" ;
+  print "mysql error: $dbh->errstr\n" ;
+  die () ;
+  }
+
 $command = "create table kcor_cme (
   cme_id                int(10) auto_increment primary key,
+  obs_day               mediumint (5) not null
+)
+
+$sth = $dbh->prepare ($command) ;
+$sth->execute () ;
+if (! $sth)
+  {
+  print "$command\n" ;
+  print "mysql error: $dbh->errstr\n" ;
+  die () ;
+  }
+
+$command = "create table kcor_cme_alert (
+  cme_alert_id          int(10) auto_increment primary key,
   obs_day               mediumint (5) not null,
 
+  cme_id                int(10),
+
   alert_type            enum('initial', 'observer', 'retraction', 'summary', 'analyst'),
-  event_type            enum('cme', 'jet', 'epl', 'outflow'),
+  event_type            text,
+  cme_type              enum('possible cme', 'cme', 'jet', 'epl', 'outflow'),
   retracted             boolean,
 
-  issue_time            datetime not null,
+  issue_time            datetime,  -- analyst alerts from event log don't have issue time
   last_data_time        datetime,
   start_time            datetime not null,
   end_time              datetime,
@@ -123,6 +148,7 @@ $command = "create table kcor_cme (
 
   kcor_sw_id            int(10),
 
+  foreign key (cme_id) references kcor_cme(cme_id),
   foreign key (kcor_sw_id) references kcor_sw(sw_id),
   foreign key (obs_day) references mlso_numfiles(day_id)
 )";
@@ -139,7 +165,7 @@ if (! $sth)
 $command = "create table kcor_cme_features (
   cme_feature_id        int(10) auto_increment primary key,
 
-  cme_id                int(10),
+  cme_alert_id          int(10),
   indices               blob,
 
   -- from a fit for the feature
@@ -151,7 +177,7 @@ $command = "create table kcor_cme_features (
   final_speed           float,
   final_accelation      float,
 
-  foreign key (cme_id) references kcor_cme(cme_id)
+  foreign key (cme_alert_id) references kcor_cme_alert(cme_alert_id)
 )";
 
 $sth = $dbh->prepare ($command) ;
