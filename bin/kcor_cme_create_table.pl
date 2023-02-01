@@ -96,7 +96,8 @@ $command = "create table kcor_cme (
   cme_id                int(10) auto_increment primary key,
   obs_day               mediumint (5) not null,
 
-  alert_type            enum('initial', 'observer', 'retraction', 'summary'),
+  alert_type            enum('initial', 'observer', 'retraction', 'summary', 'analyst'),
+  event_type            enum('cme', 'jet', 'epl', 'outflow'),
   retracted             boolean,
 
   issue_time            datetime not null,
