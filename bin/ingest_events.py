@@ -82,13 +82,15 @@ def get_obsday(dt, cursor):
 
 
 def ingest_event(event, cursor):
-    if event["instrument"].lower() != "kcor": return
+    if event["instrument"].lower() != "kcor":
+        print(f"invalid instrument: {event['instrument']}")
+        return
 
     types = ["possible cme", "cme", "jet", "epl", "outflow"]
     found_types = [t for t in types if event["type"].find(t) >= 0]
     if len(found_types) == 0: return
     event["found_type"] = found_types[0]
-    print(f"type, found_type: {event['type']}, {event['found_type']}")
+
     event["confidence_level"] = "high" if event["found_type"].lower() == "cme" else "low"
 
     add_cmd_format = ("insert into MLSO.kcor_cme_alert "
@@ -106,14 +108,69 @@ def parse_row(row):
 
 
 def parse_datetime(date_expression, time_expression):
+    """Parse date and time expressions into datetime arguments. Date
+    expressions are always of the form "MM/DD/YYYY". Time expressions are more
+    flexible:
+
+        1823-2200UT
+        from 1823UT
+        1823UT--
+        ~1823-2200UT
+        1823~2200UT
+        <1823-2200UT
+    """
+    # no time, just use date
     if time_expression[0] == "-":
         d = datetime.datetime.strptime(date_expression, "%m/%d/%Y")
         return([d, d])
 
-    times = time_expression.strip("UT").split("-")
-    dts = [datetime.datetime.strptime(f"{date_expression} {t}", "%m/%d/%Y %H%M")
+    just_start = False
+    just_end   = False
+
+    if time_expression[0] in ["<", "~"]:
+        time_expression = time_expression[1:]
+
+    if time_expression[-1] == "-":
+        just_start = True
+        time_expression = time_expression.strip("-")
+
+    if time_expression[0:5] == "from ":
+        just_start = True
+        time_expression = time_expression[5:]
+
+    time_expression = time_expression.strip("UT")
+
+    dt_format = "%m/%d/%Y %H%M"
+
+    if just_start:
+        start = datetime.datetime.strptime(f"{date_expression} {time_expression}", dt_format)
+        if start.hour < 6:
+            start += datetime.timedelta(days=1)
+        return([start, None])
+
+    if just_end:
+        end = datetime.datetime.strptime(f"{date_expression} {time_expression}", dt_format)
+        if end.hour < 6:
+            end += datetime.timedelta(days=1)
+        return([None, end])
+
+    times = time_expression.split("-")
+    if len(times) == 1:
+        times = times[0].split("~")
+
+    dts = [datetime.datetime.strptime(f"{date_expression} {t}", dt_format)
         for t in times]
-    return(dts)
+
+    # adjusted_dts = []
+    # for dt in dts:
+    #     if dt.hour < 6:
+    #         adjusted_dt = dt + datetime.timedelta(days=1)
+    #     else:
+    #         adjusted_dt = dt
+
+    adjusted_dts = [dt + datetime.timedelta(days=1) if dt.hour < 6 else dt for dt in dts]
+
+    return(adjusted_dts)
 
 
 if __name__ == "__main__":
@@ -122,7 +179,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--db-config-filename", "-f", help="database configuration file")
     parser.add_argument("--db-config-section", "-s", help="database configuration section")
-    parser.add_argument("filename", nargs="*", type=str, help="file to ingest")
+    parser.add_argument("filename", nargs="*", type=str, help="event log file to ingest")
 
     args = parser.parse_args()
 
