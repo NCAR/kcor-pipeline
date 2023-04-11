@@ -110,7 +110,7 @@ pro kcor_cme_detection_job, date, $
   last_heartbeat_jd = julday()
   while (1B) do begin
     mg_log, 'main loop', name='kcor/cme', /info
-    kcor_cme_det_check, stopped=stopped
+    kcor_cme_det_check, stopped=stopped, realtime=realtime
 
     kcor_cme_send_heartbeat
     kcor_cme_handle_retractions

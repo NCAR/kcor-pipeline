@@ -9,7 +9,7 @@
 ;   widget : in, optional, type=boolean
 ;     set to run in the widget GUI
 ;-
-pro kcor_cme_det_check, stopped=stopped, widget=widget
+pro kcor_cme_det_check, stopped=stopped, widget=widget, realtime=realtime
   compile_opt strictarr
   @kcor_cme_det_common
 
@@ -20,7 +20,7 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
     files = file_search(concat_dir(datedir, '*kcor_l2.fts'), count=count)
     if (count eq 0) then begin
       files = file_search(concat_dir(datedir,'*kcor_l2.fts.gz'), count=count)
-      if (count eq 0) then begin
+      if (~keyword_set(realtime) && (count eq 0)) then begin
         mg_log, 'no FITS files found in archive dir', name='kcor/cme', /info
         goto, stop_point
       endif
@@ -50,8 +50,9 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget
     if (ifile ge count) then begin
       mtime = (file_info(files)).mtime
       age = systime(1) - max(mtime)
-      ; TODO: should the realtime CME detection even have a stopping condition?
-      if (age ge 1200) then begin   ; 600 sec originally
+      ; TODO: is this check even needed any more? why stop if there hasn't been
+      ; a file in the last 20 minutes?
+      if (~keyword_set(realtime) && (age ge 1200)) then begin   ; 20 min
         mg_log, 'no more files in last %0.1f minutes', age / 60.0, name='kcor/cme', /info
         goto, stop_point
       endif
