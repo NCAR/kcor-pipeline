@@ -246,6 +246,8 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget, realtime=realtime
             endif    ; valid LEAD0 
           endif      ; LEADINGEDGE grew
 
+          parameters.cme_occurring = cme_occurring
+
           ; log CME parameters
           if (finite(parameters.tai) gt 0L and total(finite(parameters.angle_range)) gt 0L) then begin
             openu, lun, cme_detection_params_filename, /get_lun, /append
