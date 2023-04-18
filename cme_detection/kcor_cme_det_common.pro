@@ -11,6 +11,7 @@ common kcor_cme_detection, nlon, $
                            datedir, $
                            hpr_out_dir, $
                            diff_out_dir, $
+                           cme_detection_params_filename, $
                            wtopbase, $
                            wdate, $
                            wstart, $

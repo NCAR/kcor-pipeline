@@ -40,7 +40,8 @@
 ;
 ; Contact     :	WTHOMPSON
 ;-
-pro kcor_cme_det_measure, rsun, updated=updated, alert=alert, ysig=ysig
+pro kcor_cme_det_measure, rsun, updated=updated, alert=alert, ysig=ysig, $
+                          parameters=parameters
   compile_opt strictarr
   @kcor_cme_det_common
 
@@ -91,10 +92,20 @@ pro kcor_cme_det_measure, rsun, updated=updated, alert=alert, ysig=ysig
     ; sufficiently positive, the time range covers at least two minutes, there
     ; are no gaps larger than two minutes, and the standard deviation is small
     ; enough, then calculate the output parameters.
-    if (n_elements(used) ge nthresh) and (speed0 gt 20) and (dxmax le 120) and $
+
+    parameters.tai = tai0
+    parameters.n_used = nused
+    parameters.n_thresh = nthresh
+    parameters.speed = speed0
+    parameters.max_time_interval = dxmax
+    parameters.time_range = xrange
+    parameters.stddev = ysig
+
+    if (nused ge nthresh) and (speed0 gt 20) and (dxmax le 120) and $
         (xrange ge 120) and (ysig lt 0.05) then begin
 
       cme_occurring = 1B
+      parameters.cme_occurring = 1B
 
       iavg = (i0 + i1) / 2.0
       if (iavg ge nlon) then iavg = iavg - nlon

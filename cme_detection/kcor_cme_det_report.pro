@@ -132,7 +132,7 @@ pro kcor_cme_det_report, time, widget=widget
   endfor
   free_lun, lun
 
-    mg_log, 'write CME report CSV file', name='kcor/cme', /debug
+  mg_log, 'write CME report CSV file', name='kcor/cme', /debug
 
   ; create a temporary file for the message
   mailfile = mk_temp_file(dir=get_temp_dir(), 'cme_mail.txt', /random)
@@ -161,16 +161,16 @@ pro kcor_cme_det_report, time, widget=widget
   free_lun, out
 
   hour  = long(strmid(time, 0, 2))
-  
+
   year  = long(strmid(simple_date, 0, 4))
   month = long(strmid(simple_date, 4, 2))
   day   = long(strmid(simple_date, 6, 2))
-  
+
   if (hour lt 10) then begin
     jd = julday(month, day, year) + 1.0d
     caldat, jd, month, day, year
   endif
-  
+
   ut_date = string(year, month, day, format='(%"%04d-%02d-%02d")')
 
   ; form a subject line for the email

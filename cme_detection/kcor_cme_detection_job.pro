@@ -109,12 +109,22 @@ pro kcor_cme_detection_job, date, $
   ; existing files, stop after done with all the files.
   last_heartbeat_jd = julday()
   while (1B) do begin
-    mg_log, 'main loop', name='kcor/cme', /info
+    mg_log, 'main loop', name='kcor/cme', /debug
     kcor_cme_det_check, stopped=stopped, realtime=realtime
 
     kcor_cme_send_heartbeat
     kcor_cme_handle_retractions
     kcor_cme_handle_human
+
+    ; it is useful to know the simulation time if this a realtime simulation
+    mode = run->config('cme/mode')
+    time_dir = run->config('simulator/time_dir')
+    current_time = kcor_cme_current_time(run=run)
+    if (strlowcase(mode) eq 'simulated_realtime_nowcast' $
+        && (n_elements(time_dir) gt 0L) $
+        && (n_elements(current_time) gt 0L)) then begin
+      mg_log, 'simulation time: %s', current_time, name='kcor/cme', /info
+    endif
 
     if (stopped) then begin
       if (cme_occurring) then begin

@@ -65,13 +65,13 @@ pro kcor_cme_det_find, tai_avg, date_diff, itheta0, itheta, nlon, detected
   ; region.
   if (ntai gt 1) then begin
     found = bytarr(ntai)
-    for itai = 0,ntai-1 do begin
+    for itai = 0, ntai - 1 do begin
       jdate = wdate[itai]
       i0 = itheta0[0]
       i1 = itheta0[1]
       if (i1 lt i0) then i1 = i1 + nlon
-      j0 = itheta[0,jdate]
-      j1 = itheta[1,jdate]
+      j0 = itheta[0, jdate]
+      j1 = itheta[1, jdate]
       if (j1 lt j0) then j1 = j1 + nlon
 
       ; Mark any images which overlap.  Use the value 2 to mark cases which are more

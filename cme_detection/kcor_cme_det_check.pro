@@ -75,6 +75,8 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget, realtime=realtime
       endelse
 
       if (test) then begin
+        parameters = kcor_cme_det_parameters_init()
+
         date_obs = anytim2utc(fxpar(header, 'date-obs'), /ccsds)
         date_end = anytim2utc(fxpar(header, 'date-end'), /ccsds)
         tai_obs = utc2tai(date_obs)
@@ -119,6 +121,7 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget, realtime=realtime
           temp = {date_obs: date_obs, tai_obs: tai_obs, $
                   date_end: date_end, tai_end: tai_end, $
                   date_avg: date_avg, tai_avg: tai_avg}
+          parameters.tai = tai_avg
 
           if (n_elements(date_diff) eq 0) then begin
             date_diff = temp
@@ -140,18 +143,25 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget, realtime=realtime
             empty
           endif
           boost_array, itheta, itheta0
+          if (array_equal(itheta0, fltarr(2) - 1.0)) then begin
+            parameters.angle_range = fltarr(2) + !values.f_nan
+          endif else begin
+            parameters.angle_range = itheta0
+          endelse
 
           ; look for CME detections based on the data that's been collected
           ; so far
           boost_array, detected, 0
           kcor_cme_det_find, tai_avg, date_diff, itheta0, itheta, $
                              nlon, detected
+          parameters.detected = detected[-1]
 
           ; if any detections were made, then look for the leading edge
           idet = n_elements(detected) - 1
           nlead = n_elements(leadingedge)
           if (detected[idet]) then begin
             kcor_cme_det_track, mdiffs, itheta, detected, leadingedge
+            parameters.leading_edge = leadingedge[-1]
           endif
 
           ; if the LEADINGEDGE array grew in size, then update the plots
@@ -179,7 +189,8 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget, realtime=realtime
                 endif
 
                 ; attempt to measure the CME parameters
-                kcor_cme_det_measure, rsun, updated=updated, alert=alert, ysig=ysig
+                kcor_cme_det_measure, rsun, updated=updated, alert=alert, ysig=ysig, $
+                                      parameters=parameters
                 if (keyword_set(updated)) then begin
                   angle_history[-1] = angle
                   speed_history[-1] = speed
@@ -234,6 +245,14 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget, realtime=realtime
               endif
             endif    ; valid LEAD0 
           endif      ; LEADINGEDGE grew
+
+          ; log CME parameters
+          if (finite(parameters.tai) gt 0L and total(finite(parameters.angle_range)) gt 0L) then begin
+            openu, lun, cme_detection_params_filename, /get_lun, /append
+            printf, lun, parameters, $
+                    format='%0.1f   %5.1f  %5.1f  %d  %6.1f  %3d  %3d  %8.1f  %7.2f  %7.2f  %7.3f  %d'
+            free_lun, lun
+          endif
         endif        ; MDIFF formed
       endif          ; science image
 
@@ -241,12 +260,15 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget, realtime=realtime
         itime = n_elements(leadingedge) - 1
         tai0 = date_diff[itime].tai_avg
         mg_log, 'ready to check if report needs to be sent', name='kcor/cme', /debug
-        mg_log, 'cme_occurring: %s', cme_occurring ? 'YES' : 'NO', name='kcor/cme', /debug
+        mg_log, 'CME occurring: %s', cme_occurring ? 'YES' : 'NO', name='kcor/cme', /info
         if (cme_occurring) then begin
           mg_log, 'tai0 - tairef: %0.1f', tai0 - tairef, name='kcor/cme', /debug
-          mg_log, 'tairef: %0.1f', tairef, name='kcor/cme', /debug
+          mg_log, 'tai0 - current_cme_tai: %0.1f', tai0 - current_cme_tai, name='kcor/cme', /debug
+          mg_log, 'tairef: %s', tai2utc(tairef, /time, /truncate, /ccsds), name='kcor/cme', /debug
+          mg_log, 'tai0: %s', tai2utc(tai0, /time, /truncate, /ccsds), name='kcor/cme', /debug
+          mg_log, 'current CME: %s', tai2utc(current_cme_tai, /time, /truncate, /ccsds), name='kcor/cme', /debug
         endif
-        if (cme_occurring && ((tai0 - tairef) gt 3600)) then begin
+        if (cme_occurring && ((tai0 - current_cme_tai) gt 3600)) then begin
           ref_time = tai2utc(tairef, /time, /truncate, /ccsds)
           mg_log, 'ready to send report', name='kcor/cme', /debug
           kcor_cme_det_report, ref_time

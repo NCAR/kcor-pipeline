@@ -680,3 +680,5 @@
   fix for bad polarization start state on 20221123
 2.1.6
   add PRODUCT FITS keyword
+  do not stop when running realtime CME detection in simulator
+  log CME detection parameters
