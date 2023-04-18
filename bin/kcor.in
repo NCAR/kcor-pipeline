@@ -1006,7 +1006,8 @@ def simulate(args):
     raw_basedir = get_raw_dir(args.dates[0], args.flags, args.parser.error)
     raw_dir = os.path.join(raw_basedir, args.dates[0])
 
-    launch_interval = config.get("simulator", "launch_interval", fallback="60.0")
+    rt_launch_interval = config.get("simulator", "rt_launch_interval", fallback="60.0")
+    eod_launch_interval = config.get("simulator", "eod_launch_interval", fallback="900.0")
 
     arrival_interval = config.get("simulator", "arrival_interval", fallback="60.0")
     speedup_factor   = config.get("simulator", "speedup_factor", fallback="1.0")
@@ -1014,7 +1015,8 @@ def simulate(args):
     # launch processing simulator
     processing_cmd = [os.path.join(PIPELINE_DIR, "bin", "kcor_simulate_processing"),
                       "-f", args.flags,
-                      "--frequency", launch_interval,
+                      "--rt-frequency", rt_launch_interval,
+                      "--eod-frequency", eod_launch_interval,
                       args.dates[0]]
     if args.no_eod:
         processing_cmd.insert(2, "--no-eod")

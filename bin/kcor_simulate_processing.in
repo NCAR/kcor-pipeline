@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 
 import argparse
+import datetime
 import logging
 import os
 import subprocess
 import time
 
-# wait after RT pipeline is launched to launch EOD pipeline
-EOD_WAIT = 30.0   # seconds
+# wait between pipeline launches
+INTERPROCESS_WAIT = 5.0   # seconds
 
 
 # setup the logging mechanism
@@ -16,10 +17,11 @@ logging.basicConfig(format='%(asctime)s %(message)s',
                     level=logging.DEBUG)
 
 
-def launch_loop(date, config_flags, frequency, no_eod):
+def launch_loop(date, config_flags, rt_frequency, eod_frequency, no_eod):
     logging.info('starting KCor realtime runner...')
     logging.info('config flags  : %s', config_flags)
-    logging.info('frequency     : %0.1f secs', frequency)
+    logging.info('rt frequency  : %0.1f secs', rt_frequency)
+    logging.info('eod frequency : %0.1f secs', eod_frequency)
 
     pipeline_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
@@ -30,20 +32,26 @@ def launch_loop(date, config_flags, frequency, no_eod):
                config_flags,
                date]
 
+    last_rt_time = datetime.datetime.now()
+    last_eod_time = datetime.datetime.now()
     while True:
-        #logging.info(' '.join(realtime_cmd))
-        realtime_pid = subprocess.Popen(realtime_cmd,
-                                        stdout=subprocess.DEVNULL,
-                                        stderr=subprocess.DEVNULL).pid
-        logging.info(f"launched KCor realtime pipeline with pid {realtime_pid}")
-        time.sleep(EOD_WAIT)
-        if not no_eod:
-            #logging.info(' '.join(eod_cmd))
+        now = datetime.datetime.now()
+        if (now - last_rt_time).seconds > rt_frequency:
+            last_rt_time = now
+            realtime_pid = subprocess.Popen(realtime_cmd,
+                                            stdout=subprocess.DEVNULL,
+                                            stderr=subprocess.DEVNULL).pid
+            logging.info(f"launched KCor realtime pipeline with pid {realtime_pid}")
+            time.sleep(INTERPROCESS_WAIT)
+
+        now = datetime.datetime.now()
+        if not no_eod and ((now - last_eod_time).seconds > eod_frequency):
+            last_eod_time = now
             eod_pid = subprocess.Popen(eod_cmd,
                                        stdout=subprocess.DEVNULL,
                                        stderr=subprocess.DEVNULL).pid
             logging.info(f"launched KCor end-of-day pipeline with pid {eod_pid}")
-            time.sleep(frequency - EOD_WAIT)
+            time.sleep(INTERPROCESS_WAIT)
 
 
 if __name__ == '__main__':
@@ -59,12 +67,18 @@ if __name__ == '__main__':
                         help='''FLAGS section of config filename, i.e., file in
                                 config/ directory matching kcor.FLAGS.cfg will
                                 be used''')
-    frequency_help = '''number of seconds between launches of realtime
-                        pipeline, default is 60.0 seconds'''
-    parser.add_argument('--frequency',
+    rt_frequency_help = '''number of seconds between launches of realtime
+                           pipeline, default is 60.0 seconds'''
+    eod_frequency_help = '''number of seconds between launches of end-of-day
+                            pipeline, default is 60.0 seconds'''
+    parser.add_argument('--rt-frequency',
                         type=float,
-                        help=frequency_help,
+                        help=rt_frequency_help,
                         default=60.0)
+    parser.add_argument('--eod-frequency',
+                        type=float,
+                        help=eod_frequency_help,
+                        default=900.0)
     parser.add_argument('--no-eod',
                         action='store_true',
                         help='set to not launch end-of-day processing')
@@ -74,6 +88,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     try:
-        launch_loop(args.date, args.flags, args.frequency, args.no_eod)
+        launch_loop(args.date, args.flags,
+                    args.rt_frequency,
+                    args.eod_frequency, args.no_eod)
     except KeyboardInterrupt:
         logging.info('quitting...')
