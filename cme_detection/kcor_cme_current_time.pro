@@ -13,8 +13,20 @@
 ;   run : in, required, type=object
 ;     KCor run object
 ;-
-function kcor_cme_current_time, run=run
+function kcor_cme_current_time, run=run, error=error
   compile_opt strictarr
+
+  n_tries = 0L
+  max_tries = 5L
+  catch, error
+  if (error ne 0L) then begin
+    n_tries += 1L
+    if (n_tries ge max_tries) then begin
+      catch, /cancel
+      return, !null
+    endif
+    wait, 0.1
+  endif
 
   mode = run->config('cme/mode')
   time_dir = run->config('simulator/time_dir')
