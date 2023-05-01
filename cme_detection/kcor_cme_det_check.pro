@@ -250,9 +250,11 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget, realtime=realtime
 
           ; log CME parameters
           if (finite(parameters.tai) gt 0L and total(finite(parameters.angle_range)) gt 0L) then begin
+            t = tai2utc(parameters.tai, /time, /truncate, /ccsds)
+            parameters.time = string(strmid(t, [0, 3, 6], 2), format='%s%s%s')
             openu, lun, cme_detection_params_filename, /get_lun, /append
             printf, lun, parameters, $
-                    format='%0.1f   %5.1f  %5.1f  %d  %6.1f  %3d  %3d  %8.1f  %7.2f  %7.2f  %7.3f  %d'
+                    format='%0.1f   %6s   %5.1f  %5.1f  %1d  %5.0f  %3d  %3d  %8.1f  %7.2f  %7.2f  %7.3f  %d'
             free_lun, lun
           endif
         endif        ; MDIFF formed

@@ -5,6 +5,7 @@ pro kcor_cme_det_parameters__define
 
   !null = {kcor_cme_det_parameters, $
            tai: 0.0D, $
+           time: '', $
            angle_range: fltarr(2), $
            detected: 0B, $
            leading_edge: 0.0, $
