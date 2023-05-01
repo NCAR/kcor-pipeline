@@ -6,6 +6,7 @@ from email.mime.text import MIMEText
 import fnmatch
 import glob
 import json
+import logging
 import math
 import os
 import pathlib
@@ -17,6 +18,7 @@ import socket
 import subprocess
 import sys
 import time
+
 
 PY3 = sys.version_info[0] == 3
 
@@ -49,6 +51,11 @@ try:
 except ModuleNotFoundError as e:
     rich_text = False
 
+
+# setup the logging mechanism
+logging.basicConfig(format='%(asctime)s %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S',
+                    level=logging.DEBUG)
 
 # set to True to not launch real scripts
 TEST = False
@@ -1035,6 +1042,15 @@ def simulate(args):
     data_cmd.append(os.path.join(depot_basedir, args.dates[0]))
     data_process = subprocess.Popen(data_cmd)
 
+    if args.cme:
+        cmd = [os.path.join(PIPELINE_DIR, "bin", f"runkcor_cmedetection.sh"),
+               args.flags,
+               args.dates[0],
+               "/realtime"]
+
+        cme_process = launch_process(cmd, stdout=None, stderr=subprocess.PIPE)
+        logging.info("launching CME detection process...")
+
     try:
         while True:
             time.sleep(1.0)
@@ -1044,6 +1060,10 @@ def simulate(args):
         print(f"killing data ({data_pid}) and processing ({proc_pid}) processes...")
         processing_process.kill()
         data_process.kill()
+        if args.cme:
+            cme_pid = cme_process.pid
+            print(f"killing CME detection ({cme_pid}) process...")
+            cme_process.kill()
 
 
 # stage sub-command
@@ -1452,6 +1472,8 @@ if __name__ == "__main__":
     simulate_parser.add_argument("dates", type=str, nargs="*",
                                  help="date to run on in the form YYYYMMDD",
                                  metavar="date")
+    simulate_parser.add_argument("--cme", action="store_true",
+                                 help="run CME detection in realtime mode")
     simulate_parser.add_argument("-f", "--flags", type=str, help=flags_help,
                                 default="latest")
     simulate_parser.add_argument("--no-eod", action="store_true",
