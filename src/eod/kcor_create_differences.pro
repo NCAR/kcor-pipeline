@@ -68,12 +68,14 @@ pro kcor_create_differences, date, l2_files, run=run
   ; often subtractions are created.
 
   ; currently:  average 4 images over a maximum of 2 minutes
-  ;             create a subtraction image every 5 minutes	
+  ;             create a subtraction image every 30 seconds
   ;             create subtractions using averaged images 10 minutes apart
 
   avginterval = run->config('differences/average_interval') / 60.0D / 60.0D / 24.0D
   time_between_subs = run->config('differences/cadence') / 60.0D / 60.0D / 24.0D
   subinterval = run->config('differences/interval') / 60.0D / 60.0D / 24.0D
+
+  n_images_to_average = run->config('differences/n_images_to_average')
 
   ; set up counting variables
 
@@ -88,8 +90,8 @@ pro kcor_create_differences, date, l2_files, run=run
   while (f lt n_elements(l2_files)) do begin
     numavg = 0
 
-    ; read in up to 4 images, get time, and average if images <= 2 min apart
-    for i = 0, 3 do begin
+    ; read in up to 4 images, get time, and average if images <= avginterval sec apart
+    for i = 0, n_images_to_average - 1L do begin
       if (f ge n_elements(l2_files)) then break
 
       l2_file = file_basename(l2_files[f])
@@ -141,20 +143,18 @@ pro kcor_create_differences, date, l2_files, run=run
         numavg = 1
       endif
 
-      ;  Once we have read more than one image we check that images are <= 2
-      ;  minutes apart
+      ; Once we have read more than one image we check that images are <=
+      ; avginterval sec apart
 
-      ;  ** NOTE: 2 minutes in julian date units = 1.38889e-03
-
-      ;  If images are <= 2 minutes apart we average them together
-      ;  If images are > 2 minutes apart we stop averaging, save avg. image and
-      ;     make a subtraction
+      ; If images are <= avginterval sec apart we average them together
+      ; If images are > avginterval sec apart we stop averaging, save avg.
+      ;   image and make a subtraction
       if (i gt 0) then begin
         difftime = date_julian[i] - date_julian[0]
 
         if (difftime le avginterval) then begin
           aveimg += imgsave[*, *, i]
-          goodheader = header ; save header in case next image is > 2 min. in time
+          goodheader = header ; save header in case next image is > avginterval sec in time
           numavg += 1
         endif
 
@@ -205,15 +205,12 @@ pro kcor_create_differences, date, l2_files, run=run
       filetime[0] = imgtime
     endif
 
-    ; Create a difference image every 5 observing minutes
+    ; Create a difference image every time_between_subs observing seconds
     ; Difference the current image from an image taken >= 10 minutes earlier
 
-    ; ** NOTE: 5 minutes in julian date units = 3.47222e-03
-    ; ** NOTE:10 minutes in julian date units = 6.94445e-03
-
-    ;  Has it been 5 minutes since the previous subtraction?
-    ;  Go thru the stack of 10 images looking for the 'newest' time that is 10
-    ;  minutes before the current image
+    ; Has it been time_between_subs minutes since the previous subtraction?
+    ; Go thru the stack of 10 images looking for the 'newest' time that is 10
+    ; minutes before the current image
     if ((avgcount ge 2) $
           && ((date_julian[i] - time_since_sub) ge time_between_subs)) then begin
       for j = 0, 11 do begin
@@ -225,7 +222,7 @@ pro kcor_create_differences, date, l2_files, run=run
           timestring = filetime[j]
 
           ; HAVE A NEW SUBTRACTION. NEED TO SHIFT THE BKD IMAGE STACK
-          for k = 0, 10 do begin   
+          for k = 0, 10 do begin
             bkdtime[11 - k] = bkdtime[10 - k]
             bkdimg[*, *, 11 - k] = bkdimg[*, *, 10 - k]
             filetime[11 - k] = filetime[10 - k]
@@ -241,13 +238,13 @@ pro kcor_create_differences, date, l2_files, run=run
       endfor
     endif
 
-    ; THIRD AND FINAL LOOP TO UPDATE BACKGROUND IMAGE STACK:  
-    ; IF THERE WAS NO SUBTRACTION MADE WE need to 
-    ; add each new average image to the bkd. stack 
-    ; in newest slot (i.e. stack(0)) and shift older images up the stack
-    ; This needs to be done whether or not we make a subtraction
-    ; A 12-image stack of 1-minute averaged images ensures we have background 
-    ; images that span > 10 minutes
+    ; Third and final loop to update background image stack:
+    ; - IF THERE WAS NO SUBTRACTION MADE WE need to add each new average
+    ;   image to the bkd. stack in newest slot (i.e. stack(0)) and shift
+    ;   older images up the stack
+    ; - This needs to be done whether or not we make a subtraction
+    ; - A 12-image stack of 1-minute averaged images ensures we have
+    ;   background images that span > 10 minutes
     if (newsub eq 0) then begin
       if (bkdcount gt 13) then begin
         for k = 0, 10 do begin   
@@ -320,8 +317,8 @@ pro kcor_create_differences, date, l2_files, run=run
               set_colors=256, $
               z_buffering=0
 
-      display_min = -1.0e-8
-      display_max =  1.0e-8
+      display_min    = run->config('differences/display_min')
+      display_max    = run->config('differences/display_max')
       display_factor = 1.0e6
 
       loadct, 0, /silent
