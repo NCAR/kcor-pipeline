@@ -29,7 +29,7 @@
 pro kcor_create_differences, date, l2_files, run=run
   compile_opt strictarr
 
-  mg_log, 'creating difference movies', name='kcor/eod', /info
+  mg_log, 'creating difference images/movies', name='kcor/eod', /info
 
   date_parts = kcor_decompose_date(date)
   archive_dir = filepath('', subdir=date_parts, root=run->config('results/archive_basedir'))
@@ -67,9 +67,9 @@ pro kcor_create_differences, date, l2_files, run=run
   ; set up julian date intervals for averaging, creating subtractions, and how
   ; often subtractions are created.
 
-  ; currently:  average 4 images over a maximum of 2 minutes
-  ;             create a subtraction image every 30 seconds
-  ;             create subtractions using averaged images 10 minutes apart
+  ; currently: average 4 images over a maximum of 2 minutes
+  ;            create a subtraction image every 30 seconds
+  ;            create subtractions using averaged images 10 minutes apart
 
   avginterval = run->config('differences/average_interval') / 60.0D / 60.0D / 24.0D
   time_between_subs = run->config('differences/cadence') / 60.0D / 60.0D / 24.0D
@@ -90,7 +90,12 @@ pro kcor_create_differences, date, l2_files, run=run
   while (f lt n_elements(l2_files)) do begin
     numavg = 0
 
-    ; read in up to 4 images, get time, and average if images <= avginterval sec apart
+    ; 0: background images
+    ; 1: foreground images
+    difference_times = strarr(2, n_images_to_average)
+
+    ; read in up to n_images_to_average images, get time, and average if
+    ; images <= avginterval sec apart
     for i = 0, n_images_to_average - 1L do begin
       if (f ge n_elements(l2_files)) then break
 
@@ -103,7 +108,7 @@ pro kcor_create_differences, date, l2_files, run=run
 
       ; scaling information for quality scans
       rsun    = fxpar(header, 'RSUN_OBS')         ; solar radius [arcsec/Rsun]
-      cdelt1  = fxpar(header, 'CDELT1')       ; resolution   [arcsec/pixel]
+      cdelt1  = fxpar(header, 'CDELT1')           ; resolution   [arcsec/pixel]
       pixrs   = rsun / cdelt1
       r_photo = rsun / cdelt1
 
@@ -140,6 +145,10 @@ pro kcor_create_differences, date, l2_files, run=run
       if (i eq 0) then begin
         aveimg = imgsave[*, *, 0]
         goodheader = header
+        difference_times[0, i] = string(hr, mnt, sec, format='%02d:%02d:%02d')
+        mg_log, 'saving image at %s in difference_times[0, %d] ', $
+                string(hr, mnt, sec, format='%02d:%02d:%02d'), i, $
+                name='kcor/eod', /debug
         numavg = 1
       endif
 
@@ -152,9 +161,16 @@ pro kcor_create_differences, date, l2_files, run=run
       if (i gt 0) then begin
         difftime = date_julian[i] - date_julian[0]
 
+        mg_log, 'difference %0.2f s, avg interval: %0.2f s', $
+                difftime * 60D * 60D * 24D, avginterval * 60D * 60D * 24D, $
+                name='kcor/eod', /debug
         if (difftime le avginterval) then begin
           aveimg += imgsave[*, *, i]
           goodheader = header ; save header in case next image is > avginterval sec in time
+          t = string(hr, mnt, sec, format='%02d:%02d:%02d')
+          difference_times[0, i] = t
+          mg_log, 'saving image at %s in difference_times[0, %d]', t, i, $
+                  name='kcor/eod', /debug
           numavg += 1
         endif
 
@@ -188,10 +204,10 @@ pro kcor_create_differences, date, l2_files, run=run
       endfor
     endif
 
-    ; SECOND LOOP TO BUILD UP BACKGROUND IMAGE STACK:
-    ; Next add later images to stack until we have 12 unique images in stack
-    ; Latest time is put into stack[0], oldest time is in stack[11]
-    ; Begin looking for images 10 minutes apart to make subtraction
+    ; Second loop to build up background image stack:
+    ; - Next add later images to stack until we have 12 unique images in stack
+    ; - Latest time is put into stack[0], oldest time is in stack[11]
+    ; - Begin looking for images 10 minutes apart to make subtraction
     if (bkdcount gt 1 && bkdcount le 12) then begin
       counter = bkdcount - 2
       for k = 0, counter do begin   
@@ -211,11 +227,26 @@ pro kcor_create_differences, date, l2_files, run=run
     ; Has it been time_between_subs minutes since the previous subtraction?
     ; Go thru the stack of 10 images looking for the 'newest' time that is 10
     ; minutes before the current image
+    mg_log, 'avgcount: %d, date_julian[i] - time_since_sub: %0.2f s, time_between_subs: %0.2f s', $
+            avgcount, $
+            (date_julian[i] - time_since_sub) * 60D * 60D * 24D, $
+            time_between_subs * 60D * 60D * 24D, $
+            name='kcor/eod', /debug
     if ((avgcount ge 2) $
           && ((date_julian[i] - time_since_sub) ge time_between_subs)) then begin
       for j = 0, 11 do begin
-        if (date_julian[i] - bkdtime[j] ge subinterval) then begin  
+        mg_log, 'date_julian[i] - bkdtime[j]: %0.2f s, subinterval: %0.2f s', $
+                (date_julian[i] - bkdtime[j]) * 60D * 60D * 24D, $
+                subinterval * 60D * 60D * 24D, $
+                name='kcor/eod', /debug
+        if (date_julian[i] - bkdtime[j] ge subinterval) then begin
+          ; this is the new subtraction image
           subimg = aveimg - bkdimg[*, *, j]
+          mg_log, 'subtracting j=%d [time: %s]', $
+                  j, kcor_jd2time(bkdtime[j]), $
+                  name='kcor/eod', /debug
+          ;difference_times[1, ...] = kcor_jd2time(bkdtime[j])
+
           newsub = 1  ;  need to write a new subtraction image
           time_since_sub = date_julian[i]
           ; need this info to write into FITS and GIF filename
@@ -280,6 +311,11 @@ pro kcor_create_differences, date, l2_files, run=run
     threshold_intensity = run->config('differences/threshold_intensity')
 
     pointing_ck = 0
+
+    fxaddpar, goodheader, 'AVGTIME0', kcor_combine_times(difference_times[0, *]), $
+              ' image times used in bkg avg'
+    fxaddpar, goodheader, 'AVGTIME1', kcor_combine_times(difference_times[1, *]), $
+              ' image times used in fg avg'
 
     if (newsub eq 1) then begin
       tscan, l2_file, subimg, pixrs, roll, xcen, ycen, $
@@ -423,8 +459,8 @@ end
 
 ; main-level example program
 
-date = '20171203'
-config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
+date = '20210507'
+config_filename = filepath('kcor.new-diffs.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
