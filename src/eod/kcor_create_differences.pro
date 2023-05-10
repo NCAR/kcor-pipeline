@@ -146,7 +146,7 @@ pro kcor_create_differences, date, l2_files, run=run
         aveimg = imgsave[*, *, 0]
         goodheader = header
         difference_times[0, i] = string(hr, mnt, sec, format='%02d:%02d:%02d')
-        mg_log, 'saving image at %s in difference_times[0, %d] ', $
+        mg_log, '[1] saving image at %s in difference_times[0, %d] ', $
                 string(hr, mnt, sec, format='%02d:%02d:%02d'), i, $
                 name='kcor/eod', /debug
         numavg = 1
@@ -161,7 +161,7 @@ pro kcor_create_differences, date, l2_files, run=run
       if (i gt 0) then begin
         difftime = date_julian[i] - date_julian[0]
 
-        mg_log, 'difference %0.2f s, avg interval: %0.2f s', $
+        mg_log, '[2] difference %0.2f s, avg interval: %0.2f s', $
                 difftime * 60D * 60D * 24D, avginterval * 60D * 60D * 24D, $
                 name='kcor/eod', /debug
         if (difftime le avginterval) then begin
@@ -169,7 +169,7 @@ pro kcor_create_differences, date, l2_files, run=run
           goodheader = header ; save header in case next image is > avginterval sec in time
           t = string(hr, mnt, sec, format='%02d:%02d:%02d')
           difference_times[0, i] = t
-          mg_log, 'saving image at %s in difference_times[0, %d]', t, i, $
+          mg_log, '[3] saving image at %s in difference_times[0, %d]', t, i, $
                   name='kcor/eod', /debug
           numavg += 1
         endif
@@ -227,7 +227,7 @@ pro kcor_create_differences, date, l2_files, run=run
     ; Has it been time_between_subs minutes since the previous subtraction?
     ; Go thru the stack of 10 images looking for the 'newest' time that is 10
     ; minutes before the current image
-    mg_log, 'avgcount: %d, date_julian[i] - time_since_sub: %0.2f s, time_between_subs: %0.2f s', $
+    mg_log, '[4] avgcount: %d, date_julian[i] - time_since_sub: %0.2f s, time_between_subs: %0.2f s', $
             avgcount, $
             (date_julian[i] - time_since_sub) * 60D * 60D * 24D, $
             time_between_subs * 60D * 60D * 24D, $
@@ -235,14 +235,14 @@ pro kcor_create_differences, date, l2_files, run=run
     if ((avgcount ge 2) $
           && ((date_julian[i] - time_since_sub) ge time_between_subs)) then begin
       for j = 0, 11 do begin
-        mg_log, 'date_julian[i] - bkdtime[j]: %0.2f s, subinterval: %0.2f s', $
+        mg_log, '[5] date_julian[i] - bkdtime[j]: %0.2f s, subinterval: %0.2f s', $
                 (date_julian[i] - bkdtime[j]) * 60D * 60D * 24D, $
                 subinterval * 60D * 60D * 24D, $
                 name='kcor/eod', /debug
         if (date_julian[i] - bkdtime[j] ge subinterval) then begin
           ; this is the new subtraction image
           subimg = aveimg - bkdimg[*, *, j]
-          mg_log, 'subtracting j=%d [time: %s]', $
+          mg_log, '[6] subtracting j=%d [time: %s]', $
                   j, kcor_jd2time(bkdtime[j]), $
                   name='kcor/eod', /debug
           ;difference_times[1, ...] = kcor_jd2time(bkdtime[j])
