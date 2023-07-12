@@ -27,5 +27,10 @@ function kcor_check_angles, required_angles, angles, tolerance=tolerance
     if (n_angles eq 0L) then return, 0B
   endfor
 
+  for a = 0L, n_elements(angles) - 1L do begin
+    !null = where(abs((angles[a] - required_angles) mod 180.0) lt _tolerance, n_angles)
+    if (n_angles eq 0L) then return, 0B
+  endfor
+
   return, 1B
 end
