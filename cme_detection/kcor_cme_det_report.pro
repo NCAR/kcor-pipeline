@@ -119,7 +119,8 @@ pro kcor_cme_det_report, time, widget=widget
     good_pt = finite(velocity[tracked_indices[i]]) $
                 && finite(position[tracked_indices[i]]) $
                 && finite(radius[tracked_indices[i]])
-    current_cme = date_diff[tracked_indices[i]].tai_avg gt current_cme_tai
+    ; report on data up to 30 minutes before CME started
+    current_cme = date_diff[tracked_indices[i]].tai_avg ge (current_cme_tai - 30.0 * 60.0)
 
     if (current_cme && good_pt) then begin
       printf, lun, $
