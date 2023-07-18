@@ -98,14 +98,16 @@ pro kcor_realtime_lag, run=run
   n_hours <= 24.0    ; no more than 24.0 hour delay
 
   !null = label_date(date_format='%H:%I')
+  xticks = ((end_hour - start_hour) / 2) > 1
+  yticks = n_hours > 1
   plot, creation_time, $
         24.0 * 60.0 * process_lag, $   ; minutes of lag
         psym=3, symsize=0.25, color=128, $
         background=255, $
         xstyle=1, xrange=[start_time, end_time], $
-        xticks=(end_hour - start_hour) / 2, xminor=2, $
+        xticks=xticks, xminor=2, $
         xtickformat='label_date', xtitle='Observation time [UT]', $
-        yrange=[0.0, 60.0 * n_hours], ystyle=1, yticks=n_hours, yminor=6, $
+        yrange=[0.0, 60.0 * n_hours], ystyle=1, yticks=yticks, yminor=6, $
         ytitle='Lag [minutes]', $
         title=string(run.date, $
                      format='(%"%s lag from data obs to L2 creation (grey) and to web (black)")')
