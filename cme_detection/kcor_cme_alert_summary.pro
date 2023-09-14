@@ -55,3 +55,21 @@ function kcor_cme_alert_summary, issue_time, $
   return, json
 end
 
+
+; main-level example program
+
+issue_time = '2021-06-28T13:47:00Z'
+last_data_time = '2021-06-28T13:46Z'
+start_time = '2021-06-28T19:28:12Z'
+end_time = '2021-06-28T20:30:15Z'
+
+summary_json = kcor_cme_alert_summary(issue_time, $
+                                      last_data_time, $
+                                      start_time, $
+                                      end_time, $
+                                      'realtime', $
+                                      position_angle=315, $
+                                      speed=320.24, $
+                                      height=1.26, $
+                                      time_for_height='2021-06-28T19:28:12Z')
+end
