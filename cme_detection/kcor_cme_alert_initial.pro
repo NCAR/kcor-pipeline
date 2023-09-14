@@ -62,6 +62,7 @@ issue_time = '2021-06-28T13:47:00Z'
 json = kcor_cme_alert_initial(issue_time, $
                               '2021-06-28T13:46Z', $
                               event_time, $
+                              'realtime', $
                               position_angle=315, $
                               speed=320.24, $
                               height=1.26, $
