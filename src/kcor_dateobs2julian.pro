@@ -21,7 +21,7 @@ function kcor_dateobs2julian, dateobs
   minute = long(strmid(dateobs, 14, 2))
   second = long(strmid(dateobs, 17, 2))
 
-  if (year eq 0L) then return, !values.f_nan
+  if (total(year eq 0L, /integer) gt 0L) then return, !values.f_nan
 
   return, julday(month, day, year, hour, minute, second)
 end
