@@ -46,7 +46,7 @@ pro kcor_db_alert_initial_ingest, alert_json
             {name: 'position_angle', type: '%s'}, $
             {name: 'speed', type: '%s'}, $
             {name: 'height', type: '%s'}, $
-            {name: 'time_for_height', type: '%s'}
+            {name: 'time_for_height', type: '%s'}, $
             {name: 'kcor_sw_id', type: '%d'}]
   sql_cmd = string(strjoin(fields.name, ', '), $
                    strjoin(fields.type, ', '), $
