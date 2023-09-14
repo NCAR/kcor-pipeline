@@ -108,6 +108,7 @@ pro kcor_cme_det_alert, itime, rsun, operator=operator
 
     json_filename = kcor_cme_alert_filename(start_time, issue_time)
     kcor_cme_alert_text2file, alert_json, json_filename
+    kcor_db_alert_initial_ingest, alert_json
 
     if (n_elements(ftp_url) gt 0L) then begin
       ftp_from_email = run->config('cme/from_email')

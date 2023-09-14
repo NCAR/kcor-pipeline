@@ -39,6 +39,7 @@ common kcor_cme_detection, nlon, $
                            cme_occurring, $
                            current_cme_start_time, $
                            current_cme_tai, $
+                           current_cme_id, $
                            tracked_pt, $
                            speed_history, $
                            angle_history, $
