@@ -26,7 +26,3 @@ function kcor_cme_expand_datetime, datetime
   return, string(date_parts, time_parts, format=fmt)
 end
 
-
-; main-level example program
-
-end

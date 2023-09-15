@@ -2,6 +2,7 @@
 
 pro kcor_db_alert_summary_ingest, summary_json
   compile_opt strictarr
+  @kcor_cme_det_common
 
   summary = json_parse(summary_json, /toarray, /tostructure)
 

@@ -2,7 +2,7 @@
 
 pro kcor_db_alert_initial_ingest, alert_json
   compile_opt strictarr
-  @kcor_cme_detection
+  @kcor_cme_det_common
 
   alert = json_parse(alert_json, /toarray, /tostructure)
 
