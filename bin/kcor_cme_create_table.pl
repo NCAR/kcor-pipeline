@@ -136,7 +136,7 @@ $command = "create table kcor_cme_alert (
   position_angle        float,
   speed                 float,
   height                float,
-  time_for_height       float,
+  time_for_height       datetime,
 
   -- for observer and retraction alerts only
   comment               text,
