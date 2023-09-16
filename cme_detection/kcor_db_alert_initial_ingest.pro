@@ -54,7 +54,7 @@ pro kcor_db_alert_initial_ingest, alert_json
                'cme', $
                0B, $
                strmid(alert.sep_forecast_submission.issue_time, 0, 19), $
-               alert.sep_forecast_submission.inputs.coronagraph.products.last_data_time, $
+               strmid(alert.sep_forecast_submission.inputs.coronagraph.products.last_data_time, 0, 19), $
                strmid(alert.sep_forecast_submission.triggers.cme.start_time, 0, 19), $
                1B, $
                kcor_fitsfloat2db(alert.sep_forecast_submission.triggers.cme.pa), $
