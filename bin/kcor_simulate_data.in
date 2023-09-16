@@ -135,7 +135,8 @@ def download_loop(depot_dir, raw_dir, batch_time, speedup_factor=1.0, time_dir=N
             write_time(time_dir, observing_day, now - delta)
 
         # date of next catalog file to copy
-        next_date = catalog[0]['date']
+        if catalog:
+            next_date = catalog[0]['date']
 
         # copy files before now - delta that are still in catalog
         while catalog and next_date < now - delta:
@@ -156,7 +157,7 @@ def download_loop(depot_dir, raw_dir, batch_time, speedup_factor=1.0, time_dir=N
                 logging.info('copying %s...', log_filename)
                 shutil.copy(os.path.join(depot_dir, log_filename), raw_dir)
             logging.info('done copying files')
-            #return
+            return
 
         downloading_time = (datetime.datetime.now() - actual_now).total_seconds()
         time.sleep(max(batch_time - downloading_time, 0.0))
