@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
+import codecs
 import datetime
 from email.mime.text import MIMEText
 import fnmatch
@@ -655,9 +656,12 @@ def filter_file(logfile, level_index, follow):
     line = "not empty"
 
     try:
-        with open(logfile, "r") as f:
+        with codecs.open(logfile, mode="r", encoding='latin-1') as f:
             while follow or line != "":
-                line = f.readline()
+                try:
+                    line = f.readline()
+                except UnicodeDecodeError:
+                    line = "<UnicodeDecodeError>"
                 if line == "":
                     try:
                         time.sleep(POLL_SECS)
