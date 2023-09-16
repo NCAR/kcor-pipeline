@@ -4,30 +4,25 @@ pro kcor_db_alert_initial_ingest, alert_json
   compile_opt strictarr
   @kcor_cme_det_common
 
-  alert = json_parse(alert_json, /toarray, /tostructure)
+  alert = json_parse(alert_json, /toarray, /tostruct)
 
-  obsday_index = mlso_obsday_insert(datedir, $
+  obsday_index = mlso_obsday_insert(simple_date, $
                                     run=run, $
                                     database=db, $
-                                    status=db_status, $
+                                    status=obsday_insert_status, $
                                     log_name='kcor/cme')
 
-  kcor_sw_insert, datedir, run=run, $
+  kcor_sw_insert, simple_date, run=run, $
                   database=db, $
                   sw_index=sw_index, $
                   log_name='kcor/cme'
 
   ; create kcor_cme entry to get CME ID
-  db->execute, 'insert into kcor_cme (obs_day)', obsday_index, $
+  db->execute, 'insert into kcor_cme (obs_day) values (%d)', obsday_index, $
                sql_statement=sql_query, $
-               error_message=error_message
+               error_message=error_message, $
                status=status
-  if (status ne 0L) then begin
-    mg_log, 'insert into kcor_cme failed with status %d', status, $
-            name='kcor/cme', /error
-    mg_log, error_message, name='kcor/cme', /error
-    goto, done
-  endif
+  if (status ne 0L) then goto, done
 
   ; get current CMD ID (common block variable)
   current_cme_id = db->query('select last_insert_id()')
@@ -46,7 +41,7 @@ pro kcor_db_alert_initial_ingest, alert_json
             {name: 'position_angle', type: '%s'}, $
             {name: 'speed', type: '%s'}, $
             {name: 'height', type: '%s'}, $
-            {name: 'time_for_height', type: '%s'}, $
+            {name: 'time_for_height', type: '''%s'''}, $
             {name: 'kcor_sw_id', type: '%d'}]
   sql_cmd = string(strjoin(fields.name, ', '), $
                    strjoin(fields.type, ', '), $
@@ -58,25 +53,20 @@ pro kcor_db_alert_initial_ingest, alert_json
                '', $
                'cme', $
                0B, $
-               alert.sep_forecast_submission.issue_time, $
+               strmid(alert.sep_forecast_submission.issue_time, 0, 19), $
                alert.sep_forecast_submission.inputs.coronagraph.products.last_data_time, $
-               alert.sep_forecast_submission.triggers.cme.start_time, $
+               strmid(alert.sep_forecast_submission.triggers.cme.start_time, 0, 19), $
                1B, $
                kcor_fitsfloat2db(alert.sep_forecast_submission.triggers.cme.pa), $
                kcor_fitsfloat2db(alert.sep_forecast_submission.triggers.cme.speed), $
                kcor_fitsfloat2db(alert.sep_forecast_submission.triggers.cme.time_at_height.height), $
-               alert.sep_forecast_submission.triggers.cme.time_at_height.time, $
+               strmid(alert.sep_forecast_submission.triggers.cme.time_at_height.time, 0, 19), $
                sw_index, $
                status=status, $
                error_message=error_message, $
                sql_statement=sql_cmd
 
-  if (status ne 0L) then begin
-    mg_log, 'insert initial alert failed with status %d', status, $
-            name='kcor/cme', /error
-    mg_log, error_message, name='kcor/cme', /error
-    goto, done
-  endif
+  if (status ne 0L) then goto, done
 
   done:
   obj_destroy, db

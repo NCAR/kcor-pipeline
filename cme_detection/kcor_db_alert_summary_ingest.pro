@@ -4,9 +4,9 @@ pro kcor_db_alert_summary_ingest, summary_json
   compile_opt strictarr
   @kcor_cme_det_common
 
-  summary = json_parse(summary_json, /toarray, /tostructure)
+  summary = json_parse(summary_json, /toarray, /tostruct)
 
-  obsday_index = mlso_obsday_insert(datedir, $
+  obsday_index = mlso_obsday_insert(simple_date, $
                                     run=run, $
                                     database=db, $
                                     status=db_status, $
@@ -68,10 +68,10 @@ pro kcor_db_alert_summary_ingest, summary_json
             {name: 'time_for_height', type: '%s'}, $
 
             ; blobs
-            {name: 'time_history', type: '%s'}, $
-            {name: 'pa_history', type: '%s'}, $
-            {name: 'speed_history', type: '%s'}, $
-            {name: 'height_history', type: '%s'}, $
+            {name: 'time_history', type: '''%s'''}, $
+            {name: 'pa_history', type: '''%s'''}, $
+            {name: 'speed_history', type: '''%s'''}, $
+            {name: 'height_history', type: '''%s'''}, $
 
             {name: 'kcor_sw_id', type: '%d'}]
   sql_cmd = string(strjoin(fields.name, ', '), $
@@ -103,12 +103,7 @@ pro kcor_db_alert_summary_ingest, summary_json
                error_message=error_message, $
                sql_statement=sql_cmd
 
-  if (status ne 0L) then begin
-    mg_log, 'insert initial alert failed with status %d', status, $
-            name='kcor/cme', /error
-    mg_log, error_message, name='kcor/cme', /error
-    goto, done
-  endif
+  if (status ne 0L) then goto, done
 
   done:
   obj_destroy, db
