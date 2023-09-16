@@ -65,7 +65,7 @@ pro kcor_db_alert_summary_ingest, summary_json
             {name: 'position_angle', type: '%s'}, $
             {name: 'speed', type: '%s'}, $
             {name: 'height', type: '%s'}, $
-            {name: 'time_for_height', type: '%s'}, $
+            {name: 'time_for_height', type: '''%s'''}, $
 
             ; blobs
             {name: 'time_history', type: '''%s'''}, $
@@ -84,14 +84,14 @@ pro kcor_db_alert_summary_ingest, summary_json
                '', $
                'cme', $
                0B, $   ; TODO: check this?
-               summary.sep_forecast_submission.issue_time, $
-               summary.sep_forecast_submission.inputs.coronagraph.products.last_data_time, $
-               summary.sep_forecast_submission.triggers.cme.start_time, $
+               strmid(summary.sep_forecast_submission.issue_time, 0, 19), $
+               strmid(summary.sep_forecast_submission.inputs.coronagraph.products.last_data_time, 0, 19), $
+               strmid(summary.sep_forecast_submission.triggers.cme.start_time, 0, 19), $
                cme_occurring, $
                kcor_fitsfloat2db(summary.sep_forecast_submission.triggers.cme.pa), $
                kcor_fitsfloat2db(summary.sep_forecast_submission.triggers.cme.speed), $
                kcor_fitsfloat2db(summary.sep_forecast_submission.triggers.cme.time_at_height.height), $
-               summary.sep_forecast_submission.triggers.cme.time_at_height.time, $
+               strmid(summary.sep_forecast_submission.triggers.cme.time_at_height.time, 0, 19), $
 
                db->escape_string(time_history), $
                db->escape_string(pa_history), $
