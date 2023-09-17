@@ -103,7 +103,7 @@ if (! $sth)
 $command = "create table kcor_cme (
   cme_id                int(10) auto_increment primary key,
   obs_day               mediumint (5) not null,
-  dt_created            timestamp default current_timestamp,
+  dt_created            timestamp default current_timestamp
 )
 
 $sth = $dbh->prepare ($command) ;
@@ -168,6 +168,8 @@ $command = "create table kcor_cme_features (
   cme_feature_id        int(10) auto_increment primary key,
 
   cme_alert_id          int(10),
+  dt_created            timestamp default current_timestamp,
+
   indices               blob,
 
   -- from a fit for the feature
