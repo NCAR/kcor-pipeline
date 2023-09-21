@@ -31,7 +31,6 @@ pro kcor_cme_send_heartbeat
     if ((seconds_since_last_heartbeat gt heartbeat_interval) $
           && (n_elements(date_diff) gt 0L)) then begin
       issue_time = kcor_cme_current_time(run=run)
-      last_data_time = tai2utc(utc2tai(date_diff[-1].date_obs), /truncate, /ccsds) + 'Z'
       json_filename = kcor_cme_alert_filename(last_data_time, issue_time)
       json_basename = file_basename(json_filename)
 
@@ -57,7 +56,7 @@ pro kcor_cme_send_heartbeat
 
       mode = run->config('cme/mode')
       heartbeat_json = kcor_cme_alert_heartbeat(issue_time, $
-                                                last_data_time, $
+                                                last_data_time, $   ; TODO: or last_sci_data_time
                                                 ~cme_occurring, $
                                                 mode)
 

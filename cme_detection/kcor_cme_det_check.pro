@@ -69,12 +69,14 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget, realtime=realtime
               name='kcor/cme', /info
       image = readfits(files[ifile], header, /silent)
       datatype = fxpar(header, 'datatype', count=ndatatype)
+      last_data_time = fxpar(header, 'DATE-OBS') + 'Z'
       if (ndatatype eq 0) then test = 1 else begin
         datatype = strtrim(fxpar(header, 'datatype'), 2)
         test = datatype eq 'science' or datatype eq 'engineering'
       endelse
 
       if (test) then begin
+        last_sci_data_time = last_data_time
         parameters = kcor_cme_det_parameters_init()
 
         date_obs = anytim2utc(fxpar(header, 'date-obs'), /ccsds)

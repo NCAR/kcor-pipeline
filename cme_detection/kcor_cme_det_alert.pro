@@ -96,11 +96,13 @@ pro kcor_cme_det_alert, itime, rsun, operator=operator
   ftp_url = run->config('cme/ftp_alerts_url')
   if (n_elements(alerts_dir) gt 0L || n_elements(ftp_url) gt 0L) then begin
     issue_time = kcor_cme_current_time(run=run)
-    last_data_time = tai2utc(utc2tai(date_diff[-1].date_obs), /truncate, /ccsds) + 'Z'
     start_time = tai2utc(utc2tai(date_diff[itime].date_obs), /truncate, /ccsds) + 'Z'
     time_for_height = tai2utc(tairef, /truncate, /ccsds) + 'Z'
     mode = run->config('cme/mode')
-    alert_json = kcor_cme_alert_initial(issue_time, last_data_time, start_time, mode, $
+    alert_json = kcor_cme_alert_initial(issue_time, $
+                                        last_data_time, $  ; TODO: or last_sci_data_time?
+                                        start_time, $
+                                        mode, $
                                         position_angle=angle, $
                                         speed=speed, $
                                         height=edge, $

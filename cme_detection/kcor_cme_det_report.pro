@@ -214,7 +214,6 @@ pro kcor_cme_det_report, time, widget=widget
   ; collect info for alert
   itime          = n_elements(leadingedge) - 1
   issue_time     = kcor_cme_current_time(run=run)
-  last_data_time = tai2utc(utc2tai(date_diff[-1].date_obs), /truncate, /ccsds) + 'Z'
   end_time     = tai2utc(utc2tai(date_diff[itime].date_obs), /truncate, /ccsds) + 'Z'
   mode           = run->config('cme/mode')
   ; angle and speed are already set
@@ -222,7 +221,7 @@ pro kcor_cme_det_report, time, widget=widget
   time_for_height = tai2utc(tairef, /truncate, /ccsds) + 'Z'
 
   summary_json = kcor_cme_alert_summary(issue_time, $
-                                        last_data_time, $
+                                        last_data_time, $  ; TODO: or last_sci_data_time?
                                         current_cme_start_time, $
                                         end_time, $
                                         mode, $
