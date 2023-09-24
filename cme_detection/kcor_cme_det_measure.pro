@@ -101,6 +101,8 @@ pro kcor_cme_det_measure, rsun, updated=updated, alert=alert, ysig=ysig, $
     parameters.time_range = xrange
     parameters.stddev = ysig
 
+    cme_was_occurring = cme_occurring
+
     if (nused ge nthresh) and (speed0 gt 20) and (dxmax le 120) and $
         (xrange ge 120) and (ysig lt 0.05) then begin
 
@@ -127,10 +129,18 @@ pro kcor_cme_det_measure, rsun, updated=updated, alert=alert, ysig=ysig, $
         ; more than 60 minutes from last successful measurement/alert
         if ((tai0 - tairef) gt 3600) then alert = 1
       endelse
+      if (n_elements(tairef) gt 0L) then old_tairef = tairef
       tairef = tai0
 
       ; if this is a new CME, then generate an alert
-      if (alert) then kcor_cme_det_alert, itime, rsun
+      if (alert) then begin
+        ; if CME was already occurring when this new CME is found, send the
+        ; report now for the previous CME
+        if (cme_was_occurring and n_elements(old_tairef) gt 0L) then begin
+          kcor_cme_det_report, tai2utc(old_tairef, /time, /truncate, /ccsds)
+        endif
+        kcor_cme_det_alert, itime, rsun
+      endif
     endif
   endif
 end
