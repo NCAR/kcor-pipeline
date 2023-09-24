@@ -51,6 +51,7 @@ pro kcor_cme_det_alert, itime, rsun, operator=operator
   @kcor_cme_det_common
 
   current_cme_tai = tairef
+  last_interim_report = tairef
   current_cme_start_time = tai2utc(tairef, /truncate, /ccsds) + 'Z'
 
   last_detected_image_tairef = date_diff[n_elements(detected) - 1L].tai_avg

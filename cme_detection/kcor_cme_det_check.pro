@@ -265,8 +265,9 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget, realtime=realtime
       if (n_elements(date_diff) gt 0L) then begin
         itime = n_elements(leadingedge) - 1
         tai0 = date_diff[itime].tai_avg
-        mg_log, 'ready to check if report needs to be sent', name='kcor/cme', /debug
+
         mg_log, 'CME occurring: %s', cme_occurring ? 'YES' : 'NO', name='kcor/cme', /info
+
         if (cme_occurring) then begin
           mg_log, 'tai0 - tairef: %0.1f', tai0 - tairef, name='kcor/cme', /debug
           mg_log, 'tai0 - current_cme_tai: %0.1f', tai0 - current_cme_tai, name='kcor/cme', /debug
@@ -274,6 +275,15 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget, realtime=realtime
           mg_log, 'tai0: %s', tai2utc(tai0, /time, /truncate, /ccsds), name='kcor/cme', /debug
           mg_log, 'current CME: %s', tai2utc(current_cme_tai, /time, /truncate, /ccsds), name='kcor/cme', /debug
         endif
+
+        report_interval = run->config('cme/report_interval')
+        if (cme_occurring && ((tai0 - last_interim_report) gt report_interval)) then begin
+          last_interim_report = tai0
+          ref_time = tai2utc(tairef, /time, /truncate, /ccsds)
+          mg_log, 'sending interim report', name='kcor/cme', /debug
+          kcor_cme_det_report, ref_time, /interim
+        endif
+
         if (cme_occurring && ((tai0 - current_cme_tai) gt 3600)) then begin
           ref_time = tai2utc(tairef, /time, /truncate, /ccsds)
           mg_log, 'ready to send report', name='kcor/cme', /debug

@@ -11,7 +11,7 @@
 ;   widget : in, optional, type=boolean
 ;     set to run in the widget GUI
 ;-
-pro kcor_cme_det_report, time, widget=widget
+pro kcor_cme_det_report, time, widget=widget, interim=interim
   compile_opt strictarr
   @kcor_cme_det_common
 
@@ -19,10 +19,12 @@ pro kcor_cme_det_report, time, widget=widget
 
   addresses = run->config('cme/email')
   if (n_elements(addresses) eq 0L) then begin
-    mg_log, 'no cme.email specified, not sending email', $
+    mg_log, 'no cme/email specified, not sending email', $
             name='kcor/cme', /warn
     return
   endif
+
+  last_interim_report = utc2tai(kcor_cme_current_time(run=run))
 
   mg_log, 'CME alert email address set, will send report', name='kcor/cme', /debug
 
@@ -97,7 +99,9 @@ pro kcor_cme_det_report, time, widget=widget
   set_plot, original_device
   write_png, plot_file, im
 
-  mg_log, 'write CME report image file', name='kcor/cme', /debug
+  mg_log, 'write CME %sreport image file', $
+          keyword_set(interim) ? 'interim ' : '', $
+          name='kcor/cme', /debug
 
   !p.multi = 0
 
@@ -133,7 +137,9 @@ pro kcor_cme_det_report, time, widget=widget
   endfor
   free_lun, lun
 
-  mg_log, 'write CME report CSV file', name='kcor/cme', /debug
+  mg_log, 'write CME %sreport CSV file', $
+          keyword_set(interim) ? 'interim ' : '', $
+          name='kcor/cme', /debug
 
   ; create a temporary file for the message
   mailfile = mk_temp_file(dir=get_temp_dir(), 'cme_mail.txt', /random)
@@ -175,8 +181,9 @@ pro kcor_cme_det_report, time, widget=widget
   ut_date = string(year, month, day, format='(%"%04d-%02d-%02d")')
 
   ; form a subject line for the email
-  subject = string(ut_date, time, $
-                   format='(%"MLSO K-Cor report for CME on %s ending at %s UT")')
+  subject = string(keyword_set(interim) ? 'interim ' : '', $
+                   ut_date, time, $
+                   format='(%"MLSO K-Cor %sreport for CME on %s ending at %s UT")')
 
   from_email = n_elements(run->config('cme/from_email')) eq 0L $
                  ? '$(whoami)@ucar.edu' $
@@ -190,7 +197,9 @@ pro kcor_cme_det_report, time, widget=widget
                format='(%"mail -s \"%s\" -r %s -a %s -a %s %s < %s")')
   spawn, cmd, result, error_result, exit_status=status
   if (status eq 0L) then begin
-    mg_log, 'report sent to %s', addresses, name='kcor/cme', /info
+    mg_log, '%sreport sent to %s', $
+            keyword_set(interim) ? 'interim ' : '', $
+            addresses, name='kcor/cme', /info
   endif else begin
     mg_log, 'problem with mail command: %s', cmd, name='kcor/cme', /error
     mg_log, strjoin(error_result, ' '), name='kcor/cme', /error
@@ -198,6 +207,10 @@ pro kcor_cme_det_report, time, widget=widget
 
   ; delete the temporary files
   file_delete, mailfile
+
+  ; TODO: should we send an interim "summary" JSON alert? do they need a flags
+  ; to indicate they are interim?
+  if (keyword_set(interim)) then goto, done
 
   ; send JSON alert
   alerts_basedir = run->config('cme/alerts_basedir')

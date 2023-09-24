@@ -49,4 +49,5 @@ common kcor_cme_detection, nlon, $
                            last_heartbeat_last_data_time, $
                            last_data_time, $
                            last_sci_data_time, $
+                           last_interim_report, $
                            run
