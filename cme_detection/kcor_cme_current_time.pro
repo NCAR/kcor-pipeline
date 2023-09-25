@@ -56,7 +56,7 @@ end
 
 ; main-level example program
 
-date = '20170904'
+date = '20131216'
 config_basename = 'kcor.cme-test.cfg'
 config_filename = filepath(config_basename, $
                            subdir=['..', 'config'], $
@@ -64,6 +64,7 @@ config_filename = filepath(config_basename, $
 run = kcor_run(date, config_filename=config_filename)
 
 print, kcor_cme_current_time(run=run)
+print, utc2tai(kcor_cme_current_time(run=run))
 
 obj_destroy, run
 

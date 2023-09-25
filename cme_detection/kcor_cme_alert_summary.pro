@@ -16,7 +16,8 @@ function kcor_cme_alert_summary, issue_time, $
                                  position_angle=position_angle, $
                                  speed=speed, $
                                  height=height, $
-                                 time_for_height=time_for_height
+                                 time_for_height=time_for_height, $
+                                 interim=interim
   compile_opt strictarr
 
   model = {short_name: 'MLSO K-Cor', $
@@ -33,9 +34,9 @@ function kcor_cme_alert_summary, issue_time, $
                               products:list({product: 'White Light', $
                                              last_data_time: last_data_time})}})
 
-  observations = list({all_clear: {all_clear_boolean: boolean(1B), $
+  observations = list({all_clear: {all_clear_boolean: keyword_set(interim) ? boolean(0B) : boolean(1B), $
                                    all_clear_type: 'cme'}, $
-                       alert: {alert_type: 'SUMMARY', $
+                       alert: {alert_type: keyword_set(interim) ? 'INTERIM' : 'SUMMARY', $
                                start_time: start_time, $
                                end_time: time_for_height}})
 

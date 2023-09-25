@@ -123,11 +123,12 @@ pro kcor_cme_det_measure, rsun, updated=updated, alert=alert, ysig=ysig, $
       speed = speed0
       updated = 1B
 
+      summary_report_interval = run->config('cme/summary_report_interval')
       if (n_elements(tairef) eq 0) then begin
         alert = 1
       endif else begin
         ; more than 60 minutes from last successful measurement/alert
-        if ((tai0 - tairef) gt 3600) then alert = 1
+        if ((tai0 - tairef) gt summary_report_interval) then alert = 1
       endelse
       if (n_elements(tairef) gt 0L) then old_tairef = tairef
       tairef = tai0
