@@ -46,7 +46,7 @@ pro kcor_cme_retract, observing_date, retract_time, retract_position_angle, list
     retract_ut_datetime = string(retract_ut_date, retract_time, $
                                  format='(%"%sT%sZ")')
     alert_json = kcor_cme_alert_retract(issue_time, $
-                                        last_data_time, $  ; TODO: or last_sci_data_time?
+                                        last_sci_data_time, $
                                         ~cme_occurring, mode, $
                                         retract_time=retract_ut_datetime, $
                                         retract_position_angle=retract_position_angle, $

@@ -48,7 +48,7 @@ pro kcor_cme_human, observing_date, start_time, position_angle, width, list_dir,
                                format='(%"%sT%sZ")')
     alert_json = kcor_cme_alert_human(issue_time, $
                                       alert_ut_datetime, $
-                                      last_data_time, $  ; TODO: or last_sci_data_time?
+                                      last_sci_data_time, $
                                       position_angle, $
                                       ~cme_occurring, $
                                       mode, $

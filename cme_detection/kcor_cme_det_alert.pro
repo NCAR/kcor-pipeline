@@ -101,7 +101,7 @@ pro kcor_cme_det_alert, itime, rsun, operator=operator
     time_for_height = tai2utc(tairef, /truncate, /ccsds) + 'Z'
     mode = run->config('cme/mode')
     alert_json = kcor_cme_alert_initial(issue_time, $
-                                        last_data_time, $  ; TODO: or last_sci_data_time?
+                                        last_sci_data_time, $
                                         start_time, $
                                         mode, $
                                         position_angle=angle, $

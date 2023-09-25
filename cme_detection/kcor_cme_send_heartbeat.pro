@@ -56,7 +56,7 @@ pro kcor_cme_send_heartbeat
 
       mode = run->config('cme/mode')
       heartbeat_json = kcor_cme_alert_heartbeat(issue_time, $
-                                                last_data_time, $   ; TODO: or last_sci_data_time
+                                                last_sci_data_time, $
                                                 ~cme_occurring, $
                                                 mode)
 
