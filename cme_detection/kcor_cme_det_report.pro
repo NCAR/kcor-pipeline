@@ -183,7 +183,7 @@ pro kcor_cme_det_report, time, widget=widget, interim=interim
   ; form a subject line for the email
   subject = string(keyword_set(interim) ? 'interim' : 'summary', $
                    ut_date, time, $
-                   format='(%"MLSO K-Cor % sreport for CME on %s ending at %s UT")')
+                   format='(%"MLSO K-Cor %s report for CME on %s ending at %s UT")')
 
   from_email = n_elements(run->config('cme/from_email')) eq 0L $
                  ? '$(whoami)@ucar.edu' $
@@ -198,7 +198,7 @@ pro kcor_cme_det_report, time, widget=widget, interim=interim
   spawn, cmd, result, error_result, exit_status=status
   if (status eq 0L) then begin
     mg_log, '%s report sent to %s', $
-            keyword_set(interim) ? 'interim ' : 'summary', $
+            keyword_set(interim) ? 'interim' : 'summary', $
             addresses, name='kcor/cme', /info
   endif else begin
     mg_log, 'problem with mail command: %s', cmd, name='kcor/cme', /error
