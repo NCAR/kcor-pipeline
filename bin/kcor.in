@@ -570,7 +570,23 @@ def verify(args):
 
 # alerts
 def list_alerts(args):
-    for f in args.json_files:
+    if len(args.json_files) == 0:
+        json_files = glob.glob("*.json")
+    else:
+        json_files = args.json_files
+
+    # sort files by ISSUE_TIME where filenames are of the form:
+    #
+    #   mlso_kcor.EVENT_TIME.ISSUE_TIME.json
+    #
+    # where times are of the form YYYY-MM-DDTHHMMSSZ.
+    if args.by_issue_time:
+        issue_start = 29
+        date_length = 18
+        json_files = sorted(json_files,
+            key=lambda f: f[issue_start:issue_start + date_length])
+
+    for f in json_files:
         basename = os.path.basename(f)
         with open(f) as jf:
             alert = json.load(jf)
@@ -1290,6 +1306,8 @@ if __name__ == "__main__":
 
     alert_parser = subparsers.add_parser("alert",
                                          help="list JSON alerts")
+    alert_parser.add_argument("--by-issue-time", action="store_true",
+                              help="sort JSON alerts by issue time instead of event time")
     alert_parser.add_argument("json_files", nargs="*",
                               help="JSON alert files",
                               metavar="json_file")
