@@ -1,6 +1,6 @@
 ; docformat = 'rst'
 
-pro kcor_db_alert_summary_ingest, summary_json
+pro kcor_db_alert_summary_ingest, summary_json, interim=interim
   compile_opt strictarr
   @kcor_cme_det_common
 
@@ -80,7 +80,7 @@ pro kcor_db_alert_summary_ingest, summary_json
   db->execute, sql_cmd, $
                obsday_index, $
                current_cme_id, $
-               'summary', $
+               keyword_set(interim) ? 'interim' : 'summary', $
                '', $
                'cme', $
                0B, $   ; TODO: check this?
