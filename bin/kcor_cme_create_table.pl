@@ -122,7 +122,7 @@ $command = "create table kcor_cme_alert (
 
   cme_id                int(10),
 
-  alert_type            enum('initial', 'observer', 'retraction', 'summary', 'analyst'),
+  alert_type            enum('initial', 'observer', 'retraction', 'interim', 'summary', 'analyst'),
   event_type            text,
   cme_type              enum('possible cme', 'cme', 'jet', 'epl', 'outflow'),
   retracted             boolean,
