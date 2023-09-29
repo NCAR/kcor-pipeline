@@ -1,7 +1,11 @@
 ; docformat = 'rst'
 
 ;+
-; Update "YYYYMMDD.kcor.cme.list.txt" in `list_dir`.
+; Update "YYYYMMDD.kcor.cme.TYPE.txt" in `list_dir`.
+;
+; List files look like::
+;
+;     19:49:29  109.50 deg
 ;
 ; :Params:
 ;   observing_date : in, required, type=string
