@@ -275,18 +275,8 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget, realtime=realtime
           mg_log, 'tai0: %s', tai2utc(tai0, /time, /truncate, /ccsds), name='kcor/cme', /debug
           mg_log, 'current CME: %s', tai2utc(current_cme_tai, /time, /truncate, /ccsds), name='kcor/cme', /debug
 
-          interim_report_interval = run->config('cme/interim_report_interval')
-          send_interim_report = (tai0 - last_interim_report) gt interim_report_interval
-
           summary_report_interval = run->config('cme/summary_report_interval')
           send_summary_report = (tai0 - current_cme_tai) gt summary_report_interval
-
-          if (send_interim_report && ~send_summary_report) then begin
-            last_interim_report = tai0
-            ref_time = tai2utc(tairef, /time, /truncate, /ccsds)
-            mg_log, 'sending interim report', name='kcor/cme', /debug
-            kcor_cme_det_report, ref_time, /interim
-          endif
 
           if (send_summary_report) then begin
             ref_time = tai2utc(tairef, /time, /truncate, /ccsds)

@@ -116,6 +116,32 @@ pro kcor_cme_detection_job, date, $
     kcor_cme_handle_retractions
     kcor_cme_handle_human
 
+    if ((n_elements(date_diff) gt 0L) && cme_occurring) then begin
+      itime = n_elements(leadingedge) - 1
+      tai0 = date_diff[itime].tai_avg
+
+      interim_report_interval = run->config('cme/interim_report_interval')
+      current_time = kcor_cme_current_time(run=run)
+      current_tai = utc2tai(current_time)
+      send_interim_report = (current_tai - last_interim_report) gt interim_report_interval
+
+      mg_log, 'time since last interim report: %0.1f secs (%s %0.1f secs)', $
+              current_tai - last_interim_report, $
+              send_interim_report ? '>' : '<', $
+              interim_report_interval, $
+              name='kcor/cme', /debug
+
+      summary_report_interval = run->config('cme/summary_report_interval')
+      send_summary_report = (tai0 - current_cme_tai) gt summary_report_interval
+
+      if (send_interim_report && ~send_summary_report) then begin
+        last_interim_report = current_tai
+        ref_time = tai2utc(tairef, /time, /truncate, /ccsds)
+        mg_log, 'sending interim report', name='kcor/cme', /debug
+        kcor_cme_det_report, ref_time, /interim
+      endif
+    endif
+
     ; it is useful to know the simulation time if this a realtime simulation
     mode = run->config('cme/mode')
     time_dir = run->config('simulator/time_dir')
