@@ -684,3 +684,6 @@
   log CME detection parameters
   add entries to CME database table
 2.1.7
+  send interim CME reports
+  send summary CME report if a new CME occurs during an existing CME
+  don't send heartbeat alert if no new data
