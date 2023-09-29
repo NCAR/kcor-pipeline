@@ -46,8 +46,7 @@ function kcor_cme_current_time, run=run, error=error
     now = string(date, time, format='(%"%04d-%02d-%02dT%02d:%02d:%02dZ")')
   endif else begin
     iso8601_fmt = '(C(CYI4.4, "-", CMOI2.2, "-", CDI2.2, "T", CHI2.2, ":", CMI2.2, ":", CSI2.2, "Z"))'
-    ; add 10 hours to get UT time
-    now = string(julday() + 10.0D/24.0D, format=iso8601_fmt)
+    now = string(systime(/julian, /utc), format=iso8601_fmt)
   endelse
 
   return, now
