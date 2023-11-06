@@ -87,10 +87,17 @@ $command = "CREATE TABLE kcor_sci (
   totalpB             FLOAT (23, 9),
   intensity           BLOB,
   intensity_stddev    BLOB,
-  r108                BLOB,
+
   r111                BLOB,
-  r13                 BLOB,
-  r18                 BLOB,
+  r115                BLOB,
+  r12                 BLOB,
+  r135                BLOB,
+  r15                 BLOB,
+  r175                BLOB,
+  r20                 BLOB,
+  r225                BLOB,
+  r25                 BLOB,
+
   FOREIGN KEY (obs_day) REFERENCES mlso_numfiles(day_id),
   FOREIGN KEY (level) REFERENCES kcor_level(level_id)
 )" ;

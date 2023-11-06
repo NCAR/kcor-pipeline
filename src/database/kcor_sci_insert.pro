@@ -95,27 +95,40 @@ pro kcor_sci_insert, date, files, $
     y = (rebin(reform(findgen(1024), 1, 1024), 1024, 1024) - cy) / sun_pixels
     d = sqrt(x^2 + y^2)
     annulus = where(d gt 1.1 and d lt 2.0, count)
-
     total_pb = count eq 0L ? 0.0 : total(image[annulus], /preserve_type)
 
     r111 = kcor_annulus_gridmeans(image, 1.11, sun_pixels)
-    r13 = kcor_annulus_gridmeans(image, 1.3, sun_pixels)
-    r18 = kcor_annulus_gridmeans(image, 1.8, sun_pixels)
+    r115 = kcor_annulus_gridmeans(image, 1.15, sun_pixels)
+    r12  = kcor_annulus_gridmeans(image, 1.2, sun_pixels)
+    r135 = kcor_annulus_gridmeans(image, 1.35, sun_pixels)
+    r15  = kcor_annulus_gridmeans(image, 1.5, sun_pixels)
+    r175 = kcor_annulus_gridmeans(image, 1.75, sun_pixels)
+    r20  = kcor_annulus_gridmeans(image, 2.0, sun_pixels)
+    r225 = kcor_annulus_gridmeans(image, 2.25, sun_pixels)
+    r250 = kcor_annulus_gridmeans(image, 2.5, sun_pixels)
 
     level_id = kcor_get_level_id(level_name, database=db, count=level_found)
     if (level_found eq 0) then mg_log, 'using unknown level', name=log_name, /error
 
-    db->execute, 'INSERT INTO kcor_sci (file_name, date_obs, obs_day, level, totalpB, intensity, intensity_stddev, r111, r13, r18) VALUES (''%s'', ''%s'', %d, %d, %f, ''%s'', ''%s'', ''%s'', ''%s'', ''%s'')', $
+    db->execute, 'INSERT INTO kcor_sci (file_name, date_obs, obs_day, level, totalpB, intensity, intensity_stddev, r111, r115, r12, r135, r15, r175, r20, r225, r25) VALUES (''%s'', ''%s'', %d, %d, %f, ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'')', $
                  file_basename(files[f], '.gz'), $
                  date_obs, $
                  obsday_index, $
                  level_id, $
                  total_pb, $
+
                  db->escape_string(intensity), $
                  db->escape_string(intensity_stddev), $
+
                  db->escape_string(r111), $
-                 db->escape_string(r13), $
-                 db->escape_string(r18), $
+                 db->escape_string(r115), $
+                 db->escape_string(r12), $
+                 db->escape_string(r135), $
+                 db->escape_string(r15), $
+                 db->escape_string(r175), $
+                 db->escape_string(r20), $
+                 db->escape_string(r225), $
+                 db->escape_string(r25), $
                  status=status
     if (status ne 0L) then continue
   endfor

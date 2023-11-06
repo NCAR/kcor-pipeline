@@ -15,9 +15,8 @@ pro kcor_rolling_synoptic_map, database=db, run=run
   n_days = 28   ; number of days to include in the plot
   logger_name = run.logger_name
 
-  ;logger_name = run.logger_name
-  mg_log, 'producing synoptic plot of last %d days', n_days, $
-          name=logger_name, /info
+  heights =  [1.11, 1.15, 1.20, 1.35, 1.50, 1.75, 2.00, 2.25, 2.50]
+  height_names = ['r111', 'r115', 'r12', 'r135', 'r15', 'r175', 'r20', 'r225', 'r25']
 
   ; query database for data
   end_date_tokens = long(kcor_decompose_date(run.date))
@@ -43,154 +42,161 @@ pro kcor_rolling_synoptic_map, database=db, run=run
     goto, done
   endelse
 
-  ; organize data
-  radius = 1.3
-  data = raw_data.r13
+  for h = 0L, n_elements(heights) - 1L do begin
+    mg_log, 'producing synoptic plot for %0.2f Rsun of last %d days', $
+            heights[h], n_days, $
+            name=logger_name, /info
 
-  dates = raw_data.date_obs
-  n_dates = n_elements(dates)
+    radius = 1.3
+    height_index = where(tag_names(raw_data) eq height_names[h])
+    data = raw_data.(height_index[0])
 
-  map = fltarr(n_days, 720) + !values.f_nan
-  means = fltarr(n_days) + !values.f_nan
-  for r = 0L, n_dates - 1L do begin
-    decoded = *data[r]
-    if (n_elements(decoded) gt 0L) then begin
-      *data[r] = float(*data[r], 0, 720)   ; decode byte data to float
+    dates = raw_data.date_obs
+    n_dates = n_elements(dates)
+
+    map = fltarr(n_days, 720) + !values.f_nan
+    means = fltarr(n_days) + !values.f_nan
+    for r = 0L, n_dates - 1L do begin
+      decoded = *data[r]
+      if (n_elements(decoded) gt 0L) then begin
+        *data[r] = float(*data[r], 0, 720)   ; decode byte data to float
+      endif
+
+      date = dates[r]
+      date_index = mlso_dateobs2jd(date) - start_date_jd - 10.0/24.0
+      date_index = floor(date_index)
+
+      if (ptr_valid(data[r]) && n_elements(*data[r]) gt 0L) then begin
+        map[date_index, *] = *data[r]
+        means[date_index] = mean(*data[r])
+      endif else begin
+        map[date_index, *] = !values.f_nan
+        means[date_index] = !values.f_nan
+      endelse
+    endfor
+
+    ; plot data
+    set_plot, 'Z'
+    device, set_resolution=[(30 * n_days + 50) < 1200, 800]
+    original_device = !d.name
+
+    device, get_decomposed=original_decomposed
+    tvlct, rgb, /get
+    device, decomposed=0
+
+    range = mg_range(map)
+    if (range[0] lt 0.0) then begin
+      minv = 0.0
+      maxv = range[1]
+
+      loadct, 0, /silent
+      foreground = 0
+      background = 255
+    endif else begin
+      minv = 0.0
+      maxv = range[1]
+
+      loadct, 0, /silent
+      foreground = 0
+      background = 255
+    endelse
+
+    north_up_map = shift(map, 0, -180)
+    east_limb = reverse(north_up_map[*, 0:359], 2)
+    west_limb = north_up_map[*, 360:*]
+
+    !null = label_date(date_format='%D %M %Z')
+    jd_dates = dblarr(n_dates)
+    for d = 0L, n_dates - 1L do jd_dates[d] = mlso_dateobs2jd(dates[d])
+
+    charsize = 1.0
+    smooth_kernel = [11, 1]
+
+    title = string(heights[h], start_date, end_date, $
+                   format='(%"Synoptic map for r%0.2f Rsun from %s to %s")')
+    erase, background
+    mg_image, reverse(east_limb, 1), reverse(jd_dates), $
+              xrange=[end_date_jd, start_date_jd], $
+              xtyle=1, xtitle='Date (not offset for E limb)', $
+              min_value=minv, max_value=maxv, $
+              /axes, yticklen=-0.005, xticklen=-0.01, $
+              color=foreground, background=background, $
+              title=string(title, format='(%"%s (East limb)")'), $
+              xtickformat='label_date', $
+              position=[0.05, 0.55, 0.97, 0.95], /noerase, $
+              yticks=4, ytickname=['S', 'SE', 'E', 'NE', 'N'], yminor=4, $
+              smooth_kernel=smooth_kernel, $
+              charsize=charsize
+    mg_image, reverse(west_limb, 1), reverse(jd_dates), $
+              xrange=[end_date_jd, start_date_jd], $
+              xstyle=1, xtitle='Date (not offset for W limb)', $
+              min_value=minv, max_value=maxv, $
+              /axes, yticklen=-0.005, xticklen=-0.01, $
+              color=foreground, background=background, $
+              title=string(title, format='(%"%s (West limb)")'), $
+              xtickformat='label_date', $
+              position=[0.05, 0.05, 0.97, 0.45], /noerase, $
+              yticks=4, ytickname=['S', 'SW', 'W', 'NW', 'N'], yminor=4, $
+              smooth_kernel=smooth_kernel, $
+              charsize=charsize
+
+    xyouts, 0.97, 0.485, /normal, alignment=1.0, $
+            string(minv, maxv, format='(%"min/max: %0.3g, %0.3g")'), $
+            charsize=charsize, color=128
+
+    im = tvrd()
+
+    p_dir = filepath('p', subdir=run.date, root=run->config('processing/raw_basedir'))
+    if (~file_test(p_dir, /directory)) then file_mkdir, p_dir
+
+    gif_filename = filepath(string(run.date, $
+                                   100.0 * 1.3, $
+                                   format='(%"%s.kcor.28day.synoptic.r%03d.gif")'), $
+                            root=p_dir)
+    write_gif, gif_filename, im, rgb[*, 0], rgb[*, 1], rgb[*, 2]
+
+    mkhdr, primary_header, map, /extend
+    sxdelpar, primary_header, 'DATE'
+    sxaddpar, primary_header, 'DATE-OBS', start_date, $
+              ' [UTC] start date of synoptic map', after='EXTEND'
+    sxaddpar, primary_header, 'DATE-END', end_date, $
+              ' [UTC] end date of synoptic map', $
+              format='(F0.2)', after='DATE-OBS'
+    sxaddpar, primary_header, 'HEIGHT', radius, $
+              ' [Rsun] height of annulus +/- 0.02 Rsun', $
+              format='(F0.2)', after='DATE-END'
+
+    fits_filename = filepath(string(run.date, $
+                                    n_days, $
+                                    100.0 * radius, $
+                                    format='(%"%s.kcor.%dday.synoptic.r%03d.fts")'), $
+                             root=p_dir)
+    writefits, fits_filename, map, primary_header
+
+    synoptic_maps_basedir = run->config('results/synoptic_maps_basedir')
+    if (n_elements(synoptic_maps_basedir) gt 0L) then begin
+      date_parts = kcor_decompose_date(run.date)
+      synoptic_maps_dir = filepath('', $
+                                   subdir=[date_parts[0], date_parts[1]], $
+                                   root=synoptic_maps_basedir)
+      if (~file_test(synoptic_maps_dir, /directory)) then file_mkdir, synoptic_maps_dir
+      mg_log, 'distributing %d day rolling synoptic map for %0.2f Rsun to synmaps dir...', $
+              n_days, heights[h], name=logger_name, /info
+      file_copy, fits_filename, synoptic_maps_dir, /overwrite
+      file_copy, gif_filename, synoptic_maps_dir, /overwrite
     endif
 
-    date = dates[r]
-    date_index = mlso_dateobs2jd(date) - start_date_jd - 10.0/24.0
-    date_index = floor(date_index)
-
-    if (ptr_valid(data[r]) && n_elements(*data[r]) gt 0L) then begin
-      map[date_index, *] = *data[r]
-      means[date_index] = mean(*data[r])
-    endif else begin
-      map[date_index, *] = !values.f_nan
-      means[date_index] = !values.f_nan
-    endelse
+    engineering_basedir = run->config('results/engineering_basedir')
+    if (n_elements(engineering_basedir) gt 0L) then begin
+      date_parts = kcor_decompose_date(run.date)
+      eng_dir = filepath('', subdir=kcor_decompose_date(run.date), root=engineering_basedir)
+      if (~file_test(eng_dir, /directory)) then file_mkdir, eng_dir
+      mg_log, 'distributing %d day rolling synoptic map for %0.2f Rsun to engineering...', $
+              n_days, heights[h], name=logger_name, /info
+      file_copy, fits_filename, eng_dir, /overwrite
+      file_copy, gif_filename, eng_dir, /overwrite
+    endif
   endfor
-
-  ; plot data
-  set_plot, 'Z'
-  device, set_resolution=[(30 * n_days + 50) < 1200, 800]
-  original_device = !d.name
-
-  device, get_decomposed=original_decomposed
-  tvlct, rgb, /get
-  device, decomposed=0
-
-  range = mg_range(map)
-  if (range[0] lt 0.0) then begin
-    minv = 0.0
-    maxv = range[1]
-
-    loadct, 0, /silent
-    foreground = 0
-    background = 255
-  endif else begin
-    minv = 0.0
-    maxv = range[1]
-
-    loadct, 0, /silent
-    foreground = 0
-    background = 255
-  endelse
-
-  north_up_map = shift(map, 0, -180)
-  east_limb = reverse(north_up_map[*, 0:359], 2)
-  west_limb = north_up_map[*, 360:*]
-
-  !null = label_date(date_format='%D %M %Z')
-  jd_dates = dblarr(n_dates)
-  for d = 0L, n_dates - 1L do jd_dates[d] = mlso_dateobs2jd(dates[d])
-
-  charsize = 1.0
-  smooth_kernel = [11, 1]
-
-  title = string(start_date, end_date, $
-                 format='(%"Synoptic map for r1.3 from %s to %s")')
-  erase, background
-  mg_image, reverse(east_limb, 1), reverse(jd_dates), $
-            xrange=[end_date_jd, start_date_jd], $
-            xtyle=1, xtitle='Date (not offset for E limb)', $
-            min_value=minv, max_value=maxv, $
-            /axes, yticklen=-0.005, xticklen=-0.01, $
-            color=foreground, background=background, $
-            title=string(title, format='(%"%s (East limb)")'), $
-            xtickformat='label_date', $
-            position=[0.05, 0.55, 0.97, 0.95], /noerase, $
-            yticks=4, ytickname=['S', 'SE', 'E', 'NE', 'N'], yminor=4, $
-            smooth_kernel=smooth_kernel, $
-            charsize=charsize
-  mg_image, reverse(west_limb, 1), reverse(jd_dates), $
-            xrange=[end_date_jd, start_date_jd], $
-            xstyle=1, xtitle='Date (not offset for W limb)', $
-            min_value=minv, max_value=maxv, $
-            /axes, yticklen=-0.005, xticklen=-0.01, $
-            color=foreground, background=background, $
-            title=string(title, format='(%"%s (West limb)")'), $
-            xtickformat='label_date', $
-            position=[0.05, 0.05, 0.97, 0.45], /noerase, $
-            yticks=4, ytickname=['S', 'SW', 'W', 'NW', 'N'], yminor=4, $
-            smooth_kernel=smooth_kernel, $
-            charsize=charsize
-
-  xyouts, 0.97, 0.485, /normal, alignment=1.0, $
-          string(minv, maxv, format='(%"min/max: %0.3g, %0.3g")'), $
-          charsize=charsize, color=128
-
-  im = tvrd()
-
-  p_dir = filepath('p', subdir=run.date, root=run->config('processing/raw_basedir'))
-  if (~file_test(p_dir, /directory)) then file_mkdir, p_dir
-
-  gif_filename = filepath(string(run.date, $
-                                 100.0 * 1.3, $
-                                 format='(%"%s.kcor.28day.synoptic.r%03d.gif")'), $
-                          root=p_dir)
-  write_gif, gif_filename, im, rgb[*, 0], rgb[*, 1], rgb[*, 2]
-
-  mkhdr, primary_header, map, /extend
-  sxdelpar, primary_header, 'DATE'
-  sxaddpar, primary_header, 'DATE-OBS', start_date, $
-            ' [UTC] start date of synoptic map', after='EXTEND'
-  sxaddpar, primary_header, 'DATE-END', end_date, $
-            ' [UTC] end date of synoptic map', $
-            format='(F0.2)', after='DATE-OBS'
-  sxaddpar, primary_header, 'HEIGHT', radius, $
-            ' [Rsun] height of annulus +/- 0.02 Rsun', $
-            format='(F0.2)', after='DATE-END'
-
-  fits_filename = filepath(string(run.date, $
-                                  100.0 * radius, $
-                                  format='(%"%s.kcor.28day.synoptic.r%03d.fts")'), $
-                           root=p_dir)
-  writefits, fits_filename, map, primary_header
-
-  synoptic_maps_basedir = run->config('results/synoptic_maps_basedir')
-  if (n_elements(synoptic_maps_basedir) gt 0L) then begin
-    date_parts = kcor_decompose_date(run.date)
-    synoptic_maps_dir = filepath('', $
-                                 subdir=[date_parts[0], date_parts[1]], $
-                                 root=synoptic_maps_basedir)
-    if (~file_test(synoptic_maps_dir, /directory)) then file_mkdir, synoptic_maps_dir
-    mg_log, 'distributing 28 day rolling synoptic map to synmaps dir...', $
-            name=logger_name, /info
-    file_copy, fits_filename, synoptic_maps_dir, /overwrite
-    file_copy, gif_filename, synoptic_maps_dir, /overwrite
-  endif
-
-  engineering_basedir = run->config('results/engineering_basedir')
-  if (n_elements(engineering_basedir) gt 0L) then begin
-    date_parts = kcor_decompose_date(run.date)
-    eng_dir = filepath('', subdir=kcor_decompose_date(run.date), root=engineering_basedir)
-    if (~file_test(eng_dir, /directory)) then file_mkdir, eng_dir
-    mg_log, 'distributing 28 day rolling synoptic map to engineering...', $
-            name=logger_name, /info
-    file_copy, fits_filename, eng_dir, /overwrite
-    file_copy, gif_filename, eng_dir, /overwrite
-  endif
 
   ; clean up
   done:
