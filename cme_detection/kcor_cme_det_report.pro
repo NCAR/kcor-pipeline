@@ -182,8 +182,10 @@ pro kcor_cme_det_report, time, widget=widget, interim=interim
 
   ; form a subject line for the email
   subject = string(keyword_set(interim) ? 'interim' : 'summary', $
-                   ut_date, time, $
-                   format='(%"MLSO K-Cor %s report for CME on %s ending at %s UT")')
+                   ut_date, $
+                   keyword_set(interim) ? 'at' : 'ending at', $
+                   time, $
+                   format='(%"MLSO K-Cor %s report for CME on %s %s %s UT")')
 
   from_email = n_elements(run->config('cme/from_email')) eq 0L $
                  ? '$(whoami)@ucar.edu' $
