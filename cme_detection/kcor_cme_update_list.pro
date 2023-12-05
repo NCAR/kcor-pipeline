@@ -6,6 +6,7 @@
 ; List files look like::
 ;
 ;     19:49:29  109.50 deg
+;     20:46:38  250.50 deg
 ;
 ; :Params:
 ;   observing_date : in, required, type=string

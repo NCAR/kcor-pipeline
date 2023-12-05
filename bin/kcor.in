@@ -69,6 +69,7 @@ POLL_SECS = 0.5
 LEVELS = ["DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"]
 LOG_DIR = "/hao/acos/kcor/logs"
 
+CONFIG_DIR = "@CONFIG_DIR@"
 
 intervals = (
     ("weeks", 604800),  # 60 * 60 * 24 * 7
@@ -77,6 +78,16 @@ intervals = (
     ("mins", 60),
     ("secs", 1),
     )
+
+
+def get_config_filename(flags):
+    config_basename = f"kcor.{flags}.cfg"
+
+    # construct config file filename
+    config_filename = os.path.join(CONFIG_DIR, config_basename)
+
+    return(config_filename)
+
 
 def display_time(seconds, granularity=2):
     result = []
@@ -107,10 +118,7 @@ def convert_boolean(value):
 
 
 def notify_completed(args, task):
-    config_basename = f"kcor.{args.flags}.cfg"
-
-    # construct config file filename
-    config_filename = os.path.join(PIPELINE_DIR, "config", config_basename)
+    config_filename = get_config_filename(args.flags)
 
     # read config file to get arguments to launch data/processing simulators
     config = configparser.ConfigParser()
@@ -176,10 +184,7 @@ def split_dates(date_expr, error):
 
 
 def get_login(flags, error):
-    config_basename = f"kcor.{flags}.cfg"
-
-    # construct config file filename
-    config_filename = os.path.join(PIPELINE_DIR, "config", config_basename)
+    config_filename = get_config_filename(flags)
     if not os.path.isfile(config_filename):
         basename = os.path.basename(config_filename)
         error(f"configuration file does not exist: {basename}")
@@ -743,8 +748,7 @@ def missing(args):
 
         if args.script:
             print("#!/bin/sh")
-            config_basename = f"kcor.{args.flags}.cfg"
-            config_filename = os.path.join(PIPELINE_DIR, "config", config_basename)
+            config_filename = get_config_filename(args.flags)
             if not os.path.isfile(config_filename):
                 basename = os.path.basename(config_filename)
                 args.parser.error(f"configuration file does not exist: {basename}")
@@ -772,10 +776,7 @@ def missing(args):
 
 
 def get_raw_dir(date, flags, error):
-    config_basename = f"kcor.{flags}.cfg"
-
-    # construct config file filename
-    config_filename = os.path.join(PIPELINE_DIR, "config", config_basename)
+    config_filename = get_config_filename(flags)
     if not os.path.isfile(config_filename):
         basename = os.path.basename(config_filename)
         error(f"configuration file does not exist: {basename}")
@@ -1016,10 +1017,7 @@ def simulate(args):
     if len(args.dates) > 1:
         args.parser.error("only a single date allowed when using the simulator")
 
-    config_basename = f"kcor.{args.flags}.cfg"
-
-    # construct config file filename
-    config_filename = os.path.join(PIPELINE_DIR, "config", config_basename)
+    config_filename = get_config_filename(args.flags)
 
     # read config file to get arguments to launch data/processing simulators
     config = configparser.ConfigParser()
@@ -1148,9 +1146,7 @@ def raw_basedir(date, config_filename):
 
 
 def stage_date(parser, date, flags, dst):
-    config_filename = os.path.join(PIPELINE_DIR,
-                                   "config",
-                                   f"kcor.{flags}.cfg")
+    config_filename = get_config_filename(flags)
     src = raw_basedir(date, config_filename)
 
     if src is None:
@@ -1193,9 +1189,7 @@ def copy_files(date, src, spec, dst, *, verbose=False):
 # locate sub-command
 def locate(args):
     # get config file
-    config_filename = os.path.join(PIPELINE_DIR,
-                                   "config",
-                                   f"kcor.{args.flags}.cfg")
+    config_filename = get_config_filename(args.flags)
 
     if args.dates:
         for e in args.dates:

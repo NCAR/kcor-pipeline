@@ -143,3 +143,7 @@ endif ()
 
 message(STATUS "Install location = ${CMAKE_INSTALL_PREFIX}")
 message(STATUS "Install version = ${VERSION}")
+
+set(DEFAULT_CONFIG_PATH "${CMAKE_INSTALL_PREFIX}/config" CACHE PATH "default path to configuration files")
+set(CONFIG_DIR "${DEFAULT_CONFIG_PATH}" CACHE PATH "path to configuration files")
+message(STATUS "configuration directory = ${CONFIG_DIR}")

@@ -47,7 +47,6 @@ pro kcor_rolling_synoptic_map, database=db, run=run
             heights[h], n_days, $
             name=logger_name, /info
 
-    radius = 1.3
     height_index = where(tag_names(raw_data) eq height_names[h])
     data = raw_data.(height_index[0])
 
@@ -150,7 +149,7 @@ pro kcor_rolling_synoptic_map, database=db, run=run
     if (~file_test(p_dir, /directory)) then file_mkdir, p_dir
 
     gif_filename = filepath(string(run.date, $
-                                   100.0 * 1.3, $
+                                   100.0 * heights[h], $
                                    format='(%"%s.kcor.28day.synoptic.r%03d.gif")'), $
                             root=p_dir)
     write_gif, gif_filename, im, rgb[*, 0], rgb[*, 1], rgb[*, 2]
@@ -162,13 +161,13 @@ pro kcor_rolling_synoptic_map, database=db, run=run
     sxaddpar, primary_header, 'DATE-END', end_date, $
               ' [UTC] end date of synoptic map', $
               format='(F0.2)', after='DATE-OBS'
-    sxaddpar, primary_header, 'HEIGHT', radius, $
+    sxaddpar, primary_header, 'HEIGHT', heights[h], $
               ' [Rsun] height of annulus +/- 0.02 Rsun', $
               format='(F0.2)', after='DATE-END'
 
     fits_filename = filepath(string(run.date, $
                                     n_days, $
-                                    100.0 * radius, $
+                                    100.0 * heights[h], $
                                     format='(%"%s.kcor.%dday.synoptic.r%03d.fts")'), $
                              root=p_dir)
     writefits, fits_filename, map, primary_header
