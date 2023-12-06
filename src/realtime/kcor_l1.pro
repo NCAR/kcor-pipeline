@@ -796,8 +796,16 @@ pro kcor_l1, ok_filename, $
 
   ; observation information
   fxaddpar, l1_header, 'DATE-OBS', struct.date_d$obs, ' UTC observation start'
-  ; fxaddpar, l1_header, 'DATE-BEG', struct.date_d$obs, ' UTC observation start'
   fxaddpar, l1_header, 'DATE-END', struct.date_d$end, ' UTC observation end'
+
+  fxaddpar, l1_header, 'MJD-OBS', $
+            kcor_dateobs2julday(struct.date_d$obs) - 2400000.5D, $
+            ' [days] modified Julian date', $
+            format='F0.9'
+  fxaddpar, l1_header, 'MJD-END', $
+            kcor_dateobs2julday(struct.date_d$end) - 2400000.5D, $
+            ' [days] modified Julian date', $
+            format='F0.9'
 
   fxaddpar, l1_header, 'TIMESYS',  'UTC', $
             ' date/time system: Coordinated Universal Time'
@@ -903,6 +911,21 @@ pro kcor_l1, ok_filename, $
   fxaddpar, l1_header, 'INST_ROT', 0.00, $
             ' [deg] rotation of the image wrt solar north', $
             format='(f9.3)'
+
+  au_to_meters = 149597870700.0D
+
+  fxaddpar, l1_header, 'DSUN_OBS', $
+            dist_au * au_to_meters, $
+            ' [m] distance to the Sun from observer', $
+            format='(f0.1)'
+  fxaddpar, l1_header, 'HGLN_OBS', $
+            0.0, $
+            ' [deg] Stonyhurst heliographic longitude', $
+            format='(f0.3)'
+  fxaddpar, l1_header, 'HGLT_OBS', $
+            bangle, $
+            ' [deg] Stonyhurst heliographic latitude', $
+            format='(f0.3)'
   fxaddpar, l1_header, 'PC1_1', 1.00, $
             ' coord transform matrix element (1, 1) WCS std.', $
             format='(f9.3)'
