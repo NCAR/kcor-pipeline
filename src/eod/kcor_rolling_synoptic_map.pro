@@ -47,7 +47,7 @@ pro kcor_rolling_synoptic_map, database=db, run=run
             heights[h], n_days, $
             name=logger_name, /info
 
-    height_index = where(tag_names(raw_data) eq height_names[h])
+    height_index = where(tag_names(raw_data) eq strupcase(height_names[h]))
     data = raw_data.(height_index[0])
 
     dates = raw_data.date_obs
@@ -58,7 +58,16 @@ pro kcor_rolling_synoptic_map, database=db, run=run
     for r = 0L, n_dates - 1L do begin
       decoded = *data[r]
       if (n_elements(decoded) gt 0L) then begin
-        *data[r] = float(*data[r], 0, 720)   ; decode byte data to float
+        if (n_elements(decoded) eq 720L * 4L) then begin
+          *data[r] = float(decoded, 0, 720)   ; decode byte data to float
+        endif else begin
+          mg_log, 'invalid size for %s at %s: %d bytes', $
+                  height_names[h], $
+                  dates[r], $
+                  n_elements(decoded), $
+                  name=logger_name, /warn
+          continue
+        endelse
       endif
 
       date = dates[r]
@@ -205,7 +214,11 @@ pro kcor_rolling_synoptic_map, database=db, run=run
 
   for d = 0L, n_elements(data) - 1L do begin
     s = raw_data[d]
-    ptr_free, s.intensity, s.intensity_stddev, s.r108, s.r13, s.r18, s.r111
+    ptr_free, s.intensity, s.intensity_stddev
+    for h = 0L, n_elements(height_names) - 1L do begin
+      height_index = where(tag_names(s) eq strupcase(height_names[h]))
+      ptr_free, s.(height_index[0])
+    endfor
   endfor
 
   mg_log, 'done', name=logger_name, /info
@@ -214,9 +227,9 @@ end
 
 ; main-level example program
 
-date = '20201105'
-config_filename = filepath('kcor.reprocess.cfg', $
-                           subdir=['..', '..', 'config'], $
+date = '20221007'
+config_filename = filepath('kcor.latest.cfg', $
+                           subdir=['..', '..', '..', 'kcor-config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
 db = kcordbmysql()

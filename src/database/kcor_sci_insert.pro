@@ -99,11 +99,11 @@ pro kcor_sci_insert, date, files, $
 
     r111 = kcor_annulus_gridmeans(image, 1.11, sun_pixels)
     r115 = kcor_annulus_gridmeans(image, 1.15, sun_pixels)
-    r12  = kcor_annulus_gridmeans(image, 1.2, sun_pixels)
+    r120 = kcor_annulus_gridmeans(image, 1.2, sun_pixels)
     r135 = kcor_annulus_gridmeans(image, 1.35, sun_pixels)
-    r15  = kcor_annulus_gridmeans(image, 1.5, sun_pixels)
+    r150 = kcor_annulus_gridmeans(image, 1.5, sun_pixels)
     r175 = kcor_annulus_gridmeans(image, 1.75, sun_pixels)
-    r20  = kcor_annulus_gridmeans(image, 2.0, sun_pixels)
+    r200 = kcor_annulus_gridmeans(image, 2.0, sun_pixels)
     r225 = kcor_annulus_gridmeans(image, 2.25, sun_pixels)
     r250 = kcor_annulus_gridmeans(image, 2.5, sun_pixels)
 
@@ -122,13 +122,13 @@ pro kcor_sci_insert, date, files, $
 
                  db->escape_string(r111), $
                  db->escape_string(r115), $
-                 db->escape_string(r12), $
+                 db->escape_string(r120), $
                  db->escape_string(r135), $
-                 db->escape_string(r15), $
+                 db->escape_string(r150), $
                  db->escape_string(r175), $
-                 db->escape_string(r20), $
+                 db->escape_string(r200), $
                  db->escape_string(r225), $
-                 db->escape_string(r25), $
+                 db->escape_string(r250), $
                  status=status
     if (status ne 0L) then continue
   endfor
@@ -142,15 +142,15 @@ end
 
 ; main-level example program
 
-date = '20161127'
+date = '20221007'
 run = kcor_run(date, $
                config_filename=filepath('kcor.latest.cfg', $
-                                        subdir=['..', '..', 'config'], $
+                                        subdir=['..', '..', '..', 'kcor-config'], $
                                         root=mg_src_root()))
 
 obsday_index = mlso_obsday_insert(date, run=run, database=db)
 
-files = ['20170318_205523_kcor_l2.fts.gz']
+files = ['20221007_172234_kcor_l2.fts.gz']
 kcor_sci_insert, date, files, run=run, database=db, obsday_index=obsday_index
 
 results = db->query('select * from kcor_sci', sql_statement=cmd, error=error, fields=fields)
