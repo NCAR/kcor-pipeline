@@ -1055,6 +1055,11 @@ pro kcor_l1, ok_filename, $
   endif
 
   ; add ephemeris data
+  rsun_ref = 6.96E8   ; TODO: is this correct?
+  fxaddpar, l1_header, 'RSUN_REF', $
+            rsun_ref, $
+            ' [m] solar radius', $
+            format='(f0.1)'
   fxaddpar, l1_header, 'RSUN_OBS', radsun, $
             string(dist_au * radsun, $
                    '(%" [arcsec] solar radius using ref radius %0.2f\"")'), $
