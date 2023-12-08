@@ -37,7 +37,7 @@ END_DATE=$3
 d=$DATE
 
 while [ $d != $END_DATE ]; do
-  cmd="$PROCESS_SCRIPT $CONFIG_FLAG $d"
+  cmd="$PROCESS_SCRIPT $CONFIG $d"
   echo "$cmd"
   $cmd
   d=$(date +"%Y%m%d" -d "$d + 1 day")

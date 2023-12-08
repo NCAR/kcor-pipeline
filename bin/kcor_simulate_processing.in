@@ -10,11 +10,23 @@ import time
 # wait between pipeline launches
 INTERPROCESS_WAIT = 5.0   # seconds
 
+CONFIG_DIR = "@CONFIG_DIR@"
+
 
 # setup the logging mechanism
 logging.basicConfig(format='%(asctime)s %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S',
                     level=logging.DEBUG)
+
+
+
+def get_config_filename(flags):
+    config_basename = f"kcor.{flags}.cfg"
+
+    # construct config file filename
+    config_filename = os.path.join(CONFIG_DIR, config_basename)
+
+    return(config_filename)
 
 
 def launch_loop(date, config_flags, rt_frequency, eod_frequency, no_eod):
@@ -26,10 +38,10 @@ def launch_loop(date, config_flags, rt_frequency, eod_frequency, no_eod):
     pipeline_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
     realtime_cmd = [os.path.join(pipeline_dir, 'bin', 'runkcor_rt.sh'),
-                    config_flags,
+                    get_config_filename(config_flags),
                     date]
     eod_cmd = [os.path.join(pipeline_dir, 'bin', 'runkcor_eod.sh'),
-               config_flags,
+               get_config_filename(config_flags),
                date]
 
     last_rt_time = datetime.datetime.now()
