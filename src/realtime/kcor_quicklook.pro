@@ -116,7 +116,8 @@ pro kcor_quicklook, pb, mask, $
     tvcircle, scaled_occulter_radius, $
               scaled_xcenter, $
               scaled_ycenter, $
-              grey, /device, /fill   
+              green, /device
+
     ; 1.0 Rsun circle
     tvcircle, scaled_solar_radius, $
               scaled_xcenter, $
@@ -129,11 +130,11 @@ pro kcor_quicklook, pb, mask, $
               grey, /device
 
     ; draw "+" at sun center
-    plots, scaled_axcenter + [- 5, 5], $
-           scaled_aycenter + fltarr(2), $
+    plots, scaled_xcenter + [- 5, 5], $
+           scaled_ycenter + fltarr(2), $
            color=green, /device
-    plots, scaled_axcenter + fltarr(2), $
-           scaled_aycenter + [- 5, 5], $
+    plots, scaled_xcenter + fltarr(2), $
+           scaled_ycenter + [- 5, 5], $
            color=green, /device
 
     north_r = mean(scale_factors) * 498.5

@@ -26,6 +26,7 @@
 pro kcor_create_gif, filename, corona, date_obs, $
                      scaled_image=scaled_image, $
                      nomask=nomask, $
+                     occulter_radius=occulter_radius, $
                      run=run, $
                      log_name=log_name, $
                      level=level
@@ -49,8 +50,16 @@ pro kcor_create_gif, filename, corona, date_obs, $
   lct, filepath('quallab_ver2.lut', root=run.resources_dir)
   tvlct, red, green, blue, /get
 
-  loadct, 0, /silent
-  gamma_ct, run->epoch('display_gamma'), /current
+  n_colors = keyword_set(nomask) ? 254 : 255
+
+  loadct, 0, /silent, ncolors=n_colors
+  mg_gamma_ct, run->epoch('display_gamma'), /current, n_colors=n_colors
+
+  if (keyword_set(nomask)) then begin
+    green = 255
+    tvlct, 0, 255, 0, green
+  endif
+
   tvlct, red, green, blue, /get
 
   erase
@@ -99,11 +108,17 @@ pro kcor_create_gif, filename, corona, date_obs, $
 
   ; image has been shifted to center of array
   ; draw circle at photosphere
-  if (~keyword_set(nomask)) then begin
+  if (keyword_set(nomask)) then begin
+    dims = size(scaled_image, /dimensions)
+    tvcircle, occulter_radius, $
+              (dims[0] - 1.0) / 2.0, $
+              (dims[1] - 1.0) / 2.0, $
+              green, /device
+  endif else begin
     kcor_add_directions, fltarr(2) + 511.5, r_photo, $
                          charsize=1.5, dimensions=lonarr(2) + 1024L
     kcor_suncir, 1024, 1024, 511.5, 511.5, 0, 0, r_photo, 0.0, log_name=log_name
-  endif
+  endelse
 
   device, decomposed=1
   save     = tvrd()

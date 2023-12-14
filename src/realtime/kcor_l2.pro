@@ -117,10 +117,15 @@ pro kcor_l2, l1_filename, $
     corona[mask] = run->epoch('display_min')
   endif
 
+  rcam_rad = sxpar(l1_header, 'RCAM_RAD')
+  tcam_rad = sxpar(l1_header, 'TCAM_RAD')
+  occulter_radius = (rcam_rad + tcam_rad) / 2.0
+
   kcor_create_gif, l1_filename, corona, date_obs, $
                    level=2, $
                    scaled_image=scaled_image, $
                    nomask=nomask, $
+                   occulter_radius=occulter_radius, $
                    run=run, log_name=log_name
 
   ; convert L1 header to an L2 header
