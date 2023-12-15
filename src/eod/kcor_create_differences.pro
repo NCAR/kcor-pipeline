@@ -421,7 +421,7 @@ pro kcor_create_differences, date, l2_files, run=run
       gif_basename = string(name, timestring, status, format='(%"%s_minus_%s_%s.gif")')
       write_gif, gif_basename, save
 
-      sxaddpar, goodheader, 'PRODUCT', 'pB difference', $
+      sxaddpar, goodheader, 'PRODUCT', 'level 2 pB subtraction', $
                 ' difference of two level 2 pB images', $
                 after='OBJECT'
 

@@ -372,6 +372,8 @@ pro kcor_create_averages, date, l2_files, run=run
     fxaddpar, saveheader, 'DATE-END', imgtimes[numavg - 1]
     fxaddpar, saveheader, 'DATE_HST', hst
 
+    fxaddpar, saveheader, 'PRODUCT', 'averaged pB', ' averaged coronal polarization brightness'
+
     if (numavg gt 1L) then begin
       mg_log, 'writing %s', fits_filename, name='kcor/eod', /info
       writefits, fits_filename, avgimg, saveheader
@@ -582,6 +584,9 @@ pro kcor_create_averages, date, l2_files, run=run
   fxaddpar, dailysaveheader, 'DATE-OBS', dailytimes[n_skip]
   fxaddpar, dailysaveheader, 'DATE-END', dailyendtimes[dailycount - 1]
   fxaddpar, dailysaveheader, 'DATE_HST', daily_hst
+
+  fxaddpar, dailysaveheader, 'PRODUCT', 'averaged pB', $
+            ' extended average coronal polarization brightness'
 
   if (n_elements(daily_savename) gt 0L) then begin
     name = strmid(daily_savename, 0, 23)
