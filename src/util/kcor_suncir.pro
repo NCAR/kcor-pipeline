@@ -25,7 +25,8 @@
 ;   11 Feb 2005 [ALS]: Do NOT draw a circle at 1.1 Rsun.
 ;   21 May 2015 derived from suncir_mk4.pro.
 ;-
-pro kcor_suncir, xdim, ydim, xcen, ycen, xb, yb, pixrs, roll, log_name=log_name
+pro kcor_suncir, xdim, ydim, xcen, ycen, xb, yb, pixrs, roll, log_name=log_name, $
+                 color=color
   compile_opt strictarr
 
   mg_log, 'dims=[%d, %d], center=[%0.2f, %0.2f]', $
@@ -35,13 +36,7 @@ pro kcor_suncir, xdim, ydim, xcen, ycen, xb, yb, pixrs, roll, log_name=log_name
           xb, yb, pixrs, roll, $
           name=log_name, /debug
 
-  white  = 255
-  red    = 254
-  green  = 253
-  blue   = 252
-  grey   = 251
-  yellow = 250
-  black  =   0
+  _color = n_elements(color) eq 0L ? 255 : color
 
   r       = 1.0
   r1min   = 0.2		; radial inner limit for major lines.
@@ -65,59 +60,59 @@ pro kcor_suncir, xdim, ydim, xcen, ycen, xb, yb, pixrs, roll, log_name=log_name
 
   if (pixrs lt 120.0) then begin
     ; draw "+ mark at sun center
-    plots, xg - rp, yg,      /device, color=white
-    plots, xg - 1,  yg,      /device, color=white, /continue
+    plots, xg - rp, yg,      /device, color=_color
+    plots, xg - 1,  yg,      /device, color=_color, /continue
     
-    plots, xg + 1,  yg,      /device, color=white
-    plots, xg + rp, yg,      /device, color=white, /continue
+    plots, xg + 1,  yg,      /device, color=_color
+    plots, xg + rp, yg,      /device, color=_color, /continue
 
-    plots, xg,      yg - rp, /device, color=white
-    plots, xg,      yg - 1,  /device, color=white, /continue
+    plots, xg,      yg - rp, /device, color=_color
+    plots, xg,      yg - 1,  /device, color=_color, /continue
 
-    plots, xg,      yg + 1,  /device, color=white
-    plots, xg,      yg + rp, /device, color=white, /continue
+    plots, xg,      yg + 1,  /device, color=_color
+    plots, xg,      yg + rp, /device, color=_color, /continue
   endif
 
   if (pixrs ge 120.0) then begin
     ; draw a triangle with a base on the equator
-    plots, xg - rp,     yg,      /device, color=white
-    plots, xg,          yg + rp, /device, color=white, /continue
+    plots, xg - rp,     yg,      /device, color=_color
+    plots, xg,          yg + rp, /device, color=_color, /continue
 
-    plots, xg + 1,      yg + rp, /device, color=white
-    plots, xg + rp + 1, yg,      /device, color=white, /continue
+    plots, xg + 1,      yg + rp, /device, color=_color
+    plots, xg + rp + 1, yg,      /device, color=_color, /continue
 
-    plots, xg - rp,     yg,      /device, color=white
-    plots, xg - 1,      yg,      /device, color=white, /continue
+    plots, xg - rp,     yg,      /device, color=_color
+    plots, xg - 1,      yg,      /device, color=_color, /continue
 
-    plots, xg + 2,      yg,      /device, color=white
-    plots, xg + rp + 1, yg,      /device, color=white, /continue
+    plots, xg + 2,      yg,      /device, color=_color
+    plots, xg + rp + 1, yg,      /device, color=_color, /continue
 
     ; draw a vertical line below the triangle
-    plots, xg,          yg - rp, /device, color=white
-    plots, xg,          yg - 1,  /device, color=white, /continue
+    plots, xg,          yg - rp, /device, color=_color
+    plots, xg,          yg - 1,  /device, color=_color, /continue
 
-    plots, xg + 1,      yg - rp, /device, color=white
-    plots, xg + 1,      yg - 1,  /device, color=white, /continue
+    plots, xg + 1,      yg - rp, /device, color=_color
+    plots, xg + 1,      yg - 1,  /device, color=_color, /continue
 
-    plots, xg,          yg + 2,  /device, color=white
-    plots, xg + 1,      yg + 2,  /device, color=white, /continue
+    plots, xg,          yg + 2,  /device, color=_color
+    plots, xg + 1,      yg + 2,  /device, color=_color, /continue
   endif
 
    ; draw a triangle with a base 10 pixels above the equator
-  ;   PLOTS, xg,    yg+1,  /device, color=white
-  ;   PLOTS, xg,    yg+7,  /device, color=white, /continue
+  ;   PLOTS, xg,    yg+1,  /device, color=_color
+  ;   PLOTS, xg,    yg+7,  /device, color=_color, /continue
 
-  ;   PLOTS, xg,    yg+8,  /device, color=white
-  ;   PLOTS, xg,    yg+10, /device, color=white, /continue
+  ;   PLOTS, xg,    yg+8,  /device, color=_color
+  ;   PLOTS, xg,    yg+10, /device, color=_color, /continue
 
-  ;   PLOTS, xg-5,  yg+10, /device, color=white
-  ;   PLOTS, xg,    yg+15, /device, color=white, /continue
+  ;   PLOTS, xg-5,  yg+10, /device, color=_color
+  ;   PLOTS, xg,    yg+15, /device, color=_color, /continue
 
-  ;   PLOTS, xg,    yg+15, /device, color=white
-  ;   PLOTS, xg+5,  yg+10, /device, color=white, /continue
+  ;   PLOTS, xg,    yg+15, /device, color=_color
+  ;   PLOTS, xg+5,  yg+10, /device, color=_color, /continue
 
-  ;   PLOTS, xg-5,  yg+10, /device, color=white
-  ;   PLOTS, xg+5,  yg+10, /device, color=white, /continue
+  ;   PLOTS, xg-5,  yg+10, /device, color=_color
+  ;   PLOTS, xg+5,  yg+10, /device, color=_color, /continue
 
    ; draw radial scans every 30 degrees
   for th = 0.0, 360.0, ang1inc do begin
@@ -125,8 +120,8 @@ pro kcor_suncir, xdim, ydim, xcen, ycen, xb, yb, pixrs, roll, log_name=log_name
       ierr = rcoord(radius, th, x, y, 1, roll, xcen, ycen, pixrs)
       xg = fix(x + xb + 0.5)
       yg = fix(y + yb + 0.5)
-      plots, xg, yg, /device, color=white
-      plots, xg, yg, /device, color=white, /continue
+      plots, xg, yg, /device, color=_color
+      plots, xg, yg, /device, color=_color, /continue
       ;	 print, 'radius/th: ', radius, th, ' x/y: ', x, y
     endfor
   endfor
@@ -137,10 +132,10 @@ pro kcor_suncir, xdim, ydim, xcen, ycen, xb, yb, pixrs, roll, log_name=log_name
       ierr = rcoord(radius, th, x, y, 1, roll, xcen, ycen, pixrs)
       xg = fix(x + xb + 0.5)
       yg = fix(y + yb + 0.5)
-      plots, xg, yg, /device, color=white
-      plots, xg, yg, /device, color=white, /continue
-      plots, xg, yg, /device, color=white
-      plots, xg, yg, /device, color=white, /continue
+      plots, xg, yg, /device, color=_color
+      plots, xg, yg, /device, color=_color, /continue
+      plots, xg, yg, /device, color=_color
+      plots, xg, yg, /device, color=_color, /continue
     endfor
   endfor
 
@@ -150,10 +145,10 @@ pro kcor_suncir, xdim, ydim, xcen, ycen, xb, yb, pixrs, roll, log_name=log_name
     ierr = rcoord (r, th, x, y, 1, roll, xcen, ycen, pixrs)
     xg = fix(x + xb + 0.5)
     yg = fix(y + yb + 0.5)
-    plots, xg,   yg,   /device, color=white
-    plots, xg,   yg,   /device, color=white, /continue
-    plots, xg,   yg,   /device, color=white
-    plots, xg,   yg,   /device, color=white, /continue
+    plots, xg,   yg,   /device, color=_color
+    plots, xg,   yg,   /device, color=_color, /continue
+    plots, xg,   yg,   /device, color=_color
+    plots, xg,   yg,   /device, color=_color, /continue
   endfor
 
   ; draw a circle at 1.0 Rsun: one BOLD dot every 10 degrees
@@ -162,14 +157,14 @@ pro kcor_suncir, xdim, ydim, xcen, ycen, xb, yb, pixrs, roll, log_name=log_name
     ierr = rcoord(r, th, x, y, 1, roll, xcen, ycen, pixrs)
     xg = fix(x + xb + 0.5)
     yg = fix(y + yb + 0.5)
-    ; PLOTS, xg,   yg,   /device, color=white
-    ; PLOTS, xg,   yg,   /device, color=white, /continue
+    ; PLOTS, xg,   yg,   /device, color=_color
+    ; PLOTS, xg,   yg,   /device, color=_color, /continue
 
-    plots, xg - 1, yg - 1, /device, color=white
-    plots, xg + 1, yg - 1, /device, color=white, /continue
-    plots, xg + 1, yg + 1, /device, color=white, /continue
-    plots, xg - 1, yg + 1, /device, color=white, /continue
-    plots, xg - 1, yg - 1, /device, color=white, /continue
+    plots, xg - 1, yg - 1, /device, color=_color
+    plots, xg + 1, yg - 1, /device, color=_color, /continue
+    plots, xg + 1, yg + 1, /device, color=_color, /continue
+    plots, xg - 1, yg + 1, /device, color=_color, /continue
+    plots, xg - 1, yg - 1, /device, color=_color, /continue
   endfor
 
    ; draw a circle at 1.1 Rsun: one dot every 30 degrees
@@ -180,10 +175,10 @@ pro kcor_suncir, xdim, ydim, xcen, ycen, xb, yb, pixrs, roll, log_name=log_name
   ;      ierr = rcoord (r, th, x, y, 1, roll, xcen, ycen, pixrs)
   ;      xg = FIX (x + xb + 0.5)
   ;      yg = FIX (y + yb + 0.5)
-  ;      PLOTS, xg,   yg,   /device, color=white
-  ;      PLOTS, xg,   yg,   /device, color=white, /continue
-  ;      PLOTS, xg,   yg,   /device, color=white
-  ;      PLOTS, xg,   yg,   /device, color=white, /continue
+  ;      PLOTS, xg,   yg,   /device, color=_color
+  ;      PLOTS, xg,   yg,   /device, color=_color, /continue
+  ;      PLOTS, xg,   yg,   /device, color=_color
+  ;      PLOTS, xg,   yg,   /device, color=_color, /continue
   ;   END   ;}
 
   ; draw a circle at 3.0 Rsun
@@ -198,15 +193,15 @@ pro kcor_suncir, xdim, ydim, xcen, ycen, xb, yb, pixrs, roll, log_name=log_name
     ierr = rcoord(r, th, x, y, 1, roll, xcen, ycen, pixrs)
     xg = fix(x + xb + 0.5)
     yg = fix(y + yb + 0.5)
-    ; PLOTS, xg,   yg,   /device, color=white
-    ; PLOTS, xg,   yg,   /device, color=white, /continue
+    ; PLOTS, xg,   yg,   /device, color=_color
+    ; PLOTS, xg,   yg,   /device, color=_color, /continue
 
-    ; PLOTS, xg-3, yg-3, /device, color=white
-    ; PLOTS, xg+3, yg-3, /device, color=white, /continue
-    ; PLOTS, xg+3, yg+3, /device, color=white, /continue
-    ; PLOTS, xg-3, yg+3, /device, color=white, /continue
-    ; PLOTS, xg-3, yg-3, /device, color=white, /continue
-    ; PLOTS, xg+3, yg+3, /device, color=white, /continue
+    ; PLOTS, xg-3, yg-3, /device, color=_color
+    ; PLOTS, xg+3, yg-3, /device, color=_color, /continue
+    ; PLOTS, xg+3, yg+3, /device, color=_color, /continue
+    ; PLOTS, xg-3, yg+3, /device, color=_color, /continue
+    ; PLOTS, xg-3, yg-3, /device, color=_color, /continue
+    ; PLOTS, xg+3, yg+3, /device, color=_color, /continue
   endfor
 
   ; draw a circle at 3.0 Rsun: one BOLD dot every 10 degrees
@@ -216,12 +211,12 @@ pro kcor_suncir, xdim, ydim, xcen, ycen, xb, yb, pixrs, roll, log_name=log_name
     ierr = rcoord(r, th, x, y, 1, roll, xcen, ycen, pixrs)
     xg = fix(x + xb + 0.5)
     yg = fix(y + yb + 0.5)
-    ; PLOTS, xg,   yg,   /device, color=white
-    ; PLOTS, xg,   yg,   /device, color=white, /continue
-    plots, xg - 1, yg - 1, /device, color=white
-    plots, xg + 1, yg - 1, /device, color=white, /continue
-    plots, xg + 1, yg + 1, /device, color=white, /continue
-    plots, xg - 1, yg + 1, /device, color=white, /continue
-    plots, xg - 1, yg - 1, /device, color=white, /continue
+    ; PLOTS, xg,   yg,   /device, color=_color
+    ; PLOTS, xg,   yg,   /device, color=_color, /continue
+    plots, xg - 1, yg - 1, /device, color=_color
+    plots, xg + 1, yg - 1, /device, color=_color, /continue
+    plots, xg + 1, yg + 1, /device, color=_color, /continue
+    plots, xg - 1, yg + 1, /device, color=_color, /continue
+    plots, xg - 1, yg - 1, /device, color=_color, /continue
   endfor
 end
