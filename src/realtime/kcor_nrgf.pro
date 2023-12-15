@@ -367,7 +367,7 @@ pro kcor_nrgf, fits_file, $
               ' Level 2'
     if (keyword_set(averaged)) then begin
       fxaddpar, rhdu, 'PRODUCT', 'NRGFAVG', $
-                ' Averaged Normalized Radially-Graded Intensity'
+                ' averaged Normalized Radially-Graded Intensity'
     endif else begin
       fxaddpar, rhdu, 'PRODUCT', 'NRGF', $
                 ' Normalized Radially-Graded Intensity'
