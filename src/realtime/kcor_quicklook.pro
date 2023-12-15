@@ -101,13 +101,12 @@ pro kcor_quicklook, pb, mask, $
 
   power_pb = resized_pb ^ display_exponent
   _display_maximum = n_elements(display_maximum) eq 0L $
-                       ? max(pb ^ display_exponent) $
+                       ? max((pb * resized_mask) ^ display_exponent) $
                        : display_maximum
   display_pb = bytscl(power_pb, $
                       min=display_minimum, $
                       max=_display_maximum, $
                       top=249)
-  display_pb *= resized_mask
 
   tv, display_pb
 

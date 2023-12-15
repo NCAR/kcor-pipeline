@@ -794,7 +794,7 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
         if (produce_normal_quicklook) then begin
           gif_filename = filepath(string(c, '', format=gif_basename), $
                                   root=quicklook_dir)
-          kcor_quicklook, pb_m[*, * , c], shifted_mask[*, *, c], quality_name, gif_filename, $
+          kcor_quicklook, pb[*, * , c], shifted_mask[*, *, c], quality_name, gif_filename, $
                           camera=c, $
                           l0_basename=l0_base, $
                           xcenter=xcen[c], ycenter=ycen[c], radius=radius, $
@@ -812,7 +812,7 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
         if (produce_gallery_quicklook) then begin
           gallery_gif_filename = filepath(string(c, '_gallery', format=gif_basename), $
                                           root=quicklook_dir)
-          kcor_quicklook, pb_m[*, * , c], shifted_mask[*, *, c], quality_name, gallery_gif_filename, $
+          kcor_quicklook, pb[*, * , c], shifted_mask[*, *, c], quality_name, gallery_gif_filename, $
                           camera=c, $
                           l0_basename=l0_base, $
                           xcenter=xcen[c], ycenter=ycen[c], radius=radius, $
