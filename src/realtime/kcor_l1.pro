@@ -911,6 +911,12 @@ pro kcor_l1, ok_filename, $
   fxaddpar, l1_header, 'INST_ROT', 0.00, $
             ' [deg] rotation of the image wrt solar north', $
             format='(f9.3)'
+  image_scale = kcor_compute_platescale((radius_0 + radius_1) / 2.0, $
+                                        occltrid, $
+                                        run=run)
+  fxaddpar, l1_header, 'IMAGESCL', image_scale, $
+            ' [arcsec/pixel] image scale for this file', $
+            format='(f9.4)'
 
   au_to_meters = 149597870700.0D
 
@@ -1056,6 +1062,9 @@ pro kcor_l1, ok_filename, $
 
   ; add ephemeris data
   rsun_ref = 6.96E8   ; TODO: is this correct?
+  ; radius = (radius_0 + radius_1) / 2.0
+  ; dsun_obs = dist_au * au_to_meters
+  ; rsun_ref = dsun_obs * tan(run->epoch('plate_scale') * radius / 60.0 / 60.0 * !dtor)
   fxaddpar, l1_header, 'RSUN_REF', $
             rsun_ref, $
             ' [m] solar radius', $

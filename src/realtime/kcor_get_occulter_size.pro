@@ -8,21 +8,27 @@
 ;     occulter ID from FITS header
 ;
 ; :Keywords:
+;   mm : in, optional, type=boolean
+;     set to get the occulter size in mm instead of arcsec
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;-
-function kcor_get_occulter_size, occulter_id, run=run
+function kcor_get_occulter_size, occulter_id, mm=mm, run=run
   compile_opt strictarr
 
   if (run->epoch('use_default_occulter_size') || occulter_id eq 'GRID') then begin
     ; beginning of mission occulter ID was OC-1
-    return, run->epoch('default_occulter_size')
+    return, run->epoch('default_occulter_size' + (keyword_set(mm) ? '-mm' : ''))
   endif else begin
     ; later days use the first 8 characters to lookup in epoch file
-    occulter_size = run->epoch(strmid(occulter_id, 0, 8), found=found)
+    if (keyword_set(mm)) then begin
+      occulter_size = run->epoch(strmid(occulter_id, 0, 8) + '-mm', found=found)
+    endif else begin
+      occulter_size = run->epoch(strmid(occulter_id, 0, 8), found=found)
+    endelse
     if (~found) then begin
       mg_log, 'occulter ID not found, using default', /error, name=run.logger_name
-      occulter_size = run->epoch('default_occulter_size')
+      occulter_size = run->epoch('default_occulter_size' + (keyword_set(mm) ? '-mm' : ''))
     endif
     return, occulter_size
   endelse
