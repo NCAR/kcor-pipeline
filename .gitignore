@@ -4,11 +4,9 @@
 /cme_detection/ROUTINES
 /*configure.sh
 /bin/*db.cfg
-/analysis/duty-cycle-info.sav
-/analysis/kcor-duty-cycle.sav
-/analysis/duty-cycle.ps
-/analysis/duty-cycle-histogram.ps
-/analysis/kcor_good_times.txt
+/analysis/*.sav
+/analysis/*.ps
+/analysis/*.txt
 .ipynb_checkpoints
 /stream/stream.html
 /stream/stream.c
