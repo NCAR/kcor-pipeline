@@ -138,6 +138,7 @@ pro kcor_eng_insert, date, fits_list, $
     tcamycen    =         sxpar(hdu, 'TCAMYCEN', count=qtcamycen)
     rcam_rad    =         sxpar(hdu, 'RCAM_RAD', count=qrcamrad)
     tcam_rad    =         sxpar(hdu, 'TCAM_RAD', count=qtcamrad)
+    image_scale =         sxpar(hdu, 'IMAGESCL', count=qimagescl)
     cover       = strtrim(sxpar(hdu, 'COVER',    count=qcover), 2)
     darkshut    = strtrim(sxpar(hdu, 'DARKSHUT', count=qdarkshut), 2)
     diffuser    = strtrim(sxpar(hdu, 'DIFFUSER', count=qdarkshut), 2)
@@ -170,7 +171,7 @@ pro kcor_eng_insert, date, fits_list, $
     level_num = level_results.level_id	
 
     ; DB insert command
-    db->execute, 'insert into kcor_eng (file_name, date_obs, obs_day, rcamfocs, tcamfocs, modltrt, o1focs, kcor_sgsdimv, kcor_sgsdims, level, bunit, bzero, bscale, rcamxcen, rcamycen, tcamxcen, tcamycen, rcam_rad, tcam_rad, mean_phase1, cover, darkshut, diffuser, calpol, distort, labviewid, socketcamid, kcor_sw_id, kcor_hw_id) values (''%s'', ''%s'', %d, %s, %s, %s, %s, %s, %s, %d, ''%s'', %d, %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', %d, %d) ', $
+    db->execute, 'insert into kcor_eng (file_name, date_obs, obs_day, rcamfocs, tcamfocs, modltrt, o1focs, kcor_sgsdimv, kcor_sgsdims, level, bunit, bzero, bscale, rcamxcen, rcamycen, tcamxcen, tcamycen, rcam_rad, tcam_rad, image_scale, mean_phase1, cover, darkshut, diffuser, calpol, distort, labviewid, socketcamid, kcor_sw_id, kcor_hw_id) values (''%s'', ''%s'', %d, %s, %s, %s, %s, %s, %s, %d, ''%s'', %d, %f, %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', %d, %d) ', $
                  fits_file, date_obs, obsday_index, kcor_fitsfloat2db(rcamfocs), $
                  kcor_fitsfloat2db(tcamfocs), $
                  kcor_fitsfloat2db(modltrt), kcor_fitsfloat2db(o1focs), $
@@ -182,6 +183,7 @@ pro kcor_eng_insert, date, fits_list, $
                  kcor_fitsfloat2db(tcamycen), $
                  kcor_fitsfloat2db(rcam_rad), $
                  kcor_fitsfloat2db(tcam_rad), $
+                 image_scale, $
                  kcor_fitsfloat2db(mean_phase1[i - n_nrgf]), $
                  cover, darkshut, diffuser, calpol, $
                  distort, labviewid, socketcamid, $
