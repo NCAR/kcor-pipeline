@@ -1061,14 +1061,15 @@ pro kcor_l1, ok_filename, $
   endif
 
   ; add ephemeris data
-  rsun_ref = 6.96E8   ; TODO: is this correct?
-  ; radius = (radius_0 + radius_1) / 2.0
-  ; dsun_obs = dist_au * au_to_meters
-  ; rsun_ref = dsun_obs * tan(run->epoch('plate_scale') * radius / 60.0 / 60.0 * !dtor)
+
+  ; Solar radius determined from PICARD/SODISM observations and extremely weak
+  ; wavelength dependence in the visible and the near-infrared' by Meftah
+  ; et al. 2018; https://doi.org/10.1051/0004-6361/201732159
+  rsun_ref = 6.96182E8
   fxaddpar, l1_header, 'RSUN_REF', $
             rsun_ref, $
-            ' [m] solar radius', $
-            format='(f0.1)'
+            ' [m] solar rad. doi:10.1051/0004-6361/201732159', $
+            format='(g0.6)'
   fxaddpar, l1_header, 'RSUN_OBS', radsun, $
             string(dist_au * radsun, $
                    '(%" [arcsec] solar radius using ref radius %0.2f\"")'), $
