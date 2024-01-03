@@ -72,12 +72,15 @@ pro kcor_l1, ok_filename, $
                     format='(%"%s-%s-%sT%s-%s-%s")')
   start_state = run->epoch('start_state')
   mg_log, 'start_state: [%d, %d]', start_state, name=log_name, /debug
+
+  use_double = run->config('realtime/use_double')
   kcor_read_rawdata, ok_filename, image=img, header=header, $
                      repair_routine=run->epoch('repair_routine'), $
                      xshift=run->epoch('xshift_camera'), $
                      start_state=start_state, $
                      raw_data_prefix=run->epoch('raw_data_prefix'), $
-                     datatype=run->epoch('raw_datatype')
+                     datatype=run->epoch('raw_datatype'), $
+                     double=use_double
 
   type = fxpar(header, 'DATATYPE')
   mg_log, 'type: %s', strmid(type, 0, 3), name=log_name, /debug
@@ -1068,7 +1071,7 @@ pro kcor_l1, ok_filename, $
   rsun_ref = 6.96182E8
   fxaddpar, l1_header, 'RSUN_REF', $
             rsun_ref, $
-            ' [m] solar rad. doi:10.1051/0004-6361/201732159', $
+            ' [m] solar radius doi:10.1051/0004-6361/201732159', $
             format='(g0.6)'
   fxaddpar, l1_header, 'RSUN_OBS', radsun, $
             string(dist_au * radsun, $

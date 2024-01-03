@@ -28,7 +28,8 @@ pro kcor_read_rawdata, filename, $
                        xshift=xshift, $
                        start_state=start_state, $
                        datatype=datatype, $
-                       raw_data_prefix=raw_data_prefix
+                       raw_data_prefix=raw_data_prefix, $
+                       double=double
   compile_opt strictarr
 
   errmsg = ''
@@ -69,6 +70,8 @@ pro kcor_read_rawdata, filename, $
   if (n_elements(repair_routine) gt 0L && repair_routine ne '') then begin
     call_procedure, repair_routine, image=im, header=header
   endif
+
+  if (keyword_set(double)) then im = double(im)
 end
 
 

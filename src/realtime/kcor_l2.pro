@@ -198,7 +198,7 @@ pro kcor_l2, l1_filename, $
   l2_filename = string(strmid(file_basename(l1_filename), 0, 20), $
                        keyword_set(nomask) ? '_nomask' : '', $
                        format='(%"%s_l2%s.fts")')
-  writefits, filepath(l2_filename, root=l2_dir), corona, l2_header
+  writefits, filepath(l2_filename, root=l2_dir), float(corona), l2_header
 
   ; write Helioviewer JPEG2000 image to a web accessible directory
   if (run->config('results/hv_basedir') ne '' && ~keyword_set(nomask)) then begin
