@@ -126,7 +126,7 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
     calpol = strtrim(sxpar(header, 'CALPOL', count=n_calpol))
     calpang = sxpar(header, 'CALPANG', count=n_calpang)
     if (run->epoch('use_sgs')) then begin
-      sgsdimv = sxpar(header, 'SGSDIMV', count=n_sgsdimv)
+      sgsdimv = float(sxpar(header, 'SGSDIMV', count=n_sgsdimv))
     endif else begin
       sgsdimv = kcor_simulate_sgsdimv(date_obs, run=run)
     endelse
