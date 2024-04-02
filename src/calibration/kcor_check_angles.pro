@@ -10,6 +10,8 @@
 ; :Params:
 ;   required_angles : in, required, type=fltarr
 ;     the required angles
+;   optional_angles : in, required, type=fltarr
+;     the optional angles
 ;   angles : in, required, type=fltarr
 ;     angles measured
 ;
@@ -17,7 +19,8 @@
 ;   tolerance : in, optional, type=float, default=0.1
 ;     allowable difference between required angle and measured angle
 ;-
-function kcor_check_angles, required_angles, angles, tolerance=tolerance
+function kcor_check_angles, required_angles, optional_angles, angles, $
+                            tolerance=tolerance
   compile_opt strictarr
 
   _tolerance = n_elements(tolerance) eq 0L ? 0.1 : tolerance  ; degrees
@@ -28,8 +31,9 @@ function kcor_check_angles, required_angles, angles, tolerance=tolerance
   endfor
 
   for a = 0L, n_elements(angles) - 1L do begin
-    !null = where(abs((angles[a] - required_angles) mod 180.0) lt _tolerance, n_angles)
-    if (n_angles eq 0L) then return, 0B
+    !null = where(abs((angles[a] - optional_angles) mod 180.0) lt _tolerance, n_optional_angles)
+    !null = where(abs((angles[a] - required_angles) mod 180.0) lt _tolerance, n_required_angles)
+    if (n_optional_angles eq 0L && n_required_angles eq 0L) then return, 0B
   endfor
 
   return, 1B
