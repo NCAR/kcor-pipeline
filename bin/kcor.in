@@ -863,7 +863,7 @@ def calibrate_dates(dates, flags, no_wait):
     for d in dates.split(","):
         if d.find("-") < 0:
             cmd = [os.path.join(PIPELINE_DIR, "bin", "runkcor_calibrate.sh"),
-                   flags,
+                   get_config_filename(flags),
                    d]
 
             process = launch_process(cmd, stdout=None, stderr=subprocess.PIPE)
@@ -875,7 +875,7 @@ def calibrate_dates(dates, flags, no_wait):
         else:
             r = d.split("-")
             cmd = [os.path.join(PIPELINE_DIR, "bin", "runkcor_calibrate_range.sh"),
-                   flags,
+                   get_config_filename(flags),
                    r[0],
                    r[1]]
 
