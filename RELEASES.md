@@ -1110,3 +1110,5 @@
 - don't send heartbeat alert if no new data
 - new occulters
 - epochs for new data
+
+#### 2.1.8
