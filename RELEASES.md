@@ -1111,4 +1111,7 @@
 - new occulters
 - epochs for new data
 
-#### 2.1.8
+#### 2.1.8 [Apr 10, 2024]
+
+- epochs for new data
+- updated validation files
