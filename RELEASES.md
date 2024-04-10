@@ -1116,4 +1116,6 @@
 - epochs for new data
 - updated validation files
 
-#### 2.1.9
+#### 2.1.9 [Apr 10, 2024]
+
+- fix typo in kcor script

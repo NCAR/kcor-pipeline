@@ -564,7 +564,7 @@ def verify(args):
     dates = ",".join(args.dates)
 
     cmd = [os.path.join(PIPELINE_DIR, "bin", "kcor_verify_dates.sh"),
-           get_config_filename(args.flags)
+           get_config_filename(args.flags),
            dates]
 
     process = launch_process(cmd, stdout=None, stderr=subprocess.PIPE)
