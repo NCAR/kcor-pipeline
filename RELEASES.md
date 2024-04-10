@@ -1115,3 +1115,5 @@
 
 - epochs for new data
 - updated validation files
+
+#### 2.1.9
