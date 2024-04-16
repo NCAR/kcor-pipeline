@@ -1121,3 +1121,5 @@
 - fix typo in kcor script
 
 #### 2.1.10
+
+- fix to make verification find new configuration file specification

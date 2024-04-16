@@ -8,7 +8,7 @@ BIN_DIR=$(dirname $0)
 
 LOG_FILENAME=/tmp/kcor-$RANDOM.log
 
-$BIN_DIR/kcor_verify_dates.sh "production" "$START_DATE-$END_DATE" &> $LOG_FILENAME
+$BIN_DIR/kcor_verify_dates.sh "@CONFIG_DIR@/kcor.production.cfg" "$START_DATE-$END_DATE" &> $LOG_FILENAME
 N_FAILED_DAYS=$?
 
 echo -e "\nSent from $0 ($(whoami)@$(hostname))" >> $LOG_FILENAME

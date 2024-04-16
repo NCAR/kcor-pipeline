@@ -48,6 +48,7 @@ configure_file(kcor_simulate_data.in kcor_simulate_data @ONLY)
 configure_file(kcor_simulate_processing.in kcor_simulate_processing @ONLY)
 
 configure_file(kcor_verify_dates.sh.in kcor_verify_dates.sh @ONLY)
+configure_file(kcor_verify.sh.in kcor_verify.sh @ONLY)
 
 configure_file(runkcor_nrgf.sh.in runkcor_nrgf.sh @ONLY)
 
@@ -87,7 +88,7 @@ install(PROGRAMS
           ${CMAKE_CURRENT_BINARY_DIR}/kcordb
           ${CMAKE_CURRENT_BINARY_DIR}/kcorcat
           ${CMAKE_CURRENT_BINARY_DIR}/kcor_verify_dates.sh
-          kcor_verify.sh
+          ${CMAKE_CURRENT_BINARY_DIR}/kcor_verify.sh
           kcor_makelog.sh
           ${CMAKE_CURRENT_BINARY_DIR}/kcor_simulate
           ${CMAKE_CURRENT_BINARY_DIR}/kcor_simulate_data
