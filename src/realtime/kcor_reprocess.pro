@@ -162,6 +162,25 @@ pro kcor_reprocess, date, run=run, error=error
                    /recursive, /allow_nonexistent
     endelse
 
+    ; remove old published synoptic maps
+    synoptic_maps_basedir = run->config('results/synoptic_maps_basedir')
+    if (n_elements(synoptic_maps_basedir) gt 0L) then begin
+      year = strmid(date, 0, 4)
+      synoptic_maps = file_search(filepath(date + '.kcor.*.synoptic.r*.{fts,gif}', $
+                                  subdir=year, $
+                                  root=synoptic_maps_basedir, $
+                                  count=n_synoptic_maps)
+      if (n_synoptic_maps eq 0L) then begin
+        mg_log, 'no synoptic map files to delete', name='kcor/reprocess', /info
+      endif else begin
+        mg_log, 'removing %d synoptic map files', n_synoptic_maps, $
+                name='kcor/reprocess', /info
+        file_delete, synoptic_maps, /allow_nonexistent
+      endelse
+    endif else begin
+      mg_log, 'no synoptic_maps_basedir', name='kcor/reprocess', /info
+    endelse
+
     ; remove old saved results
     if (run->config('results/save_basedir') eq '') then begin
       mg_log, 'no save dir to remove', name='kcor/reprocess', /info
