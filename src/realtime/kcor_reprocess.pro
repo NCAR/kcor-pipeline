@@ -168,8 +168,8 @@ pro kcor_reprocess, date, run=run, error=error
       year = strmid(date, 0, 4)
       month = strmid(date, 4, 2)
       synoptic_maps = file_search(filepath(date + '.kcor.*.synoptic.r*.{fts,gif}', $
-                                  subdir=[year, month], $
-                                  root=synoptic_maps_basedir, $
+                                           subdir=[year, month], $
+                                           root=synoptic_maps_basedir), $
                                   count=n_synoptic_maps)
       if (n_synoptic_maps eq 0L) then begin
         mg_log, 'no synoptic map files to delete', name='kcor/reprocess', /info
