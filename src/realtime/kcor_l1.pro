@@ -1141,7 +1141,9 @@ pro kcor_l1, ok_filename, $
               ' specifies if the 2nd Lyot stop is in the beam'
   endif
 
-  fxaddpar, l1_header, 'OCCLTRID', occltrid, ' ID occulter'
+  occulter_comment = run->epoch(strmid(occltrid, 0, 8) + '-comment', $
+                                found=found)
+  fxaddpar, l1_header, 'OCCLTRID', occltrid, ' ' + occulter_comment
   fxaddpar, l1_header, 'MODLTRID', struct.modltrid, ' ID modulator'
 
   if (run->epoch('use_camera_info')) then begin
