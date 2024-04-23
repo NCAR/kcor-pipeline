@@ -1123,3 +1123,5 @@
 #### 2.1.10 [Apr 23, 2024]
 
 - fix to make verification find new configuration file specification
+
+#### 2.1.11
