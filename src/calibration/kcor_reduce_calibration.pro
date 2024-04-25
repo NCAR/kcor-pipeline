@@ -162,8 +162,6 @@ pro kcor_reduce_calibration, date, $
 
   ; filter observations by those cal observations with valid angles
   valid_angle_indices = where(angle_mask, /null)
-  metadata.angles = (metadata.angles)[valid_angle_indices]
-  data.calibration = (data.calibration)[*, *, *, *, valid_angle_indices]
 
   ; also make sure the correct files are listed as used in the netCDF
   ; calibration file
@@ -172,8 +170,22 @@ pro kcor_reduce_calibration, date, $
                       /null)
   valid_angle_cal_indices = cal_indices[valid_angle_indices]
   valid_indices = mg_setunion(non_cal_indices, valid_angle_cal_indices)
-  metadata.file_list = (metadata.file_list)[valid_indices]
-  metadata.file_types = (metadata.file_types)[valid_indices]
+
+  ; recreate variables with filtered subset
+  data = {dark :         data.dark, $
+          gain :         data.gain, $
+          calibration : (data.calibration)[*, *, *, *, valid_angle_indices]}
+  metadata = {angles :        (metadata.angles)[valid_angle_indices], $
+              idiff :         metadata.idiff, $
+              flat_date_obs : metadata.flat_date_obs, $
+              vdimref :       metadata.vdimref, $
+              vdimref_sigma : metadata.vdimref_sigma, $
+              date :          metadata.date, $
+              file_list :     (metadata.file_list)[valid_indices], $
+              file_types :    (metadata.file_types)[valid_indices], $
+              numsum :        metadata.numsum, $
+              exptime :       metadata.exptime, $
+              lyotstop :      metadata.lyotstop}
 
   sz = size(data.gain, /dimensions)
   mg_log, 'done reading data', name='kcor/cal', /info
