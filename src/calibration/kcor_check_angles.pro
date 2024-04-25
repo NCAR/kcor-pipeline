@@ -64,7 +64,7 @@ function kcor_check_angles, required_angles, optional_angles, $
     if (n_valid_angles eq 0L) then begin
       mg_log, 'missing required angle %0.2f in pol files', $
               required_angles[a], $
-              name=logger_name, /debug
+              name=logger_name, /warn
       return, 0B
     endif
   endfor
@@ -76,7 +76,7 @@ function kcor_check_angles, required_angles, optional_angles, $
     if ((n_optional_angles eq 0L) && (n_required_angles eq 0L)) then begin
       mg_log, 'cal angle %0.2f not required or optional, removing...', $
               angles[a], $
-              name=logger_name, /debug
+              name=logger_name, /warn
     endif
   endfor
 
