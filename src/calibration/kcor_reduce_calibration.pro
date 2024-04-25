@@ -165,6 +165,16 @@ pro kcor_reduce_calibration, date, $
   metadata.angles = (metadata.angles)[valid_angle_indices]
   data.calibration = (data.calibration)[*, *, *, *, valid_angle_indices]
 
+  ; also make sure the correct files are listed as used in the netCDF
+  ; calibration file
+  cal_indices = where(metadata.file_types eq 'calibration', $
+                      complement=non_cal_indices, $
+                      /null)
+  valid_angle_cal_indices = cal_indices[valid_angle_indices]
+  valid_indices = mg_setunion(non_cal_indices, valid_angle_cal_indices)
+  metadata.file_list = (metadata.file_list)[valid_indices]
+  metadata.file_types = (metadata.file_types)[valid_indices]
+
   sz = size(data.gain, /dimensions)
   mg_log, 'done reading data', name='kcor/cal', /info
 
