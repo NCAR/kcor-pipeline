@@ -1143,6 +1143,20 @@ pro kcor_l1, ok_filename, $
 
   occulter_comment = run->epoch(strmid(occltrid, 0, 8) + '-comment', $
                                 found=found)
+
+  ; Sometimes the OCCLTRID does not have the trailing " mark. This correction
+  ; is only needed to report in the FITS header, not the calculations, which
+  ; only use the first 8 characters of OCCLTRID to distinguish between the
+  ; occulters. The OCCLTRID-use_ticks epoch values indicate if that OCCLTRID
+  ; is reporting its size in arcseconds, so need to check last character. One
+  ; exception is do not fix the 'OC-1017.0" TAPERED' OCCLTRID.
+  use_ticks = run->epoch(strmid(occltrid, 0, 8) + '-use_ticks')
+  if (use_ticks && strmid(occltrid, 0, 1, /reverse_offset) eq '"') then begin
+    if (strmid(s, 6, 7, /reverse_offset) ne 'TAPERED') then begin
+      occltrid = occltrid + '"'
+    endif
+  endif
+
   fxaddpar, l1_header, 'OCCLTRID', occltrid, ' ' + occulter_comment
   fxaddpar, l1_header, 'MODLTRID', struct.modltrid, ' ID modulator'
 
