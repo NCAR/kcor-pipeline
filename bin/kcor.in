@@ -604,6 +604,10 @@ def list_alerts(args):
             pa = submission["triggers"][0]["cme"]["pa"] if "triggers" in submission else math.nan
             pa_text = f"{pa:0.2f} deg" if math.isfinite(pa) else ""
             print(f"{basename}   {type:12s}  {all_clear_text:5s}   {pa_text}")
+
+            if args.detail:
+                json.dump(alert, sys.stdout, indent=4)
+                print()
         except KeyError as e:
             print(f"{basename}: invalid JSON alert file")
 
@@ -1302,6 +1306,8 @@ if __name__ == "__main__":
                                          help="list JSON alerts")
     alert_parser.add_argument("--by-issue-time", action="store_true",
                               help="sort JSON alerts by issue time instead of event time")
+    alert_parser.add_argument("--detail", action="store_true",
+                              help="show full JSON")
     alert_parser.add_argument("json_files", nargs="*",
                               help="JSON alert files",
                               metavar="json_file")
