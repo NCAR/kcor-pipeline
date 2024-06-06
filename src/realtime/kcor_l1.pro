@@ -1151,8 +1151,8 @@ pro kcor_l1, ok_filename, $
   ; is reporting its size in arcseconds, so need to check last character. One
   ; exception is do not fix the 'OC-1017.0" TAPERED' OCCLTRID.
   use_ticks = run->epoch(strmid(occltrid, 0, 8) + '-use_ticks')
-  if (use_ticks && strmid(occltrid, 0, 1, /reverse_offset) eq '"') then begin
-    if (strmid(s, 6, 7, /reverse_offset) ne 'TAPERED') then begin
+  if (use_ticks && strmid(occltrid, 0, 1, /reverse_offset) ne '"') then begin
+    if (strmid(occltrid, 6, 7, /reverse_offset) ne 'TAPERED') then begin
       occltrid = occltrid + '"'
     endif
   endif
