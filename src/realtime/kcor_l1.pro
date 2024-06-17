@@ -545,8 +545,9 @@ pro kcor_l1, ok_filename, $
 
   center_offset = run->config('realtime/center_offset')
 
-  ; find image centers of distortion-corrected images
-  ; camera 0:
+  ; find image centers of distortion-corrected, non-demodulated  images
+
+  ; camera 0
   info_dc0 = kcor_find_image(cimg0, radius_guess, $
                              /center_guess, $
                              max_center_difference=run->epoch('max_center_difference'), $
@@ -557,7 +558,7 @@ pro kcor_l1, ok_filename, $
   sun_xx0 = dindgen(xsize, ysize) mod xsize - sun_xyr0[0]
   sun_yy0 = transpose(dindgen(ysize, xsize) mod ysize) - sun_xyr0[1]
 
-  ; camera 1:
+  ; camera 1
   info_dc1 = kcor_find_image(cimg1, radius_guess, $
                              /center_guess, $
                              max_center_difference=run->epoch('max_center_difference'), $
@@ -580,7 +581,7 @@ pro kcor_l1, ok_filename, $
 
   radius = (sun_xyr0[2] + sun_xyr1[2]) * 0.5
 
-  ; to shift camera 0 to canera 1:
+  ; offsets to shift camera 0 to camera 1
   deltax = sun_xyr1[0] - sun_xyr0[0]
   deltay = sun_xyr1[1] - sun_xyr0[1]
 
@@ -607,52 +608,30 @@ pro kcor_l1, ok_filename, $
                cal_data, header
   endif
 
-  ; compute image average from cameras 0 & 1
-  cal_data_combined = dblarr(xsize, ysize, 3)
-
   ; use config value if specified, otherwise use epoch value
   cameras = run->config('realtime/cameras')
   if (n_elements(cameras) eq 0L) then begin
     cameras = run->epoch('cameras')
   endif
 
-  for s = 0, 2 do begin
-    camera_0 = kcor_fshift(cal_data[*, *, 0, s], deltax, deltay, interp=1)
-    camera_1 = cal_data[*, *, 1, s]
-
-    ; save intermediate result if realtime/save_intermediate
-    if (run->config('realtime/save_intermediate')) then begin
-      writefits, filepath(string(strmid(file_basename(ok_filename), 0, 20), s, $
-                                 format='(%"%s_shift-s%d.fts")'), root=l1_dir), $
-                  camera_0, header
-    endif
-
-
-    mg_log, 'cameras used: %s', cameras, name=log_name, /debug
-    case cameras of
-      '0': cal_data_combined[*, *, s] = camera_0
-      '1': cal_data_combined[*, *, s] = camera_1
-      else: cal_data_combined[*, *, s] = (camera_0 + camera_1) / 2.0
-    endcase
-  endfor
-
   ; multiply by ad hoc non-linearity correction factor
   cal_data *= run->epoch('nonlinearity-correction-factor')
 
-  mg_log, 'performing polarization coord transformation', $
-          name=log_name, /debug
-
   ; shift images to center of array & orient north up
-  xcen = 511.5 + 1     ; x center of FITS array equals one plus IDL center
-  ycen = 511.5 + 1     ; y center of FITS array equals one plus IDL center
 
+  xcen = 511.5 + 1.0   ; x center of FITS array equals one plus IDL center
+  ycen = 511.5 + 1.0   ; y center of FITS array equals one plus IDL center
+
+  ; if shift_center is set, shift both images so that center of occulter is at
+  ; the center of the image; if not set, only shift camera 0 to match camera 1
+  ; without shifting camera 1 at all
   if (run->config('realtime/shift_center')) then begin
     cal_data_combined_center = dblarr(xsize, ysize, 3)
 
     for s = 0, 2 do begin
       cal_data_new[*, *, 0, s] = kcor_fshift(reverse(cal_data[*, *, 0, s], 1), $
                                              511.5 - (xsize - 1 - sun_xyr0[0]), $
-                                             511.5- sun_xyr0[1], $
+                                             511.5 - sun_xyr0[1], $
                                              interp=1)
       cal_data_new[*, *, 1, s] = kcor_fshift(reverse(cal_data[*, *, 1, s], 1), $
                                              511.5 - (xsize - 1 - sun_xyr1[0]), $
@@ -674,6 +653,9 @@ pro kcor_l1, ok_filename, $
     theta1 += !pi
     theta1 = reverse(theta1)
 
+    mg_log, 'performing polarization coord transformation', $
+            name=log_name, /debug
+
     ; polar coordinates
     qmk4 = - cal_data_combined_center[*, *, 1] * sin(2.0 * theta1) $
              + cal_data_combined_center[*, *, 2] * cos(2.0 * theta1)
@@ -684,6 +666,24 @@ pro kcor_l1, ok_filename, $
   endif else begin
     mg_log, 'skipping shifting image to center', name=log_name, /debug
 
+    cal_data_combined = dblarr(xsize, ysize, 3)
+
+    ; TODO: why no reverse in kcor_fshift?
+    for s = 0, 2 do begin
+      camera_0 = kcor_fshift(cal_data[*, *, 0, s], deltax, deltay, interp=1)
+      camera_1 = cal_data[*, *, 1, s]
+
+      mg_log, 'cameras used: %s', cameras, name=log_name, /debug
+      case cameras of
+        '0': cal_data_combined[*, *, s] = camera_0
+        '1': cal_data_combined[*, *, s] = camera_1
+        else: cal_data_combined[*, *, s] = (camera_0 + camera_1) / 2.0
+      endcase
+    endfor
+
+    mg_log, 'performing polarization coord transformation', $
+            name=log_name, /debug
+
     ; polar coordinate images (mk4 scheme)
     qmk4 = - cal_data_combined[*, *, 1] * sin(2.0 * theta1) $
            + cal_data_combined[*, *, 2] * cos(2.0 * theta1)
@@ -693,13 +693,14 @@ pro kcor_l1, ok_filename, $
     intensity = cal_data_combined[*, *, 0]
   endelse
 
+  ; rotate solar North up with small correction for spar alignment
   qmk4 = rot(qmk4, pangle + run->epoch('rotation_correction'), 1, /interp)
   umk4 = rot(umk4, pangle + run->epoch('rotation_correction'), 1, /interp)
-  intensity = rot(intensity, pangle + run->epoch('rotation_correction'), 1, /interp)
+  intensity = rot(intensity, pangle + run->epoch('rotation_correction'), 1, $
+                  /interp)
 
-  ; output array
+  ; output array for FITS data
   data = [[[umk4]], [[qmk4]], [[intensity]]]
-  ;data = [[[umk4]], [[qmk4]]]
 
   kcor_create_gif, ok_filename, umk4, date_obs, $
                    level=1, $
@@ -1275,7 +1276,7 @@ pro kcor_l1, ok_filename, $
   kcor_cropped_gif, umk4, run.date, date_struct, $
                     run=run, log_name=log_name, $
                     level=1
-  
+
   loop_time = toc(clock)   ; save loop time
   mg_log, '%0.1f sec to process %s', loop_time, file_basename(ok_filename), $
           name=log_name, /debug
