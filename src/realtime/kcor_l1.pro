@@ -617,6 +617,43 @@ pro kcor_l1, ok_filename, $
   ; multiply by ad hoc non-linearity correction factor
   cal_data *= run->epoch('nonlinearity-correction-factor')
 
+  ; create occulter annotated nomask L1 GIFs by camera
+  cal_data_temp = dblarr(xsize, ysize, 2, 3)
+  u_l1 = dblarr(xsize, ysize, 2)
+
+  for s = 0, 2 do begin
+    cal_data_temp[*, *, 0, s] = kcor_fshift(reverse(cal_data[*, *, 0, s], 1), $
+                                            511.5 - (xsize - 1 - sun_xyr0[0]), $
+                                            511.5 - sun_xyr0[1], $
+                                            interp=1)
+    cal_data_temp[*, *, 1, s] = kcor_fshift(reverse(cal_data[*, *, 1, s], 1), $
+                                            511.5 - (xsize - 1 - sun_xyr1[0]), $
+                                            511.5 - sun_xyr1[1], $
+                                            interp=1)
+  endfor
+
+  xx1    = dindgen(xsize, ysize) mod xsize - 511.5
+  yy1    = transpose(dindgen(ysize, xsize) mod ysize) - 511.5
+  rad1   = sqrt((xx1 + center_offset[0])^ 2.0 + (yy1 + center_offset[1]) ^ 2.0)
+
+  theta1 = atan(- yy1, - xx1)
+  theta1 += !pi
+  theta1 = reverse(theta1)
+
+  for c = 0L, 1L do begin
+    u_l1[*, *, c] = cal_data_temp[*, *, c, 1] * cos(2.0 * theta1) $
+                      + cal_data_temp[*, *, c, 2] * sin(2.0 * theta1)
+    u_l1[*, *, c]= rot(u_l1[*, *, c], $
+                       pangle + run->epoch('rotation_correction'), 1, /interp)
+    kcor_create_gif, ok_filename, u_l1, date_obs, $
+                     level=1, $
+                     occulter_radius=([radius_0, radius_1])[c], $
+                     camera=c, $
+                     /nomask, $
+                     run=run, log_name=log_name
+  endfor
+
+
   ; shift images to center of array & orient north up
 
   xcen = 511.5 + 1.0   ; x center of FITS array equals one plus IDL center
@@ -644,14 +681,6 @@ pro kcor_l1, ok_filename, $
                                                    + cal_data_new[*, *, 1, s]) * 0.5
       endcase
     endfor
-
-    xx1    = dindgen(xsize, ysize) mod xsize - 511.5
-    yy1    = transpose(dindgen(ysize, xsize) mod ysize) - 511.5
-    rad1   = sqrt((xx1 + center_offset[0])^ 2.0 + (yy1 + center_offset[1]) ^ 2.0)
-
-    theta1 = atan(- yy1, - xx1)
-    theta1 += !pi
-    theta1 = reverse(theta1)
 
     mg_log, 'performing polarization coord transformation', $
             name=log_name, /debug

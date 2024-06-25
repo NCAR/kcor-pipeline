@@ -26,6 +26,7 @@
 pro kcor_create_gif, filename, corona, date_obs, $
                      scaled_image=scaled_image, $
                      nomask=nomask, $
+                     camera=camera, $
                      occulter_radius=occulter_radius, $
                      run=run, $
                      log_name=log_name, $
@@ -148,10 +149,14 @@ pro kcor_create_gif, filename, corona, date_obs, $
 
   device, decomposed=1
   save     = tvrd()
+  _camera = n_elements(camera) eq 0L $
+              ? '' $
+              : string(camera, format='_cam%d')
   gif_file = string(strmid(file_basename(filename), 0, 20), $
                     level, $
+                    _camera, $
                     keyword_set(nomask) ? '_nomask' : '', $
-                    format='(%"%s_l%d%s.gif")')
+                    format='(%"%s_l%d%s%s.gif")')
   write_gif, filepath(gif_file, $
                       subdir=[run.date, string(level, format='(%"level%d")')], $
                       root=run->config('processing/raw_basedir')), $
