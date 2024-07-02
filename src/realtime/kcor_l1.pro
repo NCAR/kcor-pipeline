@@ -23,6 +23,7 @@ pro kcor_l1, ok_filename, $
              u=umk4, $
              flat_vdimref=flat_vdimref, $
              run=run, $
+             nomask=nomask, $
              mean_phase1=mean_phase1, $
              log_name=log_name, $
              error=error
@@ -614,24 +615,6 @@ pro kcor_l1, ok_filename, $
     cameras = run->epoch('cameras')
   endif
 
-  ; multiply by ad hoc non-linearity correction factor
-  cal_data *= run->epoch('nonlinearity-correction-factor')
-
-  ; create occulter annotated nomask L1 GIFs by camera
-  cal_data_temp = dblarr(xsize, ysize, 2, 3)
-  u_l1 = dblarr(xsize, ysize, 2)
-
-  for s = 0, 2 do begin
-    cal_data_temp[*, *, 0, s] = kcor_fshift(reverse(cal_data[*, *, 0, s], 1), $
-                                            511.5 - (xsize - 1 - sun_xyr0[0]), $
-                                            511.5 - sun_xyr0[1], $
-                                            interp=1)
-    cal_data_temp[*, *, 1, s] = kcor_fshift(reverse(cal_data[*, *, 1, s], 1), $
-                                            511.5 - (xsize - 1 - sun_xyr1[0]), $
-                                            511.5 - sun_xyr1[1], $
-                                            interp=1)
-  endfor
-
   xx1    = dindgen(xsize, ysize) mod xsize - 511.5
   yy1    = transpose(dindgen(ysize, xsize) mod ysize) - 511.5
   rad1   = sqrt((xx1 + center_offset[0])^ 2.0 + (yy1 + center_offset[1]) ^ 2.0)
@@ -640,19 +623,46 @@ pro kcor_l1, ok_filename, $
   theta1 += !pi
   theta1 = reverse(theta1)
 
-  for c = 0L, 1L do begin
-    u_l1[*, *, c] = cal_data_temp[*, *, c, 1] * cos(2.0 * theta1) $
-                      + cal_data_temp[*, *, c, 2] * sin(2.0 * theta1)
-    u_l1[*, *, c]= rot(u_l1[*, *, c], $
-                       pangle + run->epoch('rotation_correction'), 1, /interp)
-    kcor_create_gif, ok_filename, u_l1, date_obs, $
-                     level=1, $
-                     occulter_radius=([radius_0, radius_1])[c], $
-                     camera=c, $
-                     /nomask, $
-                     run=run, log_name=log_name
-  endfor
+  ; multiply by ad hoc non-linearity correction factor
+  cal_data *= run->epoch('nonlinearity-correction-factor')
 
+  if (keyword_set(nomask)) then begin
+    ; create occulter annotated nomask L1 GIFs by camera
+    cal_data_temp = dblarr(xsize, ysize, 2, 3)
+    u_l1 = dblarr(xsize, ysize, 2)
+
+    for s = 0, 2 do begin
+      cal_data_temp[*, *, 0, s] = kcor_fshift(reverse(cal_data[*, *, 0, s], 1), $
+                                              511.5 - (xsize - 1 - sun_xyr0[0]), $
+                                              511.5 - sun_xyr0[1], $
+                                              interp=1)
+      cal_data_temp[*, *, 1, s] = kcor_fshift(reverse(cal_data[*, *, 1, s], 1), $
+                                              511.5 - (xsize - 1 - sun_xyr1[0]), $
+                                              511.5 - sun_xyr1[1], $
+                                              interp=1)
+    endfor
+
+    for c = 0L, 1L do begin
+      u_l1[*, *, c] = cal_data_temp[*, *, c, 1] * cos(2.0 * theta1) $
+                        + cal_data_temp[*, *, c, 2] * sin(2.0 * theta1)
+      u_l1[*, *, c] = rot(u_l1[*, *, c], $
+                          pangle + run->epoch('rotation_correction'), 1, /interp)
+      kcor_create_gif, ok_filename, u_l1[*, *, c], date_obs, $
+                       level=1, $
+                       occulter_radius=([sun_xyr0[2], sun_xyr1[2]])[c], $
+                       camera=c, $
+                       /nomask, $
+                       run=run, log_name=log_name
+
+      if (run->config('realtime/save_intermediate')) then begin
+        writefits, filepath(string(strmid(file_basename(ok_filename), 0, 20), $
+                                   c, $
+                                   format='(%"%s_l1_cam%d_nomask.fts")'), $
+                            root=l1_dir), $
+                   u_l1[*, *, c], header
+      endif
+    endfor
+  endif
 
   ; shift images to center of array & orient north up
 

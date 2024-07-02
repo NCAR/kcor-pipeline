@@ -375,6 +375,7 @@ pro kcor_process_files, ok_files, $
     kcor_l1, filepath(file_basename(l0_file), $
                       root=keyword_set(eod) ? l0_dir : date_dir), $
              run=run, $
+             nomask=nomask, $
              mean_phase1=file_mean_phase1, $
              l1_filename=l1_filename, $
              l1_header=l1_header, $
@@ -401,7 +402,7 @@ pro kcor_process_files, ok_files, $
              run=run, $
              nomask=nomask, $
              log_name=log_name, $
-               error=l2_error
+             error=l2_error
     error[fnum - 1L] or= l2_error
   endforeach
 
