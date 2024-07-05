@@ -1125,3 +1125,6 @@
 - fix to make verification find new configuration file specification
 
 #### 2.1.11
+
+- change BUNIT value and comment
+- produce level 1 nomask GIFs and FITS files

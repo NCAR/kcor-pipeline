@@ -692,6 +692,10 @@ pro kcor_l1, ok_filename, $
       endcase
     endfor
 
+    if (run->config('realtime/save_intermediate')) then begin
+      kcor_write_iqu, ok_filename, cal_data_combined_center, header, run=run
+    endif
+
     mg_log, 'performing polarization coord transformation', $
             name=log_name, /debug
 
@@ -719,6 +723,10 @@ pro kcor_l1, ok_filename, $
         else: cal_data_combined[*, *, s] = (camera_0 + camera_1) / 2.0
       endcase
     endfor
+
+    if (run->config('realtime/save_intermediate')) then begin
+      kcor_write_iqu, ok_filename, cal_data_combined_center, header, run=run
+    endif
 
     mg_log, 'performing polarization coord transformation', $
             name=log_name, /debug
@@ -895,7 +903,7 @@ pro kcor_l1, ok_filename, $
             ' # frames summed per L0 img for each pol state'
 
   fxaddpar, l1_header, 'BUNIT', 'Mean Solar Brightness', $
-            ' [B/Bsun] units of solar disk brightness'
+            ' [B/Bsun] units of entire solar disk brightness'
   diffsrid = run->epoch('use_diffsrid') ? struct.diffsrid : run->epoch('diffsrid')
   fxaddpar, l1_header, 'BOPAL', $
             run->epoch(diffsrid) * 1e-6, $
