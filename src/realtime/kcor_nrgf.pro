@@ -9,16 +9,25 @@ pro kcor_nrgf_annotations, year, name_month, day, hour, minute, second, doy, $
                            charsize=charsize, big_charsize=big_charsize, $
                            annotation_color=annotation_color, $
                            cropped=cropped, $
-                           averaged=averaged, daily=daily, to_time=to_time
+                           averaged=averaged, daily=daily, to_time=to_time, $
+                           enhanced_radius=enhanced_radius, $
+                           enhanced_amount=enhanced_amount
   compile_opt strictarr
 
   big_line_height = keyword_set(cropped) ? 18 : 20
   line_height = keyword_set(cropped) ? 15 : 20
 
+  is_enhanced = n_elements(enhanced_radius) gt 0L || n_elements(enhanced_amount) gt 0L
+
   xyouts, 4, top - 34 + keyword_set(cropped) * 12, 'HAO/MLSO/KCor', $
           color=annotation_color, charsize=big_charsize, /device
   xyouts, 4, top - 34 - big_line_height + keyword_set(cropped) * 12, 'K-Coronagraph', $
           color=annotation_color, charsize=big_charsize, /device
+  if (is_enhanced) then begin
+    xyouts, 4, top - 34 - 2 * big_line_height + keyword_set(cropped) * 12, $
+            'Enhanced Intensity', $
+            color=annotation_color, charsize=big_charsize, /device
+  endif
 
   line = 0
   xyouts, right - 6, top - 29 + line++ * line_height + keyword_set(cropped) * 12, $
@@ -67,10 +76,22 @@ pro kcor_nrgf_annotations, year, name_month, day, hour, minute, second, doy, $
             color=annotation_color, charsize=charsize, /device
   endif
 
-  xyouts, 4, 6 + line_height, string(cmin, cmax, format='(%"min/max: %4.1f, %4.1f")'), $
+  annotation_y = 6 + line_height
+  if (is_enhanced) then annotation_y += line_height
+
+  xyouts, 4, annotation_y, string(cmin, cmax, format='(%"min/max: %4.1f, %4.1f")'), $
           color=annotation_color, charsize=charsize, /device
-  xyouts, 4, 6, 'Intensity: normalized, radially-graded', $
+  annotation_y -= line_height
+  xyouts, 4, annotation_y, 'Intensity: normalized, radially-graded', $
           color=annotation_color, charsize=charsize, /device
+  if (is_enhanced) then begin
+    annotation_y -= line_height
+      xyouts, 4, annotation_y, $
+              string(enhanced_radius, enhanced_amount, $
+                     format='Enhanced radius: %0.1f, amount: %0.1f'), $
+              color=annotation_color, charsize=charsize, /device
+  endif
+
   xyouts, right - 6, 6, 'circle = photosphere', $
           color=annotation_color, charsize=charsize, /device, alignment=1.0
 end
@@ -109,7 +130,9 @@ pro kcor_nrgf, fits_file, $
                daily=daily, $
                run=run, $
                log_name=log_name, $
-               fits_filename=fits_filename
+               fits_filename=fits_filename, $
+               enhanced_radius=enhanced_radius, $
+               enhanced_amount=enhanced_amount
   compile_opt strictarr
 
   ; read L1 FITS image
@@ -328,7 +351,9 @@ pro kcor_nrgf, fits_file, $
                          charsize=charsize, big_charsize=big_charsize, $
                          annotation_color=annotation_color, $
                          cropped=cropped, averaged=averaged, daily=daily, $
-                         to_time=to_time
+                         to_time=to_time, $
+                         enhanced_radius=enhanced_radius, $
+                         enhanced_amount=enhanced_amount
 
   ; create NRGF GIF file
   save = tvrd()

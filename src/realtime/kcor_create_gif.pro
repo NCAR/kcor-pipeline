@@ -30,7 +30,9 @@ pro kcor_create_gif, filename, corona, date_obs, $
                      occulter_radius=occulter_radius, $
                      run=run, $
                      log_name=log_name, $
-                     level=level
+                     level=level, $
+                     enhanced_radius=enhanced_radius, $
+                     enhanced_amount=enhanced_amount
   compile_opt strictarr
 
   date_struct = kcor_parse_dateobs(date_obs)
@@ -73,6 +75,9 @@ pro kcor_create_gif, filename, corona, date_obs, $
 
   tv, scaled_image
 
+  is_enhanced = n_elements(enhanced_radius) gt 0L || n_elements(enhanced_amount) gt 0L
+
+  ; top left
   xyouts, 4, 990, /device, $
           'MLSO/HAO/KCOR', $
           charsize=1.5, $
@@ -81,10 +86,14 @@ pro kcor_create_gif, filename, corona, date_obs, $
           'K-Coronagraph', $
           charsize=1.5, $
           color=annotation_color
-  xyouts, 512, 1000, /device, alignment=0.5, $
-          'North', $
-          charsize=1.2, $
-          color=annotation_color
+  if (is_enhanced) then begin
+    xyouts, 4, 950, /device, $
+            'Enhanced polarization brightness', $
+            charsize=1.5, $
+            color=annotation_color
+  endif
+
+  ; upper right
   xyouts, 1018, 995, /device, alignment=1.0, $
           string(date_struct.day, date_struct.month_name, date_struct.year, $
                  format='(%"%02d %s %04d")'), $
@@ -99,28 +108,50 @@ pro kcor_create_gif, filename, corona, date_obs, $
                  format='(%"%02d:%02d:%02d UT")'), $
           charsize=1.2, $
           color=annotation_color
+
+  ; top, left, right
+  xyouts, 512, 1000, /device, alignment=0.5, $
+          'North', $
+          charsize=1.2, $
+          color=annotation_color
   xyouts, 22, 512, /device, alignment=0.5, orientation=90.0, $
           'East', charsize=1.2, $
           color=annotation_color
   xyouts, 1012, 512, /device, alignment=0.5, orientation=90.0, $
           'West', charsize=1.2, $
           color=annotation_color
-  xyouts, 4, 46, /device, $
+
+  ; lower left
+  annotation_y = is_enhanced ? 66 : 46
+
+  xyouts, 4, annotation_y, /device, $
           string(level, format='(%"Level %d data")'), $
           charsize=1.2, $
           color=annotation_color
-  xyouts, 4, 26, /device, $
+  annotation_y -= 20
+  xyouts, 4, annotation_y, /device, $
           string(run->epoch('display_min'), $
                  run->epoch('display_max'), $
                  format='(%"min/max: %0.2g, %0.2g")'), $
           charsize=1.2, $
           color=annotation_color
-  xyouts, 4, 6, /device, $
+  annotation_y -= 20
+  xyouts, 4, annotation_y, /device, $
           string(run->epoch('display_exp'), $
                  run->epoch('display_gamma'), $
                  format='(%"scaling: Intensity ^ %3.1f, gamma=%4.2f")'), $
           charsize=1.2, $
           color=annotation_color
+  if (is_enhanced) then begin
+    annotation_y -= 20
+    xyouts, 4, annotation_y, /device, $
+            string(enhanced_radius, enhanced_amount, $
+                   format='Enhanced radius: %0.1f, amount: %0.1f'), $
+            charsize=1.2, $
+            color=annotation_color
+  endif
+
+  ; lower right
   xyouts, 1018, 6, /device, alignment=1.0, $
           'Circle = photosphere.', $
           charsize=1.2, $
@@ -149,9 +180,10 @@ pro kcor_create_gif, filename, corona, date_obs, $
               : string(camera, format='_cam%d')
   gif_file = string(strmid(file_basename(filename), 0, 20), $
                     level, $
+                    level eq 2 ? '_pb' : '', $
                     _camera, $
                     keyword_set(nomask) ? '_nomask' : '', $
-                    format='(%"%s_l%d_pb%s%s.gif")')
+                    format='(%"%s_l%d%s%s%s.gif")')
   write_gif, filepath(gif_file, $
                       subdir=[run.date, string(level, format='(%"level%d")')], $
                       root=run->config('processing/raw_basedir')), $
