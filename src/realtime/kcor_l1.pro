@@ -546,7 +546,7 @@ pro kcor_l1, ok_filename, $
 
   center_offset = run->config('realtime/center_offset')
 
-  ; find image centers of distortion-corrected, non-demodulated  images
+  ; find image centers of distortion-corrected, non-demodulated images
 
   ; camera 0
   info_dc0 = kcor_find_image(cimg0, radius_guess, $
