@@ -377,6 +377,8 @@ pro kcor_nrgf, fits_file, $
       fxaddpar, rhdu, 'PRODUCT', 'NRGF', $
                 ' Normalized Radially-Graded Intensity'
     endelse
+    fxaddpar, rhdu, 'BUNIT', 'Normalized Mean Solar Brightness', $
+              ' [B/Bsun] units of entire solar disk brightness'
     fxaddpar, rhdu, 'BSCALE', bscale, $
               ' Normalized Radially-Graded H.Morgan+S.Fineschi', $
               format='(f10.3)'
