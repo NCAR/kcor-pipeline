@@ -44,21 +44,19 @@ pro kcor_create_gif, filename, corona, date_obs, $
   device, set_resolution=[1024, 1024], $
           decomposed=0, $
           set_colors=256, $
+          set_pixel_depth=8, $
           z_buffering=0
   tvlct, original_rgb, /get
 
   ; load color table
-  lct, filepath('quallab_ver2.lut', root=run.resources_dir)
-  tvlct, red, green, blue, /get
-
   n_colors = keyword_set(nomask) ? 255 : 256
 
   loadct, 0, /silent, ncolors=n_colors
   mg_gamma_ct, run->epoch('display_gamma'), /current, n_colors=n_colors
 
   if (keyword_set(nomask)) then begin
-    green_color = 255
-    tvlct, 0, 255, 0, green_color
+    occulter_color = 255
+    tvlct, 0, 255, 0, occulter_color
 
     annotation_color = 254
   endif else begin
@@ -67,13 +65,12 @@ pro kcor_create_gif, filename, corona, date_obs, $
 
   tvlct, red, green, blue, /get
 
-  erase
-
   display_factor = 1.0e6
   scaled_image = bytscl((display_factor * corona)^run->epoch('display_exp'), $
                         min=display_factor * run->epoch('display_min'), $
                         max=display_factor * run->epoch('display_max'), $
                         top=n_colors - 1L)
+
   tv, scaled_image
 
   xyouts, 4, 990, /device, $
@@ -133,10 +130,9 @@ pro kcor_create_gif, filename, corona, date_obs, $
   ; draw circle at photosphere
   if (keyword_set(nomask)) then begin
     dims = size(scaled_image, /dimensions)
-    tvcircle, occulter_radius, $
-              (dims[0] - 1.0) / 2.0, $
-              (dims[1] - 1.0) / 2.0, $
-              green_color, /device
+    draw_circle, (dims[0] - 1.0) / 2.0, $
+                 (dims[1] - 1.0) / 2.0, $
+                 occulter_radius, color=occulter_color, /device
   endif else begin
     kcor_add_directions, fltarr(2) + 511.5, r_photo, $
                          charsize=1.5, $
@@ -147,7 +143,6 @@ pro kcor_create_gif, filename, corona, date_obs, $
                  log_name=log_name
   endelse
 
-  device, decomposed=1
   save     = tvrd()
   _camera = n_elements(camera) eq 0L $
               ? '' $
@@ -156,7 +151,7 @@ pro kcor_create_gif, filename, corona, date_obs, $
                     level, $
                     _camera, $
                     keyword_set(nomask) ? '_nomask' : '', $
-                    format='(%"%s_l%d%s%s.gif")')
+                    format='(%"%s_l%d_pb%s%s.gif")')
   write_gif, filepath(gif_file, $
                       subdir=[run.date, string(level, format='(%"level%d")')], $
                       root=run->config('processing/raw_basedir')), $
@@ -170,7 +165,7 @@ end
 
 ; main-level example program
 
-date = '20221007'
+date = '20240409'
 config_basename = 'kcor.latest.cfg'
 config_filename = filepath(config_basename, $
                            subdir=['..', '..', '..', 'kcor-config'], $
@@ -178,7 +173,7 @@ config_filename = filepath(config_basename, $
 run = kcor_run(date, config_filename=config_filename, mode='eod')
 
 l1_dirname = filepath('', subdir=[date, 'level1'], root=run->config('processing/raw_basedir'))
-l1_basename = '20221007_173714_kcor_l1.fts.gz'
+l1_basename = '20240409_174852_kcor_l1.fts.gz'
 l1_filename = filepath(l1_basename, root=l1_dirname)
 
 data = readfits(l1_filename, l1_header, /silent)
@@ -189,8 +184,8 @@ intensity = reform(data[*, *, 1])
 corona = float(u) - float(rot(q, 45.0, /interp))
 
 date_obs = sxpar(l1_header, 'DATE-OBS')
-rcam_rad = sxpar(l1_header, 'RCAM_RAD')
-tcam_rad = sxpar(l1_header, 'TCAM_RAD')
+rcam_rad = sxpar(l1_header, 'RCAM_DCR')
+tcam_rad = sxpar(l1_header, 'TCAM_DCR')
 occulter_radius = (rcam_rad + tcam_rad) / 2.0
 
 kcor_create_gif, l1_filename, corona, date_obs, $
@@ -200,5 +195,22 @@ kcor_create_gif, l1_filename, corona, date_obs, $
                  occulter_radius=occulter_radius, $
                  run=run, $
                  log_name=log_name
+
+nomask_basename = '20240409_174852_kcor_l1_cam0_nomask.fts'
+nomask_filename = filepath(nomask_basename, root=l1_dirname)
+
+corona = readfits(nomask_filename)
+
+l0_basename = '20240409_174852_kcor.fts'
+
+kcor_create_gif, l0_basename, corona, date_obs, $
+                 scaled_image=scaled_image, $
+                 nomask=1, $
+                 camera=0, $
+                 occulter_radius=rcam_rad, $
+                 run=run, $
+                 level=1
+
+obj_destroy, run
 
 end
