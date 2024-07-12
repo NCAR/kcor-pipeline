@@ -23,10 +23,13 @@
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;- 
-pro kcor_create_averages, date, l2_files, run=run
+pro kcor_create_averages, date, l2_files, run=run, enhanced=enhanced
   compile_opt strictarr
 
   mg_log, 'creating average movies', name='kcor/eod', /info
+
+  enhanced_radius = run->epoch('enhanced_radius')
+  enhanced_amount = run->epoch('enhanced_amount')
 
   date_parts = kcor_decompose_date(date)
   archive_dir = filepath('', subdir=date_parts, root=run->config('results/archive_basedir'))
@@ -275,6 +278,12 @@ pro kcor_create_averages, date, l2_files, run=run
       doy = mday[month - 1] + day
     endelse
 
+    if (keyword_set(enhanced)) then begin
+      avgimg = kcor_enhanced(avgimg, $
+                             radius=enhanced_radius, $
+                             amount=enhanced_amount)
+    endif
+
     ; set up device, color table and scaling
     set_plot, 'Z'
     device, set_resolution=[1024, 1024], $
@@ -295,6 +304,11 @@ pro kcor_create_averages, date, l2_files, run=run
 
     xyouts, 4, 990, 'MLSO/HAO/KCOR', color=255, charsize=1.5, /device
     xyouts, 4, 970, 'K-Coronagraph', color=255, charsize=1.5, /device
+    if (keyword_set(enhanced)) then begin
+      xyouts, 4, 950, 'Enhanced polarization brightness', $
+              color=255, charsize=1.5, /device
+    endif
+
     xyouts, 512, 1000, 'North', color=255, charsize=1.2, alignment=0.5, $
             /device
     xyouts, 1018, 995, string(format='(a2)', dy) + ' ' $
@@ -314,14 +328,28 @@ pro kcor_create_averages, date, l2_files, run=run
             orientation=90., /device
     xyouts, 1012, 512, 'West', color=255, charsize=1.2, alignment=0.5, $
             orientation=90., /device
-    xyouts, 4, 46, 'Level 2 Avg', color=255, charsize=1.2, /device
-    xyouts, 4, 26, string(display_min, display_max, $
-                          format='(%"min/max: %0.2g, %0.2g")'), $
+
+    annotation_y = keyword_set(enhanced) ? 66 : 46
+
+    xyouts, 4, annotation_y, 'Level 2 Avg', color=255, charsize=1.2, /device
+    annotation_y -= 20
+    xyouts, 4, annotation_y, string(display_min, display_max, $
+                          format='min/max: %0.2g, %0.2g'), $
             color=255, charsize=1.2, /device
-    xyouts, 4, 6, string(display_exp, $
+    annotation_y -= 20
+    xyouts, 4, annotation_y, string(display_exp, $
                          display_gamma, $
-                         format='("scaling: Intensity ^ ", f3.1, ", gamma=", f4.2)'), $
+                         format='scaling: Intensity^%3.1f, gamma=%4.2f'), $
             color=255, charsize=1.2, /device
+   if (keyword_set(enhanced)) then begin
+    annotation_y -= 20
+    xyouts, 4, annotation_y, $
+            string(enhanced_radius, $
+                   enhanced_amount, $
+                   format='enhanced radius: %0.1f, amount: %0.1f'), $
+            color=255, charsize=1.2, /device
+   endif
+
     xyouts, 1018, 6, 'Circle = photosphere', $
             color=255, charsize=1.2, /device, alignment=1.0
 
@@ -336,8 +364,9 @@ pro kcor_create_averages, date, l2_files, run=run
 
     save = tvrd()
 
-    gif_basename = strmid(savename, 0, 26) + '_avg.gif'
-
+    gif_basename = string(strmid(savename, 0, 26), $
+                          keyword_set(enhanced) ? '_enhanced' : '', $
+                          format='%s_avg%s.gif')
     if (numavg gt 1L) then begin
       write_gif, gif_basename, save, red, green, blue
       if (run->config('realtime/distribute')) then begin
@@ -348,7 +377,7 @@ pro kcor_create_averages, date, l2_files, run=run
       kcor_cropped_gif, bscale * avgimg, date, kcor_parse_dateobs(date_obs), $
                         /average, output_filename=cgif_filename, run=run, $
                         log_name='kcor/eod', $
-                        level=2
+                        level=2, enhanced=enhanced
       if (run->config('realtime/distribute')) then begin
         file_copy, cgif_filename, cropped_dir, /overwrite
       endif
@@ -448,6 +477,9 @@ pro kcor_create_averages, date, l2_files, run=run
   endfor
 
   daily /= float(dailycount) - float(n_daily_skip)
+  if (keyword_set(enhanced)) then begin
+    daily = kcor_enhanced(daily, radius=enhanced_radius, amount=enhanced_amount)
+  endif
 
   display_factor = 1.0e6
   tv, bytscl((display_factor * bscale * daily)^display_exp, $
@@ -496,6 +528,12 @@ pro kcor_create_averages, date, l2_files, run=run
 
   xyouts, 4, 990, 'MLSO/HAO/KCOR', color=255, charsize=1.5, /device
   xyouts, 4, 970, 'K-Coronagraph', color=255, charsize=1.5, /device
+  if (keyword_set(enhanced)) then begin
+    xyouts, 4, 950, 'Enhanced polarization brightness', $
+            color=255, charsize=1.5, /device
+  endif
+
+
   xyouts, 512, 1000, 'North', color=255, charsize=1.2, alignment=0.5, $
           /device
   xyouts, 1018, 995, $
@@ -517,14 +555,29 @@ pro kcor_create_averages, date, l2_files, run=run
           orientation=90., /device
   xyouts, 1012, 512, 'West', color=255, charsize=1.2, alignment=0.5, $
           orientation=90., /device
-  xyouts, 4, 46, 'Level 2 Avg', color=255, charsize=1.2, /device
-  xyouts, 4, 26, string(display_min, display_max, $  
-                        format='(%"min/max: %0.2g, %0.2g")'), $
+
+  annotation_y = keyword_set(enhanced) ? 66 : 46
+
+  xyouts, 4, annotation_y, 'Level 2 Avg', color=255, charsize=1.2, /device
+  annotation_y -= 20
+  xyouts, 4, annotation_y, string(display_min, display_max, $  
+                        format='min/max: %0.2g, %0.2g'), $
           color=255, charsize=1.2, /device
-  xyouts, 4, 6, string(display_exp, $     
-                       display_gamma, $
-                       format='("scaling: Intensity ^ ", f3.1, ", gamma=", f4.2)'), $
+  annotation_y -= 20  
+  xyouts, 4, annotation_y, string(display_exp, $
+                                  display_gamma, $
+                                  format='scaling: Intensity^%3.1f, gamma=%4.2f'), $
           color=255, charsize=1.2, /device
+
+  if (keyword_set(enhanced)) then begin
+    annotation_y -= 20
+    xyouts, 4, annotation_y, $
+            string(enhanced_radius, $
+                   enhanced_amount, $
+                   format='enhanced radius: %0.1f, amount: %0.1f'), $
+            color=255, charsize=1.2, /device
+  endif
+
   xyouts, 1018, 6, 'Circle = photosphere.', $
           color=255, charsize=1.2, /device, alignment=1.0
 
@@ -538,8 +591,10 @@ pro kcor_create_averages, date, l2_files, run=run
   save = tvrd()
 
   if (n_elements(daily_savename) gt 0L) then begin
-    gif_filename = strmid(daily_savename, 0, 26) + '_extavg.gif'
-    write_gif, gif_filename, save, red, green, blue  
+    gif_filename = string(strmid(daily_savename, 0, 26), $
+                          keyword_set(enhanced) ? '_enhanced' : '', $
+                          format='%s_extavg%s.gif'
+    write_gif, gif_filename, save, red, green, blue
     if (run->config('realtime/distribute')) then begin
       mg_log, 'copying extended average GIF to cropped dir', $
               name='kcor/eod', /debug
@@ -555,7 +610,7 @@ pro kcor_create_averages, date, l2_files, run=run
     kcor_cropped_gif, bscale * daily, date, kcor_parse_dateobs(date_obs), $
                       /daily, /average, output_filename=cgif_filename, run=run, $
                       log_name='kcor/eod', $
-                      level=2
+                      level=2, enhanced=enhanced
 
     if (run->config('realtime/distribute')) then begin
       mg_log, 'copying cropped extended average GIF to cropped dir', $
@@ -591,7 +646,9 @@ pro kcor_create_averages, date, l2_files, run=run
 
   if (n_elements(daily_savename) gt 0L) then begin
     name = strmid(daily_savename, 0, 23)
-    daily_fits_average_filename = string(name, format='(%"%s_extavg.fts")')
+    daily_fits_average_filename = string(name, $
+                                         keyword_set(enhanced) ? '_enhanced' : '', $
+                                         format='(%"%s_extavg%s.fts")')
 
     mg_log, 'writing %s', daily_fits_average_filename, name='kcor/eod', /info
     writefits, daily_fits_average_filename, daily, dailysaveheader

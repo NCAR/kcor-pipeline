@@ -135,8 +135,14 @@ pro kcor_nrgf, fits_file, $
                enhanced_amount=enhanced_amount
   compile_opt strictarr
 
+  is_enhanced = n_elements(enhanced_radius) gt 0L || n_elements(enhanced_amount) gt 0L
+
   ; read L1 FITS image
   img = readfits(fits_file, hdu, /noscale, /silent)
+
+  if (is_enhanced) then begin
+    img = kcor_enhanced(img, radius=enhanced_radius, amount=enhanced_amount)
+  endif
 
   if (keyword_set(cropped)) then begin
     xdim     = 768
@@ -194,12 +200,6 @@ pro kcor_nrgf, fits_file, $
 
   radius_guess = 178
   if (keyword_set(cropped)) then radius_guess *= scale
-
-  ; TODO: do we need the below?
-  ;img_info = kcor_find_image(img, radius_guess, log_name=log_name)
-  ;xc   = img_info[0]
-  ;yc   = img_info[1]
-  ;r    = img_info[2]
 
   rocc    = occulter / platescale   ; occulter radius [pixels]
   r_photo = rsun / platescale       ; photosphere radius [pixels]
@@ -371,8 +371,9 @@ pro kcor_nrgf, fits_file, $
 
   type = keyword_set(daily) ? '_extavg' : (keyword_set(averaged) ? '_avg' : '')
   type += keyword_set(cropped) ? '_cropped' : ''
-  gif_filename = string(strmid(fits_file, 0, remove_loc), type, $
-                        format='(%"%s_nrgf%s.gif")')
+  _enhanced = is_enhanced ? '_enhanced' : ''
+  gif_filename = string(strmid(fits_file, 0, remove_loc), type, _enhanced, $
+                        format='(%"%s_nrgf%s%s.gif")')
 
   write_gif, gif_filename, save, red, green, blue
   mg_log, 'wrote GIF file %s', file_basename(gif_filename), name=log_name, /debug
@@ -392,11 +393,21 @@ pro kcor_nrgf, fits_file, $
               ' Level 2'
     if (keyword_set(averaged)) then begin
       if (keyword_set(daily)) then begin
-        fxaddpar, rhdu, 'PRODUCT', 'ext avg NRGF', $
-                  ' extended averaged NRGF pB'
+        if (is_enhanced) then begin
+          fxaddpar, rhdu, 'PRODUCT', 'enh ext avg NRGF', $
+                    ' enhanced extended averaged NRGF pB'
+        endif else begin
+          fxaddpar, rhdu, 'PRODUCT', 'ext avg NRGF', $
+                    ' extended averaged NRGF pB'
+        endelse
       endif else begin
-        fxaddpar, rhdu, 'PRODUCT', 'avg NRGF', $
-                  ' averaged Normalized Radially Graded Filtered pB'
+        if (is_enhanced) then begin
+          fxaddpar, rhdu, 'PRODUCT', 'enh avg NRGF', $
+                    ' enhanced averaged NRGF pB'
+        endif else begin
+          fxaddpar, rhdu, 'PRODUCT', 'avg NRGF', $
+                    ' averaged Normalized Radially Graded Filtered pB'
+        endelse
       endelse
     endif else begin
       fxaddpar, rhdu, 'PRODUCT', 'NRGF', $
@@ -407,6 +418,15 @@ pro kcor_nrgf, fits_file, $
     fxaddpar, rhdu, 'BSCALE', bscale, $
               ' Normalized Radially-Graded H.Morgan+S.Fineschi', $
               format='(f10.3)'
+    if (is_enhanced) then begin
+      fxaddpar, rhdu, 'ENH_RAD', enhanced_radius, $
+                ' [px] radius of unsharp mask Gaussian filter', $
+                format='(f0.1)', after='BSCALE'
+      fxaddpar, rhdu, 'ENH_AMT', enhanced_amount, $
+                ' unsharp mask filtering strength', $
+                format='(f0.1)', after='ENH_RAD'
+    endif
+
     fxaddpar, rhdu, 'DATAMIN', datamin, ' minimum value of data', $
               format='(f10.3)'
     fxaddpar, rhdu, 'DATAMAX', datamax, ' maximum value of data', $
@@ -421,6 +441,7 @@ pro kcor_nrgf, fits_file, $
     ; write NRGF FITS file
     fits_filename = string(strmid(fits_file, 0, remove_loc), $
                            keyword_set(daily) ? '_extavg' : (keyword_set(averaged) ? '_avg' : ''), $
+                           is_enhanced ? '_enhanced' : '', $
                            format='(%"%s_nrgf%s.fts")')
 
     writefits, fits_filename, simg, rhdu

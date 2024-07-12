@@ -31,8 +31,7 @@ pro kcor_create_gif, filename, corona, date_obs, $
                      run=run, $
                      log_name=log_name, $
                      level=level, $
-                     enhanced_radius=enhanced_radius, $
-                     enhanced_amount=enhanced_amount
+                     enhanced=enhanced
   compile_opt strictarr
 
   date_struct = kcor_parse_dateobs(date_obs)
@@ -75,7 +74,7 @@ pro kcor_create_gif, filename, corona, date_obs, $
 
   tv, scaled_image
 
-  is_enhanced = n_elements(enhanced_radius) gt 0L || n_elements(enhanced_amount) gt 0L
+  is_enhanced = keyword_set(enhanced)
 
   ; top left
   xyouts, 4, 990, /device, $

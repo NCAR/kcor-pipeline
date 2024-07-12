@@ -29,7 +29,8 @@ pro kcor_cropped_gif, im, date, date_obs, $
                       daily=daily, average=average, $
                       output_filename=cgif_filename, $
                       run=run, log_name=log_name, $
-                      level=level
+                      level=level, $
+                      enhanced=enhanced
   compile_opt strictarr
 
   start_index = 256L
@@ -114,8 +115,9 @@ pro kcor_cropped_gif, im, date, date_obs, $
                          keyword_set(average) $
                            ? (keyword_set(daily) ? '_extavg' : '_avg') $
                            : '', $
+                         keyword_set(enhanced) ? '_enhanced' : '', $
                          keyword_set(nomask) ? '_nomask' : '', $
-                         format='(%"%04d%02d%02d_%02d%02d%02d_kcor_l%d%s%s_cropped%s.gif")')
+                         format='(%"%04d%02d%02d_%02d%02d%02d_kcor_l%d%s%s_cropped%s%s.gif")')
   cgif_filename = filepath(cgif_basename, root=dir)
   write_gif, cgif_filename, raster, red, green, blue
 

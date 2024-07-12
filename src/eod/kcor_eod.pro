@@ -193,9 +193,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     kcor_zip_files, filepath('*minus*.fts', root=l2_dir), run=run
 
     kcor_create_averages, date, l2_zipped_files, run=run
-    ; TODO: create enhanced averages
+    kcor_create_averages, date, l2_zipped_files, run=run, enhanced=enhanced
     kcor_redo_nrgf, date, run=run
-    ; TODO: create enhanced NRGFs
   endif
 
   oka_filename = filepath('oka.ls', subdir=[date, 'q'], $
