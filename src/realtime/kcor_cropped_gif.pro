@@ -110,11 +110,12 @@ pro kcor_cropped_gif, im, date, date_obs, $
   cgif_basename = string(date_obs.year, date_obs.month, date_obs.day, $
                          date_obs.hour, date_obs.minute, date_obs.second, $
                          level, $
+                         level eq 2 ? '_pb' : '', $
                          keyword_set(average) $
                            ? (keyword_set(daily) ? '_extavg' : '_avg') $
                            : '', $
                          keyword_set(nomask) ? '_nomask' : '', $
-                         format='(%"%04d%02d%02d_%02d%02d%02d_kcor_l%d_pb%s_cropped%s.gif")')
+                         format='(%"%04d%02d%02d_%02d%02d%02d_kcor_l%d%s%s_cropped%s.gif")')
   cgif_filename = filepath(cgif_basename, root=dir)
   write_gif, cgif_filename, raster, red, green, blue
 

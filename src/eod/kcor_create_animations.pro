@@ -37,9 +37,9 @@ pro kcor_create_animations, date, timestamps=timestamps, run=run
   cd, l2_dir
 
   nrgf_gif_filenames = timestamps + '_kcor_l2_nrgf_avg.gif'
-  gif_filenames = timestamps + '_kcor_l2.gif'
+  gif_filenames = timestamps + '_kcor_l2_pb.gif'
   cropped_nrgf_gif_filenames = timestamps + '_kcor_l2_nrgf_cropped.gif'
-  cropped_gif_filenames = timestamps + '_kcor_l2_cropped.gif'
+  cropped_gif_filenames = timestamps + '_kcor_l2_pb_cropped.gif'
 
   n_gif_filenames = n_elements(gif_filenames)
 
@@ -48,10 +48,10 @@ pro kcor_create_animations, date, timestamps=timestamps, run=run
   cropped_nrgf_dailygif_filename = string(date, format='(%"%s_kcor_l2_nrgf_cropped.gif")')
   cropped_nrgf_dailymp4_filename = string(date, format='(%"%s_kcor_l2_nrgf_cropped.mp4")')
 
-  dailygif_filename = string(date, format='(%"%s_kcor_l2.gif")')
-  dailymp4_filename = string(date, format='(%"%s_kcor_l2.mp4")')
-  cropped_dailygif_filename = string(date, format='(%"%s_kcor_l2_cropped.gif")')
-  cropped_dailymp4_filename = string(date, format='(%"%s_kcor_l2_cropped.mp4")')
+  dailygif_filename = string(date, format='(%"%s_kcor_l2_pb.gif")')
+  dailymp4_filename = string(date, format='(%"%s_kcor_l2_pb.mp4")')
+  cropped_dailygif_filename = string(date, format='(%"%s_kcor_l2_pb_cropped.gif")')
+  cropped_dailymp4_filename = string(date, format='(%"%s_kcor_l2_pb_cropped.mp4")')
 
   ; create daily GIF of NRGF files
   if (create_gifs) then begin

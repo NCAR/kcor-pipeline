@@ -336,7 +336,7 @@ pro kcor_create_averages, date, l2_files, run=run
 
     save = tvrd()
 
-    gif_basename = strmid(savename, 0, 23) + '_avg.gif'
+    gif_basename = strmid(savename, 0, 26) + '_avg.gif'
 
     if (numavg gt 1L) then begin
       write_gif, gif_basename, save, red, green, blue
@@ -365,7 +365,7 @@ pro kcor_create_averages, date, l2_files, run=run
     if (numavg gt 3) then begin
       fxaddpar, saveheader, 'AVGTIME1', timestring[1], ' Img times used in avg.'
     endif
-    name = strmid(savename, 0, 15) + '_kcor_l2'
+    name = strmid(savename, 0, 15) + '_kcor_l2_pb'
     fits_filename = string(name, format='(%"%s_avg.fts")')
 
     fxaddpar, saveheader, 'DATE-OBS', imgtimes[0]
@@ -537,7 +537,7 @@ pro kcor_create_averages, date, l2_files, run=run
   save = tvrd()
 
   if (n_elements(daily_savename) gt 0L) then begin
-    gif_filename = strmid(daily_savename, 0, 23) + '_extavg.gif'
+    gif_filename = strmid(daily_savename, 0, 26) + '_extavg.gif'
     write_gif, gif_filename, save, red, green, blue  
     if (run->config('realtime/distribute')) then begin
       mg_log, 'copying extended average GIF to cropped dir', $

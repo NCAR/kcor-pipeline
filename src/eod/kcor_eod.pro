@@ -180,7 +180,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
     if (file_test(l2_dir, /directory)) then begin
       cd, l2_dir
-      l2_zipped_fits_glob = '*_l2.fts.gz'
+      l2_zipped_fits_glob = '*_l2_pb.fts.gz'
       l2_zipped_files = file_search(l2_zipped_fits_glob, count=n_l2_zipped_files)
       cd, l0_dir
     endif else begin
@@ -193,7 +193,9 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     kcor_zip_files, filepath('*minus*.fts', root=l2_dir), run=run
 
     kcor_create_averages, date, l2_zipped_files, run=run
+    ; TODO: create enhanced averages
     kcor_redo_nrgf, date, run=run
+    ; TODO: create enhanced NRGFs
   endif
 
   oka_filename = filepath('oka.ls', subdir=[date, 'q'], $
@@ -223,7 +225,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
     mg_log, 'zipping nomask L2 FITS files...', $
             name='kcor/eod', /info
-    unzipped_glob = filepath('*_kcor_l2_nomask.fts', root=l2_dir)
+    unzipped_glob = filepath('*_kcor_l2_pb_nomask.fts', root=l2_dir)
     kcor_zip_files, unzipped_glob, run=run
   endif else begin
     mg_log, 'no OK L0 files to produce nomask files for', name='kcor/eod', /info
