@@ -114,7 +114,7 @@ pro kcor_cropped_gif, im, date, date_obs, $
                            ? (keyword_set(daily) ? '_extavg' : '_avg') $
                            : '', $
                          keyword_set(nomask) ? '_nomask' : '', $
-                         format='(%"%04d%02d%02d_%02d%02d%02d_kcor_l%d%s_cropped%s.gif")')
+                         format='(%"%04d%02d%02d_%02d%02d%02d_kcor_l%d_pb%s_cropped%s.gif")')
   cgif_filename = filepath(cgif_basename, root=dir)
   write_gif, cgif_filename, raster, red, green, blue
 

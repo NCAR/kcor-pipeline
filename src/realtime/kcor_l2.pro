@@ -197,7 +197,7 @@ pro kcor_l2, l1_filename, $
   ; write FITS image to disk
   l2_filename = string(strmid(file_basename(l1_filename), 0, 20), $
                        keyword_set(nomask) ? '_nomask' : '', $
-                       format='(%"%s_l2%s.fts")')
+                       format='(%"%s_l2_pb%s.fts")')
   writefits, filepath(l2_filename, root=l2_dir), float(corona), l2_header
 
   ; write Helioviewer JPEG2000 image to a web accessible directory

@@ -105,7 +105,7 @@ pro kcor_rowcol_image_l2, run=run
   compile_opt strictarr
 
   raw_basedir = run->config('processing/raw_basedir')
-  files = file_search(filepath('*_kcor_l2.fts.gz', $
+  files = file_search(filepath('*_kcor_l2_pb.fts.gz', $
                                subdir=[run.date, 'level2'], $
                                root=raw_basedir), $
                       count=n_files)
