@@ -22,7 +22,7 @@
 ; :Keywords:
 ;   run : in, required, type=object
 ;     `kcor_run` object
-;- 
+;-
 pro kcor_create_averages, date, l2_files, run=run, enhanced=enhanced
   compile_opt strictarr
 

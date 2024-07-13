@@ -79,7 +79,7 @@ pro kcor_plot_l2, run=run
 
   mg_log, 'starting...', name=logger_name, /info
 
-  l2_files = file_search(filepath('*_*_kcor_l2.fts.gz', root=l2_dir), $
+  l2_files = file_search(filepath('*_*_kcor_l2_pb.fts.gz', root=l2_dir), $
                          count=n_l2_files)
   if (n_l2_files eq 0L) then begin
     mg_log, 'no L2 files to plot', name=logger_name, /warn

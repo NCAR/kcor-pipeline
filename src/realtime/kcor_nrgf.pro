@@ -359,14 +359,13 @@ pro kcor_nrgf, fits_file, $
   save = tvrd()
 
   if (keyword_set(averaged)) then begin
-    remove_loc = strpos(fits_file, '.fts')
     if (keyword_set(daily)) then begin
-      remove_loc = strpos(fits_file, '_extavg.fts')
+      remove_loc = strpos(fits_file, '_pb_extavg.fts')
     endif else begin
-      remove_loc = strpos(fits_file, '_avg.fts')
+      remove_loc = strpos(fits_file, '_pb_avg.fts')
     endelse
   endif else begin
-    remove_loc = strpos(fits_file, '.fts')
+    remove_loc = strpos(fits_file, '_pb.fts')
   endelse
 
   type = keyword_set(daily) ? '_extavg' : (keyword_set(averaged) ? '_avg' : '')
