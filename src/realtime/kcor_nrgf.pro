@@ -441,7 +441,7 @@ pro kcor_nrgf, fits_file, $
     fits_filename = string(strmid(fits_file, 0, remove_loc), $
                            keyword_set(daily) ? '_extavg' : (keyword_set(averaged) ? '_avg' : ''), $
                            is_enhanced ? '_enhanced' : '', $
-                           format='(%"%s_nrgf%s.fts")')
+                           format='%s_nrgf%s%s.fts')
 
     writefits, fits_filename, simg, rhdu
     mg_log, 'wrote FITS file %s', file_basename(fits_filename), name=log_name, $
