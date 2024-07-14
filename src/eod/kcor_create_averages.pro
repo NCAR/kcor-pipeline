@@ -533,7 +533,6 @@ pro kcor_create_averages, date, l2_files, run=run, enhanced=enhanced
             color=255, charsize=1.5, /device
   endif
 
-
   xyouts, 512, 1000, 'North', color=255, charsize=1.2, alignment=0.5, $
           /device
   xyouts, 1018, 995, $
@@ -591,9 +590,9 @@ pro kcor_create_averages, date, l2_files, run=run, enhanced=enhanced
   save = tvrd()
 
   if (n_elements(daily_savename) gt 0L) then begin
-    gif_filename = string(strmid(daily_savename, 0, 26), $
+    gif_filename = string(strmid(daily_savename, 0, 15), $
                           keyword_set(enhanced) ? '_enhanced' : '', $
-                          format='%s_extavg%s.gif'
+                          format='%s_kcor_l2_pb_extavg%s.gif')
     write_gif, gif_filename, save, red, green, blue
     if (run->config('realtime/distribute')) then begin
       mg_log, 'copying extended average GIF to cropped dir', $
@@ -645,10 +644,10 @@ pro kcor_create_averages, date, l2_files, run=run, enhanced=enhanced
             ' extended avg coronal polarization brightness'
 
   if (n_elements(daily_savename) gt 0L) then begin
-    name = strmid(daily_savename, 0, 23)
+    name = strmid(daily_savename, 0, 15)
     daily_fits_average_filename = string(name, $
                                          keyword_set(enhanced) ? '_enhanced' : '', $
-                                         format='(%"%s_extavg%s.fts")')
+                                         format='(%"%s_kcor_l2_pb_extavg%s.fts")')
 
     mg_log, 'writing %s', daily_fits_average_filename, name='kcor/eod', /info
     writefits, daily_fits_average_filename, daily, dailysaveheader

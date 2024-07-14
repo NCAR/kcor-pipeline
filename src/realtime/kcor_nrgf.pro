@@ -71,14 +71,13 @@ pro kcor_nrgf_annotations, year, name_month, day, hour, minute, second, doy, $
             /device, alignment=1.0, charsize=charsize, color=annotation_color
   endif
 
+  annotation_y = 6 + 2 * line_height
+  if (is_enhanced) then annotation_y += line_height
   if (~keyword_set(cropped)) then begin
-    xyouts, 4, 6 + 2 * line_height, 'Level 2 data', $
+    xyouts, 4, annotation_y, 'Level 2 data', $
             color=annotation_color, charsize=charsize, /device
   endif
-
-  annotation_y = 6 + line_height
-  if (is_enhanced) then annotation_y += line_height
-
+  annotation_y -= line_height
   xyouts, 4, annotation_y, string(cmin, cmax, format='(%"min/max: %4.1f, %4.1f")'), $
           color=annotation_color, charsize=charsize, /device
   annotation_y -= line_height
@@ -131,16 +130,22 @@ pro kcor_nrgf, fits_file, $
                run=run, $
                log_name=log_name, $
                fits_filename=fits_filename, $
-               enhanced_radius=enhanced_radius, $
-               enhanced_amount=enhanced_amount
+               enhanced=enhanced
   compile_opt strictarr
 
-  is_enhanced = n_elements(enhanced_radius) gt 0L || n_elements(enhanced_amount) gt 0L
+  mg_log, '%s', file_basename(fits_file), name=log_name, /debug
+  mg_log, 'averaged: %s', keyword_set(averaged) ? 'YES' : 'NO', name=log_name, /debug
+  mg_log, 'daily: %s', keyword_set(daily) ? 'YES' : 'NO', name=log_name, /debug
+  mg_log, 'cropped: %s', keyword_set(cropped) ? 'YES' : 'NO', name=log_name, /debug
+  mg_log, 'enhanced: %s', keyword_set(enhanced) ? 'YES' : 'NO', name=log_name, /debug
+
+  enhanced_radius = run->epoch('enhanced_radius')
+  enhanced_amount = run->epoch('enhanced_amount')
 
   ; read L1 FITS image
   img = readfits(fits_file, hdu, /noscale, /silent)
 
-  if (is_enhanced) then begin
+  if (keyword_set(enhanced)) then begin
     img = kcor_enhanced(img, radius=enhanced_radius, amount=enhanced_amount)
   endif
 
@@ -329,7 +334,8 @@ pro kcor_nrgf, fits_file, $
     alpha = 0.50
 
     ; lower text boxes
-    save[0:259, 0:37] = alpha * save[0:259, 0:37]
+    top_y = n_elements(enhanced_radius) gt 0L ? 52 : 37
+    save[0:259, 0:top_y] = alpha * save[0:259, 0:top_y]
     save[out_xdim - 165:*, 0:37] = alpha * save[out_xdim - 165:*, 0:37]
 
     ; upper text boxes
@@ -368,11 +374,12 @@ pro kcor_nrgf, fits_file, $
     remove_loc = strpos(fits_file, '_pb.fts')
   endelse
 
-  type = keyword_set(daily) ? '_extavg' : (keyword_set(averaged) ? '_avg' : '')
-  type += keyword_set(cropped) ? '_cropped' : ''
-  _enhanced = is_enhanced ? '_enhanced' : ''
-  gif_filename = string(strmid(fits_file, 0, remove_loc), type, _enhanced, $
-                        format='(%"%s_nrgf%s%s.gif")')
+  averaging = keyword_set(daily) ? '_extavg' : (keyword_set(averaged) ? '_avg' : '')
+  image_size = keyword_set(cropped) ? '_cropped' : ''
+  filter = keyword_set(enhanced) ? '_enhanced' : ''
+  gif_filename = string(strmid(fits_file, 0, remove_loc), $
+                        averaging, image_size, filter, $
+                        format='(%"%s_nrgf%s%s%s.gif")')
 
   write_gif, gif_filename, save, red, green, blue
   mg_log, 'wrote GIF file %s', file_basename(gif_filename), name=log_name, /debug
@@ -392,7 +399,7 @@ pro kcor_nrgf, fits_file, $
               ' Level 2'
     if (keyword_set(averaged)) then begin
       if (keyword_set(daily)) then begin
-        if (is_enhanced) then begin
+        if (keyword_set(enhanced)) then begin
           fxaddpar, rhdu, 'PRODUCT', 'enh ext avg NRGF', $
                     ' enhanced extended averaged NRGF pB'
         endif else begin
@@ -400,7 +407,7 @@ pro kcor_nrgf, fits_file, $
                     ' extended averaged NRGF pB'
         endelse
       endif else begin
-        if (is_enhanced) then begin
+        if (keyword_set(enhanced)) then begin
           fxaddpar, rhdu, 'PRODUCT', 'enh avg NRGF', $
                     ' enhanced averaged NRGF pB'
         endif else begin
@@ -417,7 +424,7 @@ pro kcor_nrgf, fits_file, $
     fxaddpar, rhdu, 'BSCALE', bscale, $
               ' Normalized Radially-Graded H.Morgan+S.Fineschi', $
               format='(f10.3)'
-    if (is_enhanced) then begin
+    if (keyword_set(enhanced)) then begin
       fxaddpar, rhdu, 'ENH_RAD', enhanced_radius, $
                 ' [px] radius of unsharp mask Gaussian filter', $
                 format='(f0.1)', after='BSCALE'
@@ -440,7 +447,7 @@ pro kcor_nrgf, fits_file, $
     ; write NRGF FITS file
     fits_filename = string(strmid(fits_file, 0, remove_loc), $
                            keyword_set(daily) ? '_extavg' : (keyword_set(averaged) ? '_avg' : ''), $
-                           is_enhanced ? '_enhanced' : '', $
+                           keyword_set(enhanced) ? '_enhanced' : '', $
                            format='%s_nrgf%s%s.fts')
 
     writefits, fits_filename, simg, rhdu

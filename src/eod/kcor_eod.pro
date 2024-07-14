@@ -193,7 +193,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     kcor_zip_files, filepath('*minus*.fts', root=l2_dir), run=run
 
     kcor_create_averages, date, l2_zipped_files, run=run
-    kcor_create_averages, date, l2_zipped_files, run=run, enhanced=enhanced
+    kcor_create_averages, date, l2_zipped_files, run=run, /enhanced
     kcor_redo_nrgf, date, run=run
   endif
 

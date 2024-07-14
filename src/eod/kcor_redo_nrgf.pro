@@ -82,9 +82,6 @@ pro kcor_redo_nrgf, date, run=run
             name='kcor/eod', /info
   endif
 
-  enhanced_radius = run->epoch('enhanced_radius')
-  enhanced_amount = run->epoch('enhanced_amount')
-
   ; create new NRGF files corresponding to average files
   average_files = file_search(filepath('*_kcor_l2_pb_avg.fts.gz', $
                                        subdir=[date, 'level2'], $
@@ -102,12 +99,10 @@ pro kcor_redo_nrgf, date, run=run
       kcor_nrgf, average_files[f], run=run, /averaged, $
                  /cropped, log_name='kcor/eod'
       kcor_nrgf, average_files[f], run=run, /averaged, $
-                 enhanced_radius=enhanced_radius, $
-                 enhanced_amount=enhanced_amount, $
+                 /enhanced, $
                  log_name='kcor/eod'
       kcor_nrgf, average_files[f], run=run, /averaged, $
-                 enhanced_radius=enhanced_radius, $
-                 enhanced_amount=enhanced_amount, $
+                 /enhanced, $
                  /cropped, log_name='kcor/eod'
     endfor
   endif
@@ -118,8 +113,18 @@ pro kcor_redo_nrgf, date, run=run
                                              root=run->config('processing/raw_basedir')), $
                                     count=n_daily_average_files)
   for f = 0L, n_daily_average_files - 1L do begin   ; only 1 right now
-    kcor_nrgf, daily_average_files[f], run=run, /averaged, /daily, log_name='kcor/eod'
-    kcor_nrgf, daily_average_files[f], run=run, /averaged, /daily, /cropped, log_name='kcor/eod'
+    kcor_nrgf, daily_average_files[f], $
+               /averaged, /daily, $
+               run=run, log_name='kcor/eod'
+    kcor_nrgf, daily_average_files[f], $
+               /averaged, /daily, /cropped, $
+               run=run, log_name='kcor/eod'
+    kcor_nrgf, daily_average_files[f], $
+               /averaged, /daily, /enhanced, $
+               log_name='kcor/eod'
+    kcor_nrgf, daily_average_files[f], $
+               /averaged, /daily, /cropped, /enhanced, $
+               run=run, log_name='kcor/eod'
   endfor
 
   ; create NRGF 15-second files
