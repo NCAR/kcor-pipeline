@@ -394,8 +394,9 @@ pro kcor_create_averages, date, l2_files, run=run, enhanced=enhanced
     if (numavg gt 3) then begin
       fxaddpar, saveheader, 'AVGTIME1', timestring[1], ' Img times used in avg.'
     endif
-    name = strmid(savename, 0, 15) + '_kcor_l2_pb'
-    fits_filename = string(name, format='(%"%s_avg.fts")')
+    fits_filename = string(strmid(savename, 0, 15), $
+                           keyword_set(enhanced) ? '_enhanced' : '', $
+                           format='(%"%s_kcor_l2_pb_avg%s.fts")')
 
     fxaddpar, saveheader, 'DATE-OBS', imgtimes[0]
     fxaddpar, saveheader, 'DATE-END', imgtimes[numavg - 1]
@@ -403,6 +404,15 @@ pro kcor_create_averages, date, l2_files, run=run, enhanced=enhanced
 
     fxaddpar, saveheader, 'PRODUCT', 'avg pB', $
               ' averaged coronal polarization brightness'
+
+    if (keyword_set(enhanced)) then begin
+      fxaddpar, saveheader, 'ENH_RAD', enhanced_radius, $
+                ' [px] radius of unsharp mask Gaussian filter', $
+                format='(f0.1)', after='BSCALE'
+      fxaddpar, saveheader, 'ENH_AMT', enhanced_amount, $
+                ' unsharp mask filtering strength', $
+                format='(f0.1)', after='ENH_RAD'
+    endif
 
     if (numavg gt 1L) then begin
       mg_log, 'writing %s', fits_filename, name='kcor/eod', /info
@@ -643,9 +653,17 @@ pro kcor_create_averages, date, l2_files, run=run, enhanced=enhanced
   fxaddpar, dailysaveheader, 'PRODUCT', 'ext avg pB', $
             ' extended avg coronal polarization brightness'
 
+  if (keyword_set(enhanced)) then begin
+    fxaddpar, dailysaveheader, 'ENH_RAD', enhanced_radius, $
+              ' [px] radius of unsharp mask Gaussian filter', $
+              format='(f0.1)', after='BSCALE'
+    fxaddpar, dailysaveheader, 'ENH_AMT', enhanced_amount, $
+              ' unsharp mask filtering strength', $
+              format='(f0.1)', after='ENH_RAD'
+  endif
+
   if (n_elements(daily_savename) gt 0L) then begin
-    name = strmid(daily_savename, 0, 15)
-    daily_fits_average_filename = string(name, $
+    daily_fits_average_filename = string(strmid(daily_savename, 0, 15), $
                                          keyword_set(enhanced) ? '_enhanced' : '', $
                                          format='(%"%s_kcor_l2_pb_extavg%s.fts")')
 
