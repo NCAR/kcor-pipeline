@@ -121,7 +121,7 @@ pro kcor_redo_nrgf, date, run=run
                run=run, log_name='kcor/eod'
     kcor_nrgf, daily_average_files[f], $
                /averaged, /daily, /enhanced, $
-               log_name='kcor/eod'
+               run=run, log_name='kcor/eod'
     kcor_nrgf, daily_average_files[f], $
                /averaged, /daily, /cropped, /enhanced, $
                run=run, log_name='kcor/eod'

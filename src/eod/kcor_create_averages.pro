@@ -364,9 +364,9 @@ pro kcor_create_averages, date, l2_files, run=run, enhanced=enhanced
 
     save = tvrd()
 
-    gif_basename = string(strmid(savename, 0, 26), $
+    gif_basename = string(strmid(savename, 0, 15), $
                           keyword_set(enhanced) ? '_enhanced' : '', $
-                          format='%s_avg%s.gif')
+                          format='%s_kcor_l2_pb_avg%s.gif')
     if (numavg gt 1L) then begin
       write_gif, gif_basename, save, red, green, blue
       if (run->config('realtime/distribute')) then begin
