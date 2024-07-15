@@ -10,14 +10,13 @@ pro kcor_nrgf_annotations, year, name_month, day, hour, minute, second, doy, $
                            annotation_color=annotation_color, $
                            cropped=cropped, $
                            averaged=averaged, daily=daily, to_time=to_time, $
+                           is_enhanced=is_enhanced, $
                            enhanced_radius=enhanced_radius, $
                            enhanced_amount=enhanced_amount
   compile_opt strictarr
 
   big_line_height = keyword_set(cropped) ? 18 : 20
   line_height = keyword_set(cropped) ? 15 : 20
-
-  is_enhanced = n_elements(enhanced_radius) gt 0L || n_elements(enhanced_amount) gt 0L
 
   xyouts, 4, top - 34 + keyword_set(cropped) * 12, 'HAO/MLSO/KCor', $
           color=annotation_color, charsize=big_charsize, /device
@@ -334,12 +333,13 @@ pro kcor_nrgf, fits_file, $
     alpha = 0.50
 
     ; lower text boxes
-    top_y = n_elements(enhanced_radius) gt 0L ? 52 : 37
+    top_y = keyword_set(enhanced) gt 0L ? 52 : 37
     save[0:259, 0:top_y] = alpha * save[0:259, 0:top_y]
     save[out_xdim - 165:*, 0:37] = alpha * save[out_xdim - 165:*, 0:37]
 
     ; upper text boxes
-    save[0:144, out_ydim - 49:out_ydim - 1] = alpha * save[0:144, out_ydim - 49:out_ydim - 1]
+    height = keyword_set(enhanced) ? 67 : 49
+    save[0:174, out_ydim - height:out_ydim - 1] = alpha * save[0:174, out_ydim - height:out_ydim - 1]
     save[out_xdim - 99:*, out_ydim - 38:out_ydim - 1] = alpha * save[out_xdim - 99:*, out_ydim - 38:out_ydim - 1]
 
     tv, save
@@ -358,6 +358,7 @@ pro kcor_nrgf, fits_file, $
                          annotation_color=annotation_color, $
                          cropped=cropped, averaged=averaged, daily=daily, $
                          to_time=to_time, $
+                         is_enhanced=keyword_set(enhanced), $
                          enhanced_radius=enhanced_radius, $
                          enhanced_amount=enhanced_amount
 
