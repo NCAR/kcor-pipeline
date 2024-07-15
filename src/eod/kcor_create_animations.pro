@@ -37,7 +37,9 @@ pro kcor_create_animations, date, timestamps=timestamps, run=run
   cd, l2_dir
 
   nrgf_gif_filenames = timestamps + '_kcor_l2_nrgf_avg.gif'
+  enhanced_nrgf_gif_filenames = timestamps + '_kcor_l2_nrgf_avg_enhanced.gif'
   gif_filenames = timestamps + '_kcor_l2_pb.gif'
+  enhanced_gif_filenames = timestamps + '_kcor_l2_pb_enhanced.gif'
   cropped_nrgf_gif_filenames = timestamps + '_kcor_l2_nrgf_cropped.gif'
   cropped_gif_filenames = timestamps + '_kcor_l2_pb_cropped.gif'
 
@@ -45,11 +47,13 @@ pro kcor_create_animations, date, timestamps=timestamps, run=run
 
   nrgf_dailygif_filename = string(date, format='(%"%s_kcor_l2_nrgf.gif")')
   nrgf_dailymp4_filename = string(date, format='(%"%s_kcor_l2_nrgf.mp4")')
+  enhanced_nrgf_dailymp4_filename = string(date, format='(%"%s_kcor_l2_nrgf_enhanced.mp4")')
   cropped_nrgf_dailygif_filename = string(date, format='(%"%s_kcor_l2_nrgf_cropped.gif")')
   cropped_nrgf_dailymp4_filename = string(date, format='(%"%s_kcor_l2_nrgf_cropped.mp4")')
 
   dailygif_filename = string(date, format='(%"%s_kcor_l2_pb.gif")')
   dailymp4_filename = string(date, format='(%"%s_kcor_l2_pb.mp4")')
+  enhanced_dailymp4_filename = string(date, format='(%"%s_kcor_l2_pb_enhanced.mp4")')
   cropped_dailygif_filename = string(date, format='(%"%s_kcor_l2_pb_cropped.gif")')
   cropped_dailymp4_filename = string(date, format='(%"%s_kcor_l2_pb_cropped.mp4")')
 
@@ -71,6 +75,14 @@ pro kcor_create_animations, date, timestamps=timestamps, run=run
     file_copy, nrgf_dailymp4_filename, fullres_dir, /overwrite
   endif
 
+  ; create daily mp4 of enhanced NRGF files
+  mg_log, 'creating enhanced NRGF mp4', name='kcor/eod', /info
+  kcor_create_mp4, enhanced_nrgf_gif_filenames, enhanced_nrgf_dailymp4_filename, $
+                   run=run, status=status
+  if (status eq 0 && run->config('realtime/distribute')) then begin
+    file_copy, enhanced_nrgf_dailymp4_filename, fullres_dir, /overwrite
+  endif
+
   ; create daily GIF of L2 files
   if (create_gifs) then begin
     mg_log, 'creating L2 GIF', name='kcor/eod', /info
@@ -86,6 +98,13 @@ pro kcor_create_animations, date, timestamps=timestamps, run=run
   kcor_create_mp4, gif_filenames, dailymp4_filename, run=run, status=status
   if (status eq 0 && run->config('realtime/distribute')) then begin
     file_copy, dailymp4_filename, fullres_dir, /overwrite
+  endif
+
+  ; create daily mp4 of enhanced L2 files
+  mg_log, 'creating enhanced L2 mp4', name='kcor/eod', /info
+  kcor_create_mp4, enhanced_gif_filenames, enhanced_dailymp4_filename, run=run, status=status
+  if (status eq 0 && run->config('realtime/distribute')) then begin
+    file_copy, enhanced_dailymp4_filename, fullres_dir, /overwrite
   endif
 
   ; create daily GIF of cropped NRGF GIF files
