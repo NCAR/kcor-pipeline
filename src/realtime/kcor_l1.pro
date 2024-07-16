@@ -903,7 +903,7 @@ pro kcor_l1, ok_filename, $
             ' # frames summed per L0 img for each pol state'
 
   fxaddpar, l1_header, 'BUNIT', 'Mean Solar Brightness', $
-            ' [B/Bsun] units of entire solar disk brightness'
+            ' [B/Bsun] mean solar disk brightness'
   diffsrid = run->epoch('use_diffsrid') ? struct.diffsrid : run->epoch('diffsrid')
   fxaddpar, l1_header, 'BOPAL', $
             run->epoch(diffsrid) * 1e-6, $
