@@ -382,7 +382,7 @@ pro kcor_create_averages, date, l2_files, run=run, enhanced=enhanced
         file_copy, cgif_filename, cropped_dir, /overwrite
       endif
     endif else begin
-      mg_log, 'not writing average GIFs with single image: %s', gif_basename, $
+      mg_log, 'not writing average GIF with single image: %s', gif_basename, $
               name='kcor/eod', /debug
     endelse
 
@@ -406,6 +406,8 @@ pro kcor_create_averages, date, l2_files, run=run, enhanced=enhanced
               ' averaged coronal polarization brightness'
 
     if (keyword_set(enhanced)) then begin
+      fxaddpar, saveheader, 'PRODUCT', 'enh avg pB', $
+                ' enhanced averaged polarization brightness'
       fxaddpar, saveheader, 'ENH_RAD', enhanced_radius, $
                 ' [px] radius of unsharp mask Gaussian filter', $
                 format='(f0.1)', after='BSCALE'
@@ -424,11 +426,13 @@ pro kcor_create_averages, date, l2_files, run=run, enhanced=enhanced
   endwhile
 
   ; zip average FITS files
-  zipped_avg_glob = '*_avg.fts.gz'
+  zipped_avg_glob = string(keyword_set(enhanced) ? '_enhanced' : '', $
+                           format='*_avg%s.fts.gz')
   zipped_avg_files = file_search(zipped_avg_glob, count=n_avg_files)
   if (n_avg_files gt 0L) then file_delete, zipped_avg_files, /allow_nonexistent
 
-  unzipped_avg_glob = '*_avg.fts'
+  unzipped_avg_glob = string(keyword_set(enhanced) ? '_enhanced' : '', $
+                             format='*_avg%s.fts')
   unzipped_avg_files = file_search(unzipped_avg_glob, count=n_avg_files)
   if (n_avg_files gt 0L) then begin
     mg_log, 'zipping %d average FITS files...', n_avg_files, $
@@ -654,6 +658,8 @@ pro kcor_create_averages, date, l2_files, run=run, enhanced=enhanced
             ' extended avg coronal polarization brightness'
 
   if (keyword_set(enhanced)) then begin
+    fxaddpar, dailysaveheader, 'PRODUCT', 'enh ext avg pB', $
+              ' enhanced extended avg pB'
     fxaddpar, dailysaveheader, 'ENH_RAD', enhanced_radius, $
               ' [px] radius of unsharp mask Gaussian filter', $
               format='(f0.1)', after='BSCALE'

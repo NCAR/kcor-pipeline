@@ -83,7 +83,7 @@ pro kcor_redo_nrgf, date, run=run
   endif
 
   ; create new NRGF files corresponding to average files
-  average_files = file_search(filepath('*_kcor_l2_pb_avg.fts.gz', $
+  average_files = file_search(filepath('*_kcor_l2_pb_avg.fts*', $
                                        subdir=[date, 'level2'], $
                                        root=run->config('processing/raw_basedir')), $
                               count=n_average_files)
@@ -93,19 +93,21 @@ pro kcor_redo_nrgf, date, run=run
       mg_log, '%d/%d: creating NRGF for %s', $
               f + 1, n_average_files, file_basename(average_files[f]), $
               name='kcor/eod', /info
-      kcor_nrgf, average_files[f], run=run, /averaged, $
-                 fits_filename=fits_filename, log_name='kcor/eod'
+
+      kcor_nrgf, average_files[f], /averaged, fits_filename=fits_filename, $
+                 run=run, log_name='kcor/eod'
       nrgf_average_files[f] = fits_filename
-      kcor_nrgf, average_files[f], run=run, /averaged, $
-                 /cropped, log_name='kcor/eod'
-      kcor_nrgf, average_files[f], run=run, /averaged, $
-                 /enhanced, $
-                 log_name='kcor/eod'
-      kcor_nrgf, average_files[f], run=run, /averaged, $
-                 /enhanced, $
-                 /cropped, log_name='kcor/eod'
+
+      kcor_nrgf, average_files[f], /averaged, /cropped, $
+                 run=run, log_name='kcor/eod'
+      kcor_nrgf, average_files[f], /averaged, /enhanced, $
+                 run=run, log_name='kcor/eod'
+      kcor_nrgf, average_files[f], /averaged, /enhanced, /cropped, $
+                 run=run, log_name='kcor/eod'
     endfor
-  endif
+  endif else begin
+    mg_log, 'no level 2 pB average files', name='kcor/eod', /warn
+  endelse
 
   ; create NRGF daily average file corresponding to daily average file
   daily_average_files = file_search(filepath('*_kcor_l2_pb_extavg.fts.gz', $

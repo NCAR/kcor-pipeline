@@ -339,7 +339,8 @@ pro kcor_nrgf, fits_file, $
 
     ; upper text boxes
     height = keyword_set(enhanced) ? 67 : 49
-    save[0:174, out_ydim - height:out_ydim - 1] = alpha * save[0:174, out_ydim - height:out_ydim - 1]
+    width = keyword_set(enhanced) ? 174 : 144
+    save[0:width, out_ydim - height:out_ydim - 1] = alpha * save[0:width, out_ydim - height:out_ydim - 1]
     save[out_xdim - 99:*, out_ydim - 38:out_ydim - 1] = alpha * save[out_xdim - 99:*, out_ydim - 38:out_ydim - 1]
 
     tv, save
