@@ -412,7 +412,7 @@ pro kcor_create_averages, date, l2_files, run=run, enhanced=enhanced
 
     if (keyword_set(enhanced)) then begin
       fxaddpar, saveheader, 'PRODUCT', 'enh avg pB', $
-                ' enhanced averaged polarization brightness'
+                ' enhanced, i.e., unsharp mask, averaged pB'
       fxaddpar, saveheader, 'ENH_RAD', enhanced_radius, $
                 ' [px] radius of unsharp mask Gaussian filter', $
                 format='(f0.1)', after='BSCALE'
@@ -665,7 +665,7 @@ pro kcor_create_averages, date, l2_files, run=run, enhanced=enhanced
 
   if (keyword_set(enhanced)) then begin
     fxaddpar, dailysaveheader, 'PRODUCT', 'enh ext avg pB', $
-              ' enhanced extended avg pB'
+              ' enhanced, i.e., unsharp mask, extended avg pB'
     fxaddpar, dailysaveheader, 'ENH_RAD', enhanced_radius, $
               ' [px] radius of unsharp mask Gaussian filter', $
               format='(f0.1)', after='BSCALE'

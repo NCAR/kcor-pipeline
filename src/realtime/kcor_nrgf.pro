@@ -403,7 +403,7 @@ pro kcor_nrgf, fits_file, $
       if (keyword_set(daily)) then begin
         if (keyword_set(enhanced)) then begin
           fxaddpar, rhdu, 'PRODUCT', 'enh ext avg NRGF', $
-                    ' enhanced extended averaged NRGF pB'
+                    ' enhanced, i.e., unsharp mask, ext avg NRGF pB'
         endif else begin
           fxaddpar, rhdu, 'PRODUCT', 'ext avg NRGF', $
                     ' extended averaged NRGF pB'
@@ -411,7 +411,7 @@ pro kcor_nrgf, fits_file, $
       endif else begin
         if (keyword_set(enhanced)) then begin
           fxaddpar, rhdu, 'PRODUCT', 'enh avg NRGF', $
-                    ' enhanced averaged NRGF pB'
+                    ' enhanced, i.e., unsharp mask, averaged NRGF pB'
         endif else begin
           fxaddpar, rhdu, 'PRODUCT', 'avg NRGF', $
                     ' averaged Normalized Radially Graded Filtered pB'
