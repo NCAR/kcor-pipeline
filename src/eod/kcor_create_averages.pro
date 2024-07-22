@@ -387,12 +387,17 @@ pro kcor_create_averages, date, l2_files, run=run, enhanced=enhanced
     endelse
 
     ; Create fullres (1024x1024) FITS image
+
     ; Create up to 2 new keywords that record the times of the images used in
     ; the avg. Each keyword holds up 4 image times to accommodate up to 8 images
     ; in the avg.
-    fxaddpar, saveheader, 'AVGTIME0', timestring[0], ' Img times used in avg.'
-    if (numavg gt 3) then begin
-      fxaddpar, saveheader, 'AVGTIME1', timestring[1], ' Img times used in avg.'
+    use_two_avgtimes = numavg gt 4
+    fxaddpar, saveheader, 'AVGTIM01', timestring[0], $
+              ' img times in avg' + (use_two_avgtimes ? '(1 of 2)' : '')
+    if (use_two_avgtimes gt 3) then begin
+      fxaddpar, saveheader, 'AVGTIM02', timestring[1], $
+                ' img times in avg (2 of 2)', $
+                after='AVGTIM01'
     endif
     fits_filename = string(strmid(savename, 0, 15), $
                            keyword_set(enhanced) ? '_enhanced' : '', $
@@ -646,8 +651,9 @@ pro kcor_create_averages, date, l2_files, run=run, enhanced=enhanced
   keyword_times = strjoin(keyword_times, ' ')
 
   for k = 0L, n_keywords - 1L do begin
-    fxaddpar, dailysaveheader, string(k, format='(%"AVGTIME%d")'), keyword_times[k], $
-              ' Image times used in avg.'
+    fxaddpar, dailysaveheader, string(k + 1, format='(%"AVGTIM%02d")'), $
+              keyword_times[k], $
+              string(k + 1, n_keywords, format=' img times in avg (%d of %d)')
   endfor
 
   fxaddpar, dailysaveheader, 'DATE-OBS', dailytimes[n_skip]
