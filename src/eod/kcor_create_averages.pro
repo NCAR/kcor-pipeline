@@ -393,8 +393,8 @@ pro kcor_create_averages, date, l2_files, run=run, enhanced=enhanced
     ; in the avg.
     use_two_avgtimes = numavg gt 4
     fxaddpar, saveheader, 'AVGTIM01', timestring[0], $
-              ' img times in avg' + (use_two_avgtimes ? '(1 of 2)' : '')
-    if (use_two_avgtimes gt 3) then begin
+              ' img times in avg' + (use_two_avgtimes ? ' (1 of 2)' : '')
+    if (use_two_avgtimes) then begin
       fxaddpar, saveheader, 'AVGTIM02', timestring[1], $
                 ' img times in avg (2 of 2)', $
                 after='AVGTIM01'
