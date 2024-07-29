@@ -1128,3 +1128,11 @@
 
 - change BUNIT value and comment
 - produce level 1 nomask GIFs and FITS files
+- fix for bugs in times included in an average file
+- creating enhanced images
+- change filenames to `*_kcor_l2_pb*` to be consistent with `*_kcor_l2_nrgf*`
+  filenames
+- epoch file updates, especially for 2024 and late Nov 2022 data
+- update PRODUCT FITS keyword values
+- change cadence for average files
+- add optional IQU product
