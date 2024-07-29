@@ -38,7 +38,11 @@ pro kcor_archive_l1, run=run
   if (~file_test(tarlist, /regular)) then file_delete, tarlist, /quiet
 
   ; create tarball
-  file_types = ['*.fts*', '*.gif', '*.mp4']
+  file_types = ['*_kcor_l1.fts*', $
+                '*_kcor_l1.gif', $
+                '*_kcor_l1_cropped.gif', $
+                '*_kcor_l1_cam{0,1}_nomask.gif', $
+                '*.mp4']
   n_file_types = n_elements(file_types)
   file_type_mask = bytarr(n_file_types)
   for f = 0L, n_file_types - 1L do begin
