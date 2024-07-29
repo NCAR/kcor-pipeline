@@ -1136,3 +1136,5 @@
 - update PRODUCT FITS keyword values
 - change cadence for average files
 - add optional IQU product
+
+#### 2.1.12
