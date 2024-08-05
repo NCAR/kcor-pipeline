@@ -40,13 +40,11 @@ pro kcor_hw_insert, date, fits_list, run=run, database=db, log_name=log_name, $
   db->getProperty, host_name=host
   mg_log, 'using connection to %s', host, name=log_name, /debug
 
-  ; change to proper processing directory
-  archive_dir = filepath('', subdir=kcor_decompose_date(date), $
-                         root=run->config('results/archive_basedir'))
-
   ; move to archive dir
   cd, current=start_dir
-  cd, archive_dir
+  raw_dir = filepath('', subdir=date, root=run->config('processing/raw_basedir'))
+  l2_dir = filepath('level2', root=raw_dir)
+  cd, l2_dir
 
   ; loop through FITS list
   nfiles = n_elements(fits_list)
