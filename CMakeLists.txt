@@ -1,15 +1,15 @@
-project(kcor-pipeline)
-set(VERSION_MAJOR "2")
-set(VERSION_MINOR "1")
-set(VERSION_PATCH "12")
-set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
-
 # required version of CMake
 cmake_minimum_required(VERSION 3.12)
 cmake_policy(SET CMP0017 NEW)
 if (POLICY CMP0042)
   cmake_policy(SET CMP0042 NEW)
 endif ()
+
+project(kcor-pipeline)
+set(VERSION_MAJOR "2")
+set(VERSION_MINOR "1")
+set(VERSION_PATCH "12")
+set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 set(CMAKE_MODULE_PATH
   ${CMAKE_SOURCE_DIR}/cmake/Modules
