@@ -1266,7 +1266,7 @@ if __name__ == "__main__":
     list_parser.set_defaults(func=list_processes, parser=list_parser)
 
     # versions sub-command
-    versions_parser = subparsers.add_parser("versions", aliases="version", help="list versions")
+    versions_parser = subparsers.add_parser("versions", aliases=["version"], help="list versions")
     versions_parser.add_argument("dates", type=str, nargs="*", help=date_help,
                                  metavar="date-expr")
     versions_parser.add_argument("-f", "--flags", type=str, help=flags_help,
