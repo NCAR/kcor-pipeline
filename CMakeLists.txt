@@ -8,7 +8,7 @@ endif ()
 project(kcor-pipeline)
 set(VERSION_MAJOR "2")
 set(VERSION_MINOR "1")
-set(VERSION_PATCH "12")
+set(VERSION_PATCH "13")
 set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 set(CMAKE_MODULE_PATH

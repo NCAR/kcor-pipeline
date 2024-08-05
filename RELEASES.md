@@ -1141,3 +1141,7 @@
 
 - fix for inserting into kcor_hw database table
 - updates for inclusion in level 1 and 2 tarballs
+
+#### 2.1.13
+
+- fix for warning when compiling MySQL bindings
