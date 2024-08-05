@@ -1137,4 +1137,7 @@
 - change cadence for average files
 - add optional IQU product
 
-#### 2.1.12
+#### 2.1.12 [Aug 5, 2024]
+
+- fix for inserting into kcor_hw database table
+- updates for inclusion in level 1 and 2 tarballs
