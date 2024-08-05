@@ -39,7 +39,9 @@ pro kcor_archive_l2, run=run
 
   ; create tarball
   file_types = ['*_kcor_l2*.fts*', $
-                '*_kcor_minus_*_{good,pass,bad}.{gif,fts.gz}', $
+                '*_kcor_minus_*_good.{gif,fts.gz}', $
+                '*_kcor_minus_*_pass.{gif,fts.gz}', $
+                '*_kcor_minus_*_bad.{gif,fts.gz}', $
                 '*_kcor_l2_{pb,nrgf}*.gif', $
                 '*.mp4']
   n_file_types = n_elements(file_types)
