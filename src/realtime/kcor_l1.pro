@@ -692,10 +692,6 @@ pro kcor_l1, ok_filename, $
       endcase
     endfor
 
-    if (run->config('realtime/save_intermediate')) then begin
-      kcor_write_iqu, ok_filename, cal_data_combined_center, header, run=run
-    endif
-
     mg_log, 'performing polarization coord transformation', $
             name=log_name, /debug
 
@@ -723,10 +719,6 @@ pro kcor_l1, ok_filename, $
         else: cal_data_combined[*, *, s] = (camera_0 + camera_1) / 2.0
       endcase
     endfor
-
-    if (run->config('realtime/save_intermediate')) then begin
-      kcor_write_iqu, ok_filename, cal_data_combined_center, header, run=run
-    endif
 
     mg_log, 'performing polarization coord transformation', $
             name=log_name, /debug
@@ -1318,6 +1310,10 @@ pro kcor_l1, ok_filename, $
   l1_filename = string(strmid(file_basename(ok_filename), 0, 20), $
                        format='(%"%s_l1.fts")')
   writefits, filepath(l1_filename, root=l1_dir), float(data), l1_header
+
+  if (run->config('realtime/save_intermediate')) then begin
+    kcor_write_iqu, ok_filename, cal_data_combined_center, l1_header, run=run
+  endif
 
   ; now make cropped GIF file
   kcor_cropped_gif, umk4, run.date, date_struct, $

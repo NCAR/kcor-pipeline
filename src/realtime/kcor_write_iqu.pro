@@ -23,6 +23,10 @@ pro kcor_write_iqu, l0_filename, data, header, run=run
             'OBJECT', $
             'Corona Stokes IQU', $
             ' calibrated corona+sky in cartesian coordinates'
+  sxaddpar, iqu_header, $
+            'PRODUCT', $
+            'Stokes IQU', $
+            ' calibrated corona+sky in cartesian coordinates'
 
   iqu_basename = string(strmid(file_basename(l0_filename), 0, 20), $
                         format='(%"%s_l1_stokesIQU.fts")')
