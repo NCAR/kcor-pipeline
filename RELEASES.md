@@ -1146,3 +1146,5 @@
 
 - fix for warning when compiling MySQL bindings
 - fix for not copying "l2_pb" FITS, GIF, and cropped GIF to web archive
+
+#### 2.1.14
