@@ -1142,6 +1142,7 @@
 - fix for inserting into kcor_hw database table
 - updates for inclusion in level 1 and 2 tarballs
 
-#### 2.1.13
+#### 2.1.13 [Aug 13, 2024]
 
 - fix for warning when compiling MySQL bindings
+- fix for not copying "l2_pb" FITS, GIF, and cropped GIF to web archive

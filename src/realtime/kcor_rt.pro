@@ -281,13 +281,13 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     for f = 0L, n_processed_files - 1L do begin
       base = file_basename(ok_files[processed_indices[f]], '.fts.gz')
 
-      cropped_gif_filename = base + '_l2_cropped.gif'
+      cropped_gif_filename = base + '_l2_pb_cropped.gif'
       printf, okcgif_lun, cropped_gif_filename
 
-      gif_filename = base + '_l2.gif'
+      gif_filename = base + '_l2_pb.gif'
       printf, okfgif_lun, gif_filename
 
-      l2_filename = base + '_l2.fts.gz'
+      l2_filename = base + '_l2_pb.fts.gz'
       printf, okl1gz_lun, l2_filename
 
       nrgf_filename = base + '_l2_nrgf.fts.gz'
