@@ -124,6 +124,11 @@ pro kcor_l1, ok_filename, $
   ncdf_varget, unit, 'Dark', dark_alfred
   ncdf_varget, unit, 'Gain', gain_alfred  ; gain_alfred is a dark corrected gain
   gain_alfred /= 1.0e-6   ; this makes gain_alfred in units of B/Bsun
+
+  ; multiply by ad hoc non-linearity correction factor
+  ; TODO: is this the correct place to make this correction?
+  gain_alfred /= run->epoch('nonlinearity-correction-factor')
+
   ncdf_varget, unit, 'Modulation Matrix', mmat
   ncdf_varget, unit, 'Demodulation Matrix', dmat
   ncdf_varget, unit, 'DIM Reference Voltage', flat_vdimref
@@ -623,9 +628,6 @@ pro kcor_l1, ok_filename, $
   theta1 += !pi
   theta1 = reverse(theta1)
 
-  ; multiply by ad hoc non-linearity correction factor
-  cal_data *= run->epoch('nonlinearity-correction-factor')
-
   if (keyword_set(nomask)) then begin
     ; create occulter annotated nomask L1 GIFs by camera
     cal_data_temp = dblarr(xsize, ysize, 2, 3)
@@ -954,11 +956,11 @@ pro kcor_l1, ok_filename, $
   fxaddpar, l1_header, 'INST_ROT', 0.00, $
             ' [deg] rotation of the image wrt solar north', $
             format='(f9.3)'
-  image_scale = kcor_compute_platescale((radius_0 + radius_1) / 2.0, $
+  image_scale = kcor_compute_platescale((info_dc0[2] + info_dc1[2]) / 2.0, $
                                         occltrid, $
                                         run=run)
   fxaddpar, l1_header, 'IMAGESCL', image_scale, $
-            ' [arcsec/pixel] image scale for this file', $
+            ' [arcsec/pixel] dist cor image scale for this file', $
             format='(f9.4)'
 
   au_to_meters = 149597870700.0D
