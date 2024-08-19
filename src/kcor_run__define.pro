@@ -394,7 +394,7 @@ function kcor_run::getVariable, name, found=found
       end
 
     'daily_mp4_href': begin
-        glob = filepath('*_kcor_l2.mp4', $
+        glob = filepath('*_kcor_l2_pb.mp4', $
                         subdir=[self.date, 'level2'], $
                         root=raw_basedir)
         files = file_search(glob, count=n_files)
@@ -402,7 +402,7 @@ function kcor_run::getVariable, name, found=found
         return, href
       end
     'daily_croppped_mp4_href': begin
-        glob = filepath('*_kcor_l2_cropped.mp4', $
+        glob = filepath('*_kcor_l2_pb_cropped.mp4', $
                         subdir=[self.date, 'level2'], $
                         root=raw_basedir)
         files = file_search(glob, count=n_files)
