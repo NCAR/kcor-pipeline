@@ -1152,3 +1152,5 @@
 - more fixes for "l2_pb" FITS filenames
 - use distortion corrected radii for image scale calculation
 - create daily image scale plot
+
+#### 2.1.15
