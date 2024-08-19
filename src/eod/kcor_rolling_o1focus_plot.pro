@@ -59,10 +59,10 @@ end
 
 ; main-level example program
 
-date = '20200813'
+date = '20221026'
 config_basename = 'kcor.production.cfg'
 config_filename = filepath(config_basename, $
-                           subdir=['..', '..', 'config'], $
+                           subdir=['..', '..', '..', 'kcor-config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
 db = kcordbmysql()
