@@ -34,7 +34,7 @@ pro kcor_rolling_o1focus_plot, database=db, run=run
   query = 'select kcor_eng.* from kcor_eng, mlso_numfiles where kcor_eng.obs_day=mlso_numfiles.day_id and mlso_numfiles.obs_day between ''%s'' and ''%s'''
   rows = db->query(query, start_date, end_date, count=n_rows, error=error)
   if (n_rows gt 0L) then begin
-    mg_log, '%d dates between %s and %s', n_rows, start_date, end_date, $
+    mg_log, '%d files between %s and %s', n_rows, start_date, end_date, $
             name=run.logger_name, /debug
   endif else begin
     mg_log, 'no data found between %s and %s', start_date, end_date, $
@@ -59,7 +59,7 @@ end
 
 ; main-level example program
 
-date = '20221026'
+date = '20240330'
 config_basename = 'kcor.production.cfg'
 config_filename = filepath(config_basename, $
                            subdir=['..', '..', '..', 'kcor-config'], $
