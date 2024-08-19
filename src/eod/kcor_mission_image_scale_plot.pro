@@ -14,7 +14,7 @@ pro kcor_mission_image_scale_plot, database=db, run=run
 
   mg_log, 'querying for image scales...', name=run.logger_name, /info
 
-  query = 'select * from kcor_eng order by date_obs'
+  query = 'select * from kcor_eng where image_scale is not NULL order by date_obs'
   data = db->query(query, $
                    count=n_files, error=error, fields=fields, sql_statement=sql)
 
@@ -25,7 +25,7 @@ pro kcor_mission_image_scale_plot, database=db, run=run
     mg_log, '%d files found', n_files, name=run.logger_name, /info
   endelse
 
-  image_scale = data.image_scale
+  image_scale = [!values.f_nan, data.image_scale]
   plate_scale = 0.0 * image_scale
   plate_scale_tolerance = 0.0 * image_scale
 
@@ -34,7 +34,7 @@ pro kcor_mission_image_scale_plot, database=db, run=run
     plate_scale_tolerance[*] = run->epoch('plate_scale_tolerance')
   ;endfor
 
-  jds = kcor_dateobs2julday(data.date_obs)
+  jds = [kcor_dateobs2julday('2013-09-30T00:00:00'), kcor_dateobs2julday(data.date_obs)]
   !null = label_date(date_format='%Y-%N-%D')
 
   image_scale_range = [5.4, 5.8]
@@ -134,8 +134,8 @@ end
 
 ; main-level example program
 
-date = '20221007'
-config_basename = 'kcor.latest.cfg'
+date = '20240409'
+config_basename = 'kcor.production.cfg'
 config_filename = filepath(config_basename, $
                            subdir=['..', '..', '..', 'kcor-config'], $
                            root=mg_src_root())
