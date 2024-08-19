@@ -1148,3 +1148,6 @@
 - fix for not copying "l2_pb" FITS, GIF, and cropped GIF to web archive
 
 #### 2.1.14
+
+- more fixes for "l2_pb" FITS filenames
+- use distortion corrected radii for image scale calculation
