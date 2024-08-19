@@ -37,7 +37,7 @@ pro kcor_o1focus_plot, filename, hst_times, o1focus, title=title, run=run
   plot, hst_times, o1focus, $
         xstyle=1, xrange=[time_min, time_max], xtitle='HST time of day', $
         ystyle=1, yrange=[o1focus_min, o1focus_max], ytitle='O1FOCS values [mm]', $
-        psym=1, symsize=0.5, $
+        psym=6, symsize=0.1, $
         color=0, background=255, $
         title=n_elements(title) eq 0L ? '' : title
 
