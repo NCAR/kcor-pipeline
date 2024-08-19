@@ -292,7 +292,7 @@ function kcor_run::getVariable, name, found=found
         return, n_raw_files
       end
     'n_l2_files': begin
-        l2_glob = filepath('*_kcor_l2.fts*', $
+        l2_glob = filepath('*_kcor_l2_pb.fts*', $
                             subdir=[self.date, 'level2'], $
                             root=raw_basedir)
         l2_files = file_search(l2_glob, count=n_l2_files)

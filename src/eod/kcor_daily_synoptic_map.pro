@@ -15,7 +15,7 @@ pro kcor_daily_synoptic_map, radius=radius, run=run
   logger_name = run.logger_name
 
   ; get all L2 files
-  l2_glob = filepath('*_kcor_l2.fts.gz', $
+  l2_glob = filepath('*_kcor_l2_pb.fts.gz', $
                      subdir=[run.date, 'level2'], $
                      root=run->config('processing/raw_basedir'))
   files = file_search(l2_glob, count=n_files)

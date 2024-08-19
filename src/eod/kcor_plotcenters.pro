@@ -123,7 +123,7 @@ pro kcor_plotcenters, date, list=list, append=append, run=run
 
   ; corresponding L2 files
   l2_basenames = string(strmid(file_basename(list), 0, 15), $
-                        format='(%"%s_kcor_l2.fts.gz")')
+                        format='(%"%s_kcor_l2_pb.fts.gz")')
   l2_filenames = filepath(l2_basenames, $
                           subdir=[date, 'level2'], $
                           root=run->config('processing/raw_basedir'))

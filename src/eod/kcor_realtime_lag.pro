@@ -41,7 +41,7 @@ pro kcor_realtime_lag, run=run
 
     if (n_files eq 0L) then goto, done
   endif else begin
-    filenames = file_search(filepath('*_kcor_l2.fts.gz', root=l2_dir), $
+    filenames = file_search(filepath('*_kcor_l2_pb.fts.gz', root=l2_dir), $
                             count=n_files)
     if (n_files gt 0L) then begin
       files = replicate({file_name: ''}, n_files)
