@@ -1154,3 +1154,5 @@
 - create daily image scale plot
 
 #### 2.1.15
+
+- adjustments to O1 focus range and better log messages
