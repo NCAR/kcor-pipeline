@@ -126,7 +126,6 @@ pro kcor_l1, ok_filename, $
   gain_alfred /= 1.0e-6   ; this makes gain_alfred in units of B/Bsun
 
   ; multiply by ad hoc non-linearity correction factor
-  ; TODO: is this the correct place to make this correction?
   gain_alfred /= run->epoch('nonlinearity-correction-factor')
 
   ncdf_varget, unit, 'Modulation Matrix', mmat
