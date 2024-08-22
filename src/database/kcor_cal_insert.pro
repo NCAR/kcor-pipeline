@@ -81,7 +81,7 @@ pro kcor_cal_insert, date, fits_list, quality, $
                        start_state=run->epoch('start_state'), $
                        raw_data_prefix=run->epoch('raw_data_prefix'), $
                        datatype=run->epoch('raw_datatype')
-	
+
     date_obs    = sxpar(hdu, 'DATE-OBS', count=qdate_obs)
     date_end    = sxpar(hdu, 'DATE-END', count=qdate_end)
 
@@ -112,20 +112,28 @@ pro kcor_cal_insert, date, fits_list, quality, $
     calpol      = strtrim(sxpar(hdu, 'CALPOL',   count=qcalpol), 2)
     calpang     =         sxpar(hdu, 'CALPANG',  count=qcalpang)
 
+    raw_datatype = run->epoch('raw_datatype')
     kcor_read_rawdata, fts_file, image=image, $
                        repair_routine=run->epoch('repair_routine'), $
                        xshift=run->epoch('xshift_camera'), $
                        start_state=run->epoch('start_state'), $
                        raw_data_prefix=run->epoch('raw_data_prefix'), $
-                       datatype=run->epoch('raw_datatype')
-    mean_int_img0 = mean(image[*, *, 0, 0])
-    mean_int_img1 = mean(image[*, *, 1, 0])
-    mean_int_img2 = mean(image[*, *, 2, 0])
-    mean_int_img3 = mean(image[*, *, 3, 0])
-    mean_int_img4 = mean(image[*, *, 0, 1])
-    mean_int_img5 = mean(image[*, *, 1, 1])
-    mean_int_img6 = mean(image[*, *, 2, 1])
-    mean_int_img7 = mean(image[*, *, 3, 1])
+                       datatype=raw_datatype
+
+    ; if raw_datatype is 13 (unsigned 32-bit), then convert to 12 (unsigned
+    ; 16-bit) by just taking the most significant 16 bits, i.e., dividing by
+    ; 2^16
+
+    datatype_factor = raw_datatype eq 13 ? 2L^16L : 1L
+
+    mean_int_img0 = mean(image[*, *, 0, 0]) / datatype_factor
+    mean_int_img1 = mean(image[*, *, 1, 0]) / datatype_factor
+    mean_int_img2 = mean(image[*, *, 2, 0]) / datatype_factor
+    mean_int_img3 = mean(image[*, *, 3, 0]) / datatype_factor
+    mean_int_img4 = mean(image[*, *, 0, 1]) / datatype_factor
+    mean_int_img5 = mean(image[*, *, 1, 1]) / datatype_factor
+    mean_int_img6 = mean(image[*, *, 2, 1]) / datatype_factor
+    mean_int_img7 = mean(image[*, *, 3, 1]) / datatype_factor
 	
     rcamid   = strtrim(sxpar(hdu, 'RCAMID', count=qrcamid), 2)
     tcamid   = strtrim(sxpar(hdu, 'TCAMID', count=qtcamid), 2)
