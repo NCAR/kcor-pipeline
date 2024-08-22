@@ -116,12 +116,13 @@ pro kcor_raw_insert, date, fits_list, quality, $
     endelse
 
     ; extract desired items from header
+    raw_datatype = run->epoch('raw_datatype')
     kcor_read_rawdata, fts_file, image=image, header=hdu, $
                        repair_routine=run->epoch('repair_routine'), $
                        xshift=run->epoch('xshift_camera'), $
                        start_state=run->epoch('start_state'), $
                        raw_data_prefix=run->epoch('raw_data_prefix'), $
-                       datatype=run->epoch('raw_datatype'), $
+                       datatype=raw_datatype, $
                        errmsg=errmsg
 
     if (errmsg ne '') then begin
@@ -132,23 +133,29 @@ pro kcor_raw_insert, date, fits_list, quality, $
     date_obs = sxpar(hdu, 'DATE-OBS', count=qdate_obs)
     date_end = sxpar(hdu, 'DATE-END', count=qdate_end)
 
-    mean_int_img0 = mean(image[*, *, 0, 0])
-    mean_int_img1 = mean(image[*, *, 1, 0])
-    mean_int_img2 = mean(image[*, *, 2, 0])
-    mean_int_img3 = mean(image[*, *, 3, 0])
-    mean_int_img4 = mean(image[*, *, 0, 1])
-    mean_int_img5 = mean(image[*, *, 1, 1])
-    mean_int_img6 = mean(image[*, *, 2, 1])
-    mean_int_img7 = mean(image[*, *, 3, 1])
+    ; if raw_datatype is 13 (unsigned 32-bit), then convert to 12 (unsigned
+    ; 16-bit) by just taking the most significant 16 bits, i.e., dividing by
+    ; 2^16
 
-    median_int_img0 = median(image[*, *, 0, 0])
-    median_int_img1 = median(image[*, *, 1, 0])
-    median_int_img2 = median(image[*, *, 2, 0])
-    median_int_img3 = median(image[*, *, 3, 0])
-    median_int_img4 = median(image[*, *, 0, 1])
-    median_int_img5 = median(image[*, *, 1, 1])
-    median_int_img6 = median(image[*, *, 2, 1])
-    median_int_img7 = median(image[*, *, 3, 1])
+    datatype_factor = raw_datatype eq 13 ? 2L^16L : 1L
+
+    mean_int_img0 = mean(image[*, *, 0, 0]) / datatype_factor
+    mean_int_img1 = mean(image[*, *, 1, 0]) / datatype_factor
+    mean_int_img2 = mean(image[*, *, 2, 0]) / datatype_factor
+    mean_int_img3 = mean(image[*, *, 3, 0]) / datatype_factor
+    mean_int_img4 = mean(image[*, *, 0, 1]) / datatype_factor
+    mean_int_img5 = mean(image[*, *, 1, 1]) / datatype_factor
+    mean_int_img6 = mean(image[*, *, 2, 1]) / datatype_factor
+    mean_int_img7 = mean(image[*, *, 3, 1]) / datatype_factor
+
+    median_int_img0 = median(image[*, *, 0, 0]) / datatype_factor
+    median_int_img1 = median(image[*, *, 1, 0]) / datatype_factor
+    median_int_img2 = median(image[*, *, 2, 0]) / datatype_factor
+    median_int_img3 = median(image[*, *, 3, 0]) / datatype_factor
+    median_int_img4 = median(image[*, *, 0, 1]) / datatype_factor
+    median_int_img5 = median(image[*, *, 1, 1]) / datatype_factor
+    median_int_img6 = median(image[*, *, 2, 1]) / datatype_factor
+    median_int_img7 = median(image[*, *, 3, 1]) / datatype_factor
 
     ; normalize odd values for date/times, particularly "60" as minute value in
     ; DATE-END
