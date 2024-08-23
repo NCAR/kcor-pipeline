@@ -1153,6 +1153,6 @@
 - use distortion corrected radii for image scale calculation
 - create daily image scale plot
 
-#### 2.1.15
+#### 2.1.15 [Aug 23, 2024]
 
 - adjustments to O1 focus range and better log messages
