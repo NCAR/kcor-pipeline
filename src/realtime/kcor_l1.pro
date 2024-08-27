@@ -955,11 +955,19 @@ pro kcor_l1, ok_filename, $
   fxaddpar, l1_header, 'INST_ROT', 0.00, $
             ' [deg] rotation of the image wrt solar north', $
             format='(f9.3)'
+  rcam_image_scale = kcor_compute_platescale(info_dc0[2], occltrid, run=run)
+  tcam_image_scale = kcor_compute_platescale(info_dc1[2], occltrid, run=run)
   image_scale = kcor_compute_platescale((info_dc0[2] + info_dc1[2]) / 2.0, $
                                         occltrid, $
                                         run=run)
   fxaddpar, l1_header, 'IMAGESCL', image_scale, $
             ' [arcsec/pixel] dist cor image scale for this file', $
+            format='(f9.4)'
+  fxaddpar, l1_header, 'RCAM_SCL', rcam_image_scale, $
+            ' [arcsec/pixel] dist cor image scale for camera 0', $
+            format='(f9.4)'
+  fxaddpar, l1_header, 'TCAM_SCL', tcam_image_scale, $
+            ' [arcsec/pixel] dist cor image scale for camera 1', $
             format='(f9.4)'
 
   au_to_meters = 149597870700.0D
