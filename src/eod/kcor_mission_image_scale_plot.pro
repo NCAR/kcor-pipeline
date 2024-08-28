@@ -169,7 +169,7 @@ pro kcor_mission_image_scale_plot, database=db, run=run
                  xminor=12, $
                  ytitle='Image scale difference [arcsec/pixel]', $
                  ystyle=1, yrange=image_scale_difference_range
-  plots, [times], [times * 0.0], color=tolerance_color
+  plots, [jds], [jds * 0.0], color=tolerance_color
 
   ; save plots image file
   output_basename = string(run.date, $
