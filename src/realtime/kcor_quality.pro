@@ -483,9 +483,8 @@ function kcor_quality, date, l0_fits_files, append=append, eod=eod, $
     endif
 
     ; create "raw" pB image
-    q = reform(img[*, *, 0, *] - img[*, *, 3, *])
-    u = reform(img[*, *, 1, *] - img[*, *, 2, *])
-    pb = sqrt(q * q + u * u)
+    ; pb = kcor_corona(img, /angles)
+    pb = kcor_corona(img)
 
     ;----------------------------------------------------------------------------
     ; Cloud test (using rectangular box).
