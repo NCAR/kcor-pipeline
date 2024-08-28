@@ -39,8 +39,8 @@ pro kcor_mission_image_scale_plot, database=db, run=run
   jds = [kcor_dateobs2julday('2013-09-30T00:00:00'), kcor_dateobs2julday(data.date_obs)]
   !null = label_date(date_format='%Y-%N-%D')
 
-  image_scale_range = [5.4, 5.8]
-  image_scale_difference_range = 0.1 * [-1.0, 1.0]
+  image_scale_range = [5.5, 5.8]
+  image_scale_difference_range = 0.05 * [-1.0, 1.0]
 
   ; save original graphics settings
   original_device = !d.name
@@ -78,6 +78,8 @@ pro kcor_mission_image_scale_plot, database=db, run=run
 
   psym             = 6
   symsize          = 0.25
+
+  charsize = 2.0
 
   month_ticks = mg_tick_locator([jds[0], jds[-1]], /months)
   if (n_elements(month_ticks) eq 0L) then begin

@@ -46,8 +46,8 @@ pro kcor_daily_image_scale_plot, database=db, run=run
   times *= 24.0
 
   hours_range = [6.0, 18.0]
-  image_scale_range = [5.4, 5.8]
-  image_scale_difference_range = 0.1 * [-1.0, 1.0]
+  image_scale_range = [5.5, 5.8]
+  image_scale_difference_range = 0.05 * [-1.0, 1.0]
 
   ; save original graphics settings
   original_device = !d.name
@@ -85,6 +85,8 @@ pro kcor_daily_image_scale_plot, database=db, run=run
 
   psym             = 6
   symsize          = 0.25
+
+  charsize = 2.0
 
   ; plot 1 -- normal plot of image scale over the day
 
@@ -133,10 +135,10 @@ pro kcor_daily_image_scale_plot, database=db, run=run
 
   ; plot 2 -- plot of RCAM and TCAM image scales over the day
 
-  mg_range_plot, [times], [rcam_image_scale], $
+  mg_range_plot, [times], [rcam_image_scale], /nodata, $
                  charsize=charsize, $
                  title=string(date, format='Image scale per camera per file for %s'), $
-                 color=rcam_color, background=background_color, $
+                 color=color, background=background_color, $
                  psym=psym, symsize=symsize, $
                  clip_color=clip_color, clip_psym=7, clip_symsize=1.0, $
                  xtitle='Time of day [HST]', $
@@ -146,6 +148,10 @@ pro kcor_daily_image_scale_plot, database=db, run=run
                  xminor=12, $
                  ytitle='Image scale [arcsec/pixel]', $
                  ystyle=1, yrange=image_scale_range
+  mg_range_oplot, [times], [rcam_image_scale], $
+                  color=rcam_color, $
+                  psym=psym, symsize=symsize, $
+                  clip_color=clip_color, clip_psym=7, clip_symsize=1.0
   mg_range_oplot, [times], [tcam_image_scale], $
                   color=tcam_color, $
                   psym=psym, symsize=symsize, $
