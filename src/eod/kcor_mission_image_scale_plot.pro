@@ -26,6 +26,8 @@ pro kcor_mission_image_scale_plot, database=db, run=run
   endelse
 
   image_scale = [!values.f_nan, data.image_scale]
+  rcam_image_scale = [!values.f_nan, data.rcam_image_scale]
+  tcam_image_scale = [!values.f_nan, data.tcam_image_scale]
   plate_scale = 0.0 * image_scale
   plate_scale_tolerance = 0.0 * image_scale
 
@@ -38,11 +40,14 @@ pro kcor_mission_image_scale_plot, database=db, run=run
   !null = label_date(date_format='%Y-%N-%D')
 
   image_scale_range = [5.4, 5.8]
+  image_scale_difference_range = 0.1 * [-1.0, 1.0]
 
   ; save original graphics settings
   original_device = !d.name
 
   mg_log, 'creating plot...', name=run.logger_name, /info
+
+  n_plots = 3L
 
   ; setup graphics device
   set_plot, 'Z'
@@ -50,20 +55,26 @@ pro kcor_mission_image_scale_plot, database=db, run=run
   tvlct, original_rgb, /get
   device, decomposed=0, $
           set_pixel_depth=8, $
-          set_resolution=[800, 300]
+          set_resolution=[800, n_plots * 300]
+
+  !p.multi = [0, 1, n_plots, 0, 0]
 
   tvlct, 0, 0, 0, 0
   tvlct, 255, 255, 255, 1
-  tvlct, 255, 0, 0, 2
-  tvlct, 255, 128, 128, 3
-  tvlct, 240, 240, 240, 4
+  tvlct, 255, 140, 0, 2
+  tvlct, 255, 0, 0, 3
+  tvlct, 0, 0, 255, 4
+  tvlct, 255, 128, 128, 5
+  tvlct, 240, 240, 240, 6
   tvlct, r, g, b, /get
 
   color            = 0
   background_color = 1
   clip_color       = 2
-  platescale_color = 3
-  tolerance_color  = 4
+  rcam_color       = 3
+  tcam_color       = 4
+  platescale_color = 5
+  tolerance_color  = 6
 
   psym             = 6
   symsize          = 0.25
@@ -75,12 +86,14 @@ pro kcor_mission_image_scale_plot, database=db, run=run
     month_ticks = month_ticks[0:*:12]
   endelse
 
+  ; plot 1 -- normal plot of image scale over the mission
+
   mg_range_plot, [jds], [image_scale], $
                  charsize=charsize, $
                  title='Image scale per file over the KCor mission', $
                  color=color, background=background_color, $
                  psym=psym, symsize=symsize, $
-                 clip_color=2, clip_psym=7, clip_symsize=1.0, $
+                 clip_color=clip_color, clip_psym=7, clip_symsize=1.0, $
                  xtitle='Date', $
                  xstyle=1, $
                  xtickformat='label_date', $
@@ -89,7 +102,6 @@ pro kcor_mission_image_scale_plot, database=db, run=run
                  xminor=12, $
                  ytitle='Image scale [arcsec/pixel]', $
                  ystyle=1, yrange=image_scale_range
-
 
   if (n_files gt 1L) then begin
     diffs = [0.0, plate_scale[1:-1] - plate_scale[0:-2]]
@@ -112,7 +124,45 @@ pro kcor_mission_image_scale_plot, database=db, run=run
   mg_range_oplot, jds, image_scale, $
                   color=color, $
                   psym=psym, symsize=symsize, $
-                  clip_color=2, clip_psym=7, clip_symsize=1.0
+                  clip_color=clip_color, clip_psym=7, clip_symsize=1.0
+
+  ; plot 2 -- plot of RCAM and TCAM image scales over the mission
+
+  mg_range_plot, [jds], [rcam_image_scale], $
+                 charsize=charsize, $
+                 title='Image scale per camera per file over the KCor mission', $
+                 color=rcam_color, background=background_color, $
+                 psym=psym, symsize=symsize, $
+                 clip_color=clip_color, clip_psym=7, clip_symsize=1.0, $
+                 xtitle='Date', $
+                 xstyle=1, $
+                 xtickformat='label_date', $
+                 xtickv=month_ticks, $
+                 xticks=n_elements(month_ticks) - 1L, $
+                 xminor=12, $
+                 ytitle='Image scale [arcsec/pixel]', $
+                 ystyle=1, yrange=image_scale_range
+  mg_range_oplot, [jds], [tcam_image_scale], $
+                  color=tcam_color, $
+                  psym=psym, symsize=symsize, $
+                  clip_color=clip_color, clip_psym=7, clip_symsize=1.0
+
+  ; plot 3 -- difference plot of RCAM and TCAM image scales over the mission
+
+  mg_range_plot, [jds], [rcam_image_scale - tcam_image_scale], $
+                 charsize=charsize, $
+                 title='Image scale difference between cameras per file over the KCor mission', $
+                 color=color, background=background_color, $
+                 psym=psym, symsize=symsize, $
+                 clip_color=clip_color, clip_psym=7, clip_symsize=1.0, $
+                 xtitle='Date', $
+                 xstyle=1, $
+                 xtickformat='label_date', $
+                 xtickv=month_ticks, $
+                 xticks=n_elements(month_ticks) - 1L, $
+                 xminor=12, $
+                 ytitle='Image scale difference [arcsec/pixel]', $
+                 ystyle=1, yrange=image_scale_difference_range
 
   ; save plots image file
   output_basename = string(run.date, $
@@ -124,6 +174,7 @@ pro kcor_mission_image_scale_plot, database=db, run=run
   write_gif, output_filename, tvrd(), r, g, b
 
   done:
+  !p.multi = 0
   if (n_elements(original_rgb) gt 0L) then tvlct, original_rgb
   if (n_elements(original_decomposed) gt 0L) then device, decomposed=original_decomposed
   if (n_elements(original_device) gt 0L) then set_plot, original_device

@@ -31,6 +31,8 @@ pro kcor_daily_image_scale_plot, database=db, run=run
   endelse
 
   image_scale = data.image_scale
+  rcam_image_scale = data.rcam_image_scale
+  tcam_image_scale = data.tcam_image_scale
   plate_scale = 0.0 * image_scale
   plate_scale_tolerance = 0.0 * image_scale
 
@@ -45,11 +47,14 @@ pro kcor_daily_image_scale_plot, database=db, run=run
 
   hours_range = [6.0, 18.0]
   image_scale_range = [5.4, 5.8]
+  image_scale_difference_range = 0.1 * [-1.0, 1.0]
 
   ; save original graphics settings
   original_device = !d.name
 
   mg_log, 'creating plot...', name=run.logger_name, /info
+
+  n_plots = 3L
 
   ; setup graphics device
   set_plot, 'Z'
@@ -57,30 +62,38 @@ pro kcor_daily_image_scale_plot, database=db, run=run
   tvlct, original_rgb, /get
   device, decomposed=0, $
           set_pixel_depth=8, $
-          set_resolution=[800, 300]
+          set_resolution=[800, n_plots * 300]
+
+  !p.multi = [0, 1, n_plots, 0, 0]
 
   tvlct, 0, 0, 0, 0
   tvlct, 255, 255, 255, 1
-  tvlct, 255, 0, 0, 2
-  tvlct, 255, 128, 128, 3
-  tvlct, 240, 240, 240, 4
+  tvlct, 255, 140, 0, 2
+  tvlct, 255, 0, 0, 3
+  tvlct, 0, 0, 255, 4
+  tvlct, 255, 128, 128, 5
+  tvlct, 240, 240, 240, 6
   tvlct, r, g, b, /get
 
   color            = 0
   background_color = 1
   clip_color       = 2
-  platescale_color = 3
-  tolerance_color  = 4
+  rcam_color       = 3
+  tcam_color       = 4
+  platescale_color = 5
+  tolerance_color  = 6
 
   psym             = 6
   symsize          = 0.25
+
+  ; plot 1 -- normal plot of image scale over the day
 
   mg_range_plot, [times], [image_scale], $
                  charsize=charsize, $
                  title=string(date, format='Image scale per file for %s'), $
                  color=color, background=background_color, $
                  psym=psym, symsize=symsize, $
-                 clip_color=2, clip_psym=7, clip_symsize=1.0, $
+                 clip_color=clip_color, clip_psym=7, clip_symsize=1.0, $
                  xtitle='Time of day [HST]', $
                  xstyle=1, $
                  xticks=hours_range[1] - hours_range[0], $
@@ -116,7 +129,43 @@ pro kcor_daily_image_scale_plot, database=db, run=run
   mg_range_oplot, times, image_scale, $
                   color=color, $
                   psym=psym, symsize=symsize, $
-                  clip_color=2, clip_psym=7, clip_symsize=1.0
+                  clip_color=clip_color, clip_psym=7, clip_symsize=1.0
+
+  ; plot 2 -- plot of RCAM and TCAM image scales over the day
+
+  mg_range_plot, [times], [rcam_image_scale], $
+                 charsize=charsize, $
+                 title=string(date, format='Image scale per camera per file for %s'), $
+                 color=rcam_color, background=background_color, $
+                 psym=psym, symsize=symsize, $
+                 clip_color=clip_color, clip_psym=7, clip_symsize=1.0, $
+                 xtitle='Time of day [HST]', $
+                 xstyle=1, $
+                 xticks=hours_range[1] - hours_range[0], $
+                 xrange=hours_range, $
+                 xminor=12, $
+                 ytitle='Image scale [arcsec/pixel]', $
+                 ystyle=1, yrange=image_scale_range
+  mg_range_oplot, [times], [tcam_image_scale], $
+                  color=tcam_color, $
+                  psym=psym, symsize=symsize, $
+                  clip_color=clip_color, clip_psym=7, clip_symsize=1.0
+
+  ; plot 3 -- difference plot of RCAM and TCAM image scales over the day
+
+  mg_range_plot, [times], [rcam_image_scale - tcam_image_scale], $
+                 charsize=charsize, $
+                 title=string(date, format='Image scale difference between cameras per file for %s'), $
+                 color=color, background=background_color, $
+                 psym=psym, symsize=symsize, $
+                 clip_color=clip_color, clip_psym=7, clip_symsize=1.0, $
+                 xtitle='Time of day [HST]', $
+                 xstyle=1, $
+                 xticks=hours_range[1] - hours_range[0], $
+                 xrange=hours_range, $
+                 xminor=12, $
+                 ytitle='Image scale difference [arcsec/pixel]', $
+                 ystyle=1, yrange=image_scale_difference_range
 
   ; save plots image file
   output_basename = string(run.date, $
