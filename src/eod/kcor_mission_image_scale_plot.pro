@@ -130,10 +130,10 @@ pro kcor_mission_image_scale_plot, database=db, run=run
 
   ; plot 2 -- plot of RCAM and TCAM image scales over the mission
 
-  mg_range_plot, [jds], [rcam_image_scale], $
+  mg_range_plot, [jds], [rcam_image_scale], /nodata, $
                  charsize=charsize, $
                  title='Image scale per camera per file over the KCor mission', $
-                 color=rcam_color, background=background_color, $
+                 color=color, background=background_color, $
                  psym=psym, symsize=symsize, $
                  clip_color=clip_color, clip_psym=7, clip_symsize=1.0, $
                  xtitle='Date', $
@@ -144,6 +144,10 @@ pro kcor_mission_image_scale_plot, database=db, run=run
                  xminor=12, $
                  ytitle='Image scale [arcsec/pixel]', $
                  ystyle=1, yrange=image_scale_range
+  mg_range_oplot, [jds], [rcam_image_scale], $
+                  color=rcam_color, $
+                  psym=psym, symsize=symsize, $
+                  clip_color=clip_color, clip_psym=7, clip_symsize=1.0
   mg_range_oplot, [jds], [tcam_image_scale], $
                   color=tcam_color, $
                   psym=psym, symsize=symsize, $
@@ -165,6 +169,7 @@ pro kcor_mission_image_scale_plot, database=db, run=run
                  xminor=12, $
                  ytitle='Image scale difference [arcsec/pixel]', $
                  ystyle=1, yrange=image_scale_difference_range
+  plots, [times], [times * 0.0], color=tolerance_color
 
   ; save plots image file
   output_basename = string(run.date, $
