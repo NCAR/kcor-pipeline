@@ -81,6 +81,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     goto, done
   endif
 
+  kcor_remove_moving_files, run=run
+
   q_dir = filepath('q', subdir=date, root=run->config('processing/raw_basedir'))
   quality_plot = filepath(string(date, format='(%"%s.kcor.quality.png")'), $
                           root=q_dir)
