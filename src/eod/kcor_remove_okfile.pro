@@ -6,10 +6,10 @@ pro kcor_remove_okfile_removefile, ls_filename, l0_basename, n_removed=n_removed
   n_removed = 0L
 
   if (~file_test(ls_filename, /regular)) then return
-  n_lines = file_lines(ls_filename)
-  if (n_lines eq 0L) then return
+  n_files = file_lines(ls_filename)
+  if (n_files eq 0L) then return
 
-  files = strarr(n_lines)
+  files = strarr(n_files)
   openr, lun, ls_filename, /get_lun
   readf, lun, files
   free_lun, lun
@@ -88,7 +88,7 @@ pro kcor_remove_okfile, l0_basename, date, db, obsday_index, $
 
   if (obj_valid(db)) then begin
     query = 'delete from kcor_img where obs_day=%d and file_name like "%s%%"'
-    db->execute, query, obsday_index, datetime
+    db->execute, query, obsday_index, datetime, $
                  status=status, $
                  n_affected_rows=n_affected_rows
     if (status eq 0L) then begin
@@ -105,7 +105,7 @@ pro kcor_remove_okfile, l0_basename, date, db, obsday_index, $
     files = file_search(glob, count=n_files)
     if (n_files gt 0L) then begin
       file_delete, files, /allow_nonexistent, /quiet
-      mg_log, 'removed %d files from %s dir', files, levels[i], $
+      mg_log, 'removed %d files from %s dir', n_files, levels[i], $
               name=logger_name, /warn
     endif
   endfor

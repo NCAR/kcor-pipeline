@@ -60,14 +60,14 @@ pro kcor_remove_moving_files, run=run
       mg_log, 'failed to connect to database', name=run.logger_name, /error
       mg_log, '%s', error_message, name=run.logger_name, /error
       if (obj_valid(db)) then obj_destroy, db
-    endif
+    endelse
   endif
 
   after_dev_sequence = 0B
   n_files_removed = 0L
   for f = 0L, n_files - 1L do begin
     if (l0_status[f] eq 'dev') then after_dev_sequence = 1B
-    if (l0_status[f] eq 'ok' && after_dev_sequence) then begin
+    if (l0_status[f] eq 'oka' && after_dev_sequence) then begin
       n_files_removed += 1L
       kcor_remove_okfile, l0_basename[f], run.date, db, obsday_index, $
                           raw_rootdir, web_rootdir, fullres_rootdir, cropped_rootdir, $
@@ -80,4 +80,21 @@ pro kcor_remove_moving_files, run=run
   if (obj_valid(db)) then obj_destroy, db
 
   mg_log, 'removed %d level 0 files', n_files_removed, name=run.logger_name, /warn
+end
+
+
+; main-level example
+
+date = '20170203'
+config_basename = 'kcor.latest.cfg'
+config_filename = filepath(config_basename, $
+                           subdir=['..', '..', '..', 'kcor-config'], $
+                           root=mg_src_root())
+
+run = kcor_run(date, config_filename=config_filename, mode='test')
+
+kcor_remove_moving_files, run=run
+
+obj_destroy, run
+
 end
