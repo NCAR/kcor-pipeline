@@ -1158,3 +1158,5 @@
 - adjustments to O1 focus range and better log messages
 
 #### 2.1.16
+
+- remove first good image after device moves
