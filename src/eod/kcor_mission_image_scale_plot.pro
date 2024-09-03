@@ -152,6 +152,8 @@ pro kcor_mission_image_scale_plot, database=db, run=run
                   color=tcam_color, $
                   psym=psym, symsize=symsize, $
                   clip_color=clip_color, clip_psym=7, clip_symsize=1.0
+  xyouts, 0.825, 0.62, /normal, 'RCAM (camera 0)', charsize=0.85, color=rcam_color
+  xyouts, 0.825, 0.60, /normal, 'TCAM (camera 1)', charsize=0.85, color=tcam_color
 
   ; plot 3 -- difference plot of RCAM and TCAM image scales over the mission
 
@@ -192,8 +194,8 @@ end
 
 ; main-level example program
 
-date = '20240409'
-config_basename = 'kcor.production.cfg'
+date = '20131113'
+config_basename = 'kcor.latest.cfg'
 config_filename = filepath(config_basename, $
                            subdir=['..', '..', '..', 'kcor-config'], $
                            root=mg_src_root())
