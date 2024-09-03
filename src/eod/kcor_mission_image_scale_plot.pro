@@ -157,7 +157,7 @@ pro kcor_mission_image_scale_plot, database=db, run=run
 
   mg_range_plot, [jds], [rcam_image_scale - tcam_image_scale], $
                  charsize=charsize, $
-                 title='Image scale difference between cameras per file over the KCor mission', $
+                 title='Image scale difference (RCAM - TCAM) between cameras per file over the KCor mission', $
                  color=color, background=background_color, $
                  psym=psym, symsize=symsize, $
                  clip_color=clip_color, clip_psym=7, clip_symsize=1.0, $
