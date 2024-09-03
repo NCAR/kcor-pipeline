@@ -185,6 +185,22 @@ pro kcor_daily_image_scale_plot, database=db, run=run
   mg_log, 'writing %s', output_basename, name=run.logger_name, /info
   write_gif, output_filename, tvrd(), r, g, b
 
+  csv_basename = string(run.date, format='%s.kcor.daily.image_scale.csv')
+  csv_filename = filepath(csv_basename, $
+                          subdir=[run.date, 'p'], $
+                          root=run->config('processing/raw_basedir'))
+  openw, lun, csv_filename, /get_lun
+  for f = 0L, n_files - 1L do begin
+    printf, lun, $
+            (data.date_obs)[f], $
+            image_scale[f], $
+            rcam_image_scale[f], $
+            tcam_image_scale[f], $
+            rcam_image_scale[f] - tcam_image_scale[f], $
+            format='%s, %0.3f, %0.3f, %0.3f, %0.3f'
+  endfor
+  free_lun, lun
+
   done:
   if (n_elements(original_rgb) gt 0L) then tvlct, original_rgb
   if (n_elements(original_decomposed) gt 0L) then device, decomposed=original_decomposed
