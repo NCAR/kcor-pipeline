@@ -99,13 +99,15 @@ pro kcor_remove_okfile, l0_basename, date, db, obsday_index, $
   ; remove anything with the same timestamp from the level 1 and level 2
   ; directories
 
+  removed_dirname = filepath('', subdir=[date, 'removed'], root=raw_rootdir)
   levels = ['level1', 'level2']
   for i = 0L, n_elements(levels) - 1L do begin
     glob = filepath(datetime + '*', subdir=[date, levels[i]], root=raw_rootdir)
     files = file_search(glob, count=n_files)
     if (n_files gt 0L) then begin
-      file_delete, files, /allow_nonexistent, /quiet
-      mg_log, 'removed %d files from %s dir', n_files, levels[i], $
+      if (~file_test(removed_dirname, /directory)) then file_mkdir, removed_dirname
+      file_move, files, removed_dirname, /overwrite
+      mg_log, 'moved %d files from %s dir to removed dir', n_files, levels[i], $
               name=logger_name, /warn
     endif
   endfor
@@ -142,7 +144,7 @@ pro kcor_remove_okfile, l0_basename, date, db, obsday_index, $
     endif
   endif
 
-  ; move file from `oka.ls` to device files list file `dev.ls`
+  ; move file from `oka.ls` to device files list file `dev.ls` and `removed.ls`
   oka_filename = filepath('oka.ls', subdir=[date, 'q'], root=raw_rootdir)
   kcor_remove_okfile_removefile, oka_filename, l0_basename, n_removed=n_removed
   mg_log, 'removed %d files from oka.ls', n_removed, name=logger_name, /warn
@@ -150,4 +152,8 @@ pro kcor_remove_okfile, l0_basename, date, db, obsday_index, $
   dev_filename = filepath('dev.ls', subdir=[date, 'q'], root=raw_rootdir)
   kcor_remove_okfile_addfile, dev_filename, l0_basename
   mg_log, 'added file to dev.ls', name=logger_name, /warn
+
+  removed_filename = filepath('removed.ls', subdir=[date, 'q'], root=raw_rootdir)
+  kcor_remove_okfile_addfile, removed_filename, l0_basename
+  mg_log, 'added file to removed.ls', name=logger_name, /warn
 end
