@@ -1161,3 +1161,5 @@
 
 - remove first good image after device moves
 - improved image scale plots
+
+#### 2.1.17
