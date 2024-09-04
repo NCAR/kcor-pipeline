@@ -1157,6 +1157,7 @@
 
 - adjustments to O1 focus range and better log messages
 
-#### 2.1.16
+#### 2.1.16 [Sep 4, 2024]
 
 - remove first good image after device moves
+- improved image scale plots
