@@ -1166,4 +1166,10 @@
 
 - remove references to HPSS
 
-#### 2.1.18
+#### 2.1.18 [Sep 5, 2024]
+
+- fix for when odd situation when skipping first file in engineering plots
+
+#### 2.1.19
+
+- fixes for days with little or no good data

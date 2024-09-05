@@ -16,7 +16,8 @@ pro kcor_remove_moving_files, run=run
   fullres_rootdir = run->config('results/fullres_basedir')
   cropped_rootdir = run->config('results/croppedgif_basedir')
 
-  ; create list of all level 0 filenames and status
+  ; create list of all level 0 OK and device files and status
+
   oka_filename = filepath('oka.ls', subdir=[run.date, 'q'], root=raw_rootdir)
   n_oka_files = file_test(oka_filename, /regular) eq 0L ? 0L : file_lines(oka_filename)
   oka_files = n_oka_files eq 0L ? !null : strarr(n_oka_files)
@@ -38,6 +39,11 @@ pro kcor_remove_moving_files, run=run
   endif
 
   n_files = n_oka_files + n_dev_files
+  if (n_files eq 0L) then begin
+    mg_log, 'no OK or device files', name=run.logger_name, /debug
+    goto, done
+  endif
+
   l0_basename = [oka_files, dev_files]
   l0_status = [oka_status, dev_status]
 

@@ -20,7 +20,9 @@ pro kcor_remove_okfile_removefile, ls_filename, l0_basename, n_removed=n_removed
   n_removed = n_files - n_keep
 
   openw, lun, ls_filename, /get_lun
-  printf, lun, transpose(files)
+  if (n_keep gt 0L) then begin
+    printf, lun, n_keep gt 1L ? transpose(files) : files
+  endif
   free_lun, lun
 end
 

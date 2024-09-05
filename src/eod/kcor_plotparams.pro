@@ -78,6 +78,12 @@ pro kcor_plotparams, date, list=list, run=run
   ; used for log messages
   indent = strjoin(strarr(4 + 2 + ceil(alog10(n_elements(list) + 1))) + ' ')
 
+  ; pdate is for the plot title
+  pyear   = strmid(date, 0, 4)
+  pmonth  = strmid(date, 4, 2)
+  pday    = strmid(date, 6, 2)
+  pdate   = string(pyear, pmonth, pday, format='(%"%s-%s-%s")')
+
   ; image file loop
   for i = 0L, n_elements(list) - 1L do begin
     l0_file = list[i]
@@ -197,14 +203,6 @@ pro kcor_plotparams, date, list=list, run=run
     hour   = strmid(date_obs, 11, 2)
     minute = strmid(date_obs, 14, 2)
     second = strmid(date_obs, 17, 2)
-
-    ; pdate is for the plot title
-    if (i eq 0) then begin
-      pyear   = strmid(date, 0, 4)
-      pmonth  = strmid(date, 4, 2)
-      pday    = strmid(date, 6, 2)
-      pdate   = string(pyear, pmonth, pday, format='(%"%s-%s-%s")')
-    endif
 
     datetime = string(year, month, day, hour, minute, second, $
                       format='(%"%s-%s-%sT%s:%s:%s")')
