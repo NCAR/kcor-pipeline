@@ -1162,4 +1162,6 @@
 - remove first good image after device moves
 - improved image scale plots
 
-#### 2.1.17
+#### 2.1.17 [Sep 5, 2024]
+
+- remove references to HPSS
