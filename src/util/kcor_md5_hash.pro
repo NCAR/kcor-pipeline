@@ -8,7 +8,7 @@
 ;
 ; :Params:
 ;   filename : in, required, type=string
-;     HPSS filename to check
+;     filename to check
 ;
 ; :Keywords:
 ;   logger_name : in, type=string
@@ -16,8 +16,8 @@
 ;   run : in, required, type=object
 ;     KCor run object
 ;   status : out, optional, type=integer
-;     set to a named variable to retrieve the error status for the HPSS query,
-;     0 for none
+;     set to a named variable to retrieve the error status for the openssl,
+;     command, 0 for none
 ;-
 function kcor_md5_hash, filename, $
                         logger_name=logger_name, run=run, status=status

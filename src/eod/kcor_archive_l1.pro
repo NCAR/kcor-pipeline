@@ -1,7 +1,7 @@
 ; docformat = 'rst'
 
 ;+
-; Archive KCor L1 products to HPSS.
+; Archive KCor L1 products to Campaign Storage.
 ;
 ; :Keywords:
 ;   run : in, required, type=object
@@ -12,10 +12,10 @@ pro kcor_archive_l1, run=run
 
   date = run.date
 
-  if (run->config('eod/send_to_hpss')) then begin
-    mg_log, 'sending L1 data to HPSS...', name='kcor/eod', /info
+  if (run->config('eod/send_to_campaign')) then begin
+    mg_log, 'sending L1 data to Campaign Storage...', name='kcor/eod', /info
   endif else begin
-    mg_log, 'not sending L1 data to HPSS', name='kcor/eod', /info
+    mg_log, 'not sending L1 data to Campaign Storage', name='kcor/eod', /info
   endelse
 
   cd, current=cwd
@@ -100,30 +100,31 @@ pro kcor_archive_l1, run=run
       endelse
     endif
 
-    if (run->config('eod/send_to_hpss')) then begin
-      ; create HPSS gateway directory if needed
-      hpss_gateway = run->config('results/hpss_gateway')
-      if (~file_test(hpss_gateway, /directory)) then begin
-        file_mkdir, hpss_gateway
-        file_chmod, hpss_gateway, /a_read, /a_execute, /u_write, /g_write
+    if (run->config('eod/send_to_campaign')) then begin
+      ; create Campaign Storage gateway directory if needed
+      cs_gateway = run->config('results/cs_gateway')
+      if (~file_test(cs_gateway, /directory)) then begin
+        file_mkdir, cs_gateway
+        file_chmod, cs_gateway, /a_read, /a_execute, /u_write, /g_write
       endif
 
       ; remove old links to tarballs
-      dst_tarfile = filepath(tarfile, root=hpss_gateway)
+      dst_tarfile = filepath(tarfile, root=cs_gateway)
       ; need to test for dangling symlink separately because a link to a
       ; non-existent file will return 0 from FILE_TEST with just /SYMLINK
       if (file_test(dst_tarfile, /symlink) $
           || file_test(dst_tarfile, /dangling_symlink)) then begin
-        mg_log, 'removing link to tarball in HPSS gateway', name='kcor/eod', /warn
+        mg_log, 'removing link to tarball in Campaign Storage gateway', $
+                name='kcor/eod', /warn
         file_delete, dst_tarfile
       endif
 
-      ; link tarball into HPSS directory
+      ; link tarball into Campaign Storage directory
       file_link, filepath(tarfile, root=l1_dir), $
                  dst_tarfile
     endif
 
-    if (run->config('eod/send_to_hpss')) then begin
+    if (run->config('eod/send_to_campaign')) then begin
       cs_gateway = run->config('results/cs_gateway')
       if (n_elements(cs_gateway) gt 0L && strlen(cs_gateway) gt 0L) then begin
         ; create CS gateway directory if needed
@@ -156,5 +157,5 @@ pro kcor_archive_l1, run=run
 
   done:
   cd, cwd
-  mg_log, 'done sending L1 data to HPSS', name='kcor/eod', /info
+  mg_log, 'done sending L1 data to Campaign Storage', name='kcor/eod', /info
 end

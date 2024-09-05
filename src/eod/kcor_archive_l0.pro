@@ -1,7 +1,7 @@
 ; docformat = 'rst'
 
 ;+
-; Archive KCor L0 FITS files to HPSS.
+; Archive KCor L0 FITS files to Campaign Storage.
 ;
 ; :Keywords:
 ;   run : in, required, type=object
@@ -49,14 +49,14 @@ pro kcor_archive_l0, run=run, reprocess=reprocess
 
   l0_fits_files = file_search('*_kcor.fts.gz', count=n_l0_fits_files)
   if (n_l0_fits_files eq 0L) then begin
-    mg_log, 'no L0 FITS files to archive to HPSS', name='kcor/eod', /warn
+    mg_log, 'no L0 FITS files to archive to Campaign Storage', name='kcor/eod', /warn
     goto, done
   endif else begin
     mg_log, '%d compressed files exist in L0 dir', n_l0_fits_files, $
             name='kcor/eod', /info
   endelse
 
-  if (run->config('eod/send_to_hpss') && ~keyword_set(reprocess)) then begin
+  if (run->config('eod/send_to_campaign') && ~keyword_set(reprocess)) then begin
     tar_cmd = string(tarfile, $
                      format='(%"tar cf %s *_kcor.fts.gz *.log")')
     mg_log, 'creating tarfile %s...', tarfile, name='kcor/eod', /info
@@ -100,31 +100,32 @@ pro kcor_archive_l0, run=run, reprocess=reprocess
     mg_log, 'not creating tarfile or tarlist', name='kcor/eod', /info
   endelse
 
-  if (run->config('eod/send_to_hpss') && ~keyword_set(reprocess)) then begin
-    ; create HPSS gateway directory if needed
-    hpss_gateway = run->config('results/hpss_gateway')
-    if (~file_test(hpss_gateway, /directory)) then begin
-      file_mkdir, hpss_gateway
-      file_chmod, hpss_gateway, /a_read, /a_execute, /u_write, /g_write
+  if (run->config('eod/send_to_campaign') && ~keyword_set(reprocess)) then begin
+    ; create Campaign Storage gateway directory if needed
+    cs_gateway = run->config('results/cs_gateway')
+    if (~file_test(cs_gateway, /directory)) then begin
+      file_mkdir, cs_gateway
+      file_chmod, cs_gateway, /a_read, /a_execute, /u_write, /g_write
     endif
 
     ; remove old links to tarballs
-    dst_tarfile = filepath(tarfile, root=hpss_gateway)
+    dst_tarfile = filepath(tarfile, root=cs_gateway)
     ; need to test for dangling symlink separately because a link to a
     ; non-existent file will return 0 from FILE_TEST with just /SYMLINK
     if (file_test(dst_tarfile, /symlink) $
           || file_test(dst_tarfile, /dangling_symlink)) then begin
-      mg_log, 'removing link to tarball in HPSS gateway', name='kcor/eod', /warn
+      mg_log, 'removing link to tarball in Campaign Storage gateway', $
+              name='kcor/eod', /warn
       file_delete, dst_tarfile
     endif
 
     file_link, filepath(tarfile, root=l0_dir), $
                dst_tarfile
   endif else begin
-    mg_log, 'not sending to HPSS', name='kcor/eod', /info
+    mg_log, 'not sending to Campaign Storage', name='kcor/eod', /info
   endelse
 
-  if (run->config('eod/send_to_hpss') && ~keyword_set(reprocess)) then begin
+  if (run->config('eod/send_to_campaign') && ~keyword_set(reprocess)) then begin
     cs_gateway = run->config('results/cs_gateway')
     if (n_elements(cs_gateway) gt 0L && strlen(cs_gateway) gt 0L) then begin
       ; create CS gateway directory if needed
@@ -157,18 +158,3 @@ pro kcor_archive_l0, run=run, reprocess=reprocess
   mg_log, 'done', name='kcor/eod', /info
 end
 
-
-; main-level example program
-
-; WARNING: this uses the production config file, so will actually copy L0
-; tarball to the HPSS!
-
-date = '20180306'
-config_filename = filepath('kcor.mgalloy.kaula.production.cfg', $
-                           subdir=['..', '..', 'config'], $
-                           root=mg_src_root())
-run = kcor_run(date, config_filename=config_filename)
-kcor_archive_l0, run=run
-obj_destroy, run
-
-end
