@@ -1173,3 +1173,5 @@
 #### 2.1.19 [Sep 5, 2024]
 
 - fixes for days with little or no good data
+
+#### 2.1.20
