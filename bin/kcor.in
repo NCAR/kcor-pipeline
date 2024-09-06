@@ -89,6 +89,19 @@ def get_config_filename(flags):
     return(config_filename)
 
 
+def get_config(flags, error):
+    config_filename = get_config_filename(flags)
+    if not os.path.isfile(config_filename):
+        config_basename = os.path.basename(config_filename)
+        error(f"configuration file does not exist: {config_basename}")
+
+    # read config file to get arguments to launch data/processing simulators
+    config = configparser.ConfigParser()
+    config.read(config_filename)
+
+    return(config)
+
+
 def display_time(seconds, granularity=2):
     result = []
 
@@ -238,6 +251,44 @@ def list_processes(args):
         print(f"[{pid}] ({start_time} running {time_running}): {cmdline}")
 
 
+def get_raw_basedir(date, flags, error):
+    ucomp_config = get_config(flags, error)
+
+    try:
+        raw_basedir = ucomp_config.get("processing", "raw_basedir")
+    except configparser.NoSectionError:
+        error("no raw section in config file")
+    except configparser.NoOptionError:
+        routing_filename = ucomp_config.get("processing", "routing_file")
+        routing_config = configparser.ConfigParser()
+        routing_config.read(routing_filename)
+        date_locations = routing_config.options("kcor")
+        for date_expr in date_locations:
+            if fnmatch.fnmatch(date, date_expr):
+                return(routing_config.get("kcor", date_expr))
+    return(raw_basedir)
+
+
+def has_raw_data(date, flags, error):
+    raw_basedir = get_raw_basedir(date, flags, error)
+    raw_dir = os.path.join(raw_basedir, date)
+
+    toplevel_fits_glob = os.path.join(raw_dir, '*.fts*')
+    n_toplevel_fits_files = len(glob.glob(toplevel_fits_glob))
+
+    level0_fits_glob = os.path.join(raw_dir, 'level0', '*.fts*')
+    n_level0_fits_files = len(glob.glob(level0_fits_glob))
+
+    return(n_toplevel_fits_files + n_level0_fits_files > 0)
+
+
+def raw_locked(date, flags, error):
+    raw_basedir = get_raw_basedir(date, flags, error)
+    raw_dir = os.path.join(raw_basedir, date)
+    lock_filename = os.path.join(raw_dir, ".lock")
+    return(os.path.exists(lock_filename))
+
+
 # versions sub-command
 def versions(args):
     if not versions_requirements:
@@ -267,6 +318,15 @@ def versions(args):
             if v != "<unknown>":
                 print(f"{d}: {v:12s} {r:8s}")
                 break
+    if args.none:
+        f = [v for v in versions_list if v[1] is not None and v[1][0] != "-"]
+        no_version = [v for v in versions_list if v[1] is None or v[1][0] == "-"]
+        in_progress = [v for v in no_version if has_raw_data(v[0], args.flags, args.parser.error)]
+        for d, v, r in in_progress:
+            attribute = "L" if raw_locked(d, args.flags, args.parser.error) else "+"
+            v = v if v is not None else 12 * "-"
+            r = r if r is not None else 12 * "-"
+            print(f"{d}: {attribute} {v:12s} {r:8s}")
     elif args.summary:
         f = [v for v in versions_list if v[1] is not None and v[1][0] != "-"]
         s = sorted(f, key=lambda v: packaging.version.parse(v[1]))
@@ -287,8 +347,18 @@ def versions(args):
                 print(f"{current_version}: {n_dates} day{plural}")
     else:
         for d, v, r in versions_list:
-            if v is not None and filter(v):
-                print(f"{d}: {v:12s} {r:8s}")
+            if has_raw_data(d, args.flags, args.parser.error):
+                if raw_locked(d, args.flags, args.parser.error):
+                    attribute = "L"
+                else:
+                    attribute = "+"
+            else:
+                attribute = "-"
+
+            if filter(v):
+                v = v if v is not None else 12 * "-"
+                r = r if r is not None else 12 * "-"
+                print(f"{d}: {attribute} {v:12s} {r:8s}")
 
 
 def make_version_filter(filter_expression):
@@ -1276,6 +1346,8 @@ if __name__ == "__main__":
                                  default=None)
     versions_parser.add_argument("-o", "--oldest", action="store_true",
                                  help="set to only display the oldest version")
+    versions_parser.add_argument("-n", "--none", action="store_true",
+        help="set to only display the dates with no version")
     versions_parser.add_argument("-s", "--summary", action="store_true",
                                  help="set to display a summary of versions")
     versions_parser.set_defaults(func=versions, parser=versions_parser)
