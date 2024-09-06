@@ -1174,4 +1174,6 @@
 
 - fixes for days with little or no good data
 
-#### 2.1.20
+#### 2.1.20 [Sep 5, 2024]
+
+- fix for day when no good or device files

@@ -11,6 +11,8 @@
 pro kcor_remove_moving_files, run=run
   compile_opt strictarr
 
+  n_files_removed = 0L
+
   raw_rootdir     = run->config('processing/raw_basedir')
   web_rootdir     = run->config('results/archive_basedir')
   fullres_rootdir = run->config('results/fullres_basedir')

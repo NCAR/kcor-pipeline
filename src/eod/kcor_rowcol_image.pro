@@ -23,6 +23,7 @@ pro kcor_rowcol_image_l0, run=run
 
   nx = 1024
   ny = 1024
+  exposure = 1.0   ; default exposure if no files
 
   medrows0 = fltarr(n_files, ny)
   medrows1 = fltarr(n_files, ny)
