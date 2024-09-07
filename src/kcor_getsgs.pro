@@ -17,11 +17,16 @@
 ;   float : in, optional, type=boolean
 ;     set to return the float value of the FITS keyword
 ;-
-function kcor_getsgs, header, name, float=float
+function kcor_getsgs, header, name, float=float, valid_range=valid_range
   compile_opt strictarr
 
     value = fxpar(header, name, count=count, /null)
     type = size(value, /type)
+
+    if (n_elements(valid_range) gt 0L) then begin
+      if (value le valid_range[0] || value gt valid_range[1]) then return, 'NULL'
+    endif
+
     if ((count eq 0) $
           || (n_elements(value) eq 0L) $
           || (size(value, /type) eq 7 && strlowcase(strtrim(value, 2)) eq 'nan')) then begin
