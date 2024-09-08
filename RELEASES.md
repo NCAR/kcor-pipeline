@@ -1183,4 +1183,6 @@
 - restrict SGSSCINT values to valid range
 - more checks for no level 0 files
 
-#### 2.1.22
+#### 2.1.22 [Sep 7, 2024]
+
+- typo in check for end-of-day message
