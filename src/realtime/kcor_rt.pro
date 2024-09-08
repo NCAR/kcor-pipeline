@@ -473,7 +473,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
   mg_log, 'done', name='kcor/rt', /info
   mg_log, 'processing time: %s %s', $
           kcor_sec2str(rt_time), $
-          (available && (n_elemennts(n_l0_fits_files) gt 0L) && (n_l0_fits_files gt 0L)) $
+          (available && (n_elements(n_l0_fits_files) gt 0L) && (n_l0_fits_files gt 0L)) $
             ? string(rt_time / n_l0_fits_files, $
                      format='(%"(%0.1f secs/L0 file)")') $
             : '', $
