@@ -1186,3 +1186,5 @@
 #### 2.1.22 [Sep 7, 2024]
 
 - typo in check for end-of-day message
+
+#### 2.1.23
