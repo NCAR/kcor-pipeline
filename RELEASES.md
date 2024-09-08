@@ -1182,3 +1182,5 @@
 
 - restrict SGSSCINT values to valid range
 - more checks for no level 0 files
+
+#### 2.1.22
