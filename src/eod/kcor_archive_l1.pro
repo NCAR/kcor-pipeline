@@ -100,9 +100,12 @@ pro kcor_archive_l1, run=run
       endelse
     endif
 
-    if (run->config('eod/send_to_campaign')) then begin
+    cs_gateway = run->config('results/cs_gateway')
+    send_to_campaign = run->config('eod/send_to_campaign') $
+      && (strlen(cs_gateway) gt 0L)
+
+    if (send_to_campaign) then begin
       ; create Campaign Storage gateway directory if needed
-      cs_gateway = run->config('results/cs_gateway')
       if (~file_test(cs_gateway, /directory)) then begin
         file_mkdir, cs_gateway
         file_chmod, cs_gateway, /a_read, /a_execute, /u_write, /g_write
@@ -122,34 +125,27 @@ pro kcor_archive_l1, run=run
       ; link tarball into Campaign Storage directory
       file_link, filepath(tarfile, root=l1_dir), $
                  dst_tarfile
-    endif
 
-    if (run->config('eod/send_to_campaign')) then begin
-      cs_gateway = run->config('results/cs_gateway')
-      if (n_elements(cs_gateway) gt 0L && strlen(cs_gateway) gt 0L) then begin
-        ; create CS gateway directory if needed
-        if (~file_test(cs_gateway, /directory)) then begin
-          file_mkdir, cs_gateway
-          file_chmod, cs_gateway, /a_read, /a_execute, /u_write, /g_write
-        endif
-  
-        ; remove old links to tarballs
-        dst_tarfile = filepath(tarfile, root=cs_gateway)
-        ; need to test for dangling symlink separately because a link to a
-        ; non-existent file will return 0 from FILE_TEST with just /SYMLINK
-        if (file_test(dst_tarfile, /symlink) $
-            || file_test(dst_tarfile, /dangling_symlink)) then begin
-          mg_log, 'removing link to tarball in CS gateway', name='kcor/eod', /warn
-          file_delete, dst_tarfile
-        endif
-  
-        ; link tarball into CS directory
-        file_link, filepath(tarfile, root=l1_dir), $
-                   dst_tarfile
-      endif else begin
+      ; remove old links to tarballs
+      dst_tarfile = filepath(tarfile, root=cs_gateway)
+      ; need to test for dangling symlink separately because a link to a
+      ; non-existent file will return 0 from FILE_TEST with just /SYMLINK
+      if (file_test(dst_tarfile, /symlink) $
+          || file_test(dst_tarfile, /dangling_symlink)) then begin
+        mg_log, 'removing link to tarball in CS gateway', name='kcor/eod', /warn
+        file_delete, dst_tarfile
+      endif
+
+      ; link tarball into CS directory
+      file_link, filepath(tarfile, root=l1_dir), $
+                 dst_tarfile
+    endif else begin
+      if (strlen(cs_gateway) eq 0L) then begin
         mg_log, 'cs_gateway not specified, not sent to CS', name='kcor/eod', /info
+      endif else begin
+        mg_log, 'not sending to Campaign Storage', name='kcor/eod', /info
       endelse
-    endif
+    endelse
   endif else begin
     mg_log, 'no files for L1 tarball/tarlist, not creating', $
             name='kcor/eod', /warn
