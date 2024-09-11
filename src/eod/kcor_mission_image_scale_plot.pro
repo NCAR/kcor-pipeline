@@ -14,10 +14,11 @@ pro kcor_mission_image_scale_plot, database=db, run=run
 
   mg_log, 'querying for image scales...', name=run.logger_name, /info
 
-  query = 'select * from kcor_eng where image_scale is not NULL order by date_obs'
-  data = db->query(query, $
-                   count=n_files, error=error, fields=fields, sql_statement=sql)
+  date_tokens = long(kcor_decompose_date(run.date))
 
+  query = 'select * from kcor_eng where image_scale is not NULL and date_obs < \"%04d-%02d-%02d\" order by date_obs'
+  data = db->query(query, date_tokens[0], date_tokens[1], date_tokens[2], $
+                   count=n_files, error=error, fields=fields, sql_statement=sql)
   if (n_files eq 0L) then begin
     mg_log, 'no files found', name=run.logger_name, /warn
     goto, done
@@ -194,8 +195,8 @@ end
 
 ; main-level example program
 
-date = '20131113'
-config_basename = 'kcor.latest.cfg'
+date = '20131231'
+config_basename = 'kcor.reprocess.cfg'
 config_filename = filepath(config_basename, $
                            subdir=['..', '..', '..', 'kcor-config'], $
                            root=mg_src_root())
