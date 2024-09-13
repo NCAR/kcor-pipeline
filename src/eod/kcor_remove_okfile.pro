@@ -146,14 +146,10 @@ pro kcor_remove_okfile, l0_basename, date, db, obsday_index, $
     endif
   endif
 
-  ; move file from `oka.ls` to device files list file `dev.ls` and `removed.ls`
+  ; move file from `oka.ls` to `removed.ls`
   oka_filename = filepath('oka.ls', subdir=[date, 'q'], root=raw_rootdir)
   kcor_remove_okfile_removefile, oka_filename, l0_basename, n_removed=n_removed
   mg_log, 'removed %d files from oka.ls', n_removed, name=logger_name, /warn
-
-  dev_filename = filepath('dev.ls', subdir=[date, 'q'], root=raw_rootdir)
-  kcor_remove_okfile_addfile, dev_filename, l0_basename
-  mg_log, 'added file to dev.ls', name=logger_name, /warn
 
   removed_filename = filepath('removed.ls', subdir=[date, 'q'], root=raw_rootdir)
   kcor_remove_okfile_addfile, removed_filename, l0_basename
