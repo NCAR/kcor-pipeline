@@ -414,6 +414,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
       kcor_rolling_o1focus_plot, database=db, run=run
       kcor_mission_image_scale_plot, database=db, run=run
+      kcor_rolling_image_scale_plot, run.date, n_days=90, database=db, run=run
       kcor_daily_image_scale_plot, database=db, run=run
 
       if (n_l2_zipped_files gt 0L) then begin
