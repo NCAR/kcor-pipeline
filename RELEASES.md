@@ -1188,3 +1188,5 @@
 - typo in check for end-of-day message
 
 #### 2.1.23
+
+- updated epochs for 2013
