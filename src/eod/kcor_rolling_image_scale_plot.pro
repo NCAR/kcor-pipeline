@@ -101,13 +101,36 @@ pro kcor_rolling_image_scale_plot, end_date, n_days=n_days, database=db, run=run
   psym             = 6
   symsize          = 0.25
 
-  charsize = 2.0
+  charsize = 1.85
 
-  if (_n_days lt 14L) then begin
-    week_ticks = 1L
+  xrange = [floor(jds[0]), ceil(jds[-1])] - 0.5
+  n_days_with_data = xrange[1] - xrange[0]
+
+  range_jds = jds
+  range_jds[0] = xrange[0]
+  range_jds[-1] = xrange[-1]
+
+  if (n_days_with_data lt 7L) then begin
+    xtickv = floor(jds[0]) - 0.5 + findgen(n_days_with_data + 1L)
+    xticks = n_days_with_data
+    xminor = 1
   endif else begin
-    n_weeks = round(_n_days / 28.0)
-    week_ticks = jds[0] + findgen(_n_days / (7L * n_weeks) + 1L) * 7L * n_weeks
+    default_n_periods = 5L
+    period_length = floor(n_days_with_data / float(default_n_periods))
+    n_periods = n_days_with_data / period_length + 1L
+
+    xtickv = xrange[0] + findgen(n_periods) * period_length
+    xticks = n_periods - 1L
+
+    ; print, xrange[0], format='(C())'
+    ; print, xrange[1], format='(C())'
+    ; print, n_days_with_data, period_length, n_periods, $
+    ;        format='n_days_with_data: %d, period_length: %d, n_periods: %d'
+    ; for i = 0L, n_elements(xtickv) - 1L do begin
+    ;   print, i, xtickv[i], format='(I, ". ", C())'
+    ; endfor
+
+    xminor = period_length
   endelse
 
   ; plot 1 -- normal plot of image scale over the mission
@@ -122,9 +145,10 @@ pro kcor_rolling_image_scale_plot, end_date, n_days=n_days, database=db, run=run
                  xtitle='Date', $
                  xstyle=1, $
                  xtickformat='label_date', $
-                 xtickv=week_ticks, $
-                 xticks=n_elements(week_ticks) - 1L, $
-                 xminor=12, $
+                 xrange=xrange, $
+                 xtickv=xtickv, $
+                 xticks=xticks, $
+                 xminor=xminor, $
                  ytitle='Image scale [arcsec/pixel]', $
                  ystyle=1, yrange=image_scale_range
 
@@ -135,12 +159,12 @@ pro kcor_rolling_image_scale_plot, end_date, n_days=n_days, database=db, run=run
     for c = 0L, n_changes do begin
       s = change_indices[c]
       e = change_indices[c+1] - 1
-      polyfill, [jds[s:e], reverse(jds[s:e]), jds[s]], $
+      polyfill, [range_jds[s:e], reverse(range_jds[s:e]), range_jds[s]], $
                 [plate_scale[s:e] + plate_scale_tolerance[s:e], $
                  reverse(plate_scale[s:e] - plate_scale_tolerance[s:e]), $
                  plate_scale[s] + plate_scale_tolerance[s]], $
                 color=tolerance_color
-      plots, jds[s:e], plate_scale[s:e], linestyle=0, color=platescale_color
+      plots, range_jds[s:e], plate_scale[s:e], linestyle=0, color=platescale_color
     endfor
   endif else begin
     plots, [jds], [plate_scale], linestyle=0, color=platescale_color
@@ -162,9 +186,10 @@ pro kcor_rolling_image_scale_plot, end_date, n_days=n_days, database=db, run=run
                  xtitle='Date', $
                  xstyle=1, $
                  xtickformat='label_date', $
-                 xtickv=week_ticks, $
-                 xticks=n_elements(week_ticks) - 1L, $
-                 xminor=12, $
+                 xrange=xrange, $
+                 xtickv=xtickv, $
+                 xticks=xticks, $
+                 xminor=xminor, $
                  ytitle='Image scale [arcsec/pixel]', $
                  ystyle=1, yrange=image_scale_range
   mg_range_oplot, [jds], [rcam_image_scale], $
@@ -189,12 +214,13 @@ pro kcor_rolling_image_scale_plot, end_date, n_days=n_days, database=db, run=run
                  xtitle='Date', $
                  xstyle=1, $
                  xtickformat='label_date', $
-                 xtickv=week_ticks, $
-                 xticks=n_elements(week_ticks) - 1L, $
-                 xminor=12, $
+                 xrange=xrange, $
+                 xtickv=xtickv, $
+                 xticks=xticks, $
+                 xminor=xminor, $
                  ytitle='Image scale difference [arcsec/pixel]', $
                  ystyle=1, yrange=image_scale_difference_range
-  plots, [jds], [jds * 0.0], color=tolerance_color
+  plots, xrange, fltarr(2), color=tolerance_color
 
   ; save plots image file
   output_basename = string(run.date, _n_days, $
@@ -229,7 +255,7 @@ db = kcordbmysql()
 db->connect, config_filename=run->config('database/config_filename'), $
              config_section=run->config('database/config_section')
 
-kcor_rolling_image_scale_plot, date, n_days=30, database=db, run=run
+kcor_rolling_image_scale_plot, date, n_days=5, database=db, run=run
 
 obj_destroy, [db, run]
 
