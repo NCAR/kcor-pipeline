@@ -78,6 +78,27 @@ pro kcor_plotsci, date, daily_science_file, run=run
                                          root=run->config('processing/raw_basedir'))
   write_gif, sci_intensity_plot_filename, plot_image, red, green, blue
 
+  sci_intensity_text_basename = string(date, format='(%"%s.kcor.radial.intensity.txt")')
+  sci_intensity_text_filename = filepath(sci_intensity_text_basename, $
+                                         subdir=[date, 'p'], $
+                                         root=run->config('processing/raw_basedir'))
+  openw, lun, sci_intensity_text_filename, /get_lun
+  ; pB intensity      pB std. dev    Height
+  ; [B/Bsun]          [B/Bsun]       [from sun center in solar radii]
+  ; ---------------   ------------   --------------
+  printf, lun, ['pB intensity', 'pB std. dev', 'Height'], format='%-18s%-15s%-12s'
+  printf, lun, ['[B/Bsun]', '[B/Bsun]', '[from sun center in solar radii]'], $
+          format='%-18s%-15s%-12s'
+  printf, lun, ['---------------', '------------', '--------------'], $
+          format='%-18s%-15s%-12s'
+  for i = 0L, n_elements(radii) - 1L do begin
+    if (intensity[i] gt 10E-09) then begin
+      printf, lun, intensity[i], intensity_stddev[i], radii[i], $
+              format='%-18.5g%-15.5g%0.2f'
+    endif
+  endfor
+  free_lun, lun
+
   engineering_basedir = run->config('results/engineering_basedir')
   if (n_elements(engineering_basedir) gt 0L) then begin
     engineering_dir = filepath('', $
@@ -103,12 +124,12 @@ end
 
 ; main-level example program
 
-date = '20160603'
-filename = '20160603_205347_kcor_l1.5.fts.gz'
-config_filename = filepath('kcor.latest.cfg', $
-                           subdir=['..', '..', 'config'], $
+date = '20131230'
+filename = '20131230_215439_kcor_l2_pb.fts.gz'
+config_filename = filepath('kcor.reprocess.cfg', $
+                           subdir=['..', '..', '..', 'kcor-config'], $
                            root=mg_src_root())
-run = kcor_run(date, config_filename=config_filename)
+run = kcor_run(date, mode='test', config_filename=config_filename)
 
 kcor_plotsci, date, filename, run=run
 
