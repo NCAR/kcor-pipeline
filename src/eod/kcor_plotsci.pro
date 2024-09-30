@@ -88,11 +88,13 @@ pro kcor_plotsci, date, daily_science_file, run=run
   ; ---------------   ------------   --------------
   printf, lun, ['pB intensity', 'pB std. dev', 'Height'], format='%-18s%-15s%-12s'
   printf, lun, ['[B/Bsun]', '[B/Bsun]', '[from sun center in solar radii]'], $
-          format='%-18s%-15s%-12s'
-  printf, lun, ['---------------', '------------', '--------------'], $
-          format='%-18s%-15s%-12s'
+          format='%-18s%-15s%-32s'
+  printf, lun, [string(bytarr(17) + (byte('-'))[0]), $
+                string(bytarr(14) + (byte('-'))[0]), $
+                string(bytarr(32) + (byte('-'))[0])]
+          format='%-18s%-15s%-32s'
   for i = 0L, n_elements(radii) - 1L do begin
-    if (intensity[i] gt 10E-09) then begin
+    if (intensity[i] gt 1.0E-09) then begin
       printf, lun, intensity[i], intensity_stddev[i], radii[i], $
               format='%-18.5g%-15.5g%0.2f'
     endif
