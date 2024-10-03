@@ -19,8 +19,8 @@ pro kcor_l1, ok_filename, $
              l1_filename=l1_filename, $
              l1_header=l1_header, $
              intensity=intensity, $
-             q=qmk4, $
-             u=umk4, $
+             q=sky_polarization, $
+             u=corona_plus_sky, $
              flat_vdimref=flat_vdimref, $
              run=run, $
              nomask=nomask, $
@@ -696,10 +696,14 @@ pro kcor_l1, ok_filename, $
     mg_log, 'performing polarization coord transformation', $
             name=log_name, /debug
 
-    ; polar coordinates
-    qmk4 = - cal_data_combined_center[*, *, 1] * sin(2.0 * theta1) $
+    ; The k-corona polarization is tangent to the solar limb. The
+    ; corona_plus_sky variable isolates the coronal signal but still includes
+    ; sky polarization. The sky_polarization variable contains no coronal
+    ; signal and is used to remove sky polarization from the coronal image. The
+    ; sky polarization is removed in level 2 processing.
+    sky_polarization = - cal_data_combined_center[*, *, 1] * sin(2.0 * theta1) $
              + cal_data_combined_center[*, *, 2] * cos(2.0 * theta1)
-    umk4 =   cal_data_combined_center[*, *, 1] * cos(2.0 * theta1) $
+    corona_plus_sky =   cal_data_combined_center[*, *, 1] * cos(2.0 * theta1) $
              + cal_data_combined_center[*, *, 2] * sin(2.0 * theta1)
 
     intensity = cal_data_combined_center[*, *, 0]
@@ -725,24 +729,24 @@ pro kcor_l1, ok_filename, $
             name=log_name, /debug
 
     ; polar coordinate images (mk4 scheme)
-    qmk4 = - cal_data_combined[*, *, 1] * sin(2.0 * theta1) $
+    sky_polarization = - cal_data_combined[*, *, 1] * sin(2.0 * theta1) $
            + cal_data_combined[*, *, 2] * cos(2.0 * theta1)
-    umk4 = cal_data_combined[*, *, 1] * cos(2.0 * theta1) $
+    corona_plus_sky = cal_data_combined[*, *, 1] * cos(2.0 * theta1) $
            + cal_data_combined[*, *, 2] * sin(2.0 * theta1)
 
     intensity = cal_data_combined[*, *, 0]
   endelse
 
   ; rotate solar North up with small correction for spar alignment
-  qmk4 = rot(qmk4, pangle + run->epoch('rotation_correction'), 1, /interp)
-  umk4 = rot(umk4, pangle + run->epoch('rotation_correction'), 1, /interp)
+  sky_polarization = rot(sky_polarization, pangle + run->epoch('rotation_correction'), 1, /interp)
+  corona_plus_sky = rot(corona_plus_sky, pangle + run->epoch('rotation_correction'), 1, /interp)
   intensity = rot(intensity, pangle + run->epoch('rotation_correction'), 1, $
                   /interp)
 
   ; output array for FITS data
-  data = [[[umk4]], [[qmk4]], [[intensity]]]
+  data = [[[corona_plus_sky]], [[sky_polarization]], [[intensity]]]
 
-  kcor_create_gif, ok_filename, umk4, date_obs, $
+  kcor_create_gif, ok_filename, corona_plus_sky, date_obs, $
                    level=1, $
                    scaled_image=scaled_image, $
                    run=run, log_name=log_name
@@ -1325,7 +1329,7 @@ pro kcor_l1, ok_filename, $
   endif
 
   ; now make cropped GIF file
-  kcor_cropped_gif, umk4, run.date, date_struct, $
+  kcor_cropped_gif, corona_plus_sky, run.date, date_struct, $
                     run=run, log_name=log_name, $
                     level=1
 

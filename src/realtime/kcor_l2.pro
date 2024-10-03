@@ -2,7 +2,7 @@
 
 pro kcor_l2, l1_filename, $
              l1_header, $
-             intensity, qmk4, umk4, $
+             intensity, sky_polarization, corona_plus_sky, $
              flat_vdimref, $
              nomask=nomask, $
              l2_filename=l2_filename, $
@@ -52,7 +52,7 @@ pro kcor_l2, l1_filename, $
   rad  = sqrt((xx + center_offset[0])^ 2.0 + (yy + center_offset[1]) ^ 2.0)
 
   if (run->config('realtime/smooth_sky')) then begin
-    qmk4 = gauss_smooth(qmk4, 3, /edge_truncate)
+    sky_polarization = gauss_smooth(sky_polarization, 3, /edge_truncate)
   endif
 
   ; sky polarization removal on coordinate-transformed data
@@ -61,10 +61,10 @@ pro kcor_l2, l1_filename, $
         mg_log, 'correcting sky polarization with subtraction method', $
                 name=log_name, /debug
 
-        qmk4_new = float(qmk4)
+        sky_polarization_new = float(sky_polarization)
 
-        ; umk4 contains the corona
-        umk4_new = float(umk4) - float(rot(qmk4, 45.0, /interp)) + run->epoch('skypol_bias')
+        ; corona_plus_sky contains the corona
+        corona_plus_sky_new = float(corona_plus_sky) - float(rot(sky_polarization, 45.0, /interp)) + run->epoch('skypol_bias')
       end
     'sine2theta': begin
         mg_log, 'correcting sky polarization with sine2theta (%d params) method', $
@@ -74,15 +74,15 @@ pro kcor_l2, l1_filename, $
         theta += !pi
         theta = rot(reverse(theta), pangle + run->epoch('rotation_correction'), 1, /interp)
 
-        kcor_sine2theta_method, umk4, qmk4, intensity, radsun, theta, rad, $
-                                q_new=qmk4_new, u_new=umk4_new, $
+        kcor_sine2theta_method, corona_plus_sky, sky_polarization, intensity, radsun, theta, rad, $
+                                q_new=sky_polarization_new, u_new=corona_plus_sky_new, $
                                 run=run
       end
     else: mg_log, 'no sky polarization correction', name=log_name, /debug
   endcase
 
   ; use only corona minus sky polarization background
-  corona = umk4_new
+  corona = corona_plus_sky_new
 
   ; sky transmission correction
   if (run->epoch('use_sgs')) then begin

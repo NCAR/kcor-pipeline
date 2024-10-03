@@ -1,6 +1,7 @@
 ; docformat = 'rst'
 
-pro kcor_sine2theta_method, umk4, qmk4, intensity, radsun, theta1, rr1, $
+pro kcor_sine2theta_method, corona_plus_sky, sky_polarization, intensity, $
+                            radsun, theta1, rr1, $
                             q_new=q_new, u_new=u_new, run=run
   compile_opt strictarr
 
@@ -78,8 +79,8 @@ pro kcor_sine2theta_method, umk4, qmk4, intensity, radsun, theta1, rr1, $
     theta1_deg = theta1 * !radeg
 
     ; define U/I and Q/I
-    umk4_int = umk4 / intensity
-    qmk4_int = qmk4 / intensity
+    corona_plus_sky_int = corona_plus_sky / intensity
+    sky_polarization_int = sky_polarization / intensity
 
     j = 0
     for i = 0, 360 - stepdeg, stepdeg do begin
@@ -88,8 +89,8 @@ pro kcor_sine2theta_method, umk4, qmk4, intensity, radsun, theta1, rr1, $
                       and theta1_deg ge angle $
                       and theta1_deg lt angle + stepdeg, nnl1)
       if (nnl1 gt 0) then begin
-        angle_ave_u[j] = mean(umk4_int[pick1])
-        angle_ave_q[j] = mean(qmk4_int[pick1])
+        angle_ave_u[j] = mean(corona_plus_sky_int[pick1])
+        angle_ave_q[j] = mean(sky_polarization_int[pick1])
       endif
       j += 1
     endfor
@@ -157,18 +158,18 @@ pro kcor_sine2theta_method, umk4, qmk4, intensity, radsun, theta1, rr1, $
   sky_polar_q1 = radial_amplitude1 * sin(2.0 * theta1 + 90.0 / !radeg $
                                            + mean_phase1) + run->epoch('skypol_bias')
 
-  q_new = qmk4 - run->epoch('skypol_factor') * sky_polar_q1 * intensity
-  u_new = umk4 - run->epoch('skypol_factor') * sky_polar_u1 * intensity
+  q_new = sky_polarization - run->epoch('skypol_factor') * sky_polar_q1 * intensity
+  u_new = corona_plus_sky - run->epoch('skypol_factor') * sky_polar_u1 * intensity
 
-  ;cfts_file = strmid(l0_file, 0, 20) + '_qmk4_skypolcor.fts'
+  ;cfts_file = strmid(l0_file, 0, 20) + '_sky_polarization_skypolcor.fts'
   ;writefits, cfts_file, q_new
-  ;cfts_file = strmid(l0_file, 0, 20) + '_umk4_skypolcor.fts'
+  ;cfts_file = strmid(l0_file, 0, 20) + '_corona_plus_sky_skypolcor.fts'
   ;writefits, cfts_file, u_new
 
   if (doplot eq 1) then begin
-    tv, bytscl(qmk4_new, -1, 1)
+    tv, bytscl(sky_polarization_new, -1, 1)
     draw_circle, xcc1, ycc1, radius_1, thick=4, color=0,  /dev
-    
+
     for i  = 0, rnum - 1 do draw_circle, xcc1, ycc1, radscan[i], /device
     for ii = 0, numdeg - 1 do begin
       plots, [xcc1, xcc1 + 500 * cos(degrees[ii])], $
