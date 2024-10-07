@@ -82,9 +82,10 @@ pro kcor_img_insert, date, fits_list, $
 
   i = -1
   n_pb_added = 0L
-  n_nrgf_added = 0L
   n_pb_avg_added = 0L
   n_pb_extavg_added = 0L
+  n_nrgf_added = 0L
+  n_nrgf_avg_added = 0L
   n_nrgf_extavg_added = 0L
 
   ; The decision is to not include non-FITS in the database because raster
@@ -114,6 +115,7 @@ pro kcor_img_insert, date, fits_list, $
     is_nrgf = strpos(file_basename(fts_file), 'nrgf') ge 0L
     is_avg = strpos(file_basename(fts_file), '_avg') ge 0L
     is_extavg = strpos(file_basename(fts_file), 'extavg') ge 0L
+    is_enhanced = strpos(file_basename(fts_file), 'enhanced') ge 0L
 
     fts_file += '.gz'
 
@@ -162,14 +164,14 @@ pro kcor_img_insert, date, fits_list, $
     ; get product type from filename
     if (is_nrgf) then begin
       case 1 of
-        is_extavg: producttype = 'nrgfextavg'
-        is_avg: producttype = 'nrgfavg'
+        is_extavg: producttype = is_enhanced ? 'nrgfextavgenh' : 'nrgfextavg'
+        is_avg: producttype = is_enhanced ? 'nrgfavgenh' : 'nrgfavg'
         else: producttype = 'nrgf'
       endcase
     endif else begin
       case 1 of
-        is_extavg: producttype = 'pbextavg'
-        is_avg: producttype = 'pbavg'
+        is_extavg: producttype = is_enhanced ? 'pbextavgenh' : 'pbextavg'
+        is_avg: producttype = is_enhanced ? 'pbavgenh' : 'pbavg'
         else: producttype = 'pb'
       endcase
     endelse
@@ -206,6 +208,7 @@ pro kcor_img_insert, date, fits_list, $
       if (is_nrgf) then begin
         case 1 of
           is_extavg: n_nrgf_extavg_added += 1
+          is_avg: n_nrgf_avg_added += 1
           else: n_nrgf_added += 1
         endcase
       endif else begin
@@ -223,15 +226,18 @@ pro kcor_img_insert, date, fits_list, $
   ; update number of files in mlso_numfiles
   num_files_results = db->query('select * from mlso_numfiles where day_id=''%d''', obsday_index)
   n_pb_files = num_files_results.num_kcor_pb_fits + n_pb_added
-  n_nrgf_files = num_files_results.num_kcor_nrgf_fits + n_nrgf_added
   n_pb_avg_files = num_files_results.num_kcor_pb_avg_fits + n_pb_avg_added
   n_pb_extavg_files = num_files_results.num_kcor_pb_extavg_fits + n_pb_extavg_added
+
+  n_nrgf_files = num_files_results.num_kcor_nrgf_fits + n_nrgf_added
+  n_nrgf_avg_files = num_files_results.num_kcor_nrgf_avg_fits + n_nrgf_avg_added
   n_nrgf_extavg_files = num_files_results.num_kcor_nrgf_extavg_fits + n_nrgf_extavg_added
 
   set_expression = 'num_kcor_' + ['pb_fits', $
                                   'pb_lowresgif', $
                                   'pb_fullresgif', $
                                   'nrgf_fits', $
+                                  'nrgf_avg_fits', $
                                   'nrgf_lowresgif', $
                                   'nrgf_fullresgif', $
                                   'pb_avg_fits', $
@@ -243,6 +249,7 @@ pro kcor_img_insert, date, fits_list, $
              n_pb_files, $
              n_pb_files, $
              n_nrgf_files, $
+             n_nrgf_avg_files, $
              n_nrgf_files, $
              n_nrgf_files, $
              n_pb_avg_files, $
