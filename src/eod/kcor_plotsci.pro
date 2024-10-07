@@ -109,6 +109,7 @@ pro kcor_plotsci, date, daily_science_file, run=run
     if (~file_test(engineering_dir, /directory)) then file_mkdir, engineering_dir
     mg_log, 'distributing radial intensity plot...', name='kcor/eod', /info
     file_copy, sci_intensity_plot_filename, engineering_dir, /overwrite
+    file_copy, sci_intensity_text_filename, engineering_dir, /overwrite
   endif
 
   done:
