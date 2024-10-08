@@ -89,16 +89,17 @@ pro kcor_remove_okfile, l0_basename, date, db, obsday_index, $
   ; remove from kcor_img table of the database
 
   if (obj_valid(db)) then begin
+    n_deleted_rows = 0L
     query = 'delete from kcor_img where obs_day=%d and file_name like ''%s%%'''
     db->execute, query, obsday_index, datetime, $
                  status=status, $
-                 n_affected_rows=n_affected_rows, $
+                 n_affected_rows=n_deleted_rows, $
                  sql_statement=sql_cmd, $
                  error_message=error_message
     if (status eq 0L) then begin
       mg_log, '%d row%s of kcor_img deleted', $
-              n_affected_rows, $
-              n_affected_rows gt 1L ? 's' : '', $
+              n_deleted_rows, $
+              n_deleted_rows eq 1L ? '' : 's', $
               name=logger_name, /warn
     endif else begin
       mg_log, 'database removal failed with status: %d', status, $
@@ -109,16 +110,16 @@ pro kcor_remove_okfile, l0_basename, date, db, obsday_index, $
       mg_log, 'error: %s', error_message, name=logger_name, /error
     endelse
 
-    ; decrement mlso_numfiles.num_kcor_pb_fits by 1
+    ; decrement mlso_numfiles.num_kcor_pb_fits by n_deleted_rows
     numfiles_results = db->query('select * from mlso_numfiles where day_id=%d', $
                                  obsday_index)
-    num_kcor_pb_fits = numfiles_results.num_kcor_pb_fits - 1L
+    num_kcor_pb_fits = numfiles_results.num_kcor_pb_fits - n_deleted_rows
     db->execute, 'update mlso_numfiles set num_kcor_pb_fits=%d where day_id=%d', $
                  num_kcor_pb_fits, obsday_index, $
                  status=status, error_message=error_message, sql_statement=sql_cmd
     if (status eq 0L) then begin
-      mg_log, 'decremented mlso_numfiles.num_kcor_pb_fits', $
-              name=logger_name, /warn
+      mg_log, 'decremented mlso_numfiles.num_kcor_pb_fits by %d', $
+              n_deleted_rows, name=logger_name, /warn
     endif else begin
       mg_log, 'database removal failed with status: %d', status, $
               name=logger_name, /error
