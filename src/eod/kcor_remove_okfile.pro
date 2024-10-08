@@ -89,14 +89,29 @@ pro kcor_remove_okfile, l0_basename, date, db, obsday_index, $
   ; remove from kcor_img table of the database
 
   if (obj_valid(db)) then begin
-    query = 'delete from kcor_img where obs_day=%d and file_name like "%s%%"'
+    query = 'delete from kcor_img where obs_day=%d and file_name like ''%s%%'''
     db->execute, query, obsday_index, datetime, $
                  status=status, $
-                 n_affected_rows=n_affected_rows
+                 n_affected_rows=n_affected_rows, $
+                 sql_statement=sql_cmd, $
+                 error_message=error_message
     if (status eq 0L) then begin
-      mg_log, '%d rows deleted', n_affected_rows, name=logger_name, /warn
-    endif
-  endif
+      mg_log, '%d row%s of kcor_img deleted', $
+              n_affected_rows, $
+              n_affected_rows gt 1L ? 's' : '', $
+              name=logger_name, /warn
+    endif else begin
+      mg_log, 'database removal failed with status: %d', status, $
+              name=logger_name, /error
+      if (n_elements(sql_cmd) gt 0L) then begin
+        mg_log, sql_cmd, name=logger_name, /error
+      endif
+      mg_log, 'error: %s', error_message, name=logger_name, /error
+    endelse
+  endif else begin
+    mg_log, 'database not valid, not deleting from kcor_img', $
+            name=logger_name, /warn
+  endelse
 
   ; remove anything with the same timestamp from the level 1 and level 2
   ; directories
