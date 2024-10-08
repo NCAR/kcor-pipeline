@@ -3,11 +3,11 @@
 ;+
 ;  1) Create averaged images from KCor level 2 data, averaging up to 4 images
 ;     if they are taken < 2 minutes apart
-;  2) generate subtractions from averages that are >= 10 minutes apart in time.
+;  2) generate subtractions from averages that are >= 10 minutes apart in time
 ;  3) create a subtraction every 5 minutes
 ;  4) check subtractions for quality by checking azimutal scan intensities at
 ;     1.15 Rsun
-;  5) save each subtraction as an annotated gif and a fits image with quality
+;  5) save each subtraction as an annotated GIF and a FITS image with quality
 ;     value in filename
 ;
 ; :History:
@@ -52,17 +52,8 @@ pro kcor_create_differences, date, l2_files, run=run
   fits_file = ''
   gif_file = ''
 
-  imgsave = fltarr(1024, 1024, 4)
-  aveimg = fltarr(1024, 1024)
-  bkdimg = fltarr(1024, 1024, 12)
-  bkdtime = dblarr(12)
-  filetime = strarr(12)
-  imgtime = ''
-
   subimg = fltarr(1024, 1024)
   timestring = ''
-
-  date_julian = dblarr(4)
 
   ; set up julian date intervals for averaging, creating subtractions, and how
   ; often subtractions are created.
@@ -76,14 +67,46 @@ pro kcor_create_differences, date, l2_files, run=run
   subinterval = run->config('differences/interval') / 60.0D / 60.0D / 24.0D
 
   n_images_to_average = run->config('differences/n_images_to_average')
+  date_julian = dblarr(n_images_to_average)
+
+  ; size of background image stack
+  bkdimgnum = ceil(subinterval / float(avginterval))
+
+  imgsave = fltarr(1024, 1024, n_images_to_average)
+  aveimg = fltarr(1024, 1024)
+  bkdimg = fltarr(1024, 1024, bkdimgnum)
+  bkdtime = dblarr(bkdimgnum)
+  filetime = strarr(bkdimgnum)
+
+  nx = 1024
+  ny = 1024
+  imgsave  = fltarr(nx, ny, n_images_to_average)
+  aveimg   = fltarr(nx, ny)
+  bkdimg   = fltarr(nx, ny, bkdimgnum)
+  bkdtime  = dblarr(bkdimgnum)
+  filetime = strarr(bkdimgnum)
+
+  timestring   = ''  ; use to format background time for GIF image annotation
+  savefilename = ''
+  avgimghr0    = ''
+  avgimghr1    = ''
+  avgimgmnt0   = ''
+  avgimgmnt1   = ''
+  avgimgsec0   = ''
+  avgimgsec1   = ''
+  imgtime      = strarr(n_images_to_average)
+
+  subimg = fltarr(nx, ny)
 
   ; set up counting variables
 
   avgcount  = 0   ; keep track of number of averaged images 
   bkdcount  = 0   ; keep track of number of background images up to 12 for stack storage
+  imgcount  = 0   ; keep track of number of images read
   subtcount = 0   ; has a subtraction image been created?
   stopavg   = 0   ; set to 1 if images are more than 2 minutes apart (stop averaging)
   newsub    = 0
+  datagap   = 0
 
   ; read in images and generate subtractions ~10 minutes apart
   f = 0L
@@ -98,6 +121,12 @@ pro kcor_create_differences, date, l2_files, run=run
     ; images <= avginterval sec apart
     for i = 0, n_images_to_average - 1L do begin
       if (f ge n_elements(l2_files)) then break
+
+      ; already have an image from previous loop as first image
+      if (datagap eq 1) then begin
+        i = 1
+        datagap = 0
+      endif
 
       l2_file = file_basename(l2_files[f])
       img = readfits(l2_file, header, /silent, /noscale)
@@ -129,7 +158,7 @@ pro kcor_create_differences, date, l2_files, run=run
       hr  = strmid(date_obs, 11, 2)
       mnt = strmid(date_obs, 14, 2)
       sec = strmid(date_obs, 17, 2)
-      imgtime = string(hr, mnt, sec, format='(a2,a2,a2)')
+      imgtime[i] = string(hr, mnt, sec, format='(a2, a2, a2)')
 
       ; convert strings to integers
       year   = fix(yr)
@@ -145,6 +174,10 @@ pro kcor_create_differences, date, l2_files, run=run
       if (i eq 0) then begin
         aveimg = imgsave[*, *, 0]
         goodheader = header
+        avgimghr0  = hr
+        avgimgmnt0 = mnt
+        avgimgsec0 = sec
+        savefilename = l2_file
         difference_times[0, i] = string(hr, mnt, sec, format='%02d:%02d:%02d')
         mg_log, '[1] saving image at %s in difference_times[0, %d] ', $
                 string(hr, mnt, sec, format='%02d:%02d:%02d'), i, $
@@ -160,6 +193,13 @@ pro kcor_create_differences, date, l2_files, run=run
       ;   image and make a subtraction
       if (i gt 0) then begin
         difftime = date_julian[i] - date_julian[0]
+
+        if (i eq 1) then begin
+          avgimghr1 = hr
+          avgimgmnt1 = mnt
+          avgimgsec1 = sec
+          difference_times[1, i] = string(hr, mnt, sec, format='%02d:%02d:%02d')
+        endif
 
         mg_log, '[2] difference %0.2f s, avg interval: %0.2f s', $
                 difftime * 60D * 60D * 24D, avginterval * 60D * 60D * 24D, $
@@ -185,31 +225,32 @@ pro kcor_create_differences, date, l2_files, run=run
     i -= 1
     stopavg = 0
 
+    if (i lt 0L) then begin
+      mg_log, 'array index i < 0 (%d)', i, name='kcor/eod', /error
+    endif
+
     ; Make averaged FITS image
     aveimg = aveimg / float(numavg)
     avgcount += 1
     bkdcount += 1
 
-    ; Build up a stack of up to 12 averaged images to use as future background
-    ; images.
+    ; Build up a stack of up to bkdimgnum averaged images to use as future
+    ; background images.
 
     ; FIRST LOOP TO BUILD UP BACKGROUND IMAGE STACK: Initialize the stack with
     ; the first image only.
     if (bkdcount eq 1) then begin
       time_since_sub = date_julian[i]  
-      for j = 0, 11 do begin
+      for j = 0L, bkdimgnum - 1L do begin
         bkdimg[*, *, j] = aveimg
         bkdtime[j] = date_julian[i]
-        filetime[j] = imgtime
+        filetime[j] = imgtime[i]
       endfor
     endif
 
-    ; Second loop to build up background image stack:
-    ; - Next add later images to stack until we have 12 unique images in stack
-    ; - Latest time is put into stack[0], oldest time is in stack[11]
-    ; - Begin looking for images 10 minutes apart to make subtraction
-    if (bkdcount gt 1 && bkdcount le 12) then begin
-      counter = bkdcount - 2
+    ; Check in these 2 stacks if image time is already in the stack
+    if (bkdcount gt 1 && subtcount eq 0L) then begin
+      counter = bkdimgnum - 2
       for k = 0, counter do begin   
         bkdtime[counter + 1 - k] = bkdtime[counter - k]
         bkdimg[*, *, counter + 1 - k] = bkdimg[*, *, counter - k]
@@ -218,8 +259,20 @@ pro kcor_create_differences, date, l2_files, run=run
       ; for first 10 images, copy current image into 0 position (latest time)
       bkdimg[*, *, 0] = aveimg
       bkdtime[0] = date_julian[i]
-      filetime[0] = imgtime
+      filetime[0] = imgtime[i]
     endif
+
+    if (subtcount ge 1) then begin
+      counter = bkdimgnum - 2
+      for k = 0, counter do begin
+        bkdtime[counter + 1 - k] = bkdtime[counter - k]
+        bkdimg[*, *, counter + 1 - k] = bkdimg[*, *, counter - k]
+        filetime[counter + 1 - k] = filetime[counter - k]
+      endfor
+      bkdimg[*, *, 0] = newbkdimg0
+      bkdtime[0] = newbkdtime0
+      filetime[0] = newfiletime0
+     endif
 
     ; Create a difference image every time_between_subs observing seconds
     ; Difference the current image from an image taken >= 10 minutes earlier
@@ -232,14 +285,15 @@ pro kcor_create_differences, date, l2_files, run=run
             (date_julian[i] - time_since_sub) * 60D * 60D * 24D, $
             time_between_subs * 60D * 60D * 24D, $
             name='kcor/eod', /debug
-    if ((avgcount ge 2) $
+
+    if ((numavg le n_images_to_average) $
           && ((date_julian[i] - time_since_sub) ge time_between_subs)) then begin
-      for j = 0, 11 do begin
+      for j = 0L, bkdimgnum - 1L do begin
         mg_log, '[5] date_julian[i] - bkdtime[j]: %0.2f s, subinterval: %0.2f s', $
                 (date_julian[i] - bkdtime[j]) * 60D * 60D * 24D, $
                 subinterval * 60D * 60D * 24D, $
                 name='kcor/eod', /debug
-        if (date_julian[i] - bkdtime[j] ge subinterval) then begin
+        if ((date_julian[i] - bkdtime[j] ge subinterval) && (newsub eq 0)) then begin
           ; this is the new subtraction image
           subimg = aveimg - bkdimg[*, *, j]
           mg_log, '[6] subtracting j=%d [time: %s]', $
@@ -251,46 +305,13 @@ pro kcor_create_differences, date, l2_files, run=run
           time_since_sub = date_julian[i]
           ; need this info to write into FITS and GIF filename
           timestring = filetime[j]
-
-          ; HAVE A NEW SUBTRACTION. NEED TO SHIFT THE BKD IMAGE STACK
-          for k = 0, 10 do begin
-            bkdtime[11 - k] = bkdtime[10 - k]
-            bkdimg[*, *, 11 - k] = bkdimg[*, *, 10 - k]
-            filetime[11 - k] = filetime[10 - k]
-          endfor
-          ; save current image as the new bkd image 
-          bkdimg[*, *, 0] = aveimg
-          ; save current time as the new time of bkd image
-          bkdtime[0] = date_julian[i]
-          filetime[0] = imgtime
-          if (newsub eq 1) then break
+          newbkdimg0 = aveimg    ; save current image as the new bkd image 
+          newbkdtime0 = date_julian[i] ; save current time as the new time of bkd image 
+          newfiletime0 = imgtime[i]
         endif
-        if (newsub eq 1) then break
       endfor
     endif
 
-    ; Third and final loop to update background image stack:
-    ; - IF THERE WAS NO SUBTRACTION MADE WE need to add each new average
-    ;   image to the bkd. stack in newest slot (i.e. stack(0)) and shift
-    ;   older images up the stack
-    ; - This needs to be done whether or not we make a subtraction
-    ; - A 12-image stack of 1-minute averaged images ensures we have
-    ;   background images that span > 10 minutes
-    if (newsub eq 0) then begin
-      if (bkdcount gt 13) then begin
-        for k = 0, 10 do begin   
-          bkdtime[11 - k] = bkdtime[10 - k]
-          bkdimg[*, *, 11 - k] = bkdimg[*, *, 10 - k]
-          filetime[11 - k] = filetime[10 - k]
-        endfor
-        ; save current image as the new bkd image
-        bkdimg[*, *, 0] = aveimg
-        ; save current time as the new time of bkd image
-        bkdtime[0] = date_julian[i]
-        filetime[0] = imgtime
-      endif
-    endif
-    
     ; If a subtraction image was created save:
 
     ; 1) perform a quality control check using an azimuthal scan at 1.15
@@ -306,11 +327,10 @@ pro kcor_create_differences, date, l2_files, run=run
     theta_increment = 0.5
     radius          = 1.15
 
+    pointing_ck = 0
     good_value  = run->config('differences/good_max')
     pass_value  = run->config('differences/pass_max')
     threshold_intensity = run->config('differences/threshold_intensity')
-
-    pointing_ck = 0
 
     fxaddpar, goodheader, 'AVGTIME0', kcor_combine_times(difference_times[0, *]), $
               ' image times used in bkg avg'
@@ -435,6 +455,25 @@ pro kcor_create_differences, date, l2_files, run=run
         file_copy, fits_basename + '.gz', archive_dir, /overwrite
       endif
 
+      if (datagap eq 2) then datagap = 0
+
+      ; under following conditions need to save image 2 for next average image
+      ; loop
+      ; TODO: do these index=1 be index=i
+      if ((datagap eq 1) || (newsub eq 0)) then begin
+        goodheader = header
+        savefilename = l2_file
+        aveimg = imgsave[*, *, 1]
+        imgtime[0] = imgtime[1]
+        date_julian[0] = date_julian[1]
+
+        avgimghr0 = avgimghr1
+        avgimgmnt0 = avgimgmnt1
+        avgimgsec0 = avgimgsec1
+        difference_times[0, i] = string(avgimghr1, avgimgmnt1, avgimgsec1, $
+                                        format='%02d:%02d:%02d')
+      endif
+
       newsub = 0
     endif
   endwhile
@@ -463,13 +502,13 @@ end
 
 ; main-level example program
 
-date = '20210507'
-config_filename = filepath('kcor.new-diffs.cfg', $
-                           subdir=['..', '..', 'config'], $
+date = '20160211'
+config_filename = filepath('kcor.latest.cfg', $
+                           subdir=['..', '..', '..', 'kcor-config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
 
-l2_files = file_search(filepath('*_l2.fts.gz', $
+l2_files = file_search(filepath('*_l2_pb.fts.gz', $
                                 subdir=[date, 'level2'], $
                                 root=run->config('processing/raw_basedir')), $
                        count=n_l2_files)
