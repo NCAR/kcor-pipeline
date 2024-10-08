@@ -108,6 +108,25 @@ pro kcor_remove_okfile, l0_basename, date, db, obsday_index, $
       endif
       mg_log, 'error: %s', error_message, name=logger_name, /error
     endelse
+
+    ; decrement mlso_numfiles.num_kcor_pb_fits by 1
+    numfiles_results = db->query('select * from mlso_numfiles where day_id=%d', $
+                                 obsday_index)
+    num_kcor_pb_fits = numfiles_results.num_kcor_pb_fits - 1L
+    db->execute, 'update mlso_numfiles set num_kcor_pb_fits=%d where day_id=''%d''', $
+                 num_kcor_pb_fits, fields_expression, obsday_index, $
+                 status=status, error_message=error_message, sql_statement=sql_cmd
+    if (status eq 0L) then begin
+      mg_log, 'decremented mlso_numfiles.num_kcor_pb_fits', $
+              name=logger_name, /warn
+    endif else begin
+      mg_log, 'database removal failed with status: %d', status, $
+              name=logger_name, /error
+      if (n_elements(sql_cmd) gt 0L) then begin
+        mg_log, sql_cmd, name=logger_name, /error
+      endif
+      mg_log, 'error: %s', error_message, name=logger_name, /error
+    endelse
   endif else begin
     mg_log, 'database not valid, not deleting from kcor_img', $
             name=logger_name, /warn
