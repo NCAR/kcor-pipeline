@@ -84,6 +84,7 @@ pro kcor_db_clearday, run=run, $
                             'pb_fullresgif', $
                             'pb_avg_fullresgif', $
                             'nrgf_fits', $
+                            'nrgf_avg_fits', $
                             'nrgf_extavg_fits', $
                             'nrgf_lowresgif', $
                             'nrgf_fullresgif']
