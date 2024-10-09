@@ -205,19 +205,22 @@ pro kcor_img_insert, date, fits_list, $
                  filetype_num, numsum, exptime, $
                  status=status
     if (status eq 0L) then begin
-      if (is_nrgf) then begin
-        case 1 of
-          is_extavg: n_nrgf_extavg_added += 1
-          is_avg: n_nrgf_avg_added += 1
-          else: n_nrgf_added += 1
-        endcase
-      endif else begin
-        case 1 of
-          is_extavg: n_pb_extavg_added += 1
-          is_avg: n_pb_avg_added += 1
-          else: n_pb_added += 1
-        endcase
-      endelse
+      ; only add non-enhanced images to counters used in mlso_numfiles counts
+      if (~is_enhanced) then begin
+        if (is_nrgf) then begin
+          case 1 of
+            is_extavg: n_nrgf_extavg_added += 1
+            is_avg: n_nrgf_avg_added += 1
+            else: n_nrgf_added += 1
+          endcase
+        endif else begin
+          case 1 of
+            is_extavg: n_pb_extavg_added += 1
+            is_avg: n_pb_avg_added += 1
+            else: n_pb_added += 1
+          endcase
+        endelse
+      endif
     endif else begin
       continue
     endelse
