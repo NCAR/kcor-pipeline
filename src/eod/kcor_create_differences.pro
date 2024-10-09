@@ -302,6 +302,7 @@ pro kcor_create_differences, date, l2_files, run=run
           ;difference_times[1, ...] = kcor_jd2time(bkdtime[j])
 
           newsub = 1  ;  need to write a new subtraction image
+          subtcount += 1L
           time_since_sub = date_julian[i]
           ; need this info to write into FITS and GIF filename
           timestring = filetime[j]
