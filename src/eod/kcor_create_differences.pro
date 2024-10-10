@@ -194,18 +194,18 @@ pro kcor_create_differences, date, l2_files, run=run
       if (i gt 0) then begin
         difftime = date_julian[i] - date_julian[0]
 
-        if (i eq 1) then begin
-          avgimghr1 = hr
-          avgimgmnt1 = mnt
-          avgimgsec1 = sec
-          difference_times[1, i] = string(hr, mnt, sec, format='%02d:%02d:%02d')
-        endif
 
         mg_log, '[2] difference %0.2f s, avg interval: %0.2f s', $
                 difftime * 60D * 60D * 24D, avginterval * 60D * 60D * 24D, $
                 name='kcor/eod', /debug
         if (difftime le avginterval) then begin
           aveimg += imgsave[*, *, i]
+          if (i eq 1) then begin
+            avgimghr1 = hr
+            avgimgmnt1 = mnt
+            avgimgsec1 = sec
+            difference_times[1, i] = string(hr, mnt, sec, format='%02d:%02d:%02d')
+          endif
           goodheader = header ; save header in case next image is > avginterval sec in time
           t = string(hr, mnt, sec, format='%02d:%02d:%02d')
           difference_times[0, i] = t
@@ -214,7 +214,7 @@ pro kcor_create_differences, date, l2_files, run=run
           numavg += 1
         endif
 
-        if (difftime gt avginterval) then begin
+        if ((difftime gt avginterval) || (numavg eq n_images_to_average)) then begin
           stopavg = 1   ; set flag to stop averaging
         endif
       endif
