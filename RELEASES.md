@@ -1190,3 +1190,7 @@
 #### 2.1.23
 
 - updated epochs for 2013
+- faster cadence difference images
+- remove good images after device moving
+- produce pB intensity text file
+- produce image scale engineering plots at various time scales
