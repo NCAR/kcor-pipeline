@@ -1187,7 +1187,7 @@
 
 - typo in check for end-of-day message
 
-#### 2.1.23
+#### 2.1.23 [Oct 11, 2024]
 
 - updated epochs for 2013
 - faster cadence difference images
