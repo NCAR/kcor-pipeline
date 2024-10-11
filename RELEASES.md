@@ -1194,3 +1194,5 @@
 - remove good images after device moving
 - produce pB intensity text file
 - produce image scale engineering plots at various time scales
+
+#### 2.1.24
