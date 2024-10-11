@@ -52,9 +52,6 @@ pro kcor_create_differences, date, l2_files, run=run
   fits_file = ''
   gif_file = ''
 
-  subimg = fltarr(1024, 1024)
-  timestring = ''
-
   ; set up julian date intervals for averaging, creating subtractions, and how
   ; often subtractions are created.
 
@@ -72,12 +69,6 @@ pro kcor_create_differences, date, l2_files, run=run
   ; size of background image stack
   bkdimgnum = ceil(subinterval / float(avginterval))
 
-  imgsave = fltarr(1024, 1024, n_images_to_average)
-  aveimg = fltarr(1024, 1024)
-  bkdimg = fltarr(1024, 1024, bkdimgnum)
-  bkdtime = dblarr(bkdimgnum)
-  filetime = strarr(bkdimgnum)
-
   nx = 1024
   ny = 1024
   imgsave  = fltarr(nx, ny, n_images_to_average)
@@ -86,7 +77,6 @@ pro kcor_create_differences, date, l2_files, run=run
   bkdtime  = dblarr(bkdimgnum)
   filetime = strarr(bkdimgnum)
 
-  timestring   = ''  ; use to format background time for GIF image annotation
   savefilename = ''
   avgimghr0    = ''
   avgimghr1    = ''
@@ -194,7 +184,6 @@ pro kcor_create_differences, date, l2_files, run=run
       if (i gt 0) then begin
         difftime = date_julian[i] - date_julian[0]
 
-
         mg_log, '[2] difference %0.2f s, avg interval: %0.2f s', $
                 difftime * 60D * 60D * 24D, avginterval * 60D * 60D * 24D, $
                 name='kcor/eod', /debug
@@ -204,10 +193,10 @@ pro kcor_create_differences, date, l2_files, run=run
             avgimghr1 = hr
             avgimgmnt1 = mnt
             avgimgsec1 = sec
-            difference_times[1, i] = string(hr, mnt, sec, format='%02d:%02d:%02d')
+            ;difference_times[1, i] = string(hr, mnt, sec, format='%s:%s:%s')
           endif
           goodheader = header ; save header in case next image is > avginterval sec in time
-          t = string(hr, mnt, sec, format='%02d:%02d:%02d')
+          t = string(hr, mnt, sec, format='%s:%s:%s')
           difference_times[0, i] = t
           mg_log, '[3] saving image at %s in difference_times[0, %d]', t, i, $
                   name='kcor/eod', /debug
@@ -248,10 +237,10 @@ pro kcor_create_differences, date, l2_files, run=run
       endfor
     endif
 
-    ; Check in these 2 stacks if image time is already in the stack
+    ; check in these 2 stacks if image time is already in the stack
     if (bkdcount gt 1 && subtcount eq 0L) then begin
       counter = bkdimgnum - 2
-      for k = 0, counter do begin   
+      for k = 0, counter do begin
         bkdtime[counter + 1 - k] = bkdtime[counter - k]
         bkdimg[*, *, counter + 1 - k] = bkdimg[*, *, counter - k]
         filetime[counter + 1 - k] = filetime[counter - k]
@@ -299,7 +288,6 @@ pro kcor_create_differences, date, l2_files, run=run
           mg_log, '[6] subtracting j=%d [time: %s]', $
                   j, kcor_jd2time(bkdtime[j]), $
                   name='kcor/eod', /debug
-          ;difference_times[1, ...] = kcor_jd2time(bkdtime[j])
 
           newsub = 1  ;  need to write a new subtraction image
           subtcount += 1L
@@ -309,6 +297,7 @@ pro kcor_create_differences, date, l2_files, run=run
           newbkdimg0 = aveimg    ; save current image as the new bkd image 
           newbkdtime0 = date_julian[i] ; save current time as the new time of bkd image 
           newfiletime0 = imgtime[i]
+          difference_times[1, i] = kcor_jd2time(bkdtime[j])
         endif
       endfor
     endif
