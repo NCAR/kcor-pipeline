@@ -74,7 +74,7 @@ pro kcor_create_differences, date, l2_files, run=run
   imgsave  = fltarr(nx, ny, n_images_to_average)
   aveimg   = fltarr(nx, ny)
   bkdimg   = fltarr(nx, ny, bkdimgnum)
-  bkdtime  = dblarr(bkdimgnum)
+  bkdtime  = dblarr(2, bkdimgnum)
   filetime = strarr(bkdimgnum)
 
   savefilename = ''
@@ -232,7 +232,8 @@ pro kcor_create_differences, date, l2_files, run=run
       time_since_sub = date_julian[i]  
       for j = 0L, bkdimgnum - 1L do begin
         bkdimg[*, *, j] = aveimg
-        bkdtime[j] = date_julian[i]
+        bkdtime[0, j] = date_julian[i]
+        bkdtime[1, j] = date_julian[1]
         filetime[j] = imgtime[i]
       endfor
     endif
@@ -241,25 +242,27 @@ pro kcor_create_differences, date, l2_files, run=run
     if (bkdcount gt 1 && subtcount eq 0L) then begin
       counter = bkdimgnum - 2
       for k = 0, counter do begin
-        bkdtime[counter + 1 - k] = bkdtime[counter - k]
+        bkdtime[*, counter + 1 - k] = bkdtime[*, counter - k]
         bkdimg[*, *, counter + 1 - k] = bkdimg[*, *, counter - k]
         filetime[counter + 1 - k] = filetime[counter - k]
       endfor
       ; for first 10 images, copy current image into 0 position (latest time)
       bkdimg[*, *, 0] = aveimg
-      bkdtime[0] = date_julian[i]
+      bkdtime[0] = date_julian[i]  ; change to what?
+      ; bkdtime[i, 0] = date_julian[i]  ; change to what?
       filetime[0] = imgtime[i]
     endif
 
     if (subtcount ge 1) then begin
       counter = bkdimgnum - 2
       for k = 0, counter do begin
-        bkdtime[counter + 1 - k] = bkdtime[counter - k]
+        bkdtime[*, counter + 1 - k] = bkdtime[*, counter - k]
         bkdimg[*, *, counter + 1 - k] = bkdimg[*, *, counter - k]
         filetime[counter + 1 - k] = filetime[counter - k]
       endfor
       bkdimg[*, *, 0] = newbkdimg0
-      bkdtime[0] = newbkdtime0
+      bkdtime[i, 0] = newbkdtime0
+      bkdtime[0, 0] = date_julian[0]
       filetime[0] = newfiletime0
      endif
 
@@ -278,15 +281,15 @@ pro kcor_create_differences, date, l2_files, run=run
     if ((numavg le n_images_to_average) $
           && ((date_julian[i] - time_since_sub) ge time_between_subs)) then begin
       for j = 0L, bkdimgnum - 1L do begin
-        mg_log, '[5] date_julian[i] - bkdtime[j]: %0.2f s, subinterval: %0.2f s', $
-                (date_julian[i] - bkdtime[j]) * 60D * 60D * 24D, $
+        mg_log, '[5] date_julian[i] - bkdtime[i, j]: %0.2f s, subinterval: %0.2f s', $
+                (date_julian[i] - bkdtime[i, j]) * 60D * 60D * 24D, $
                 subinterval * 60D * 60D * 24D, $
                 name='kcor/eod', /debug
-        if ((date_julian[i] - bkdtime[j] ge subinterval) && (newsub eq 0)) then begin
+        if ((date_julian[i] - bkdtime[i, j] ge subinterval) && (newsub eq 0)) then begin
           ; this is the new subtraction image
           subimg = aveimg - bkdimg[*, *, j]
           mg_log, '[6] subtracting j=%d [time: %s]', $
-                  j, kcor_jd2time(bkdtime[j]), $
+                  j, kcor_jd2time(bkdtime[i, j]), $
                   name='kcor/eod', /debug
 
           newsub = 1  ;  need to write a new subtraction image
@@ -297,7 +300,7 @@ pro kcor_create_differences, date, l2_files, run=run
           newbkdimg0 = aveimg    ; save current image as the new bkd image 
           newbkdtime0 = date_julian[i] ; save current time as the new time of bkd image 
           newfiletime0 = imgtime[i]
-          difference_times[1, i] = kcor_jd2time(bkdtime[j])
+          difference_times[1, i] = kcor_jd2time(bkdtime[i, j])
         endif
       endfor
     endif
