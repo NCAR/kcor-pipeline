@@ -322,9 +322,9 @@ pro kcor_create_differences, date, l2_files, run=run
     pass_value  = run->config('differences/pass_max')
     threshold_intensity = run->config('differences/threshold_intensity')
 
-    fxaddpar, goodheader, 'AVGTIME0', kcor_combine_times(difference_times[0, *]), $
+    fxaddpar, goodheader, 'AVGTIME0', kcor_combine_times(difference_times[1, *]), $
               ' image times used in bkg avg'
-    fxaddpar, goodheader, 'AVGTIME1', kcor_combine_times(difference_times[1, *]), $
+    fxaddpar, goodheader, 'AVGTIME1', kcor_combine_times(difference_times[0, *]), $
               ' image times used in fg avg'
 
     if (newsub eq 1) then begin
