@@ -42,6 +42,7 @@ configure_file(runkcor_remove_range.sh.in runkcor_remove_range.sh @ONLY)
 configure_file(kcor.in kcor @ONLY)
 configure_file(kcordb.in kcordb @ONLY)
 configure_file(kcorcat.in kcorcat @ONLY)
+configure_file(donki.in donki @ONLY)
 
 configure_file(kcor_simulate.in kcor_simulate @ONLY)
 configure_file(kcor_simulate_data.in kcor_simulate_data @ONLY)
@@ -87,6 +88,7 @@ install(PROGRAMS
           ${CMAKE_CURRENT_BINARY_DIR}/kcor
           ${CMAKE_CURRENT_BINARY_DIR}/kcordb
           ${CMAKE_CURRENT_BINARY_DIR}/kcorcat
+          ${CMAKE_CURRENT_BINARY_DIR}/donki
           ${CMAKE_CURRENT_BINARY_DIR}/kcor_verify_dates.sh
           ${CMAKE_CURRENT_BINARY_DIR}/kcor_verify.sh
           kcor_makelog.sh

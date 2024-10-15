@@ -1,0 +1,92 @@
+#!/usr/bin/env python
+
+import argparse
+import datetime
+import json
+import os
+import pprint
+import textwrap
+
+import requests
+
+BASE_URL = "https://kauai.ccmc.gsfc.nasa.gov/DONKI/WS/get"
+
+donki_date_fmt = "%Y-%m-%d"
+
+
+def report(args):
+    dates = args.date.split("-")
+    start_date = datetime.datetime.strptime(dates[0], "%Y%m%d")
+    if len(dates) > 1:
+        if dates[1] == "":
+            end_date = datetime.datetime.now()
+        else:
+            end_date = datetime.datetime.strptime(dates[1], "%Y%m%d")
+    else:
+        end_date = start_date + datetime.timedelta(days=1)
+
+    display_start_date = start_date.strftime(donki_date_fmt)
+    display_end_date = end_date.strftime(donki_date_fmt)
+
+    type = args.type
+
+    url = f"{BASE_URL}/{type}?startDate={display_start_date}&endDate={display_end_date}"
+    r = requests.get(url)
+
+    term_size = os.get_terminal_size()
+    indent_width = 2
+    indent = indent_width * " "
+
+    first = True
+    for e in r.json():
+        if not first:
+            print()
+        else:
+            first = False
+
+        if args.full:
+            pprint.pprint(e)
+            continue
+        instruments = ", ".join([i["displayName"] for i in e["instruments"]]) if "instruments" in e else ""
+        start_time = e["startTime"] if "startTime" in e else e["eventTime"]
+        print(f"{start_time} seen in {instruments}")
+        if "note" in e and args.verbose:
+            wrapped_note = textwrap.wrap(e["note"],
+                width=term_size.columns - 2 * indent_width, initial_indent=indent,
+                subsequent_indent=indent)
+            for line in wrapped_note:
+                print(line)
+        if "cmeAnalyses" in e and e["cmeAnalyses"] is not None and args.verbose:
+            for a in e["cmeAnalyses"]:
+                if args.all or a["isMostAccurate"]:
+                    speed = f"{a['speed']} km/s" if "speed" in a else "N/A"
+                    speedMeasuredAtHeight = a["speedMeasuredAtHeight"]
+                    speedMeasuredAtHeight = "" if speedMeasuredAtHeight is None else f" @ {speedMeasuredAtHeight} Rsun"
+                    half_angle = f"{a['halfAngle']} deg" if "halfAngle" in a else "N/A"
+                    level = a["levelOfData"] if "levelOfData" in a else None
+                    level = "unknown" if level is None else ["realtime", "realtime confirmed", "retrospective"][level]
+                    marker = "*" if a["isMostAccurate"] else ""
+                    print(f"  - {speed}{speedMeasuredAtHeight}, half-width: {half_angle} [{level}]{marker}")
+
+
+def main():
+    name = "DONKI query 0.1"
+    parser = argparse.ArgumentParser(description=name)
+    parser.add_argument("-v", "--version", action="version", version=name)
+    parser.add_argument("-t", "--type", default="CME",
+        help="CME, SEP, etc.")
+    parser.add_argument("--verbose", action="store_true",
+        help="print notes and analysis for CMEs")
+    parser.add_argument("-f", "--full", action="store_true",
+        help="print all information, instead of formatted table")
+    parser.add_argument("-a", "--all", action="store_true",
+        help="display all analysis, not just most accurate")
+    parser.add_argument("date",
+        help="date or date range in the form YYYYMMDD or YYYYMMDD-YYYYMMDD")
+    parser.set_defaults(func=report, parser=parser)
+    args = parser.parse_args()
+    args.func(args)
+
+
+if __name__ == "__main__":
+    main()
