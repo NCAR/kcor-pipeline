@@ -70,7 +70,7 @@ def report(args):
 
 
 def main():
-    name = "DONKI query 0.1"
+    name = "DONKI query @GIT_VERSION@ [@GIT_REVISION@] (@GIT_BRANCH@)"
     parser = argparse.ArgumentParser(description=name)
     parser.add_argument("-v", "--version", action="version", version=name)
     parser.add_argument("-t", "--type", default="CME",
