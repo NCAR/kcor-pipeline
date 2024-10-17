@@ -232,7 +232,7 @@ pro kcor_create_differences, date, l2_files, run=run
       time_since_sub = date_julian[i]  
       for j = 0L, bkdimgnum - 1L do begin
         bkdimg[*, *, j] = aveimg
-        bkdtime[0, j] = date_julian[i]
+        bkdtime[0, j] = date_julian[0]
         bkdtime[1, j] = date_julian[1]
         filetime[j] = imgtime[i]
       endfor
@@ -248,8 +248,8 @@ pro kcor_create_differences, date, l2_files, run=run
       endfor
       ; for first 10 images, copy current image into 0 position (latest time)
       bkdimg[*, *, 0] = aveimg
-      bkdtime[0] = date_julian[i]  ; change to what?
-      ; bkdtime[i, 0] = date_julian[i]  ; change to what?
+      bkdtime[0, 0] = date_julian[0]
+      bkdtime[1, 0] = date_julian[1]
       filetime[0] = imgtime[i]
     endif
 
