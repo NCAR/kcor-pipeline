@@ -39,7 +39,7 @@ def report(args):
 
     first = True
     for e in r.json():
-        if not first:
+        if not first and args.verbose:
             print()
         else:
             first = False
