@@ -105,6 +105,8 @@ $command = "create table kcor_eng (
   tcamycen              float(9, 3),
   rcam_rad              float(9, 3),
   tcam_rad              float(9, 3),
+  rcam_dcr              float(9, 3),
+  tcam_dcr              float(9, 3),
   image_scale           float(9, 3),
   rcam_image_scale      float(9, 3),
   tcam_image_scale      float(9, 3),

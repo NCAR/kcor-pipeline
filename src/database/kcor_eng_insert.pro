@@ -138,6 +138,8 @@ pro kcor_eng_insert, date, fits_list, $
     tcamycen         =         sxpar(hdu, 'TCAMYCEN', count=qtcamycen)
     rcam_rad         =         sxpar(hdu, 'RCAM_RAD', count=qrcamrad)
     tcam_rad         =         sxpar(hdu, 'TCAM_RAD', count=qtcamrad)
+    rcam_dcr         =         sxpar(hdu, 'RCAM_DCR', count=qrcamdcr)
+    tcam_dcr         =         sxpar(hdu, 'TCAM_DCR', count=qtcamdcr)
     image_scale      =         sxpar(hdu, 'IMAGESCL', count=qimagescl)
     rcam_image_scale =         sxpar(hdu, 'RCAM_SCL', count=qrcamimagescl)
     tcam_image_scale =         sxpar(hdu, 'TCAM_SCL', count=qtcamimagescl)
@@ -173,11 +175,58 @@ pro kcor_eng_insert, date, fits_list, $
     level_num = level_results.level_id	
 
     ; DB insert command
-    db->execute, 'insert into kcor_eng (file_name, date_obs, obs_day, rcamfocs, tcamfocs, modltrt, o1focs, kcor_sgsdimv, kcor_sgsdims, level, bunit, bzero, bscale, rcamxcen, rcamycen, tcamxcen, tcamycen, rcam_rad, tcam_rad, image_scale, rcam_image_scale, tcam_image_scale, mean_phase1, cover, darkshut, diffuser, calpol, distort, labviewid, socketcamid, kcor_sw_id, kcor_hw_id) values (''%s'', ''%s'', %d, %s, %s, %s, %s, %s, %s, %d, ''%s'', %d, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', %d, %d) ', $
-                 fits_file, date_obs, obsday_index, kcor_fitsfloat2db(rcamfocs), $
+    fields = [{name: 'file_name', type: '''%s'''}, $
+              {name: 'date_obs', type: '''%s'''}, $
+              {name: 'obs_day', type: '%d'}, $
+              {name: 'rcamfocs', type: '%s'}, $
+              {name: 'tcamfocs', type: '%s'}, $
+              {name: 'modltrt', type: '%s'}, $
+              {name: 'o1focs', type: '%s'}, $
+              {name: 'kcor_sgsdimv', type: '%s'}, $
+              {name: 'kcor_sgsdims', type: '%s'}, $
+              {name: 'level', type: '%d'}, $
+              {name: 'bunit', type: '''%s'''}, $
+              {name: 'bzero', type: '%d'}, $
+              {name: 'bscale', type: '%s'}, $
+              {name: 'rcamxcen', type: '%s'}, $
+              {name: 'rcamycen', type: '%s'}, $
+              {name: 'tcamxcen', type: '%s'}, $
+              {name: 'tcamycen', type: '%s'}, $
+              {name: 'rcam_rad', type: '%s'}, $
+              {name: 'tcam_rad', type: '%s'}, $
+              {name: 'rcam_dcr', type: '%s'}, $
+              {name: 'tcam_dcr', type: '%s'}, $
+              {name: 'image_scale', type: '%f'}, $
+              {name: 'rcam_image_scale', type: '%f'}, $
+              {name: 'tcam_image_scale', type: '%f'}, $
+              {name: 'mean_phase1', type: '%s'}, $
+              {name: 'cover', type: '''%s'''}, $
+              {name: 'darkshut', type: '''%s'''}, $
+              {name: 'diffuser', type: '''%s'''}, $
+              {name: 'calpol', type: '''%s'''}, $
+              {name: 'distort', type: '''%s'''}, $
+              {name: 'labviewid', type: '''%s'''}, $
+              {name: 'socketcamid', type: '''%s'''}, $
+              {name: 'kcor_sw_id', type: '%d'}, $
+              {name: 'kcor_hw_id', type: '%d'}]
+
+    sql_cmd = string(strjoin(fields.name, ', '), $
+                     strjoin(fields.type, ', '), $
+                     format='(%"insert into kcor_eng (%s) values (%s)")')
+
+    db->execute, sql_cmd, $
+                 fits_file, $
+                 date_obs, $
+                 obsday_index, $
+                 kcor_fitsfloat2db(rcamfocs), $
                  kcor_fitsfloat2db(tcamfocs), $
-                 kcor_fitsfloat2db(modltrt), kcor_fitsfloat2db(o1focs), $
-                 sgsdimv_str, sgsdims_str, level_num, bunit, bzero, $
+                 kcor_fitsfloat2db(modltrt), $
+                 kcor_fitsfloat2db(o1focs), $
+                 sgsdimv_str, $
+                 sgsdims_str, $
+                 level_num, $
+                 bunit, $
+                 bzero, $
                  kcor_fitsfloat2db(bscale), $
                  kcor_fitsfloat2db(rcamxcen), $
                  kcor_fitsfloat2db(rcamycen), $
@@ -185,10 +234,19 @@ pro kcor_eng_insert, date, fits_list, $
                  kcor_fitsfloat2db(tcamycen), $
                  kcor_fitsfloat2db(rcam_rad), $
                  kcor_fitsfloat2db(tcam_rad), $
-                 image_scale, rcam_image_scale, tcam_image_scale, $
+                 kcor_fitsfloat2db(rcam_dcr), $
+                 kcor_fitsfloat2db(tcam_dcr), $
+                 image_scale, $
+                 rcam_image_scale, $
+                 tcam_image_scale, $
                  kcor_fitsfloat2db(mean_phase1[i - n_nrgf]), $
-                 cover, darkshut, diffuser, calpol, $
-                 distort, labviewid, socketcamid, $
+                 cover, $
+                 darkshut, $
+                 diffuser, $
+                 calpol, $
+                 distort, $
+                 labviewid, $
+                 socketcamid, $
                  sw_index, $
                  hw_ids[i], $
                  status=status, error_message=error_message, sql_statement=sql_cmd
