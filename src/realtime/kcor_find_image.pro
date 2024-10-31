@@ -59,6 +59,7 @@ function kcor_find_image, data, radius_guess, $
                           yoffset=yoffset, $
                           offset_xyr=offset_xyr, $
                           max_center_difference=max_center_difference, $
+                          inflection_points=inflection_points, $
                           log_name=log_name
   compile_opt strictarr
 
@@ -149,12 +150,18 @@ function kcor_find_image, data, radius_guess, $
   ; needs double precision for KCor
   kcor_radial_der, data, xcen_guess, ycen_guess, radius_guess, drad, theta, cent
 
-  ; find circle that fits the inflaction points
+  ; find circle that fits the inflection points
   x = cent * cos(theta)
-  x = transpose(x)
   y = cent * sin(theta)
-  y = transpose(y)
-  fitcircle, x, y, xc, yc, r
+
+  center_info = kcor_circfit(theta, cent, chisq=chisq, error=error)
+  xc = center_info[0]
+  yc = center_info[1]
+  r = center_info[2]
+
+  x += xcen_guess + xc
+  y += ycen_guess + yc
+  inflection_points = transpose([[x], [y]])
 
   ; Check if fitting routine failed. If so, try fitting using larger radius
   ; range if it fails again, replace fit values with array center and
@@ -164,16 +171,23 @@ function kcor_find_image, data, radius_guess, $
     drad = 52
     kcor_radial_der, data, xcen_guess, ycen_guess, radius_guess, drad, theta, cent
     x = cent * cos(theta)
-    x = transpose(x)
     y = cent * sin(theta)
-    y = transpose(y)
-    fitcircle, x, y, xc, yc, r
+
+    ; fitcircle, x, y, xc, yc, r
+    center_info = kcor_circfit(theta, cent, chisq=chisq, error=error)
+    xc = center_info[0]
+    yc = center_info[1]
+    r = center_info[2]
+
+    x += xcen_guess + xc
+    y += ycen_guess + yc
+    inflection_points = transpose([[x], [y]])
+
     if (finite(xc) eq 0 or finite(yc) eq 0) then begin
       xc = 511.5 - xcen_guess
       yc = 511.5 - ycen_guess
       r = radius_guess
-      mg_log, 'center not found, using defaults', $
-              name=log_name, /warn
+      mg_log, 'center not found, using defaults', name=log_name, /warn
     endif
   endif
 
@@ -201,7 +215,7 @@ end
 
 ; main-level example program
 
-date = '20190625'
+date = '20171030'
 config_filename = filepath('kcor.latest.cfg', $
                            subdir=['..', '..', 'config'], $
                            root=mg_src_root())
