@@ -26,7 +26,7 @@
 ;   theta : out, optional
 ;     the of array of angles used (radians)
 ;   cent : out, optional
-;     the of array of inflection points marking the limb
+;     array of inflection points marking the limb
 ;
 ; :Keywords:
 ;    nscan : in, optional, type=integer, default=360
@@ -54,7 +54,7 @@ pro kcor_radial_der, data, xcen, ycen, radius, dr, theta, cent, $
 
   theta = dblarr(nscan)
   cent  = dblarr(nscan)
-  
+
   data = double(data)
 
   ; make initial guess of x and y positions the center of the array
@@ -100,11 +100,11 @@ pro kcor_radial_der, data, xcen, ycen, radius, dr, theta, cent, $
     if (imax lt 2) then imax = 2
 
     cent[i] = radius - dr $
-                + parabola([double(imax - 1.), $
-                            double(imax), $
-                            double(imax + 1.)], $
-                           [rad[imax - 1], $
-                            rad[imax], $
-                            rad[imax + 1]])
+                + kcor_parabola([double(imax - 1.), $
+                                 double(imax), $
+                                 double(imax + 1.)], $
+                                [rad[imax - 1], $
+                                 rad[imax], $
+                                 rad[imax + 1]])
   endfor
 end
