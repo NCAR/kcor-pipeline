@@ -258,8 +258,10 @@ pro kcor_l1, ok_filename, $
 
   sol_ra = sol_ra * 15.0   ; convert from hours to degrees
 
-  tim2carr_carrington_rotnum = (tim2carr(date_obs, /dc))[0]
-  tim2carr_carrington_long   = (tim2carr(date_obs))[0]
+  date_obs_anytim = utc2str(tai2utc(utc2tai(str2utc(date_obs))), /stime)
+  tim2carr_carrington_rotnum = (tim2carr(date_obs_anytim, /dc))[0]
+  tim2carr_carrington_long   = (tim2carr(date_obs_anytim))[0]
+
   mg_log, 'carrington rot SUN: %0.3f, TIM2CARR: %0.3f', $
           sun_carrington_rotnum, tim2carr_carrington_rotnum, $
           name=log_name, /debug
@@ -1143,7 +1145,7 @@ pro kcor_l1, ok_filename, $
   fxaddpar, l1_header, 'CRLN_OBS', tim2carr_carrington_long, $
             ' [deg] solar L angle: Carrington longitude', $
             format='(f9.3)'
-  fxaddpar, l1_header, 'CAR_ROT',  fix(tim2carr_carrington_rotnum), $
+  fxaddpar, l1_header, 'CAR_ROT', fix(tim2carr_carrington_rotnum), $
             ' Carrington rotation number', format = '(i4)'
   fxaddpar, l1_header, 'SOLAR_RA', sol_ra, $
             ' [h] solar right ascension (hours)', $
