@@ -228,11 +228,14 @@ function READFITS, filename, header, heap, CHECKSUM=checksum, $
                    NOSCALE = noscale, NSLICE = nslice, $
                    NO_UNSIGNED = no_unsigned,  NUMROW = numrow, $
                    POINTLUN = pointlun, SILENT = silent, STARTROW = startrow, $
-                   NaNvalue = NaNvalue, FPACK = fpack, UNIXpipe=unixpipe
+                   NaNvalue = NaNvalue, FPACK = fpack, UNIXpipe=unixpipe, $
+                   errmsg=errmsg
 
   On_error,2                    ;Return to user
   compile_opt idl2
   On_IOerror, BAD
+
+  errmsg = ''
 
 ; Check for filename input
 
@@ -591,7 +594,11 @@ function READFITS, filename, header, heap, CHECKSUM=checksum, $
 
 ; Come here if there was an IO_ERROR
     
- BAD:   print,!ERROR_STATE.MSG
+  BAD:
+  if (arg_present(errmsg)) then begin
+    errmsg = !error_state.msg
+  endif else print, !ERROR_STATE.MSG
+
         if (~unitsupplied) && (N_elements(unit) GT 0) then free_lun, unit
         if N_elements(data) GT 0 then return,data else return, -1
 
