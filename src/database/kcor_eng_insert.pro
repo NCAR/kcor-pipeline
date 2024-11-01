@@ -127,8 +127,8 @@ pro kcor_eng_insert, date, fits_list, $
     os = strpos(level, 'NRGF')  
     if (os ne -1) then begin
       level = strmid(level, 0, os)   ; strip off NRGF from level, if present
-    endif	
-		
+    endif
+
     bunit            = strtrim(sxpar(hdu, 'BUNIT',    count=qbunit), 2)
     bzero            =         sxpar(hdu, 'BZERO',    count=qbzero)
     bscale           =         sxpar(hdu, 'BSCALE',   count=qbscale)
