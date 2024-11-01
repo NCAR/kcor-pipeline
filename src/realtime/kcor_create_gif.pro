@@ -25,9 +25,11 @@
 ;-
 pro kcor_create_gif, filename, corona, date_obs, $
                      scaled_image=scaled_image, $
+                     intensity=intensity, $
                      nomask=nomask, $
                      camera=camera, $
                      occulter_radius=occulter_radius, $
+                     inflection_points=inflection_points, $
                      run=run, $
                      log_name=log_name, $
                      level=level, $
@@ -50,26 +52,37 @@ pro kcor_create_gif, filename, corona, date_obs, $
   tvlct, original_rgb, /get
 
   ; load color table
-  n_colors = keyword_set(nomask) ? 255 : 256
+  n_colors = keyword_set(nomask) ? 254 : 256
 
-  loadct, 0, /silent, ncolors=n_colors
-  mg_gamma_ct, run->epoch('display_gamma'), /current, n_colors=n_colors
-
-  if (keyword_set(nomask)) then begin
-    occulter_color = 255
-    tvlct, 0, 255, 0, occulter_color
-
-    annotation_color = 254
+  if (keyword_set(intensity)) then begin
+    display_exp   = run->epoch('display_intensity_exp')
+    display_min   = run->epoch('display_intensity_min')
+    display_max   = run->epoch('display_intensity_max')
+    display_gamma = run->epoch('display_intensity_gamma')
   endif else begin
-    annotation_color = 255
+    display_exp   = run->epoch('display_exp')
+    display_min   = run->epoch('display_min')
+    display_max   = run->epoch('display_max')
+    display_gamma = run->epoch('display_gamma')
   endelse
 
+  loadct, 0, /silent, ncolors=n_colors
+  mg_gamma_ct, display_gamma, /current, n_colors=n_colors
+  annotation_color = n_colors - 1
+
+  if (keyword_set(nomask)) then begin
+    inflection_point_color = 254
+    tvlct, 255, 0, 0, inflection_point_color
+
+    occulter_color = 255
+    tvlct, 0, 255, 0, occulter_color
+  endif
   tvlct, red, green, blue, /get
 
   display_factor = 1.0e6
-  scaled_image = bytscl((display_factor * corona)^run->epoch('display_exp'), $
-                        min=display_factor * run->epoch('display_min'), $
-                        max=display_factor * run->epoch('display_max'), $
+  scaled_image = bytscl((display_factor * corona)^display_exp, $
+                        min=display_factor * display_min, $
+                        max=display_factor * display_max, $
                         top=n_colors - 1L)
 
   tv, scaled_image
@@ -129,15 +142,13 @@ pro kcor_create_gif, filename, corona, date_obs, $
           color=annotation_color
   annotation_y -= 20
   xyouts, 4, annotation_y, /device, $
-          string(run->epoch('display_min'), $
-                 run->epoch('display_max'), $
+          string(display_min, display_max, $
                  format='(%"min/max: %0.2g, %0.2g")'), $
           charsize=1.2, $
           color=annotation_color
   annotation_y -= 20
   xyouts, 4, annotation_y, /device, $
-          string(run->epoch('display_exp'), $
-                 run->epoch('display_gamma'), $
+          string(display_exp, display_gamma, $
                  format='(%"scaling: Intensity ^ %3.1f, gamma=%4.2f")'), $
           charsize=1.2, $
           color=annotation_color
@@ -163,6 +174,16 @@ pro kcor_create_gif, filename, corona, date_obs, $
     draw_circle, (dims[0] - 1.0) / 2.0, $
                  (dims[1] - 1.0) / 2.0, $
                  occulter_radius, color=occulter_color, /device
+    if (n_elements(inflection_points) gt 0L) then begin
+      plots, reform(inflection_points[0, *]), $
+             reform(inflection_points[1, *]), $
+             color=inflection_point_color, psym=3, /device
+      mg_log, 'inflection pt dims: %s', $
+              strjoin(strtrim(size(inflection_points, /dimensions), 2), ', '), $
+              name=log_name, /debug
+      mg_log, 'inflection pt x-range: %0.2f - %0.2f', mg_range(inflection_points[0, *]), name=log_name, /debug
+      mg_log, 'inflection pt y-range: %0.2f - %0.2f', mg_range(inflection_points[1, *]), name=log_name, /debug
+    endif
   endif else begin
     kcor_add_directions, fltarr(2) + 511.5, r_photo, $
                          charsize=1.5, $
@@ -179,7 +200,7 @@ pro kcor_create_gif, filename, corona, date_obs, $
               : string(camera, format='_cam%d')
   gif_file = string(strmid(file_basename(filename), 0, 20), $
                     level, $
-                    level eq 2 ? '_pb' : '', $
+                    keyword_set(intensity) ? '_int' : '_pb', $
                     _camera, $
                     keyword_set(nomask) ? '_nomask' : '', $
                     format='(%"%s_l%d%s%s%s.gif")')
