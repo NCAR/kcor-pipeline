@@ -107,10 +107,55 @@ pro kcor_sci_insert, date, files, $
     r225 = kcor_annulus_gridmeans(image, 2.25, sun_pixels)
     r250 = kcor_annulus_gridmeans(image, 2.5, sun_pixels)
 
+    enhanced_radius = run->epoch('enhanced_radius')
+    enhanced_amount = run->epoch('enhanced_amount')
+    enhanced_image = kcor_enhanced(image, $
+                                   radius=enhanced_radius, $
+                                   amount=enhanced_amount)
+    enhanced_r111 = kcor_annulus_gridmeans(enhanced_image, 1.11, sun_pixels)
+    enhanced_r115 = kcor_annulus_gridmeans(enhanced_image, 1.15, sun_pixels)
+    enhanced_r120 = kcor_annulus_gridmeans(enhanced_image, 1.2, sun_pixels)
+    enhanced_r135 = kcor_annulus_gridmeans(enhanced_image, 1.35, sun_pixels)
+    enhanced_r150 = kcor_annulus_gridmeans(enhanced_image, 1.5, sun_pixels)
+    enhanced_r175 = kcor_annulus_gridmeans(enhanced_image, 1.75, sun_pixels)
+    enhanced_r200 = kcor_annulus_gridmeans(enhanced_image, 2.0, sun_pixels)
+    enhanced_r225 = kcor_annulus_gridmeans(enhanced_image, 2.25, sun_pixels)
+    enhanced_r250 = kcor_annulus_gridmeans(enhanced_image, 2.5, sun_pixels)
+
     level_id = kcor_get_level_id(level_name, database=db, count=level_found)
     if (level_found eq 0) then mg_log, 'using unknown level', name=log_name, /error
 
-    db->execute, 'INSERT INTO kcor_sci (file_name, date_obs, obs_day, level, totalpB, intensity, intensity_stddev, r111, r115, r12, r135, r15, r175, r20, r225, r25) VALUES (''%s'', ''%s'', %d, %d, %f, ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'', ''%s'')', $
+    fields = [{name: 'file_name', type: '''%s'''}, $
+              {name: 'date_obs', type: '''%s'''}, $
+              {name: 'obs_day', type: '%d'}, $
+              {name: 'level', type: '%d'}, $
+              {name: 'totalpB', type: '%f'}, $
+              {name: 'intensity', type: '''%s'''}, $
+              {name: 'intensity_stddev', type: '''%s'''}, $
+              {name: 'r111', type: '''%s'''}, $
+              {name: 'r115', type: '''%s'''}, $
+              {name: 'r12', type: '''%s'''}, $
+              {name: 'r135', type: '''%s'''}, $
+              {name: 'r15', type: '''%s'''}, $
+              {name: 'r175', type: '''%s'''}, $
+              {name: 'r20', type: '''%s'''}, $
+              {name: 'r225', type: '''%s'''}, $
+              {name: 'r25', type: '''%s'''}, $
+              {name: 'enhanced_r111', type: '''%s'''}, $
+              {name: 'enhanced_r115', type: '''%s'''}, $
+              {name: 'enhanced_r12', type: '''%s'''}, $
+              {name: 'enhanced_r135', type: '''%s'''}, $
+              {name: 'enhanced_r15', type: '''%s'''}, $
+              {name: 'enhanced_r175', type: '''%s'''}, $
+              {name: 'enhanced_r20', type: '''%s'''}, $
+              {name: 'enhanced_r225', type: '''%s'''}, $
+              {name: 'enhanced_r25', type: '''%s'''}]
+
+    sql_cmd = string(strjoin(fields.name, ', '), $
+                     strjoin(fields.type, ', '), $
+                     format='(%"insert into kcor_sci (%s) values (%s)")')
+
+    db->execute, sql_cmd, $
                  file_basename(files[f], '.gz'), $
                  date_obs, $
                  obsday_index, $
@@ -129,6 +174,17 @@ pro kcor_sci_insert, date, files, $
                  db->escape_string(r200), $
                  db->escape_string(r225), $
                  db->escape_string(r250), $
+
+                 db->escape_string(enhanced_r111), $
+                 db->escape_string(enhanced_r115), $
+                 db->escape_string(enhanced_r120), $
+                 db->escape_string(enhanced_r135), $
+                 db->escape_string(enhanced_r150), $
+                 db->escape_string(enhanced_r175), $
+                 db->escape_string(enhanced_r200), $
+                 db->escape_string(enhanced_r225), $
+                 db->escape_string(enhanced_r250), $
+
                  status=status
     if (status ne 0L) then continue
   endfor
