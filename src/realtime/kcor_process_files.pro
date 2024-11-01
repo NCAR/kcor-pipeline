@@ -414,7 +414,6 @@ pro kcor_process_files, ok_files, $
     error = n_ok_files gt 1L ? error[1:*] : !null
   endif
 
-
   ; get system time & compute elapsed time since TIC command
   done:
   cd, start_dir
@@ -434,4 +433,43 @@ pro kcor_process_files, ok_files, $
   endif else begin
     mg_log, 'time/image: %0.1f sec', image_time, name=log_name, /info
   endelse
+end
+
+
+; main-level example
+
+; date = '20221106'
+date = '20221108'
+
+config_basename = 'kcor.latest.cfg'
+config_filename = filepath(config_basename, $
+                           subdir=['..', '..', '..', 'kcor-config'], $
+                           root=mg_src_root())
+mode = 'test'
+
+run = kcor_run(date, config_filename=config_filename, mode=mode)
+
+oka_filename = filepath('oka.ls', subdir=[date, 'q'], $
+                        root=run->config('processing/raw_basedir'))
+n_oka_files = file_test(oka_filename) ? file_lines(oka_filename) : 0L
+if (file_test(oka_filename, /regular) && n_oka_files gt 1L) then begin
+  oka_files = strarr(n_oka_files)
+  openr, lun, oka_filename, /get_lun
+  readf, lun, oka_files
+  free_lun, lun
+
+  oka_files = filepath(oka_files, $
+                       subdir=[date, 'level0'], $
+                       root=run->config('processing/raw_basedir'))
+
+  print, oka_files[1]
+
+  ; skipping first good image of the day, starting with index=1
+  kcor_process_files, oka_files[1], /nomask, /eod, run=run, $
+                      l1_filenames=l1_filenames, $
+                      log_name='kcor/' + mode, error=error
+endif
+
+obj_destroy, run
+
 end
