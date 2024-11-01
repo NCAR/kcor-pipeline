@@ -9,7 +9,7 @@
 ;   run : in, required, type=object]
 ;     KCor run object
 ;-
-pro kcor_rolling_synoptic_map, database=db, run=run
+pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
   compile_opt strictarr
 
   n_days = 28   ; number of days to include in the plot
@@ -17,6 +17,7 @@ pro kcor_rolling_synoptic_map, database=db, run=run
 
   heights =  [1.11, 1.15, 1.20, 1.35, 1.50, 1.75, 2.00, 2.25, 2.50]
   height_names = ['r111', 'r115', 'r12', 'r135', 'r15', 'r175', 'r20', 'r225', 'r25']
+  if (keyword_set(enhanced)) then height_names = 'enhanced_' + height_names
 
   ; query database for data
   end_date_tokens = long(kcor_decompose_date(run.date))
@@ -120,8 +121,9 @@ pro kcor_rolling_synoptic_map, database=db, run=run
     charsize = 1.0
     smooth_kernel = [11, 1]
 
-    title = string(heights[h], start_date, end_date, $
-                   format='(%"Synoptic map for r%0.2f Rsun from %s to %s")')
+    title = string(keyword_set(enhanced) ? 'Enhanced synoptic' : 'Synoptic', $
+                   heights[h], start_date, end_date, $
+                   format='(%"%s map for r%0.2f Rsun from %s to %s")')
     erase, background
     mg_image, reverse(east_limb, 1), reverse(jd_dates), $
               xrange=[end_date_jd, start_date_jd], $
@@ -158,8 +160,10 @@ pro kcor_rolling_synoptic_map, database=db, run=run
     if (~file_test(p_dir, /directory)) then file_mkdir, p_dir
 
     gif_filename = filepath(string(run.date, $
+                                   n_days, $
+                                   keyword_set(enhanced) ? 'enhanced.' : '', $
                                    100.0 * heights[h], $
-                                   format='(%"%s.kcor.28day.synoptic.r%03d.gif")'), $
+                                   format='(%"%s.kcor.%dday.synoptic.%sr%03d.gif")'), $
                             root=p_dir)
     write_gif, gif_filename, im, rgb[*, 0], rgb[*, 1], rgb[*, 2]
 
@@ -176,8 +180,9 @@ pro kcor_rolling_synoptic_map, database=db, run=run
 
     fits_filename = filepath(string(run.date, $
                                     n_days, $
+                                    keyword_set(enhanced) ? 'enhanced.' : '', $
                                     100.0 * heights[h], $
-                                    format='(%"%s.kcor.%dday.synoptic.r%03d.fts")'), $
+                                    format='(%"%s.kcor.%dday.synoptic.%sr%03d.fts")'), $
                              root=p_dir)
     writefits, fits_filename, map, primary_header
 

@@ -98,6 +98,16 @@ $command = "CREATE TABLE kcor_sci (
   r225                BLOB,
   r25                 BLOB,
 
+  enhanced_r111       BLOB,
+  enhanced_r115       BLOB,
+  enhanced_r12        BLOB,
+  enhanced_r135       BLOB,
+  enhanced_r15        BLOB,
+  enhanced_r175       BLOB,
+  enhanced_r20        BLOB,
+  enhanced_r225       BLOB,
+  enhanced_r25        BLOB,
+
   FOREIGN KEY (obs_day) REFERENCES mlso_numfiles(day_id),
   FOREIGN KEY (level) REFERENCES kcor_level(level_id)
 )" ;
