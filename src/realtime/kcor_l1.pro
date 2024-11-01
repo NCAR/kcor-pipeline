@@ -558,6 +558,7 @@ pro kcor_l1, ok_filename, $
   info_dc0 = kcor_find_image(cimg0, radius_guess, $
                              /center_guess, $
                              max_center_difference=run->epoch('max_center_difference'), $
+                             inflection_points=cam0_inflection_points, $
                              log_name=log_name, $
                              xoffset=center_offset[0], yoffset=center_offset[1], $
                              offset_xyr=sun_xyr0)
@@ -569,6 +570,7 @@ pro kcor_l1, ok_filename, $
   info_dc1 = kcor_find_image(cimg1, radius_guess, $
                              /center_guess, $
                              max_center_difference=run->epoch('max_center_difference'), $
+                             inflection_points=cam1_inflection_points, $
                              log_name=log_name, $
                              xoffset=center_offset[0], yoffset=center_offset[1], $
                              offset_xyr=sun_xyr1)
@@ -650,9 +652,38 @@ pro kcor_l1, ok_filename, $
                         + cal_data_temp[*, *, c, 2] * sin(2.0 * theta1)
       u_l1[*, *, c] = rot(u_l1[*, *, c], $
                           pangle + run->epoch('rotation_correction'), 1, /interp)
+      nomask_intensity = rot(cal_data_temp[*, *, c, 0], $
+                             pangle + run->epoch('rotation_correction'), 1, /interp)
+
+      inflection_points = c eq 0L ? cam0_inflection_points : cam1_inflection_points
+
+      ; equivalent of the REVERSE and KCOR_FSHIFT above
+      inflection_points[0, *] = xsize - 1.0 - inflection_points[0, *]
+      inflection_points[0, *] += 511.5 - (xsize - 1.0 - sun_xyr1[0])
+      inflection_points[1, *] += 511.5 - sun_xyr1[1]
+
+      ; rotate inflection points by p-angle (+ correction)
+      inflection_points -= 511.5
+      rotated_inflection_points = inflection_points * 0.0
+      sina = sin((pangle + run->epoch('rotation_correction')) * !dtor)
+      cosa = cos((pangle + run->epoch('rotation_correction')) * !dtor)
+      rotated_inflection_points[0, *] = cosa * inflection_points[0, *] - sina * inflection_points[1, *]
+      rotated_inflection_points[1, *] = sina * inflection_points[0, *] + cosa * inflection_points[1, *]
+      rotated_inflection_points += 511.5
+      inflection_points += 511.5
+
+      kcor_create_gif, ok_filename, nomask_intensity, date_obs, $
+                       level=1, $
+                       occulter_radius=([sun_xyr0[2], sun_xyr1[2]])[c], $
+                       inflection_points=rotated_inflection_points, $
+                       camera=c, $
+                       /nomask, /intensity, $
+                       run=run, log_name=log_name
+
       kcor_create_gif, ok_filename, u_l1[*, *, c], date_obs, $
                        level=1, $
                        occulter_radius=([sun_xyr0[2], sun_xyr1[2]])[c], $
+                       inflection_points=rotated_inflection_points, $
                        camera=c, $
                        /nomask, $
                        run=run, log_name=log_name
