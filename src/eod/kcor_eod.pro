@@ -374,8 +374,14 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
                  /allow_nonexistent
   endelse
 
-  if (n_l2_zipped_files gt 0L) then begin
-    daily_science_file = l2_zipped_files[n_l2_zipped_files ge 20 ? 20 : 0]
+  avg_glob = filepath('*_l2_pb_avg.fts.gz', $
+                      subdir=[date, 'level2'], $
+                      root=run->config('processing/raw_basedir'))
+
+  avg_filenames = file_search(avg_glob, count=n_avg_filenames)
+  daily_science_file_present = n_avg_filenames gt 0L
+  if (daily_science_file_present) then begin
+    daily_science_file = avg_filenames[0]
   endif
 
   ; update databases
@@ -417,15 +423,17 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
       kcor_rolling_image_scale_plot, run.date, n_days=90, database=db, run=run
       kcor_daily_image_scale_plot, database=db, run=run
 
-      if (n_l2_zipped_files gt 0L) then begin
+      if (daily_science_file_present) then begin
         kcor_sci_insert, date, daily_science_file, $
                          run=run, $
                          database=db, $
                          obsday_index=obsday_index
-        kcor_rolling_synoptic_map, database=db, run=run
       endif else begin
-        mg_log, 'no L2 files for daily science', name='kcor/eod', /warn
+        mg_log, 'no avg L2 files for daily science', name='kcor/eod', /warn
       endelse
+
+      kcor_rolling_synoptic_map, database=db, run=run
+      kcor_rolling_synoptic_map, database=db, run=run, /enhanced
     endif else begin
       mg_log, 'error connecting to database', name='kcor/eod', /warn
     endelse
@@ -433,7 +441,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     mg_log, 'skipping updating database', name='kcor/eod', /info
   endelse
 
-  if (n_l2_zipped_files gt 0L) then begin
+  if (daily_science_file_present) then begin
     kcor_plotsci, date, daily_science_file, run=run
   endif
 
