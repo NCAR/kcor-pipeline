@@ -396,8 +396,12 @@ pro kcor_l1, ok_filename, $
   ; - it should be replaced with the values from the gain we took without
   ;   occulter in.
 
+  gain_overmask_size = run->epoch('gain_overmask_size')
+
   ; camera 0
-  replace = where(rr0 gt radius_0 - 4.0 and grr0 le info_gain0[2] + 4.0, nrep)
+  replace = where(rr0 gt radius_0 - gain_overmask_size $
+                    and grr0 le info_gain0[2] + gain_overmask_size, $
+                  nrep)
   if (nrep gt 0) then begin
     gain_temp = gain_alfred[*, *, 0]
     gain_replace = shift(gain_alfred[*, *, 0], $
@@ -408,7 +412,9 @@ pro kcor_l1, ok_filename, $
   endif
 
   ; camera 1
-  replace = where(rr1 gt radius_1 - 4.0 and grr1 le info_gain1[2] + 4.0, nrep)
+  replace = where(rr1 gt radius_1 - gain_overmask_size $
+                    and grr1 le info_gain1[2] + gain_overmask_size, $
+                  nrep)
   if (nrep gt 0) then begin
     gain_temp = gain_alfred[*, *, 1]
     gain_replace = shift(gain_alfred[*, *, 1], $
