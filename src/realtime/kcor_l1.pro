@@ -464,6 +464,9 @@ pro kcor_l1, ok_filename, $
   gain_tmp[occulter1_indices] = fill_value1
   gain_fill[*, *, 1] = gain_tmp
 
+  rcam_ungain_i = reform(img[*, *, 0, 0] - dark_alfred[*, *, 0])
+  tcam_ungain_i = reform(img[*, *, 0, 1] - dark_alfred[*, *, 1])
+
   ; apply dark and gain correction
   for b = 0, 1 do begin
     for s = 0, 3 do begin
@@ -789,6 +792,44 @@ pro kcor_l1, ok_filename, $
                    level=1, $
                    scaled_image=scaled_image, $
                    run=run, log_name=log_name
+
+  ; do some radius finding of various distortion corrected images to compare
+  ; against each other
+
+  ; distortion corrected flats
+  rcam_gain = reform(gain_alfred[*, *, 0])
+  tcam_gain = reform(gain_alfred[*, *, 1])
+  kcor_apply_dist, rcam_gain, tcam_gain, dx1_c, dy1_c, dx2_c, dy2_c
+  info_dc_gain0 = kcor_find_image(rcam_gain, radius_guess, $
+                                  /center_guess, $
+                                  xoffset=center_offset[0], yoffset=center_offset[1], $
+                                  max_center_difference=run->epoch('max_center_difference'), $
+                                  log_name=log_name)
+  info_dc_gain1 = kcor_find_image(tcam_gain, radius_guess, $
+                                  /center_guess, $
+                                  xoffset=center_offset[0], yoffset=center_offset[1], $
+                                  max_center_difference=run->epoch('max_center_difference'), $
+                                  log_name=log_name)
+
+  ; unflat-corrected, but distortion corrected intensity
+  kcor_apply_dist, rcam_ungain_i, tcam_ungain_i, dx1_c, dy1_c, dx2_c, dy2_c
+  info_dc_ungain0 = kcor_find_image(rcam_ungain_i, radius_guess, $
+                                    /center_guess, $
+                                    xoffset=center_offset[0], yoffset=center_offset[1], $
+                                    max_center_difference=run->epoch('max_center_difference'), $
+                                    log_name=log_name)
+  info_dc_ungain1 = kcor_find_image(tcam_ungain_i, radius_guess, $
+                                    /center_guess, $
+                                    xoffset=center_offset[0], yoffset=center_offset[1], $
+                                    max_center_difference=run->epoch('max_center_difference'), $
+                                    log_name=log_name)
+
+  mg_log, 'RCAM radii sci: %0.2f, dc gain: %0.2f, dc ungain cor sci: %0.2f', $
+          info_dc0[2], info_dc_gain0[2], info_dc_ungain0[2], $
+          name=log_name, /debug
+  mg_log, 'TCAM radii sci: %0.2f, dc gain: %0.2f, dc ungain cor sci: %0.2f', $
+          info_dc1[2], info_dc_gain1[2], info_dc_ungain1[2], $
+          name=log_name, /debug
 
   ;----------------------------------------------------------------------------
   ; CREATE A FITS IMAGE:
