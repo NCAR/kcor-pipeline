@@ -182,17 +182,42 @@ pro kcor_redo_nrgf, date, run=run
       for f = 0L, n_average_files - 1L do begin
         pos = strpos(nrgf_average_files[f], '.fts')
         basename = strmid(nrgf_average_files[f], 0, pos)
+
         nrgf_average_gif_filename = basename + '.gif'
         nrgf_average_cropped_gif_filename = basename + '_cropped.gif'
+        nrgf_average_enhanced_gif_filename = basename + '_enhanced.gif'
+        nrgf_average_cropped_enhanced_gif_filename = basename + '_cropped_enhanced.gif'
+
         if (file_test(nrgf_average_gif_filename)) then begin
           file_copy, nrgf_average_gif_filename, nrgf_dir, /overwrite
         endif else begin
-          mg_log, 'cannot find %s', nrgf_average_gif_filename, name='kcor/eod', /error
+          mg_log, 'cannot find %s', $
+                  file_basename(nrgf_average_gif_filename), $
+                  name='kcor/eod', /error
         endelse
+
         if (file_test(nrgf_average_cropped_gif_filename)) then begin
           file_copy, nrgf_average_cropped_gif_filename, cropped_dir, /overwrite
         endif else begin
-          mg_log, 'cannot find %s', nrgf_average_cropped_gif_filename, name='kcor/eod', /error
+          mg_log, 'cannot find %s', $
+                  file_basename(nrgf_average_cropped_gif_filename), $
+                  name='kcor/eod', /error
+        endelse
+
+        if (file_test(nrgf_average_enhanced_gif_filename)) then begin
+          file_copy, nrgf_average_enhanced_gif_filename, nrgf_dir, /overwrite
+        endif else begin
+          mg_log, 'cannot find %s', $
+                  file_basename(nrgf_average_enhanced_gif_filename), $
+                  name='kcor/eod', /error
+        endelse
+
+        if (file_test(nrgf_average_cropped_enhanced_gif_filename)) then begin
+          file_copy, nrgf_average_cropped_enhanced_gif_filename, cropped_dir, /overwrite
+        endif else begin
+          mg_log, 'cannot find %s', $
+                  file_basename(nrgf_average_cropped_enhanced_gif_filename), $
+                  name='kcor/eod', /error
         endelse
       endfor
 
