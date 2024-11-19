@@ -1196,3 +1196,10 @@
 - produce image scale engineering plots at various time scales
 
 #### 2.1.24
+
+- fixes for enhanced NRGF GIF distribution
+- create nomask intensity GIFs
+- create enhanced pB intensity maps
+- swap AVGTIME{0,1} for difference FITS files
+- add fields to kcor_eng to track distortion corrected radius
+- DONKI CLI
