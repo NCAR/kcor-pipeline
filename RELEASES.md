@@ -1195,7 +1195,7 @@
 - produce pB intensity text file
 - produce image scale engineering plots at various time scales
 
-#### 2.1.24
+#### 2.1.24 [Nov 19, 2024]
 
 - fixes for enhanced NRGF GIF distribution
 - create nomask intensity GIFs
