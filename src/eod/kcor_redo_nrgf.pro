@@ -263,17 +263,33 @@ pro kcor_redo_nrgf, date, run=run
     nrgf_dailyavg_files = file_search('*nrgf_extavg.gif', $
                                       count=n_nrgf_dailyavg_files)
     if (n_nrgf_dailyavg_files gt 0L) then begin
-      file_copy, nrgf_dailyavg_files, nrgf_dir
+      file_copy, nrgf_dailyavg_files, nrgf_dir, /overwrite
     endif else begin
       mg_log, 'no NRGF 10 min average GIF to distribute', name='kcor/eod', /info
+    endelse
+
+    nrgf_dailyavg_enhanced_files = file_search('*nrgf_extavg_enhanced.gif', $
+                                               count=n_nrgf_dailyavg_enhanced_files)
+    if (n_nrgf_dailyavg_enhanced_files gt 0L) then begin
+      file_copy, nrgf_dailyavg_enhanced_files, nrgf_dir, /overwrite
+    endif else begin
+      mg_log, 'no NRGF 10 min average enhanced GIF to distribute', name='kcor/eod', /info
     endelse
 
     nrgf_dailyavg_cropped_files = file_search('*nrgf_extavg_cropped.gif', $
                                               count=n_nrgf_dailyavg_cropped_files)
     if (n_nrgf_dailyavg_cropped_files gt 0L) then begin
-      file_copy, nrgf_dailyavg_cropped_files, cropped_dir
+      file_copy, nrgf_dailyavg_cropped_files, cropped_dir, /overwrite
     endif else begin
       mg_log, 'no NRGF 10 min average cropped GIFs to distribute', name='kcor/eod', /info
+    endelse
+
+    nrgf_dailyavg_cropped_enhanced_files = file_search('*nrgf_extavg_cropped_enhanced.gif', $
+                                                       count=n_nrgf_dailyavg_cropped_enhanced_files)
+    if (n_nrgf_dailyavg_cropped_enhanced_files gt 0L) then begin
+      file_copy, nrgf_dailyavg_cropped_enhanced_files, cropped_dir, /overwrite
+    endif else begin
+      mg_log, 'no NRGF 10 min average cropped enhanced GIFs to distribute', name='kcor/eod', /info
     endelse
   endif else begin
     mg_log, 'not distributing NRGF 10 min average GIFs', name='kcor/eod', /info
