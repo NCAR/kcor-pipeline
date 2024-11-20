@@ -442,10 +442,13 @@ pro kcor_create_differences, date, l2_files, run=run
       writefits, fits_basename, subimg, goodheader
 
       if (run->config('realtime/distribute')) then begin
-        file_copy, gif_basename, fullres_dir, /overwrite
+        ; check status -- only good and pass get archived
+        if (status eq "good" || status eq "pass") then begin
+          file_copy, gif_basename, fullres_dir, /overwrite
 
-        kcor_zip_files, fits_basename, run=run
-        file_copy, fits_basename + '.gz', archive_dir, /overwrite
+          kcor_zip_files, fits_basename, run=run
+          file_copy, fits_basename + '.gz', archive_dir, /overwrite
+        endif
       endif
 
       if (datagap eq 2) then datagap = 0
