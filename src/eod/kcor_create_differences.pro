@@ -52,6 +52,8 @@ pro kcor_create_differences, date, l2_files, run=run
   fits_file = ''
   gif_file = ''
 
+  difference_files = list()
+
   ; set up julian date intervals for averaging, creating subtractions, and how
   ; often subtractions are created.
 
@@ -440,6 +442,7 @@ pro kcor_create_differences, date, l2_files, run=run
 
       fits_basename = string(name, timestring, status, format='(%"%s_minus_%s_%s.fts")')
       writefits, fits_basename, subimg, goodheader
+      difference_files->add, fits_basename
 
       if (run->config('realtime/distribute')) then begin
         ; check status -- only good and pass get archived
@@ -474,6 +477,32 @@ pro kcor_create_differences, date, l2_files, run=run
     endif
   endwhile
 
+  n_all_difference_files = difference_files->count()
+  all_difference_filenames = difference_files->toarray()
+  ok_difference_indices = where(strpos(all_difference_filenames, 'good') ge 0 $
+                                  or strpos(all_difference_filenames, 'pass') ge 0, $
+                                n_ok_difference_files, /null)
+  ok_difference_filenames = all_difference_filenames[ok_difference_indices]
+
+  if (run->config('database/update') && n_ok_difference_files gt 0L) then begin
+    obsday_index = mlso_obsday_insert(date, $
+                                      run=run, $
+                                      database=db, $
+                                      status=db_status, $
+                                      log_name='kcor/eod')
+    if (db_status eq 0L) then begin
+      mg_log, 'adding %d difference FITS files to database', n_ok_difference_files, $
+              name='kcor/eod', /info
+      kcor_img_insert, date, ok_difference_filenames, run=run, $
+                       database=db, obsday_index=obsday_index, log_name='kcor/eod'
+    endif else begin
+      mg_log, 'error connecting to database', name='kcor/eod', /warn
+      goto, done
+    endelse
+  endif else begin
+    mg_log, 'not adding difference files to database', name='kcor/eod', /info
+  endelse
+
   ; create mp4 of difference images
   difference_gif_filenames = file_search('*minus*good*.gif', $
                                          count=n_difference_gif_files)
@@ -491,6 +520,7 @@ pro kcor_create_differences, date, l2_files, run=run
   endelse
 
   done:
+  obj_destroy, difference_files
   cd, current
   mg_log, 'done', name='kcor/eod', /info
 end

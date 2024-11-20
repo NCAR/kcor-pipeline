@@ -116,6 +116,7 @@ pro kcor_img_insert, date, fits_list, $
     is_avg = strpos(file_basename(fts_file), '_avg') ge 0L
     is_extavg = strpos(file_basename(fts_file), 'extavg') ge 0L
     is_enhanced = strpos(file_basename(fts_file), 'enhanced') ge 0L
+    is_difference = strpos(file_basename(fts_file), 'minus') gt 0L
 
     fts_file += '.gz'
 
@@ -162,18 +163,22 @@ pro kcor_img_insert, date, fits_list, $
     endif	
 
     ; get product type from filename
-    if (is_nrgf) then begin
-      case 1 of
-        is_extavg: producttype = is_enhanced ? 'nrgfextavgenh' : 'nrgfextavg'
-        is_avg: producttype = is_enhanced ? 'nrgfavgenh' : 'nrgfavg'
-        else: producttype = 'nrgf'
-      endcase
+    if (is_difference) then begin
+      producttype = 'pbdiff'
     endif else begin
-      case 1 of
-        is_extavg: producttype = is_enhanced ? 'pbextavgenh' : 'pbextavg'
-        is_avg: producttype = is_enhanced ? 'pbavgenh' : 'pbavg'
-        else: producttype = 'pb'
-      endcase
+      if (is_nrgf) then begin
+        case 1 of
+          is_extavg: producttype = is_enhanced ? 'nrgfextavgenh' : 'nrgfextavg'
+          is_avg: producttype = is_enhanced ? 'nrgfavgenh' : 'nrgfavg'
+          else: producttype = 'nrgf'
+        endcase
+      endif else begin
+        case 1 of
+          is_extavg: producttype = is_enhanced ? 'pbextavgenh' : 'pbextavg'
+          is_avg: producttype = is_enhanced ? 'pbavgenh' : 'pbavg'
+          else: producttype = 'pb'
+        endcase
+      endelse
     endelse
 
     fits_file = file_basename(fts_file, '.gz') ; remove '.gz' from file name.
@@ -206,7 +211,7 @@ pro kcor_img_insert, date, fits_list, $
                  status=status
     if (status eq 0L) then begin
       ; only add non-enhanced images to counters used in mlso_numfiles counts
-      if (~is_enhanced) then begin
+      if (~is_enhanced && ~is_difference) then begin
         if (is_nrgf) then begin
           case 1 of
             is_extavg: n_nrgf_extavg_added += 1
