@@ -1209,3 +1209,5 @@
 - add difference images to kcor_img database table
 - distribute enhanced extavg NRGF GIFs (normal and cropped)
 - copy only good/pass difference images to the archive
+
+#### 2.1.26
