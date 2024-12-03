@@ -86,8 +86,9 @@ pro kcor_cropped_gif, im, date, date_obs, $
     avg_type = keyword_set(daily) ? '10 min avg' : '2 min avg'
     xyouts, 256, 6, avg_type, color=255, charsize=1.0, /device, alignment=0.5
   endif
-  xyouts, 507, 6, string(exp, $
-                         format='(%"scaling: Intensity ^ %3.1f")'), $
+  product_name = keyword_set(enhanced) ? 'Enh Intensity' : 'Intensity'
+  xyouts, 507, 6, string(product_name, exp, $
+                         format='(%"scaling: %s ^ %3.1f")'), $
           color=255, charsize=1.0, /device, alignment=1.0
 
   ; solar radius outline
