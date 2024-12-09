@@ -1,6 +1,37 @@
 ; docformat = 'rst'
 
 ;+
+; Find centering information for a flat.
+;
+; :Returns:
+;   `fltarr(3)` where elements are x-center, y-center, and radius
+;
+; :Params:
+;   flat : in, required, type="fltarr(nx, ny)"
+;
+; :Keywords:
+;   run : in, required, type=object
+;     KCor run object
+;-
+function kcor_cal_insert_centering, flat, run=run
+  compile_opt strictarr
+
+  radius_guess = 178   ; average radius for occulter
+  center_offset = run->config('realtime/center_offset')
+
+  center_info = kcor_find_image(flat, $
+                                radius_guess, $
+                                /center_guess, $
+                                xoffset=center_offset[0], $
+                                yoffset=center_offset[1], $
+                                max_center_difference=run->epoch('max_center_difference'), $
+                                log_name='kcor/eod')
+
+  return, center_info
+end
+
+
+;+
 ; Utility to insert values into the MLSO database table: kcor_cal.
 ;
 ; Reads a list of L0 cal files for a specified date and inserts a row of data
@@ -120,6 +151,26 @@ pro kcor_cal_insert, date, fits_list, quality, $
                        raw_data_prefix=run->epoch('raw_data_prefix'), $
                        datatype=raw_datatype
 
+    is_flat = cover eq 'out' && darkshut eq 'out' && calpol eq 'out' && diffuser eq 'in'
+    if (is_flat) then begin
+      rcam_flat = reform(mean(image[*, *, *, 0], dimension=3))
+      rcam_flat = reverse(rcam_flat, 2)
+      tcam_flat = reform(mean(image[*, *, *, 1], dimension=3))
+
+      raw_rcam_centering_info = kcor_cal_insert_centering(rcam_flat, run=run)
+      raw_tcam_centering_info = kcor_cal_insert_centering(tcam_flat, run=run)
+
+      kcor_apply_dist, rcam_flat, tcam_flat, dx1_c, dy1_c, dx2_c, dy2_c
+
+      dc_rcam_centering_info = kcor_cal_insert_centering(rcam_flat, run=run)
+      dc_tcam_centering_info = kcor_cal_insert_centering(tcam_flat, run=run)
+    endif else begin
+      raw_rcam_centering_info = fltarr(3) + !values.f_nan
+      raw_tcam_centering_info = fltarr(3) + !values.f_nan
+      dc_rcam_centering_info  = fltarr(3) + !values.f_nan
+      dc_tcam_centering_info  = fltarr(3) + !values.f_nan
+    endelse
+
     ; if raw_datatype is 13 (unsigned 32-bit), then convert to 12 (unsigned
     ; 16-bit) by just taking the most significant 16 bits, i.e., dividing by
     ; 2^16
@@ -134,7 +185,7 @@ pro kcor_cal_insert, date, fits_list, quality, $
     mean_int_img5 = mean(image[*, *, 1, 1]) / datatype_factor
     mean_int_img6 = mean(image[*, *, 2, 1]) / datatype_factor
     mean_int_img7 = mean(image[*, *, 3, 1]) / datatype_factor
-	
+
     rcamid   = strtrim(sxpar(hdu, 'RCAMID', count=qrcamid), 2)
     tcamid   = strtrim(sxpar(hdu, 'TCAMID', count=qtcamid), 2)
     rcamlut  = strtrim(sxpar(hdu, 'RCAMLUT', count=qrcamlut), 2)
@@ -186,9 +237,11 @@ pro kcor_cal_insert, date, fits_list, quality, $
     if (status ne 0L) then goto, done
     level_num = level_results.level_id	
     
-    db->execute, 'insert into kcor_cal (file_name, date_obs, date_end, obs_day, level, quality, numsum, exptime, cover, darkshut, diffuser, calpol, calpang, mean_int_img0, mean_int_img1, mean_int_img2, mean_int_img3, mean_int_img4, mean_int_img5, mean_int_img6, mean_int_img7, rcamid, tcamid, rcamlut, tcamlut, rcamfocs, tcamfocs, modltrid, modltrt, occltrid, o1id, o1focs, calpolid, diffsrid, filterid, kcor_sgsdimv, kcor_sgsdims) values (''%s'', ''%s'', ''%s'', %d, %d, %d, %d, %f, ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, ''%s'', %f, ''%s'', ''%s'', %f, ''%s'', ''%s'', ''%s'', %s, %s) ', $
+    db->execute, 'insert into kcor_cal (file_name, date_obs, date_end, obs_day, level, quality, numsum, exptime, cover, darkshut, diffuser, calpol, calpang, rcam_xcenter, rcam_ycenter, rcam_radius, rcam_dc_xcenter, rcam_dc_ycenter, rcam_dc_radius, tcam_xcenter, tcam_ycenter, tcam_radius, tcam_dc_xcenter, tcam_dc_ycenter, tcam_dc_radius, mean_int_img0, mean_int_img1, mean_int_img2, mean_int_img3, mean_int_img4, mean_int_img5, mean_int_img6, mean_int_img7, rcamid, tcamid, rcamlut, tcamlut, rcamfocs, tcamfocs, modltrid, modltrt, occltrid, o1id, o1focs, calpolid, diffsrid, filterid, kcor_sgsdimv, kcor_sgsdims) values (''%s'', ''%s'', ''%s'', %d, %d, %d, %d, %f, ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, ''%s'', %f, ''%s'', ''%s'', %f, ''%s'', ''%s'', ''%s'', %s, %s) ', $
                  fits_file, date_obs, date_end, obsday_index, level_num, quality[i], $
                  numsum, exptime, cover, darkshut, diffuser, calpol, calpang, $
+                 raw_rcam_centering_info, raw_tcam_centering_info, $
+                 dc_rcam_centering_info, dc_tcam_centering_info, $
                  mean_int_img0, mean_int_img1, mean_int_img2, mean_int_img3, $
                  mean_int_img4, mean_int_img5, mean_int_img6, mean_int_img7, $
                  rcamid, tcamid, rcamlut, tcamlut, rcamfocs, tcamfocs, $
