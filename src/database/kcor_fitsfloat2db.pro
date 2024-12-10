@@ -18,7 +18,7 @@ function kcor_fitsfloat2db, value
   if (size(value, /type) eq 7) then begin
     return, strtrim(float(value), 2)
   endif else begin
-    return, string(value, format='(%"%f")')
+    return, finite(value) ? string(value, format='(%"%f")') : 'NULL'
   endelse
 
   io_problem:
