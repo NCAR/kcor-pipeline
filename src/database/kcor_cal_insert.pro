@@ -92,6 +92,11 @@ pro kcor_cal_insert, date, fits_list, quality, $
     goto, done
   endif
 
+  ; need distortion coefficients for flats, creates: dx1_c, dy1_c, dx2_c, dy2_c
+  dc_path = filepath(run->epoch('distortion_correction_filename'), $
+                     root=run.resources_dir)
+  restore, dc_path   ; distortion correction file
+
   i = -1
   while (++i lt nfiles) do begin
     fts_file = fits_list[i]
@@ -151,6 +156,10 @@ pro kcor_cal_insert, date, fits_list, quality, $
                        raw_data_prefix=run->epoch('raw_data_prefix'), $
                        datatype=raw_datatype
 
+    mg_log, 'cover: %s, darkshut: %s, calpol: %s, diffuser: %s', $
+            cover, darkshut, calpol, diffuser, $
+            name='kcor/eod', /debug
+
     is_flat = cover eq 'out' && darkshut eq 'out' && calpol eq 'out' && diffuser eq 'in'
     if (is_flat) then begin
       rcam_flat = reform(mean(image[*, *, *, 0], dimension=3))
@@ -159,11 +168,23 @@ pro kcor_cal_insert, date, fits_list, quality, $
 
       raw_rcam_centering_info = kcor_cal_insert_centering(rcam_flat, run=run)
       raw_tcam_centering_info = kcor_cal_insert_centering(tcam_flat, run=run)
+      mg_log, 'raw RCAM: %0.3f, %0.3f, %0.3f', $
+              raw_rcam_centering_info, $
+              name='kcor/eod', /debug
+      mg_log, 'raw TCAM: %0.3f, %0.3f, %0.3f', $
+              raw_tcam_centering_info, $
+              name='kcor/eod', /debug
 
       kcor_apply_dist, rcam_flat, tcam_flat, dx1_c, dy1_c, dx2_c, dy2_c
 
       dc_rcam_centering_info = kcor_cal_insert_centering(rcam_flat, run=run)
       dc_tcam_centering_info = kcor_cal_insert_centering(tcam_flat, run=run)
+      mg_log, 'distortion-corrected RCAM: %0.3f, %0.3f, %0.3f', $
+              dc_rcam_centering_info, $
+              name='kcor/eod', /debug
+      mg_log, 'distortion-corrected TCAM: %0.3f, %0.3f, %0.3f', $
+              dc_tcam_centering_info, $
+              name='kcor/eod', /debug
     endif else begin
       raw_rcam_centering_info = fltarr(3) + !values.f_nan
       raw_tcam_centering_info = fltarr(3) + !values.f_nan
@@ -236,12 +257,74 @@ pro kcor_cal_insert, date, fits_list, quality, $
                               level, fields=fields, status=status)
     if (status ne 0L) then goto, done
     level_num = level_results.level_id	
-    
-    db->execute, 'insert into kcor_cal (file_name, date_obs, date_end, obs_day, level, quality, numsum, exptime, cover, darkshut, diffuser, calpol, calpang, rcam_xcenter, rcam_ycenter, rcam_radius, rcam_dc_xcenter, rcam_dc_ycenter, rcam_dc_radius, tcam_xcenter, tcam_ycenter, tcam_radius, tcam_dc_xcenter, tcam_dc_ycenter, tcam_dc_radius, mean_int_img0, mean_int_img1, mean_int_img2, mean_int_img3, mean_int_img4, mean_int_img5, mean_int_img6, mean_int_img7, rcamid, tcamid, rcamlut, tcamlut, rcamfocs, tcamfocs, modltrid, modltrt, occltrid, o1id, o1focs, calpolid, diffsrid, filterid, kcor_sgsdimv, kcor_sgsdims) values (''%s'', ''%s'', ''%s'', %d, %d, %d, %d, %f, ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, %f, %f, %f, %f, %f, %f, %f, ''%s'', ''%s'', ''%s'', ''%s'', %f, %f, ''%s'', %f, ''%s'', ''%s'', %f, ''%s'', ''%s'', ''%s'', %s, %s) ', $
+
+    fields = [{name: 'file_name', type: '''%s'''}, $
+              {name: 'date_obs', type: '''%s'''}, $
+              {name: 'date_end', type: '''%s'''}, $
+              {name: 'obs_day', type: '%d'}, $
+              {name: 'level', type: '%d'}, $
+              {name: 'quality', type: '%d'}, $
+              {name: 'numsum', type: '%d'}, $
+              {name: 'exptime', type: '%f'}, $
+              {name: 'cover', type: '''%s'''}, $
+              {name: 'darkshut', type: '''%s'''}, $
+              {name: 'diffuser', type: '''%s'''}, $
+              {name: 'calpol', type: '''%s'''}, $
+              {name: 'calpang', type: '%f'}, $
+              {name: 'rcam_xcenter', type: '%s'}, $
+              {name: 'rcam_ycenter', type: '%s'}, $
+              {name: 'rcam_radius', type: '%s'}, $
+              {name: 'rcam_dc_xcenter', type: '%s'}, $
+              {name: 'rcam_dc_ycenter', type: '%s'}, $
+              {name: 'rcam_dc_radius', type: '%s'}, $
+              {name: 'tcam_xcenter', type: '%s'}, $
+              {name: 'tcam_ycenter', type: '%s'}, $
+              {name: 'tcam_radius', type: '%s'}, $
+              {name: 'tcam_dc_xcenter', type: '%s'}, $
+              {name: 'tcam_dc_ycenter', type: '%s'}, $
+              {name: 'tcam_dc_radius', type: '%s'}, $
+              {name: 'mean_int_img0', type: '%f'}, $
+              {name: 'mean_int_img1', type: '%f'}, $
+              {name: 'mean_int_img2', type: '%f'}, $
+              {name: 'mean_int_img3', type: '%f'}, $
+              {name: 'mean_int_img4', type: '%f'}, $
+              {name: 'mean_int_img5', type: '%f'}, $
+              {name: 'mean_int_img6', type: '%f'}, $
+              {name: 'mean_int_img7', type: '%f'}, $
+              {name: 'rcamid', type: '''%s'''}, $
+              {name: 'tcamid', type: '''%s'''}, $
+              {name: 'rcamlut', type: '''%s'''}, $
+              {name: 'tcamlut', type: '''%s'''}, $
+              {name: 'rcamfocs', type: '%f'}, $
+              {name: 'tcamfocs', type: '%f'}, $
+              {name: 'modltrid', type: '''%s'''}, $
+              {name: 'modltrt', type: '%f'}, $
+              {name: 'occltrid', type: '''%s'''}, $
+              {name: 'o1id', type: '''%s'''}, $
+              {name: 'o1focs', type: '%f'}, $
+              {name: 'calpolid', type: '''%s'''}, $
+              {name: 'diffsrid', type: '''%s'''}, $
+              {name: 'filterid', type: '''%s'''}, $
+              {name: 'kcor_sgsdimv', type: '%s'}, $
+              {name: 'kcor_sgsdims', type: '%s'}]
+    sql_cmd = string(strjoin(fields.name, ', '), $
+                     strjoin(fields.type, ', '), $
+                     format='(%"insert into kcor_cal (%s) values (%s)")')
+    db->execute, sql_cmd, $
                  fits_file, date_obs, date_end, obsday_index, level_num, quality[i], $
                  numsum, exptime, cover, darkshut, diffuser, calpol, calpang, $
-                 raw_rcam_centering_info, raw_tcam_centering_info, $
-                 dc_rcam_centering_info, dc_tcam_centering_info, $
+                 kcor_fitsfloat2db(raw_rcam_centering_info[0]), $
+                 kcor_fitsfloat2db(raw_rcam_centering_info[1]), $
+                 kcor_fitsfloat2db(raw_rcam_centering_info[2]), $
+                 kcor_fitsfloat2db(dc_rcam_centering_info[0]), $
+                 kcor_fitsfloat2db(dc_rcam_centering_info[1]), $
+                 kcor_fitsfloat2db(dc_rcam_centering_info[2]), $
+                 kcor_fitsfloat2db(raw_tcam_centering_info[0]), $
+                 kcor_fitsfloat2db(raw_tcam_centering_info[1]), $
+                 kcor_fitsfloat2db(raw_tcam_centering_info[2]), $
+                 kcor_fitsfloat2db(dc_tcam_centering_info[0]), $
+                 kcor_fitsfloat2db(dc_tcam_centering_info[1]), $
+                 kcor_fitsfloat2db(dc_tcam_centering_info[2]), $
                  mean_int_img0, mean_int_img1, mean_int_img2, mean_int_img3, $
                  mean_int_img4, mean_int_img5, mean_int_img6, mean_int_img7, $
                  rcamid, tcamid, rcamlut, tcamlut, rcamfocs, tcamfocs, $
@@ -250,7 +333,11 @@ pro kcor_cal_insert, date, fits_list, quality, $
                  status=status, $
                  error_message=error_message, $
                  sql_statement=sql_cmd
-    if (status ne 0L) then continue
+    if (status ne 0L) then begin
+      mg_log, 'problem inserting cal file', name='kcor/eod', /error
+      mg_log, 'error message: %s', error_message, name='kcor/eod', /error
+      mg_log, 'SQL command: %s', sql_cmd, name='kcor/eod', /error
+    endif
   endwhile
 
   done:
