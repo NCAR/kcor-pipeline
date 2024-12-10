@@ -1,6 +1,37 @@
 ; docformat = 'rst'
 
 ;+
+; Find centering information for a gain.
+;
+; :Returns:
+;   `fltarr(3)` where elements are x-center, y-center, and radius
+;
+; :Params:
+;   gain : in, required, type="fltarr(nx, ny)"
+;
+; :Keywords:
+;   run : in, required, type=object
+;     KCor run object
+;-
+function kcor_reduce_calibration_write_centering, gain, run=run
+  compile_opt strictarr
+
+  radius_guess = 178   ; average radius for occulter
+  center_offset = run->config('realtime/center_offset')
+
+  center_info = kcor_find_image(gain, $
+                                radius_guess, $
+                                /center_guess, $
+                                xoffset=center_offset[0], $
+                                yoffset=center_offset[1], $
+                                max_center_difference=run->epoch('max_center_difference'), $
+                                log_name='kcor/eod')
+
+  return, center_info
+end
+
+
+;+
 ; Write a calibration netCDF file.
 ;
 ; :Params:
@@ -39,6 +70,34 @@ pro kcor_reduce_calibration_write, data, metadata, $
   file_list = metadata.file_list
   file_types = metadata.file_types
 
+  ; compute distortion-corrected gain
+  rcam_gain = reform(gain[*, *, 0])
+  rcam_gain = reverse(rcam_gain, 2)
+  tcam_gain = reform(gain[*, *, 0])
+
+  raw_rcam_centering_info = kcor_reduce_calibration_write_centering(rcam_gain, run=run)
+  raw_tcam_centering_info = kcor_reduce_calibration_write_centering(tcam_gain, run=run)
+
+  mg_log, 'Raw RCAM gain, x: %0.2f, y: %0.2f, radius: %0.2f', $
+          raw_rcam_centering_info, name='kcor/eod', /debug
+  mg_log, 'Raw TCAM gain, x: %0.2f, y: %0.2f, radius: %0.2f', $
+          raw_tcam_centering_info, name='kcor/eod', /debug
+
+  dc_path = filepath(run->epoch('distortion_correction_filename'), $
+                     root=run.resources_dir)
+  restore, dc_path   ; distortion correction coeffs: dx1_c, dy1_c, dx2_c, dy2_c
+  kcor_apply_dist, rcam_gain, tcam_gain, dx1_c, dy1_c, dx2_c, dy2_c
+
+  dc_rcam_centering_info = kcor_reduce_calibration_write_centering(rcam_gain, run=run)
+  dc_tcam_centering_info = kcor_reduce_calibration_write_centering(tcam_gain, run=run)
+
+  mg_log, 'Distortion-corrected RCAM gain, x: %0.2f, y: %0.2f, radius: %0.2f', $
+          dc_rcam_centering_info, name='kcor/eod', /debug
+  mg_log, 'Distortion-corrected TCAM gain, x: %0.2f, y: %0.2f, radius: %0.2f', $
+          dc_tcam_centering_info, name='kcor/eod', /debug
+
+  dc_gain = [[[rcam_gain]], [[tcam_gain]]]
+
   sz = size(data.gain, /dimensions)
 
   cid = ncdf_create(outfile, /clobber, /netcdf4_format)
@@ -50,7 +109,6 @@ pro kcor_reduce_calibration_write, data, metadata, $
   ncdf_attput, cid, /global, $
                'version', string(version, revision, $
                                  format='(%"%s [%s]")')
-
 
   ; define dimensions
   filesdim = ncdf_dimdef(cid, 'Number of Files', n_elements(file_list))
@@ -70,7 +128,23 @@ pro kcor_reduce_calibration_write, data, metadata, $
   filelistvar = ncdf_vardef(cid, 'Input File List', [filesdim], /string)
   filetypesvar = ncdf_vardef(cid, 'Input File Type', [filesdim], /string)
   darkvar = ncdf_vardef(cid, 'Dark', [xdim, ydim, beamdim], /float)
+
+  dc_gainvar = ncdf_vardef(cid, 'Distortion-Corrected Gain', [xdim, ydim, beamdim], /float)
+  ncdf_attput, cid, dc_gainvar, 'RCAM x-center', dc_rcam_centering_info[0]
+  ncdf_attput, cid, dc_gainvar, 'RCAM y-center', dc_rcam_centering_info[1]
+  ncdf_attput, cid, dc_gainvar, 'RCAM radius', dc_rcam_centering_info[2]
+  ncdf_attput, cid, dc_gainvar, 'TCAM x-center', dc_tcam_centering_info[0]
+  ncdf_attput, cid, dc_gainvar, 'TCAM y-center', dc_tcam_centering_info[1]
+  ncdf_attput, cid, dc_gainvar, 'TCAM radius', dc_tcam_centering_info[2]
+
   gainvar = ncdf_vardef(cid, 'Gain', [xdim, ydim, beamdim], /float)
+  ncdf_attput, cid, gainvar, 'RCAM x-center', raw_rcam_centering_info[0]
+  ncdf_attput, cid, gainvar, 'RCAM y-center', raw_rcam_centering_info[1]
+  ncdf_attput, cid, gainvar, 'RCAM radius', raw_rcam_centering_info[2]
+  ncdf_attput, cid, gainvar, 'TCAM x-center', raw_tcam_centering_info[0]
+  ncdf_attput, cid, gainvar, 'TCAM y-center', raw_tcam_centering_info[1]
+  ncdf_attput, cid, gainvar, 'TCAM radius', raw_tcam_centering_info[2]
+
   dimrefvar = ncdf_vardef(cid, 'DIM Reference Voltage', [scalardim], /float)
   dimrefsigmavar = ncdf_vardef(cid, 'DIM Reference Voltage Standard Deviation', $
                                [scalardim], /float)
@@ -110,6 +184,7 @@ pro kcor_reduce_calibration_write, data, metadata, $
   ncdf_varput, cid, filetypesvar, file_types
   ncdf_varput, cid, darkvar, dark
   ncdf_varput, cid, gainvar, gain
+  ncdf_varput, cid, dc_gainvar, dc_gain
   ncdf_varput, cid, dimrefvar, vdimref
   ncdf_varput, cid, dimrefsigmavar, metadata.vdimref_sigma
   ncdf_varput, cid, dimnumsum, metadata.numsum
