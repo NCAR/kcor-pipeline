@@ -73,7 +73,7 @@ pro kcor_reduce_calibration_write, data, metadata, $
   ; compute distortion-corrected gain
   rcam_gain = reform(gain[*, *, 0])
   rcam_gain = reverse(rcam_gain, 2)
-  tcam_gain = reform(gain[*, *, 0])
+  tcam_gain = reform(gain[*, *, 1])
 
   raw_rcam_centering_info = kcor_reduce_calibration_write_centering(rcam_gain, run=run)
   raw_tcam_centering_info = kcor_reduce_calibration_write_centering(tcam_gain, run=run)
