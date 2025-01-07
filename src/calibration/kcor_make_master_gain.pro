@@ -22,7 +22,7 @@ pro kcor_make_master_gain, cal_epoch, run=run
             name=log_name, /warn
     goto, done
   endif
-
+  
   nx = 1024L
   ny = 1024L
   n_cameras = 2L
@@ -37,6 +37,8 @@ pro kcor_make_master_gain, cal_epoch, run=run
     ncdf_varget, unit, 'DIM Reference Voltage', flat_vdimref
     ncdf_varget, unit, 'Occulter ID', occulter_id
     ncdf_close, unit
+
+    gain /= flat_vdimref
 
     ; set date/time to make epoch queries work
     cal_basename = file_basename(cal_files[f])
@@ -73,6 +75,7 @@ pro kcor_make_master_gain, cal_epoch, run=run
   code_version = kcor_find_code_version()
   output_basename = string(cal_epoch, code_version, $
                            format='kcor_master_gain_v%s_%s.ncdf')
+  cal_dir = run->config('calibration/out_dir')
   output_filename = filepath(output_basename, root=cal_dir)
 
   kcor_write_master_gain, output_filename, $
@@ -92,9 +95,23 @@ config_filename = filepath(config_basename, $
                            subdir=['..', '..', '..', 'kcor-config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename, mode='test')
-cal_epoch = '26'
+cal_epoch = '10'
 
 kcor_make_master_gain, cal_epoch, run=run
+
+code_version = kcor_find_code_version()
+master_gain_basename = string(cal_epoch, code_version, $
+                              format='kcor_master_gain_v%s_%s.ncdf')
+cal_dir = run->config('calibration/out_dir')
+master_gain_filename = filepath(master_gain_basename, root=cal_dir)
+
+master_gain = mg_nc_getdata(master_gain_filename, 'master_gain')
+stddev_gain = mg_nc_getdata(master_gain_filename, 'stddev_gain')
+n_gain = mg_nc_getdata(master_gain_filename, 'n_gain')
+
+mg_image, bytscl(master_gain), /new, title='Master gain'
+mg_image, bytscl(stddev_gain), /new, title='Std dev of master gain'
+mg_image, bytscl(n_gain), /new, title='Number of images in master gain'
 
 obj_destroy, run
 
