@@ -1,10 +1,37 @@
 ; docformat = 'rst'
 
 
-function kcor_find_latest_cal_files_latest, cal_files
+;+
+; Find the cal file with the latest version from a list of cal files.
+;
+; :Returns:
+;   scalar long, i.e., an index into `cal_files`
+;
+; :Params:
+;   cal_basenames : in, required, type=strarr
+;     array of cal files
+;-
+function kcor_find_latest_cal_files_latest, cal_basenames
   compile_opt strictarr
 
-  return, 0
+  ; cal files have the form:
+  ; [YYYYMMDD]_[HHMMSS]_kcor_cal_v[CAL_EPOCH]_[CODE_VERSION]_[EXPOSURE]ms.ncdf
+
+  n_cal_files = n_elements(cal_basenames)
+  versions = strarr(n_cal_files)
+  for f = 0L, n_cal_files - 1L do begin
+    tokens = strsplit(cal_basenames[f], '_', /extract, count=n_tokens)
+    versions[f] = tokens[5]
+  endfor
+
+  latest_version_index = 0L
+  for v = 1L, n_cal_files - 1L do begin
+    if (mg_cmp_version(versions[v], versions[latest_version_index]) eq 1) then begin
+      latest_version_index = v
+    endif
+  endfor
+
+  return, latest_version_index
 end
 
 
