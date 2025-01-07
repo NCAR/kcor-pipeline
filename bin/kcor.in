@@ -684,7 +684,7 @@ def list_alerts(args):
 
 # log sub-command
 def filter_log(args):
-    date_prog = re.compile("^\d{8}$")
+    date_prog = re.compile(r"^\d{8}$")
     logfiles = [os.path.join(LOG_DIR, f"{f}.{args.type}.log") if date_prog.match(f) else f
                 for f in args.logfiles]
 
@@ -727,7 +727,7 @@ def filter_log(args):
 
 
 def prune_logfiles(files, max_version):
-    version_re = re.compile("\d+")
+    version_re = re.compile(r"\d+")
     for f in files:
         versions = glob.glob(f"{f}.*")
         for v in versions:
@@ -742,7 +742,7 @@ def prune_logfiles(files, max_version):
 def filter_file(logfile, level_index, follow):
     loglevel_filter = "|".join(LEVELS[level_index:])
     loglevel_prog = re.compile(f".*({loglevel_filter}):.*")
-    logstart_prog = re.compile("(\[\d*\] )?\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}")
+    logstart_prog = re.compile(r"(\[\d*\] )?\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}")
     exact_loglevel_prog = re.compile(f".*{LEVELS[level_index]}:.*")
 
     matched_last_line = False
