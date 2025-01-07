@@ -104,7 +104,6 @@ pro kcor_reduce_calibration_write, data, metadata, $
   ncdf_attput, cid, /global, 'title', 'COSMO K-Cor Calibration Data for ' + date
   ncdf_attput, cid, /global, 'epoch_version', run->epoch('cal_epoch_version')
   ncdf_attput, cid, /global, 'flat-date-obs', metadata.flat_date_obs
-  ncdf_attput, cid, /global, 'occulter ID', metadata.occulter_id
 
   version = kcor_find_code_version(revision=revision, date=code_date)
   ncdf_attput, cid, /global, $
