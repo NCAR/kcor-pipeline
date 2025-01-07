@@ -21,10 +21,10 @@ function kcor_reduce_calibration_write_centering, gain, run=run
 
   center_info = kcor_find_image(gain, $
                                 radius_guess, $
-                                /center_guess, $
-                                xoffset=center_offset[0], $
-                                yoffset=center_offset[1], $
-                                max_center_difference=run->epoch('max_center_difference'), $
+                                ; /center_guess, $
+                                ; xoffset=center_offset[0], $
+                                ; yoffset=center_offset[1], $
+                                ; max_center_difference=run->epoch('max_center_difference'), $
                                 log_name='kcor/eod')
 
   return, center_info
@@ -78,9 +78,9 @@ pro kcor_reduce_calibration_write, data, metadata, $
   raw_rcam_centering_info = kcor_reduce_calibration_write_centering(rcam_gain, run=run)
   raw_tcam_centering_info = kcor_reduce_calibration_write_centering(tcam_gain, run=run)
 
-  mg_log, 'Raw RCAM gain, x: %0.2f, y: %0.2f, radius: %0.2f', $
+  mg_log, 'Raw RCAM gain, x: %0.2f, y: %0.2f, radius: %0.3f', $
           raw_rcam_centering_info, name='kcor/eod', /debug
-  mg_log, 'Raw TCAM gain, x: %0.2f, y: %0.2f, radius: %0.2f', $
+  mg_log, 'Raw TCAM gain, x: %0.2f, y: %0.2f, radius: %0.3f', $
           raw_tcam_centering_info, name='kcor/eod', /debug
 
   dc_path = filepath(run->epoch('distortion_correction_filename'), $
@@ -91,9 +91,9 @@ pro kcor_reduce_calibration_write, data, metadata, $
   dc_rcam_centering_info = kcor_reduce_calibration_write_centering(rcam_gain, run=run)
   dc_tcam_centering_info = kcor_reduce_calibration_write_centering(tcam_gain, run=run)
 
-  mg_log, 'Distortion-corrected RCAM gain, x: %0.2f, y: %0.2f, radius: %0.2f', $
+  mg_log, 'Distortion-corrected RCAM gain, x: %0.2f, y: %0.2f, radius: %0.3f', $
           dc_rcam_centering_info, name='kcor/eod', /debug
-  mg_log, 'Distortion-corrected TCAM gain, x: %0.2f, y: %0.2f, radius: %0.2f', $
+  mg_log, 'Distortion-corrected TCAM gain, x: %0.2f, y: %0.2f, radius: %0.3f', $
           dc_tcam_centering_info, name='kcor/eod', /debug
 
   dc_gain = [[[rcam_gain]], [[tcam_gain]]]
@@ -104,6 +104,7 @@ pro kcor_reduce_calibration_write, data, metadata, $
   ncdf_attput, cid, /global, 'title', 'COSMO K-Cor Calibration Data for ' + date
   ncdf_attput, cid, /global, 'epoch_version', run->epoch('cal_epoch_version')
   ncdf_attput, cid, /global, 'flat-date-obs', metadata.flat_date_obs
+  ncdf_attput, cid, /global, 'occulter ID', metadata.occulter_id
 
   version = kcor_find_code_version(revision=revision, date=code_date)
   ncdf_attput, cid, /global, $
@@ -148,6 +149,7 @@ pro kcor_reduce_calibration_write, data, metadata, $
   dimrefvar = ncdf_vardef(cid, 'DIM Reference Voltage', [scalardim], /float)
   dimrefsigmavar = ncdf_vardef(cid, 'DIM Reference Voltage Standard Deviation', $
                                [scalardim], /float)
+  dimocculteridvar = ncdf_vardef(cid, 'Occulter ID', [scalardim], /string)
   dimnumsum = ncdf_vardef(cid, 'numsum', [scalardim], /long)
 
   dimexptime = ncdf_vardef(cid, 'exptime', [scalardim], /float)
@@ -187,6 +189,7 @@ pro kcor_reduce_calibration_write, data, metadata, $
   ncdf_varput, cid, dc_gainvar, dc_gain
   ncdf_varput, cid, dimrefvar, vdimref
   ncdf_varput, cid, dimrefsigmavar, metadata.vdimref_sigma
+  ncdf_varput, cid, dimocculteridvar, metadata.occulter_id
   ncdf_varput, cid, dimnumsum, metadata.numsum
   ncdf_varput, cid, dimexptime, metadata.exptime
   ncdf_varput, cid, lyotstop_var, metadata.lyotstop

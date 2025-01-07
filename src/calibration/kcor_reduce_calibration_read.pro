@@ -121,6 +121,8 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
                                         cam1_badlines
     endif
 
+    occulter_id = strtrim(sxpar(header, 'OCCLTRID', count=n_occulter_id))
+
     darkshut = strtrim(sxpar(header, 'DARKSHUT', count=n_darkshut))
     diffuser = strtrim(sxpar(header, 'DIFFUSER', count=n_diffuser))
     calpol = strtrim(sxpar(header, 'CALPOL', count=n_calpol))
@@ -230,6 +232,7 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
               flat_date_obs: flat_date_obs, $
               vdimref: vdimref, $
               vdimref_sigma: vdimref_sigma, $
+              occulter_id: occulter_id, $
               date: date, $
               file_list: file_list, $
               file_types: file_types, $

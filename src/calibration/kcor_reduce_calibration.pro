@@ -180,6 +180,7 @@ pro kcor_reduce_calibration, date, $
               flat_date_obs : metadata.flat_date_obs, $
               vdimref :       metadata.vdimref, $
               vdimref_sigma : metadata.vdimref_sigma, $
+              occulter_id :   metadata.occulter_id, $
               date :          metadata.date, $
               file_list :     (metadata.file_list)[valid_indices], $
               file_types :    (metadata.file_types)[valid_indices], $

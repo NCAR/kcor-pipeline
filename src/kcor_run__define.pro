@@ -438,7 +438,7 @@ end
 ;+
 ; Set properties.
 ;-
-pro kcor_run::setProperty, time=time, mode=mode
+pro kcor_run::setProperty, time=time, date=date, mode=mode
   compile_opt strictarr
 
   if (n_elements(mode) gt 0L) then begin
@@ -459,6 +459,8 @@ pro kcor_run::setProperty, time=time, mode=mode
       self.epochs->setProperty, datetime=self.date + '.' + hst_time
     endelse
   endif
+
+  if (n_elements(date) gt 0L) then self.date = date
 end
 
 
