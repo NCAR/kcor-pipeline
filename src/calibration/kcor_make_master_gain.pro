@@ -109,9 +109,15 @@ master_gain = mg_nc_getdata(master_gain_filename, 'master_gain')
 stddev_gain = mg_nc_getdata(master_gain_filename, 'stddev_gain')
 n_gain = mg_nc_getdata(master_gain_filename, 'n_gain')
 
-mg_image, bytscl(master_gain), /new, title='Master gain'
-mg_image, bytscl(stddev_gain), /new, title='Std dev of master gain'
-mg_image, bytscl(n_gain), /new, title='Number of images in master gain'
+camera_names = ['RCAM', 'TCAM']
+for c = 0L, n_elements(camera_names) - 1L do begin
+  mg_image, bytscl(master_gain[*, *, c]), $
+            /new, title=string(camera_names[c], format='%s Master gain')
+  mg_image, bytscl(stddev_gain[*, *, c]), $
+            /new, title=string(camera_names[c], format='%s Std dev of master gain')
+  mg_image, bytscl(n_gain[*, *, c]), $
+            /new, title=string(camera_names[c], format='%s Number of images in master gain')
+endfor
 
 obj_destroy, run
 
