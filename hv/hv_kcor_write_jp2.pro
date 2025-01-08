@@ -61,17 +61,17 @@ end
 
 ; main-level example program
 
-date = '20181124'
+date = '20240409'
 
-config_basename = 'kcor.mgalloy.mlsodata.production.cfg'
+config_basename = 'kcor.latest.cfg'
 config_filename = filepath(config_basename, $
-                           subdir=['..', 'config'], $
+                           subdir=['..', '..', 'kcor-config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
 
-basename = '20181124_212325_kcor_l1.5.fts.gz'
+basename = '20240409_174852_kcor_l2_pb.fts.gz'
 filename = filepath(basename, $
-                    subdir=[date, 'level1'], $
+                    subdir=[date, 'level2'], $
                     root=run.raw_basedir)
 
 corona = readfits(filename, header)

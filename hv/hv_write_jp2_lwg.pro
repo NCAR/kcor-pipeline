@@ -229,6 +229,12 @@ pro hv_write_jp2_lwg, file, image, $
       indf3 = where(tagnames eq 'DATE_D$END', ni3)
       if (ni3 eq 1) then tagnames[indf3] = 'DATE-END'
 
+      indf4 = where(tagnames eq 'MJD_D$OBS', ni4)
+      if (ni4 eq 1) then tagnames[indf4] = 'MJD-OBS'
+
+      indf5 = where(tagnames eq 'MJD_D$END', ni5)
+      if (ni5 eq 1) then tagnames[indf5] = 'MJD-END'
+
       xh = '<?xml version="1.0" encoding="UTF-8"?>' + lf
 
       ; Enclose all the FITS keywords in their own container
