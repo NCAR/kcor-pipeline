@@ -21,10 +21,6 @@ function kcor_cal_insert_centering, flat, run=run
 
   center_info = kcor_find_image(flat, $
                                 radius_guess, $
-                                /center_guess, $
-                                xoffset=center_offset[0], $
-                                yoffset=center_offset[1], $
-                                max_center_difference=run->epoch('max_center_difference'), $
                                 log_name='kcor/eod')
 
   return, center_info
@@ -155,6 +151,8 @@ pro kcor_cal_insert, date, fits_list, quality, $
                        start_state=run->epoch('start_state'), $
                        raw_data_prefix=run->epoch('raw_data_prefix'), $
                        datatype=raw_datatype
+
+    image = float(image)
 
     mg_log, 'cover: %s, darkshut: %s, calpol: %s, diffuser: %s', $
             cover, darkshut, calpol, diffuser, $
