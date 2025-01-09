@@ -275,7 +275,12 @@ pro kcor_l1, ok_filename, $
     occltrid = run->epoch('occulter_id')
   endelse
   occulter = kcor_get_occulter_size(occltrid, run=run)  ; arcsec
-  radius_guess = occulter / run->epoch('plate_scale')   ; pixels
+  plate_scale = run->epoch('plate_scale')
+  radius_guess = occulter / plate_scale   ; pixels
+  preferred_plate_scale = run->epoch('preferred_plate_scale')
+  scale_factor = 1.0
+  ; TOOD: at some point we need to do this for #364
+  ; scale_factor = plate_scale / preferred_plate_scale
 
   ; TODO: do this?
   img = float(img)
@@ -341,7 +346,7 @@ pro kcor_l1, ok_filename, $
   theta0 += !pi
 
   ; inside and outside radius for masks
-  r_in  = fix(occulter / run->epoch('plate_scale')) + run->epoch('r_in_offset')
+  r_in  = fix(occulter / plate_scale) + run->epoch('r_in_offset')
   r_out = run->epoch('r_out')
 
   cam0_indices = where(rr0 gt r_in and rr0 lt r_out, n_cam0_fov_pixels)
@@ -660,9 +665,11 @@ pro kcor_l1, ok_filename, $
       u_l1[*, *, c] = cal_data_temp[*, *, c, 1] * cos(2.0 * theta1) $
                         + cal_data_temp[*, *, c, 2] * sin(2.0 * theta1)
       u_l1[*, *, c] = rot(u_l1[*, *, c], $
-                          pangle + run->epoch('rotation_correction'), 1, /interp)
+                          pangle + run->epoch('rotation_correction'), $
+                          scale_factor, /interp)
       nomask_intensity = rot(cal_data_temp[*, *, c, 0], $
-                             pangle + run->epoch('rotation_correction'), 1, /interp)
+                             pangle + run->epoch('rotation_correction'), $
+                             scale_factor, /interp)
 
       inflection_points = c eq 0L ? cam0_inflection_points : cam1_inflection_points
 
@@ -780,9 +787,15 @@ pro kcor_l1, ok_filename, $
   endelse
 
   ; rotate solar North up with small correction for spar alignment
-  sky_polarization = rot(sky_polarization, pangle + run->epoch('rotation_correction'), 1, /interp)
-  corona_plus_sky = rot(corona_plus_sky, pangle + run->epoch('rotation_correction'), 1, /interp)
-  intensity = rot(intensity, pangle + run->epoch('rotation_correction'), 1, $
+  sky_polarization = rot(sky_polarization, $
+                         pangle + run->epoch('rotation_correction'), $
+                         scale_factor, /interp)
+  corona_plus_sky = rot(corona_plus_sky, $
+                        pangle + run->epoch('rotation_correction'), $
+                        scale_factor, /interp)
+  intensity = rot(intensity, $
+                  pangle + run->epoch('rotation_correction'), $
+                  scale_factor, $
                   /interp)
 
   ; output array for FITS data
@@ -798,36 +811,21 @@ pro kcor_l1, ok_filename, $
 
   ; distortion corrected flats
   rcam_gain = reform(gain_alfred[*, *, 0])
+  rcam_gain  = reverse(rcam_gain, 2)
   tcam_gain = reform(gain_alfred[*, *, 1])
   kcor_apply_dist, rcam_gain, tcam_gain, dx1_c, dy1_c, dx2_c, dy2_c
-  info_dc_gain0 = kcor_find_image(rcam_gain, radius_guess, $
-                                  /center_guess, $
-                                  xoffset=center_offset[0], yoffset=center_offset[1], $
-                                  max_center_difference=run->epoch('max_center_difference'), $
-                                  log_name=log_name)
-  info_dc_gain1 = kcor_find_image(tcam_gain, radius_guess, $
-                                  /center_guess, $
-                                  xoffset=center_offset[0], yoffset=center_offset[1], $
-                                  max_center_difference=run->epoch('max_center_difference'), $
-                                  log_name=log_name)
+  info_dc_gain0 = kcor_find_image(rcam_gain, radius_guess, log_name=log_name)
+  info_dc_gain1 = kcor_find_image(tcam_gain, radius_guess, log_name=log_name)
 
   ; unflat-corrected, but distortion corrected intensity
   kcor_apply_dist, rcam_ungain_i, tcam_ungain_i, dx1_c, dy1_c, dx2_c, dy2_c
-  info_dc_ungain0 = kcor_find_image(rcam_ungain_i, radius_guess, $
-                                    /center_guess, $
-                                    xoffset=center_offset[0], yoffset=center_offset[1], $
-                                    max_center_difference=run->epoch('max_center_difference'), $
-                                    log_name=log_name)
-  info_dc_ungain1 = kcor_find_image(tcam_ungain_i, radius_guess, $
-                                    /center_guess, $
-                                    xoffset=center_offset[0], yoffset=center_offset[1], $
-                                    max_center_difference=run->epoch('max_center_difference'), $
-                                    log_name=log_name)
+  info_dc_ungain0 = kcor_find_image(rcam_ungain_i, radius_guess, log_name=log_name)
+  info_dc_ungain1 = kcor_find_image(tcam_ungain_i, radius_guess, log_name=log_name)
 
-  mg_log, 'RCAM radii sci: %0.2f, dc gain: %0.2f, dc ungain cor sci: %0.2f', $
+  mg_log, 'RCAM radii sci: %0.3f, dc gain: %0.3f, dc ungain cor sci: %0.3f', $
           info_dc0[2], info_dc_gain0[2], info_dc_ungain0[2], $
           name=log_name, /debug
-  mg_log, 'TCAM radii sci: %0.2f, dc gain: %0.2f, dc ungain cor sci: %0.2f', $
+  mg_log, 'TCAM radii sci: %0.3f, dc gain: %0.3f, dc ungain cor sci: %0.3f', $
           info_dc1[2], info_dc_gain1[2], info_dc_ungain1[2], $
           name=log_name, /debug
 
@@ -1021,7 +1019,7 @@ pro kcor_l1, ok_filename, $
             format='(f9.2)'
   fxaddpar, l1_header, 'CRVAL1', 0.00, ' [arcsec] solar X sun center', $
             format='(f9.2)'
-  fxaddpar, l1_header, 'CDELT1', run->epoch('plate_scale'), $
+  fxaddpar, l1_header, 'CDELT1', preferred_plate_scale, $
             ' [arcsec/pixel] solar X increment = platescale', $
             format='(f9.4)'
   fxaddpar, l1_header, 'CUNIT1', 'arcsec', ' unit of CRVAL1'
@@ -1032,7 +1030,7 @@ pro kcor_l1, ok_filename, $
             format='(f9.2)'
   fxaddpar, l1_header, 'CRVAL2', 0.00, ' [arcsec] solar Y sun center', $
             format='(f9.2)'
-  fxaddpar, l1_header, 'CDELT2', run->epoch('plate_scale'), $
+  fxaddpar, l1_header, 'CDELT2', preferred_plate_scale, $
             ' [arcsec/pixel] solar Y increment = platescale', $
             format='(f9.4)'
   fxaddpar, l1_header, 'CUNIT2', 'arcsec', ' unit of CRVAL2'
@@ -1213,7 +1211,7 @@ pro kcor_l1, ok_filename, $
   fxaddpar, l1_header, 'RSUN', radsun, $
             ' [arcsec] solar radius (old standard keyword)', $
             format='(f8.2)'
-  fxaddpar, l1_header, 'R_SUN', radsun / run->epoch('plate_scale'), $
+  fxaddpar, l1_header, 'R_SUN', radsun / preferred_plate_scale, $
             ' [pixel] solar radius', format = '(f9.2)'
   fxaddpar, l1_header, 'SOLAR_P0', pangle, $
             ' [deg] solar P angle applied (image has N up)', format='(f9.3)'
