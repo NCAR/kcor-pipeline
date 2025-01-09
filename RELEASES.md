@@ -1211,3 +1211,5 @@
 - copy only good/pass difference images to the archive
 
 #### 2.1.26
+
+- fix for bug creating malformed HelioViewer JPEG2000 files
