@@ -1213,3 +1213,5 @@
 #### 2.1.26 [Jan 10, 2025]
 
 - fix for bug creating malformed HelioViewer JPEG2000 files
+
+#### 2.1.27
