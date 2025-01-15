@@ -110,14 +110,14 @@ pro kcor_create_animations, date, timestamps=timestamps, run=run
                                run=run
 
   cropped_nrgf_gif_filenames = timestamps + '_kcor_l2_nrgf_avg_cropped.gif'
-  cropped_nrgf_daily_basename = string(date, format='(%"%s_kcor_l2_nrgf_avg_cropped.gif")')
+  cropped_nrgf_daily_basename = string(date, format='(%"%s_kcor_l2_nrgf_avg_cropped")')
   kcor_create_animations_type, cropped_nrgf_gif_filenames, $
                                cropped_nrgf_daily_basename, $
                                cropped_dir, 'cropped avg NRGF', $
                                run=run
 
   enhanced_cropped_nrgf_gif_filenames = timestamps + '_kcor_l2_nrgf_avg_cropped_enhanced.gif'
-  enhanced_cropped_nrgf_daily_basename = string(date, format='(%"%s_kcor_l2_nrgf_avg_cropped_enhanced.gif")')
+  enhanced_cropped_nrgf_daily_basename = string(date, format='(%"%s_kcor_l2_nrgf_avg_cropped_enhanced")')
   kcor_create_animations_type, enhanced_cropped_nrgf_gif_filenames, $
                                enhanced_cropped_nrgf_daily_basename, $
                                cropped_dir, 'cropped enhanced avg NRGF', $
