@@ -198,7 +198,7 @@ pro kcor_img_insert, date, fits_list, $
                                     producttype, $
                                     status=status)
     if (status ne 0L) then continue
-    producttype_num = producttype_results.producttype_id	
+    producttype_num = producttype_results.producttype_id
 
     level_num = kcor_get_level_id(level, database=db, count=level_found)
     if (level_found eq 0) then mg_log, 'using unknown level', name=log_name, /error
