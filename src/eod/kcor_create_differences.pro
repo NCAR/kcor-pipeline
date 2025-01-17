@@ -478,13 +478,17 @@ pro kcor_create_differences, date, l2_files, run=run
   endwhile
 
   n_all_difference_files = difference_files->count()
-  all_difference_filenames = difference_files->toarray()
-  ok_difference_indices = where(strpos(all_difference_filenames, 'good') ge 0 $
-                                  or strpos(all_difference_filenames, 'pass') ge 0, $
-                                n_ok_difference_files, /null)
-  ok_difference_filenames = all_difference_filenames[ok_difference_indices]
+  if (n_all_difference_files gt 0L) then begin
+    all_difference_filenames = difference_files->toarray()
+    ok_difference_indices = where(strpos(all_difference_filenames, 'good') ge 0 $
+                                    or strpos(all_difference_filenames, 'pass') ge 0, $
+                                  n_ok_difference_files, /null)
+    ok_difference_filenames = all_difference_filenames[ok_difference_indices]
+  endif
 
-  if (run->config('database/update') && n_ok_difference_files gt 0L) then begin
+  if (run->config('database/update') $
+        && n_all_difference_files gt 0L $
+        && n_ok_difference_files gt 0L) then begin
     obsday_index = mlso_obsday_insert(date, $
                                       run=run, $
                                       database=db, $
