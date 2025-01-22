@@ -27,7 +27,7 @@ pro kcor_make_master_gain, cal_epoch, run=run
   ny = 1024L
   n_cameras = 2L
 
-  over_occulting_offset = 0.0
+  over_occulting_offset = 1.0
 
   cal_epoch_gains = fltarr(nx, ny, n_cameras, n_cal_files)
 
@@ -59,7 +59,7 @@ pro kcor_make_master_gain, cal_epoch, run=run
       y = rebin(reform(findgen(ny), 1, ny), nx, ny) - info_cam[1]
       r = sqrt(x^2 + y^2)
 
-      occulter_indices = where(r lt info_cam[2] + over_occulting_offset, /null)
+      occulter_indices = where(r lt (info_cam[2] + over_occulting_offset), /null)
 
       cam[occulter_indices] = !values.f_nan
       cal_epoch_gains[*, *, c, f] = cam
