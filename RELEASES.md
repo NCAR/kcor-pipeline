@@ -1214,4 +1214,8 @@
 
 - fix for bug creating malformed HelioViewer JPEG2000 files
 
-#### 2.1.27
+#### 2.2.0 [Jan 27, 2025]
+
+- epoch file changes
+- add NRGF+diff GIFs and mp4 to kcor_img database table
+- do not produce cal files from too long cal sequences
