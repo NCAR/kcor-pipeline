@@ -127,11 +127,13 @@ pro kcor_reduce_calibration, date, $
   ; threshold
   cal_maxtime = run->epoch('cal_maxtime')   ; seconds
   if (time_length gt cal_maxtime) then begin
-    mg_log, 'cal sequence too long (%0.1f minutes)', time_length * 60.0, $
+    mg_log, 'cal sequence too long (%0.1f minutes)', time_length / 60.0, $
             name='kcor/cal', /error
     status = 2
     goto, done
-  endif
+  endif else begin
+    mg_log, 'cal sequence: %0.1f min', time_length / 60.0, name='kcor/cal', /info
+  endelse
 
   ; check polarization state sequence on 0 deg (180 deg is equivalent to 0 deg)
   ; calibration image

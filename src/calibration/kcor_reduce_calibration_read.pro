@@ -223,14 +223,15 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
     mg_log, 'insufficient calibration positions', name='kcor/cal', /error
     return
   endelse
-  
+
   last_date_obs = run.time
 
   ; set time for epochs for the rest of the calibration sequence to be the start
   ; of the calibration sequence
   run.time = original_date_obs
 
-  length_jd = kcor_dateobs2julian(last_date_obs) - kcor_dateobs2julian(original_date_obs)
+  ; convert HST to UT
+  length_jd = last_date_obs->to_julian() + 10.0 / 24.0 - kcor_dateobs2julian(original_date_obs)
   time_length = length_jd * 24.0 * 60.0 * 60.0
 
   data = {dark:dark, gain:gain, calibration:calibration}
