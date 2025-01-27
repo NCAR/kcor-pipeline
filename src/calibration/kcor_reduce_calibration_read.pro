@@ -19,7 +19,9 @@
 ;     `kcor_run` object; `config_filename` or `run` is required
 ;-
 pro kcor_reduce_calibration_read, file_list, basedir, $
-                                  data=data, metadata=metadata, run=run
+                                  data=data, metadata=metadata, $
+                                  time_length=time_length, $
+                                  run=run
   compile_opt strictarr
 
   filenames = filepath(file_list, root=basedir)
@@ -222,9 +224,14 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
     return
   endelse
   
+  last_date_obs = run.time
+
   ; set time for epochs for the rest of the calibration sequence to be the start
   ; of the calibration sequence
   run.time = original_date_obs
+
+  length_jd = kcor_dateobs2julian(last_date_obs) - kcor_dateobs2julian(original_date_obs)
+  time_length = length_jd * 24.0 * 60.0 * 60.0
 
   data = {dark:dark, gain:gain, calibration:calibration}
   metadata = {angles: angles, $

@@ -114,11 +114,22 @@ pro kcor_reduce_calibration, date, $
   mg_log, 'reading data (%d files)...', n_elements(file_list), name='kcor/cal', /info
   kcor_reduce_calibration_read, file_list, _catalog_dir, $
                                 data=data, metadata=metadata, $
+                                time_length=time_length, $
                                 run=run
 
   if (n_elements(data) eq 0L) then begin
     mg_log, 'incomplete cal data, exiting', name='kcor/cal', /error
     status = 1
+    goto, done
+  endif
+
+  ; produce error if time between first and last cal file is greater than
+  ; threshold
+  cal_maxtime = run->epoch('cal_maxtime')   ; seconds
+  if (time_length gt cal_maxtime) then begin
+    mg_log, 'cal sequence too long (%0.1f minutes)', time_length * 60.0, $
+            name='kcor/cal', /error
+    status = 2
     goto, done
   endif
 
