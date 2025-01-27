@@ -1219,3 +1219,5 @@
 - epoch file changes
 - add NRGF+diff GIFs and mp4 to kcor_img database table
 - do not produce cal files from too long cal sequences
+
+#### 2.2.1
