@@ -118,7 +118,7 @@ pro kcor_reduce_calibration, date, $
                                 run=run
 
   if (n_elements(data) eq 0L) then begin
-    mg_log, 'incomplete cal data, exiting', name='kcor/cal', /error
+    mg_log, 'incomplete cal data', name='kcor/cal', /error
     status = 1
     goto, done
   endif
@@ -154,7 +154,7 @@ pro kcor_reduce_calibration, date, $
       endelse
     endfor
   endif else begin
-    mg_log, 'no 0 degree calibration data, exiting', name='kcor/cal', /error
+    mg_log, 'no 0 degree calibration data', name='kcor/cal', /error
     status = 1
     goto, done
   endelse

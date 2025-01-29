@@ -39,7 +39,7 @@ pro kcor_catalog, date, list=list, run=run, catalog_dir=catalog_dir
   endelse
 
   if (~file_test(catalog_dir, /directory)) then begin
-    mg_log, 'raw directory does not exist', name='kcor/eod', /warn
+    mg_log, 'raw directory does not exist', name='kcor/eod', /error
     goto, done
   endif
 
