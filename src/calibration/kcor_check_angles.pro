@@ -1,29 +1,6 @@
 ; docformat = 'rst'
 
 ;+
-; Find positive distance between `angle` and `angles` mod 180.0, i.e., so the
-; distance between 179.98 and 0.0 should be 0.02.
-;
-; :Returns:
-;   `fltarr` of distances
-;
-; :Params:
-;   angle : in, required, type=float
-;     angle to test
-;   angles : in, required, type=fltarr
-;     array of angles to test against
-;-
-function kcor_check_angles_mod, angle, angles
-  compile_opt strictarr
-
-  ; instead of just mod, get a number between 0.0 and 180.0 and then choose
-  ; closest, 0.0 or 180.0
-  diff = abs(angle - angles) mod 180.0
-  return, diff < abs(diff - 180)
-end
-
-
-;+
 ; Determine if all of the required angles are present in the given angles (mod
 ; 180 degrees) to a given tolerance. Optionally, determine the allowable angles
 ; in the given angles, i.e., the ones that are in the set of required or
@@ -59,7 +36,7 @@ function kcor_check_angles, required_angles, optional_angles, $
   mask = bytarr(n_angles)
 
   for a = 0L, n_elements(required_angles) - 1L do begin
-    valid_angles = kcor_check_angles_mod(required_angles[a], angles) lt _tolerance
+    valid_angles = kcor_angles_mod(required_angles[a], angles) lt _tolerance
     !null = where(valid_angles, n_valid_angles)
     if (n_valid_angles eq 0L) then begin
       mg_log, 'missing required angle %0.2f in pol files', $
@@ -70,8 +47,10 @@ function kcor_check_angles, required_angles, optional_angles, $
   endfor
 
   for a = 0L, n_angles - 1L do begin
-    !null = where(kcor_check_angles_mod(angles[a], optional_angles) lt _tolerance, n_optional_angles)
-    !null = where(kcor_check_angles_mod(angles[a], required_angles) lt _tolerance, n_required_angles)
+    if (n_elements(optional_angles) gt 0L) then begin
+      !null = where(kcor_angles_mod(angles[a], optional_angles) lt _tolerance, n_optional_angles)
+    endif else n_optional_angles = 0L
+    !null = where(kcor_angles_mod(angles[a], required_angles) lt _tolerance, n_required_angles)
     mask[a] = (n_optional_angles gt 0L) || (n_required_angles gt 0L)
     if ((n_optional_angles eq 0L) && (n_required_angles eq 0L)) then begin
       mg_log, 'cal angle %0.2f not required or optional, removing...', $
