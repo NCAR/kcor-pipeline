@@ -143,13 +143,16 @@ pro kcor_reduce_calibration, date, $
       test_image = data.calibration[*, *, *, *, zero_indices[i]]
       valid = kcor_check_calibration(test_image, start_state=start_state)
       if (~valid) then begin
-        mg_log, 'bad polarization start state', name='kcor/cal', /error
+        mg_log, 'bad polarization start state for %s', $
+                file_basename(metadata.file_list[zero_indices[i]]), $
+                name='kcor/cal', /error
         mg_log, 'recommended start_state: [%d, %d]', $
                 start_state[0], start_state[1], name='kcor/cal', /error
         status = 3
         goto, done
       endif else begin
-        mg_log, 'valid start state for %d/%d', i + 1, n_zero_degree, $
+        mg_log, 'valid start state for %d/%d (%s)', $
+                i + 1, n_zero_degree, file_basename(metadata.file_list[zero_indices[i]]), $
                 name='kcor/cal', /debug
       endelse
     endfor
