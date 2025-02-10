@@ -70,7 +70,7 @@ pro kcor_l1, ok_filename, $
                     strmid(dt, 9, 2), $
                     strmid(dt, 11, 2), $
                     strmid(dt, 13, 2), $
-                    format='(%"%s-%s-%sT%s-%s-%s")')
+                    format='(%"%s-%s-%sT%s:%s:%s")')
   start_state = run->epoch('start_state')
   mg_log, 'start_state: [%d, %d]', start_state, name=log_name, /debug
 
@@ -969,9 +969,9 @@ pro kcor_l1, ok_filename, $
   fxaddpar, l1_header, 'CALPOL',   strtrim(struct.calpol), $
             ' calibration polarizer in or out of beam'
   fxaddpar, l1_header, 'CALPANG',  struct.calpang, $
-            ' calibration polarizer angle', format='(f9.3)'
+            ' calibration polarizer angle', format='(f9.2)'
   exposure = run->epoch('use_exptime') ? struct.exptime : run->epoch('exptime')
-  fxaddpar, l1_header, 'EXPTIME',  exposure * 1.e-3, $
+  fxaddpar, l1_header, 'EXPTIME',  exposure * 1.0e-3, $
             ' [s] exposure time for each frame', format='(f10.6)'
   numsum = run->epoch('use_numsum') ? struct.numsum : run->epoch('numsum')
   fxaddpar, l1_header, 'NUMSUM', numsum, $

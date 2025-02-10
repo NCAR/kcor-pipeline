@@ -72,7 +72,7 @@ pro kcor_catalog_file, filename, run=run
     printf, calibration_lun, $
             file_basename(filename), exposure, start_state, datatype, darkshut, diffuser, $
             calpol, calpang, $
-            format='(a, 3x, f10.4, 2x, "ms", 2x, "start state: ", I0.0, x, I0.0, 2x, "Data: ", a, 3x, "Dark: ", a, 3x, "Diff: ", a, 3x, "Cal: ", a, 3x, "Ang: ", f6.1, "  means: ", $)'
+            format='(a, 3x, f10.4, 2x, "ms", 2x, "start state: ", I0.0, x, I0.0, 2x, "Data: ", a, 3x, "Dark: ", a, 3x, "Diff: ", a, 3x, "Cal: ", a, 3x, "Ang: ", f6.2, "  means: ", $)'
 
     ; print a measure of every image in the cube
     kcor_read_rawdata, filename, image=image, $
