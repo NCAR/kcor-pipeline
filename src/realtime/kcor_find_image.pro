@@ -138,12 +138,15 @@ function kcor_find_image, data, radius_guess, $
     ycen_guess = ycen
   endelse
 
-  if (debug eq 1) then begin 
+  if (debug eq 1) then begin
+    device, get_decomposed=odec
+    device, decomposed=0
     loadct, 0
     tv, bytscl(data, 0, datamax)
     loadct, 39
     draw_circle, xcen_guess, ycen_guess, radius_guess, /device, color=50, thick=2
     wait, 1
+    device, decomposed=odec
   endif
 
   ; find limb positions, array of angles (theta) and limb positions (cent) 
@@ -151,13 +154,10 @@ function kcor_find_image, data, radius_guess, $
   kcor_radial_der, data, xcen_guess, ycen_guess, radius_guess, drad, theta, cent
 
   ; find circle that fits the inflection points
-  x = cent * cos(theta)
-  y = cent * sin(theta)
+  x = transpose(cent * cos(theta))
+  y = transpose(cent * sin(theta))
 
-  center_info = kcor_circfit(theta, cent, chisq=chisq, error=error)
-  xc = center_info[0]
-  yc = center_info[1]
-  r = center_info[2]
+  fitcircle, x, y, xc, yc, r
 
   x += xcen_guess + xc
   y += ycen_guess + yc
@@ -194,6 +194,8 @@ function kcor_find_image, data, radius_guess, $
   a = [xcen_guess + xc, ycen_guess + yc, r]
 
   if (debug eq 1) then begin
+    device, get_decomposed=odec
+    device, decomposed=0
     loadct, 0
     tv, bytscl(data, 0, datamax)
     loadct, 39
@@ -201,6 +203,7 @@ function kcor_find_image, data, radius_guess, $
     print, xcen_guess, ycen_guess, radius_guess
     print, xc, yc, r
     print, a 
+    device, decomposed=odec
   endif
 
   if (arg_present(offset_xyr)) then begin
