@@ -80,7 +80,7 @@ pro kcor_radial_der, data, xcen, ycen, radius, dr, theta, cent, $
 
     ; xx and yy are x and y coords to interpolate onto for radial scan
     xx = dindgen(nvals) * dx + x1
-    yy = dindgen(nvals) * dy +y1
+    yy = dindgen(nvals) * dy + y1
 
     ; if debug eq 1 then plots, xx, yy, color=200, /device
 
