@@ -170,14 +170,10 @@ function kcor_find_image, data, radius_guess, $
     mg_log, 'center not found, trying larger range', name=log_name, /warn
     drad = 52
     kcor_radial_der, data, xcen_guess, ycen_guess, radius_guess, drad, theta, cent
-    x = cent * cos(theta)
-    y = cent * sin(theta)
+    x = transpose(cent * cos(theta))
+    y = transpose(cent * sin(theta))
 
-    ; fitcircle, x, y, xc, yc, r
-    center_info = kcor_circfit(theta, cent, chisq=chisq, error=error)
-    xc = center_info[0]
-    yc = center_info[1]
-    r = center_info[2]
+    fitcircle, x, y, xc, yc, r
 
     x += xcen_guess + xc
     y += ycen_guess + yc
