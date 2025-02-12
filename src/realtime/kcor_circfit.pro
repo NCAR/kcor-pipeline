@@ -1,5 +1,8 @@
 ; docformat = 'rst'
 
+; NOTE: there seems to be an offset in this routine that causes it to find a
+; poor center for older data.
+
 ;+
 ; Model for `KCOR_CIRCFIT` call.
 ;
