@@ -1220,4 +1220,8 @@
 - add NRGF+diff GIFs and mp4 to kcor_img database table
 - do not produce cal files from too long cal sequences
 
-#### 2.2.1
+#### 2.2.1 [Feb 26, 2025]
+
+- epoch file changes for removing bad cal files
+- change back to FITCIRCLE
+- bug fixes for checking for valid cal pol angles
