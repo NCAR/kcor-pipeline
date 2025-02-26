@@ -1225,3 +1225,5 @@
 - epoch file changes for removing bad cal files
 - change back to FITCIRCLE
 - bug fixes for checking for valid cal pol angles
+
+#### 2.2.2
