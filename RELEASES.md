@@ -1227,3 +1227,5 @@
 - bug fixes for checking for valid cal pol angles
 
 #### 2.2.2
+
+- epoch file changes for removing bad cal files
