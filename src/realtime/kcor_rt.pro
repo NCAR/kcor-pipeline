@@ -51,6 +51,12 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
           name='kcor/rt', /debug
   mg_log, 'starting realtime processing for %s', date, name='kcor/rt', /info
 
+  allow_reprocess = run->epoch('reprocess')
+  if (~allow_reprocess) then begin
+    mg_log, 'marked as "do not reprocess", skipping', name='kcor/reprocess', /warn
+    goto, done
+  endif
+
   raw_dir = filepath('', subdir=date, root=run->config('processing/raw_basedir'))
   if (~file_test(raw_dir, /directory)) then file_mkdir, raw_dir
 
