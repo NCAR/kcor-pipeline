@@ -25,6 +25,13 @@ pro kcor_reprocess, date, run=run, error=error
     goto, done
   endif
 
+  reprocess = run->epoch('reprocess')
+  if (~reprocess) then begin
+    mg_log, 'marked as "do not reprocess", skipping', name='kcor/reprocess', /warn
+    error = 1L
+    goto, done
+  endif
+
   case 1 of
     run->config('realtime/reprocess'): begin
         mg_log, 'prepping for reprocessing', name='kcor/reprocess', /info

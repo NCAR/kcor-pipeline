@@ -55,6 +55,13 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
           name='kcor/eod', /debug
   mg_log, 'starting end-of-day processing for %s', date, name='kcor/eod', /info
 
+  reprocess = run->epoch('reprocess')
+  if (~reprocess) then begin
+    mg_log, 'marked as "do not reprocess", skipping', name='kcor/reprocess', /warn
+    error = 1L
+    goto, done
+  endif
+
   date_dir = filepath(date, root=run->config('processing/raw_basedir'))
   if (~file_test(date_dir, /directory)) then begin
     mg_log, '%s does not exist, creating...', date_dir, name='kcor/eod', /error
