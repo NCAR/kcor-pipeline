@@ -30,5 +30,10 @@ ${IDL} -quiet \
     -e "kcor_rt, '${DATE}', config_filename='${CONFIG}'" \
     2>&1 | tail -n +3
 
-${IDL} -quiet -IDL_QUIET 1 -IDL_STARTUP "" -IDL_PATH ${KCOR_PATH} -IDL_DLM_PATH ${KCOR_DLM_PATH} -e "kcor_eod, '${DATE}', config_filename='${CONFIG}'" \
+${IDL} -quiet \
+    -IDL_QUIET 1 \
+    -IDL_STARTUP "" \
+    -IDL_PATH ${KCOR_PATH} \
+    -IDL_DLM_PATH ${KCOR_DLM_PATH} \
+    -e "kcor_eod, '${DATE}', config_filename='${CONFIG}'" \
     2>&1 | tail -n +3
