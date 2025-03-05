@@ -128,7 +128,7 @@ pro kcor_img_insert, date, fits_list, $
     endelse
 
     ; extract desired items from header
-    hdu   = headfits(fts_file, /silent)   ; read FITS header
+    hdu        = headfits(fts_file, /silent)   ; read FITS header
     date_obs   = sxpar(hdu, 'DATE-OBS', count=qdate_obs)
     date_end   = sxpar(hdu, 'DATE-END', count=qdate_end)
 
