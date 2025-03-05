@@ -1229,3 +1229,5 @@
 #### 2.2.2
 
 - epoch file changes for removing bad cal files
+- adding ephemeris and distortion corrected occulter coordinates to database
+- add ability to specify dates to not reprocess with epoch file
