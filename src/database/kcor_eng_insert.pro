@@ -102,14 +102,21 @@ pro kcor_eng_insert, date, fits_list, $
     date_obs = kcor_normalize_datetime(date_obs)
     run.time = date_obs
 
+    jd = kcor_dateobs2julian(date_obs)
+    ephem2, jd, sol_ra, sol_dec, b0, p, semi_diam, gmst_sidereal_time, $
+            dist_au, xsun, ysun, zsun
+    sec_z = mlso_secant_z(jd, $
+                          sidereal_time=sidereal_time, $
+                          hour_angle=hour_angle)
+
     rcamfocs     = sxpar(hdu, 'RCAMFOCS', count=qrcamfocs)
     rcamfocs_str = strtrim(rcamfocs, 2)
     if (rcamfocs_str eq 'NaN') then rcamfocs = -99.99
-		
+
     tcamfocs     = sxpar(hdu, 'TCAMFOCS', count=qtcamfocs)
     tcamfocs_str = strtrim(tcamfocs, 2)
     if (tcamfocs_str eq 'NaN') then tcamfocs = -99.99
-		
+
     modltrt     = sxpar(hdu, 'MODLTRT', count=qmodltrt)
     o1focs      = sxpar(hdu, 'O1FOCS', count=q01focs)
     if (run->epoch('use_sgs')) then begin
@@ -119,7 +126,7 @@ pro kcor_eng_insert, date, fits_list, $
       sgsdimv_str = 'NULL'
       sgsdims_str = 'NULL'
     endelse
-		
+
     level       = strtrim(sxpar(hdu, 'LEVEL', count=qlevel), 2)
 
     ; TODO: Older NRGF headers have 'NRGF' appended to level string, but newer headers
@@ -178,6 +185,12 @@ pro kcor_eng_insert, date, fits_list, $
     fields = [{name: 'file_name', type: '''%s'''}, $
               {name: 'date_obs', type: '''%s'''}, $
               {name: 'obs_day', type: '%d'}, $
+              {name: 'hour_angle', type: '%f'}, $
+              {name: 'sec_z', type: '%f'}, $
+              {name: 'sidereal_time', type: '%f'}, $
+              {name: 'sol_dec', type: '%f'}, $
+              {name: 'sol_ra', type: '%f'}, $
+              {name: 'dist_au', type: '%f'}, $
               {name: 'rcamfocs', type: '%s'}, $
               {name: 'tcamfocs', type: '%s'}, $
               {name: 'modltrt', type: '%s'}, $
@@ -218,6 +231,7 @@ pro kcor_eng_insert, date, fits_list, $
                  fits_file, $
                  date_obs, $
                  obsday_index, $
+                 hour_angle, sec_z, sidereal_time, sol_dec, sol_ra, dist_au, $
                  kcor_fitsfloat2db(rcamfocs), $
                  kcor_fitsfloat2db(tcamfocs), $
                  kcor_fitsfloat2db(modltrt), $

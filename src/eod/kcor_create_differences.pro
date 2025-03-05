@@ -108,6 +108,7 @@ pro kcor_create_differences, date, l2_files, run=run
     ; 0: background images
     ; 1: foreground images
     difference_times = strarr(2, n_images_to_average)
+    difference_datetimes = strarr(2, n_images_to_average)
 
     ; read in up to n_images_to_average images, get time, and average if
     ; images <= avginterval sec apart
@@ -170,7 +171,11 @@ pro kcor_create_differences, date, l2_files, run=run
         avgimgmnt0 = mnt
         avgimgsec0 = sec
         savefilename = l2_file
+
         difference_times[0, i] = string(hr, mnt, sec, format='%02d:%02d:%02d')
+        difference_datetimes[0, i] = string(year, month, day, hour, minute, second, $
+                                            format='%04d-%02d-%02dT%02d:%02d:%02d')
+
         mg_log, '[1] saving image at %s in difference_times[0, %d] ', $
                 string(hr, mnt, sec, format='%02d:%02d:%02d'), i, $
                 name='kcor/eod', /debug
@@ -192,6 +197,10 @@ pro kcor_create_differences, date, l2_files, run=run
         if (difftime le avginterval) then begin
           aveimg += imgsave[*, *, i]
           if (i eq 1) then begin
+            avgimgyr1 = yr
+            avgimgmon1 = mon
+            avgimgdy1 = dy
+
             avgimghr1 = hr
             avgimgmnt1 = mnt
             avgimgsec1 = sec
@@ -200,6 +209,8 @@ pro kcor_create_differences, date, l2_files, run=run
           goodheader = header ; save header in case next image is > avginterval sec in time
           t = string(hr, mnt, sec, format='%s:%s:%s')
           difference_times[0, i] = t
+          difference_datetimes[0, i] = string(year, month, day, hour, minute, second, $
+                                              format='%04d-%02d-%02dT%02d:%02d:%02d')
           mg_log, '[3] saving image at %s in difference_times[0, %d]', t, i, $
                   name='kcor/eod', /debug
           numavg += 1
@@ -303,6 +314,7 @@ pro kcor_create_differences, date, l2_files, run=run
           newbkdtime0 = date_julian[i] ; save current time as the new time of bkd image 
           newfiletime0 = imgtime[i]
           difference_times[1, i] = kcor_jd2time(bkdtime[i, j])
+          difference_datetimes[1, i] = kcor_jd2time(bkdtime[i, j], /datetime)
         endif
       endfor
     endif
@@ -436,9 +448,9 @@ pro kcor_create_differences, date, l2_files, run=run
       gif_basename = string(name, timestring, status, format='(%"%s_minus_%s_%s.gif")')
       write_gif, gif_basename, save
 
-      sxaddpar, goodheader, 'DATE-OBS', difference_times[1, 0]
+      sxaddpar, goodheader, 'DATE-OBS', difference_datetimes[1, 0]
       indices = where(difference_times[0, *] ne '', /null)
-      sxaddpar, goodheader, 'DATE-END', difference_times[0, indices[-1]]
+      sxaddpar, goodheader, 'DATE-END', difference_datetimes[0, indices[-1]]
       sxaddpar, goodheader, 'PRODUCT', 'level 2 pB subtraction', $
                 ' difference of two level 2 pB images', $
                 after='OBJECT'
@@ -474,6 +486,9 @@ pro kcor_create_differences, date, l2_files, run=run
         avgimgsec0 = avgimgsec1
         difference_times[0, i] = string(avgimghr1, avgimgmnt1, avgimgsec1, $
                                         format='%02d:%02d:%02d')
+        difference_datetimes[0, i] = string(avgimgyr1, avgimgmon1, avgimgdy1, $
+                                            avgimghr1, avgimgmnt1, avgimgsec1, $
+                                            format='%04d-%02d-%02dT%02d:%02d:%02d')
       endif
 
       newsub = 0
