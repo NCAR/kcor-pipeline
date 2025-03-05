@@ -145,6 +145,10 @@ pro kcor_eng_insert, date, fits_list, $
     tcamycen         =         sxpar(hdu, 'TCAMYCEN', count=qtcamycen)
     rcam_rad         =         sxpar(hdu, 'RCAM_RAD', count=qrcamrad)
     tcam_rad         =         sxpar(hdu, 'TCAM_RAD', count=qtcamrad)
+    rcam_dcx         =         sxpar(hdu, 'RCAM_DCX', count=qrcamdcx)
+    rcam_dcy         =         sxpar(hdu, 'RCAM_DCY', count=qrcamdcy)
+    tcam_dcx         =         sxpar(hdu, 'TCAM_DCX', count=qtcamdcx)
+    tcam_dcy         =         sxpar(hdu, 'TCAM_DCY', count=qtcamdcy)
     rcam_dcr         =         sxpar(hdu, 'RCAM_DCR', count=qrcamdcr)
     tcam_dcr         =         sxpar(hdu, 'TCAM_DCR', count=qtcamdcr)
     image_scale      =         sxpar(hdu, 'IMAGESCL', count=qimagescl)
@@ -207,7 +211,11 @@ pro kcor_eng_insert, date, fits_list, $
               {name: 'tcamycen', type: '%s'}, $
               {name: 'rcam_rad', type: '%s'}, $
               {name: 'tcam_rad', type: '%s'}, $
+              {name: 'rcam_dcx', type: '%s'}, $
+              {name: 'rcam_dcy', type: '%s'}, $
               {name: 'rcam_dcr', type: '%s'}, $
+              {name: 'tcam_dcx', type: '%s'}, $
+              {name: 'tcam_dcy', type: '%s'}, $
               {name: 'tcam_dcr', type: '%s'}, $
               {name: 'image_scale', type: '%f'}, $
               {name: 'rcam_image_scale', type: '%f'}, $
@@ -248,6 +256,10 @@ pro kcor_eng_insert, date, fits_list, $
                  kcor_fitsfloat2db(tcamycen), $
                  kcor_fitsfloat2db(rcam_rad), $
                  kcor_fitsfloat2db(tcam_rad), $
+                 kcor_fitsfloat2db(rcam_dcx), $
+                 kcor_fitsfloat2db(rcam_dcy), $
+                 kcor_fitsfloat2db(tcam_dcx), $
+                 kcor_fitsfloat2db(tcam_dcy), $
                  kcor_fitsfloat2db(rcam_dcr), $
                  kcor_fitsfloat2db(tcam_dcr), $
                  image_scale, $
