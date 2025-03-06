@@ -25,13 +25,6 @@ pro kcor_reprocess, date, run=run, error=error
     goto, done
   endif
 
-  allow_reprocess = run->epoch('reprocess')
-  if (~allow_reprocess) then begin
-    mg_log, 'marked as "do not reprocess", skipping', name='kcor/reprocess', /warn
-    error = 1L
-    goto, done
-  endif
-
   case 1 of
     run->config('realtime/reprocess'): begin
         mg_log, 'prepping for reprocessing', name='kcor/reprocess', /info
@@ -45,6 +38,13 @@ pro kcor_reprocess, date, run=run, error=error
         goto, done
       end
   endcase
+
+  allow_reprocess = run->epoch('reprocess')
+  if (~allow_reprocess) then begin
+    mg_log, 'marked as "do not reprocess", skipping', name='kcor/reprocess', /warn
+    error = 1L
+    goto, done
+  endif
 
   ; zip any unzipped raw files
   unzipped_raw_fits_glob = filepath('*_kcor.fts', $

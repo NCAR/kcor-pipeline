@@ -57,7 +57,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   allow_reprocess = run->epoch('reprocess')
   if (~allow_reprocess) then begin
-    mg_log, 'marked as "do not reprocess", skipping', name='kcor/reprocess', /warn
+    mg_log, 'marked as "do not reprocess", skipping', name='kcor/eod', /warn
     goto, done
   endif
 
