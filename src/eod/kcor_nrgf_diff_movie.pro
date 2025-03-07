@@ -179,26 +179,31 @@ pro kcor_nrgf_diff_movie, run=run
   gif_exptime = fltarr(ncount)
 
   for i = 0L, ncount - 1L  do begin
+    mg_log, 'NRGF: %s', file_basename(nrgf_keep[i]), name=run.logger_name, /debug
+    mg_log, 'diff: %s', file_basename(diff_keep[i]), name=run.logger_name, /debug
+
     read_gif, nrgf_keep[i], nrgfimg
     read_gif, diff_keep[i], subtimg
 
     ; find metadata for frames
     nrgf_fits_filename = strmid(nrgf_keep[i], 0, strlen(nrgf_keep[i]) - 4L) + '.fts.gz'
     diff_fits_filename = strmid(diff_keep[i], 0, strlen(diff_keep[i]) - 4L) + '.fts.gz'
+
     nrgf_primary_header = headfits(nrgf_fits_filename, exten=0)
     diff_primary_header = headfits(diff_fits_filename, exten=0)
     gif_date_obs[i] = min([sxpar(nrgf_primary_header, 'DATE-OBS'), $
-                           sxpar(diff_fits_filename, 'DATE-OBS')])
+                           sxpar(diff_primary_header, 'DATE-OBS')])
     gif_date_end[i] = min([sxpar(nrgf_primary_header, 'DATE-END'), $
-                           sxpar(diff_fits_filename, 'DATE-END')])
+                           sxpar(diff_primary_header, 'DATE-END')])
     date_obs_anytim = utc2str(tai2utc(utc2tai(str2utc(gif_date_obs[i]))), /stime)
     gif_carrington_rotation[i] = long((tim2carr(date_obs_anytim, /dc))[0])
     gif_numsum[i] = sxpar(nrgf_primary_header, 'NUMSUM')
     gif_exptime[i] = sxpar(nrgf_primary_header, 'EXPTIME')
 
-    ; remove the seconds from the filename
     ftspos   = strpos(diff_keep[i], '_kcor')
-    basename = strmid(diff_keep[i], 0, ftspos - 2)
+    ;basename = strmid(diff_keep[i], 0, ftspos - 2)
+    ; need to keep seconds or get duplicate filenames
+    basename = strmid(diff_keep[i], 0, ftspos)
 
     nrgf_image = rebin(nrgfimg, 512, 512)
     diff_image = rebin(subtimg, 512, 512)
@@ -209,6 +214,7 @@ pro kcor_nrgf_diff_movie, run=run
 
     ; create GIF name and save image
     frame_filenames[i] = basename + '_kcor_l2_nrgf_and_diff.gif'
+    mg_log, 'writing %s...', file_basename(frame_filenames[i]), name=run.logger_name, /info
     write_gif, frame_filenames[i], combined_image
     if (run->config('realtime/distribute')) then begin
       file_copy, frame_filenames[i], fullres_dir, /overwrite
@@ -219,8 +225,10 @@ pro kcor_nrgf_diff_movie, run=run
   if (n_diff_gifs gt 1L) then begin
     mp4_date_obs = min(gif_date_obs)
     mp4_date_end = max(gif_date_end)
+
     nrfgdiff_mp4_basename = string(strmid(file_basename(diff_keep[0]), 0, 8), $
                                    format='(%"%s_kcor_l2_nrgf_and_diff.mp4")')
+    mg_log, 'writing %s...', nrfgdiff_mp4_basename, name=run.logger_name, /info
     nrfgdiff_mp4_filename = filepath(nrfgdiff_mp4_basename, $
                                      subdir=[run.date, 'level2'], $
                                      root=run->config('processing/raw_basedir'))
@@ -232,21 +240,21 @@ pro kcor_nrgf_diff_movie, run=run
   endif
 
   if (run->config('database/update')) then begin
-    mg_log, 'adding %d NRGF+diff GIFs to database', name='kcor/eod', /info
-    obsday_index = mlso_obsday_insert(date, $
+    mg_log, 'adding %d NRGF+diff GIFs to database', ncount, name=run.logger_name, /info
+    obsday_index = mlso_obsday_insert(run.date, $
                                       run=run, $
                                       database=db, $
                                       status=db_status, $
-                                      log_name='kcor/eod')
-    kcor_db_nrgfdiff_insert, nrgfdiff_gif_basenames, $
-                            gif_date_obs, gif_date_end, $
-                            gif_carrington_rotation, gif_numsum, gif_exptime, $
-                            nrfgdiff_mp4_basename, $
-                            mp4_date_obs, mp4_date_end, $
-                            gif_carrington_rotation[0], gif_numsum[0], gif_exptime[0], $
-                            database=db, run=run, obsday_index=obsday_index
+                                      log_name=run.logger_name)
+    kcor_db_nrgfdiff_insert, file_basename(frame_filenames), $
+                             gif_date_obs, gif_date_end, $
+                             gif_carrington_rotation, gif_numsum, gif_exptime, $
+                             nrfgdiff_mp4_basename, $
+                             mp4_date_obs, mp4_date_end, $
+                             gif_carrington_rotation[0], gif_numsum[0], gif_exptime[0], $
+                             database=db, run=run, obsday_index=obsday_index
   endif else begin
-    mg_log, 'skipping updating database', name='kcor/eod', /info
+    mg_log, 'skipping updating database', name=run.logger_name, /info
   endelse
 
   done:
@@ -256,10 +264,10 @@ end
 
 ; main-level example program
 
-date = '20210801'
+date = '20240409'
 config_basename = 'kcor.latest.cfg'
 config_filename = filepath(config_basename, $
-                           subdir=['..', '..', 'config'], $
+                           subdir=['..', '..', '..', 'kcor-config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
 kcor_nrgf_diff_movie, run=run
