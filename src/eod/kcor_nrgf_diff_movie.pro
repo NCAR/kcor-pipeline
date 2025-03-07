@@ -86,21 +86,21 @@ pro kcor_nrgf_diff_movie, run=run
 
     ; extract subtraction time from filename
     diff_basename = file_basename(diff_file)
-    diff_year   = fix(strmid(diff_basename,  0, 4))
-    diff_month  = fix(strmid(diff_basename,  4, 2))
-    diff_day    = fix(strmid(diff_basename,  6, 2))
-    diff_hour   = fix(strmid(diff_basename,  9, 2))
-    diff_minute = fix(strmid(diff_basename, 11, 2))
-    diff_second = fix(strmid(diff_basename, 13, 2))
+    diff_year     = fix(strmid(diff_basename,  0, 4))
+    diff_month    = fix(strmid(diff_basename,  4, 2))
+    diff_day      = fix(strmid(diff_basename,  6, 2))
+    diff_hour     = fix(strmid(diff_basename,  9, 2))
+    diff_minute   = fix(strmid(diff_basename, 11, 2))
+    diff_second   = fix(strmid(diff_basename, 13, 2))
 
     ; extract NRGF time from filename
     nrgf_basename = file_basename(nrgf_file)
-    nrgf_year   = fix(strmid(nrgf_basename,  0, 4))
-    nrgf_month  = fix(strmid(nrgf_basename,  4, 2))
-    nrgf_day    = fix(strmid(nrgf_basename,  6, 2))
-    nrgf_hour   = fix(strmid(nrgf_basename,  9, 2))
-    nrgf_minute = fix(strmid(nrgf_basename, 11, 2))
-    nrgf_second = fix(strmid(nrgf_basename, 13, 2))
+    nrgf_year     = fix(strmid(nrgf_basename,  0, 4))
+    nrgf_month    = fix(strmid(nrgf_basename,  4, 2))
+    nrgf_day      = fix(strmid(nrgf_basename,  6, 2))
+    nrgf_hour     = fix(strmid(nrgf_basename,  9, 2))
+    nrgf_minute   = fix(strmid(nrgf_basename, 11, 2))
+    nrgf_second   = fix(strmid(nrgf_basename, 13, 2))
 
     ; use diff time to find nearest NRGF image 
     ; convert to julian date to make it easier to find difference between times 
@@ -171,9 +171,30 @@ pro kcor_nrgf_diff_movie, run=run
   endif
 
   frame_filenames = strarr(ncount)
+
+  gif_date_obs = strarr(ncount)
+  gif_date_end = strarr(ncount)
+  gif_carrington_rotation = lonarr(ncount)
+  gif_numsum = lonarr(ncount)
+  gif_exptime = fltarr(ncount)
+
   for i = 0L, ncount - 1L  do begin
     read_gif, nrgf_keep[i], nrgfimg
     read_gif, diff_keep[i], subtimg
+
+    ; find metadata for frames
+    nrgf_fits_filename = strmid(nrgf_keep[i], 0, strlen(nrgf_keep[i]) - 4L) + '.fts.gz'
+    diff_fits_filename = strmid(diff_keep[i], 0, strlen(diff_keep[i]) - 4L) + '.fts.gz'
+    nrgf_primary_header = headfits(nrgf_fits_filename, exten=0)
+    diff_primary_header = headfits(diff_fits_filename, exten=0)
+    gif_date_obs[i] = min([sxpar(nrgf_primary_header, 'DATE-OBS'), $
+                           sxpar(diff_fits_filename, 'DATE-OBS')])
+    gif_date_end[i] = min([sxpar(nrgf_primary_header, 'DATE-END'), $
+                           sxpar(diff_fits_filename, 'DATE-END')])
+    date_obs_anytim = utc2str(tai2utc(utc2tai(str2utc(gif_date_obs[i]))), /stime)
+    gif_carrington_rotation[i] = long((tim2carr(date_obs_anytim, /dc))[0])
+    gif_numsum[i] = sxpar(nrgf_primary_header, 'NUMSUM')
+    gif_exptime[i] = sxpar(nrgf_primary_header, 'EXPTIME')
 
     ; remove the seconds from the filename
     ftspos   = strpos(diff_keep[i], '_kcor')
@@ -196,19 +217,40 @@ pro kcor_nrgf_diff_movie, run=run
 
   ; create movie filename
   if (n_diff_gifs gt 1L) then begin
-    basename = string(strmid(file_basename(diff_keep[0]), 0, 8), $
-                      format='(%"%s_kcor_l2_nrgf_and_diff.mp4")')
-    movie_name = filepath(basename, $
-                          subdir=[run.date, 'level2'], $
-                          root=run->config('processing/raw_basedir'))
+    mp4_date_obs = min(gif_date_obs)
+    mp4_date_end = max(gif_date_end)
+    nrfgdiff_mp4_basename = string(strmid(file_basename(diff_keep[0]), 0, 8), $
+                                   format='(%"%s_kcor_l2_nrgf_and_diff.mp4")')
+    nrfgdiff_mp4_filename = filepath(nrfgdiff_mp4_basename, $
+                                     subdir=[run.date, 'level2'], $
+                                     root=run->config('processing/raw_basedir'))
 
-    kcor_create_mp4, frame_filenames, movie_name, run=run, status=status
+    kcor_create_mp4, frame_filenames, nrfgdiff_mp4_filename, run=run, status=status
     if (status eq 0L && run->config('realtime/distribute')) then begin
-      file_copy, movie_name, fullres_dir, /overwrite
+      file_copy, nrfgdiff_mp4_filename, fullres_dir, /overwrite
     endif
   endif
-  
+
+  if (run->config('database/update')) then begin
+    mg_log, 'adding %d NRGF+diff GIFs to database', name='kcor/eod', /info
+    obsday_index = mlso_obsday_insert(date, $
+                                      run=run, $
+                                      database=db, $
+                                      status=db_status, $
+                                      log_name='kcor/eod')
+    kcor_db_nrgfdiff_insert, nrgfdiff_gif_basenames, $
+                            gif_date_obs, gif_date_end, $
+                            gif_carrington_rotation, gif_numsum, gif_exptime, $
+                            nrfgdiff_mp4_basename, $
+                            mp4_date_obs, mp4_date_end, $
+                            gif_carrington_rotation[0], gif_numsum[0], gif_exptime[0], $
+                            database=db, run=run, obsday_index=obsday_index
+  endif else begin
+    mg_log, 'skipping updating database', name='kcor/eod', /info
+  endelse
+
   done:
+  if (obj_valid(db)) then obj_destroy, db
 end
 
 

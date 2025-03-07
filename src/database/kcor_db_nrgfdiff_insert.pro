@@ -11,30 +11,24 @@
 ;   obsday_index : in, required, type=integer
 ;     day ID
 ;-
-pro kcor_db_nrgfdiff_insert, database=db, run=run, obsday_index=obsday_index
+pro kcor_db_nrgfdiff_insert, nrgfdiff_gif_basenames, $
+                             gif_date_obs, gif_date_end, $
+                             gif_carrington_rotation, gif_numsum, gif_exptime, $
+                             nrfgdiff_mp4_basename, $
+                             mp4_date_obs, mp4_date_end, $
+                             mp4_carrington_rotation, mp4_numsum, mp4_exptime, $
+                             database=db, run=run, obsday_index=obsday_index
   compile_opt strictarr
 
   mg_log, 'inserting NRGF+diff GIFs and mp4...', name=run.logger_name, /info
 
-  ; find NRGF+diff GIFs and NRGF+diff mp4
-
-  l2_dir = filepath('', $
-                    subdir=[run.date, 'level2'], $
-                    root=run->config('processing/raw_basedir'))
-
-  nrfgdiff_gif_basename_blob = '*_kcor_l2_nrgf_and_diff.gif'
-  nrfgdiff_gif_filename_blob = filepath(nrfgdiff_gif_basename_blob, root=l2_dir)
-  nrgfdiff_gif_filenames = file_search(nrfgdiff_gif_filename_blob, $
-                                       count=n_nrgfdiff_gifs)
-
+  n_nrgfdiff_gifs = n_elements(nrgfdiff_gif_basenames)
   if (n_nrgfdiff_gifs eq 0L) then begin
     mg_log, 'no NRGF+diff GIFs found', name=run.logger_name, /debug
     goto, done
   endif
 
-  nrfgdiff_mp4_basename = string(run.date, format='%s_kcor_l2_nrgf_and_diff.mp4')
-  nrfgdiff_mp4_filename = filepath(nrfgdiff_mp4_basename, root=l2_dir)
-  nrfgdiff_mp4_found = file_test(nrfgdiff_mp4_filename, /regular)
+  nrfgdiff_mp4_found = n_elements(nrfgdiff_mp4_basename) gt 0L
 
   ; find product type ID for NRGF+diff images
 
@@ -72,13 +66,8 @@ pro kcor_db_nrgfdiff_insert, database=db, run=run, obsday_index=obsday_index
 
   quality = 75  ; level 2 files have default 75 quality
 
-  date_obs = strjoin(kcor_decompose_date(run.date), '-') + ' 00:00:00'
-  date_end = date_obs
-
   ; insert GIF files into database
   for f = 0L, n_nrgfdiff_gifs - 1L do begin
-    nrgfdiff_gif_basename = file_basename(nrgfdiff_gif_filenames[f])
-
     fields = [{name: 'file_name', type: '''%s'''}, $
               {name: 'date_obs', type: '''%s'''}, $
               {name: 'date_end', type: '''%s'''}, $
@@ -94,23 +83,23 @@ pro kcor_db_nrgfdiff_insert, database=db, run=run, obsday_index=obsday_index
                      strjoin(fields.type, ', '), $
                      format='(%"insert into kcor_img (%s) values (%s)")')
     db->execute, sql_cmd, $
-                 nrgfdiff_gif_basename, $
-                 date_obs, $
-                 date_end, $
+                 nrgfdiff_gif_basenames[f], $
+                 gif_date_obs[f], $
+                 gif_date_end[f], $
                  obsday_index, $
-                 'NULL', $
+                 gif_carrington_rotation[f], $
                  level_id, $
                  quality, $
                  producttype_id, $
                  gif_filetype_id, $
-                 'NULL', $
-                 'NULL', $
+                 gif_numsum[f], $
+                 gif_exptime[f], $
                  status=status
     if (status eq 0L) then begin
-      mg_log, 'inserted %s into kcor_img', nrgfdiff_gif_basename, $
+      mg_log, 'inserted %s into kcor_img', nrgfdiff_gif_basenames[f], $
               name=run.logger_name, /info
     endif else begin
-      mg_log, 'problem inserting %s into kcor_img', nrgfdiff_gif_basename, $
+      mg_log, 'problem inserting %s into kcor_img', nrgfdiff_gif_basenames[f], $
               name=run.logger_name, /info
     endelse
   endfor
@@ -133,16 +122,16 @@ pro kcor_db_nrgfdiff_insert, database=db, run=run, obsday_index=obsday_index
                      format='(%"insert into kcor_img (%s) values (%s)")')
     db->execute, sql_cmd, $
                  nrfgdiff_mp4_basename, $
-                 date_obs, $
-                 date_end, $
+                 mp4_date_obs, $
+                 mp4_date_end, $
                  obsday_index, $
-                 'NULL', $
+                 mp4_carrington_rotation, $
                  level_id, $
                  quality, $
                  producttype_id, $
                  mp4_filetype_id, $
-                 'NULL', $
-                 'NULL', $
+                 mp4_numsum, $
+                 mp4_exptime, $
                  status=status
     if (status eq 0L) then begin
       mg_log, 'inserted %s into kcor_img', nrfgdiff_mp4_basename, $
@@ -155,27 +144,4 @@ pro kcor_db_nrgfdiff_insert, database=db, run=run, obsday_index=obsday_index
 
   done:
   mg_log, 'done', name=run.logger_name, /info
-end
-
-
-; main-level example program
-
-date = '20240409'
-mode = 'test'
-config_basename = 'kcor.latest.cfg'
-config_filename = filepath(config_basename, $
-                           subdir=['..', '..', '..', 'kcor-config'], $
-                           root=mg_src_root())
-run = kcor_run(date, config_filename=config_filename, mode=mode)
-
-obsday_index = mlso_obsday_insert(date, $
-                                  run=run, $
-                                  database=db, $
-                                  status=db_status, $
-                                  log_name='kcor/' + mode)
-
-kcor_db_nrgfdiff_insert, database=db, run=run, obsday_index=obsday_index
-
-obj_destroy, [db, run]
-
 end

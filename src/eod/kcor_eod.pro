@@ -438,8 +438,6 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
         mg_log, 'no avg L2 files for daily science', name='kcor/eod', /warn
       endelse
 
-      kcor_db_nrgfdiff_insert, database=db, run=run, obsday_index=obsday_index
-
       kcor_rolling_synoptic_map, database=db, run=run
       kcor_rolling_synoptic_map, database=db, run=run, /enhanced
     endif else begin
