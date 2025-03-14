@@ -7,7 +7,8 @@ pro kcor_downloads
   db->connect, config_filename='/home/mgalloy/.mysqldb', $
                config_section='mgalloy@databases'
 
-  query = 'select tot_filesize, file, user_id from HAO.hao_download where instrument_id=3;'
+  ; query = 'select tot_filesize, file, user_id from HAO.hao_download where instrument_id=3;'
+  query = 'select * from HAO.hao_download where instrument_id=3;'
   results = db->query(query, count=n_rows)
   tokens = stregex(results.file, '20[[:digit:]]{6}', /extract)
 
@@ -40,6 +41,14 @@ pro kcor_downloads
 
     if (~users->haskey(date)) then users[date] = list()
     (users[date])->add, results[r].user_id
+
+    ; if (date eq '20210515') then begin
+    ;   print, results[r].download_id, $
+    ;          mg_float2str(results[r].tot_filesize, places_sep=','), $
+    ;          results[r].user_id, $
+    ;          results[r].file, $
+    ;          format='%d: %13s K user=%d %s '
+    ; endif
   endfor
 
   special_days = hash()
