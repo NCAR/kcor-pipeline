@@ -1226,7 +1226,7 @@
 - change back to FITCIRCLE
 - bug fixes for checking for valid cal pol angles
 
-#### 2.2.2
+#### 2.2.2 [Mar 24, 2025]
 
 - epoch file changes for removing bad cal files
 - adding ephemeris and distortion corrected occulter coordinates to database
