@@ -1232,3 +1232,5 @@
 - adding ephemeris and distortion corrected occulter coordinates to database
 - add ability to specify dates to not reprocess with epoch file
 - fix for DATE-OBS valid in difference FITS file and kcor_img database table
+
+#### 2.2.3
