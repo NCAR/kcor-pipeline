@@ -1234,3 +1234,5 @@
 - fix for DATE-OBS valid in difference FITS file and kcor_img database table
 
 #### 2.2.3
+
+- epoch file changes for bad start state, removing bad cal files
