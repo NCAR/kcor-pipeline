@@ -1233,6 +1233,6 @@
 - add ability to specify dates to not reprocess with epoch file
 - fix for DATE-OBS valid in difference FITS file and kcor_img database table
 
-#### 2.2.3
+#### 2.2.3 [Apr 22, 2025]
 
 - epoch file changes for bad start state, removing bad cal files
