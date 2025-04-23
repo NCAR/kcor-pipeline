@@ -992,9 +992,8 @@ def run_script(args):
             if d.find("-") < 0:
                 cmd = [os.path.join(PIPELINE_DIR, "bin", f"runkcor_script.sh"),
                        args.name,
-                       args.flags,
+                       get_config_filename(args.flags),
                        d]
-
                 process = launch_process(cmd, stdout=None, stderr=subprocess.PIPE)
                 print("[%d] %s" % (process.pid, " ".join(cmd)))
                 if not args.no_wait:
@@ -1004,7 +1003,7 @@ def run_script(args):
                 r = d.split("-")
                 cmd = [os.path.join(PIPELINE_DIR, "bin", f"runkcor_script_range.sh"),
                        args.name,
-                       args.flags,
+                       get_config_filename(args.flags),
                        r[0], r[1]]
 
                 process = launch_process(cmd, stdout=None, stderr=subprocess.PIPE)
