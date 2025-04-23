@@ -1238,3 +1238,5 @@
 - epoch file changes for bad start state, removing bad cal files
 
 #### 2.2.4
+
+- fixed ability to run scripts via script sub-command
