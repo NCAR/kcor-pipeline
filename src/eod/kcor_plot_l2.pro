@@ -90,8 +90,8 @@ pro kcor_plot_l2, run=run
   radius_width = 0.01
   yranges = [[1.0e-07, 7.0e-07], $
              [3.0e-08, 3.0e-07], $
-             [5.0e-09, 1.2e-07], $
-             [1.0e-09, 4.0e-08]]
+             [5.0e-09, 1.5e-07], $
+             [1.0e-09, 5.0e-08]]
   plate_scale = run->epoch('plate_scale')
 
   dates = strarr(n_l2_files)
