@@ -79,7 +79,7 @@ pro kcor_cam_difference, db, run=run
 
   preferred_exptime = 2.5
 
-  cam0 = [[flat_results.mean_int_img0], [flat_results.mean_int_img0], [flat_results.mean_int_img2], [flat_results.mean_int_img3]]
+  cam0 = [[flat_results.mean_int_img0], [flat_results.mean_int_img1], [flat_results.mean_int_img2], [flat_results.mean_int_img3]]
   cam1 = [[flat_results.mean_int_img4], [flat_results.mean_int_img5], [flat_results.mean_int_img6], [flat_results.mean_int_img7]]
   cam0 = mean(cam0, dimension=2) * preferred_exptime / flat_results.exptime
   cam1 = mean(cam1, dimension=2) * preferred_exptime / flat_results.exptime
