@@ -1,9 +1,0 @@
-20150515 extremely large files (no longer created)
-20170910 super-fast CME with GLE
-20180804 cannot reprocess
-20180805 cannot reprocess
-20240330 PSP Closest approach for #19
-20240409 day after eclipse
-20250322 PSP perihelion; Solar Orbiter Earth-sun alignment; DKIST CryoNIRSP
-20250323 PSP perihelion; Solar Orbiter Earth-sun alignment; DKIST CryoNIRSP
-20250324 PSP perihelion; Solar Orbiter Earth-sun alignment
