@@ -276,13 +276,17 @@ pro kcor_l1, ok_filename, $
   endelse
   occulter = kcor_get_occulter_size(occltrid, run=run)  ; arcsec
   plate_scale = run->epoch('plate_scale')
+  plate_scale_stddev = run->epoch('plate_scale_stddev')
   radius_guess = occulter / plate_scale   ; pixels
   preferred_plate_scale = run->epoch('preferred_plate_scale')
-  scale_factor = 1.0
-  ; TOOD: at some point we need to do this for #364
-  ; scale_factor = plate_scale / preferred_plate_scale
+  preferred_plate_scale_stddev = run->epoch('preferred_plate_scale_stddev')
+  if (abs(plate_scale - preferred_plate_scale) le plate_scale_stddev + preferred_plate_scale_stddev) then begin
+    scale_factor = 1.0
+    preferred_plate_scale = plate_scale
+  endif else begin
+    scale_factor = plate_scale / preferred_plate_scale
+  endelse
 
-  ; TODO: do this?
   img = float(img)
 
   if (run->epoch('remove_horizontal_artifact')) then begin
@@ -1021,7 +1025,7 @@ pro kcor_l1, ok_filename, $
             format='(f9.2)'
   fxaddpar, l1_header, 'CDELT1', preferred_plate_scale, $
             ' [arcsec/pixel] solar X increment = platescale', $
-            format='(f9.4)'
+            format='(f9.3)'
   fxaddpar, l1_header, 'CUNIT1', 'arcsec', ' unit of CRVAL1'
   fxaddpar, l1_header, 'CTYPE2', 'HPLT-TAN', $
             ' [deg] helioprojective north angle: solar Y'
@@ -1032,7 +1036,7 @@ pro kcor_l1, ok_filename, $
             format='(f9.2)'
   fxaddpar, l1_header, 'CDELT2', preferred_plate_scale, $
             ' [arcsec/pixel] solar Y increment = platescale', $
-            format='(f9.4)'
+            format='(f9.3)'
   fxaddpar, l1_header, 'CUNIT2', 'arcsec', ' unit of CRVAL2'
   fxaddpar, l1_header, 'INST_ROT', 0.00, $
             ' [deg] rotation of the image wrt solar north', $
