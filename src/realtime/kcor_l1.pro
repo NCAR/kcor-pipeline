@@ -1046,6 +1046,9 @@ pro kcor_l1, ok_filename, $
   image_scale = kcor_compute_platescale((info_dc0[2] + info_dc1[2]) / 2.0, $
                                         occltrid, $
                                         run=run)
+  fxaddpar, l1_header, 'SCALEF', scale_factor, $
+            ' plate scale factor', $
+            format='(f9.7)'
   fxaddpar, l1_header, 'IMAGESCL', image_scale, $
             ' [arcsec/pixel] dist cor image scale for this file', $
             format='(f9.4)'
