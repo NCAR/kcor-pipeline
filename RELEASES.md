@@ -1240,3 +1240,5 @@
 #### 2.2.4
 
 - fixed ability to run scripts via script sub-command
+- new epochs for plate scale
+- epoch changes for start state and bad data
