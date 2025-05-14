@@ -1161,7 +1161,7 @@ pro kcor_l1, ok_filename, $
   fxaddpar, l1_header, 'RCAM_DCY', info_dc0[1] + 1, $
             ' [pixel] camera 0 dist cor occulter Y center', $
             format='(f8.2)'
-  fxaddpar, l1_header, 'RCAM_DCR', info_dc0[2], $
+  fxaddpar, l1_header, 'RCAM_DCR', scale_factor * info_dc0[2], $
             ' [pixel] camera 0 dist corrected occulter radius', $
             format='(f8.2)'
 
@@ -1180,7 +1180,7 @@ pro kcor_l1, ok_filename, $
   fxaddpar, l1_header, 'TCAM_DCY', info_dc1[1] + 1, $
             ' [pixel] camera 1 dist cor occulter Y center', $
             format='(f8.2)'
-  fxaddpar, l1_header, 'TCAM_DCR', info_dc1[2], $
+  fxaddpar, l1_header, 'TCAM_DCR', scale_factor * info_dc1[2], $
             ' [pixel] camera 1 dist corrected occulter radius', $
             format='(f8.2)'
 
