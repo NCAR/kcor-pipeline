@@ -62,12 +62,14 @@ pro kcor_nrgf_wrapper, date, l0_basename, config_filename=config_filename
            q=q, $
            u=u, $
            flat_vdimref=flat_vdimref, $
+           scale_factor=scale_factor, $
            log_name=log_name, $
            error=l1_error
 
   kcor_l2, l1_filename, $
            l1_header, $
            intensity, q, u, flat_vdimref, $
+           scale_factor=scale_factor, $
            l2_filename=l2_filename, $
            run=run, $
            nomask=nomask, $

@@ -22,6 +22,7 @@ pro kcor_l1, ok_filename, $
              q=sky_polarization, $
              u=corona_plus_sky, $
              flat_vdimref=flat_vdimref, $
+             scale_factor=scale_factor, $
              run=run, $
              nomask=nomask, $
              mean_phase1=mean_phase1, $
@@ -280,7 +281,7 @@ pro kcor_l1, ok_filename, $
   radius_guess = occulter / plate_scale   ; pixels
   preferred_plate_scale = run->epoch('preferred_plate_scale')
   preferred_plate_scale_stddev = run->epoch('preferred_plate_scale_stddev')
-  if (abs(plate_scale - preferred_plate_scale) le plate_scale_stddev + preferred_plate_scale_stddev) then begin
+  if (abs(plate_scale - preferred_plate_scale) le (plate_scale_stddev + preferred_plate_scale_stddev)) then begin
     scale_factor = 1.0
     preferred_plate_scale = plate_scale
   endif else begin
@@ -685,8 +686,8 @@ pro kcor_l1, ok_filename, $
       ; rotate inflection points by p-angle (+ correction)
       inflection_points -= 511.5
       rotated_inflection_points = inflection_points * 0.0
-      sina = sin((pangle + run->epoch('rotation_correction')) * !dtor)
-      cosa = cos((pangle + run->epoch('rotation_correction')) * !dtor)
+      sina = sin((pangle + run->epoch('rotation_correction')) * !dtor) * scale_factor
+      cosa = cos((pangle + run->epoch('rotation_correction')) * !dtor) * scale_factor
       rotated_inflection_points[0, *] = cosa * inflection_points[0, *] - sina * inflection_points[1, *]
       rotated_inflection_points[1, *] = sina * inflection_points[0, *] + cosa * inflection_points[1, *]
       rotated_inflection_points += 511.5

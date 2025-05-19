@@ -4,6 +4,7 @@ pro kcor_l2, l1_filename, $
              l1_header, $
              intensity, sky_polarization, corona_plus_sky, $
              flat_vdimref, $
+             scale_factor=scale_factor, $
              nomask=nomask, $
              l2_filename=l2_filename, $
              run=run, $
@@ -72,7 +73,10 @@ pro kcor_l2, l1_filename, $
 
         theta = atan(- yy, - xx)
         theta += !pi
-        theta = rot(reverse(theta), pangle + run->epoch('rotation_correction'), 1, /interp)
+        theta = rot(reverse(theta), $
+                    pangle + run->epoch('rotation_correction'), $
+                    scale_factor, $
+                    /interp)
 
         kcor_sine2theta_method, corona_plus_sky, sky_polarization, intensity, radsun, theta, rad, $
                                 q_new=sky_polarization_new, u_new=corona_plus_sky_new, $

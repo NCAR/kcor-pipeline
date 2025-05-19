@@ -382,7 +382,7 @@ pro kcor_process_files, ok_files, $
              intensity=intensity, $
              q=q, $
              u=u, $
-             flat_vdimref=flat_vdimref, $
+             flat_vdimref=flat_vdimref, scale_factor=scale_factor, $
              log_name=log_name, $
              error=l1_error
 
@@ -399,6 +399,7 @@ pro kcor_process_files, ok_files, $
     kcor_l2, l1_filename, $
              l1_header, $
              intensity, q, u, flat_vdimref, $
+             scale_factor=scale_factor, $
              run=run, $
              nomask=nomask, $
              log_name=log_name, $
