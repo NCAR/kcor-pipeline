@@ -151,6 +151,7 @@ pro kcor_eng_insert, date, fits_list, $
     tcam_dcy         =         sxpar(hdu, 'TCAM_DCY', count=qtcamdcy)
     rcam_dcr         =         sxpar(hdu, 'RCAM_DCR', count=qrcamdcr)
     tcam_dcr         =         sxpar(hdu, 'TCAM_DCR', count=qtcamdcr)
+    scale_factor     =         sxpar(hdu, 'SCALEF', count=qtscale_factor)
     image_scale      =         sxpar(hdu, 'IMAGESCL', count=qimagescl)
     rcam_image_scale =         sxpar(hdu, 'RCAM_SCL', count=qrcamimagescl)
     tcam_image_scale =         sxpar(hdu, 'TCAM_SCL', count=qtcamimagescl)
@@ -217,6 +218,7 @@ pro kcor_eng_insert, date, fits_list, $
               {name: 'tcam_dcx', type: '%s'}, $
               {name: 'tcam_dcy', type: '%s'}, $
               {name: 'tcam_dcr', type: '%s'}, $
+              {name: 'scale_factor', type: '%s'}, $
               {name: 'image_scale', type: '%f'}, $
               {name: 'rcam_image_scale', type: '%f'}, $
               {name: 'tcam_image_scale', type: '%f'}, $
@@ -262,6 +264,7 @@ pro kcor_eng_insert, date, fits_list, $
                  kcor_fitsfloat2db(tcam_dcy), $
                  kcor_fitsfloat2db(rcam_dcr), $
                  kcor_fitsfloat2db(tcam_dcr), $
+                 kcor_fitsfloat2db(scale_factor), $
                  image_scale, $
                  rcam_image_scale, $
                  tcam_image_scale, $
