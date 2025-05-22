@@ -281,11 +281,12 @@ pro kcor_l1, ok_filename, $
   radius_guess = occulter / plate_scale   ; pixels
   preferred_plate_scale = run->epoch('preferred_plate_scale')
   preferred_plate_scale_stddev = run->epoch('preferred_plate_scale_stddev')
-  if (abs(plate_scale - preferred_plate_scale) le (plate_scale_stddev + preferred_plate_scale_stddev)) then begin
+  scale_to_preferred_plate_scale = run->config('realtime/scale_to_preferred_platescale')
+  if (scale_to_preferred_plate_scale && abs(plate_scale - preferred_plate_scale) gt (plate_scale_stddev + preferred_plate_scale_stddev)) then begin
+    scale_factor = plate_scale / preferred_plate_scale
+  endif else begin
     scale_factor = 1.0
     preferred_plate_scale = plate_scale
-  endif else begin
-    scale_factor = plate_scale / preferred_plate_scale
   endelse
 
   img = float(img)
@@ -1047,9 +1048,11 @@ pro kcor_l1, ok_filename, $
   image_scale = kcor_compute_platescale((info_dc0[2] + info_dc1[2]) / 2.0, $
                                         occltrid, $
                                         run=run)
-  fxaddpar, l1_header, 'SCALEF', scale_factor, $
-            ' plate scale factor', $
-            format='(f9.7)'
+  if (scale_to_preferred_plate_scale) then begin
+    fxaddpar, l1_header, 'SCALEF', scale_factor, $
+              ' plate scale factor', $
+              format='(f9.7)'
+  endif
   fxaddpar, l1_header, 'IMAGESCL', image_scale, $
             ' [arcsec/pixel] dist cor image scale for this file', $
             format='(f9.4)'
