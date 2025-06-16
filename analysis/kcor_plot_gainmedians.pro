@@ -68,7 +68,7 @@ pro kcor_plot_gainmedians, run=run
         xtickformat='label_date', $
         ystyle=9, ytitle='Normalized dark-corrected gain value', yrange=yrange, $
         color='000000'x, background='ffffff'x, $
-        title='Normalized by exposure time and SGS dimv dark-corrected gains'
+        title='Median of dark-corrected gains (normalized by exposure time and SGSDIMV)'
   oplot, jds, annulus_medians[0, *], color=rcam_color, psym=6, symsize=0.5
   oplot, jds, annulus_medians[1, *], color=tcam_color, psym=6, symsize=0.5
   xyouts, 900.0, 400.0, 'RCAM', color=rcam_color, /device
