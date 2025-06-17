@@ -69,26 +69,32 @@ pro kcor_plot_gainmedians, run=run
         ystyle=9, ytitle='Normalized dark-corrected gain value', yrange=yrange, $
         color='000000'x, background='ffffff'x, $
         title='Median of dark-corrected gains (normalized by exposure time and SGSDIMV)'
-  oplot, jds, annulus_medians[0, *], color=rcam_color, psym=6, symsize=0.5
-  oplot, jds, annulus_medians[1, *], color=tcam_color, psym=6, symsize=0.5
+  oplot, jds, annulus_medians[0, *], color=rcam_color, psym=6, symsize=0.3
+  oplot, jds, annulus_medians[1, *], color=tcam_color, psym=6, symsize=0.3
   xyouts, 900.0, 400.0, 'RCAM', color=rcam_color, /device
-  xyouts, 900.0, 390.0, 'TCAM', color=tcam_color, /device
+  xyouts, 900.0, 387.0, 'TCAM', color=tcam_color, /device
 
   dist_epochs = [julday(3, 1, 2015, 0, 0, 0.0), $
+                 julday(8, 15, 2016, 0, 0, 0.0), $
                  julday(5, 22, 2017, 0, 0, 0), $
+                 julday(2, 1, 2018, 0, 0, 0), $
+                 julday(6, 1, 2018, 0, 0, 0), $
                  julday(3, 7, 2019, 0, 0, 0), $
                  julday(12, 16, 2019, 0, 0, 0), $
                  julday(12, 30, 2020, 0, 0, 0), $
                  julday(10, 15, 2021, 0, 0, 0)]
   labels = ['?', $
+            '?', $
             'distortion correction', $
+            '?', $
+            '?', $
             'distortion correction', $
             'distortion correction', $
             '?', $
             '?']
   for e = 0L, n_elements(dist_epochs) - 1L do begin
-    plots, dblarr(2) + dist_epochs[e], yrange, color='c0c0c0'x
-    xyouts, dist_epochs[e] + 20.0, 375.0 - 25.0 * e, $
+    plots, dblarr(2) + dist_epochs[e], yrange, color='d8d8d8'x
+    xyouts, dist_epochs[e] + 20.0, 375.0 - 20.0 * e, $
             string(dist_epochs[e], labels[e], $
                    format='(C(CYI4.4, "-", CMOI2.2, "-", CDI2.2), "!C", A)'), $
             alignment=0.0, color='a0a0a0'x
