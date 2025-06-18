@@ -59,7 +59,7 @@ pro kcor_plot_gainmedians, run=run
   endelse
 
   !null = label_date(date_format='%Y-%N-%D')
-  window, xsize=1000, ysize=500, /free, $
+  window, xsize=1200, ysize=600, /free, $
           title='Median of annulus of dark-corrected gains'
   xtickv = mg_tick_locator(jds, max_ticks=12, ticks=xticks, minor=xminor, /months)
   plot, jds, annulus_medians[0, *], /nodata, $
@@ -71,30 +71,32 @@ pro kcor_plot_gainmedians, run=run
         title='Median of dark-corrected gains (normalized by exposure time and SGSDIMV)'
   oplot, jds, annulus_medians[0, *], color=rcam_color, psym=6, symsize=0.3
   oplot, jds, annulus_medians[1, *], color=tcam_color, psym=6, symsize=0.3
-  xyouts, 900.0, 400.0, 'RCAM', color=rcam_color, /device
-  xyouts, 900.0, 387.0, 'TCAM', color=tcam_color, /device
+  xyouts, 1100.0, 500.0, 'RCAM', color=rcam_color, /device
+  xyouts, 1100.0, 487.0, 'TCAM', color=tcam_color, /device
 
-  dist_epochs = [julday(3, 1, 2015, 0, 0, 0.0), $
-                 julday(8, 15, 2016, 0, 0, 0.0), $
+  dist_epochs = [julday(3, 18, 2015, 0, 0, 0.0), $
+                 julday(8, 12, 2016, 0, 0, 0.0), $
                  julday(5, 22, 2017, 0, 0, 0), $
-                 julday(2, 1, 2018, 0, 0, 0), $
-                 julday(6, 1, 2018, 0, 0, 0), $
+                 julday(1, 31, 2018, 0, 0, 0), $
+                 julday(5, 22, 2018, 0, 0, 0), $
+                 julday(1, 15, 2019, 0, 0, 0), $
                  julday(3, 7, 2019, 0, 0, 0), $
                  julday(12, 16, 2019, 0, 0, 0), $
-                 julday(12, 30, 2020, 0, 0, 0), $
-                 julday(10, 15, 2021, 0, 0, 0)]
-  labels = ['?', $
+                 julday(12, 26, 2020, 0, 0, 0), $
+                 julday(10, 18, 2021, 0, 0, 0)]
+  labels = ['cal epoch v25', $
+            'cal epoch v10.1 and v10.2', $
+            'distortion correction', $
+            'cal epoch v15.1 and v16', $
+            'cal epoch v20', $
             '?', $
             'distortion correction', $
-            '?', $
-            '?', $
             'distortion correction', $
-            'distortion correction', $
-            '?', $
-            '?']
+            'cal epoch v24', $
+            'cal epoch v25']
   for e = 0L, n_elements(dist_epochs) - 1L do begin
     plots, dblarr(2) + dist_epochs[e], yrange, color='d8d8d8'x
-    xyouts, dist_epochs[e] + 20.0, 375.0 - 20.0 * e, $
+    xyouts, dist_epochs[e] + 20.0, 375.0 - 20.0 * (e mod 5), $
             string(dist_epochs[e], labels[e], $
                    format='(C(CYI4.4, "-", CMOI2.2, "-", CDI2.2), "!C", A)'), $
             alignment=0.0, color='a0a0a0'x
