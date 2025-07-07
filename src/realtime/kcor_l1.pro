@@ -126,7 +126,7 @@ pro kcor_l1, ok_filename, $
   ncdf_varget, unit, 'Gain', gain_alfred  ; gain_alfred is a dark corrected gain
   gain_alfred /= 1.0e-6   ; this makes gain_alfred in units of B/Bsun
 
-  gain_id = mg_nc_varid(unit, 'Gain')
+  gain_id = ncdf_varid(unit, 'Gain')
   ncdf_attget, unit, gain_id, 'RCAM x-center', frcam_x
   ncdf_attget, unit, gain_id, 'RCAM y-center', frcam_y
   ncdf_attget, unit, gain_id, 'RCAM radius', frcam_r
