@@ -126,6 +126,14 @@ pro kcor_l1, ok_filename, $
   ncdf_varget, unit, 'Gain', gain_alfred  ; gain_alfred is a dark corrected gain
   gain_alfred /= 1.0e-6   ; this makes gain_alfred in units of B/Bsun
 
+  gain_id = mg_nc_varid(unit, 'Gain')
+  ncdf_attget, unit, gain_id, 'RCAM x-center', frcam_x
+  ncdf_attget, unit, gain_id, 'RCAM y-center', frcam_y
+  ncdf_attget, unit, gain_id, 'RCAM radius', frcam_r
+  ncdf_attget, unit, gain_id, 'TCAM x-center', ftcam_x
+  ncdf_attget, unit, gain_id, 'TCAM y-center', ftcam_y
+  ncdf_attget, unit, gain_id, 'TCAM radius', ftcam_r
+
   ; multiply by ad hoc non-linearity correction factor
   gain_alfred /= run->epoch('nonlinearity-correction-factor')
 
@@ -1190,6 +1198,26 @@ pro kcor_l1, ok_filename, $
   fxaddpar, l1_header, 'TCAM_DCR', scale_factor * info_dc1[2], $
             ' [pixel] camera 1 dist corrected occulter radius', $
             format='(f8.2)'
+
+  ; flat centering info
+  fxaddpar, l1_header, 'FRCAM_X', frcam_x, $
+            ' [pixel] cam 0 dark cor X-coord flat occulter ctr', $
+            format='(f8.2)', after='TCAM_DCR'
+  fxaddpar, l1_header, 'FRCAM_Y', frcam_y, $
+            ' [pixel] cam 0 dark cor Y-coord flat occulter ctr', $
+            format='(f8.2)', after='FRCAM_X'
+  fxaddpar, l1_header, 'FRCAM_R', frcam_r, $
+            ' [pixel] cam 0 dark cor flat occulter radius', $
+            format='(f8.2)', after='FRCAM_Y'
+  fxaddpar, l1_header, 'FTCAM_X', ftcam_x, $
+            ' [pixel] cam 1 dark cor X-coord flat occulter ctr', $
+            format='(f8.2)', after='FRCAM_R'
+  fxaddpar, l1_header, 'FTCAM_Y', ftcam_y, $
+            ' [pixel] cam 1 dark cor Y-coord flat occulter ctr', $
+            format='(f8.2)', after='FTCAM_X'
+  fxaddpar, l1_header, 'FTCAM_R', ftcam_r, $
+            ' [pixel] cam 1 dark cor flat occulter radius', $
+            format='(f8.2)', after='FTCAM_Y'
 
   fxaddpar, l1_header, 'RCAMPOLS', start_state[0], $
             ' first state used in polarization demodulation'
