@@ -1201,19 +1201,19 @@ pro kcor_l1, ok_filename, $
 
   ; flat centering info
   fxaddpar, l1_header, 'FRCAM_X', frcam_x, $
-            ' [pixel] cam 0 dark cor X-coord flat occulter ctr', $
+            ' [pixel] cam 0 dark cor flat occulter X center', $
             format='(f8.2)', after='TCAM_DCR'
   fxaddpar, l1_header, 'FRCAM_Y', frcam_y, $
-            ' [pixel] cam 0 dark cor Y-coord flat occulter ctr', $
+            ' [pixel] cam 0 dark cor flat occulter Y center', $
             format='(f8.2)', after='FRCAM_X'
   fxaddpar, l1_header, 'FRCAM_R', frcam_r, $
             ' [pixel] cam 0 dark cor flat occulter radius', $
             format='(f8.2)', after='FRCAM_Y'
   fxaddpar, l1_header, 'FTCAM_X', ftcam_x, $
-            ' [pixel] cam 1 dark cor X-coord flat occulter ctr', $
+            ' [pixel] cam 1 dark cor flat occulter X center', $
             format='(f8.2)', after='FRCAM_R'
   fxaddpar, l1_header, 'FTCAM_Y', ftcam_y, $
-            ' [pixel] cam 1 dark cor Y-coord flat occulter ctr', $
+            ' [pixel] cam 1 dark cor flat occulter Y center', $
             format='(f8.2)', after='FTCAM_X'
   fxaddpar, l1_header, 'FTCAM_R', ftcam_r, $
             ' [pixel] cam 1 dark cor flat occulter radius', $
