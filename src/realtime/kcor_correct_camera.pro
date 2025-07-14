@@ -188,18 +188,33 @@ end
 
 ; main-level example program
 
-date = '20160809'
+date = '20250324'
 config_filename = filepath('kcor.latest.cfg', $
-                           subdir=['..', '..', 'config'], $
+                           subdir=['..', '..', '..', 'kcor-config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
 
 date_dir   = filepath(date, root=run->config('processing/raw_basedir'))
-l0_file = filepath('20160809_170203_kcor.fts.gz', root=date_dir)
-img = readfits(l0_file, hdu, /silent)   ; read fits image & header
-print, mg_range(img)
-kcor_correct_camera, img, hdu, run=run, logger_name='kcor/rt'
-print, mg_range(img)
+l0_filename = filepath('20250324_180336_kcor.fts.gz', subdir='level0', root=date_dir)
+
+dt = strmid(file_basename(l0_filename), 0, 15)
+run.time = string(strmid(dt, 0, 4), $
+                  strmid(dt, 4, 2), $
+                  strmid(dt, 6, 2), $
+                  strmid(dt, 9, 2), $
+                  strmid(dt, 11, 2), $
+                  strmid(dt, 13, 2), $
+                  format='(%"%s-%s-%sT%s:%s:%s")')
+
+kcor_read_rawdata, l0_filename, image=img, header=header, $
+                   repair_routine=run->epoch('repair_routine'), $
+                   xshift=run->epoch('xshift_camera'), $
+                   start_state=run->epoch('start_state'), $
+                   raw_data_prefix=run->epoch('raw_data_prefix'), $
+                   datatype=run->epoch('raw_datatype'), $
+                   double=0B
+
+kcor_correct_camera, img, header, run=run
 
 obj_destroy, run
 
