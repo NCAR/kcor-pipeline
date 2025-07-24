@@ -1062,13 +1062,13 @@ pro kcor_l1, ok_filename, $
               format='(f9.7)'
   endif
   fxaddpar, l1_header, 'IMAGESCL', image_scale, $
-            ' [arcsec/pixel] dist cor image scale for this file', $
+            ' [arcsec/pixel] dist cor image scale for file', $
             format='(f9.4)'
   fxaddpar, l1_header, 'RCAM_SCL', rcam_image_scale, $
-            ' [arcsec/pixel] dist cor image scale for camera 0', $
+            ' [arcsec/pixel] dist cor image scale for cam 0', $
             format='(f9.4)'
   fxaddpar, l1_header, 'TCAM_SCL', tcam_image_scale, $
-            ' [arcsec/pixel] dist cor image scale for camera 1', $
+            ' [arcsec/pixel] dist cor image scale for cam 1', $
             format='(f9.4)'
 
   au_to_meters = 149597870700.0D
