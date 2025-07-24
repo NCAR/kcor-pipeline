@@ -1241,7 +1241,7 @@ pro kcor_l1, ok_filename, $
   rsun_ref = 6.96182E8
   fxaddpar, l1_header, 'RSUN_REF', $
             rsun_ref, $
-            ' [m] solar radius doi:10.1051/0004-6361/201732159', $
+            ' [m] solar rad doi:10.1051/0004-6361/201732159', $
             format='(g0.6)'
   fxaddpar, l1_header, 'RSUN_OBS', radsun, $
             string(dist_au * radsun, $
