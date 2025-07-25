@@ -54,7 +54,8 @@ function kcor_reduce_calibration_model, p, data=data, angles=angles, synth=synth
     sa = sin(2d * !dtor * angles[i] * p[16])
     ca = cos(2d * !dtor * angles[i] * p[16])
     rmat[1:2, 1:2] = [[ca, sa], [-1 * sa, ca]]
-    ; calculate the intensity
+
+    ; calculate the intensity: p[13] is the dark value, p[14] is the flat value
     synth[*, i] = p[14] * (mmat ## rmat ## pmatss) + p[13]
   endfor
 
