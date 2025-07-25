@@ -204,8 +204,9 @@ pro kcor_img_insert, date, fits_list, $
     if (level_found eq 0) then mg_log, 'using unknown level', name=log_name, /error
 
     ; DB insert command
-    db->execute, 'insert into kcor_img (file_name, date_obs, date_end, obs_day, carrington_rotation, level, quality, producttype, filetype, numsum, exptime) values (''%s'', ''%s'', ''%s'', %d, %d, %d, %d, %d, %d, %d, %f)', $
-                 fits_file, date_obs, date_end, obsday_index, carrington_rotation, $
+    db->execute, 'insert into kcor_img (file_name, filesize, date_obs, date_end, obs_day, carrington_rotation, level, quality, producttype, filetype, numsum, exptime) values (''%s'', %d, ''%s'', ''%s'', %d, %d, %d, %d, %d, %d, %d, %f)', $
+                 fits_file, mg_filesize(fts_file), $
+                 date_obs, date_end, obsday_index, carrington_rotation, $
                  level_num, quality, producttype_num, $
                  filetype_num, numsum, exptime, $
                  status=status

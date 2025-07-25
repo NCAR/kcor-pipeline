@@ -64,26 +64,34 @@ pro kcor_db_nrgfdiff_insert, nrgfdiff_gif_basenames, $
   level_id = kcor_get_level_id('L2', database=db, count=level_found)
   if (~level_found) then mg_log, 'using unknown level', name=run.logger_name, /error
 
+  l2_dir = filepath('level2', $
+                    subdir=[run.date], $
+                    root=run->config('processing/raw_basedir'))
+
   quality = 75  ; level 2 files have default 75 quality
+
+  fields = [{name: 'file_name', type: '''%s'''}, $
+            {name: 'filesize', type: '%d'}, $
+            {name: 'date_obs', type: '''%s'''}, $
+            {name: 'date_end', type: '''%s'''}, $
+            {name: 'obs_day', type: '%d'}, $
+            {name: 'carrington_rotation', type: '%s'}, $
+            {name: 'level', type: '%d'}, $
+            {name: 'quality', type: '%d'}, $
+            {name: 'producttype', type: '%d'}, $
+            {name: 'filetype', type: '%d'}, $
+            {name: 'numsum', type: '%s'}, $
+            {name: 'exptime', type: '%s'}]
+  sql_cmd = string(strjoin(fields.name, ', '), $
+                   strjoin(fields.type, ', '), $
+                   format='(%"insert into kcor_img (%s) values (%s)")')
 
   ; insert GIF files into database
   for f = 0L, n_nrgfdiff_gifs - 1L do begin
-    fields = [{name: 'file_name', type: '''%s'''}, $
-              {name: 'date_obs', type: '''%s'''}, $
-              {name: 'date_end', type: '''%s'''}, $
-              {name: 'obs_day', type: '%d'}, $
-              {name: 'carrington_rotation', type: '%s'}, $
-              {name: 'level', type: '%d'}, $
-              {name: 'quality', type: '%d'}, $
-              {name: 'producttype', type: '%d'}, $
-              {name: 'filetype', type: '%d'}, $
-              {name: 'numsum', type: '%s'}, $
-              {name: 'exptime', type: '%s'}]
-    sql_cmd = string(strjoin(fields.name, ', '), $
-                     strjoin(fields.type, ', '), $
-                     format='(%"insert into kcor_img (%s) values (%s)")')
+    filename = filepath(nrgfdiff_gif_basenames[f], root=l2_dir)
     db->execute, sql_cmd, $
                  nrgfdiff_gif_basenames[f], $
+                 mg_filesize(filename), $
                  gif_date_obs[f], $
                  gif_date_end[f], $
                  obsday_index, $
@@ -107,6 +115,7 @@ pro kcor_db_nrgfdiff_insert, nrgfdiff_gif_basenames, $
   ; insert mp4 file into database
   if (nrfgdiff_mp4_found) then begin
     fields = [{name: 'file_name', type: '''%s'''}, $
+              {name: 'filesize', type: '%d'}, $
               {name: 'date_obs', type: '''%s'''}, $
               {name: 'date_end', type: '''%s'''}, $
               {name: 'obs_day', type: '%d'}, $
@@ -122,6 +131,7 @@ pro kcor_db_nrgfdiff_insert, nrgfdiff_gif_basenames, $
                      format='(%"insert into kcor_img (%s) values (%s)")')
     db->execute, sql_cmd, $
                  nrfgdiff_mp4_basename, $
+                 mg_filesize(filepath(nrfgdiff_mp4_basename, root=l2_dir)), $
                  mp4_date_obs, $
                  mp4_date_end, $
                  obsday_index, $
