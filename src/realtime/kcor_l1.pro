@@ -1305,6 +1305,8 @@ pro kcor_l1, ok_filename, $
     o1id = run->epoch('O1id')
   endelse
   fxaddpar, l1_header, 'O1ID', o1id, ' ID objective (O1) lens'
+  fxaddpar, l1_header, 'O1_EFL', run->epoch('focal_length'), $
+            '[mm] effective focal length of objective lens'
 
   if (check_lyotstop ne 0) then begin
     fxaddpar, l1_header, 'LYOTSTOP', struct.lyotstop, $ 
