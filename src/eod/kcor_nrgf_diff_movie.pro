@@ -1,25 +1,31 @@
 ;  docformat = 'rst'
 
 ;+
-; Create animation of side-by-side K-Cor nrgf and K-Cor subtraction images.
+; Create animation of side-by-side K-Cor NRGF and difference images.
 ;
-; Read in nrgf enhanced average gif images and subtraction gif images  K-Cor
-; difference images have a nominal 30 second cadence as of 2025. if no data
-; gaps).
-;  K-Cor nrgf average enhanced images have a nominal 2 minute cadence (if no data gaps)
-;  Find nrgf image closest in time to subtraction image
-;  If these are 'close' together in time then save these 2 images in a new array then save as a new combined gif image`
-;  HOW CLOSE IN TIME SHOULD IMAGES BE?
-;  Want images less than `maxsec` seconds apart where `maxsec` is set as a default below
-;  INPUTS: None
+; Read in NRGF enhanced average GIF images and difference GIF images.  K-Cor
+; difference images have a nominal 30 second cadence as of 2025, if no data
+; gaps.
 ;
+; K-Cor NRGF average enhanced images have a nominal 2 minute cadence (if no
+; data gaps). Find NRGF image closest in time to difference image. If these
+; are 'close' together in time then save these 2 images in a new array then
+; save as a new combined GIF image. HOW CLOSE IN TIME SHOULD IMAGES BE? Want
+; images less than `maxsec` seconds apart where `maxsec` is set as a default
+;  below.
 ;
+; :Keywords:
+;   run : in, optional, type=object
+;     KCor run object
+;
+; :History:
 ;  History  J. Burkepile  August 2021
 ;  History  J. Burkepile  June-July 2025
-;            In a separate program I increased the cadence of subtraction images from 5 minutes
-;            to 30 sec. These side-by-side images were created at 5 minute cadence. I am changing
-;            that to 2 minute cadence which will match the subtraction cadence from 5 minutes to 30 seconds
-;            Use 'good' subtraction gifs unless none are available - use 'pass' quality if necessary.
+;    In a separate program I increased the cadence of subtraction images from 5
+;    minutes to 30 sec. These side-by-side images were created at 5 minute
+;    cadence. I am changing that to 2 minute cadence which will match the
+;    subtraction cadence from 5 minutes to 30 seconds. Use 'good' subtraction
+;    GIFs unless none are available - use 'pass' quality if necessary.
 ;-
 pro kcor_nrgf_diff_movie, run=run
   compile_opt strictarr
@@ -37,14 +43,11 @@ pro kcor_nrgf_diff_movie, run=run
   ; enhanced 2 min avg NRGF image when gaps present
   maxsec = 100.0D
 
-  ; convert maxsec time to julian date
-  maxtime = maxsec / 60.0D / 60.0D / 24.0D    ; max diff in Julian time between subt and nrgf
+  ; convert maxsec time to Julian date
+  maxtime = maxsec / 60.0D / 60.0D / 24.0D
 
-  read_subt = 1B     ; flag to determine if a new diff image should be read in
-  ncount = 0L        ; counter for number of good nrgf/subt pairs
-  found_subt = 0     ; use flag to note when diff-nrgf pair is found: 0=No, 1=Yes
-  nrgfimg = bytarr(1024, 1024)
-  subtimg = bytarr(1024, 1024)
+  ncount = 0L        ; counter for number of good NRGF+diff pairs
+  found_diff = 0     ; use flag to note when NRGF+diff pair is found
 
   ; read in list of good diff GIFs and 2 min average NRGF GIFs
   diff_gifs = file_search(filepath('*minus*_{good,pass}.gif', $
@@ -57,7 +60,8 @@ pro kcor_nrgf_diff_movie, run=run
                           count=n_nrgf_average_gifs)
 
   if (n_diff_gifs eq 0L) then begin
-    mg_log, 'no subtractions available for this day', name=run.logger_name, /warn
+    mg_log, 'no difference images available for this day', $
+            name=run.logger_name, /warn
     goto, done
   endif
 
@@ -70,16 +74,20 @@ pro kcor_nrgf_diff_movie, run=run
   gif_numsum = lonarr(n_nrgf_average_gifs)
   gif_exptime = fltarr(n_nrgf_average_gifs)
 
-  diff_time = dblarr(n_diff_gifs)    ; use to store the julian date of each subtraction image
-  delta_time = dblarr(n_diff_gifs)   ; use to store julian time of subtraction minus julian time of nrgf
-  qual_diffs = strarr(n_diff_gifs)   ; use to store the quality of each subtraction image
+  ; use to store the julian date of each difference image
+  diff_jd = dblarr(n_diff_gifs)
+  ; use to store Julian time of difference minus Julian time of NRGF
+  delta_time = dblarr(n_diff_gifs)
+  ; use to store the quality of each difference image
+  qual_diffs = strarr(n_diff_gifs)
 
-  ;   ADDING LOGIC TO READ IN FILENAMES OF ALL SUBTRACTION IMAGES AND CONVERT TIMES TO Julian Dates
-  ;   in order to find the best match to the 2 min avg enhanced nrgf images.
+  ; adding logic to read in filenames of all difference images and convert
+  ; times to Julian Dates in order to find the best match to the 2 min avg
+  ; enhanced NRGF images
 
-  ; Read in list of names of subt gifimages. Compute julian dates. Save quality
-  ; info. Will use these later to find closest time match to the NRGF GIF
-  ; images.
+  ; Read in list of names of difference GIF images. Compute Julian dates. Save
+  ; quality info. Will use these later to find closest time match to the
+  ; NRGF+GIF images.
   for f = 0L, n_diff_gifs - 1L do begin
     ; read in next difference image
     diff_file = file_basename(diff_gifs[f])
@@ -102,12 +110,13 @@ pro kcor_nrgf_diff_movie, run=run
     mn  = fix(minute)
     sec = fix(second)
 
-    ; compute julian date in order to match dark with appropriate flat
-    diff_time[f] = julday(mon, dy, yr, hr, mn, sec)
+    ; compute Julian date in order to match dark with appropriate flat
+    diff_jd[f] = julday(mon, dy, yr, hr, mn, sec)
   endfor
 
-  ; this logic reads in the NRGF and finds the closest in time good quality subtraction. 
-  ; If no good quality subtractions are available it finds the closest 'pass' quality subt. 
+  ; this logic reads in the NRGF and finds the closest in time good quality
+  ; difference; if no good quality differences are available it finds the
+  ; closest 'pass' quality difference. 
   for current_nrgf = 0L, n_nrgf_average_gifs - 1L do begin
     ; read in next NRGF image
     nrgf_file = nrgf_average_gifs[current_nrgf]
@@ -125,22 +134,22 @@ pro kcor_nrgf_diff_movie, run=run
     nrgf_second   = fix(strmid(nrgf_basename, 13, 2))
 
     ; convert to julian date 
-    nrgf_time = julday(nrgf_month, nrgf_day, nrgf_year, $
-                       nrgf_hour, nrgf_minute, nrgf_second)
+    nrgf_jd = julday(nrgf_month, nrgf_day, nrgf_year, $
+                     nrgf_hour, nrgf_minute, nrgf_second)
 
     ; find difference between NRGF and all difference images
-    delta_time = double(abs(diff_time - nrgf_time))   
+    delta_time = double(abs(diff_jd - nrgf_jd))   
     okaytimes = where(delta_time lt maxtime, okcount) ; index of images that meet time difference criteria
 
     if (okcount eq 0) then begin
-      mg_log, 'no acceptable diff found for NRGF %s', nrgf_basename, $
+      mg_log, 'no acceptable diff found for %s', nrgf_basename, $
               name=run.logger_name, /debug
     endif
  
     if (okcount eq 1) then begin
       ; there was 1 image that met the time difference criteria
        best_diff_gif_filename = diff_gifs[okaytimes]
-       found_subt = 1   ; found an image
+       found_diff = 1   ; found an image
     endif
 
     if (okcount gt 1) then begin
@@ -150,24 +159,24 @@ pro kcor_nrgf_diff_movie, run=run
         ; pick closest time
         !null = min(delta_time[okaytimes[goodqual]], bestindex)
         best_diff_gif_filename = diff_gifs[okaytimes[goodqual[bestindex]]]
-        found_subt = 1   ; found best image
+        found_diff = 1   ; found best image
       endif
       if (qcount eq 0) then begin   ; only have 'pass' quality images
         !null = min(delta_time[okaytimes], bestindex)   ; pick closest time
         best_diff_gif_filename = diff_gifs[okaytimes[bestindex]]
-        found_subt = 1   ; found best image
+        found_diff = 1   ; found best image
       endif
     endif
 
-    if (found_subt eq 1) then begin   ; found matching images
+    if (found_diff eq 1) then begin   ; found matching images
       mg_log, 'found a matching diff file', name=run.logger_name, /debug
       nrgf_keep[ncount] = nrgf_file
       diff_keep[ncount] = best_diff_gif_filename
 
-      read_gif, nrgf_file, nrgfimg
-      read_gif, best_diff_gif_filename, subtimg
-      nrgf_image = rebin(nrgfimg, 512, 512)
-      diff_image = rebin(subtimg, 512, 512)
+      read_gif, nrgf_file, nrgf_image
+      read_gif, best_diff_gif_filename, diff_image
+      nrgf_image = rebin(nrgf_image, 512, 512)
+      diff_image = rebin(diff_image, 512, 512)
 
       ; put NRGF image on left and subtraction on the right side of the window
       combined_image[0:511, *] = nrgf_image
@@ -189,7 +198,7 @@ pro kcor_nrgf_diff_movie, run=run
       mg_log, 'diff: %s', file_basename(diff_keep[ncount]), $
               name=run.logger_name, /debug
 
-      ; find metadata for frames
+      ; find metadata for frames for use in database entry for mp4 file
       nrgf_fits_filename = strmid(nrgf_keep[ncount], 0, strlen(nrgf_keep[ncount]) - 4L) + '.fts.gz'
       diff_fits_filename = strmid(diff_keep[ncount], 0, strlen(diff_keep[ncount]) - 4L) + '.fts.gz'
 
@@ -209,11 +218,11 @@ pro kcor_nrgf_diff_movie, run=run
       best_diff_gif_filename = ''
       closest = -1
       delta_time[*] = 1.0D
-      found_subt = 0
+      found_diff = 0
       goodqual = -1
       qcount = 0
       okcount = 0
-      okaytimes = lonarr(12)   ; reset. Should never be 12 images < 100 sec from nrgf
+      okaytimes = lonarr(12)   ; should never be 12 images < 100 sec from NRGF
 
       ncount += 1L
     endif
