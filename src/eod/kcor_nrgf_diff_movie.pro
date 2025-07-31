@@ -46,8 +46,8 @@ pro kcor_nrgf_diff_movie, run=run
   ; convert maxsec time to Julian date
   maxtime = maxsec / 60.0D / 60.0D / 24.0D
 
-  ncount = 0L        ; counter for number of good NRGF+diff pairs
-  found_diff = 0     ; use flag to note when NRGF+diff pair is found
+  n_nrgf_diff_images = 0L   ; counter for number of good NRGF+diff pairs
+  found_diff = 0            ; use flag to note when NRGF+diff pair is found
 
   ; read in list of good diff GIFs and 2 min average NRGF GIFs
   diff_gifs = file_search(filepath('*minus*_{good,pass}.gif', $
@@ -65,14 +65,14 @@ pro kcor_nrgf_diff_movie, run=run
     goto, done
   endif
 
-  diff_keep = strarr(n_diff_gifs)
-  nrgf_keep = strarr(n_nrgf_average_gifs)
-  frame_filenames = strarr(n_nrgf_average_gifs)
-  gif_date_obs = strarr(n_nrgf_average_gifs)
-  gif_date_end = strarr(n_nrgf_average_gifs)
+  diff_keep               = strarr(n_diff_gifs)
+  nrgf_keep               = strarr(n_nrgf_average_gifs)
+  frame_filenames         = strarr(n_nrgf_average_gifs)
+  gif_date_obs            = strarr(n_nrgf_average_gifs)
+  gif_date_end            = strarr(n_nrgf_average_gifs)
   gif_carrington_rotation = lonarr(n_nrgf_average_gifs)
-  gif_numsum = lonarr(n_nrgf_average_gifs)
-  gif_exptime = fltarr(n_nrgf_average_gifs)
+  gif_numsum              = lonarr(n_nrgf_average_gifs)
+  gif_exptime             = fltarr(n_nrgf_average_gifs)
 
   ; use to store the julian date of each difference image
   diff_jd = dblarr(n_diff_gifs)
@@ -119,13 +119,12 @@ pro kcor_nrgf_diff_movie, run=run
   ; closest 'pass' quality difference. 
   for current_nrgf = 0L, n_nrgf_average_gifs - 1L do begin
     ; read in next NRGF image
-    nrgf_file = nrgf_average_gifs[current_nrgf]
-    ftspos = strpos(nrgf_file, '_kcor')
+    nrgf_filename = nrgf_average_gifs[current_nrgf]
 
     ; determine time of image
 
     ; extract NRGF time from filename
-    nrgf_basename = file_basename(nrgf_file)
+    nrgf_basename = file_basename(nrgf_filename)
     nrgf_year     = fix(strmid(nrgf_basename,  0, 4))
     nrgf_month    = fix(strmid(nrgf_basename,  4, 2))
     nrgf_day      = fix(strmid(nrgf_basename,  6, 2))
@@ -133,98 +132,105 @@ pro kcor_nrgf_diff_movie, run=run
     nrgf_minute   = fix(strmid(nrgf_basename, 11, 2))
     nrgf_second   = fix(strmid(nrgf_basename, 13, 2))
 
-    ; convert to julian date 
+    ; convert to Julian date 
     nrgf_jd = julday(nrgf_month, nrgf_day, nrgf_year, $
                      nrgf_hour, nrgf_minute, nrgf_second)
 
     ; find difference between NRGF and all difference images
-    delta_time = double(abs(diff_jd - nrgf_jd))   
-    okaytimes = where(delta_time lt maxtime, okcount) ; index of images that meet time difference criteria
+    delta_time = double(abs(diff_jd - nrgf_jd))
+    ; index of images that meet time difference criteria
+    ok_times = where(delta_time lt maxtime, n_ok)
 
-    if (okcount eq 0) then begin
+    if (n_ok eq 0) then begin
       mg_log, 'no acceptable diff found for %s', nrgf_basename, $
               name=run.logger_name, /debug
     endif
  
-    if (okcount eq 1) then begin
+    if (n_ok eq 1) then begin
       ; there was 1 image that met the time difference criteria
-       best_diff_gif_filename = diff_gifs[okaytimes]
+       best_diff_gif_filename = diff_gifs[ok_times]
        found_diff = 1   ; found an image
     endif
 
-    if (okcount gt 1) then begin
+    if (n_ok gt 1) then begin
       ; we have at least two diff images close to NRGF time
-      goodqual = where(qual_diffs[okaytimes] eq 'good', qcount)
+      goodqual = where(qual_diffs[ok_times] eq 'good', qcount)
       if (qcount gt 0) then begin   ; have at least one good quality image
         ; pick closest time
-        !null = min(delta_time[okaytimes[goodqual]], bestindex)
-        best_diff_gif_filename = diff_gifs[okaytimes[goodqual[bestindex]]]
+        !null = min(delta_time[ok_times[goodqual]], bestindex)
+        best_diff_gif_filename = diff_gifs[ok_times[goodqual[bestindex]]]
         found_diff = 1   ; found best image
       endif
       if (qcount eq 0) then begin   ; only have 'pass' quality images
-        !null = min(delta_time[okaytimes], bestindex)   ; pick closest time
-        best_diff_gif_filename = diff_gifs[okaytimes[bestindex]]
+        !null = min(delta_time[ok_times], bestindex)   ; pick closest time
+        best_diff_gif_filename = diff_gifs[ok_times[bestindex]]
         found_diff = 1   ; found best image
       endif
     endif
 
     if (found_diff eq 1) then begin   ; found matching images
       mg_log, 'found a matching diff file', name=run.logger_name, /debug
-      nrgf_keep[ncount] = nrgf_file
-      diff_keep[ncount] = best_diff_gif_filename
+      nrgf_keep[n_nrgf_diff_images] = nrgf_filename
+      diff_keep[n_nrgf_diff_images] = best_diff_gif_filename
 
-      read_gif, nrgf_file, nrgf_image
+      read_gif, nrgf_filename, nrgf_image
       read_gif, best_diff_gif_filename, diff_image
       nrgf_image = rebin(nrgf_image, 512, 512)
       diff_image = rebin(diff_image, 512, 512)
 
-      ; put NRGF image on left and subtraction on the right side of the window
+      ; put NRGF image on left and difference image on the right side of the
+      ; window
       combined_image[0:511, *] = nrgf_image
       combined_image[512:1023, *] = diff_image
 
       ; create GIF name and save image
-      ftspos   = strpos(diff_keep[ncount], '_kcor')
-      basename = strmid(diff_keep[ncount], 0, ftspos)
-      frame_filenames[ncount] = basename + '_kcor_l2_nrgf_and_diff.gif'
-      mg_log, 'writing %s...', file_basename(frame_filenames[ncount]), $
+      base_pos = strpos(diff_keep[n_nrgf_diff_images], '_kcor')
+      basename = strmid(diff_keep[n_nrgf_diff_images], 0, base_pos)
+      frame_filenames[n_nrgf_diff_images] = basename + '_kcor_l2_nrgf_and_diff.gif'
+      mg_log, 'writing %s...', $
+              file_basename(frame_filenames[n_nrgf_diff_images]), $
               name=run.logger_name, /info
-      write_gif, frame_filenames[ncount], combined_image
+      write_gif, frame_filenames[n_nrgf_diff_images], combined_image
       if (run->config('realtime/distribute')) then begin
-        file_copy, frame_filenames[ncount], fullres_dir, /overwrite
+        file_copy, frame_filenames[n_nrgf_diff_images], fullres_dir, /overwrite
       endif
 
-      mg_log, 'NRGF: %s', file_basename(nrgf_keep[ncount]), $
+      mg_log, 'NRGF: %s', file_basename(nrgf_keep[n_nrgf_diff_images]), $
               name=run.logger_name, /debug
-      mg_log, 'diff: %s', file_basename(diff_keep[ncount]), $
+      mg_log, 'diff: %s', file_basename(diff_keep[n_nrgf_diff_images]), $
               name=run.logger_name, /debug
 
       ; find metadata for frames for use in database entry for mp4 file
-      nrgf_fits_filename = strmid(nrgf_keep[ncount], 0, strlen(nrgf_keep[ncount]) - 4L) + '.fts.gz'
-      diff_fits_filename = strmid(diff_keep[ncount], 0, strlen(diff_keep[ncount]) - 4L) + '.fts.gz'
+      nrgf_fits_filename = strmid(nrgf_keep[n_nrgf_diff_images], $
+                                  0, $
+                                  strlen(nrgf_keep[n_nrgf_diff_images]) - 4L) + '.fts.gz'
+      diff_fits_filename = strmid(diff_keep[n_nrgf_diff_images], $
+                                  0, $
+                                  strlen(diff_keep[n_nrgf_diff_images]) - 4L) + '.fts.gz'
 
       nrgf_primary_header = headfits(nrgf_fits_filename, exten=0)
       diff_primary_header = headfits(diff_fits_filename, exten=0)
-      gif_date_obs[ncount] = min([sxpar(nrgf_primary_header, 'DATE-OBS'), $
-                                  sxpar(diff_primary_header, 'DATE-OBS')])
-      gif_date_end[ncount] = min([sxpar(nrgf_primary_header, 'DATE-END'), $
-                                  sxpar(diff_primary_header, 'DATE-END')])
+      gif_date_obs[n_nrgf_diff_images] = min([sxpar(nrgf_primary_header, 'DATE-OBS'), $
+                                              sxpar(diff_primary_header, 'DATE-OBS')])
+      gif_date_end[n_nrgf_diff_images] = min([sxpar(nrgf_primary_header, 'DATE-END'), $
+                                              sxpar(diff_primary_header, 'DATE-END')])
 
-      date_obs_anytim = utc2str(tai2utc(utc2tai(str2utc(gif_date_obs[ncount]))), /stime)
-      gif_carrington_rotation[ncount] = long((tim2carr(date_obs_anytim, /dc))[0])
-      gif_numsum[ncount] = sxpar(nrgf_primary_header, 'NUMSUM')
-      gif_exptime[ncount] = sxpar(nrgf_primary_header, 'EXPTIME')
+      date_obs_anytim = utc2str(str2utc(gif_date_obs[n_nrgf_diff_images]), /stime)
+      gif_carrington_rotation[n_nrgf_diff_images] = long((tim2carr(date_obs_anytim, /dc))[0])
+
+      gif_numsum[n_nrgf_diff_images] = sxpar(nrgf_primary_header, 'NUMSUM')
+      gif_exptime[n_nrgf_diff_images] = sxpar(nrgf_primary_header, 'EXPTIME')
 
       ; reset all counters, best and okay image info before reading in next image
       best_diff_gif_filename = ''
-      closest = -1
       delta_time[*] = 1.0D
       found_diff = 0
       goodqual = -1
       qcount = 0
-      okcount = 0
-      okaytimes = lonarr(12)   ; should never be 12 images < 100 sec from NRGF
+      n_ok = 0
+      ok_times = lonarr(12)   ; should never be 12 images < 100 sec from NRGF
 
-      ncount += 1L
+      n_nrgf_diff_images += 1L
     endif
   endfor
 
@@ -232,18 +238,18 @@ pro kcor_nrgf_diff_movie, run=run
           name=run.logger_name, /info
   mg_log, 'number of NRGF average images: %d', n_nrgf_average_gifs, $
           name=run.logger_name, /info
-  if (ncount eq 0L) then begin
+  if (n_nrgf_diff_images eq 0L) then begin
     mg_log, 'no good or acceptable NRGF+diff matches', $
             name=run.logger_name, /info
     goto, done
   endif else begin
-    mg_log, 'number of NRGF+diff images: %d', ncount, $
+    mg_log, 'number of NRGF+diff images: %d', n_nrgf_diff_images, $
             name=run.logger_name, /info
   endelse
 
   ; create movie filename
-  if (ncount gt 1L) then begin
-    frame_filenames = frame_filenames[0:ncount - 1]
+  if (n_nrgf_diff_images gt 1L) then begin
+    frame_filenames = frame_filenames[0:n_nrgf_diff_images - 1]
 
     mp4_date_obs = min(gif_date_obs)
     mp4_date_end = max(gif_date_end)
@@ -264,18 +270,23 @@ pro kcor_nrgf_diff_movie, run=run
 
   ; create database entries for new NRGF+diff images
   if (run->config('database/update')) then begin
-    mg_log, 'adding %d NRGF+diff GIFs to database', ncount, name=run.logger_name, /info
+    mg_log, 'adding %d NRGF+diff GIFs to database', n_nrgf_diff_images, $
+            name=run.logger_name, /info
     obsday_index = mlso_obsday_insert(run.date, $
                                       run=run, $
                                       database=db, $
                                       status=db_status, $
                                       log_name=run.logger_name)
+    mg_log, 'adding NRGF+diff mp4 to database', name=run.logger_name, /info
     kcor_db_nrgfdiff_insert, file_basename(frame_filenames), $
                              gif_date_obs, gif_date_end, $
-                             gif_carrington_rotation, gif_numsum, gif_exptime, $
+                             gif_carrington_rotation, $
+                             gif_numsum, gif_exptime, $
                              nrfgdiff_mp4_basename, $
                              mp4_date_obs, mp4_date_end, $
-                             gif_carrington_rotation[0], gif_numsum[0], gif_exptime[0], $
+                             gif_carrington_rotation[0], $
+                             gif_numsum[0], $
+                             gif_exptime[0], $
                              database=db, run=run, obsday_index=obsday_index
   endif else begin
     mg_log, 'skipping updating database', name=run.logger_name, /info
