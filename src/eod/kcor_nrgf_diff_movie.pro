@@ -139,7 +139,7 @@ pro kcor_nrgf_diff_movie, run=run
     ; find difference between NRGF and all difference images
     delta_time = double(abs(diff_jd - nrgf_jd))
     ; index of images that meet time difference criteria
-    ok_times = where(delta_time lt maxtime, n_ok)
+    ok_time_indices = where(delta_time lt maxtime, n_ok)
 
     if (n_ok eq 0) then begin
       mg_log, 'no acceptable diff found for %s', nrgf_basename, $
@@ -148,22 +148,22 @@ pro kcor_nrgf_diff_movie, run=run
  
     if (n_ok eq 1) then begin
       ; there was 1 image that met the time difference criteria
-       best_diff_gif_filename = diff_gifs[ok_times]
+       best_diff_gif_filename = diff_gifs[ok_time_indices]
        found_diff = 1   ; found an image
     endif
 
     if (n_ok gt 1) then begin
       ; we have at least two diff images close to NRGF time
-      goodqual = where(qual_diffs[ok_times] eq 'good', qcount)
-      if (qcount gt 0) then begin   ; have at least one good quality image
+      good_indices = where(qual_diffs[ok_time_indices] eq 'good', n_good)
+      if (n_good gt 0) then begin   ; have at least one good quality image
         ; pick closest time
-        !null = min(delta_time[ok_times[goodqual]], bestindex)
-        best_diff_gif_filename = diff_gifs[ok_times[goodqual[bestindex]]]
+        !null = min(delta_time[ok_time_indices[good_indices]], bestindex)
+        best_diff_gif_filename = diff_gifs[ok_time_indices[good_indices[bestindex]]]
         found_diff = 1   ; found best image
       endif
-      if (qcount eq 0) then begin   ; only have 'pass' quality images
-        !null = min(delta_time[ok_times], bestindex)   ; pick closest time
-        best_diff_gif_filename = diff_gifs[ok_times[bestindex]]
+      if (n_good eq 0) then begin   ; only have 'pass' quality images
+        !null = min(delta_time[ok_time_indices], bestindex)   ; pick closest time
+        best_diff_gif_filename = diff_gifs[ok_time_indices[bestindex]]
         found_diff = 1   ; found best image
       endif
     endif
@@ -225,10 +225,10 @@ pro kcor_nrgf_diff_movie, run=run
       best_diff_gif_filename = ''
       delta_time[*] = 1.0D
       found_diff = 0
-      goodqual = -1
-      qcount = 0
+      good_indices = -1
       n_ok = 0
-      ok_times = lonarr(12)   ; should never be 12 images < 100 sec from NRGF
+      ; there should never be 12 images < 100 sec from NRGF
+      ok_time_indices = lonarr(12)
 
       n_nrgf_diff_images += 1L
     endif
