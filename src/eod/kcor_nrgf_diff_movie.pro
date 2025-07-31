@@ -249,7 +249,13 @@ pro kcor_nrgf_diff_movie, run=run
 
   ; create movie filename
   if (n_nrgf_diff_images gt 1L) then begin
-    frame_filenames = frame_filenames[0:n_nrgf_diff_images - 1]
+    ; trim arrays to only the valid NRGF+diff images
+    frame_filenames         = frame_filenames[0:n_nrgf_diff_images - 1]
+    gif_date_obs            = gif_date_obs[0:n_nrgf_diff_images - 1]
+    gif_date_end            = gif_date_end[0:n_nrgf_diff_images - 1]
+    gif_carrington_rotation = gif_carrington_rotation[0:n_nrgf_diff_images - 1]
+    gif_numsum              = gif_numsum[0:n_nrgf_diff_images - 1]
+    gif_exptime             = gif_exptime[0:n_nrgf_diff_images - 1]
 
     mp4_date_obs = min(gif_date_obs)
     mp4_date_end = max(gif_date_end)
