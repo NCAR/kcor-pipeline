@@ -48,7 +48,7 @@ pro kcor_plot_gainmedians, run=run
         mask = fltarr(xsize, ysize) + !values.f_nan
         mask[mask_indices] = 1B
 
-        dark_corrected_gain = reform(gain[*, *, c] - dark[*, *, c])
+        dark_corrected_gain = reform(gain[*, *, c])
         normalized_corrected_gain = dark_corrected_gain / exptime / sgsdimv
         annulus_medians[c, f] = median(mask * normalized_corrected_gain)
       endfor
