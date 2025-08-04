@@ -28,14 +28,14 @@ function kcor_run::_find_calfile, date, hst_time, error=error
 
   error = 0L
 
-  re = '([[:digit:]]{8})_([[:digit:]]{6})_kcor_cal.*.\.ncdf'
-  cal_out_dir = self->config('calibration/out_dir')
+  re = '([[:digit:]]{8})_([[:digit:]]{6})_kcor_cal_.*ms\.ncdf'
+  ;cal_out_dir = self->config('calibration/out_dir')
+  cal_out_dir = '/hao/dawn/Data/KCor/calib_files/v2.1.x'
   epoch_version = self->epoch('cal_epoch_version')
 
   cal_format = '(%"*kcor_cal_v%s_*.ncdf")'
   cal_search_spec = filepath(string(epoch_version, format=cal_format), $
                              root=cal_out_dir)
-
   calfiles = file_basename(file_search(cal_search_spec, count=n_calfiles))
   if (n_calfiles eq 0L) then begin
     error = 1L
@@ -46,10 +46,14 @@ function kcor_run::_find_calfile, date, hst_time, error=error
   now_time = long(kcor_decompose_time(hst_time))
   ; remember to add 10 hours for HST to UT conversion
   now = julday(now_date[1], now_date[2], now_date[0], $
-               now_time[0] + 10, now_time[1], now_time[2])
+               now_time[0] + 10.0D, now_time[1], now_time[2])
 
-  closest_file = ''
-  time_diff = 1000.0D   ; start with 1000 day old file
+  max_difference = 1000.0D   ; start with 1000 day old file
+
+  ; tolerance is the time difference between cal files that we will call
+  ; equivalent
+  tolerance = 1.0D / 60.0D / 60.0D / 24.0D  ; secs to Julian days
+  jds = dblarr(n_calfiles)
 
   ; loop through files to find closest
   for c = 0L, n_calfiles - 1L do begin
@@ -57,17 +61,37 @@ function kcor_run::_find_calfile, date, hst_time, error=error
       tokens = stregex(calfiles[c], re, /subexpr, /extract)
       cal_date = long(kcor_decompose_date(tokens[1]))
       cal_time = long(kcor_decompose_time(tokens[2]))
-      jd = julday(cal_date[1], cal_date[2], cal_date[0], $
-                  cal_time[0], cal_time[1], cal_time[2])
-      if (abs(now - jd) lt time_diff) then begin
-        closest_file = calfiles[c]
-        time_diff = now - jd
-      endif
+      jds[c] = julday(cal_date[1], cal_date[2], cal_date[0], $
+                      cal_time[0], cal_time[1], cal_time[2])
     endif
   endfor
 
-  if (closest_file eq '') then error = 2L
-  return, closest_file
+  differences = abs(now - jds)
+  close_indices = where(differences lt (min(differences) + tolerance) $
+                          and (differences lt max_difference), n_close_files)
+
+  ; close_indices specifies all the cal files with the appropriate cal epoch
+  ; version that are within tolerance of the closest cal file
+
+  ; choose the cal file with the most recent version number from these
+  ; candidates
+
+  versions = strarr(n_close_files)
+  for f = 0L, n_close_files - 1L do begin
+    tokens = strsplit(file_basename(calfiles[close_indices[f]]), '_', /extract)
+    versions[f] = tokens[5]
+  endfor
+
+  most_recent_version_index = 0L
+  most_recent_version = versions[most_recent_version_index]
+  for f = 1L, n_close_files - 1L do begin
+    if (mg_cmp_version(versions[f], most_recent_version) gt 0L) then begin
+      most_recent_version_index = f
+      most_recent_version = versions[most_recent_version_index]
+    endif
+  endfor
+
+  return, calfiles[close_indices[most_recent_version_index]]
 end
 
 
@@ -587,14 +611,13 @@ end
 
 ; example of creating a run object
 
-date = '20180212'
-config_filename = filepath('kcor.mgalloy.mahi.latest.cfg', $
-                           subdir=['..', 'config'], $
+date = '20240409'
+config_filename = filepath('kcor.latest.cfg', $
+                           subdir=['..', '..', 'kcor-config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
 
-help, run->config('verification/min_compression_ratio')
-help, run->config('verification/max_compression_ratio')
+help, run->epoch('cal_file')
 
 obj_destroy, run
 
