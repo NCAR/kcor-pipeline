@@ -1219,6 +1219,21 @@ pro kcor_l1, ok_filename, $
             ' [pixel] cam 1 dark cor flat occulter radius', $
             format='(f8.2)', after='FTCAM_Y'
 
+  rcam_avg_flat_radius_name = string(strmid(occltrid, 0, 8), format='%s-RCAM-avg_flat_rad')
+  rcam_avg_flat_radius = run->epoch(rcam_avg_flat_radius_name)
+  tcam_avg_flat_radius_name = string(strmid(occltrid, 0, 8), format='%s-TCAM-avg_flat_rad')
+  tcam_avg_flat_radius = run->epoch(tcam_avg_flat_radius_name)
+  fxaddpar, l1_header, 'FRCAMAVR', rcam_avg_flat_radius, $
+            string(strmid(occltrid, 0, 8), $
+                   run->epoch('dist_epoch_version'), $
+                   format=' [pixel] avg rad %s cam0 flats dist ep %s'), $
+            format='(f8.2)', after='FTCAM_R'
+  fxaddpar, l1_header, 'FTCAMAVR', tcam_avg_flat_radius, $
+            string(strmid(occltrid, 0, 8), $
+                   run->epoch('dist_epoch_version'), $
+                   format=' [pixel] avg rad %s cam0 flats dist ep %s'), $
+            format='(f8.2)', after='FRCAMAVR'
+
   fxaddpar, l1_header, 'RCAMPOLS', start_state[0], $
             ' first state used in polarization demodulation'
   fxaddpar, l1_header, 'TCAMPOLS', start_state[1], $
@@ -1306,7 +1321,7 @@ pro kcor_l1, ok_filename, $
   endelse
   fxaddpar, l1_header, 'O1ID', o1id, ' ID objective (O1) lens'
   fxaddpar, l1_header, 'O1_EFL', run->epoch('focal_length'), $
-            '[mm] effective focal length of objective lens'
+            ' [mm] effective focal length of objective lens'
 
   if (check_lyotstop ne 0) then begin
     fxaddpar, l1_header, 'LYOTSTOP', struct.lyotstop, $ 
