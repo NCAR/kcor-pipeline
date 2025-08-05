@@ -1242,3 +1242,12 @@
 - fixed ability to run scripts via script sub-command
 - new epochs for plate scale
 - epoch changes for start state and bad data
+- change LYOTSTOP keyword to specify 2nd Lyot stop identifier
+- among cal files that are at the same closest time, use the one with the most
+  recent version
+- add FRCAMAVR, FTCAMAVR, O1_EFL FITS keywords
+- adjust NRGF+diff to the higher cadence
+- use 1 for gain_overmask_size for all epochs
+- add filesize to kcor_img database table
+- add centering info for dark-corrected gain to science headers (FRCAM_X,
+  FRCAM_Y, FRCAM_R, FTCAM_X, FTCAM_Y, and FTCAM_R FITS keywords)
