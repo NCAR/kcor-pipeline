@@ -20,8 +20,9 @@ function kcor_lyotstop, header, run=run
 
   if (run->epoch('use_lyotstop_keyword')) then begin
     lyotstop = sxpar(header, 'LYOTSTOP', count=n_lyotstop)
-    return, n_lyotstop eq 0L ? '' : lyotstop
+    return, n_lyotstop eq 0L ? !null : lyotstop
   endif else begin
-    return, run->epoch('lyotstop')
+    lyotstop = run->epoch('lyotstop')
+    return, lyotstop eq '' ? !null : lyotstop
   endelse
 end

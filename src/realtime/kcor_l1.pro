@@ -879,7 +879,6 @@ pro kcor_l1, ok_filename, $
 
   check_sgsrazr  = tag_exist(struct, 'SGSRAZR')
   check_sgsdeczr = tag_exist(struct, 'SGSDECZR')
-  check_lyotstop = tag_exist(struct, 'LYOTSTOP')
 
   ; clean bad SGS information
   if (run->epoch('use_sgs')) then begin
@@ -1323,10 +1322,8 @@ pro kcor_l1, ok_filename, $
   fxaddpar, l1_header, 'O1_EFL', run->epoch('focal_length'), $
             ' [mm] effective focal length of objective lens'
 
-  if (check_lyotstop ne 0) then begin
-    fxaddpar, l1_header, 'LYOTSTOP', struct.lyotstop, $ 
-              ' specifies if the 2nd Lyot stop is in the beam'
-  endif
+  fxaddpar, l1_header, 'LYOTSTOP', file_lyotstop, $
+            ' specifies the 2nd Lyot stop in the beam', /null
 
   occulter_comment = run->epoch(strmid(occltrid, 0, 8) + '-comment', $
                                 found=found)

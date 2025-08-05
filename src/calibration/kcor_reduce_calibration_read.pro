@@ -156,14 +156,12 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
     endif
 
     ; LYOTSTOP for all files must be the same to produce a calibration
-    file_lyotstop = sxpar(header, 'LYOTSTOP', count=n_lyotstop)
-    if (n_lyotstop gt 0L) then begin
-      if (file_lyotstop ne lyotstop) then begin
-        mg_log, 'LYOTSTOP for %s (%s) does not match LYOTSTOP for %s (%s)', $
-                file_list[f], file_lyotstop, file_list[0], lyotstop, $
-                name='kcor/cal', /error
-        return
-      endif
+    file_lyotstop = kcor_lyotstop(header, run=run)
+    if (file_lyotstop ne lyotstop) then begin
+      mg_log, 'LYOTSTOP for %s (%s) does not match LYOTSTOP for %s (%s)', $
+              file_list[f], file_lyotstop, file_list[0], lyotstop, $
+              name='kcor/cal', /error
+      return
     endif
 
     ; get diffuser intensity from somewhere in 1E-6 B_sun
