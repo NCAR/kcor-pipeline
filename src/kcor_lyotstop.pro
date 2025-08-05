@@ -1,11 +1,11 @@
 ; docformat = 'rst'
 
 ;+
-; Determine if the 2nd Lyot stop is in the optical path.
+; Return the identifier for the 2nd Lyot stop if it is in the optical path.
 ;
 ; :Returns:
-;   'in' or 'out' (or '' if not present as a FITS keyword in a file that should
-;   contain it)
+;   returns the 2nd Lyot stop identifier or `!null` if no 2nd Lyot stop is
+;   present
 ;
 ; :Params:
 ;   header : in, required, type=strarr
