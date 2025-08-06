@@ -136,19 +136,20 @@ pro kcor_eng_insert, date, fits_list, $
       level = strmid(level, 0, os)   ; strip off NRGF from level, if present
     endif
 
+    ; subtract one from x- and y-center values to convert from FITS convention
     bunit            = strtrim(sxpar(hdu, 'BUNIT',    count=qbunit), 2)
     bzero            =         sxpar(hdu, 'BZERO',    count=qbzero)
     bscale           =         sxpar(hdu, 'BSCALE',   count=qbscale)
-    rcamxcen         =         sxpar(hdu, 'RCAMXCEN', count=qrcamxcen)
-    rcamycen         =         sxpar(hdu, 'RCAMYCEN', count=qrcamycen)
-    tcamxcen         =         sxpar(hdu, 'TCAMXCEN', count=qtcamxcen)
-    tcamycen         =         sxpar(hdu, 'TCAMYCEN', count=qtcamycen)
+    rcamxcen         =         sxpar(hdu, 'RCAMXCEN', count=qrcamxcen) - 1
+    rcamycen         =         sxpar(hdu, 'RCAMYCEN', count=qrcamycen) - 1
+    tcamxcen         =         sxpar(hdu, 'TCAMXCEN', count=qtcamxcen) - 1
+    tcamycen         =         sxpar(hdu, 'TCAMYCEN', count=qtcamycen) - 1
     rcam_rad         =         sxpar(hdu, 'RCAM_RAD', count=qrcamrad)
     tcam_rad         =         sxpar(hdu, 'TCAM_RAD', count=qtcamrad)
-    rcam_dcx         =         sxpar(hdu, 'RCAM_DCX', count=qrcamdcx)
-    rcam_dcy         =         sxpar(hdu, 'RCAM_DCY', count=qrcamdcy)
-    tcam_dcx         =         sxpar(hdu, 'TCAM_DCX', count=qtcamdcx)
-    tcam_dcy         =         sxpar(hdu, 'TCAM_DCY', count=qtcamdcy)
+    rcam_dcx         =         sxpar(hdu, 'RCAM_DCX', count=qrcamdcx) - 1
+    rcam_dcy         =         sxpar(hdu, 'RCAM_DCY', count=qrcamdcy) - 1
+    tcam_dcx         =         sxpar(hdu, 'TCAM_DCX', count=qtcamdcx) - 1
+    tcam_dcy         =         sxpar(hdu, 'TCAM_DCY', count=qtcamdcy) - 1
     rcam_dcr         =         sxpar(hdu, 'RCAM_DCR', count=qrcamdcr)
     tcam_dcr         =         sxpar(hdu, 'TCAM_DCR', count=qtcamdcr)
     scale_factor     =         sxpar(hdu, 'SCALEF', count=qtscale_factor)
