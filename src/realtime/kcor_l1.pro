@@ -144,9 +144,10 @@ pro kcor_l1, ok_filename, $
   cal_epoch_version = kcor_nc_getattribute(unit, 'epoch_version', default='-1')
 
   if (kcor_nc_varid(unit, 'lyotstop') eq -1L) then begin
-    cal_lyotstop = 'undefined'
+    cal_lyotstop = !null
   endif else begin
     ncdf_varget, unit, 'lyotstop', cal_lyotstop
+    if (cal_lyotstop eq '') then cal_lyotstop = !null
   endelse
 
   if (kcor_nc_varid(unit, 'numsum') eq -1L) then begin
@@ -248,7 +249,9 @@ pro kcor_l1, ok_filename, $
   file_lyotstop = kcor_lyotstop(header, run=run)
   if (cal_lyotstop ne file_lyotstop) then begin
     mg_log, 'cal file LYOTSTOP (%s) does not match file (%s) for %s', $
-            cal_lyotstop, file_lyotstop, file_basename(ok_filename), $
+            n_elements(cal_lyotstop) eq 0L ? 'NULL' : cal_lyotstop, $
+            n_elements(file_lyotstop) eq 0L ? 'NULL' : file_lyotstop, $
+            file_basename(ok_filename), $
             name=log_name, /error
     mg_log, 'skipping file %s', file_basename(ok_filename), name=log_name, /error
     error = 1L

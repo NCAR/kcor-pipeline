@@ -29,8 +29,7 @@ function kcor_run::_find_calfile, date, hst_time, error=error
   error = 0L
 
   re = '([[:digit:]]{8})_([[:digit:]]{6})_kcor_cal_.*ms\.ncdf'
-  ;cal_out_dir = self->config('calibration/out_dir')
-  cal_out_dir = '/hao/dawn/Data/KCor/calib_files/v2.1.x'
+  cal_out_dir = self->config('calibration/out_dir')
   epoch_version = self->epoch('cal_epoch_version')
 
   cal_format = '(%"*kcor_cal_v%s_*.ncdf")'
@@ -82,6 +81,9 @@ function kcor_run::_find_calfile, date, hst_time, error=error
     versions[f] = tokens[5]
   endfor
 
+  mg_log, 'choosing from cal files with versions: %s', strjoin(versions, ', '), $
+          name=self.logger_name, /debug
+
   most_recent_version_index = 0L
   most_recent_version = versions[most_recent_version_index]
   for f = 1L, n_close_files - 1L do begin
@@ -90,6 +92,9 @@ function kcor_run::_find_calfile, date, hst_time, error=error
       most_recent_version = versions[most_recent_version_index]
     endif
   endfor
+
+  mg_log, 'most recent version: %s', most_recent_version, $
+          name=self.logger_name, /debug
 
   return, calfiles[close_indices[most_recent_version_index]]
 end

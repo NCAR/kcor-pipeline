@@ -244,5 +244,5 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
               file_types: file_types, $
               numsum: numsum, $
               exptime: exptime, $
-              lyotstop: lyotstop}
+              lyotstop: n_elements(lyotstop) eq 0L ? '' : lyotstop}
 end
