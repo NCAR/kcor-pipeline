@@ -100,7 +100,7 @@ pro kcor_dutycycle, start_date, end_date, $
   use_ps = 1B
 
   if (keyword_set(use_ps)) then begin
-    basename = 'duty-cycle'
+    basename = 'kcor-duty-cycle'
     mg_psbegin, filename=basename + '.ps', /color, bits_per_pixel=8, $
                 xsize=10.0, ysize=8.0, /inches, /landscape, xoffset=0.0
     charsize = 1.0
@@ -117,18 +117,32 @@ pro kcor_dutycycle, start_date, end_date, $
 
   !null = label_date(date_format='%M %Y')
 
+  month_ticks = mg_tick_locator([dates[0], dates[-1]], /months)
+  n_months = n_elements(month_ticks)
+  if (n_months eq 0L) then begin
+    month_ticks = 1L
+  endif else begin
+    max_ticks = 7
+    n_minor = n_months / max_ticks > 1
+    month_ticks = month_ticks[0:*:n_minor]
+  endelse
+
   ; plot date/time vs. length of days
   plot, dates, 24.0 * (end_times - start_times), $
-        psym=3, font=font, charsize=charsize, title='Length of observing days', $
-        xstyle=1, xtitle='dates', xtickformat='label_date', $
+        psym=6, symsize=0.25, $
+        font=font, charsize=charsize, title='Length of observing days', $
+        xstyle=1, xtickv=month_ticks, xticks=n_elements(month_ticks) - 1L, xminor=n_minor, $
+        xtitle='dates', xtickformat='label_date', $
         ystyle=1, yrange=[0.0, 12.0], ytitle='hours'
 
   ; plot date/time vs. % of full data
   n_images_per_day = 4 * 60 * 24
   duty_cycle = 100.0 * n_images / (end_times - start_times) / n_images_per_day
   plot, dates, duty_cycle, $
-        psym=3, font=font, charsize=charsize, title='Percentage of day with images', $
-        xstyle=1, xtitle='dates', xtickformat='label_date', $
+        psym=6, symsize=0.25, $
+        font=font, charsize=charsize, title='Percentage of day with images', $
+        xstyle=1, xtickv=month_ticks, xticks=n_elements(month_ticks) - 1L, xminor=n_minor, $
+        xtitle='dates', xtickformat='label_date', $
         ystyle=1, yrange=[0.0, 100.0], ytitle='% observing'
 
   !p.multi = 0
@@ -138,7 +152,7 @@ pro kcor_dutycycle, start_date, end_date, $
   endif
 
   if (keyword_set(use_ps)) then begin
-    basename = 'duty-cycle-histogram'
+    basename = 'kcor-duty-cycle-histogram'
     mg_psbegin, filename=basename + '.ps', /color, bits_per_pixel=24, $
                 xsize=8.0, ysize=10.5, /inches, $
                 /portrait, xoffset=0.25, yoffset=0.25
@@ -206,7 +220,7 @@ end
 ; main-level example program
 
 kcor_dutycycle, '2013-09-30', $
-                '2019-12-31', $
+                '2025-03-25', $
                 database_config_filename='~/.mysqldb', $
                 database_config_section='mgalloy@databases'
 
