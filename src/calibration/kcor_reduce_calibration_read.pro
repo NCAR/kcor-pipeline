@@ -233,6 +233,10 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
   time_length = length_jd * 24.0 * 60.0 * 60.0
 
   data = {dark:dark, gain:gain, calibration:calibration}
+
+  ; no null value in netCDF, so set to empty string
+  if (n_elements(lyotstop) eq 0L) then lyotstop = ''
+
   metadata = {angles: angles, $
               idiff: idiff, $
               flat_date_obs: flat_date_obs, $
@@ -244,5 +248,5 @@ pro kcor_reduce_calibration_read, file_list, basedir, $
               file_types: file_types, $
               numsum: numsum, $
               exptime: exptime, $
-              lyotstop: n_elements(lyotstop) eq 0L ? '' : lyotstop}
+              lyotstop: lyotstop}
 end
