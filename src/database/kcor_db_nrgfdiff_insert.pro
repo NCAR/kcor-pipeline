@@ -75,13 +75,13 @@ pro kcor_db_nrgfdiff_insert, nrgfdiff_gif_basenames, $
             {name: 'date_obs', type: '''%s'''}, $
             {name: 'date_end', type: '''%s'''}, $
             {name: 'obs_day', type: '%d'}, $
-            {name: 'carrington_rotation', type: '%s'}, $
+            {name: 'carrington_rotation', type: '%d'}, $
             {name: 'level', type: '%d'}, $
             {name: 'quality', type: '%d'}, $
             {name: 'producttype', type: '%d'}, $
             {name: 'filetype', type: '%d'}, $
-            {name: 'numsum', type: '%s'}, $
-            {name: 'exptime', type: '%s'}]
+            {name: 'numsum', type: '%d'}, $
+            {name: 'exptime', type: '%f'}]
   sql_cmd = string(strjoin(fields.name, ', '), $
                    strjoin(fields.type, ', '), $
                    format='(%"insert into kcor_img (%s) values (%s)")')
@@ -119,13 +119,13 @@ pro kcor_db_nrgfdiff_insert, nrgfdiff_gif_basenames, $
               {name: 'date_obs', type: '''%s'''}, $
               {name: 'date_end', type: '''%s'''}, $
               {name: 'obs_day', type: '%d'}, $
-              {name: 'carrington_rotation', type: '%s'}, $
+              {name: 'carrington_rotation', type: '%d'}, $
               {name: 'level', type: '%d'}, $
               {name: 'quality', type: '%d'}, $
               {name: 'producttype', type: '%d'}, $
               {name: 'filetype', type: '%d'}, $
-              {name: 'numsum', type: '%s'}, $
-              {name: 'exptime', type: '%s'}]
+              {name: 'numsum', type: '%d'}, $
+              {name: 'exptime', type: '%f'}]
     sql_cmd = string(strjoin(fields.name, ', '), $
                      strjoin(fields.type, ', '), $
                      format='(%"insert into kcor_img (%s) values (%s)")')
