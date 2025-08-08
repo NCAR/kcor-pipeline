@@ -77,7 +77,35 @@ end
 
 ; main-level example program
 
-f = '/hao/mlsodata1/Data/KCor/raw/20191207/level0/20191207_214536_kcor.fts.gz'
+f = '/hao/corona3/Data/KCor/raw/2019/20191207/level0/20191207_214536_kcor.fts.gz'
+
+; simple reading of file
 kcor_read_rawdata, f, image=im, header=header, repair_routine='kcor_repair_mid2out'
+
+; using the epochs file
+date = '20191207'
+config_basename = 'kcor.reprocess.cfg'
+config_filename = filepath(config_basename, $
+                           subdir=['..', '..', '..', 'kcor-config'], $
+                           root=mg_src_root())
+run = kcor_run(date, config_filename=config_filename, mode='test')
+
+dt = strmid(file_basename(f), 0, 15)
+run.time = string(strmid(dt, 0, 4), $
+                  strmid(dt, 4, 2), $
+                  strmid(dt, 6, 2), $
+                  strmid(dt, 9, 2), $
+                  strmid(dt, 11, 2), $
+                  strmid(dt, 13, 2), $
+                  format='(%"%s-%s-%sT%s:%s:%s")')
+
+kcor_read_rawdata, f, image=img, header=header, $
+                   repair_routine=run->epoch('repair_routine'), $
+                   xshift=run->epoch('xshift_camera'), $
+                   start_state=run->epoch('start_state'), $
+                   raw_data_prefix=run->epoch('raw_data_prefix'), $
+                   datatype=run->epoch('raw_datatype')
+
+obj_destroy, run
 
 end
