@@ -162,9 +162,13 @@ def notify_completed(args, task):
         msg["From"] = "kcor-pipeline@ucar.edu"
         msg["To"] = notification_email
 
-        s = smtplib.SMTP("localhost")
-        s.send_message(msg)
-        s.quit()
+        try:
+            s = smtplib.SMTP("localhost")
+            s.send_message(msg)
+            s.quit()
+        except ConnectionRefusedError as e:
+            print(e)
+            print(f"Problem sending email: {msg['Subject']}")
 
 
 def increment_date(date):
