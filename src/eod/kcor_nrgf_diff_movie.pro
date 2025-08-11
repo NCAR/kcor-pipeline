@@ -184,8 +184,8 @@ pro kcor_nrgf_diff_movie, run=run
       combined_image[512:1023, *] = diff_image
 
       ; create GIF name and save image
-      base_pos = strpos(diff_keep[n_nrgf_diff_images], '_kcor')
-      basename = strmid(diff_keep[n_nrgf_diff_images], 0, base_pos)
+      base_pos = strpos(nrgf_keep[n_nrgf_diff_images], '_kcor')
+      basename = strmid(nrgf_keep[n_nrgf_diff_images], 0, base_pos)
       frame_filenames[n_nrgf_diff_images] = basename + '_kcor_l2_nrgf_and_diff.gif'
       mg_log, 'writing %s...', $
               file_basename(frame_filenames[n_nrgf_diff_images]), $
@@ -305,8 +305,8 @@ end
 
 ; main-level example program
 
-date = '20240409'
-config_basename = 'kcor.latest.cfg'
+date = '20131101'
+config_basename = 'kcor.2.2.4-alpha.cfg'
 config_filename = filepath(config_basename, $
                            subdir=['..', '..', '..', 'kcor-config'], $
                            root=mg_src_root())
