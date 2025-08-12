@@ -79,11 +79,13 @@ end
 
 f = '/hao/corona3/Data/KCor/raw/2019/20191207/level0/20191207_214536_kcor.fts.gz'
 
+
+
 ; simple reading of file
 kcor_read_rawdata, f, image=im, header=header, repair_routine='kcor_repair_mid2out'
 
 ; using the epochs file
-date = '20191207'
+date = '20150217'
 config_basename = 'kcor.reprocess.cfg'
 config_filename = filepath(config_basename, $
                            subdir=['..', '..', '..', 'kcor-config'], $
@@ -99,12 +101,38 @@ run.time = string(strmid(dt, 0, 4), $
                   strmid(dt, 13, 2), $
                   format='(%"%s-%s-%sT%s:%s:%s")')
 
-kcor_read_rawdata, f, image=img, header=header, $
+l0_dir = filepath('level0', subdir=date, root=run->config('processing/raw_basedir'))
+
+basename = '20150217_185841_kcor.fts.gz'
+filename = filepath(basename, root=l0_dir)
+
+kcor_read_rawdata, filename, image=img, header=header, $
                    repair_routine=run->epoch('repair_routine'), $
                    xshift=run->epoch('xshift_camera'), $
                    start_state=run->epoch('start_state'), $
                    raw_data_prefix=run->epoch('raw_data_prefix'), $
                    datatype=run->epoch('raw_datatype')
+
+print, basename, format='basename: %s'
+print, run->epoch('repair_routine'), format='repair_routine: %s'
+print, run->epoch('xshift_camera'), format='xshift_camera: %d, %d'
+print, run->epoch('start_state'), format='start_state: %d, %d'
+print, run->epoch('raw_data_prefix'), format='raw_data_prefix: %d'
+print, run->epoch('raw_datatype'), format='raw_datatype: %d'
+
+mg_image, bytscl(img[*, *, 0, 1], 0.0, 20000.0), /new, title='Raw'
+
+normalized = img[*, *, 0, 1] - mean(img[*, *, 0, 1])
+mg_image, bytscl(normalized, 0.0, 8000.0), /new, title='Normalized'
+
+corrected_img = img
+kcor_correct_camera, corrected_img, header, run=run, logger_name=run.logger_name, $
+                     rcam_cor_filename=rcam_cor_filename, $
+                     tcam_cor_filename=tcam_cor_filename
+
+mg_image, bytscl(corrected_img[*, *, 0, 1], 0.0, 20000.0), /new, title='Camera corrected'
+
+save, img, corrected_img, filename=basename + '.sav'
 
 obj_destroy, run
 
