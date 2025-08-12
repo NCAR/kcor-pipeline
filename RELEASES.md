@@ -1251,3 +1251,5 @@
 - add filesize to kcor_img database table
 - add centering info for dark-corrected gain to science headers (FRCAM_X,
   FRCAM_Y, FRCAM_R, FTCAM_X, FTCAM_Y, and FTCAM_R FITS keywords)
+
+#### 2.2.5
