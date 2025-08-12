@@ -1237,7 +1237,7 @@
 
 - epoch file changes for bad start state, removing bad cal files
 
-#### 2.2.4
+#### 2.2.4 [Aug 12, 2025]
 
 - fixed ability to run scripts via script sub-command
 - new epochs for plate scale
