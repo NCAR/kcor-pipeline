@@ -178,6 +178,17 @@ def increment_date(date):
     return(d.strftime(format))
 
 
+def split_date_range(date_expr, error):
+    date_range_re = re.compile("^[12][0-9]{7}-[12][0-9]{7}$")
+    if date_range_re.match(date_expr):
+        start_date = date_expr[0:8]
+        end_date = date_expr[9:17]
+        if end_date <= start_date:
+            error(f"end of range before start of range: {date_expr}")
+        return start_date, end_date
+    error(f"not a range: {date_expr}")
+
+
 def split_dates(date_expr, error):
     dates = []
     date_re = re.compile("^[12][0-9]{7}$")
@@ -915,7 +926,7 @@ def process_cal(args):
         return
 
     for d in args.dates:
-        calibrate_dates(d, args.flags, args.no_wait)
+        calibrate_dates(d, args.flags, args.no_wait, args.parser.error)
 
     notify_completed(args, "calibration")
 
@@ -937,7 +948,7 @@ def calibrate_list(filelist, dates, flags, no_wait, parser):
         terminated = wait_for(process)
 
 
-def calibrate_dates(dates, flags, no_wait):
+def calibrate_dates(dates, flags, no_wait, error):
     for d in dates.split(","):
         if d.find("-") < 0:
             cmd = [os.path.join(PIPELINE_DIR, "bin", "runkcor_calibrate.sh"),
@@ -951,11 +962,11 @@ def calibrate_dates(dates, flags, no_wait):
                 terminated = wait_for(process)
                 if terminated: break
         else:
-            r = d.split("-")
+            start_date, end_date = split_date_range(d, error)
             cmd = [os.path.join(PIPELINE_DIR, "bin", "runkcor_calibrate_range.sh"),
                    get_config_filename(flags),
-                   r[0],
-                   r[1]]
+                   start_date,
+                   end_date]
 
             process = launch_process(cmd, stdout=None, stderr=subprocess.PIPE)
             print("[%d] %s" % (process.pid, " ".join(cmd)))
@@ -968,7 +979,7 @@ def calibrate_dates(dates, flags, no_wait):
 # process (both rt and eod) sub-command
 def process(args):
     for d in args.dates:
-        process_dates(d, "process", args.flags, args.no_wait)
+        process_dates(d, "process", args.flags, args.no_wait, args.parser.error)
 
     notify_completed(args, "process")
 
@@ -1004,11 +1015,11 @@ def run_script(args):
                     terminated = wait_for(process)
                     if terminated: break
             else:
-                r = d.split("-")
+                start_date, end_date = split_date_range(d, args.parser.error)
                 cmd = [os.path.join(PIPELINE_DIR, "bin", f"runkcor_script_range.sh"),
                        args.name,
                        get_config_filename(args.flags),
-                       r[0], r[1]]
+                       start_date, end_date]
 
                 process = launch_process(cmd, stdout=None, stderr=subprocess.PIPE)
                 print("[%d] %s" % (process.pid, " ".join(cmd)))
@@ -1060,7 +1071,7 @@ def remove(args):
     notify_completed(args, "remove")
 
 
-def process_dates(dates, script, flags, no_wait, extra_flags=None):
+def process_dates(dates, script, flags, no_wait, error, extra_flags=None):
     for d in dates.split(","):
         if d.find("-") < 0:
             cmd = [os.path.join(PIPELINE_DIR, "bin", f"runkcor_{script}.sh"),
@@ -1075,10 +1086,10 @@ def process_dates(dates, script, flags, no_wait, extra_flags=None):
                 terminated = wait_for(process)
                 if terminated: break
         else:
-            r = d.split("-")
+            start_date, end_date = split_date_range(d, error)
             cmd = [os.path.join(PIPELINE_DIR, "bin", f"runkcor_{script}_range.sh"),
                    get_config_filename(flags),
-                   r[0], r[1]]
+                   start_date, end_date]
             if extra_flags is not None:
                 cmd = cmd + extra_flags
 
