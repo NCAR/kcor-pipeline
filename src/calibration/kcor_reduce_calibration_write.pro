@@ -72,7 +72,6 @@ pro kcor_reduce_calibration_write, data, metadata, $
 
   ; compute distortion-corrected gain
   rcam_gain = reform(gain[*, *, 0])
-  rcam_gain = reverse(rcam_gain, 2)
   tcam_gain = reform(gain[*, *, 1])
 
   raw_rcam_centering_info = kcor_reduce_calibration_write_centering(rcam_gain, run=run)
@@ -82,6 +81,9 @@ pro kcor_reduce_calibration_write, data, metadata, $
           raw_rcam_centering_info, name='kcor/eod', /debug
   mg_log, 'Raw TCAM gain, x: %0.2f, y: %0.2f, radius: %0.3f', $
           raw_tcam_centering_info, name='kcor/eod', /debug
+
+  ; need to flip RCAM in order to apply distortion
+  rcam_gain = reverse(rcam_gain, 2)
 
   dc_path = filepath(run->epoch('distortion_correction_filename'), $
                      root=run.resources_dir)
