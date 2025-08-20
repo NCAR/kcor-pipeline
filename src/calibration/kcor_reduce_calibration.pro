@@ -127,12 +127,15 @@ pro kcor_reduce_calibration, date, $
   ; threshold
   cal_maxtime = run->epoch('cal_maxtime')   ; seconds
   if (time_length gt cal_maxtime) then begin
-    mg_log, 'cal sequence too long (%0.1f minutes)', time_length / 60.0, $
+    mg_log, 'cal sequence too long: %d sec > %d sec', $
+            time_length, cal_maxtime, $
             name='kcor/cal', /error
     status = 2
     goto, done
   endif else begin
-    mg_log, 'cal sequence: %0.1f min', time_length / 60.0, name='kcor/cal', /info
+    mg_log, 'cal sequence length OK: %d sec < %d sec', $
+            time_length, cal_maxtime, $
+            name='kcor/cal', /info
   endelse
 
   ; check polarization state sequence on 0 deg (180 deg is equivalent to 0 deg)
@@ -217,7 +220,7 @@ pro kcor_reduce_calibration, date, $
 
   ; fit the calibration data
   for beam = 0, 1 do begin
-    mg_log, 'processing beam %d', beam, name='kcor/cal', /info
+    mg_log, 'processing beam %d...', beam, name='kcor/cal', /info
 
     ; pick pixels with good signal
     w = where(data.gain[*, *, beam] ge median(data.gain[*, *, beam]) / sqrt(2), nw)
@@ -231,6 +234,7 @@ pro kcor_reduce_calibration, date, $
     pixels = array_indices(data.gain[*, *, beam], w[pick[0:npick - 1]])
 
     mg_log, 'fitting model to data...', name='kcor/cal', /info
+
     fits = dblarr(17, npick)
     fiterrors = dblarr(17, npick)
     for i = 0, npick - 1 do begin
@@ -257,18 +261,17 @@ pro kcor_reduce_calibration, date, $
       fits[i, *] += (fix(fits[i, *] lt (mlv - !pi)) $
                        - fix(fits[i, *] gt (mlv + !pi))) * 2 * !pi
     endfor
-    mg_log, 'done fitting model', name='kcor/cal', /info
 
     ; 4th order polynomial fits for all parameters
     ; set up some things
     ; center the pixel values in the image for better numerical stability
-    mg_log, 'fitting 4th order polynomials...', name='kcor/cal', /info
-
-    cpixels = pixels - rebin([sz[0], sz[1]] / 2., 2, npick)
-    x = (findgen(sz[0]) - sz[0] / 2.) # replicate(1., sz[1])  ; X values at each point
-    y = replicate(1., sz[1]) # (findgen(sz[1]) - sz[1] / 2.)  ; Y values at each point
-    ; pre-compute the x^i y^j matrices
     degree = 4
+    mg_log, 'fitting order %d polynomials...', degree, name='kcor/cal', /info
+
+    cpixels = pixels - rebin([sz[0], sz[1]] / 2.0, 2, npick)
+    x = (findgen(sz[0]) - sz[0] / 2.0) # replicate(1.0, sz[1])
+    y = replicate(1.0, sz[1]) # (findgen(sz[1]) - sz[1] / 2.0)
+    ; pre-compute the x^i y^j matrices
     n2 = (degree + 1) * (degree + 2) / 2
     m = sz[0] * sz[1]
     ut = dblarr(n2, m, /nozero)
@@ -284,11 +287,10 @@ pro kcor_reduce_calibration, date, $
       tmp = sfit([cpixels, fits[i, *]], degree, kx=kx, /irregular, /max_degree)
       fitimgs[*, *, i - 1] = reform(reform(kx, n2) # ut, sz[0], sz[1])
     endfor
-    mg_log, 'done fitting 4th order polynomials', name='kcor/cal', /info
 
     ; populate the modulation matrix
-    mg_log,  'calculating mod/demod matrices... ', $
-             name='kcor/cal', /info
+    mg_log,  'calculating mod/demod matrices... ', name='kcor/cal', /info
+
     mmat[*, *, beam, 0, *] = fitimgs[*, *, 0:3]
     mmat[*, *, beam, 1, *] = fitimgs[*, *, 0:3] $
                                * fitimgs[*, *, 4:7] $
@@ -302,8 +304,6 @@ pro kcor_reduce_calibration, date, $
       txymmat = transpose(xymmat)
       dmat[x, y, beam, *, *] = la_invert(txymmat ## xymmat) ## txymmat
     endfor
-    mg_log, 'done calculating mod/demod matrices', $
-            name='kcor/cal', /info
 
     ; save pixels, fits, fiterrors
     if (beam eq 0) then begin
