@@ -1293,7 +1293,7 @@ def locate(args):
                 for d in dates:
                     # get raw_basedir
                     raw_bdir = raw_basedir(d, config_filename)
-                    print(f"{d}: {raw_bdir}")
+                    print(f"{raw_bdir}/{d}")
     else:
         config = configparser.ConfigParser()
         config.read(config_filename)
@@ -1611,6 +1611,8 @@ if __name__ == "__main__":
                               metavar="date")
     locate_parser.add_argument("-f", "--flags", type=str, help=flags_help,
                                default="reprocess")
+    locate_parser.add_argument("-v", "--verbose", action="store_true",
+                               help="set to display verbose output")
     locate_parser.set_defaults(func=locate, parser=locate_parser)
 
     # nrgf sub-command
