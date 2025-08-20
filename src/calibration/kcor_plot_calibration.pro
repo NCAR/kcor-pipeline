@@ -92,7 +92,7 @@ pro kcor_plot_calibration, cal_filename, run=run, gain_norm_stddev=gain_norm_std
                       root=plots_dir), $
              im
 
-  mg_log, 'std dev / median cam 0: %0.2f, cam 1: %0.3f', gain_norm_stddev, $
+  mg_log, 'std dev / median cam 0: %0.3f, cam 1: %0.3f', gain_norm_stddev, $
           name=run.logger_name, /info
 
   done:
