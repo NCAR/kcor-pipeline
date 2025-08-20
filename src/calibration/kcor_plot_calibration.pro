@@ -16,18 +16,36 @@ pro kcor_plot_calibration, cal_filename, run=run, gain_norm_stddev=gain_norm_std
   ; read gain
   cal_id = ncdf_open(cal_filename)
   ncdf_varget, cal_id, 'Gain', gain
+
+  gain_id = ncdf_varid(cal_id, 'Gain')
+  ncdf_attget, cal_id, gain_id, 'RCAM x-center', frcam_x
+  ncdf_attget, cal_id, gain_id, 'RCAM y-center', frcam_y
+  ncdf_attget, cal_id, gain_id, 'RCAM radius', frcam_r
+  ncdf_attget, cal_id, gain_id, 'TCAM x-center', ftcam_x
+  ncdf_attget, cal_id, gain_id, 'TCAM y-center', ftcam_y
+  ncdf_attget, cal_id, gain_id, 'TCAM radius', ftcam_r
+
   gain *= norm
   ncdf_close, cal_id
+
+  gain_centering = [[frcam_x, frcam_y, frcam_r], [ftcam_x, ftcam_y, ftcam_r]]
 
   gain_norm_stddev = fltarr(2)
   gain_stddev = fltarr(2)
 
-  d = shift(dist(1024, 1024), 512, 512)
-  min_radius = 200.0
-  max_radius = 500.0
-  annulus_indices = where(d lt max_radius and d gt min_radius, n_annulus)
+  r_out = run->epoch('r_out')
+  overmask = 4.0
+
+  masks = byte(gain * 0B)
 
   for c = 0, 1 do begin
+    masks[*, *, c] = kcor_geometry_mask(gain_centering[0, c], $
+                                        gain_centering[1, c], $
+                                        gain_centering[2, c] + overmask, $
+                                        r_out)
+    annulus_indices = where(masks[*, *, c] gt 0L, n_annulus_indices, /null)
+    mg_log, 'cam %d: %d annulus indices', c, n_annulus_indices, $
+            name=run.logger_name, /debug
     camera_gain = reform(gain[*, *, c])
     gain_stddev[c] = stddev(camera_gain[annulus_indices])
     gain_norm_stddev[c] = gain_stddev[c] / median(camera_gain[annulus_indices])
@@ -52,9 +70,8 @@ pro kcor_plot_calibration, cal_filename, run=run, gain_norm_stddev=gain_norm_std
   for c = 0, 1 do begin
     profile = gain[*, y, c]
     nx = n_elements(profile)
-    r = abs(findgen(nx) - (nx - 1) / 2.0)
     x = findgen(nx)
-    annulus_indices = where(r lt max_radius and r gt min_radius, complement=inside_indices)
+    annulus_indices = where(masks[*, y, c], complement=inside_indices)
     plot, x[annulus_indices], profile[annulus_indices], $
           title=string(run.date, c, $
                        format='(%"Profile of dark corrected gain on %s for camera %d")'), $
@@ -74,6 +91,9 @@ pro kcor_plot_calibration, cal_filename, run=run, gain_norm_stddev=gain_norm_std
   write_gif, filepath(string(run.date, format='(%"%s.kcor.gain-profile.gif")'), $
                       root=plots_dir), $
              im
+
+  mg_log, 'std dev / median cam 0: %0.2f, cam 1: %0.3f', gain_norm_stddev, $
+          name=run.logger_name, /info
 
   done:
   !p.multi = 0
