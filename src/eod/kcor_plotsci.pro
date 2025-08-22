@@ -37,7 +37,7 @@ pro kcor_plotsci, date, daily_science_file, run=run
   device, get_decomposed=orig_decomposed
   tvlct, orig_rgb, /get
 
-  device, set_resolution=[772, 772], decomposed=0, set_colors=256, z_buffering=0
+  device, set_resolution=[800, 800], decomposed=0, set_colors=256, z_buffering=0
   loadct, 0, /silent
   tvlct, red, green, blue, /get
 

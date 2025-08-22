@@ -152,6 +152,8 @@ pro kcor_plotraw, date, list=list, run=run, $
     im[*, *, pol_state_by_camera[0], 0] = im0
     im[*, *, pol_state_by_camera[1], 1] = im1
 
+    yrange = [0, 70000]
+
     for c = 0, 1 do begin
       line_means[c, f] = mean((im[*, y_profile_value, pol_state_by_camera[c], c])[10:300])
       line_medians[c, f] = median((im[*, y_profile_value, pol_state_by_camera[c], c])[10:300])
@@ -165,7 +167,7 @@ pro kcor_plotraw, date, list=list, run=run, $
             xticks=8, xtickv=findgen(9) * 128.0, $
             xstyle=1, xtickformat='(I)', xtitle='Raw image x-coordinate', $
             ytickformat='kcor_plotraw_ytickformat', $
-            ytitle='Raw pixel value', yrange=[0, 40000], $
+            ytitle='Raw pixel value', ystyle=1, yrange=yrange, $
             yticks=8, yminor=1, yticklen=1.0, ygridstyle=1
     endfor
 
@@ -200,7 +202,7 @@ pro kcor_plotraw, date, list=list, run=run, $
             xticks=8, xtickv=findgen(9) * 45.0, $
             xstyle=1, xtickformat='(I)', xtitle='Angle [degrees]', $
             ytickformat='kcor_plotraw_ytickformat', $
-            ystyle=1, yrange=[0, 70000], ytitle='Raw pixel value', $
+            ystyle=1, yrange=yrange, ytitle='Raw pixel value', $
             yticks=8, yminor=1, yticklen=1.0, ygridstyle=1
     endfor
 

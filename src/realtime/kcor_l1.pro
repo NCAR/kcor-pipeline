@@ -187,11 +187,15 @@ pro kcor_l1, ok_filename, $
   endfor
   gain_temp = 0
 
+  ; TODO: use centering from netCDF cal file
+  info_gain0 = [frcam_x, frcam_y, frcam_r]
+  info_gain1 = [ftcam_x, ftcam_y, ftcam_r]
+
   ; find center and radius for gain images
-  info_gain0 = kcor_find_image(gain_alfred[*, *, 0], radius_guess, log_name=log_name)
-  mg_log, /check_math, name=log_name, /debug
-  info_gain1 = kcor_find_image(gain_alfred[*, *, 1], radius_guess, log_name=log_name)
-  mg_log, /check_math, name=log_name, /debug
+  ; info_gain0 = kcor_find_image(gain_alfred[*, *, 0], radius_guess, log_name=log_name)
+  ; mg_log, /check_math, name=log_name, /debug
+  ; info_gain1 = kcor_find_image(gain_alfred[*, *, 1], radius_guess, log_name=log_name)
+  ; mg_log, /check_math, name=log_name, /debug
 
   ; define coordinate arrays for gain images
   gxx0 = findgen(xsize, ysize) mod xsize - info_gain0[0]

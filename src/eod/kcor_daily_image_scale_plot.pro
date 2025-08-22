@@ -46,7 +46,7 @@ pro kcor_daily_image_scale_plot, database=db, run=run
   times *= 24.0
 
   hours_range = [6.0, 18.0]
-  image_scale_range = [5.5, 5.8]
+  image_scale_range = plate_scale[*] + [-0.025, 0.05]
   image_scale_difference_range = 0.05 * [-1.0, 1.0]
 
   ; save original graphics settings

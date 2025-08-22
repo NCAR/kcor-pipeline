@@ -32,8 +32,8 @@ pro kcor_o1focus_plot, filename, hst_times, o1focus, title=title, run=run
   ; display graphics
   time_min = run->epoch('o1focus_tstart')
   time_max = run->epoch('o1focus_tend')
-  o1focus_min = run->epoch('o1focus_ymin')
-  o1focus_max = run->epoch('o1focus_ymax')
+  o1focus_min = min(o1focus) - 0.25
+  o1focus_max = max(o1focus) + 0.25
   plot, hst_times, o1focus, $
         xstyle=1, xrange=[time_min, time_max], xtitle='HST time of day', $
         ystyle=1, yrange=[o1focus_min, o1focus_max], ytitle='O1FOCS values [mm]', $

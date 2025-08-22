@@ -167,6 +167,7 @@ pro kcor_nrgf, fits_file, $
   date_obs   = sxpar(hdu, 'DATE-OBS')   ; yyyy-mm-ddThh:mm:ss
   platescale = sxpar(hdu, 'CDELT1')     ; arcsec/pixel
   rsun       = sxpar(hdu, 'RSUN_OBS')   ; radius of photosphere [arcsec]
+  r_sun      = sxpar(hdu, 'R_SUN')      ; radius of photosphere [pixels]
 
   ; extract date and time from FITS header
   year   = strmid(date_obs, 0, 4)
@@ -233,7 +234,7 @@ pro kcor_nrgf, fits_file, $
   if (run->config('realtime/nrgf_profiles') $
         && keyword_set(averaged) $
         && ~keyword_set(cropped)) then begin
-    kcor_nrgf_profile, fits_file, nrgf_r, nrgf_mean_r, nrgf_sdev_r, run=run
+    kcor_nrgf_profile, fits_file, nrgf_r, nrgf_mean_r, nrgf_sdev_r, r_sun, run=run
   endif
 
   ; NOTE: FOR_NRGF changes xcen/ycen, so must set them back to the correct
@@ -379,6 +380,7 @@ pro kcor_nrgf, fits_file, $
   averaging = keyword_set(daily) ? '_extavg' : (keyword_set(averaged) ? '_avg' : '')
   image_size = keyword_set(cropped) ? '_cropped' : ''
   filter = keyword_set(enhanced) ? '_enhanced' : ''
+
   gif_filename = string(strmid(fits_file, 0, remove_loc), $
                         averaging, image_size, filter, $
                         format='(%"%s_nrgf%s%s%s.gif")')
@@ -461,32 +463,32 @@ end
 
 ; main-level example program
 
-date = '20180423'
+date = '20250322'
 run = kcor_run(date, $
-               config_filename=filepath('kcor.mgalloy.mahi.latest.cfg', $
-                                       subdir=['..', '..', 'config'], $
+               config_filename=filepath('kcor.2.2.4-alpha.cfg', $
+                                       subdir=['..', '..', '..', 'kcor-config'], $
                                        root=mg_src_root()))
 
-f = filepath('20180423_175443_kcor_l2_extavg.fts.gz', $
-             subdir=[date, 'level1'], $
+f = filepath('20250322_181950_kcor_l2_pb_extavg.fts.gz', $
+             subdir=[date, 'level2'], $
              root=run->config('processing/raw_basedir'))
 
 kcor_nrgf, f, /average, /daily, run=run
 kcor_nrgf, f, /average, /daily, /cropped, run=run
 
-f = filepath('20180423_175443_kcor_l2_avg.fts.gz', $
-             subdir=[date, 'level1'], $
-             root=run->config('processing/raw_basedir'))
-
-kcor_nrgf, f, /average, run=run
-kcor_nrgf, f, /average, /cropped, run=run
-
-f = filepath('20180423_175443_kcor_l2.fts.gz', $
-             subdir=[date, 'level1'], $
-             root=run->config('processing/raw_basedir'))
-
-kcor_nrgf, f, run=run
-kcor_nrgf, f, /cropped, run=run
+; f = filepath('20180423_175443_kcor_l2_avg.fts.gz', $
+             ; subdir=[date, 'level1'], $
+             ; root=run->config('processing/raw_basedir'))
+; 
+; kcor_nrgf, f, /average, run=run
+; kcor_nrgf, f, /average, /cropped, run=run
+; 
+; f = filepath('20180423_175443_kcor_l2.fts.gz', $
+             ; subdir=[date, 'level1'], $
+             ; root=run->config('processing/raw_basedir'))
+; 
+; kcor_nrgf, f, run=run
+; kcor_nrgf, f, /cropped, run=run
 
 obj_destroy, run
 

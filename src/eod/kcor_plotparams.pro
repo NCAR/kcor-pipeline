@@ -297,7 +297,7 @@ pro kcor_plotparams, date, list=list, run=run
 
   ; use daily min/max as range for SGSDECZR, unless all 0.0s
   sgsrazr_range = [min(sgs_razr, max=sgs_razr_max, /nan), sgs_razr_max]
-  sgsrazr_range[where(not finite(sgsrazr_range), /null)] = 0.0
+  sgsrazr_range[where(finite(sgsrazr_range) eq 0B, /null)] = 0.0
   sgsrazr_range += 0.1 * ((sgsrazr_range[1] - sgsrazr_range[0]) > 1.0) * [-1.0, 1.0]
   mg_log, 'sgsrazr_range: [%0.3f, %0.3f]', sgsrazr_range, name='kcor/eod', /debug
 
@@ -334,7 +334,7 @@ pro kcor_plotparams, date, list=list, run=run
 
   ; use daily min/max as range for SGSDECZR, unless all 0.0s
   sgsdeczr_range = [min(sgs_deczr, max=sgs_deczr_max, /nan), sgs_deczr_max]
-  sgsdeczr_range[where(not finite(sgsdeczr_range), /null)] = 0.0
+  sgsdeczr_range[where(finite(sgsdeczr_range) eq 0B, /null)] = 0.0
   sgsdeczr_range += 0.1 * ((sgsdeczr_range[1] - sgsdeczr_range[0]) > 1.0) * [-1.0, 1.0]
   mg_log, 'sgsdeczr_range: [%0.3f, %0.3f]', sgsdeczr_range, name='kcor/eod', /debug
 
@@ -414,7 +414,7 @@ end
 
 date = '20210801'
 run = kcor_run(date, $
-               config_filename=filepath('kcor.latest.cfg', $
+               config_filename=filepath('kcor.2.2.4-alpha.cfg', $
                                         subdir=['..', '..', 'config'], $
                                         root=mg_src_root()))
 list = file_search(filepath('*.fts.gz', $
