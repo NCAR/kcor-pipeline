@@ -30,7 +30,7 @@ function kcor_check_angles, required_angles, optional_angles, $
                             logger_name=logger_name
   compile_opt strictarr
 
-  _tolerance = n_elements(tolerance) eq 0L ? 0.1 : tolerance  ; degrees
+  _tolerance = n_elements(tolerance) eq 0L ? 0.05 : tolerance  ; degrees
 
   n_angles = n_elements(angles)
   mask = bytarr(n_angles)
