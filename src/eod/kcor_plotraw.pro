@@ -152,7 +152,7 @@ pro kcor_plotraw, date, list=list, run=run, $
     im[*, *, pol_state_by_camera[0], 0] = im0
     im[*, *, pol_state_by_camera[1], 1] = im1
 
-    yrange = [0, 70000]
+    yrange = [0.0, 70000.0]
 
     for c = 0, 1 do begin
       line_means[c, f] = mean((im[*, y_profile_value, pol_state_by_camera[c], c])[10:300])
@@ -227,16 +227,15 @@ end
 
 ; main-level example program
 
-date = '20161127'
-list = ['20161127_175011_kcor_l1_nrgf.fts.gz', $
-        '20161127_175212_kcor_l1_nrgf.fts.gz', $
-        '20161127_175413_kcor_l1_nrgf.fts.gz', $
-        '20161127_175801_kcor_l1_nrgf.fts.gz']
+date = '20180131'
+list = ['20180131_212456_kcor_l2_nrgf.fts.gz']
 
 run = kcor_run(date, $
-               config_filename=filepath('kcor.mgalloy.mahi.latest.cfg', $
-                                       subdir=['..', '..', 'config'], $
+               config_filename=filepath('kcor.2.2.4-alpha.cfg', $
+                                       subdir=['..', '..', '..', 'kcor-config'], $
                                        root=mg_src_root()))
+l2_dir = filepath('level2', subdir=date, root=run->config('processing/raw_basedir'))
+list = filepath(list, root=l2_dir)
 kcor_plotraw, date, list=list, run=run
 obj_destroy, run
 
