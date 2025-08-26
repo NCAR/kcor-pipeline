@@ -531,7 +531,7 @@ pro kcor_create_differences, date, l2_files, run=run
   if (n_difference_gif_files gt 0L) then begin
     mg_log, 'creating difference mp4', name='kcor/eod', /info
     difference_mp4_filename = string(date, format='(%"%s_kcor_minus.mp4")')
-    kcor_create_mp4, difference_gif_filenames, difference_mp4_filename, $
+    kcor_create_mp4, difference_gif_filenames[0:*:4], difference_mp4_filename, $
                      run=run, status=status
     if (status eq 0 && run->config('realtime/distribute')) then begin
       file_copy, difference_mp4_filename, fullres_dir, /overwrite
