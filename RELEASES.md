@@ -1253,3 +1253,8 @@
   FRCAM_Y, FRCAM_R, FTCAM_X, FTCAM_Y, and FTCAM_R FITS keywords)
 
 #### 2.2.5
+
+- adjust some y-axis ranges for engineering plots
+- epoch changes to eliminate bad data
+- fix incorrect RCAM y-center found in gains in netCDF cal file
+- calculate std dev / median gain metric in more consistent and correct manner
