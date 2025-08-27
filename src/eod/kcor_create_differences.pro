@@ -419,7 +419,7 @@ pro kcor_create_differences, date, l2_files, run=run
       xyouts, 4, 26, string(display_min, display_max, $
                             format='("min/max: ", e0.1, ", ", e0.1)'), $
               color=255, charsize=1.2, /device
-      xyouts, 1018, 6, 'Circle = photosphere.', $
+      xyouts, 1018, 6, 'Circle = photosphere', $
               color=255, charsize=1.2, /device, alignment=1.0
 
       ; image has been shifted to center of array
