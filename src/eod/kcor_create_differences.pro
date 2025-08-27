@@ -380,8 +380,8 @@ pro kcor_create_differences, date, l2_files, run=run
               set_colors=256, $
               z_buffering=0
 
-      display_min    = run->epoch('display_differences_min')
-      display_max    = run->epoch('display_differences_max')
+      display_min    = run->epoch('display_difference_min')
+      display_max    = run->epoch('display_difference_max')
       display_factor = 1.0e6
 
       loadct, 0, /silent
