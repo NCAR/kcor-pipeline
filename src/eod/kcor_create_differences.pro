@@ -335,9 +335,9 @@ pro kcor_create_differences, date, l2_files, run=run
     radius          = 1.15
 
     pointing_ck = 0
-    good_value  = run->config('differences/good_max')
-    pass_value  = run->config('differences/pass_max')
-    threshold_intensity = run->config('differences/threshold_intensity')
+    good_value  = run->epoch('difference_good_max')
+    pass_value  = run->epoch('difference_pass_max')
+    threshold_intensity = run->epoch('difference_threshold_intensity')
 
     fxaddpar, goodheader, 'AVGTIME0', kcor_combine_times(difference_times[1, *]), $
               ' image times used in bkg avg'
@@ -438,6 +438,9 @@ pro kcor_create_differences, date, l2_files, run=run
         pointing_ck le pass_value: status = 'pass'
         else: status = 'bad'
       endcase
+
+      mg_log, '%d scans over threshold, marking %s', pointing_ck, status, $
+              name='kcor/eod', /debug
 
       name = strmid(file_basename(l2_file), 0, 20)
 
