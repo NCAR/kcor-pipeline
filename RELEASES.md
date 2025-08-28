@@ -1252,7 +1252,7 @@
 - add centering info for dark-corrected gain to science headers (FRCAM_X,
   FRCAM_Y, FRCAM_R, FTCAM_X, FTCAM_Y, and FTCAM_R FITS keywords)
 
-#### 2.2.5
+#### 2.2.5 [Aug 28, 2025]
 
 - adjust some y-axis ranges for engineering plots
 - epoch changes to eliminate bad data
