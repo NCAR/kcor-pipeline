@@ -1258,3 +1258,5 @@
 - epoch changes to eliminate bad data
 - fix incorrect RCAM y-center found in gains in netCDF cal file
 - calculate std dev / median gain metric in more consistent and correct manner
+
+#### 2.2.6
