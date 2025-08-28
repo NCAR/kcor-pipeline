@@ -26,30 +26,30 @@ pro kcor_save_results, date, run=run
   if (~file_test(save_dir, /directory)) then file_mkdir, save_dir
 
   ; difference images
-  diff_filenames = file_search(filepath('*minus*', $
-                                        subdir=[date, 'level2'], $
-                                        root=run->config('processing/raw_basedir')), $
-                               count=n_diff_filenames)
-  if (n_diff_filenames gt 0L) then begin
-    diff_dir = filepath('difference', root=save_dir)
-    if (~file_test(diff_dir, /directory)) then file_mkdir, diff_dir
-    file_copy, diff_filenames, diff_dir, /overwrite
-    mg_log, 'saving %d difference files', n_diff_filenames, $
-            name='kcor/eod', /debug
-  endif
+  ; diff_filenames = file_search(filepath('*minus*', $
+  ;                                       subdir=[date, 'level2'], $
+  ;                                       root=run->config('processing/raw_basedir')), $
+  ;                              count=n_diff_filenames)
+  ; if (n_diff_filenames gt 0L) then begin
+  ;   diff_dir = filepath('difference', root=save_dir)
+  ;   if (~file_test(diff_dir, /directory)) then file_mkdir, diff_dir
+  ;   file_copy, diff_filenames, diff_dir, /overwrite
+  ;   mg_log, 'saving %d difference files', n_diff_filenames, $
+  ;           name='kcor/eod', /debug
+  ; endif
 
   ; extended average files
-  extavg_filenames = file_search(filepath('*extavg*', $
-                                          subdir=[date, 'level2'], $
-                                          root=run->config('processing/raw_basedir')), $
-                                 count=n_extavg_filenames)
-  if (n_extavg_filenames gt 0L) then begin
-    extavg_dir = filepath('extavg', root=save_dir)
-    if (~file_test(extavg_dir, /directory)) then file_mkdir, extavg_dir
-    file_copy, extavg_filenames, extavg_dir, /overwrite
-    mg_log, 'saving %d extended average files', n_extavg_filenames, $
-            name='kcor/eod', /debug
-  endif
+  ; extavg_filenames = file_search(filepath('*extavg*', $
+  ;                                         subdir=[date, 'level2'], $
+  ;                                         root=run->config('processing/raw_basedir')), $
+  ;                                count=n_extavg_filenames)
+  ; if (n_extavg_filenames gt 0L) then begin
+  ;   extavg_dir = filepath('extavg', root=save_dir)
+  ;   if (~file_test(extavg_dir, /directory)) then file_mkdir, extavg_dir
+  ;   file_copy, extavg_filenames, extavg_dir, /overwrite
+  ;   mg_log, 'saving %d extended average files', n_extavg_filenames, $
+  ;           name='kcor/eod', /debug
+  ; endif
 
   ; no mask files
   nomask_filenames = file_search(filepath('*nomask*', $
