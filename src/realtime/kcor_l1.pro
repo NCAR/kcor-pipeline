@@ -1237,7 +1237,7 @@ pro kcor_l1, ok_filename, $
   fxaddpar, l1_header, 'FTCAMAVR', tcam_avg_flat_radius, $
             string(strmid(occltrid, 0, 8), $
                    run->epoch('dist_epoch_version'), $
-                   format=' [pixel] avg rad %s cam0 flats dist ep %s'), $
+                   format=' [pixel] avg rad %s cam1 flats dist ep %s'), $
             format='(f8.2)', after='FRCAMAVR'
 
   fxaddpar, l1_header, 'RCAMPOLS', start_state[0], $
