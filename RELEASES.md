@@ -1260,3 +1260,6 @@
 - calculate std dev / median gain metric in more consistent and correct manner
 
 #### 2.2.6
+
+- fix for when only a single NRGF+diff image
+- fix for when first NRGF+diff is after UT midnight
