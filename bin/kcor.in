@@ -411,6 +411,8 @@ inner join MLSO.mlso_numfiles on MLSO.mlso_numfiles.day_id=sw.obs_day;"""
     start_date = datetime.datetime.strptime(args.start_date, date_fmt)
     now = datetime.datetime.now()
     end_date = start_date + n_total_dates * (now - start_date) / n_ok_dates
+    percentage_complete = 100.0 * n_ok_dates / n_total_dates
+    print(f"{percentage_complete:0.1f}% complete")
     print(datetime.datetime.strftime(end_date, date_fmt))
 
 
