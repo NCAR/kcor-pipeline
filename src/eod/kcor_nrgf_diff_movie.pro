@@ -263,7 +263,7 @@ pro kcor_nrgf_diff_movie, run=run
     mp4_date_obs = min(gif_date_obs)
     mp4_date_end = max(gif_date_end)
 
-    nrfgdiff_mp4_basename = string(strmid(file_basename(diff_keep[0]), 0, 8), $
+    nrfgdiff_mp4_basename = string(run.date, $
                                    format='(%"%s_kcor_l2_nrgf_and_diff.mp4")')
     mg_log, 'writing %s...', nrfgdiff_mp4_basename, name=run.logger_name, /info
     nrfgdiff_mp4_filename = filepath(nrfgdiff_mp4_basename, $
