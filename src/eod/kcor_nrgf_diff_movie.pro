@@ -247,15 +247,18 @@ pro kcor_nrgf_diff_movie, run=run
             name=run.logger_name, /info
   endelse
 
-  ; create movie filename
-  if (n_nrgf_diff_images gt 1L) then begin
-    ; trim arrays to only the valid NRGF+diff images
+  if (n_nrgf_diff_images gt 0L) then begin
     frame_filenames         = frame_filenames[0:n_nrgf_diff_images - 1]
     gif_date_obs            = gif_date_obs[0:n_nrgf_diff_images - 1]
     gif_date_end            = gif_date_end[0:n_nrgf_diff_images - 1]
     gif_carrington_rotation = gif_carrington_rotation[0:n_nrgf_diff_images - 1]
     gif_numsum              = gif_numsum[0:n_nrgf_diff_images - 1]
     gif_exptime             = gif_exptime[0:n_nrgf_diff_images - 1]
+  endif
+
+  ; create movie filename
+  if (n_nrgf_diff_images gt 1L) then begin
+    ; trim arrays to only the valid NRGF+diff images
 
     mp4_date_obs = min(gif_date_obs)
     mp4_date_end = max(gif_date_end)
@@ -275,7 +278,7 @@ pro kcor_nrgf_diff_movie, run=run
   endif
 
   ; create database entries for new NRGF+diff images
-  if (run->config('database/update')) then begin
+  if (run->config('database/update') && n_nrgf_diff_images gt 0L) then begin
     mg_log, 'adding %d NRGF+diff GIFs to database', n_nrgf_diff_images, $
             name=run.logger_name, /info
     obsday_index = mlso_obsday_insert(run.date, $
