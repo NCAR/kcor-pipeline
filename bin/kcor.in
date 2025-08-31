@@ -376,6 +376,44 @@ def versions(args):
                 print(f"{d}: {attribute} {v:12s} {r:8s}")
 
 
+# TODO: estimate parser
+# $ kcor estimate --filter ">=2.2.0" --start-date 2025-08-29T20:02:48
+# 2025-09-15T08:10:30
+def estimate(args):
+    if not versions_requirements:
+        args.parser.error("missing Python packages required for querying database")
+
+    host, user, password, port, database = get_login(args.flags, args.parser.error)
+
+    try:
+        connection = mysql.connector.connect(host=host, user=user, password=password)
+        cursor = connection.cursor()
+        q = f"""select sw.sw_version, MLSO.mlso_numfiles.obs_day from
+(select MLSO.kcor_sw.sw_version, MLSO.kcor_eng.obs_day from MLSO.kcor_eng inner join MLSO.kcor_sw on MLSO.kcor_sw.sw_id=MLSO.kcor_eng.kcor_sw_id group by MLSO.kcor_eng.obs_day) as sw
+inner join MLSO.mlso_numfiles on MLSO.mlso_numfiles.day_id=sw.obs_day;"""
+        cursor.execute(q)
+        versions_list = cursor.fetchall()
+    except mysql.connector.Error as e:
+        print(type(e))
+        print(e)
+    finally:
+        cursor.close()
+        connection.close()
+
+    filter = make_version_filter(args.filter)
+    n_total_dates = len(versions_list)
+    n_ok_dates = 0
+    for v, d in versions_list:
+        if filter(v):
+            n_ok_dates += 1
+
+    date_fmt = "%Y-%m-%dT%H:%M:%S"
+    start_date = datetime.datetime.strptime(args.start_date, date_fmt)
+    now = datetime.datetime.now()
+    end_date = start_date + n_total_dates * (now - start_date) / n_ok_dates
+    print(datetime.datetime.strftime(end_date, date_fmt))
+
+
 def make_version_filter(filter_expression):
     def null_filter(version):
         return True
@@ -1365,6 +1403,17 @@ if __name__ == "__main__":
     versions_parser.add_argument("-s", "--summary", action="store_true",
                                  help="set to display a summary of versions")
     versions_parser.set_defaults(func=versions, parser=versions_parser)
+
+    # estimate sub-command
+    estimate_parser = subparsers.add_parser("estimate", help="estimate a completion time for reprocessing")
+    estimate_parser.add_argument("-f", "--flags", type=str, help=flags_help,
+                                 default="latest")
+    estimate_parser.add_argument("--filter", type=str,
+                                 help="expression to recognize completed versions",
+                                 default=None)
+    estimate_parser.add_argument("-s", "--start-date",
+                                 help="specify the start date/time of the reprocessing")
+    estimate_parser.set_defaults(func=estimate, parser=estimate_parser)
 
     # report sub-command
     report_parser = subparsers.add_parser("report", help="report on date(s)")
