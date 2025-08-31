@@ -517,6 +517,12 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
       4: cal_status_text = 'calibration reduction skipped'
       else: cal_status_text = 'unknown error during calibration reduction'
     endcase
+
+    if (n_l0_fits_files gt 0L) then begin
+      percentage_ok = string(100.0 * float(n_ok_files) / float(n_l0_fits_files), $
+                             format='%0.1f%%')
+    endif else percentage_ok = 'NaN'
+
     msg = [string(date, $
                   format='(%"KCor end-of-day processing for %s")'), $
            '', $
@@ -529,6 +535,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
                   format='(%"number of raw files: %d")'), $
            string(n_ok_files, $
                   format='(%"number of OK FITS files: %d")'), $
+           string(percentage_ok, format='% OK files: %s'), $
            string(n_failed_files, $
                   format='(%"number of files failing L1/L2 processing: %d")'), $
            string(n_nrgf_files, $
