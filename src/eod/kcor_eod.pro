@@ -535,7 +535,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
                   format='(%"number of raw files: %d")'), $
            string(n_ok_files, $
                   format='(%"number of OK FITS files: %d")'), $
-           string(percentage_ok, format='% OK files: %s'), $
+           string(percentage_ok, format='%% OK files: %s'), $
            string(n_failed_files, $
                   format='(%"number of files failing L1/L2 processing: %d")'), $
            string(n_nrgf_files, $
