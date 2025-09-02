@@ -898,15 +898,17 @@ def missing(args):
         present_files2 = glob.glob(os.path.join(raw_datedir, "level0", "*.fts*"))
         present_files = present_files1 + present_files2
         machine_log = os.path.join(raw_datedir, f"{d}.kcor.machine.log")
-        if os.path.exists(machine_log):
-            with open(machine_log, "r") as f:
-                created_files = [line.split()[0] for line in f]
-            if (
-                len(created_files) == 1
-                and created_files[0] == os.path.basename(machine_log) + ":"
-            ):
-                created_files = []
-        else:
+
+        # use t1 log for dates without a machine log
+        if not os.path.exists(machine_log):
+            machine_log = os.path.join(raw_datedir, f"{d}.kcor.t1.log")
+
+        with open(machine_log, "r") as f:
+            created_files = [line.split()[0] for line in f]
+        if (
+            len(created_files) == 1
+            and created_files[0] == os.path.basename(machine_log) + ":"
+        ):
             created_files = []
 
         present_files = [os.path.basename(f) for f in present_files]
