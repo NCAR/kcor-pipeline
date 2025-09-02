@@ -32,6 +32,7 @@ try:
     from astropy.io import fits
     from astropy.utils.exceptions import AstropyUserWarning
     import warnings
+
     warnings.simplefilter("ignore", category=AstropyUserWarning)
     ls_requirements = True
 except ModuleNotFoundError as e:
@@ -42,21 +43,23 @@ try:
     import mysql.connector
     import packaging.specifiers
     import packaging.version
+
     versions_requirements = True
 except ModuleNotFoundError as e:
     versions_requirements = False
 
 try:
     import rich
+
     rich_text = True
 except ModuleNotFoundError as e:
     rich_text = False
 
 
 # setup the logging mechanism
-logging.basicConfig(format='%(asctime)s %(message)s',
-                    datefmt='%Y-%m-%d %H:%M:%S',
-                    level=logging.DEBUG)
+logging.basicConfig(
+    format="%(asctime)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S", level=logging.DEBUG
+)
 
 # set to True to not launch real scripts
 TEST = False
@@ -73,11 +76,11 @@ CONFIG_DIR = "@CONFIG_DIR@"
 
 intervals = (
     ("weeks", 604800),  # 60 * 60 * 24 * 7
-    ("days", 86400),    # 60 * 60 * 24
-    ("hrs", 3600),    # 60 * 60
+    ("days", 86400),  # 60 * 60 * 24
+    ("hrs", 3600),  # 60 * 60
     ("mins", 60),
     ("secs", 1),
-    )
+)
 
 
 def get_config_filename(flags):
@@ -86,7 +89,7 @@ def get_config_filename(flags):
     # construct config file filename
     config_filename = os.path.join(CONFIG_DIR, config_basename)
 
-    return(config_filename)
+    return config_filename
 
 
 def get_config(flags, error):
@@ -99,7 +102,7 @@ def get_config(flags, error):
     config = configparser.ConfigParser()
     config.read(config_filename)
 
-    return(config)
+    return config
 
 
 def display_time(seconds, granularity=2):
@@ -123,7 +126,7 @@ def print_bold(text):
 
 
 def format_timedelta(timedelta):
-    return(display_time(int(timedelta.total_seconds()), granularity=len(intervals)))
+    return display_time(int(timedelta.total_seconds()), granularity=len(intervals))
 
 
 def convert_boolean(value):
@@ -158,7 +161,9 @@ def notify_completed(args, task):
             text = f.read()
 
         msg = MIMEText(text)
-        msg["Subject"] = f"KCor {task} ({args.flags}) job completed for {dates} on {hostname}"
+        msg["Subject"] = (
+            f"KCor {task} ({args.flags}) job completed for {dates} on {hostname}"
+        )
         msg["From"] = "kcor-pipeline@ucar.edu"
         msg["To"] = notification_email
 
@@ -175,7 +180,7 @@ def increment_date(date):
     format = "%Y%m%d"
     d = datetime.datetime.strptime(date, format)
     d += datetime.timedelta(days=1)
-    return(d.strftime(format))
+    return d.strftime(format)
 
 
 def split_date_range(date_expr, error):
@@ -208,7 +213,7 @@ def split_dates(date_expr, error):
         else:
             error(f"invalid date expression: {d}")
 
-    return(dates)
+    return dates
 
 
 def get_login(flags, error):
@@ -238,7 +243,7 @@ def get_login(flags, error):
     except configparser.NoSectionError:
         args.parser.error("incomplete database information")
 
-    return(host, user, password, port, database)
+    return (host, user, password, port, database)
 
 
 # list sub-command
@@ -248,9 +253,9 @@ def list_processes(args):
         cmdline = p.cmdline()
         cmdline = "" if len(cmdline) == 0 else cmdline[-1]
         if p.name() == "idl" and cmdline.startswith("kcor"):
-            kcor_processes.append({"cmdline": cmdline,
-                                   "pid": p.pid,
-                                   "start_time": p.create_time()})
+            kcor_processes.append(
+                {"cmdline": cmdline, "pid": p.pid, "start_time": p.create_time()}
+            )
     if len(kcor_processes) == 0:
         print("no kcor processes currently running")
         return
@@ -280,28 +285,28 @@ def get_raw_basedir(date, flags, error):
         date_locations = routing_config.options("kcor")
         for date_expr in date_locations:
             if fnmatch.fnmatch(date, date_expr):
-                return(routing_config.get("kcor", date_expr))
-    return(raw_basedir)
+                return routing_config.get("kcor", date_expr)
+    return raw_basedir
 
 
 def has_raw_data(date, flags, error):
     raw_basedir = get_raw_basedir(date, flags, error)
     raw_dir = os.path.join(raw_basedir, date)
 
-    toplevel_fits_glob = os.path.join(raw_dir, '*.fts*')
+    toplevel_fits_glob = os.path.join(raw_dir, "*.fts*")
     n_toplevel_fits_files = len(glob.glob(toplevel_fits_glob))
 
-    level0_fits_glob = os.path.join(raw_dir, 'level0', '*.fts*')
+    level0_fits_glob = os.path.join(raw_dir, "level0", "*.fts*")
     n_level0_fits_files = len(glob.glob(level0_fits_glob))
 
-    return(n_toplevel_fits_files + n_level0_fits_files > 0)
+    return n_toplevel_fits_files + n_level0_fits_files > 0
 
 
 def raw_locked(date, flags, error):
     raw_basedir = get_raw_basedir(date, flags, error)
     raw_dir = os.path.join(raw_basedir, date)
     lock_filename = os.path.join(raw_dir, ".lock")
-    return(os.path.exists(lock_filename))
+    return os.path.exists(lock_filename)
 
 
 # versions sub-command
@@ -336,7 +341,9 @@ def versions(args):
     if args.none:
         f = [v for v in versions_list if v[1] is not None and v[1][0] != "-"]
         no_version = [v for v in versions_list if v[1] is None or v[1][0] == "-"]
-        in_progress = [v for v in no_version if has_raw_data(v[0], args.flags, args.parser.error)]
+        in_progress = [
+            v for v in no_version if has_raw_data(v[0], args.flags, args.parser.error)
+        ]
         for d, v, r in in_progress:
             attribute = "L" if raw_locked(d, args.flags, args.parser.error) else "+"
             v = v if v is not None else 12 * "-"
@@ -345,7 +352,7 @@ def versions(args):
     elif args.summary:
         f = [v for v in versions_list if v[1] is not None and v[1][0] != "-"]
         s = sorted(f, key=lambda v: packaging.version.parse(v[1]))
-        current_version = ''
+        current_version = ""
         n_dates = 0
         for d, v, r in s:
             if v == current_version:
@@ -421,15 +428,14 @@ def make_version_filter(filter_expression):
         return True
 
     if filter_expression is None:
-        return(null_filter)
+        return null_filter
 
     spec = packaging.specifiers.SpecifierSet(filter_expression, prereleases=True)
 
     def filter_function(version):
         return packaging.version.parse(version) in spec
 
-
-    return(filter_function)
+    return filter_function
 
 
 def get_version(date, cursor):
@@ -438,14 +444,14 @@ def get_version(date, cursor):
     unknown_version = "<unknown>"
     unknown_revision = "<unknown>"
 
-    year  = date[0:4]
+    year = date[0:4]
     month = date[4:6]
-    day   = date[6:8]
+    day = date[6:8]
     q = f"select * from MLSO.mlso_numfiles where obs_day='{year}-{month}-{day}';"
     cursor.execute(q)
     row = cursor.fetchone()
     if row is None:
-        return(date, None, None)
+        return (date, None, None)
     else:
         day_id = row[0]
 
@@ -453,19 +459,19 @@ def get_version(date, cursor):
         cursor.execute(q)
         row = cursor.fetchone()
         if row is None:
-            return(date, null_version, null_revision)
+            return (date, null_version, null_revision)
         else:
             sw_id = row[0]
             if sw_id is None:
-                return(date, unknown_version, unknown_revision)
+                return (date, unknown_version, unknown_revision)
 
             q = f"select * from MLSO.kcor_sw where sw_id={sw_id};"
             cursor.execute(q)
             row = cursor.fetchone()
             if row is None:
-                return(date, null_version, null_revision)
+                return (date, null_version, null_revision)
             else:
-                return(date, row[2], row[3])
+                return (date, row[2], row[3])
 
 
 # report sub-command
@@ -492,27 +498,27 @@ def report(args):
         connection.close()
 
 
-def get_producttype(name:str, cursor):
-    q = f"select producttype_id from MLSO.mlso_producttype where producttype=\"{name}\""
+def get_producttype(name: str, cursor):
+    q = f'select producttype_id from MLSO.mlso_producttype where producttype="{name}"'
     cursor.execute(q)
     row = cursor.fetchone()
-    return(row[0])
+    return row[0]
 
 
-def get_obsday(date:str, cursor):
-    q = f"select day_id from MLSO.mlso_numfiles where obs_day=\"{date[0:4]}-{date[4:6]}-{date[6:8]}\";"
+def get_obsday(date: str, cursor):
+    q = f'select day_id from MLSO.mlso_numfiles where obs_day="{date[0:4]}-{date[4:6]}-{date[6:8]}";'
     cursor.execute(q)
     row = cursor.fetchone()
     if row is None:
-        return(None)
-    return(row[0])
+        return None
+    return row[0]
 
 
 def get_count_by_producttype(producttype_id, obsday_id, cursor):
     q = f"select count(*) from MLSO.kcor_img where obs_day={obsday_id} and producttype={producttype_id};"
     cursor.execute(q)
     row = cursor.fetchone()
-    return(row[0])
+    return row[0]
 
 
 def get_pb_timerange(obsday_id, cursor):
@@ -521,11 +527,11 @@ def get_pb_timerange(obsday_id, cursor):
     cursor.execute(q)
     rows = cursor.fetchall()
     if len(rows) == 0:
-        return(None)
+        return None
     first_dt = rows[0][0]
     last_dt = rows[-1][0]
     time_format = "%H:%M:%S"
-    return((first_dt.strftime(time_format), last_dt.strftime(time_format)))
+    return (first_dt.strftime(time_format), last_dt.strftime(time_format))
 
 
 def get_report(date, cursor, verbose=False):
@@ -548,9 +554,17 @@ def get_report(date, cursor, verbose=False):
         max_width = max([len(t) for row in types for t in row])
         for row in types:
             producttype_ids = [get_producttype(t, cursor) for t in row]
-            counts = [get_count_by_producttype(id, obsday_id, cursor) for id in producttype_ids]
+            counts = [
+                get_count_by_producttype(id, obsday_id, cursor)
+                for id in producttype_ids
+            ]
             labels = [f"{c} {'files' if c != 1 else 'file'}" for c in counts]
-            s = gap.join([f"{indent}{t:{max_width}s} : {label:10s}" for t, label in zip(row, labels)])
+            s = gap.join(
+                [
+                    f"{indent}{t:{max_width}s} : {label:10s}"
+                    for t, label in zip(row, labels)
+                ]
+            )
             print(s)
     else:
         pb_id = get_producttype("pB", cursor)
@@ -559,36 +573,37 @@ def get_report(date, cursor, verbose=False):
         n_files = f"{n_pb} {units}"
         print(f"{date} {n_files:13s} [{time_range[0]} - {time_range[1]}]")
 
+
 # ls sub-command
 def file_lines(filename):
     n_lines = 0
-    
+
     with open(filename, "r") as f:
         for line in f.readlines():
             n_lines += 1
-    return(n_lines)
+    return n_lines
 
 
 def get_fits_boolean(header, keyword):
-    return(header[keyword] == "in" if keyword in header else False)
+    return header[keyword] == "in" if keyword in header else False
 
 
 def get_fits_float(header, keyword):
-    return(header[keyword] if keyword in header else None)
+    return header[keyword] if keyword in header else None
 
 
 def value2str(v):
     if type(v) == str:
-        return(f"{v:10s}")
+        return f"{v:10s}"
     elif type(v) == float:
-        return(f"{v:8.3f}")
+        return f"{v:8.3f}"
     elif type(v) == int:
-        return(f"{v:8d}")
+        return f"{v:8d}"
     elif type(v) == bool:
-        return(f"{v!s:5s}")
+        return f"{v!s:5s}"
     elif v is None:
         return 5 * "-"
-    return(f"{v}")
+    return f"{v}"
 
 
 def list_fits_file(f, columns):
@@ -611,7 +626,9 @@ def list_fits_file_default(f):
         header = fits_file[0].header
         diffuser = get_fits_boolean(header, "DIFFUSER")
         calpol = get_fits_boolean(header, "CALPOL")
-        darkshutter = get_fits_boolean(header, "DARKSHUT") or get_fits_boolean(header, "COVER")
+        darkshutter = get_fits_boolean(header, "DARKSHUT") or get_fits_boolean(
+            header, "COVER"
+        )
         if darkshutter:
             type = "dark"
         elif calpol:
@@ -667,7 +684,7 @@ def ls(args):
     try:
         files = [f for f in args.files if os.path.isfile(f)]
         dirs = [d for d in args.files if os.path.isdir(d)]
-    
+
         if len(files) == 0 and len(dirs) == 1:
             items = [f for f in glob.glob(os.path.join(dirs[0], "*"))]
             files = [f for f in items if os.path.isfile(f)]
@@ -688,13 +705,15 @@ def ls(args):
 def verify(args):
     dates = ",".join(args.dates)
 
-    cmd = [os.path.join(PIPELINE_DIR, "bin", "kcor_verify_dates.sh"),
-           get_config_filename(args.flags),
-           dates]
+    cmd = [
+        os.path.join(PIPELINE_DIR, "bin", "kcor_verify_dates.sh"),
+        get_config_filename(args.flags),
+        dates,
+    ]
 
     process = launch_process(cmd, stdout=None, stderr=subprocess.PIPE)
     print("[%d] %s" % (process.pid, " ".join(cmd)))
-            
+
     terminated = wait_for(process)
 
 
@@ -713,8 +732,9 @@ def list_alerts(args):
     if args.by_issue_time:
         issue_start = 29
         date_length = 18
-        json_files = sorted(json_files,
-            key=lambda f: f[issue_start:issue_start + date_length])
+        json_files = sorted(
+            json_files, key=lambda f: f[issue_start : issue_start + date_length]
+        )
 
     for f in json_files:
         basename = os.path.basename(f)
@@ -723,10 +743,18 @@ def list_alerts(args):
         try:
             submission = alert["sep_forecast_submission"]
             observations = submission["observations"][0]
-            type = observations["alert"]["alert_type"] if "alert" in observations else "heartbeat"
+            type = (
+                observations["alert"]["alert_type"]
+                if "alert" in observations
+                else "heartbeat"
+            )
             all_clear = observations["all_clear"]["all_clear_boolean"]
             all_clear_text = "clear" if all_clear else "CME"
-            pa = submission["triggers"][0]["cme"]["pa"] if "triggers" in submission else math.nan
+            pa = (
+                submission["triggers"][0]["cme"]["pa"]
+                if "triggers" in submission
+                else math.nan
+            )
             pa_text = f"{pa:0.2f} deg" if math.isfinite(pa) else ""
             print(f"{basename}   {type:12s}  {all_clear_text:5s}   {pa_text}")
 
@@ -740,8 +768,10 @@ def list_alerts(args):
 # log sub-command
 def filter_log(args):
     date_prog = re.compile(r"^\d{8}$")
-    logfiles = [os.path.join(LOG_DIR, f"{f}.{args.type}.log") if date_prog.match(f) else f
-                for f in args.logfiles]
+    logfiles = [
+        os.path.join(LOG_DIR, f"{f}.{args.type}.log") if date_prog.match(f) else f
+        for f in args.logfiles
+    ]
 
     follow = args.follow
     if follow and len(logfiles) > 1:
@@ -775,7 +805,8 @@ def filter_log(args):
 
     for i, f in enumerate(logfiles):
         if len(logfiles) > 1:
-            if i != 0: print("")
+            if i != 0:
+                print("")
             print(f)
             print("-" * len(f))
         filter_file(f, level_index, follow)
@@ -786,7 +817,7 @@ def prune_logfiles(files, max_version):
     for f in files:
         versions = glob.glob(f"{f}.*")
         for v in versions:
-            n = v[len(f) + 1:]
+            n = v[len(f) + 1 :]
             if version_re.match(n):
                 if int(n) > max_version:
                     file_to_delete = f"{f}.{n}"
@@ -806,7 +837,7 @@ def filter_file(logfile, level_index, follow):
     line = "not empty"
 
     try:
-        with codecs.open(logfile, mode="r", encoding='latin-1') as f:
+        with codecs.open(logfile, mode="r", encoding="latin-1") as f:
             while follow or line != "":
                 try:
                     line = f.readline()
@@ -824,7 +855,9 @@ def filter_file(logfile, level_index, follow):
 
                 if loglevel_prog.match(line):
                     matched_last_line = True
-                    exact_matched_last_line = True if exact_loglevel_prog.match(line) else False
+                    exact_matched_last_line = (
+                        True if exact_loglevel_prog.match(line) else False
+                    )
                     try:
                         if exact_matched_last_line:
                             print(line.rstrip())
@@ -868,7 +901,10 @@ def missing(args):
         if os.path.exists(machine_log):
             with open(machine_log, "r") as f:
                 created_files = [line.split()[0] for line in f]
-            if len(created_files) == 1 and created_files[0] == os.path.basename(machine_log) + ":":
+            if (
+                len(created_files) == 1
+                and created_files[0] == os.path.basename(machine_log) + ":"
+            ):
                 created_files = []
         else:
             created_files = []
@@ -891,7 +927,9 @@ def missing(args):
             except configparser.NoSectionError:
                 args.parser.error("no verification section in config file")
             except configparser.NoOptionError:
-                args.parser.error("raw remote server options not present in config file")
+                args.parser.error(
+                    "raw remote server options not present in config file"
+                )
 
             print(f"REMOTE_LOCATION={raw_remote_server}:{raw_remote_dir}")
             print(f"LOCAL_LOCATION={raw_datedir}")
@@ -923,14 +961,15 @@ def get_raw_dir(date, flags, error):
         date_locations = routing_config.options("kcor")
         for date_expr in date_locations:
             if fnmatch.fnmatch(date, date_expr):
-                return(routing_config.get("kcor", date_expr))
-    return(raw_dir)
+                return routing_config.get("kcor", date_expr)
+    return raw_dir
 
 
 def wait_for(process):
     try:
         out, err = process.communicate()
-        if err != "": print(err)
+        if err != "":
+            print(err)
         return 0
     except KeyboardInterrupt:
         print(f"killing process {process.pid}")
@@ -938,7 +977,7 @@ def wait_for(process):
         return 1
 
 
-class FakeProcess():
+class FakeProcess:
     def __init__(self, pid):
         self.pid = pid
 
@@ -961,7 +1000,9 @@ def launch_process(cmd, **kwargs):
 def process_cal(args):
     if args.list is not None:
         if len(args.dates) > 1:
-            args.parser.error("only a single date allowed when using list for calibration")
+            args.parser.error(
+                "only a single date allowed when using list for calibration"
+            )
         calibrate_list(args.list, args.dates[0], args.flags, args.no_wait, args.parser)
         return
 
@@ -976,14 +1017,16 @@ def calibrate_list(filelist, dates, flags, no_wait, parser):
         parser.error("only a single date allowed when using list for calibration")
         return
 
-    cmd = [os.path.join(PIPELINE_DIR, "bin", "runkcor_calibrate_list.sh"),
-           flags,
-           dates,
-           filelist]
+    cmd = [
+        os.path.join(PIPELINE_DIR, "bin", "runkcor_calibrate_list.sh"),
+        flags,
+        dates,
+        filelist,
+    ]
 
     process = launch_process(cmd, stdout=None, stderr=subprocess.PIPE)
     print("[%d] %s" % (process.pid, " ".join(cmd)))
-            
+
     if not no_wait:
         terminated = wait_for(process)
 
@@ -991,29 +1034,35 @@ def calibrate_list(filelist, dates, flags, no_wait, parser):
 def calibrate_dates(dates, flags, no_wait, error):
     for d in dates.split(","):
         if d.find("-") < 0:
-            cmd = [os.path.join(PIPELINE_DIR, "bin", "runkcor_calibrate.sh"),
-                   get_config_filename(flags),
-                   d]
+            cmd = [
+                os.path.join(PIPELINE_DIR, "bin", "runkcor_calibrate.sh"),
+                get_config_filename(flags),
+                d,
+            ]
 
             process = launch_process(cmd, stdout=None, stderr=subprocess.PIPE)
             print("[%d] %s" % (process.pid, " ".join(cmd)))
-            
+
             if not no_wait:
                 terminated = wait_for(process)
-                if terminated: break
+                if terminated:
+                    break
         else:
             start_date, end_date = split_date_range(d, error)
-            cmd = [os.path.join(PIPELINE_DIR, "bin", "runkcor_calibrate_range.sh"),
-                   get_config_filename(flags),
-                   start_date,
-                   end_date]
+            cmd = [
+                os.path.join(PIPELINE_DIR, "bin", "runkcor_calibrate_range.sh"),
+                get_config_filename(flags),
+                start_date,
+                end_date,
+            ]
 
             process = launch_process(cmd, stdout=None, stderr=subprocess.PIPE)
             print("[%d] %s" % (process.pid, " ".join(cmd)))
 
             if not no_wait:
                 terminated = wait_for(process)
-                if terminated: break
+                if terminated:
+                    break
 
 
 # process (both rt and eod) sub-command
@@ -1045,27 +1094,34 @@ def run_script(args):
     for dates in args.dates:
         for d in dates.split(","):
             if d.find("-") < 0:
-                cmd = [os.path.join(PIPELINE_DIR, "bin", f"runkcor_script.sh"),
-                       args.name,
-                       get_config_filename(args.flags),
-                       d]
+                cmd = [
+                    os.path.join(PIPELINE_DIR, "bin", f"runkcor_script.sh"),
+                    args.name,
+                    get_config_filename(args.flags),
+                    d,
+                ]
                 process = launch_process(cmd, stdout=None, stderr=subprocess.PIPE)
                 print("[%d] %s" % (process.pid, " ".join(cmd)))
                 if not args.no_wait:
                     terminated = wait_for(process)
-                    if terminated: break
+                    if terminated:
+                        break
             else:
                 start_date, end_date = split_date_range(d, args.parser.error)
-                cmd = [os.path.join(PIPELINE_DIR, "bin", f"runkcor_script_range.sh"),
-                       args.name,
-                       get_config_filename(args.flags),
-                       start_date, end_date]
+                cmd = [
+                    os.path.join(PIPELINE_DIR, "bin", f"runkcor_script_range.sh"),
+                    args.name,
+                    get_config_filename(args.flags),
+                    start_date,
+                    end_date,
+                ]
 
                 process = launch_process(cmd, stdout=None, stderr=subprocess.PIPE)
                 print("[%d] %s" % (process.pid, " ".join(cmd)))
                 if not args.no_wait:
                     terminated = wait_for(process)
-                    if terminated: break
+                    if terminated:
+                        break
 
     notify_completed(args, "script")
 
@@ -1074,7 +1130,9 @@ def run_script(args):
 def cme_detection(args):
     extra_flags = ["/realtime"] if args.realtime else None
     for d in args.dates:
-        process_dates(d, "cmedetection", args.flags, args.no_wait, extra_flags=extra_flags)
+        process_dates(
+            d, "cmedetection", args.flags, args.no_wait, extra_flags=extra_flags
+        )
 
     notify_completed(args, "CME detection")
 
@@ -1114,9 +1172,11 @@ def remove(args):
 def process_dates(dates, script, flags, no_wait, error, extra_flags=None):
     for d in dates.split(","):
         if d.find("-") < 0:
-            cmd = [os.path.join(PIPELINE_DIR, "bin", f"runkcor_{script}.sh"),
-                   get_config_filename(flags),
-                   d]
+            cmd = [
+                os.path.join(PIPELINE_DIR, "bin", f"runkcor_{script}.sh"),
+                get_config_filename(flags),
+                d,
+            ]
             if extra_flags is not None:
                 cmd = cmd + extra_flags
 
@@ -1124,12 +1184,16 @@ def process_dates(dates, script, flags, no_wait, error, extra_flags=None):
             print("[%d] %s" % (process.pid, " ".join(cmd)))
             if not no_wait:
                 terminated = wait_for(process)
-                if terminated: break
+                if terminated:
+                    break
         else:
             start_date, end_date = split_date_range(d, error)
-            cmd = [os.path.join(PIPELINE_DIR, "bin", f"runkcor_{script}_range.sh"),
-                   get_config_filename(flags),
-                   start_date, end_date]
+            cmd = [
+                os.path.join(PIPELINE_DIR, "bin", f"runkcor_{script}_range.sh"),
+                get_config_filename(flags),
+                start_date,
+                end_date,
+            ]
             if extra_flags is not None:
                 cmd = cmd + extra_flags
 
@@ -1137,7 +1201,8 @@ def process_dates(dates, script, flags, no_wait, error, extra_flags=None):
             print("[%d] %s" % (process.pid, " ".join(cmd)))
             if not no_wait:
                 terminated = wait_for(process)
-                if terminated: break
+                if terminated:
+                    break
 
 
 # simulate sub-command
@@ -1160,17 +1225,24 @@ def simulate(args):
     raw_dir = os.path.join(raw_basedir, args.dates[0])
 
     rt_launch_interval = config.get("simulator", "rt_launch_interval", fallback="60.0")
-    eod_launch_interval = config.get("simulator", "eod_launch_interval", fallback="900.0")
+    eod_launch_interval = config.get(
+        "simulator", "eod_launch_interval", fallback="900.0"
+    )
 
     arrival_interval = config.get("simulator", "arrival_interval", fallback="60.0")
-    speedup_factor   = config.get("simulator", "speedup_factor", fallback="1.0")
+    speedup_factor = config.get("simulator", "speedup_factor", fallback="1.0")
 
     # launch processing simulator
-    processing_cmd = [os.path.join(PIPELINE_DIR, "bin", "kcor_simulate_processing"),
-                      "-f", args.flags,
-                      "--rt-frequency", rt_launch_interval,
-                      "--eod-frequency", eod_launch_interval,
-                      args.dates[0]]
+    processing_cmd = [
+        os.path.join(PIPELINE_DIR, "bin", "kcor_simulate_processing"),
+        "-f",
+        args.flags,
+        "--rt-frequency",
+        rt_launch_interval,
+        "--eod-frequency",
+        eod_launch_interval,
+        args.dates[0],
+    ]
     if args.no_eod:
         processing_cmd.insert(2, "--no-eod")
     processing_process = subprocess.Popen(processing_cmd)
@@ -1178,10 +1250,15 @@ def simulate(args):
     time.sleep(5.0)
 
     # launch incoming data simulator
-    data_cmd = [os.path.join(PIPELINE_DIR, "bin", "kcor_simulate_data"),
-                "-r", raw_dir,
-                "-b", arrival_interval,
-                "-s", speedup_factor]
+    data_cmd = [
+        os.path.join(PIPELINE_DIR, "bin", "kcor_simulate_data"),
+        "-r",
+        raw_dir,
+        "-b",
+        arrival_interval,
+        "-s",
+        speedup_factor,
+    ]
     time_dir = config.get("simulator", "time_dir")
     if time_dir is not None:
         data_cmd += ["-t", time_dir]
@@ -1189,10 +1266,12 @@ def simulate(args):
     data_process = subprocess.Popen(data_cmd)
 
     if args.cme:
-        cmd = [os.path.join(PIPELINE_DIR, "bin", f"runkcor_cmedetection.sh"),
-               get_config_filename(args.flags),
-               args.dates[0],
-               "/realtime"]
+        cmd = [
+            os.path.join(PIPELINE_DIR, "bin", f"runkcor_cmedetection.sh"),
+            get_config_filename(args.flags),
+            args.dates[0],
+            "/realtime",
+        ]
 
         cme_process = launch_process(cmd, stdout=None, stderr=subprocess.PIPE)
         logging.info("launching CME detection process...")
@@ -1286,7 +1365,7 @@ def stage_date(parser, date, flags, dst):
             copy_date(date, src, dst)
         except FileNotFoundError:
             print(f"files not found for {date} in {src}")
-            #parser.error(f"files not found in {src}")
+            # parser.error(f"files not found in {src}")
     else:
         parser.error(f"{date_dir} does not exist")
 
@@ -1329,7 +1408,7 @@ def locate(args):
                         dates = expand_date_range(r)
                     except IndexError:
                         args.parser.error(r"bad date range expression: {r}")
-    
+
                 for d in dates:
                     # get raw_basedir
                     raw_bdir = raw_basedir(d, config_filename)
@@ -1348,10 +1427,12 @@ def locate(args):
 
 # nrgf sub-command
 def nrgf(args):
-    cmd = [os.path.join(PIPELINE_DIR, "bin", f"runkcor_nrgf.sh"),
-           args.flags,
-           args.date[0],
-           args.filename]
+    cmd = [
+        os.path.join(PIPELINE_DIR, "bin", f"runkcor_nrgf.sh"),
+        args.flags,
+        args.date[0],
+        args.filename,
+    ]
 
     process = launch_process(cmd, stdout=None, stderr=subprocess.PIPE)
     print("[%d] %s" % (process.pid, " ".join(cmd)))
@@ -1368,9 +1449,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=name)
 
     # top-level arguments
-    parser.add_argument("-v", "--version",
-                        action="version",
-                        version=name)
+    parser.add_argument("-v", "--version", action="version", version=name)
 
     # show help if no sub-command given
     parser.set_defaults(func=print_help, parser=parser)
@@ -1384,145 +1463,198 @@ if __name__ == "__main__":
     flags_help = """FLAGS section of config filename, i.e., file in config/
                     directory matching kcor.FLAGS.cfg will be used"""
 
-
     # list sub-command
-    list_parser = subparsers.add_parser("list", help="list KCor processes")
+    list_parser = subparsers.add_parser(
+        "list", help="list KCor processes running on local machine"
+    )
     list_parser.set_defaults(func=list_processes, parser=list_parser)
 
     # versions sub-command
-    versions_parser = subparsers.add_parser("versions", aliases=["version"], help="list versions")
-    versions_parser.add_argument("dates", type=str, nargs="*", help=date_help,
-                                 metavar="date-expr")
-    versions_parser.add_argument("-f", "--flags", type=str, help=flags_help,
-                                 default="latest")
-    versions_parser.add_argument("--filter", type=str,
-                                 help="expression to filter versions by",
-                                 default=None)
-    versions_parser.add_argument("-o", "--oldest", action="store_true",
-                                 help="set to only display the oldest version")
-    versions_parser.add_argument("-n", "--none", action="store_true",
-        help="set to only display the dates with no version")
-    versions_parser.add_argument("-s", "--summary", action="store_true",
-                                 help="set to display a summary of versions")
+    versions_parser = subparsers.add_parser(
+        "versions",
+        aliases=["version"],
+        help="list versions of processing code by observing date",
+    )
+    versions_parser.add_argument(
+        "dates", type=str, nargs="*", help=date_help, metavar="date-expr"
+    )
+    versions_parser.add_argument(
+        "-f", "--flags", type=str, help=flags_help, default="latest"
+    )
+    versions_parser.add_argument(
+        "--filter", type=str, help="expression to filter versions by", default=None
+    )
+    versions_parser.add_argument(
+        "-o",
+        "--oldest",
+        action="store_true",
+        help="set to only display the oldest version",
+    )
+    versions_parser.add_argument(
+        "-n",
+        "--none",
+        action="store_true",
+        help="set to only display the dates with no version",
+    )
+    versions_parser.add_argument(
+        "-s",
+        "--summary",
+        action="store_true",
+        help="set to display a summary of versions",
+    )
     versions_parser.set_defaults(func=versions, parser=versions_parser)
 
     # estimate sub-command
-    estimate_parser = subparsers.add_parser("estimate", help="estimate a completion time for reprocessing")
-    estimate_parser.add_argument("-f", "--flags", type=str, help=flags_help,
-                                 default="latest")
-    estimate_parser.add_argument("--filter", type=str,
-                                 help="expression to recognize completed versions",
-                                 default=None)
-    estimate_parser.add_argument("-s", "--start-date",
-                                 help="specify the start date/time of the reprocessing")
+    estimate_parser = subparsers.add_parser(
+        "estimate", help="estimate a completion time for reprocessing"
+    )
+    estimate_parser.add_argument(
+        "-f", "--flags", type=str, help=flags_help, default="latest"
+    )
+    estimate_parser.add_argument(
+        "--filter",
+        type=str,
+        help="expression to recognize completed versions",
+        default=None,
+    )
+    estimate_parser.add_argument(
+        "-s", "--start-date", help="specify the start date/time of the reprocessing"
+    )
     estimate_parser.set_defaults(func=estimate, parser=estimate_parser)
 
     # report sub-command
-    report_parser = subparsers.add_parser("report", help="report on date(s)")
-    report_parser.add_argument("dates", type=str, nargs="*", help=date_help,
-                               metavar="date-expr")
-    report_parser.add_argument("-f", "--flags", type=str, help=flags_help,
-                               default="latest")
-    report_parser.add_argument("-v", "--verbose", action="store_true",
-                               help="set to display verbose output")
+    report_parser = subparsers.add_parser(
+        "report", help="report basic facts on date(s)"
+    )
+    report_parser.add_argument(
+        "dates", type=str, nargs="*", help=date_help, metavar="date-expr"
+    )
+    report_parser.add_argument(
+        "-f", "--flags", type=str, help=flags_help, default="latest"
+    )
+    report_parser.add_argument(
+        "-v", "--verbose", action="store_true", help="set to display verbose output"
+    )
     report_parser.set_defaults(func=report, parser=report_parser)
 
     # ls sub-command
-    ls_parser = subparsers.add_parser("ls",
-                                      help="list KCor data files")
-    ls_parser.add_argument("files", nargs="*",
-                           default=".",
-                           help="KCor files(s)",
-                           metavar="file(s)")
-    ls_parser.add_argument("-k", "--keywords", type=str,
-                           help="FITS keyword names to display",
-                           default=None)
+    ls_parser = subparsers.add_parser("ls", help="produce listing of KCor data files")
+    ls_parser.add_argument(
+        "files", nargs="*", default=".", help="KCor files(s)", metavar="file(s)"
+    )
+    ls_parser.add_argument(
+        "-k", "--keywords", type=str, help="FITS keyword names to display", default=None
+    )
     ls_parser.set_defaults(func=ls, parser=ls_parser)
 
-    alert_parser = subparsers.add_parser("alert",
-                                         help="list JSON alerts")
-    alert_parser.add_argument("--by-issue-time", action="store_true",
-                              help="sort JSON alerts by issue time instead of event time")
-    alert_parser.add_argument("--detail", action="store_true",
-                              help="show full JSON")
-    alert_parser.add_argument("json_files", nargs="*",
-                              help="JSON alert files",
-                              metavar="json_file")
+    alert_parser = subparsers.add_parser(
+        "alert", help="produce listing of JSON alerts in given directory"
+    )
+    alert_parser.add_argument(
+        "--by-issue-time",
+        action="store_true",
+        help="sort JSON alerts by issue time instead of event time",
+    )
+    alert_parser.add_argument(
+        "--detail", action="store_true", help="show full JSON for alerts"
+    )
+    alert_parser.add_argument(
+        "json_files", nargs="*", help="JSON alert files", metavar="json_file"
+    )
     alert_parser.set_defaults(func=list_alerts, parser=alert_parser)
 
     # log sub-command
-    log_parser = subparsers.add_parser("log",
-                                       help="filter/display log output")
-    log_parser.add_argument("logfiles", nargs="*",
-                            help="KCor log filename or date",
-                            metavar="logfile")
+    log_parser = subparsers.add_parser(
+        "log", help="filter/display processing log output"
+    )
+    log_parser.add_argument(
+        "logfiles", nargs="*", help="KCor log filename or date", metavar="logfile"
+    )
     level_help = "filter level: DEBUG INFO WARN ERROR CRITICAL (default DEBUG)"
-    log_parser.add_argument("-l", "--level",
-                            help=level_help)
-    log_parser.add_argument("-t", "--type", help="type of log: realtime, eod, cme",
-                            default="realtime")
-    prune_help = "prune rotated logs with versions higher than MAX_VERSION"
-    log_parser.add_argument("-p", "--prune",
-                            help=prune_help,
-                            metavar="MAX_VERSION")
-    log_parser.add_argument("-f", "--follow",
-                            help="output appended data as file grows",
-                            action="store_true")
-    log_parser.add_argument("-d", "--debug",
-                            help="DEBUG filter level",
-                            action="store_true")
-    log_parser.add_argument("-i", "--info",
-                            help="INFO filter level",
-                            action="store_true")
-    log_parser.add_argument("-w", "--warn",
-                            help="WARN filter level",
-                            action="store_true")
-    log_parser.add_argument("-e", "--error",
-                            help="ERROR filter level",
-                            action="store_true")
-    log_parser.add_argument("-c", "--critical",
-                            help="CRITICAL filter level",
-                            action="store_true")
+    log_parser.add_argument("-l", "--level", help=level_help)
+    log_parser.add_argument(
+        "-t", "--type", help="type of log: realtime, eod, cme", default="realtime"
+    )
+    log_parser.add_argument(
+        "-p",
+        "--prune",
+        help="prune rotated logs with versions higher than MAX_VERSION",
+        metavar="MAX_VERSION",
+    )
+    log_parser.add_argument(
+        "-f", "--follow", help="output appended data as file grows", action="store_true"
+    )
+    log_parser.add_argument(
+        "-d", "--debug", help="DEBUG filter level", action="store_true"
+    )
+    log_parser.add_argument(
+        "-i", "--info", help="INFO filter level", action="store_true"
+    )
+    log_parser.add_argument(
+        "-w", "--warn", help="WARN filter level", action="store_true"
+    )
+    log_parser.add_argument(
+        "-e", "--error", help="ERROR filter level", action="store_true"
+    )
+    log_parser.add_argument(
+        "-c", "--critical", help="CRITICAL filter level", action="store_true"
+    )
     log_parser.set_defaults(func=filter_log, parser=log_parser)
 
     # missing sub-command
-    missing_parser = subparsers.add_parser("missing",
-       help="list missing files for a given day")
-    missing_parser.add_argument("dates", type=str, nargs="*", help=date_help,
-       metavar="date-expr")
-    missing_parser.add_argument("-f", "--flags", type=str, help=flags_help,
-       default="latest")
-    missing_parser.add_argument("-s", "--script", help="create bash script",
-        action="store_true")
+    missing_parser = subparsers.add_parser(
+        "missing", help="list missing files for a given day"
+    )
+    missing_parser.add_argument(
+        "dates", type=str, nargs="*", help=date_help, metavar="date-expr"
+    )
+    missing_parser.add_argument(
+        "-f", "--flags", type=str, help=flags_help, default="latest"
+    )
+    missing_parser.add_argument(
+        "-s", "--script", help="create bash script", action="store_true"
+    )
     missing_parser.set_defaults(func=missing, parser=missing_parser)
 
     # process, eod, rt, cal sub-commands
-    process_parser = subparsers.add_parser("process",
-                                           help="run realtime/end-of-day pipelines")
-    eod_parser = subparsers.add_parser("end-of-day", aliases=["eod"],
-                                       help="run end-of-day pipeline")
-    rt_parser = subparsers.add_parser("realtime", aliases=["rt"],
-                                      help="run realtime pipeline")
-    cal_parser = subparsers.add_parser("calibration", aliases=["cal"],
-                                       help="run calibration")
+    process_parser = subparsers.add_parser(
+        "process", help="run realtime/end-of-day pipelines for given date(s)"
+    )
+    eod_parser = subparsers.add_parser(
+        "end-of-day", aliases=["eod"], help="run end-of-day pipeline for given date(s)"
+    )
+    rt_parser = subparsers.add_parser(
+        "realtime", aliases=["rt"], help="run realtime pipeline for given date(s)"
+    )
+    cal_parser = subparsers.add_parser(
+        "calibration",
+        aliases=["cal"],
+        help="run calibration pipeline for given date(s)",
+    )
 
-    process_parser.add_argument("dates", type=str, nargs="*", help=date_help,
-                                metavar="date-expr")
-    eod_parser.add_argument("dates", type=str, nargs="*", help=date_help,
-                            metavar="date-expr")
-    rt_parser.add_argument("dates", type=str, nargs="*", help=date_help,
-                            metavar="date-expr")
-    cal_parser.add_argument("dates", type=str, nargs="*", help=date_help,
-                            metavar="date-expr")
+    process_parser.add_argument(
+        "dates", type=str, nargs="*", help=date_help, metavar="date-expr"
+    )
+    eod_parser.add_argument(
+        "dates", type=str, nargs="*", help=date_help, metavar="date-expr"
+    )
+    rt_parser.add_argument(
+        "dates", type=str, nargs="*", help=date_help, metavar="date-expr"
+    )
+    cal_parser.add_argument(
+        "dates", type=str, nargs="*", help=date_help, metavar="date-expr"
+    )
 
-    process_parser.add_argument("-f", "--flags", type=str, help=flags_help,
-                                default="latest")
-    eod_parser.add_argument("-f", "--flags", type=str, help=flags_help,
-                            default="latest")
-    rt_parser.add_argument("-f", "--flags", type=str, help=flags_help,
-                           default="latest")
-    cal_parser.add_argument("-f", "--flags", type=str, help=flags_help,
-                            default="latest")
+    process_parser.add_argument(
+        "-f", "--flags", type=str, help=flags_help, default="latest"
+    )
+    eod_parser.add_argument(
+        "-f", "--flags", type=str, help=flags_help, default="latest"
+    )
+    rt_parser.add_argument("-f", "--flags", type=str, help=flags_help, default="latest")
+    cal_parser.add_argument(
+        "-f", "--flags", type=str, help=flags_help, default="latest"
+    )
 
     nowait_help = "set to run all dates simultaneously"
     process_parser.add_argument("--no-wait", action="store_true", help=nowait_help)
@@ -1530,11 +1662,13 @@ if __name__ == "__main__":
     rt_parser.add_argument("--no-wait", action="store_true", help=nowait_help)
     cal_parser.add_argument("--no-wait", action="store_true", help=nowait_help)
 
-    cal_parser.add_argument("-l", "--list",
-                            type=str,
-                            metavar="LIST_FILENAME",
-                            help="""set to a filename containing a list of files
-                                    to use to produce the calibration""")
+    cal_parser.add_argument(
+        "-l",
+        "--list",
+        type=str,
+        metavar="LIST_FILENAME",
+        help="set to a filename containing a list of files to use to produce the calibration",
+    )
 
     process_parser.set_defaults(func=process, parser=process_parser)
     eod_parser.set_defaults(func=process_eod, parser=eod_parser)
@@ -1542,138 +1676,178 @@ if __name__ == "__main__":
     cal_parser.set_defaults(func=process_cal, parser=cal_parser)
 
     # script sub-command
-    script_parser = subparsers.add_parser("script",
-                                           help="run a given script on days")
-    script_parser.add_argument("dates", type=str, nargs="*", help=date_help,
-                               metavar="date-expr")
-    script_parser.add_argument("-f", "--flags", type=str, help=flags_help,
-                               default="latest")
-    script_parser.add_argument("-n", "--name", type=str, help="name of script",
-                               required=True)
+    script_parser = subparsers.add_parser(
+        "script", help="run a given script on given date(s)"
+    )
+    script_parser.add_argument(
+        "dates", type=str, nargs="*", help=date_help, metavar="date-expr"
+    )
+    script_parser.add_argument(
+        "-f", "--flags", type=str, help=flags_help, default="latest"
+    )
+    script_parser.add_argument(
+        "-n", "--name", type=str, help="name of script", required=True
+    )
     script_parser.add_argument("--no-wait", action="store_true", help=nowait_help)
     script_parser.set_defaults(func=run_script, parser=script_parser)
 
-
     # cme sub-command
-    cme_parser = subparsers.add_parser("cme",
-                                       help="run CME detection in batch mode")
-    cme_parser.add_argument("dates", type=str, nargs="*", help=date_help,
-                            metavar="date-expr")
-    cme_parser.add_argument("-f", "--flags", type=str, help=flags_help,
-                            default="latest")
+    cme_parser = subparsers.add_parser(
+        "cme", help="run CME detection in batch mode on given date"
+    )
+    cme_parser.add_argument(
+        "dates", type=str, nargs="*", help=date_help, metavar="date-expr"
+    )
+    cme_parser.add_argument(
+        "-f", "--flags", type=str, help=flags_help, default="latest"
+    )
     cme_parser.add_argument("--no-wait", action="store_true", help=nowait_help)
     realtime_help = "set to use realtime setting instead of batch mode"
     cme_parser.add_argument("--realtime", action="store_true", help=realtime_help)
     cme_parser.set_defaults(func=cme_detection, parser=cme_parser)
 
-
     # savecme sub-command
-    savecme_parser = subparsers.add_parser("savecme",
-                                           help="save CME results")
-    savecme_parser.add_argument("dates", type=str, nargs="*", help=date_help,
-                                metavar="date-expr")
-    savecme_parser.add_argument("-f", "--flags", type=str, help=flags_help,
-                                default="latest")
+    savecme_parser = subparsers.add_parser(
+        "savecme", help="save CME results for given date(s)"
+    )
+    savecme_parser.add_argument(
+        "dates", type=str, nargs="*", help=date_help, metavar="date-expr"
+    )
+    savecme_parser.add_argument(
+        "-f", "--flags", type=str, help=flags_help, default="latest"
+    )
     savecme_parser.add_argument("--no-wait", action="store_true", help=nowait_help)
     savecme_parser.set_defaults(func=savecme, parser=savecme_parser)
 
-
     # archive sub-command
-    archive_parser = subparsers.add_parser("archive",
-                                           help="archive files to HPSS")
-    archive_parser.add_argument("dates", type=str, nargs="*", help=date_help,
-                                metavar="date-expr")
-    archive_parser.add_argument("-f", "--flags", type=str, help=flags_help,
-                                default="latest")
-    archive_parser.add_argument("-l", "--level", type=str,
-                                help="level to archive, 0 or 1 (1.5), default=0",
-                                default="0")
+    archive_parser = subparsers.add_parser(
+        "archive", help="archive files for given date(s) to archival storage"
+    )
+    archive_parser.add_argument(
+        "dates", type=str, nargs="*", help=date_help, metavar="date-expr"
+    )
+    archive_parser.add_argument(
+        "-f", "--flags", type=str, help=flags_help, default="latest"
+    )
+    archive_parser.add_argument(
+        "-l",
+        "--level",
+        type=str,
+        help="level to archive, 0 or 1 (1.5), default=0",
+        default="0",
+    )
     archive_parser.add_argument("--no-wait", action="store_true", help=nowait_help)
     archive_parser.set_defaults(func=archive, parser=archive_parser)
 
-
     # verify sub-command
-    verify_parser = subparsers.add_parser("verify",
-                                          help="verify previously processed dates")
-    verify_parser.add_argument("dates", type=str, nargs="*", help=date_help,
-                               metavar="date-expr")
-
-    verify_parser.add_argument("-f", "--flags", type=str, help=flags_help,
-                                 default="latest")
+    verify_parser = subparsers.add_parser(
+        "verify", help="verify previously processed date(s)"
+    )
+    verify_parser.add_argument(
+        "dates", type=str, nargs="*", help=date_help, metavar="date-expr"
+    )
+    verify_parser.add_argument(
+        "-f", "--flags", type=str, help=flags_help, default="latest"
+    )
     verify_parser.set_defaults(func=verify, parser=verify_parser)
 
-
     # purge sub-command
-    purge_help = "purge results from archive/database for a day"
-    purge_parser = subparsers.add_parser("purge", help=purge_help)
-    purge_parser.add_argument("dates", type=str, nargs="*", help=date_help,
-                              metavar="date-expr")
-    purge_parser.add_argument("-f", "--flags", type=str, help=flags_help,
-                              default="latest")
+    purge_parser = subparsers.add_parser(
+        "purge", help="purge results from archive/database for given date(s)"
+    )
+    purge_parser.add_argument(
+        "dates", type=str, nargs="*", help=date_help, metavar="date-expr"
+    )
+    purge_parser.add_argument(
+        "-f", "--flags", type=str, help=flags_help, default="latest"
+    )
     purge_parser.add_argument("--no-wait", action="store_true", help=nowait_help)
     purge_parser.set_defaults(func=purge, parser=purge_parser)
 
-
     # remove sub-command
-    remove_help = "remove raw/level1 directory for a day"
+    remove_help = "remove level1 directory for given date(s)"
     remove_parser = subparsers.add_parser("remove", help=remove_help)
-    remove_parser.add_argument("dates", type=str, nargs="*", help=date_help,
-                               metavar="date-expr")
-    remove_parser.add_argument("-f", "--flags", type=str, help=flags_help,
-                              default="latest")
+    remove_parser.add_argument(
+        "dates", type=str, nargs="*", help=date_help, metavar="date-expr"
+    )
+    remove_parser.add_argument(
+        "-f", "--flags", type=str, help=flags_help, default="latest"
+    )
     remove_parser.add_argument("--no-wait", action="store_true", help=nowait_help)
     remove_parser.set_defaults(func=remove, parser=remove_parser)
 
-
     # simulate sub-command
-    simulate_parser = subparsers.add_parser("simulate", aliases=["sim"],
-                                            help="simulate realtime processing")
-    simulate_parser.add_argument("dates", type=str, nargs="*",
-                                 help="date to run on in the form YYYYMMDD",
-                                 metavar="date")
-    simulate_parser.add_argument("--cme", action="store_true",
-                                 help="run CME detection in realtime mode")
-    simulate_parser.add_argument("-f", "--flags", type=str, help=flags_help,
-                                default="latest")
-    simulate_parser.add_argument("--no-eod", action="store_true",
-                                 help="set to not launch end-of-day processing")
+    simulate_parser = subparsers.add_parser(
+        "simulate", aliases=["sim"], help="simulate realtime processing for given date"
+    )
+    simulate_parser.add_argument(
+        "dates",
+        type=str,
+        nargs="*",
+        help="date to run on in the form YYYYMMDD",
+        metavar="date",
+    )
+    simulate_parser.add_argument(
+        "--cme", action="store_true", help="run CME detection in realtime mode"
+    )
+    simulate_parser.add_argument(
+        "-f", "--flags", type=str, help=flags_help, default="latest"
+    )
+    simulate_parser.add_argument(
+        "--no-eod", action="store_true", help="set to not launch end-of-day processing"
+    )
     simulate_parser.set_defaults(func=simulate, parser=simulate_parser)
 
-
     # stage sub-command
-    stage_parser = subparsers.add_parser("stage",
-                                         help="stage raw data")
-    stage_parser.add_argument("dates", type=str, nargs="*",
-                              help="date to run on in the form YYYYMMDD",
-                              metavar="date")
-    stage_parser.add_argument("-f", "--flags", type=str, help=flags_help,
-                              default="reprocess")
-    stage_parser.add_argument("-l", "--location", type=str,
-                              help="location to copy raw data to",
-                              default=".")
+    stage_parser = subparsers.add_parser(
+        "stage", help="stage raw data to a new location for the given date(s)"
+    )
+    stage_parser.add_argument(
+        "dates",
+        type=str,
+        nargs="*",
+        help="date to run on in the form YYYYMMDD",
+        metavar="date",
+    )
+    stage_parser.add_argument(
+        "-f", "--flags", type=str, help=flags_help, default="reprocess"
+    )
+    stage_parser.add_argument(
+        "-l", "--location", type=str, help="location to copy raw data to", default="."
+    )
     stage_parser.set_defaults(func=stage, parser=stage_parser)
 
-
     # locate sub-command
-    locate_parser = subparsers.add_parser("locate", aliases=["loc"],
-                                          help="locate raw data")
-    locate_parser.add_argument("dates", type=str, nargs="*",
-                              help="date to run on in the form YYYYMMDD",
-                              metavar="date")
-    locate_parser.add_argument("-f", "--flags", type=str, help=flags_help,
-                               default="reprocess")
-    locate_parser.add_argument("-v", "--verbose", action="store_true",
-                               help="set to display verbose output")
+    locate_parser = subparsers.add_parser(
+        "locate", aliases=["loc"], help="locate raw data for given date(s)"
+    )
+    locate_parser.add_argument(
+        "dates",
+        type=str,
+        nargs="*",
+        help="date to run on in the form YYYYMMDD",
+        metavar="date",
+    )
+    locate_parser.add_argument(
+        "-f", "--flags", type=str, help=flags_help, default="reprocess"
+    )
+    locate_parser.add_argument(
+        "-v", "--verbose", action="store_true", help="set to display verbose output"
+    )
     locate_parser.set_defaults(func=locate, parser=locate_parser)
 
     # nrgf sub-command
-    nrgf_parser = subparsers.add_parser("nrgf",
-                                          help="process a L0 file to a NRGF")
-    nrgf_parser.add_argument("date", type=str, nargs="*",
-                              help="date to run on in the form YYYYMMDD",
-                              metavar="date")
-    nrgf_parser.add_argument("-f", "--flags", type=str, help=flags_help,
-                               default="latest")
+    nrgf_parser = subparsers.add_parser("nrgf", help="process an L0 file to a NRGF")
+    nrgf_parser.add_argument(
+        "date",
+        type=str,
+        nargs="*",
+        help="date to run on in the form YYYYMMDD",
+        metavar="date",
+    )
+    nrgf_parser.add_argument(
+        "-f", "--flags", type=str, help=flags_help, default="latest"
+    )
     nrgf_parser.add_argument("--filename", type=str, help="L0 basename to process")
     nrgf_parser.set_defaults(func=nrgf, parser=nrgf_parser)
 
