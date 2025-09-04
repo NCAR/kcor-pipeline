@@ -383,9 +383,6 @@ def versions(args):
                 print(f"{d}: {attribute} {v:12s} {r:8s}")
 
 
-# TODO: estimate parser
-# $ kcor estimate --filter ">=2.2.0" --start-date 2025-08-29T20:02:48
-# 2025-09-15T08:10:30
 def estimate(args):
     if not versions_requirements:
         args.parser.error("missing Python packages required for querying database")
@@ -419,7 +416,7 @@ inner join MLSO.mlso_numfiles on MLSO.mlso_numfiles.day_id=sw.obs_day;"""
     now = datetime.datetime.now()
     end_date = start_date + n_total_dates * (now - start_date) / n_ok_dates
     percentage_complete = 100.0 * n_ok_dates / n_total_dates
-    print(f"{percentage_complete:0.1f}% complete")
+    print(f"{n_ok_dates} of {n_total_dates}: {percentage_complete:0.1f}% complete")
     print(datetime.datetime.strftime(end_date, date_fmt))
 
 
