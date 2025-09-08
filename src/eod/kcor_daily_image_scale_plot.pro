@@ -36,17 +36,15 @@ pro kcor_daily_image_scale_plot, database=db, run=run
   plate_scale = 0.0 * image_scale
   plate_scale_tolerance = 0.0 * image_scale
 
-  ;for f = 0L, n_files - 1L do begin
-    plate_scale[*] = run->epoch('plate_scale')
-    plate_scale_tolerance[*] = run->epoch('plate_scale_tolerance')
-  ;endfor
+  plate_scale[*] = run->epoch('plate_scale')
+  plate_scale_tolerance[*] = run->epoch('plate_scale_tolerance')
 
   times = kcor_dateobs2julday(data.date_obs) - 0.5 - 10.0 / 24.0
   times -= long(times[0])
   times *= 24.0
 
   hours_range = [6.0, 18.0]
-  image_scale_range = plate_scale[*] + [-0.025, 0.05]
+  image_scale_range = plate_scale[0] + [-0.025, 0.05]
   image_scale_difference_range = 0.05 * [-1.0, 1.0]
 
   ; save original graphics settings
