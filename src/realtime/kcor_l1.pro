@@ -1169,61 +1169,61 @@ pro kcor_l1, ok_filename, $
   ; raw camera occulting center & radius information
   fxaddpar, l1_header, 'RCAMXCEN', xcen0 + 1, $
             ' [pixel] camera 0 raw X-coord occulting center', $
-            format='(f8.2)'
+            format='(f0.2)'
   fxaddpar, l1_header, 'RCAMYCEN', ycen0 + 1, $
             ' [pixel] camera 0 raw Y-coord occulting center', $
-            format='(f8.2)'
+            format='(f0.2)'
   fxaddpar, l1_header, 'RCAM_RAD', radius_0, $
             ' [pixel] camera 0 raw occulter radius', $
-            format='(f8.2)'
+            format='(f0.2)'
   fxaddpar, l1_header, 'RCAM_DCX', info_dc0[0] + 1, $
             ' [pixel] camera 0 dist cor occulter X center', $
-            format='(f8.2)'
+            format='(f0.2)'
   fxaddpar, l1_header, 'RCAM_DCY', info_dc0[1] + 1, $
             ' [pixel] camera 0 dist cor occulter Y center', $
-            format='(f8.2)'
+            format='(f0.2)'
   fxaddpar, l1_header, 'RCAM_DCR', scale_factor * info_dc0[2], $
             ' [pixel] camera 0 dist corrected occulter radius', $
-            format='(f8.2)'
+            format='(f0.2)'
 
   fxaddpar, l1_header, 'TCAMXCEN', xcen1 + 1, $
             ' [pixel] camera 1 raw X-coord occulting center', $
-            format='(f8.2)'
+            format='(f0.2)'
   fxaddpar, l1_header, 'TCAMYCEN', ycen1 + 1, $
             ' [pixel] camera 1 raw Y-coord occulting center', $
-            format='(f8.2)'
+            format='(f0.2)'
   fxaddpar, l1_header, 'TCAM_RAD', radius_1, $
             ' [pixel] camera 1 raw occulter radius', $
-            format='(f8.2)'
+            format='(f0.2)'
   fxaddpar, l1_header, 'TCAM_DCX', info_dc1[0] + 1, $
             ' [pixel] camera 1 dist cor occulter X center', $
-            format='(f8.2)'
+            format='(f0.2)'
   fxaddpar, l1_header, 'TCAM_DCY', info_dc1[1] + 1, $
             ' [pixel] camera 1 dist cor occulter Y center', $
-            format='(f8.2)'
+            format='(f0.2)'
   fxaddpar, l1_header, 'TCAM_DCR', scale_factor * info_dc1[2], $
             ' [pixel] camera 1 dist corrected occulter radius', $
-            format='(f8.2)'
+            format='(f0.2)'
 
   ; flat centering info
   fxaddpar, l1_header, 'FRCAM_X', frcam_x + 1, $
             ' [pixel] cam 0 dark cor flat occulter X center', $
-            format='(f8.2)', after='TCAM_DCR'
+            format='(f0.2)', after='TCAM_DCR'
   fxaddpar, l1_header, 'FRCAM_Y', frcam_y + 1, $
             ' [pixel] cam 0 dark cor flat occulter Y center', $
-            format='(f8.2)', after='FRCAM_X'
+            format='(f0.2)', after='FRCAM_X'
   fxaddpar, l1_header, 'FRCAM_R', frcam_r, $
             ' [pixel] cam 0 dark cor flat occulter radius', $
-            format='(f8.2)', after='FRCAM_Y'
+            format='(f0.2)', after='FRCAM_Y'
   fxaddpar, l1_header, 'FTCAM_X', ftcam_x + 1, $
             ' [pixel] cam 1 dark cor flat occulter X center', $
-            format='(f8.2)', after='FRCAM_R'
+            format='(f0.2)', after='FRCAM_R'
   fxaddpar, l1_header, 'FTCAM_Y', ftcam_y + 1, $
             ' [pixel] cam 1 dark cor flat occulter Y center', $
-            format='(f8.2)', after='FTCAM_X'
+            format='(f0.2)', after='FTCAM_X'
   fxaddpar, l1_header, 'FTCAM_R', ftcam_r, $
             ' [pixel] cam 1 dark cor flat occulter radius', $
-            format='(f8.2)', after='FTCAM_Y'
+            format='(f0.2)', after='FTCAM_Y'
 
   rcam_avg_flat_radius_name = string(strmid(occltrid, 0, 8), format='%s-RCAM-avg_flat_rad')
   rcam_avg_flat_radius = run->epoch(rcam_avg_flat_radius_name)
