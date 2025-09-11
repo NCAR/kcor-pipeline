@@ -65,15 +65,21 @@ pro kcor_l1, ok_filename, $
   endif
 
   dt = strmid(file_basename(ok_filename), 0, 15)
-  run.time = string(strmid(dt, 0, 4), $
-                    strmid(dt, 4, 2), $
-                    strmid(dt, 6, 2), $
-                    strmid(dt, 9, 2), $
-                    strmid(dt, 11, 2), $
-                    strmid(dt, 13, 2), $
-                    format='(%"%s-%s-%sT%s:%s:%s")')
+  dt = string(strmid(dt, 0, 4), $
+              strmid(dt, 4, 2), $
+              strmid(dt, 6, 2), $
+              strmid(dt, 9, 2), $
+              strmid(dt, 11, 2), $
+              strmid(dt, 13, 2), $
+              format='(%"%s-%s-%sT%s:%s:%s")')
+  run.time = dt
   start_state = run->epoch('start_state')
   mg_log, 'start_state: [%d, %d]', start_state, name=log_name, /debug
+
+  time_offset = run->epoch('time_offset')
+  if (time_offset ne '') then begin
+    run.time = kcor_add_time(dt, time_offset)
+  endif
 
   use_double = run->config('realtime/use_double')
   kcor_read_rawdata, ok_filename, image=img, header=header, $
@@ -89,6 +95,11 @@ pro kcor_l1, ok_filename, $
 
   ; read date of observation
   date_obs = sxpar(header, 'DATE-OBS')   ; yyyy-mm-ddThh:mm:ss
+  date_end = sxpar(header, 'DATE-END')   ; yyyy-mm-ddThh:mm:ss
+  if (time_offset ne '') then begin
+    date_obs = kcor_add_time(date_obs, time_offset)
+    date_end = kcor_add_time(date_end, time_offset)
+  endif
   date_struct = kcor_parse_dateobs(date_obs, hst_date=hst_date_struct)
   run.time = date_obs
 
@@ -941,8 +952,28 @@ pro kcor_l1, ok_filename, $
   endif
 
   ; observation information
-  fxaddpar, l1_header, 'DATE-OBS', struct.date_d$obs, ' UTC observation start'
-  fxaddpar, l1_header, 'DATE-END', struct.date_d$end, ' UTC observation end'
+  if (time_offset eq '') then begin
+    date_obs_comment = ' UTC observation start'
+    date_end_comment = ' UTC observation end'
+  endif else begin
+    date_obs_comment = string(long(time_offset), $
+      format=' UTC observation start includes +%d minute timestamp correction')
+    date_end_comment = string(long(time_offset), $
+      format=' UTC observation end includes +%d minute timestamp correction'
+    obsday_date = string(strmid(run.date, 4, 2), $
+                         strmid(run.date, 6, 2), $
+                         strmid(run.date, 2, 2), $
+                         format='%s/%s/%s')
+    below_comment = string(long(time_offset), obsday_date, $
+      format=' timestamp correction of +%d +/- 1 minute fixes computer problem on %s'
+  endelse
+
+  fxaddpar, l1_header, 'DATE-OBS', date_obs, date_obs_comment
+  fxaddpar, l1_header, 'DATE-END', date_end, date_end_comment
+
+  if (time_offset ne '') then begin
+    fxaddpar, l1_header, 'COMMENT', below_comment
+  endif
 
   fxaddpar, l1_header, 'MJD-OBS', $
             kcor_dateobs2julday(struct.date_d$obs) - 2400000.5D, $

@@ -28,8 +28,10 @@ function kcor_add_time, dt_or_filename, time_increment
     dt = mg_datetime(dt_or_filename, format=dateobs_fmt)
   endelse
 
-  time_tokens = long(strsplit(time_increment, ':', /extract))
-  dt_increment = mg_timedelta(minutes=time_tokens[0], seconds=time_tokens[1])
+  time_tokens = long(strsplit(time_increment, ':', count=n_tokens, /extract))
+  minutes = time_tokens[0]
+  seconds = n_tokens gt 1 ? time_tokens[1] : 0L
+  dt_increment = mg_timedelta(minutes=minutes, seconds=seconds)
 
   new_dt = dt + dt_increment
 
@@ -48,7 +50,7 @@ end
 
 ; main-level example
 
-increment = '6:00'
+increment = '6'
 
 dts = ['20171006_022015_kcor.fts.gz', $
        '20171005_235515_kcor.fts.gz', $
