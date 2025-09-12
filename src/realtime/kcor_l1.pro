@@ -77,9 +77,6 @@ pro kcor_l1, ok_filename, $
   mg_log, 'start_state: [%d, %d]', start_state, name=log_name, /debug
 
   time_offset = run->epoch('time_offset')
-  if (time_offset ne '') then begin
-    run.time = kcor_add_time(dt, time_offset)
-  endif
 
   use_double = run->config('realtime/use_double')
   kcor_read_rawdata, ok_filename, image=img, header=header, $
@@ -96,7 +93,7 @@ pro kcor_l1, ok_filename, $
   ; read date of observation
   date_obs = sxpar(header, 'DATE-OBS')   ; yyyy-mm-ddThh:mm:ss
   date_end = sxpar(header, 'DATE-END')   ; yyyy-mm-ddThh:mm:ss
-  if (time_offset ne '') then begin
+  if (time_offset ne 0L) then begin
     date_obs = kcor_add_time(date_obs, time_offset)
     date_end = kcor_add_time(date_end, time_offset)
   endif
@@ -720,7 +717,13 @@ pro kcor_l1, ok_filename, $
       rotated_inflection_points += 511.5
       inflection_points += 511.5
 
-      kcor_create_gif, ok_filename, nomask_intensity, date_obs, $
+      if (time_offset eq 0L) then begin
+        adjusted_filename = ok_filename
+      endif else begin
+        adjusted_basename = kcor_add_time(file_basename(ok_filename), time_offset)
+        adjusted_filename = filepath(adjusted_basename, root=file_dirname(ok_filename))
+      endelse
+      kcor_create_gif, adjusted_filename, nomask_intensity, date_obs, $
                        level=1, $
                        occulter_radius=([sun_xyr0[2], sun_xyr1[2]])[c], $
                        inflection_points=rotated_inflection_points, $
@@ -728,7 +731,7 @@ pro kcor_l1, ok_filename, $
                        /nomask, /intensity, $
                        run=run, log_name=log_name
 
-      kcor_create_gif, ok_filename, u_l1[*, *, c], date_obs, $
+      kcor_create_gif, adjusted_filename, u_l1[*, *, c], date_obs, $
                        level=1, $
                        occulter_radius=([sun_xyr0[2], sun_xyr1[2]])[c], $
                        inflection_points=rotated_inflection_points, $
@@ -833,7 +836,13 @@ pro kcor_l1, ok_filename, $
   ; output array for FITS data
   data = [[[corona_plus_sky]], [[sky_polarization]], [[intensity]]]
 
-  kcor_create_gif, ok_filename, corona_plus_sky, date_obs, $
+  if (time_offset eq 0L) then begin
+    adjusted_filename = ok_filename
+  endif else begin
+    adjusted_basename = kcor_add_time(file_basename(ok_filename), time_offset)
+    adjusted_filename = filepath(adjusted_basename, root=file_dirname(ok_filename))
+  endelse
+  kcor_create_gif, adjusted_filename, corona_plus_sky, date_obs, $
                    level=1, $
                    scaled_image=scaled_image, $
                    run=run, log_name=log_name
@@ -952,26 +961,26 @@ pro kcor_l1, ok_filename, $
   endif
 
   ; observation information
-  if (time_offset eq '') then begin
+  if (time_offset eq 0L) then begin
     date_obs_comment = ' UTC observation start'
     date_end_comment = ' UTC observation end'
   endif else begin
-    date_obs_comment = string(long(time_offset), $
+    date_obs_comment = string(time_offset, $
       format=' UTC observation start includes +%d minute timestamp correction')
-    date_end_comment = string(long(time_offset), $
-      format=' UTC observation end includes +%d minute timestamp correction'
+    date_end_comment = string(time_offset, $
+      format=' UTC observation end includes +%d minute timestamp correction')
     obsday_date = string(strmid(run.date, 4, 2), $
                          strmid(run.date, 6, 2), $
                          strmid(run.date, 2, 2), $
                          format='%s/%s/%s')
-    below_comment = string(long(time_offset), obsday_date, $
-      format=' timestamp correction of +%d +/- 1 minute fixes computer problem on %s'
+    below_comment = string(time_offset, obsday_date, $
+      format=' timestamp correction of +%d +/- 1 minute fixes computer problem on %s')
   endelse
 
   fxaddpar, l1_header, 'DATE-OBS', date_obs, date_obs_comment
   fxaddpar, l1_header, 'DATE-END', date_end, date_end_comment
 
-  if (time_offset ne '') then begin
+  if (time_offset ne 0L) then begin
     fxaddpar, l1_header, 'COMMENT', below_comment
   endif
 
@@ -1489,7 +1498,12 @@ pro kcor_l1, ok_filename, $
   sxdelpar, l1_header, 'DUMMY'
 
   ; write FITS image to disk
-  l1_filename = string(strmid(file_basename(ok_filename), 0, 20), $
+  if (time_offset eq 0L) then begin
+    adjusted_basename = file_basename(ok_filename)
+  endif else begin
+    adjusted_basename = kcor_add_time(file_basename(ok_filename), time_offset)
+  endelse
+  l1_filename = string(strmid(adjusted_basename, 0, 20), $
                        format='(%"%s_l1.fts")')
   writefits, filepath(l1_filename, root=l1_dir), float(data), l1_header
 

@@ -65,6 +65,12 @@ pro kcor_plotraw, date, list=list, run=run, $
   endelse
 
   raw_nrgf_files = strmid(file_basename(list), 0, 20) + '.fts.gz'
+  time_offset = run->epoch('time_offset')
+  if (time_offset ne 0L) then begin
+    for f = 0L, n_nrgf_files - 1L do begin
+      raw_nrgf_files[f] = kcor_add_time(raw_nrgf_files[f], - time_offset)
+    endfor
+  endif
 
   ; create output arrays
   line_means    = fltarr(2, n_nrgf_files)

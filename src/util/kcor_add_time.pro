@@ -11,8 +11,8 @@
 ;   dt_or_filename : in, required, type=string
 ;     either a KCor raw basename (such as "20171006_022015_kcor.fts.gz") or a
 ;     DATE-OBS type date/time (such as "2017-10-06T02:20:15")
-;   time_increment : in, required, type=string
-;     time to add to the `dt_or_filename` parameter in the format 'MM:SS'
+;   time_increment : in, required, type=long
+;     time to add to the `dt_or_filename` parameter in minutes
 ;-
 function kcor_add_time, dt_or_filename, time_increment
   compile_opt strictarr
@@ -28,10 +28,7 @@ function kcor_add_time, dt_or_filename, time_increment
     dt = mg_datetime(dt_or_filename, format=dateobs_fmt)
   endelse
 
-  time_tokens = long(strsplit(time_increment, ':', count=n_tokens, /extract))
-  minutes = time_tokens[0]
-  seconds = n_tokens gt 1 ? time_tokens[1] : 0L
-  dt_increment = mg_timedelta(minutes=minutes, seconds=seconds)
+  dt_increment = mg_timedelta(minutes=time_increment)
 
   new_dt = dt + dt_increment
 
@@ -50,11 +47,20 @@ end
 
 ; main-level example
 
-increment = '6'
-
+increment = 6
 dts = ['20171006_022015_kcor.fts.gz', $
        '20171005_235515_kcor.fts.gz', $
        '2017-10-06T02:20:15', $
+       '2017-12-31T23:56:15']
+for d = 0L, n_elements(dts) - 1L do begin
+  new_basename = kcor_add_time(dts[d], increment)
+  print, dts[d], new_basename, format='%s -> %s'
+endfor
+
+increment = -6
+dts = ['20171006_000515_kcor.fts.gz', $
+       '20171005_235515_kcor.fts.gz', $
+       '2017-10-06T00:05:15', $
        '2017-12-31T23:56:15']
 for d = 0L, n_elements(dts) - 1L do begin
   new_basename = kcor_add_time(dts[d], increment)
