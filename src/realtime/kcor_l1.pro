@@ -966,23 +966,17 @@ pro kcor_l1, ok_filename, $
     date_end_comment = ' UTC observation end'
   endif else begin
     date_obs_comment = string(time_offset, $
-      format=' UTC observation start includes +%d minute timestamp correction')
+      format=' added %d minutes to UTC observation start time')
     date_end_comment = string(time_offset, $
-      format=' UTC observation end includes +%d minute timestamp correction')
+      format=' added %d minutes to UTC observation end time')
     obsday_date = string(strmid(run.date, 4, 2), $
                          strmid(run.date, 6, 2), $
                          strmid(run.date, 2, 2), $
                          format='%s/%s/%s')
-    below_comment = string(time_offset, obsday_date, $
-      format=' timestamp correction of +%d +/- 1 minute fixes computer problem on %s')
   endelse
 
   fxaddpar, l1_header, 'DATE-OBS', date_obs, date_obs_comment
   fxaddpar, l1_header, 'DATE-END', date_end, date_end_comment
-
-  if (time_offset ne 0L) then begin
-    fxaddpar, l1_header, 'COMMENT', below_comment
-  endif
 
   fxaddpar, l1_header, 'MJD-OBS', $
             kcor_dateobs2julday(struct.date_d$obs) - 2400000.5D, $
@@ -1494,6 +1488,15 @@ pro kcor_l1, ok_filename, $
              'to tangential polarization.']
   history = mg_strwrap(strjoin(history, ' '), width=72)
   for h = 0L, n_elements(history) - 1L do sxaddhist, history[h], l1_header
+
+  if (time_offset ne 0L) then begin
+    fxaddpar, l1_header, 'COMMENT', $
+      string(time_offset, format='Added %d minutes to fix computer clock problem.'), $
+      after='DATE-END'
+    fxaddpar, l1_header, 'COMMENT', $
+      string(file_basename(ok_filename), format='Produced from level 0 file %s.'), $
+      after='DATE-END'
+  endif
 
   sxdelpar, l1_header, 'DUMMY'
 

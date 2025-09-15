@@ -155,10 +155,12 @@ pro kcor_l2, l1_filename, $
 
   fxaddpar, l2_header, 'SKYTRANS', skytrans, $
             ' ' + run->epoch('skytrans_comment'), $
-            format='(F5.3)', /null
+            format='(F5.3)', /null, $
+            after='OBSSWID'
   fxaddpar, l2_header, 'BIASCORR', run->epoch('skypol_bias'), $
             ' bias added after sky polarization correction', $
-            format='(G0.3)'
+            format='(G0.3)', $
+            after='SKYTRANS'
   skypol_method = strlowcase(run->config('realtime/skypol_method'))
   skypol_method_comment = ' sky polarization removal method'
   case skypol_method of
@@ -167,11 +169,13 @@ pro kcor_l2, l1_filename, $
                                                   format='(%" (%d params)")')
     else: skypol_method = 'none'
   endcase
-  fxaddpar, l2_header, 'SKYPOLRM', skypol_method, skypol_method_comment
+  fxaddpar, l2_header, 'SKYPOLRM', skypol_method, skypol_method_comment, $
+            after='BIASCORR'
 
   if (run->config('realtime/smooth_sky')) then begin
     fxaddpar, l2_header, 'SKYSM', run->config('realtime/smooth_sky') ? 'T' : 'F', $
-              ' was sky smoothed before subtracting from corona'
+              ' was sky smoothed before subtracting from corona', $
+              after='SKYPOLRM'
   endif
 
   fxaddpar, l2_header, 'DATAMIN', min(corona, /nan), ' minimum value of data', $
