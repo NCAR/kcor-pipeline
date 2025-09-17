@@ -65,14 +65,18 @@ pro kcor_nrgf_diff_movie, run=run
     goto, done
   endif
 
-  diff_keep               = strarr(n_diff_gifs)
-  nrgf_keep               = strarr(n_nrgf_average_gifs)
-  frame_filenames         = strarr(n_nrgf_average_gifs)
-  gif_date_obs            = strarr(n_nrgf_average_gifs)
-  gif_date_end            = strarr(n_nrgf_average_gifs)
-  gif_carrington_rotation = lonarr(n_nrgf_average_gifs)
-  gif_numsum              = lonarr(n_nrgf_average_gifs)
-  gif_exptime             = fltarr(n_nrgf_average_gifs)
+  mg_log, '%d difference GIFs', n_diff_gifs, name=run.logger_name, /debug
+  mg_log, '%d NRGF avg GIFs', n_nrgf_average_gifs, name=run.logger_name, /debug
+
+  n = n_diff_gifs > n_nrgf_average_gifs
+  diff_keep               = strarr(n)
+  nrgf_keep               = strarr(n)
+  frame_filenames         = strarr(n)
+  gif_date_obs            = strarr(n)
+  gif_date_end            = strarr(n)
+  gif_carrington_rotation = lonarr(n)
+  gif_numsum              = lonarr(n)
+  gif_exptime             = fltarr(n)
 
   ; use to store the julian date of each difference image
   diff_jd = dblarr(n_diff_gifs)
@@ -230,6 +234,9 @@ pro kcor_nrgf_diff_movie, run=run
       ; there should never be 12 images < 100 sec from NRGF
       ok_time_indices = lonarr(12)
 
+      mg_log, 'n_nrgf_diff_images: %d -> %d', $
+              n_nrgf_diff_images, n_nrgf_diff_images + 1L, $
+              name=run.logger_name, /debug
       n_nrgf_diff_images += 1L
     endif
   endfor
@@ -304,8 +311,8 @@ end
 
 ; main-level example program
 
-date = '20131101'
-config_basename = 'kcor.2.2.4-alpha.cfg'
+date = '20200525'
+config_basename = 'kcor.reprocessing.cfg'
 config_filename = filepath(config_basename, $
                            subdir=['..', '..', '..', 'kcor-config'], $
                            root=mg_src_root())
