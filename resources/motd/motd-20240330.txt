@@ -1,0 +1,53 @@
+Correcting K-Cor image timestamp error on March 30, 2024
+
+What happened:
+
+On March 30, 2024, MLSO acquired the first K-Cor observations since the road
+closure in Nov 2022 due to the volcanic eruption of Mauna Loa. On March 30, 2024
+the observers arrived by helicopter and used a generator flown to the site to
+provide power. No internet was available. Data were acquired but the computers
+were not correctly synchronized resulting in the K-Cor computer clock being slow
+by 6 minutes with an uncertainty of 1 minute.
+
+What was done to correct the problem:
+
+6 minutes needed to be added to the time of each image to correct the computer
+clock error, e.g., a file with a reported time of 21:33:15 UT was actually
+acquired at 21:39:15 UT.
+
+Four changes were made to correct the problem:
+
+1. K-Cor filenames contain the start time of the image acquisition. 6 minutes
+   was added to the filename time for all Level-1 and Level-2 K-Cor images on
+   March 30, 2024.
+
+2. K-Cor FITS headers contain a keyword "DATE-OBS". This keyword contains the
+   start time of a K-Cor image acquisition. 6 minutes was added to the value of
+   the DATE-OBS keyword in the FITS header. The comment for this keyword was
+   edited to document that 6 minutes was added to the timestamp.
+
+3. K-Cor FITS headers contain a keyword "DATE-END". K-Cor images are integrated
+   over 15 seconds to obtain sufficient signal-to-noise. This keyword contains
+   the end-time of the 15 second integration. 6 minutes was added to the value
+   of "DATE-END". The comment was edited to document that 6 minutes was added
+   to this timestamp.
+
+4. Additional comments were added to the FITS header immediately following the
+   "DATE-END" keyword. These comments record the filename of the level 0 image
+   that contains the original (incorrect) time and to document that 6 minutes
+   was added to the level 0 time to correct a computer clock error.
+
+The March 30, 2024 data have now been reprocessed with the corrected times. The
+new processing version number is: 2.2.5 [6e6988c]. Any data with this version
+or higher has the corrected times. The version number is stored in the K-Cor
+FITS headers in the keyword: "DPSWID". This version was released on Sept 12,
+2025. The reprocessing date is included in the DPSWID comment. Any Level-1 and
+Level-2 K-Cor data processed on or after Sept 12, 2025 contains the corrected
+times.
+
+Additional information:
+
+This problem was reported to MLSO by Hongqiang Song and is discussed in more
+detail in the Appendix of the paper by Song et al., 2025, "On the Nature of the
+Bright Front of Solar Coronal Mass Ejections",
+https://iopscience.iop.org/article/10.3847/1538-4357/adec88
