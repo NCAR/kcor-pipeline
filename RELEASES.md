@@ -1259,7 +1259,7 @@
 - fix incorrect RCAM y-center found in gains in netCDF cal file
 - calculate std dev / median gain metric in more consistent and correct manner
 
-#### 2.2.6
+#### 2.2.6 [Sep 19, 2025]
 
 - fix for when only a single NRGF+diff image
 - fix for when first NRGF+diff is after UT midnight
