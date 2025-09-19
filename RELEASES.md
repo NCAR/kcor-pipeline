@@ -1264,3 +1264,5 @@
 - fix for when only a single NRGF+diff image
 - fix for when first NRGF+diff is after UT midnight
 - add ability to adjust time by epoch
+
+#### 2.2.7
