@@ -116,7 +116,7 @@ pro mlso_sgs_insert, date, fits_list, $
     sgsdecv_str  = kcor_getsgs(hdu, 'SGSDECV')
     sgsdecs_str  = kcor_getsgs(hdu, 'SGSDECS')
     sgsdeczr_str = kcor_getsgs(hdu, 'SGSDECZR')
-    sgsscint_str = kcor_getsgs(hdu, 'SGSSCINT', valid_range=[0.0, 9999.99999])
+    sgsscint_str = kcor_getsgs(hdu, 'SGSSCINT', valid_range=[0.0, 9999.99])
     sgssums_str  = kcor_getsgs(hdu, 'SGSSUMS')
 
     sgsloop_str  = kcor_getsgs(hdu, 'SGSLOOP')
