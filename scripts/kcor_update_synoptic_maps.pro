@@ -20,6 +20,7 @@ pro kcor_update_synoptic_maps, date, config_filename=config_filename
                config_section=run->config('database/config_section')
 
   kcor_rolling_synoptic_map, database=db, run=run
+  kcor_rolling_synoptic_map, database=db, run=run, /enhanced
 
   obj_destroy, [db, run]
 end
