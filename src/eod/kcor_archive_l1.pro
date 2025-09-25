@@ -56,6 +56,16 @@ pro kcor_archive_l1, run=run
     glob = ''
   endelse
 
+  run.time = '000000'
+  motd_basename = run->epoch('motd_basename')
+  if (motd_basename ne '') then begin
+    motd_filename = filepath(motd_basename, subdir='motd', root=run.resources_dir)
+    mg_log, 'copying motd (%s) to level1/...', motd_basename, $
+            name=run.logger_name, /info
+    file_copy, motd_filename, filepath('README', root=l1_dir)
+    glob += ' README'
+  endif
+
   if (glob ne '') then begin
     tar_cmd = string(tarfile, glob, format='(%"tar cf %s %s")')
     mg_log, 'creating tarfile %s...', tarfile, name='kcor/eod', /info
@@ -154,4 +164,30 @@ pro kcor_archive_l1, run=run
   done:
   cd, cwd
   mg_log, 'done sending L1 data to Campaign Storage', name='kcor/eod', /info
+end
+
+
+; main-level example program
+
+date = '20240330'
+
+config_basename = 'kcor.latest.cfg'
+config_filename = filepath(config_basename, $
+                           subdir=['..', '..', '..', 'kcor-config'], $
+                           root=mg_src_root())
+run = kcor_run(date, config_filename=config_filename, mode='test')
+
+date_dir = filepath(run.date, root=run->config('processing/raw_basedir'))
+l1_dir   = filepath('level1', root=date_dir)
+
+run.time = '000000'
+motd_basename = run->epoch('motd_basename')
+if (motd_basename ne '') then begin
+  motd_filename = filepath(motd_basename, subdir='motd', root=run.resources_dir)
+  mg_log, 'copying motd (%s) to level1/...', motd_basename, $
+          name=run.logger_name, /info
+  file_copy, motd_filename, filepath('README', root=l1_dir)
+  glob += ' README'
+endif
+
 end

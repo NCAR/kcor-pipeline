@@ -57,6 +57,16 @@ pro kcor_archive_l2, run=run
     glob = ''
   endelse
 
+  run.time = '000000'
+  motd_basename = run->epoch('motd_basename')
+  if (motd_basename ne '') then begin
+    motd_filename = filepath(motd_basename, subdir='motd', root=run.resources_dir)
+    mg_log, 'copying motd (%s) to level2/...', motd_basename, $
+            name=run.logger_name, /info
+    file_copy, motd_filename, filepath('README', root=l2_dir)
+    glob += ' README'
+  endif
+
   if (glob ne '') then begin
     tar_cmd = string(tarfile, glob, format='(%"tar cf %s %s")')
     mg_log, 'creating tarfile %s...', tarfile, name='kcor/eod', /info
