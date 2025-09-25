@@ -89,7 +89,7 @@ pro kcor_archive_l1, run=run
 
     ; create tarlist
     tarlist_cmd = string(tarfile, tarlist, $
-                         format='(%"tar tfv %s > %s")')
+                         format='(%"tar tf %s > %s")')
     mg_log, 'creating tarlist %s...', tarlist, name='kcor/eod', /info
     spawn, tarlist_cmd, result, error_result, exit_status=status
     if (status ne 0L) then begin
