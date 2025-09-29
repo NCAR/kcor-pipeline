@@ -458,6 +458,16 @@ pro kcor_create_differences, date, l2_files, run=run
                 ' difference of two level 2 pB images', $
                 after='OBJECT'
 
+      ; if present, remove comment "COMMENT Produced from level 0 file L0_FILENAME."
+      ; below AVGTIME1
+      header_matches = where(strmatch(goodheader, 'AVGTIME1*'))
+      comment_index = header_matches[0] + 1
+      if (strmatch(goodheader[comment_index], $
+                   'COMMENT Produced from level 0 file*')) then begin
+        goodheader = [goodheader[0:comment_index - 1L], $
+                      goodheader[comment_index + 1L:*]]
+      endif
+
       fits_basename = string(name, timestring, status, format='(%"%s_minus_%s_%s.fts")')
       writefits, fits_basename, subimg, goodheader
       difference_files->add, fits_basename
