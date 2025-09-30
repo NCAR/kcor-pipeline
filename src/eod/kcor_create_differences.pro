@@ -340,9 +340,9 @@ pro kcor_create_differences, date, l2_files, run=run
     threshold_intensity = run->epoch('difference_threshold_intensity')
 
     fxaddpar, goodheader, 'AVGTIME0', kcor_combine_times(difference_times[1, *]), $
-              ' image times used in bkg avg'
+              ' image times used in bkg avg', after='MJD-END'
     fxaddpar, goodheader, 'AVGTIME1', kcor_combine_times(difference_times[0, *]), $
-              ' image times used in fg avg'
+              ' image times used in fg avg', after='AVGTIME0'
 
     if (newsub eq 1) then begin
       tscan, l2_file, subimg, pixrs, roll, xcen, ycen, $
@@ -460,7 +460,7 @@ pro kcor_create_differences, date, l2_files, run=run
 
       ; if present, remove comment "COMMENT Produced from level 0 file L0_FILENAME."
       ; below AVGTIME1
-      header_matches = where(strmatch(goodheader, 'AVGTIME1*'))
+      header_matches = where(strmatch(goodheader, 'DATE-END*'))
       comment_index = header_matches[0] + 1
       if (strmatch(goodheader[comment_index], $
                    'COMMENT Produced from level 0 file*')) then begin
