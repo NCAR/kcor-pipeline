@@ -1265,7 +1265,7 @@
 - fix for when first NRGF+diff is after UT midnight
 - add ability to adjust time by epoch
 
-#### 2.2.7
+#### 2.2.7 [Oct 1, 2025]
 
 - add ability to adjust clock time by epoch
 - add ability to add a message of the day README by epoch
