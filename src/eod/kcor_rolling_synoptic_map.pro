@@ -247,10 +247,10 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
               ' [arcsec] solar radius (old standard keyword)', $
               format='(f8.2)', after='RSUN_OBS'
     sxaddpar, primary_header, 'RSUN-STA', radsun_start, $
-              ' [ arcsec] Solar radius at rotation start', $
+              ' [arcsec] solar radius at rotation start', $
               format='(f8.2)', after='RSUN'
     sxaddpar, primary_header, 'RSUN-END', radsun_end, $
-              ' [arcsec]  Solar radius at rotation end', $
+              ' [arcsec] solar radius at rotation end', $
               format='(f8.2)', after='RSUN-STA'
 
     fits_filename = filepath(string(run.date, $
