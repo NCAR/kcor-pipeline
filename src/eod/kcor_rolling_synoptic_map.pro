@@ -170,9 +170,9 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
     mkhdr, primary_header, map, /extend
 
     sxaddpar, primary_header, 'NAXIS1', sxpar(primary_header, 'NAXIS1'), $
-              ' number of days'
+              ' number of days in synoptic map'
     sxaddpar, primary_header, 'NAXIS2', sxpar(primary_header, 'NAXIS2'), $
-              ' number of angles'
+              ' images scanned in azimuthal direction every 0.5 deg'
 
     sxdelpar, primary_header, 'DATE'
     sxaddpar, primary_header, 'DATE-OBS', start_date, $
@@ -219,8 +219,8 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
     ; TODO: fix these up
     ; ??? This is a function of how many pixels we average in the radial
     ; direction for each annulus
-    sxaddpar, primary_header, 'CDELT1', 1.0, $
-              ' [days/pixel]', $
+    sxaddpar, primary_header, 'CDELT1', 24.0, $
+              ' [hours/pixel]', $
               format='(F0.2)', after='DPSWID'
     ; this is a function of height, apparent size of the Sun on a given day and
     ; the K-Cor platescale
@@ -239,10 +239,19 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
     caldat, start_date_jd, start_month, start_day, start_year
     sun, start_year, start_month, start_day, 0.0, sd=radsun_start
 
+    plate_scale = kcor_platescale(run=run)
+    sun_pixels = radsun / plate_scale
+    width = 0.02
+    n_bins = 720L
+    pixels_per_bin = kcor_pixels_per_bin(heights[h], width, sun_pixels, n_bins)
+
+    sxaddpar, primary_header, 'PIX_BIN', pixels_per_bin, $
+              ' level 2 pixels per synoptic pixel', $
+              format='(f8.2)', after='CDELT2'
     sxaddpar, primary_header, 'RSUN_OBS', radsun, $
               string(dist_au * radsun, $
                      '(%" [arcsec] solar radius using ref radius %0.2f\"")'), $
-              format='(f8.2)', after='CDELT2'
+              format='(f8.2)', after='PIX_BIN'
     sxaddpar, primary_header, 'RSUN', radsun, $
               ' [arcsec] solar radius (old standard keyword)', $
               format='(f8.2)', after='RSUN_OBS'

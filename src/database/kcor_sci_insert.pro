@@ -85,7 +85,7 @@ pro kcor_sci_insert, date, files, $
     sun, year, month, day, fhour, sd=rsun, pa=pangle, la=bangle
 
     run.time = date_obs
-    sun_pixels = rsun / run->epoch('plate_scale')
+    sun_pixels = rsun / kcor_platescale(run=run)
 
     intensity = kcor_extract_radial_intensity(files[f], $
                                               run->epoch('plate_scale'), $
