@@ -44,7 +44,7 @@ sun_pixels = radsun / plate_scale
 
 n_bins = 720
 radii = [1.11, 1.15, 1.20, 1.35, 1.50, 1.75, 2.00, 2.25, 2.50]
-half_width = 0.02
+half_width = 0.01
 
 print, plate_scale, width, n_bins, $
        format='for plate_scale: %0.3f arcsec/pixel, width: %0.2f Rsun, n_bins: %d...'

@@ -15,8 +15,9 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
   n_days = 28   ; number of days to include in the plot
   logger_name = run.logger_name
 
-  heights =  [1.11, 1.15, 1.20, 1.35, 1.50, 1.75, 2.00, 2.25, 2.50]
-  height_names = ['r111', 'r115', 'r12', 'r135', 'r15', 'r175', 'r20', 'r225', 'r25']
+  heights = run->epoch('synoptic_heights')
+  height_names = run->epoch('synoptic_height_names')
+
   if (keyword_set(enhanced)) then height_names = 'enhanced_' + height_names
 
   ; query database for data
@@ -33,7 +34,6 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
   query = 'select kcor_sci.* from kcor_sci, mlso_numfiles where kcor_sci.obs_day=mlso_numfiles.day_id and mlso_numfiles.obs_day between ''%s'' and ''%s'''
   raw_data = db->query(query, start_date, end_date, $
                        count=n_rows, error=error, fields=fields)
-
   if (n_rows gt 0L) then begin
     mg_log, '%d dates between %s and %s', n_rows, start_date, end_date, $
             name=logger_name, /debug
@@ -169,10 +169,14 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
 
     mkhdr, primary_header, map, /extend
 
+    ; remove automated comments about FITS standard
+    sxdelpar, primary_header, 'COMMENT'
+
     sxaddpar, primary_header, 'NAXIS1', sxpar(primary_header, 'NAXIS1'), $
               ' number of days in synoptic map'
     sxaddpar, primary_header, 'NAXIS2', sxpar(primary_header, 'NAXIS2'), $
               ' images scanned in azimuthal direction every 0.5 deg'
+    sxaddpar, primary_header, 'EXTEND', 'F', ' no FITS extensions'
 
     sxdelpar, primary_header, 'DATE'
     sxaddpar, primary_header, 'DATE-OBS', start_date, $
@@ -180,8 +184,10 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
     sxaddpar, primary_header, 'DATE-END', end_date, $
               ' [UTC] end date of synoptic map', $
               format='(F0.2)', after='DATE-OBS'
+    annulus_width = run->epoch('synoptic_map_annulus_width')
     sxaddpar, primary_header, 'HEIGHT', heights[h], $
-              ' [Rsun] height of annulus +/- 0.02 Rsun', $
+              string(annulus_width / 2.0, $
+                     format=' [Rsun] height of annulus +/- %0.2f Rsun'), $
               format='(F0.2)', after='DATE-END'
 
     sxaddpar, primary_header, 'LOCATION', 'MLSO', $
@@ -207,14 +213,14 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
     date_dp = string(bin_date(current_time), $
                     format='(%"%04d-%02d-%02dT%02d:%02d:%02d")')
     sxaddpar, primary_header, 'DATE_DP', date_dp, $
-              ' L1 processing date (UTC)', $
+              ' synoptic map creation date (UTC)', $
               after='WAVEFWHM'
     version = kcor_find_code_version(revision=revision, date=code_date)
     sxaddpar, primary_header, 'DPSWID',  $
               string(version, revision, $
                      format='(%"%s [%s]")'), $
               string(code_date, $
-                     format='(%" L1 data processing software (%s)")'), $
+                     format='(%" synoptic map creation software (%s)")'), $
               after='DATE_DP'
     ; TODO: fix these up
     ; ??? This is a function of how many pixels we average in the radial
@@ -241,9 +247,11 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
 
     plate_scale = kcor_platescale(run=run)
     sun_pixels = radsun / plate_scale
-    width = 0.02
     n_bins = 720L
-    pixels_per_bin = kcor_pixels_per_bin(heights[h], width, sun_pixels, n_bins)
+    pixels_per_bin = kcor_pixels_per_bin(heights[h], $
+                                         annulus_width / 2.0, $
+                                         sun_pixels, $
+                                         n_bins)
 
     sxaddpar, primary_header, 'PIX_BIN', pixels_per_bin, $
               ' level 2 pixels per synoptic pixel', $
