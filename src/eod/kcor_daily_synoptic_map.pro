@@ -63,8 +63,9 @@ pro kcor_daily_synoptic_map, radius=radius, run=run
 
     run.time = date_obs
     sun_pixels = rsun / run->epoch('plate_scale')
+    annulus_width = run->epoch('synoptic_map_annulus_width')
 
-    r = kcor_annulus_gridmeans(im, _radius, sun_pixels, nbins=n_angles)
+    r = kcor_annulus_gridmeans(im, _radius, annulus_width / 2.0, sun_pixels, nbins=n_angles)
 
     ; place r in the right place in the map
     jd = julday(month, day, year, hour, minute, second) - 10.0 / 24.0
