@@ -7,7 +7,7 @@ pro kcor_annual_movie, year, pattern, run=run
   compile_opt strictarr
 
   mp4_filename = year + strmid(file_basename(pattern, '.gif'), 1) + '.mp4'
-  agif_filename = year + strmid(pattern, 1)
+  agif_filename = year + strmid(file_basename(pattern, '.gif'), 1) + '_movie.gif'
 
   start_date = year + '0101'
   end_date = strtrim(long(year) + 1L, 2) + '0101'
