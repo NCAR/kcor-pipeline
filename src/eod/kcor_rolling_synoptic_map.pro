@@ -67,6 +67,7 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
 
     map = fltarr(n_days, 720) + !values.f_nan
     means = fltarr(n_days) + !values.f_nan
+    date_names = strarr(n_days)
     for r = 0L, n_dates - 1L do begin
       decoded = *data[r]
       if (n_elements(decoded) gt 0L) then begin
@@ -85,6 +86,7 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
       date = dates[r]
       date_index = mlso_dateobs2jd(date) - start_date_jd - 10.0/24.0
       date_index = floor(date_index)
+      date_names[date_index] = date
 
       if (ptr_valid(data[r]) && n_elements(*data[r]) gt 0L) then begin
         map[date_index, *] = *data[r]
@@ -96,12 +98,13 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
     endfor
 
     ; plot data
-    set_plot, 'Z'
-    device, set_resolution=[(30 * n_days + 50) < 1200, 800]
     original_device = !d.name
 
+    set_plot, 'Z'
     device, get_decomposed=original_decomposed
-    tvlct, rgb, /get
+    tvlct, original_rgb, /get
+
+    device, set_resolution=[(30 * n_days + 50) < 1200, 800]
     device, decomposed=0
 
     range = mg_range(map)
@@ -120,6 +123,8 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
       foreground = 0
       background = 255
     endelse
+
+    tvlct, rgb, /get
 
     north_up_map = shift(map, 0, -180)
     east_limb = reverse(north_up_map[*, 0:359], 2)
@@ -193,9 +198,9 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
                                    100.0 * heights[h], $
                                    format='(%"%s.kcor.%dday.synoptic.%sr%03d.gif")'), $
                             root=p_dir)
-    write_gif, gif_filename, im, rgb[*, 0], rgb[*, 1], rgb[*, 2]
+    write_gif, gif_filename, im, reform(rgb[*, 0]), reform(rgb[*, 1]), reform(rgb[*, 2])
 
-    mkhdr, primary_header, map, /extend
+    mkhdr, primary_header, map, extend=0
 
     ; remove automated comments about FITS standard
     sxdelpar, primary_header, 'COMMENT'
@@ -204,7 +209,6 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
               ' number of days in synoptic map'
     sxaddpar, primary_header, 'NAXIS2', sxpar(primary_header, 'NAXIS2'), $
               ' images scanned in azimuthal direction every 0.5 deg'
-    sxaddpar, primary_header, 'EXTEND', 'F', ' no FITS extensions'
 
     sxdelpar, primary_header, 'DATE'
     sxaddpar, primary_header, 'DATE-OBS', start_date, $
@@ -227,12 +231,26 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
     sxaddpar, primary_header, 'INSTRUME', 'COSMO K-Coronagraph', $
               ' Nat.Ctr.Atmos.Res. High Altitude Observatory', $
               after='ORIGIN'
-    sxaddpar, primary_header, 'PRODUCT', 'pB', $
-              ' coronal polarization brightness', $
+    sxaddpar, primary_header, 'OBJECT', 'Solar K-Corona', $
+              ' white light polarization brightness', $
               after='INSTRUME'
+    sxaddpar, primary_header, 'PRODUCT', 'pB 28-day map', $
+              ' coronal polarization brightness map', $
+              after='OBJECT'
+
+    sxaddpar, primary_header, 'BUNIT', 'Mean Solar Brightness', $
+              ' [B/Bsun] mean solar disk brightness', $
+              after='PRODUCT'
+    sxaddpar, primary_header, 'BZERO', 0, $
+              ' offset for unsigned integer data', $
+              after='BUNIT'
+    sxaddpar, primary_header, 'BSCALE', 1.0, $
+              ' physical = data * BSCALE + BZERO', $
+              format='(F0.3)', after='BZERO'
+
     sxaddpar, primary_header, 'WAVELNTH', 735, $
               ' [nm] center wavelength of bandpass filter', $
-              after='PRODUCT'
+              after='BSCALE'
     sxaddpar, primary_header, 'WAVEFWHM', 30, $
               ' [nm] full width half max of bandpass filter', $
               after='WAVELNTH'
@@ -254,13 +272,20 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
     ; ??? This is a function of how many pixels we average in the radial
     ; direction for each annulus
     sxaddpar, primary_header, 'CDELT1', 24.0, $
-              ' [hours/pixel]', $
+              ' [hour/pixel] time cadence of images', $
               format='(F0.2)', after='DPSWID'
     ; this is a function of height, apparent size of the Sun on a given day and
     ; the K-Cor platescale
-    sxaddpar, primary_header, 'CDELT2', !values.f_nan, $
-              ' [arcsec/pixel]', $
-              format='(F0.2)', after='CDELT1', /null
+    sxaddpar, primary_header, 'CDELT2', 0.5, $
+              ' [arcsec/pixel] data averaged over 0.5 deg along annulus', $
+              format='(F0.2)', after='CDELT1'
+
+    sxaddpar, primary_header, 'CTYPE1', 'Temporal Cadence', $
+              ' [hour] maps created using 1 image per day', $
+              after='CDELT2'
+    sxaddpar, primary_header, 'CTYPE2', 'Position Angle (PA)', $
+              ' [deg] CCW direction around Sun with North = 0 deg', $
+              after='CTYPE1'
 
     plate_scale = kcor_platescale(run=run)
     sun_pixels = radsun / plate_scale
@@ -272,7 +297,7 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
 
     sxaddpar, primary_header, 'PIX_BIN', pixels_per_bin, $
               ' level 2 pixels per synoptic pixel', $
-              format='(f8.2)', after='CDELT2'
+              format='(f8.2)', after='CTYPE2'
     sxaddpar, primary_header, 'RSUN_OBS', radsun, $
               string(dist_au * radsun, $
                      '(%" [arcsec] solar radius using ref radius %0.2f\"")'), $
@@ -286,9 +311,47 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
     sxaddpar, primary_header, 'RSUN-END', radsun_end, $
               ' [arcsec] solar radius at rotation end', $
               format='(f8.2)', after='RSUN-STA'
-    sxaddpar, primary_header, 'LIMB', 'TBD', $
-              ' scan from pole-to-pole on this limb of the Sun', $
+    sxaddpar, primary_header, 'CRLT-STA', start_bangle, $
+              ' [deg] solar B angle at rotation start', $
               format='(f8.2)', after='RSUN-END'
+    sxaddpar, primary_header, 'CRLT-END', end_bangle, $
+              ' [deg] solar B angle at rotation end', $
+              format='(f8.2)', after='CRLT-STA'
+
+    limb = 'East'
+    limb_comment = limb eq 'East' $
+      ? ' 180 deg PA at bottom; 90 deg PA middle; 0 deg PA at top of map' $
+      : ' 180 deg PA at bottom; 270 deg PA middle; 0 deg PA at top of map'
+    sxaddpar, primary_header, 'LIMB', limb, limb_comment, after='CRLT-END'
+
+    after = 'LIMB'
+    for d = 0L, n_days - 1L do begin
+      time_name = string(d + 1, format='TIME%02d')
+      time_value = date_names[d] eq '' ? !null : date_names[d]
+      if (d eq 0) then begin
+        time_comment = ' TIME01 is latest'
+      endif else if (d eq n_days - 1L) then begin
+        time_comment = string(n_days, format='TIME%02 is the oldest')
+      endif else time_comment = ''
+
+      fxaddpar, primary_header, time_name, time_value, time_comment, $
+                after=after, /null
+      after = time_name
+    endfor
+
+    ; add COMMENTS
+    sxaddpar, primary_header, 'COMMENT', $
+              'South pole = 180 deg PA, West Eqtr = 270 deg PA', $
+              after='CTYPE2'
+    sxaddpar, primary_header, 'COMMENT', $
+              'North pole = 0 deg PA, East Eqtr = 90 deg PA', $
+              after='CTYPE2'
+    sxaddpar, primary_header, 'COMMENT', $
+              'No correction for solar B-angle', $
+              after='LIMB'
+    sxaddpar, primary_header, 'COMMENT', $
+              'Maps are not in Carrington coordinates', $
+              after='CRLT-END'
 
     fits_filename = filepath(string(run.date, $
                                     n_days, $
@@ -325,7 +388,7 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
 
   ; clean up
   done:
-  if (n_elements(rgb) gt 0L) then tvlct, rgb
+  if (n_elements(original_rgb) gt 0L) then tvlct, original_rgb
   if (n_elements(original_decomposed) gt 0L) then device, decomposed=original_decomposed
   if (n_elements(original_device) gt 0L) then set_plot, original_device
 
