@@ -31,6 +31,17 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
   start_date = string(start_date_jd, $
                       format='(C(CYI4.4, "-", CMoI2.2, "-", CDI2.2))')
 
+  ; ephemeris data
+  mid_jd = (end_date_jd + start_date_jd) / 2.0
+  caldat, mid_jd, mid_month, mid_day, mid_year
+  sun, mid_year, mid_month, mid_day, 0.0, sd=radsun, dist=dist_au, lat0=mid_bangle
+
+  caldat, end_date_jd, end_month, end_day, end_year
+  sun, end_year, end_month, end_day, 0.0, sd=radsun_end, lat0=end_bangle
+
+  caldat, start_date_jd, start_month, start_day, start_year
+  sun, start_year, start_month, start_day, 0.0, sd=radsun_start, lat0=start_bangle
+
   query = 'select kcor_sci.* from kcor_sci, mlso_numfiles where kcor_sci.obs_day=mlso_numfiles.day_id and mlso_numfiles.obs_day between ''%s'' and ''%s'''
   raw_data = db->query(query, start_date, end_date, $
                        count=n_rows, error=error, fields=fields)
@@ -125,34 +136,51 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
                    heights[h], start_date, end_date, $
                    format='(%"%s map for r%0.2f Rsun from %s to %s")')
     erase, background
+    top_margin = 0.95
+    right_margin = 0.97
+    bottom_margin = 0.05
+    left_margin = 0.05
     mg_image, reverse(east_limb, 1), reverse(jd_dates), $
               xrange=[end_date_jd, start_date_jd], $
-              xtyle=1, xtitle='Date (not offset for E limb)', $
+              xtyle=1, xtitle='UT time of observations', $
               min_value=minv, max_value=maxv, $
               /axes, yticklen=-0.005, xticklen=-0.01, $
               color=foreground, background=background, $
               title=string(title, format='(%"%s (East limb)")'), $
               xtickformat='label_date', $
-              position=[0.05, 0.55, 0.97, 0.95], /noerase, $
+              position=[left_margin, 0.55, right_margin, top_margin], /noerase, $
               yticks=4, ytickname=['S', 'SE', 'E', 'NE', 'N'], yminor=4, $
               smooth_kernel=smooth_kernel, $
               charsize=charsize
     mg_image, reverse(west_limb, 1), reverse(jd_dates), $
               xrange=[end_date_jd, start_date_jd], $
-              xstyle=1, xtitle='Date (not offset for W limb)', $
+              xstyle=1, xtitle='UT time of observations', $
               min_value=minv, max_value=maxv, $
               /axes, yticklen=-0.005, xticklen=-0.01, $
               color=foreground, background=background, $
               title=string(title, format='(%"%s (West limb)")'), $
               xtickformat='label_date', $
-              position=[0.05, 0.05, 0.97, 0.45], /noerase, $
+              position=[left_margin, bottom_margin, right_margin, 0.45], /noerase, $
               yticks=4, ytickname=['S', 'SW', 'W', 'NW', 'N'], yminor=4, $
               smooth_kernel=smooth_kernel, $
               charsize=charsize
 
-    xyouts, 0.97, 0.485, /normal, alignment=1.0, $
+    xyouts, right_margin, 0.485, /normal, alignment=1.0, $
             string(minv, maxv, format='(%"min/max: %0.3g, %0.3g")'), $
             charsize=charsize, color=128
+    bangle_charsize = 0.75 * charsize
+    xyouts, right_margin, 0.46, /normal, alignment=0.75, $
+            string(start_bangle, format='B-angle %0.2f') + string(176B), $
+            charsize=bangle_charsize, color=128
+    xyouts, left_margin, 0.46, /normal, alignment=0.25, $
+            string(end_bangle, format='B-angle %0.2f') + string(176B), $
+            charsize=bangle_charsize, color=128
+    xyouts, right_margin, 0.96, /normal, alignment=0.75, $
+            string(start_bangle, format='B-angle %0.2f') + string(176B), $
+            charsize=bangle_charsize, color=128
+    xyouts, left_margin, 0.96, /normal, alignment=0.25, $
+            string(end_bangle, format='B-angle %0.2f') + string(176B), $
+            charsize=bangle_charsize, color=128
 
     im = tvrd()
 
@@ -234,17 +262,6 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
               ' [arcsec/pixel]', $
               format='(F0.2)', after='CDELT1', /null
 
-    ; ephemeris data
-    mid_jd = (end_date_jd + start_date_jd) / 2.0
-    caldat, mid_jd, mid_month, mid_day, mid_year
-    sun, mid_year, mid_month, mid_day, 0.0, sd=radsun, dist=dist_au
-
-    caldat, end_date_jd, end_month, end_day, end_year
-    sun, end_year, end_month, end_day, 0.0, sd=radsun_end
-
-    caldat, start_date_jd, start_month, start_day, start_year
-    sun, start_year, start_month, start_day, 0.0, sd=radsun_start
-
     plate_scale = kcor_platescale(run=run)
     sun_pixels = radsun / plate_scale
     n_bins = 720L
@@ -269,6 +286,9 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
     sxaddpar, primary_header, 'RSUN-END', radsun_end, $
               ' [arcsec] solar radius at rotation end', $
               format='(f8.2)', after='RSUN-STA'
+    sxaddpar, primary_header, 'LIMB', 'TBD', $
+              ' scan from pole-to-pole on this limb of the Sun', $
+              format='(f8.2)', after='RSUN-END'
 
     fits_filename = filepath(string(run.date, $
                                     n_days, $
