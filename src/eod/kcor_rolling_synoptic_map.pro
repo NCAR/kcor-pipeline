@@ -26,8 +26,8 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
   end_date_jd = julday(end_date_tokens[1], $
                        end_date_tokens[2], $
                        end_date_tokens[0], $
-                       0, 0, 0)
-  start_date_jd = end_date_jd - n_days + 1
+                       0, 0, 0) + 1
+  start_date_jd = end_date_jd - n_days
   start_date = string(start_date_jd, $
                       format='(C(CYI4.4, "-", CMoI2.2, "-", CDI2.2))')
 
@@ -42,7 +42,7 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
   caldat, start_date_jd, start_month, start_day, start_year
   sun, start_year, start_month, start_day, 0.0, sd=radsun_start, lat0=start_bangle
 
-  query = 'select kcor_sci.* from kcor_sci, mlso_numfiles where kcor_sci.obs_day=mlso_numfiles.day_id and mlso_numfiles.obs_day between ''%s'' and ''%s'''
+  query = 'select kcor_sci.*, mlso_numfiles.obs_day as mlso_obs_day from kcor_sci, mlso_numfiles where kcor_sci.obs_day=mlso_numfiles.day_id and mlso_numfiles.obs_day between ''%s'' and ''%s'''
   raw_data = db->query(query, start_date, end_date, $
                        count=n_rows, error=error, fields=fields)
   if (n_rows gt 0L) then begin
@@ -62,7 +62,7 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
     height_index = where(tag_names(raw_data) eq strupcase(height_names[h]))
     data = raw_data.(height_index[0])
 
-    dates = raw_data.date_obs
+    dates = raw_data.mlso_obs_day
     n_dates = n_elements(dates)
 
     map = fltarr(n_days, 720) + !values.f_nan
@@ -331,7 +331,7 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
       if (d eq 0) then begin
         time_comment = ' TIME01 is latest'
       endif else if (d eq n_days - 1L) then begin
-        time_comment = string(n_days, format='TIME%02 is the oldest')
+        time_comment = string(n_days, format='TIME%02d is the oldest')
       endif else time_comment = ''
 
       fxaddpar, primary_header, time_name, time_value, time_comment, $
