@@ -97,6 +97,10 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
       endelse
     endfor
 
+    north_up_map = shift(map, 0, -180)
+    east_limb = reverse(north_up_map[*, 0:359], 2)
+    west_limb = north_up_map[*, 360:*]
+
     ; plot data
     original_device = !d.name
 
@@ -104,7 +108,7 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
     device, get_decomposed=original_decomposed
     tvlct, original_rgb, /get
 
-    device, set_resolution=[(30 * n_days + 50) < 1200, 800]
+    device, set_resolution=[(30 * n_days + 50) < 1200, 450]
     device, decomposed=0
 
     range = mg_range(map)
@@ -126,10 +130,6 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
 
     tvlct, rgb, /get
 
-    north_up_map = shift(map, 0, -180)
-    east_limb = reverse(north_up_map[*, 0:359], 2)
-    west_limb = north_up_map[*, 360:*]
-
     !null = label_date(date_format='%D %M %Z')
     jd_dates = dblarr(n_dates)
     for d = 0L, n_dates - 1L do jd_dates[d] = mlso_dateobs2jd(dates[d])
@@ -137,68 +137,64 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
     charsize = 1.0
     smooth_kernel = [11, 1]
 
-    title = string(keyword_set(enhanced) ? 'Enhanced synoptic' : 'Synoptic', $
-                   heights[h], start_date, end_date, $
-                   format='(%"%s map for r%0.2f Rsun from %s to %s")')
-    erase, background
-    top_margin = 0.95
-    right_margin = 0.97
-    bottom_margin = 0.05
-    left_margin = 0.05
-    mg_image, reverse(east_limb, 1), reverse(jd_dates), $
-              xrange=[end_date_jd, start_date_jd], $
-              xtyle=1, xtitle='UT time of observations', $
-              min_value=minv, max_value=maxv, $
-              /axes, yticklen=-0.005, xticklen=-0.01, $
-              color=foreground, background=background, $
-              title=string(title, format='(%"%s (East limb)")'), $
-              xtickformat='label_date', $
-              position=[left_margin, 0.55, right_margin, top_margin], /noerase, $
-              yticks=4, ytickname=['S', 'SE', 'E', 'NE', 'N'], yminor=4, $
-              smooth_kernel=smooth_kernel, $
-              charsize=charsize
-    mg_image, reverse(west_limb, 1), reverse(jd_dates), $
-              xrange=[end_date_jd, start_date_jd], $
-              xstyle=1, xtitle='UT time of observations', $
-              min_value=minv, max_value=maxv, $
-              /axes, yticklen=-0.005, xticklen=-0.01, $
-              color=foreground, background=background, $
-              title=string(title, format='(%"%s (West limb)")'), $
-              xtickformat='label_date', $
-              position=[left_margin, bottom_margin, right_margin, 0.45], /noerase, $
-              yticks=4, ytickname=['S', 'SW', 'W', 'NW', 'N'], yminor=4, $
-              smooth_kernel=smooth_kernel, $
-              charsize=charsize
+    limbs = ['East', 'West']
+    for i = 0L, n_elements(limbs) - 1L do begin
+      limb = limbs[i]
+      limb_data = limb eq 'East' ? east_limb : west_limb
+      ytick_names = limb eq 'East' $
+        ? ['S', 'SE', 'E', 'NE', 'N'] $
+        : ['S', 'SW', 'W', 'NW', 'N']
 
-    xyouts, right_margin, 0.485, /normal, alignment=1.0, $
-            string(minv, maxv, format='(%"min/max: %0.3g, %0.3g")'), $
-            charsize=charsize, color=128
-    bangle_charsize = 0.75 * charsize
-    xyouts, right_margin, 0.46, /normal, alignment=0.75, $
-            string(start_bangle, format='B-angle %0.2f') + string(176B), $
-            charsize=bangle_charsize, color=128
-    xyouts, left_margin, 0.46, /normal, alignment=0.25, $
-            string(end_bangle, format='B-angle %0.2f') + string(176B), $
-            charsize=bangle_charsize, color=128
-    xyouts, right_margin, 0.96, /normal, alignment=0.75, $
-            string(start_bangle, format='B-angle %0.2f') + string(176B), $
-            charsize=bangle_charsize, color=128
-    xyouts, left_margin, 0.96, /normal, alignment=0.25, $
-            string(end_bangle, format='B-angle %0.2f') + string(176B), $
-            charsize=bangle_charsize, color=128
+      title = string(keyword_set(enhanced) ? 'Enhanced synoptic' : 'Synoptic', $
+                    heights[h], start_date, end_date, $
+                    format='(%"%s map for r%0.2f Rsun from %s to %s")')
 
-    im = tvrd()
+      erase, background
+      top_margin = 0.90
+      right_margin = 0.97
+      bottom_margin = 0.15
+      left_margin = 0.05
 
-    p_dir = filepath('p', subdir=run.date, root=run->config('processing/raw_basedir'))
-    if (~file_test(p_dir, /directory)) then file_mkdir, p_dir
+      mg_image, reverse(limb_data, 1), reverse(jd_dates), $
+                xrange=[end_date_jd, start_date_jd], $
+                xtyle=1, xtitle='UT time of observations', $
+                min_value=minv, max_value=maxv, $
+                /axes, yticklen=-0.005, xticklen=-0.01, $
+                color=foreground, background=background, $
+                title=string(title, limb, format='(%"%s (%s limb)")'), $
+                xtickformat='label_date', $
+                position=[left_margin, bottom_margin, right_margin, top_margin], $
+                /noerase, $
+                yticks=4, ytickname=ytick_names, yminor=4, $
+                smooth_kernel=smooth_kernel, $
+                charsize=charsize
 
-    gif_filename = filepath(string(run.date, $
-                                   n_days, $
-                                   keyword_set(enhanced) ? 'enhanced.' : '', $
-                                   100.0 * heights[h], $
-                                   format='(%"%s.kcor.%dday.synoptic.%sr%03d.gif")'), $
-                            root=p_dir)
-    write_gif, gif_filename, im, reform(rgb[*, 0]), reform(rgb[*, 1]), reform(rgb[*, 2])
+      xyouts, right_margin, 0.050, /normal, alignment=1.0, $
+              string(minv, maxv, format='(%"min/max: %0.3g, %0.3g")'), $
+              charsize=charsize, color=128
+
+      bangle_charsize = 0.75 * charsize
+      xyouts, right_margin, top_margin + 0.01, /normal, alignment=0.75, $
+              string(start_bangle, format='B-angle %0.2f') + string(176B), $
+              charsize=bangle_charsize, color=128
+      xyouts, left_margin, top_margin + 0.01, /normal, alignment=0.25, $
+              string(end_bangle, format='B-angle %0.2f') + string(176B), $
+              charsize=bangle_charsize, color=128
+
+      im = tvrd()
+
+      p_dir = filepath('p', subdir=run.date, root=run->config('processing/raw_basedir'))
+      if (~file_test(p_dir, /directory)) then file_mkdir, p_dir
+
+      gif_filename = filepath(string(run.date, $
+                                     n_days, $
+                                     keyword_set(enhanced) ? 'enhanced.' : '', $
+                                     100.0 * heights[h], $
+                                     strlowcase(limb), $
+                                     format='(%"%s.kcor.%dday.synoptic.%sr%03d.%s.gif")'), $
+                              root=p_dir)
+      write_gif, gif_filename, im, reform(rgb[*, 0]), reform(rgb[*, 1]), reform(rgb[*, 2])
+    endfor
 
     mkhdr, primary_header, map, extend=0
 
