@@ -430,6 +430,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
       kcor_rolling_image_scale_plot, run.date, n_days=90, database=db, run=run
       kcor_daily_image_scale_plot, database=db, run=run
 
+      kcor_annual_movies, year, run=run
+
       if (daily_science_file_present) then begin
         kcor_sci_insert, date, daily_science_file, $
                          run=run, $
