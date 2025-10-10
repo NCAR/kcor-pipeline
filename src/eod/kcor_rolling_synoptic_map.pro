@@ -17,6 +17,8 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
 
   heights = run->epoch('synoptic_heights')
   height_names = run->epoch('synoptic_height_names')
+  min_values = run->epoch('synoptic_display_minimums') * 1.0e-6
+  max_values = run->epoch('synoptic_display_maximums') * 1.0e-6
 
   if (keyword_set(enhanced)) then height_names = 'enhanced_' + height_names
 
@@ -114,22 +116,11 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
     device, set_resolution=[(30 * n_days + 50) < 1200, 450]
     device, decomposed=0
 
-    range = mg_range(map)
-    if (range[0] lt 0.0) then begin
-      minv = 0.0
-      maxv = range[1]
-
-      loadct, 0, /silent
-      foreground = 0
-      background = 255
-    endif else begin
-      minv = 0.0
-      maxv = range[1]
-
-      loadct, 0, /silent
-      foreground = 0
-      background = 255
-    endelse
+    minv = min_values[h]
+    maxv = max_values[h]
+    loadct, 0, /silent
+    foreground = 0
+    background = 255
 
     tvlct, rgb, /get
 
