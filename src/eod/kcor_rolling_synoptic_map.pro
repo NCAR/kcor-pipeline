@@ -12,7 +12,9 @@
 pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
   compile_opt strictarr
 
-  n_days = 28   ; number of days to include in the plot
+  n_days = 28L   ; number of days to include in the plot
+  n_angles = 720L
+
   logger_name = run.logger_name
 
   heights = run->epoch('synoptic_heights')
@@ -68,15 +70,15 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
     times = raw_data.date_obs
     n_dates = n_elements(dates)
 
-    map = fltarr(n_days, 720) + !values.f_nan
+    map = fltarr(n_days, n_angles) + !values.f_nan
     means = fltarr(n_days) + !values.f_nan
     date_names = strarr(n_days)
     time_names = strarr(n_days)
     for r = 0L, n_dates - 1L do begin
       decoded = *data[r]
       if (n_elements(decoded) gt 0L) then begin
-        if (n_elements(decoded) eq 720L * 4L) then begin
-          *data[r] = float(decoded, 0, 720)   ; decode byte data to float
+        if (n_elements(decoded) eq n_angles * 4L) then begin
+          *data[r] = float(decoded, 0, n_angles)   ; decode byte data to float
         endif else begin
           mg_log, 'invalid size for %s at %s: %d bytes', $
                   height_names[h], $
@@ -196,11 +198,6 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
     ; remove automated comments about FITS standard
     sxdelpar, primary_header, 'COMMENT'
 
-    sxaddpar, primary_header, 'NAXIS1', sxpar(primary_header, 'NAXIS1'), $
-              ' number of days in synoptic map'
-    sxaddpar, primary_header, 'NAXIS2', sxpar(primary_header, 'NAXIS2'), $
-              ' images scanned in azimuthal direction every 0.5 deg'
-
     sxdelpar, primary_header, 'DATE'
     sxaddpar, primary_header, 'DATE-OBS', start_date, $
               ' [UTC] start date of synoptic map', after='EXTEND'
@@ -276,11 +273,10 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
 
     plate_scale = kcor_platescale(run=run)
     sun_pixels = radsun / plate_scale
-    n_bins = 720L
     pixels_per_bin = kcor_pixels_per_bin(heights[h], $
                                          annulus_width / 2.0, $
                                          sun_pixels, $
-                                         n_bins)
+                                         n_angles)
 
     sxaddpar, primary_header, 'PIX_BIN', pixels_per_bin, $
               ' level 2 pixels per synoptic pixel', $
@@ -343,8 +339,15 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
     for i = 0L, n_elements(limbs) - 1L do begin
       limb = limbs[i]
       limb_map = limb eq 'East' ? east_limb : west_limb
+      limb_map = reverse(limb_map, 2)
 
       sxaddpar, primary_header, 'LIMB', limb, limb_comment, after='CRLT-END'
+
+      sxaddpar, primary_header, 'NAXIS1', n_days, $
+                ' number of days in synoptic map'
+      sxaddpar, primary_header, 'NAXIS2', n_angles / 2L, $
+                ' images scanned in azimuthal direction every 0.5 deg'
+
       fits_filenames[i] = filepath(string(run.date, $
                                           n_days, $
                                           keyword_set(enhanced) ? 'enhanced.' : '', $
@@ -352,7 +355,8 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
                                           strlowcase(limb), $
                                           format='(%"%s.kcor.%dday.synoptic.%sr%03d.%s.fts")'), $
                                    root=p_dir)
-      writefits, fits_filenames[i], limb_map, primary_header
+      writefits, fits_filenames[i], reverse(limb_map, 2), primary_header
+
       gzip_cmd = string(run->config('externals/gzip'), fits_filenames[i], $
                         format='(%"%s -f %s")')
       spawn, gzip_cmd, result, error_result, exit_status=status
