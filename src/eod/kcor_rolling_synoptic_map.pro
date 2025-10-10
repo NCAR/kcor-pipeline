@@ -42,7 +42,7 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
   caldat, start_date_jd, start_month, start_day, start_year
   sun, start_year, start_month, start_day, 0.0, sd=radsun_start, lat0=start_bangle
 
-  query = 'select kcor_sci.*, mlso_numfiles.obs_day as mlso_obs_day from kcor_sci, mlso_numfiles where kcor_sci.obs_day=mlso_numfiles.day_id and mlso_numfiles.obs_day between ''%s'' and ''%s'''
+  query = 'select kcor_sci.*, mlso_numfiles.obs_day as mlso_obs_day from kcor_sci, mlso_numfiles where kcor_sci.obs_day=mlso_numfiles.day_id and mlso_numfiles.obs_day between ''%s'' and ''%s'' order by date_obs'
   raw_data = db->query(query, start_date, end_date, $
                        count=n_rows, error=error, fields=fields)
   if (n_rows gt 0L) then begin
@@ -55,19 +55,21 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
   endelse
 
   for h = 0L, n_elements(heights) - 1L do begin
-    mg_log, 'producing synoptic plot for %0.2f Rsun of last %d days', $
-            heights[h], n_days, $
+    mg_log, 'producing %d-day synoptic plot for %0.2f Rsun', $
+            n_days, heights[h], $
             name=logger_name, /info
 
     height_index = where(tag_names(raw_data) eq strupcase(height_names[h]))
     data = raw_data.(height_index[0])
 
     dates = raw_data.mlso_obs_day
+    times = raw_data.date_obs
     n_dates = n_elements(dates)
 
     map = fltarr(n_days, 720) + !values.f_nan
     means = fltarr(n_days) + !values.f_nan
     date_names = strarr(n_days)
+    time_names = strarr(n_days)
     for r = 0L, n_dates - 1L do begin
       decoded = *data[r]
       if (n_elements(decoded) gt 0L) then begin
@@ -84,9 +86,10 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
       endif
 
       date = dates[r]
-      date_index = mlso_dateobs2jd(date) - start_date_jd - 10.0/24.0
+      date_index = mlso_dateobs2jd(date) - start_date_jd; - 10.0/24.0
       date_index = floor(date_index)
       date_names[date_index] = date
+      time_names[date_index] = times[r]
 
       if (ptr_valid(data[r]) && n_elements(*data[r]) gt 0L) then begin
         map[date_index, *] = *data[r]
@@ -138,6 +141,7 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
     smooth_kernel = [11, 1]
 
     limbs = ['East', 'West']
+    gif_filenames = strarr(n_elements(limbs))
     for i = 0L, n_elements(limbs) - 1L do begin
       limb = limbs[i]
       limb_data = limb eq 'East' ? east_limb : west_limb
@@ -186,14 +190,14 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
       p_dir = filepath('p', subdir=run.date, root=run->config('processing/raw_basedir'))
       if (~file_test(p_dir, /directory)) then file_mkdir, p_dir
 
-      gif_filename = filepath(string(run.date, $
-                                     n_days, $
-                                     keyword_set(enhanced) ? 'enhanced.' : '', $
-                                     100.0 * heights[h], $
-                                     strlowcase(limb), $
-                                     format='(%"%s.kcor.%dday.synoptic.%sr%03d.%s.gif")'), $
-                              root=p_dir)
-      write_gif, gif_filename, im, reform(rgb[*, 0]), reform(rgb[*, 1]), reform(rgb[*, 2])
+      gif_filenames[i] = filepath(string(run.date, $
+                                         n_days, $
+                                         keyword_set(enhanced) ? 'enhanced.' : '', $
+                                         100.0 * heights[h], $
+                                         strlowcase(limb), $
+                                         format='(%"%s.kcor.%dday.synoptic.%sr%03d.%s.gif")'), $
+                                  root=p_dir)
+      write_gif, gif_filenames[i], im, reform(rgb[*, 0]), reform(rgb[*, 1]), reform(rgb[*, 2])
     endfor
 
     mkhdr, primary_header, map, extend=0
@@ -264,14 +268,10 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
               string(code_date, $
                      format='(%" synoptic map creation software (%s)")'), $
               after='DATE_DP'
-    ; TODO: fix these up
-    ; ??? This is a function of how many pixels we average in the radial
-    ; direction for each annulus
+
     sxaddpar, primary_header, 'CDELT1', 24.0, $
               ' [hour/pixel] time cadence of images', $
               format='(F0.2)', after='DPSWID'
-    ; this is a function of height, apparent size of the Sun on a given day and
-    ; the K-Cor platescale
     sxaddpar, primary_header, 'CDELT2', 0.5, $
               ' [arcsec/pixel] data averaged over 0.5 deg along annulus', $
               format='(F0.2)', after='CDELT1'
@@ -314,7 +314,6 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
               ' [deg] solar B angle at rotation end', $
               format='(f8.2)', after='CRLT-STA'
 
-    limb = 'East'
     limb_comment = limb eq 'East' $
       ? ' 180 deg PA at bottom; 90 deg PA middle; 0 deg PA at top of map' $
       : ' 180 deg PA at bottom; 270 deg PA middle; 0 deg PA at top of map'
@@ -323,7 +322,7 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
     after = 'LIMB'
     for d = 0L, n_days - 1L do begin
       time_name = string(d + 1, format='TIME%02d')
-      time_value = date_names[d] eq '' ? !null : date_names[d]
+      time_value = time_names[d] eq '' ? !null : time_names[d]
       if (d eq 0) then begin
         time_comment = ' TIME01 is latest'
       endif else if (d eq n_days - 1L) then begin
@@ -349,13 +348,25 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
               'Maps are not in Carrington coordinates', $
               after='CRLT-END'
 
-    fits_filename = filepath(string(run.date, $
-                                    n_days, $
-                                    keyword_set(enhanced) ? 'enhanced.' : '', $
-                                    100.0 * heights[h], $
-                                    format='(%"%s.kcor.%dday.synoptic.%sr%03d.fts")'), $
-                             root=p_dir)
-    writefits, fits_filename, map, primary_header
+    fits_filenames = strarr(n_elements(limbs))
+    for i = 0L, n_elements(limbs) - 1L do begin
+      limb = limbs[i]
+      limb_map = limb eq 'East' ? east_limb : west_limb
+
+      sxaddpar, primary_header, 'LIMB', limb, limb_comment, after='CRLT-END'
+      fits_filenames[i] = filepath(string(run.date, $
+                                          n_days, $
+                                          keyword_set(enhanced) ? 'enhanced.' : '', $
+                                          100.0 * heights[h], $
+                                          strlowcase(limb), $
+                                          format='(%"%s.kcor.%dday.synoptic.%sr%03d.%s.fts")'), $
+                                   root=p_dir)
+      writefits, fits_filenames[i], limb_map, primary_header
+      gzip_cmd = string(run->config('externals/gzip'), fits_filenames[i], $
+                        format='(%"%s -f %s")')
+      spawn, gzip_cmd, result, error_result, exit_status=status
+      fits_filenames[i] += '.gz'
+    endfor
 
     synoptic_maps_basedir = run->config('results/synoptic_maps_basedir')
     if (n_elements(synoptic_maps_basedir) gt 0L) then begin
@@ -364,10 +375,12 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
                                    subdir=[date_parts[0], date_parts[1]], $
                                    root=synoptic_maps_basedir)
       if (~file_test(synoptic_maps_dir, /directory)) then file_mkdir, synoptic_maps_dir
-      mg_log, 'distributing %d day rolling synoptic map for %0.2f Rsun to synmaps dir...', $
+      mg_log, 'publishing %d-day synoptic map for %0.2f Rsun', $
               n_days, heights[h], name=logger_name, /info
-      file_copy, fits_filename, synoptic_maps_dir, /overwrite
-      file_copy, gif_filename, synoptic_maps_dir, /overwrite
+      for i = 0L, n_elements(limbs) - 1L do begin
+        file_copy, fits_filenames[i], synoptic_maps_dir, /overwrite
+        file_copy, gif_filenames[i], synoptic_maps_dir, /overwrite
+      endfor
     endif
 
     engineering_basedir = run->config('results/engineering_basedir')
@@ -375,10 +388,12 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
       date_parts = kcor_decompose_date(run.date)
       eng_dir = filepath('', subdir=kcor_decompose_date(run.date), root=engineering_basedir)
       if (~file_test(eng_dir, /directory)) then file_mkdir, eng_dir
-      mg_log, 'distributing %d day rolling synoptic map for %0.2f Rsun to engineering...', $
+      mg_log, 'copying %d-day synoptic map for %0.2f Rsun to eng_dir', $
               n_days, heights[h], name=logger_name, /info
-      file_copy, fits_filename, eng_dir, /overwrite
-      file_copy, gif_filename, eng_dir, /overwrite
+      for i = 0L, n_elements(limbs) - 1L do begin
+        file_copy, fits_filenames[i], eng_dir, /overwrite
+        file_copy, gif_filenames[i], eng_dir, /overwrite
+      endfor
     endif
   endfor
 
