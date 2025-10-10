@@ -15,7 +15,8 @@
 ;   run : in, required, type=object
 ;     `kcor_run` object
 ;-
-pro kcor_rolling_image_scale_plot, end_date, n_days=n_days, database=db, run=run
+pro kcor_rolling_image_scale_plot, end_date, n_days=n_days, database=db, run=run, $
+                                   output_basename=output_basename
   compile_opt strictarr
 
   date_format = '%04d-%02d-%02d'
@@ -25,7 +26,7 @@ pro kcor_rolling_image_scale_plot, end_date, n_days=n_days, database=db, run=run
   end_date_jd = julday(end_date_tokens[1], $
                        end_date_tokens[2], $
                        end_date_tokens[0], $
-                       0, 0, 0)
+                       0, 0, 0) + 1.0D
 
   _n_days = n_elements(n_days) eq 0L ? 90L : n_days
 
@@ -53,13 +54,18 @@ pro kcor_rolling_image_scale_plot, end_date, n_days=n_days, database=db, run=run
   plate_scale = 0.0 * image_scale
   plate_scale_tolerance = 0.0 * image_scale
 
-  ;for f = 0L, n_files - 1L do begin
-    plate_scale[*] = run->epoch('plate_scale')
-    plate_scale_tolerance[*] = run->epoch('plate_scale_tolerance')
-  ;endfor
+  plate_scale[*] = run->epoch('plate_scale')
+  plate_scale_tolerance[*] = run->epoch('plate_scale_tolerance')
 
   jds = kcor_dateobs2julday(data.date_obs)
-  !null = label_date(date_format='%Y-%N-%D')
+  if (_n_days gt 130) then begin
+    xtick_format = '%M'
+    xminor = 1
+  endif else begin
+    xtick_format = '%Y-%N-%D'
+    xminor = 2
+  endelse
+  !null = label_date(date_format=xtick_format)
 
   image_scale_range = [5.5, 5.8]
   image_scale_difference_range = 0.05 * [-1.0, 1.0]
@@ -103,35 +109,29 @@ pro kcor_rolling_image_scale_plot, end_date, n_days=n_days, database=db, run=run
 
   charsize = 1.85
 
-  xrange = [floor(jds[0]), ceil(jds[-1])] - 0.5
-  n_days_with_data = xrange[1] - xrange[0]
+  xrange = [start_date_jd, end_date_jd]
 
   range_jds = jds
   range_jds[0] = xrange[0]
   range_jds[-1] = xrange[-1]
 
-  if (n_days_with_data lt 7L) then begin
-    xtickv = floor(jds[0]) - 0.5 + findgen(n_days_with_data + 1L)
-    xticks = n_days_with_data
-    xminor = 1
-  endif else begin
-    default_n_periods = 5L
-    period_length = floor(n_days_with_data / float(default_n_periods))
-    n_periods = n_days_with_data / period_length + 1L
+  xtickv = mg_tick_locator(xrange, /months)
+  xticks = n_elements(xtickv) - 1L
 
-    xtickv = xrange[0] + findgen(n_periods) * period_length
-    xticks = n_periods - 1L
-
-    ; print, xrange[0], format='(C())'
-    ; print, xrange[1], format='(C())'
-    ; print, n_days_with_data, period_length, n_periods, $
-    ;        format='n_days_with_data: %d, period_length: %d, n_periods: %d'
-    ; for i = 0L, n_elements(xtickv) - 1L do begin
-    ;   print, i, xtickv[i], format='(I, ". ", C())'
-    ; endfor
-
-    xminor = period_length
-  endelse
+  ; if (n_days_with_data lt 7L) then begin
+  ;   xtickv = floor(jds[0]) - 0.5 + findgen(n_days_with_data + 1L)
+  ;   xticks = n_days_with_data
+  ;   xminor = 1
+  ; endif else begin
+  ;   default_n_periods = 5L
+  ;   period_length = floor(n_days_with_data / float(default_n_periods))
+  ;   n_periods = n_days_with_data / period_length + 1L
+; 
+  ;   xtickv = xrange[0] + findgen(n_periods) * period_length
+  ;   xticks = n_periods - 1L
+; 
+  ;   xminor = period_length
+  ; endelse
 
   ; plot 1 -- normal plot of image scale over the mission
 
@@ -223,8 +223,10 @@ pro kcor_rolling_image_scale_plot, end_date, n_days=n_days, database=db, run=run
   plots, xrange, fltarr(2), color=tolerance_color
 
   ; save plots image file
-  output_basename = string(run.date, _n_days, $
-                           format='(%"%s.kcor.rolling.%dday.image_scale.gif")')
+  if (n_elements(output_basename) eq 0L) then begin
+    output_basename = string(run.date, _n_days, $
+                            format='(%"%s.kcor.rolling.%dday.image_scale.gif")')
+  endif
   output_filename = filepath(output_basename, $
                              subdir=[run.date, 'p'], $
                              root=run->config('processing/raw_basedir'))
@@ -243,8 +245,8 @@ end
 
 ; main-level example program
 
-date = '20131231'
-config_basename = 'kcor.reprocess.cfg'
+date = '20221231'
+config_basename = 'kcor.reprocessing.cfg'
 config_filename = filepath(config_basename, $
                            subdir=['..', '..', '..', 'kcor-config'], $
                            root=mg_src_root())
@@ -255,7 +257,7 @@ db = kcordbmysql()
 db->connect, config_filename=run->config('database/config_filename'), $
              config_section=run->config('database/config_section')
 
-kcor_rolling_image_scale_plot, date, n_days=5, database=db, run=run
+kcor_rolling_image_scale_plot, date, n_days=90, database=db, run=run
 
 obj_destroy, [db, run]
 
