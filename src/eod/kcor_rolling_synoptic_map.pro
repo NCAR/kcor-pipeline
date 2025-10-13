@@ -313,7 +313,8 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
     after = 'LIMB'
     for d = 0L, n_days - 1L do begin
       time_name = string(d + 1, format='TIME%02d')
-      time_value = time_names[d] eq '' ? !null : time_names[d]
+      time_index = n_days - 1 - d
+      time_value = time_names[time_index] eq '' ? !null : time_names[time_index]
       if (d eq 0) then begin
         time_comment = ' TIME01 is latest'
       endif else if (d eq n_days - 1L) then begin
