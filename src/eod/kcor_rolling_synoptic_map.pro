@@ -93,7 +93,7 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
       date_index = mlso_dateobs2jd(date) - start_date_jd; - 10.0/24.0
       date_index = floor(date_index)
       date_names[date_index] = date
-      time_names[date_index] = times[r]
+      time_names[date_index] = strjoin(strsplit(times[r], ' ', /extract), 'T')
 
       if (ptr_valid(data[r]) && n_elements(*data[r]) gt 0L) then begin
         map[date_index, *] = *data[r]
@@ -202,12 +202,17 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
     ; remove automated comments about FITS standard
     sxdelpar, primary_header, 'COMMENT'
 
+    times_indices = where(time_names ne '', n_good_times)
+    date_obs = n_good_times eq 0L ? !null : time_names[times_indices[0]]
+    date_end = n_good_times eq 0L ? !null : time_names[times_indices[-1]]
+
     sxdelpar, primary_header, 'DATE'
-    sxaddpar, primary_header, 'DATE-OBS', start_date, $
-              ' [UTC] start date of synoptic map', after='EXTEND'
-    sxaddpar, primary_header, 'DATE-END', end_date, $
-              ' [UTC] end date of synoptic map', $
-              format='(F0.2)', after='DATE-OBS'
+    fxaddpar, primary_header, 'DATE-OBS', date_obs, $
+              ' [UTC] start date of available data for map', $
+              after='EXTEND', /null
+    fxaddpar, primary_header, 'DATE-END', date_end, $
+              ' [UTC] end date of available data for map', $
+              after='DATE-OBS', /null
     annulus_width = run->epoch('synoptic_map_annulus_width')
     sxaddpar, primary_header, 'HEIGHT', heights[h], $
               string(annulus_width / 2.0, $
@@ -419,6 +424,9 @@ end
 ; main-level example program
 
 date = '20221007'
+; date = '20181224'
+; date = '20141228'
+; date = '20221024'
 config_filename = filepath('kcor.latest.cfg', $
                            subdir=['..', '..', '..', 'kcor-config'], $
                            root=mg_src_root())
