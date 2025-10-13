@@ -67,7 +67,7 @@ pro kcor_rolling_image_scale_plot, end_date, n_days=n_days, database=db, run=run
   endelse
   !null = label_date(date_format=xtick_format)
 
-  image_scale_range = [5.5, 5.8]
+  image_scale_range = run->epoch('image_scale_range')
   image_scale_difference_range = 0.05 * [-1.0, 1.0]
 
   ; save original graphics settings
@@ -245,7 +245,8 @@ end
 
 ; main-level example program
 
-date = '20221231'
+; date = '20221231'
+date = '20151231'
 config_basename = 'kcor.reprocessing.cfg'
 config_filename = filepath(config_basename, $
                            subdir=['..', '..', '..', 'kcor-config'], $

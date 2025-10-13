@@ -15,7 +15,8 @@ end
 
 ; main-level example program
 
-date = '20221231'
+; date = '20221231'
+date = '20151231'
 config_basename = 'kcor.reprocessing.cfg'
 config_filename = filepath(config_basename, $
                            subdir=['..', '..', '..', 'kcor-config'], $
