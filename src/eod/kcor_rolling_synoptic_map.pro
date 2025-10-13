@@ -124,6 +124,9 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
     foreground = 0
     background = 255
 
+    display_gamma = run->epoch('synoptic_map_gamma')
+    mg_gamma_ct, display_gamma, /current
+
     tvlct, rgb, /get
 
     !null = label_date(date_format='%D %M %Z')
@@ -167,7 +170,8 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
                 charsize=charsize
 
       xyouts, right_margin, 0.050, /normal, alignment=1.0, $
-              string(minv, maxv, format='(%"min/max: %0.3g, %0.3g")'), $
+              string(minv, maxv, display_gamma, $
+                     format='(%"min/max: %0.3g/%0.3g, gamma: %0.2f")'), $
               charsize=charsize, color=128
 
       bangle_charsize = 0.75 * charsize
