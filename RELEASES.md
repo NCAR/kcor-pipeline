@@ -1272,3 +1272,8 @@
 - epoch file changes
 
 #### 2.2.8
+
+- epoch file changes
+- better headers for synoptic maps as well as splitting into east/west files
+- new display min/max values for synoptic maps, image scale plots
+- create annual movies and image scale plots
