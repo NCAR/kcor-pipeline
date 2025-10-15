@@ -1278,4 +1278,6 @@
 - new display min/max values for synoptic maps, image scale plots
 - create annual movies and image scale plots
 
-#### 2.2.9
+#### 2.2.9 [Oct 15, 2025]
+
+- Fix typo in creating annual movies
