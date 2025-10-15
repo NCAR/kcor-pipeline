@@ -1271,7 +1271,7 @@
 - add ability to add a message of the day README by epoch
 - epoch file changes
 
-#### 2.2.8
+#### 2.2.8 [Oct 14, 2025]
 
 - epoch file changes
 - better headers for synoptic maps as well as splitting into east/west files
