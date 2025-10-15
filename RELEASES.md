@@ -1281,3 +1281,5 @@
 #### 2.2.9 [Oct 15, 2025]
 
 - Fix typo in creating annual movies
+
+#### 2.2.10
