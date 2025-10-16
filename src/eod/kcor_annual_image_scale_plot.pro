@@ -10,6 +10,15 @@ pro kcor_annual_image_scale_plot, year, database=db, run=run
   n_days = is_leap_year ? 366 : 365
   kcor_rolling_image_scale_plot, end_date, n_days=n_days, database=db, run=run, $
                                  output_basename=output_basename
+
+  annual_basedir = run->config('results/annual_basedir')
+  if (n_elements(annual_basedir) gt 0L) then begin
+    if (~file_test(annual_basedir, /directory)) then file_mkdir, annual_basedir
+    annual_dir = filepath(year, root=annual_basedir)
+    if (~file_test(annual_dir, /directory)) then file_mkdir, annual_dir
+
+    file_copy, output_basename, annual_dir
+  endif
 end
 
 
