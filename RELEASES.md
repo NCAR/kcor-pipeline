@@ -1285,3 +1285,5 @@
 #### 2.2.10 [Oct 16, 2025]
 
 - publish annual image scale plots
+
+#### 2.2.11
