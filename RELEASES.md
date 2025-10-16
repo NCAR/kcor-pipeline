@@ -1282,4 +1282,6 @@
 
 - Fix typo in creating annual movies
 
-#### 2.2.10
+#### 2.2.10 [Oct 16, 2025]
+
+- publish annual image scale plots
