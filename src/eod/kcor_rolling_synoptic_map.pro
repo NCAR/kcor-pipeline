@@ -104,7 +104,7 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
       endelse
     endfor
 
-    north_up_map = shift(map, 0, -180)
+    north_up_map = reverse(shift(map, 0, -180), 1)
     east_limb = reverse(north_up_map[*, 0:359], 2)
     west_limb = north_up_map[*, 360:*]
 
@@ -155,7 +155,7 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
       bottom_margin = 0.15
       left_margin = 0.05
 
-      mg_image, reverse(limb_data, 1), reverse(jd_dates), $
+      mg_image, limb_data, reverse(jd_dates), $
                 xrange=[end_date_jd, start_date_jd], $
                 xtyle=1, xtitle='UT time of observations', $
                 min_value=minv, max_value=maxv, $
@@ -276,8 +276,10 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
     sxaddpar, primary_header, 'CTYPE1', 'Temporal Cadence', $
               ' [hour] maps created using 1 image per day', $
               after='CDELT2'
-    sxaddpar, primary_header, 'CTYPE2', 'Position Angle (PA)', $
-              ' [deg] CCW direction around Sun with North = 0 deg', $
+    ctype2_comment = limb eq 'East' $
+      ? ' [deg] CW direction around Sun, North at top' $
+      : ' [deg] CCW direction around Sun, North at top'
+    sxaddpar, primary_header, 'CTYPE2', 'Position Angle (PA)', ctype2_comment, $
               after='CTYPE1'
 
     plate_scale = kcor_platescale(run=run)
@@ -313,9 +315,9 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
     limb_comment = limb eq 'East' $
       ? ' 180 deg PA at bottom; 90 deg PA middle; 0 deg PA at top of map' $
       : ' 180 deg PA at bottom; 270 deg PA middle; 0 deg PA at top of map'
-    sxaddpar, primary_header, 'LIMB', limb, limb_comment, after='CRLT-END'
+    sxaddpar, primary_header, 'LIMB', limb, limb_comment, after='CTYPE2'
 
-    after = 'LIMB'
+    after = 'CRLT-END'
     for d = 0L, n_days - 1L do begin
       time_name = string(d + 1, format='TIME%02d')
       time_index = n_days - 1 - d
@@ -334,10 +336,10 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
     ; add COMMENTS
     sxaddpar, primary_header, 'COMMENT', $
               'South pole = 180 deg PA, West Eqtr = 270 deg PA', $
-              after='CTYPE2'
+              after='LIMB'
     sxaddpar, primary_header, 'COMMENT', $
               'North pole = 0 deg PA, East Eqtr = 90 deg PA', $
-              after='CTYPE2'
+              after='LIMB'
     sxaddpar, primary_header, 'COMMENT', $
               'No correction for solar B-angle', $
               after='LIMB'
@@ -349,14 +351,15 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
     for i = 0L, n_elements(limbs) - 1L do begin
       limb = limbs[i]
       limb_map = limb eq 'East' ? east_limb : west_limb
-      limb_map = reverse(limb_map, 2)
 
-      sxaddpar, primary_header, 'LIMB', limb, limb_comment, after='CRLT-END'
+      sxaddpar, primary_header, 'LIMB', limb
 
       sxaddpar, primary_header, 'NAXIS1', n_days, $
                 ' number of days in synoptic map'
-      sxaddpar, primary_header, 'NAXIS2', n_angles / 2L, $
-                ' images scanned in azimuthal direction every 0.5 deg'
+      naxis2_comment = limb eq 'East' $
+        ? ' images scanned CW direction every 0.5 deg' $
+        : ' images scanned CCW direction every 0.5 deg'
+      sxaddpar, primary_header, 'NAXIS2', n_angles / 2L, naxis2_comment
 
       fits_filenames[i] = filepath(string(run.date, $
                                           n_days, $
@@ -365,7 +368,7 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
                                           strlowcase(limb), $
                                           format='(%"%s.kcor.%dday.synoptic.%sr%03d.%s.fts")'), $
                                    root=p_dir)
-      writefits, fits_filenames[i], reverse(limb_map, 2), primary_header
+      writefits, fits_filenames[i], limb_map, primary_header
 
       gzip_cmd = string(run->config('externals/gzip'), fits_filenames[i], $
                         format='(%"%s -f %s")')
@@ -423,11 +426,11 @@ end
 
 ; main-level example program
 
-date = '20221007'
+date = '20220901'
 ; date = '20181224'
 ; date = '20141228'
 ; date = '20221024'
-config_filename = filepath('kcor.latest.cfg', $
+config_filename = filepath('kcor.reprocessing.cfg', $
                            subdir=['..', '..', '..', 'kcor-config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
