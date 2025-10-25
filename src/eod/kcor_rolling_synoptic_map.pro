@@ -360,8 +360,8 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
         : ' [deg] CCW direction around Sun, North at top'
       sxaddpar, primary_header, 'CTYPE2', 'Position Angle (PA)', ctype2_comment
       limb_comment = limb eq 'East' $
-        ? ' 180 deg PA at bottom; 90 deg PA middle; 0 deg PA at top of map' $
-        : ' 180 deg PA at bottom; 270 deg PA middle; 0 deg PA at top of map'
+        ? ' 180 deg PA @bottom; 90 deg @ctr; 0 deg @top' $
+        : ' 180 deg PA @bottom; 270 deg @ctr; 0 deg @top'
       sxaddpar, primary_header, 'LIMB', limb, limb_comment
 
       fits_filenames[i] = filepath(string(run.date, $
