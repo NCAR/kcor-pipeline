@@ -270,16 +270,13 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
               ' [hour/pixel] time cadence of images', $
               format='(F0.2)', after='DPSWID'
     sxaddpar, primary_header, 'CDELT2', 0.5, $
-              ' [arcsec/pixel] data averaged over 0.5 deg along annulus', $
+              ' [deg] avg over 0.5 deg along annulus', $
               format='(F0.2)', after='CDELT1'
 
     sxaddpar, primary_header, 'CTYPE1', 'Temporal Cadence', $
               ' [hour] maps created using 1 image per day', $
               after='CDELT2'
-    ctype2_comment = limb eq 'East' $
-      ? ' [deg] CW direction around Sun, North at top' $
-      : ' [deg] CCW direction around Sun, North at top'
-    sxaddpar, primary_header, 'CTYPE2', 'Position Angle (PA)', ctype2_comment, $
+    sxaddpar, primary_header, 'CTYPE2', 'Position Angle (PA)', ' ', $
               after='CTYPE1'
 
     plate_scale = kcor_platescale(run=run)
@@ -312,10 +309,7 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
               ' [deg] solar B angle at rotation end', $
               format='(f8.2)', after='CRLT-STA'
 
-    limb_comment = limb eq 'East' $
-      ? ' 180 deg PA at bottom; 90 deg PA middle; 0 deg PA at top of map' $
-      : ' 180 deg PA at bottom; 270 deg PA middle; 0 deg PA at top of map'
-    sxaddpar, primary_header, 'LIMB', limb, limb_comment, after='CTYPE2'
+    sxaddpar, primary_header, 'LIMB', limb, ' ', after='CTYPE2'
 
     after = 'CRLT-END'
     for d = 0L, n_days - 1L do begin
@@ -360,6 +354,15 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
         ? ' images scanned CW direction every 0.5 deg' $
         : ' images scanned CCW direction every 0.5 deg'
       sxaddpar, primary_header, 'NAXIS2', n_angles / 2L, naxis2_comment
+
+      ctype2_comment = limb eq 'East' $
+        ? ' [deg] CW direction around Sun, North at top' $
+        : ' [deg] CCW direction around Sun, North at top'
+      sxaddpar, primary_header, 'CTYPE2', 'Position Angle (PA)', ctype2_comment
+      limb_comment = limb eq 'East' $
+        ? ' 180 deg PA at bottom; 90 deg PA middle; 0 deg PA at top of map' $
+        : ' 180 deg PA at bottom; 270 deg PA middle; 0 deg PA at top of map'
+      sxaddpar, primary_header, 'LIMB', limb, limb_comment
 
       fits_filenames[i] = filepath(string(run.date, $
                                           n_days, $
