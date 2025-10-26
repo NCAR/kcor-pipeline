@@ -17,7 +17,11 @@ pro kcor_annual_image_scale_plot, year, database=db, run=run
     annual_dir = filepath(year, root=annual_basedir)
     if (~file_test(annual_dir, /directory)) then file_mkdir, annual_dir
 
-    file_copy, output_basename, annual_dir
+    output_filename = filepath(output_basename, $
+                               subdir=[run.date, 'p'], $
+                               root=run->config('processing/raw_basedir'))
+
+    file_copy, output_filename, annual_dir
   endif
 end
 
