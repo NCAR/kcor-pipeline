@@ -267,7 +267,7 @@ pro kcor_rolling_synoptic_map, database=db, run=run, enhanced=enhanced
               after='DATE_DP'
 
     sxaddpar, primary_header, 'CDELT1', 24.0, $
-              ' [hour/pixel] time cadence of images', $
+              ' [hours] time cadence of images', $
               format='(F0.2)', after='DPSWID'
     sxaddpar, primary_header, 'CDELT2', 0.5, $
               ' [deg] avg over 0.5 deg along annulus', $
