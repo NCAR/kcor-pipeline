@@ -973,11 +973,11 @@ pro kcor_l1, ok_filename, $
   fxaddpar, l1_header, 'DATE-END', date_end, date_end_comment
 
   fxaddpar, l1_header, 'MJD-OBS', $
-            kcor_dateobs2julday(struct.date_d$obs) - 2400000.5D, $
+            kcor_dateobs2julday(date_obs) - 2400000.5D, $
             ' [days] modified Julian date', $
             format='F0.9'
   fxaddpar, l1_header, 'MJD-END', $
-            kcor_dateobs2julday(struct.date_d$end) - 2400000.5D, $
+            kcor_dateobs2julday(date_end) - 2400000.5D, $
             ' [days] modified Julian date', $
             format='F0.9'
 
@@ -986,7 +986,7 @@ pro kcor_l1, ok_filename, $
   fxaddpar, l1_header, 'DATE_HST', date_hst, ' MLSO observation date [HST]'
   fxaddpar, l1_header, 'LOCATION', 'MLSO', $
             ' Mauna Loa Solar Observatory, Hawaii'
-  fxaddpar, l1_header, 'ORIGIN',   struct.origin, $
+  fxaddpar, l1_header, 'ORIGIN', struct.origin, $
             ' Nat.Ctr.Atmos.Res. High Altitude Observatory'
   fxaddpar, l1_header, 'TELESCOP', 'COSMO K-Coronagraph', $
             ' COSMO: COronal Solar Magnetism Observatory' 
