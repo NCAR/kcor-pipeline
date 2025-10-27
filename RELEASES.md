@@ -1286,4 +1286,7 @@
 
 - publish annual image scale plots
 
-#### 2.2.11
+#### 2.2.11 [Oct 26, 2025]
+
+- update synoptic maps metadata
+- fix for MJD-END value
