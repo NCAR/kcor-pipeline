@@ -1290,3 +1290,5 @@
 
 - update synoptic maps metadata
 - fix for MJD-END value
+
+#### 2.2.12
