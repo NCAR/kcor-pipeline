@@ -301,11 +301,11 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
           n_wrongsize += 1
           mg_log, '%s file size: %d != %d', $
                   t1_file, t1_size, kcor_zipsize(t1_file, run=run), $
-                  name='kcor/eod', /warn
+                  name='kcor/eod', /error
         endif
       endif else begin
         n_missing += 1
-        mg_log, '%s in t1, but not in level0/', t1_file, name='kcor/eod', /warn
+        mg_log, '%s in t1, but not in level0/', t1_file, name='kcor/eod', /error
       endelse
     endfor
 
@@ -333,52 +333,50 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
 
   done_validating:
 
-  if (success) then begin
-    files = file_search(filepath('*_kcor.fts.gz', root=l0_dir), count=n_files)
+  files = file_search(filepath('*_kcor.fts.gz', root=l0_dir), count=n_files)
 
-    ; TODO: should really check process flag from epochs file here to filter
-    ;       out L0 files that should not be processed
+  ; TODO: should really check process flag from epochs file here to filter
+  ;       out L0 files that should not be processed
 
-    if (n_files gt 0L) then begin
-      if (run->config('eod/produce_plots')) then begin
-        kcor_plotparams, date, list=files, run=run
-        kcor_plotcenters, date, list=files, run=run
+  if (n_files gt 0L) then begin
+    if (run->config('eod/produce_plots')) then begin
+      kcor_plotparams, date, list=files, run=run
+      kcor_plotcenters, date, list=files, run=run
 
-        kcor_plot_l2, run=run
+      kcor_plot_l2, run=run
+    endif
+
+    if (run->config('eod/catalog_files')) then begin
+      kcor_catalog, date, list=files, run=run
+    endif
+
+    if (run->config('eod/send_to_archive')) then begin
+      kcor_archive_l0, run=run, reprocess=_reprocess
+    endif
+
+    ; produce calibration for tomorrow
+    if (run->config('eod/reduce_calibration') $
+        && run->epoch('produce_calibration')) then begin
+      kcor_reduce_calibration, date, run=run, $
+                               status=cal_status, start_state=start_state, $
+                               cal_filename=cal_filename
+      if (cal_status eq 0L) then begin
+        kcor_plot_calibration, cal_filename, run=run, gain_norm_stddev=gain_norm_stddev
       endif
-
-      if (run->config('eod/catalog_files')) then begin
-        kcor_catalog, date, list=files, run=run
-      endif
-
-      if (run->config('eod/send_to_archive')) then begin
-        kcor_archive_l0, run=run, reprocess=_reprocess
-      endif
-
-      ; produce calibration for tomorrow
-      if (run->config('eod/reduce_calibration') $
-          && run->epoch('produce_calibration')) then begin
-        kcor_reduce_calibration, date, run=run, $
-                                 status=cal_status, start_state=start_state, $
-                                 cal_filename=cal_filename
-        if (cal_status eq 0L) then begin
-          kcor_plot_calibration, cal_filename, run=run, gain_norm_stddev=gain_norm_stddev
-        endif
-      endif else begin
-        mg_log, 'skipping reducing calibration', name='kcor/eod', /info
-      endelse
-
-      kcor_archive_l1, run=run
-      kcor_archive_l2, run=run
     endif else begin
-      mg_log, 'no L0 files to plot, catalog, or archive', name='kcor/eod', /warn
+      mg_log, 'skipping reducing calibration', name='kcor/eod', /info
     endelse
+
+    kcor_archive_l1, run=run
+    kcor_archive_l2, run=run
   endif else begin
-    ; t{1,2}.log in level0/ directory indicates eod done
-    file_delete, filepath(date + '.kcor.t1.log', root=l0_dir), $
-                 filepath(date + '.kcor.t2.log', root=l0_dir), $
-                 /allow_nonexistent
+    mg_log, 'no L0 files to plot, catalog, or archive', name='kcor/eod', /warn
   endelse
+
+  ; ; t{1,2}.log in level0/ directory indicates eod done
+  ; file_delete, filepath(date + '.kcor.t1.log', root=l0_dir), $
+  ;              filepath(date + '.kcor.t2.log', root=l0_dir), $
+  ;              /allow_nonexistent
 
   avg_glob = filepath('*_l2_pb_avg.fts.gz', $
                       subdir=[date, 'level2'], $
@@ -391,7 +389,7 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   endif
 
   ; update databases
-  if (run->config('database/update') && success) then begin
+  if (run->config('database/update')) then begin
     mg_log, 'updating database', name='kcor/eod', /info
     cal_files = kcor_read_calibration_text(date, $
                                            run->config('processing/process_basedir'), $
