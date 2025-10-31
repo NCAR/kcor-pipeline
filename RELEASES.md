@@ -1292,3 +1292,9 @@
 - fix for MJD-END value
 
 #### 2.2.12
+
+- updated tutorial notebook
+- fix for publishing annual image scale plot
+- change end-of-day to not skip steps if there are missing or wrong sized level
+  0 files
+- fix for MJD-END value
