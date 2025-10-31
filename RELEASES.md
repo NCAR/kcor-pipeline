@@ -1291,7 +1291,7 @@
 - update synoptic maps metadata
 - fix for MJD-END value
 
-#### 2.2.12
+#### 2.2.12 [Oct 31, 2025]
 
 - updated tutorial notebook
 - fix for publishing annual image scale plot
