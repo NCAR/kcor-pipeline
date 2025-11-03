@@ -122,6 +122,15 @@ pro kcor_reprocess, date, run=run, error=error
     file_delete, l2_dir, /recursive, /allow_nonexistent
   endif
 
+  ; remove removed dir
+  if (run->config('realtime/reprocess')) then begin
+    removed_dir = filepath('removed', subdir=[date], root=run->config('processing/raw_basedir'))
+    if (file_test(removed_dir, /directory)) then begin
+      mg_log, 'removing removed dir', name='kcor/reprocess', /info
+      file_delete, removed_dir, /recursive, /allow_nonexistent
+    endif
+  endif
+
   ; remove *kcor* files from archive, fullres, croppedgif, rg dirs
   if (run->config('realtime/reprocess')) then begin
     mg_log, 'removing old archived files...', name='kcor/reprocess', /info
