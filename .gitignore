@@ -13,3 +13,4 @@
 /stream/stream.cpython-*.so
 /stream/__pycache__
 .nova
+/tutorials/*.fts.gz
