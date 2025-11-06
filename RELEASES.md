@@ -1297,6 +1297,9 @@
 - fix for publishing annual image scale plot
 - change end-of-day to not skip steps if there are missing or wrong sized level
   0 files
-- fix for MJD-END value
+- fix for MJD-END value in averages
 
 #### 2.2.13
+
+- fix for MJD-END value in extended averages
+- updated Jupyter notebook tutorial
