@@ -667,6 +667,13 @@ pro kcor_create_averages, date, l2_files, run=run, enhanced=enhanced
   fxaddpar, dailysaveheader, 'DATE-END', dailyendtimes[dailycount - 1]
   fxaddpar, dailysaveheader, 'DATE_HST', daily_hst
 
+  fxaddpar, dailysaveheader, 'MJD-OBS', $
+            kcor_dateobs2julday(dailytimes[n_skip]) - 2400000.5D, $
+            format='F0.9'
+  fxaddpar, dailysaveheader, 'MJD-END', $
+            kcor_dateobs2julday(dailyendtimes[dailycount - 1]) - 2400000.5D, $
+            format='F0.9'
+
   fxaddpar, dailysaveheader, 'PRODUCT', 'ext avg pB', $
             ' extended avg coronal polarization brightness'
 
