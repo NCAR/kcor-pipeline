@@ -1145,7 +1145,7 @@ pro kcor_l1, ok_filename, $
 
   fxaddpar, l1_header, 'DATE_DP', date_dp, ' L1 processing date (UTC)'
   version = kcor_find_code_version(revision=revision, date=code_date)
-  fxaddpar, l1_header, 'DPSWID',  $
+  fxaddpar, l1_header, 'DPSWID', $
             string(version, revision, $
                    format='(%"%s [%s]")'), $
             string(code_date, $
