@@ -1299,7 +1299,7 @@
   0 files
 - fix for MJD-END value in averages
 
-#### 2.2.13
+#### 2.2.13 [Nov 17, 2025]
 
 - fix for MJD-END value in extended averages
 - updated Jupyter notebook tutorial
