@@ -1303,3 +1303,5 @@
 
 - fix for MJD-END value in extended averages
 - updated Jupyter notebook tutorial
+
+#### 2.2.14
