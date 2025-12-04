@@ -34,13 +34,9 @@ pro kcor_verify_remote, date, local_filename, remote_server, remote_basedir, $
   status = 0L
   year = strmid(date, 0, 4)
 
-  if (~file_test(local_filename, /regular)) then begin
-    mg_log, 'local file %s not found', local_filename, name=logger_name, /error
-    status = 1L
-    goto, remote_done
-  endif
+  local_file_found = file_test(local_filename, /regular)
 
-  local_filesize = mg_filesize(local_filename)
+  if (local_file_found) then local_filesize = mg_filesize(local_filename)
   basename = file_basename(local_filename)
   remote_filename = filepath(basename, subdir=year, root=remote_basedir)
 
@@ -87,19 +83,21 @@ pro kcor_verify_remote, date, local_filename, remote_server, remote_basedir, $
     goto, remote_done
   endif
 
-  if (remote_filesize ne local_filesize) then begin
-    mg_log, 'non-matching file sizes (local: %s B, remote %s B)', $
-            mg_float2str(local_filesize, places_sep=','), $
-            mg_float2str(remote_filesize, places_sep=','), $
-            name=logger_name, /error
-    status = 2L
-    goto, remote_done
-  endif else begin
-    mg_log, 'file size on %s: %s', $
-            remote_server, $
-            mg_float2str(local_filesize, places_sep=','), $
-            name=logger_name, /info
-  endelse
+  if (local_file_found) then begin
+    if (remote_filesize ne local_filesize) then begin
+      mg_log, 'non-matching file sizes (local: %s B, remote %s B)', $
+              mg_float2str(local_filesize, places_sep=','), $
+              mg_float2str(remote_filesize, places_sep=','), $
+              name=logger_name, /error
+      status = 2L
+      goto, remote_done
+    endif else begin
+      mg_log, 'file size on %s: %s', $
+              remote_server, $
+              mg_float2str(local_filesize, places_sep=','), $
+              name=logger_name, /info
+    endelse
+  endif
 
   remote_done:
   mg_log, 'verified %s tarball on %s', basename, remote_server, $
@@ -216,8 +214,12 @@ pro kcor_verify, date, config_filename=config_filename, status=status
 
   if (file_test(log_filename)) then n_log_lines  = file_lines(log_filename)
   if (file_test(machine_log_filename)) then begin
-    n_machine_log_lines  = file_lines(machine_log_filename)
-  endif
+    machine_log_found = 1B
+    n_machine_log_lines = file_lines(machine_log_filename)
+  endif else begin
+    machine_log_found = 0B
+    n_machine_log_lines = 0L
+  endelse
   if (file_test(list_filename)) then n_list_lines = file_lines(list_filename)
 
   if (~file_test(log_filename)) then begin 
@@ -226,12 +228,15 @@ pro kcor_verify, date, config_filename=config_filename, status=status
     goto, test2_done
   endif
   if (~file_test(machine_log_filename)) then begin 
-     mg_log, 'machine.log file not found', name=logger_name, /error
-     status or= 1L
-     goto, test2_done
+     if (run->epoch('require_machine_log')) then begin
+       mg_log, 'machine.log file not found', name=logger_name, /error
+       status or= 1L
+    endif else begin
+       mg_log, 'machine.log file not found', name=logger_name, /warn
+    endelse
   endif
   if (~file_test(list_filename)) then begin 
-    mg_log, 'tarlist file not found'
+    mg_log, 'tarlist file not found', name=logger_name, /error
     status or= 1L
     goto, test2_done
   endif 
@@ -243,36 +248,42 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   mg_log, 'log file: %s (%d lines)', $
           file_basename(log_filename), n_log_lines, $
           name=logger_name, /info
-  mg_log, 'machine log file: %s (%d lines)', $
-          file_basename(machine_log_filename), n_machine_log_lines, $
-          name=logger_name, /info
+  if (machine_log_found) then begin
+    mg_log, 'machine log file: %s (%d lines)', $
+            file_basename(machine_log_filename), n_machine_log_lines, $
+            name=logger_name, /info
+  endif
   mg_log, 'list file: %s (%d lines)', $
           file_basename(list_filename), n_list_lines, $
           name=logger_name, /info
 
   ; subtract t1, t2, and machine logs from tarlist file, i.e., -3 below
-  if ((n_log_lines ne n_list_lines - 3) || (n_list_lines eq 0)) then begin 
-    mg_log, '# of lines in t1.log and tarlist do not match', $
+  n_non_data_files = 2 + machine_log_found
+  if ((n_log_lines ne n_list_lines - n_non_data_files) || (n_list_lines eq 0)) then begin 
+    mg_log, '# of lines in t1.log (%d) and tarlist (%d) do not match', $
+            n_log_lines, n_list_lines - n_non_data_files, $
             name=logger_name, /error
     status or= 1L
     goto, test1_done
   endif
 
-  if ((n_machine_log_lines ne n_log_lines)) then begin 
-    mg_log, '# of lines in t1.log and machine.log do not match', $
-            name=logger_name, /error
-    status or= 1L
-    goto, test1_done
+  if (machine_log_found) then begin
+    if ((n_machine_log_lines ne n_log_lines)) then begin 
+      mg_log, '# of lines in t1.log and machine.log do not match', $
+              name=logger_name, /error
+      status or= 1L
+      goto, test1_done
+    endif
   endif
 
   ; TEST: match sizes of files to log
 
-  list_names = strarr(n_list_lines - 3L)
-  list_sizes = lonarr(n_list_lines - 3L)
+  list_names = strarr(n_list_lines - n_non_data_files)
+  list_sizes = lonarr(n_list_lines - n_non_data_files)
 
   line = ''
   openr, lun, list_filename, /get_lun
-  for i = 0L, n_list_lines - 4L do begin 
+  for i = 0L, n_list_lines - n_non_data_files - 1L do begin 
     readf, lun, line
     tokens = strsplit(line, /extract)
     list_names[i] = tokens[5]
@@ -324,38 +335,39 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   endfor 
   free_lun, lun
 
-  openr, log_lun, log_filename, /get_lun
-  openr, machine_log_lun, machine_log_filename, /get_lun
-  log_line = ''
-  machine_log_line = ''
-  for j = 0L, n_log_lines - 1L do begin
-    readf, log_lun, log_line
-    readf, machine_log_lun, machine_log_line
+  if (machine_log_found) then begin
+    openr, log_lun, log_filename, /get_lun
+    openr, machine_log_lun, machine_log_filename, /get_lun
+    log_line = ''
+    machine_log_line = ''
+    for j = 0L, n_log_lines - 1L do begin
+      readf, log_lun, log_line
+      readf, machine_log_lun, machine_log_line
 
-    log_tokens = strsplit(log_line, /extract)
-    machine_log_tokens = strsplit(machine_log_line, /extract)
-    if (log_tokens[0] ne machine_log_tokens[0]) then begin
-      mg_log, 'mis-matched filenames in t1 and machine logs: %s and %s', $
-              log_tokens[0], $
-              machine_log_tokens[0], $
-              name=logger_name, /error
-      status or= 1L
-      free_lun, log_lun, machine_log_lun
-      goto, test1_done
-    endif
-    if (log_tokens[1] ne machine_log_tokens[1]) then begin
-      mg_log, 'mis-matched sizes in t1 and machine logs for %s: %s and %s', $
-              log_tokens[0], $
-              log_tokens[1], $
-              machine_log_tokens[1], $
-              name=logger_name, /error
-      status or= 1L
-      free_lun, log_lun, machine_log_lun
-      goto, test1_done
-    endif
-  endfor
-  free_lun, log_lun, machine_log_lun
-
+      log_tokens = strsplit(log_line, /extract)
+      machine_log_tokens = strsplit(machine_log_line, /extract)
+      if (log_tokens[0] ne machine_log_tokens[0]) then begin
+        mg_log, 'mis-matched filenames in t1 and machine logs: %s and %s', $
+                log_tokens[0], $
+                machine_log_tokens[0], $
+                name=logger_name, /error
+        status or= 1L
+        free_lun, log_lun, machine_log_lun
+        goto, test1_done
+      endif
+      if (log_tokens[1] ne machine_log_tokens[1]) then begin
+        mg_log, 'mis-matched sizes in t1 and machine logs for %s: %s and %s', $
+                log_tokens[0], $
+                log_tokens[1], $
+                machine_log_tokens[1], $
+                name=logger_name, /error
+        status or= 1L
+        free_lun, log_lun, machine_log_lun
+        goto, test1_done
+      endif
+    endfor
+    free_lun, log_lun, machine_log_lun
+  endif
 
   ; TEST: check range of file sizes
   testsize = ulong64(list_sizes)
@@ -404,15 +416,15 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   ; TEST: check again that any file listed in the list has the correct size
   ; this should be no different from test above
 
-  ; TEST: check that any file listed in the list has the correct protection
+  ; TEST: check that any file listed in the list has the correct permission
 
-  protection = '-rw-rw-r--'
+  permission = '-rw-rw-r--'
 
   tempf = ''
   openr, lun, list_filename, /get_lun
 
   ; last three lines are t1, t2, and machine logs
-  for j = 0L, n_list_lines - 4L do begin
+  for j = 0L, n_list_lines - n_non_data_files - 1L do begin
     readf, lun, tempf
 
     ; read files and size in the tar list 
@@ -420,8 +432,8 @@ pro kcor_verify, date, config_filename=config_filename, status=status
     filename = tokens[5]
     filesize = ulong64(tokens[2])
 
-    if (tokens[0] ne protection) then begin 
-      mg_log, 'protection for %s is wrong: %s', filename, tokens[0], $
+    if (tokens[0] ne permission) then begin 
+      mg_log, 'permission for %s is wrong: %s', filename, tokens[0], $
               name=logger_name, /error
       status or= 1L
       free_lun, lun
@@ -450,7 +462,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   endfor 
 
   if (n_log_lines eq n_list_lines - 1L) then begin
-    mg_log, 'no extra files in tar listing and protection OK', $
+    mg_log, 'no extra files in tar listing and permission OK', $
             name=logger_name, /info
   endif
 
@@ -553,13 +565,13 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   endif
 
   if (~file_test(l1_tarball_filename, /regular)) then begin
-    mg_log, 'no L1 tarball', name=logger_name, /warn
+    mg_log, 'no L1 tarball', name=logger_name, /error
     status or= 1
     goto, compress_ratio_done
   endif
 
   if (~file_test(l2_tarball_filename, /regular)) then begin
-    mg_log, 'no L2 tarball', name=logger_name, /warn
+    mg_log, 'no L2 tarball', name=logger_name, /error
     status or= 1
     goto, compress_ratio_done
   endif
@@ -589,7 +601,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
     if ((compress_ratio lt run->config('verification/min_compression_ratio')) $
           or (compress_ratio gt run->config('verification/max_compression_ratio'))) then begin
       mg_log, 'unusual compression ratio %0.2f', compress_ratio, $
-              name=logger_name, /warn
+              name=logger_name, /error
       status or= 1L
       goto, compress_ratio_done
     endif
@@ -627,12 +639,10 @@ pro kcor_verify, date, config_filename=config_filename, status=status
   check_campaign_storage = n_elements(remote_server) gt 0L
   if (check_campaign_storage) then begin
     remote_basedir = run->config('verification/archive_remote_basedir')
-    if (file_test(l0_tarball_filename, /regular)) then begin
-      kcor_verify_remote, date, l0_tarball_filename, remote_server, remote_basedir, $
-                          logger_name=logger_name, run=run, $
-                          status=cs_status
-      status or= cs_status
-    endif
+    kcor_verify_remote, date, l0_tarball_filename, remote_server, remote_basedir, $
+                        logger_name=logger_name, run=run, $
+                        status=cs_status
+    status or= cs_status
     if (file_test(l1_tarball_filename, /regular)) then begin
       kcor_verify_remote, date, l1_tarball_filename, remote_server, remote_basedir, $
                           logger_name=logger_name, run=run, $
