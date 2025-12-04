@@ -1104,7 +1104,7 @@ def process(args):
 # realtime (rt) sub-command
 def process_rt(args):
     for d in args.dates:
-        process_dates(d, "rt", args.flags, args.no_wait)
+        process_dates(d, "rt", args.flags, args.no_wait, args.parser.error)
 
     notify_completed(args, "real-time process")
 
@@ -1112,7 +1112,7 @@ def process_rt(args):
 # end-of-day (eod) sub-command
 def process_eod(args):
     for d in args.dates:
-        process_dates(d, "eod", args.flags, args.no_wait)
+        process_dates(d, "eod", args.flags, args.no_wait, args.parser.error)
 
     notify_completed(args, "end-of-day process")
 
@@ -1159,7 +1159,8 @@ def cme_detection(args):
     extra_flags = ["/realtime"] if args.realtime else None
     for d in args.dates:
         process_dates(
-            d, "cmedetection", args.flags, args.no_wait, extra_flags=extra_flags
+            d, "cmedetection", args.flags, args.no_wait, args.parser.error,
+            extra_flags=extra_flags
         )
 
     notify_completed(args, "CME detection")
@@ -1169,7 +1170,7 @@ def cme_detection(args):
 def savecme(args):
     script = f"savecme"
     for d in args.dates:
-        process_dates(d, script, args.flags, args.no_wait)
+        process_dates(d, script, args.flags, args.no_wait, args.parser.error)
 
     notify_completed(args, "save CME results")
 
@@ -1178,13 +1179,13 @@ def savecme(args):
 def archive(args):
     script = f"archive_l{args.level}"
     for d in args.dates:
-        process_dates(d, script, args.flags, args.no_wait)
+        process_dates(d, script, args.flags, args.no_wait, args.parser.error)
 
 
 # purge sub-command
 def purge(args):
     for d in args.dates:
-        process_dates(d, "purge", args.flags, args.no_wait)
+        process_dates(d, "purge", args.flags, args.no_wait, args.parser.error)
 
     notify_completed(args, "purge")
 
@@ -1192,7 +1193,7 @@ def purge(args):
 # remove sub-command
 def remove(args):
     for d in args.dates:
-        process_dates(d, "remove", args.flags, args.no_wait)
+        process_dates(d, "remove", args.flags, args.no_wait, args.parser.error)
 
     notify_completed(args, "remove")
 
