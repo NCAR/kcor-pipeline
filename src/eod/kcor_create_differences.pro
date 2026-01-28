@@ -34,12 +34,6 @@ pro kcor_create_differences, date, l2_files, run=run
   date_parts = kcor_decompose_date(date)
   archive_dir = filepath('', subdir=date_parts, root=run->config('results/archive_basedir'))
   fullres_dir = filepath('', subdir=date_parts, root=run->config('results/fullres_basedir'))
-  cropped_dir = filepath('', subdir=date_parts, root=run->config('results/croppedgif_basedir'))
-  if (run->config('realtime/distribute')) then begin
-    if (~file_test(archive_dir, /directory)) then file_mkdir, archive_dir
-    if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
-    if (~file_test(cropped_dir, /directory)) then file_mkdir, fullres_dir
-  endif
 
   l2_dir = filepath('level2', subdir=date, root=run->config('processing/raw_basedir'))
 
@@ -475,9 +469,12 @@ pro kcor_create_differences, date, l2_files, run=run
       if (run->config('realtime/distribute')) then begin
         ; check status -- only good and pass get archived
         if (status eq "good" || status eq "pass") then begin
+          if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
           file_copy, gif_basename, fullres_dir, /overwrite
 
           kcor_zip_files, fits_basename, run=run
+
+          if (~file_test(archive_dir, /directory)) then file_mkdir, archive_dir
           file_copy, fits_basename + '.gz', archive_dir, /overwrite
         endif
       endif
@@ -547,6 +544,7 @@ pro kcor_create_differences, date, l2_files, run=run
     kcor_create_mp4, difference_gif_filenames[0:*:4], difference_mp4_filename, $
                      run=run, status=status
     if (status eq 0 && run->config('realtime/distribute')) then begin
+      if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
       file_copy, difference_mp4_filename, fullres_dir, /overwrite
     endif
   endif else begin

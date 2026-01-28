@@ -62,10 +62,6 @@ pro kcor_create_animations, date, timestamps=timestamps, run=run
                          root=run->config('results/fullres_basedir'))
   cropped_dir = filepath('', subdir=date_parts, $
                          root=run->config('results/croppedgif_basedir'))
-  if (run->config('realtime/distribute')) then begin
-    if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
-    if (~file_test(cropped_dir, /directory)) then file_mkdir, cropped_dir
-  endif
 
   l2_dir = filepath('level2', subdir=date, root=run->config('processing/raw_basedir'))
 
@@ -74,6 +70,9 @@ pro kcor_create_animations, date, timestamps=timestamps, run=run
 
   pb_gif_filenames = timestamps + '_kcor_l2_pb_avg.gif'
   pb_daily_basename = string(date, format='(%"%s_kcor_l2_pb_avg")')
+
+  if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
+
   kcor_create_animations_type, pb_gif_filenames, $
                                pb_daily_basename, $
                                fullres_dir, 'avg pB', run=run
@@ -83,6 +82,8 @@ pro kcor_create_animations, date, timestamps=timestamps, run=run
   kcor_create_animations_type, enhanced_pb_gif_filenames, $
                                enhanced_pb_daily_basename, $
                                fullres_dir, 'enhanced avg pB', run=run
+
+  if (~file_test(cropped_dir, /directory)) then file_mkdir, cropped_dir
 
   cropped_pb_gif_filenames = timestamps + '_kcor_l2_pb_avg_cropped.gif'
   cropped_pb_daily_basename = string(date, format='(%"%s_kcor_l2_pb_avg_cropped")')

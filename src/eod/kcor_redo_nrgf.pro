@@ -162,6 +162,7 @@ pro kcor_redo_nrgf, date, run=run
     if (n_nrgf_files gt 0L) then begin
       mg_log, 'copying %d NRGF files to archive dir', n_nrgf_files, $
               name='kcor/eod', /info
+      if (~file_test(archive_dir, /directory)) then file_mkdir, archive_dir
       file_copy, zipped_nrgf_files, archive_dir, /overwrite
 
       pos = strpos(zipped_nrgf_files[0], '_nrgf') + 5   ; '_nrgf' is 5 chars
@@ -171,6 +172,7 @@ pro kcor_redo_nrgf, date, run=run
               name='kcor/eod', /info
       for f = 0L, n_nrgf_files - 1L do begin
         if (file_test(gif_filenames[f])) then begin
+          if (~file_test(nrgf_dir, /directory)) then file_mkdir, nrgf_dir
           file_copy, gif_filenames[f], nrgf_dir, /overwrite
         endif
       endfor
@@ -189,6 +191,7 @@ pro kcor_redo_nrgf, date, run=run
         nrgf_average_cropped_enhanced_gif_filename = basename + '_cropped_enhanced.gif'
 
         if (file_test(nrgf_average_gif_filename)) then begin
+          if (~file_test(nrgf_dir, /directory)) then file_mkdir, nrgf_dir
           file_copy, nrgf_average_gif_filename, nrgf_dir, /overwrite
         endif else begin
           mg_log, 'cannot find %s', $
@@ -197,6 +200,7 @@ pro kcor_redo_nrgf, date, run=run
         endelse
 
         if (file_test(nrgf_average_cropped_gif_filename)) then begin
+          if (~file_test(cropped_dir, /directory)) then file_mkdir, cropped_dir
           file_copy, nrgf_average_cropped_gif_filename, cropped_dir, /overwrite
         endif else begin
           mg_log, 'cannot find %s', $
@@ -205,6 +209,7 @@ pro kcor_redo_nrgf, date, run=run
         endelse
 
         if (file_test(nrgf_average_enhanced_gif_filename)) then begin
+          if (~file_test(nrgf_dir, /directory)) then file_mkdir, nrgf_dir
           file_copy, nrgf_average_enhanced_gif_filename, nrgf_dir, /overwrite
         endif else begin
           mg_log, 'cannot find %s', $
@@ -213,6 +218,7 @@ pro kcor_redo_nrgf, date, run=run
         endelse
 
         if (file_test(nrgf_average_cropped_enhanced_gif_filename)) then begin
+          if (~file_test(cropped_dir, /directory)) then file_mkdir, cropped_dir
           file_copy, nrgf_average_cropped_enhanced_gif_filename, cropped_dir, /overwrite
         endif else begin
           mg_log, 'cannot find %s', $
@@ -227,6 +233,7 @@ pro kcor_redo_nrgf, date, run=run
       cropped_gif_filenames = strmid(zipped_nrgf_files, 0, pos) + '_cropped.gif'
       for f = 0L, n_nrgf_files - 1L do begin
         if (file_test(cropped_gif_filenames[f])) then begin
+          if (~file_test(cropped_dir, /directory)) then file_mkdir, cropped_dir
           file_copy, cropped_gif_filenames[f], cropped_dir, /overwrite
         endif else begin
           mg_log, 'cannot find %s', cropped_gif_filenames[f], name='kcor/eod', /error
@@ -263,6 +270,7 @@ pro kcor_redo_nrgf, date, run=run
     nrgf_dailyavg_files = file_search('*nrgf_extavg.gif', $
                                       count=n_nrgf_dailyavg_files)
     if (n_nrgf_dailyavg_files gt 0L) then begin
+      if (~file_test(nrgf_dir, /directory)) then file_mkdir, nrgf_dir
       file_copy, nrgf_dailyavg_files, nrgf_dir, /overwrite
     endif else begin
       mg_log, 'no NRGF 10 min average GIF to distribute', name='kcor/eod', /info
@@ -271,6 +279,7 @@ pro kcor_redo_nrgf, date, run=run
     nrgf_dailyavg_enhanced_files = file_search('*nrgf_extavg_enhanced.gif', $
                                                count=n_nrgf_dailyavg_enhanced_files)
     if (n_nrgf_dailyavg_enhanced_files gt 0L) then begin
+      if (~file_test(nrgf_dir, /directory)) then file_mkdir, nrgf_dir
       file_copy, nrgf_dailyavg_enhanced_files, nrgf_dir, /overwrite
     endif else begin
       mg_log, 'no NRGF 10 min average enhanced GIF to distribute', name='kcor/eod', /info
@@ -279,6 +288,7 @@ pro kcor_redo_nrgf, date, run=run
     nrgf_dailyavg_cropped_files = file_search('*nrgf_extavg_cropped.gif', $
                                               count=n_nrgf_dailyavg_cropped_files)
     if (n_nrgf_dailyavg_cropped_files gt 0L) then begin
+      if (~file_test(cropped_dir, /directory)) then file_mkdir, cropped_dir
       file_copy, nrgf_dailyavg_cropped_files, cropped_dir, /overwrite
     endif else begin
       mg_log, 'no NRGF 10 min average cropped GIFs to distribute', name='kcor/eod', /info
@@ -287,6 +297,7 @@ pro kcor_redo_nrgf, date, run=run
     nrgf_dailyavg_cropped_enhanced_files = file_search('*nrgf_extavg_cropped_enhanced.gif', $
                                                        count=n_nrgf_dailyavg_cropped_enhanced_files)
     if (n_nrgf_dailyavg_cropped_enhanced_files gt 0L) then begin
+      if (~file_test(cropped_dir, /directory)) then file_mkdir, cropped_dir
       file_copy, nrgf_dailyavg_cropped_enhanced_files, cropped_dir, /overwrite
     endif else begin
       mg_log, 'no NRGF 10 min average cropped enhanced GIFs to distribute', name='kcor/eod', /info

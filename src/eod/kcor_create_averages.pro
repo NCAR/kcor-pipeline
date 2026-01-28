@@ -36,12 +36,6 @@ pro kcor_create_averages, date, l2_files, run=run, enhanced=enhanced
   fullres_dir = filepath('', subdir=date_parts, root=run->config('results/fullres_basedir'))
   cropped_dir = filepath('', subdir=date_parts, root=run->config('results/croppedgif_basedir'))
 
-  if (run->config('realtime/distribute')) then begin
-    if (~file_test(archive_dir, /directory)) then file_mkdir, archive_dir
-    if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
-    if (~file_test(cropped_dir, /directory)) then file_mkdir, cropped_dir
-  endif
-
   l2_dir = filepath('level2', subdir=date, root=run->config('processing/raw_basedir'))
 
   cd, current=current
@@ -370,6 +364,7 @@ pro kcor_create_averages, date, l2_files, run=run, enhanced=enhanced
     if (numavg gt 1L) then begin
       write_gif, gif_basename, save, red, green, blue
       if (run->config('realtime/distribute')) then begin
+        if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
         file_copy, gif_basename, fullres_dir, /overwrite
       endif
 
@@ -379,6 +374,7 @@ pro kcor_create_averages, date, l2_files, run=run, enhanced=enhanced
                         log_name='kcor/eod', $
                         level=2, enhanced=enhanced
       if (run->config('realtime/distribute')) then begin
+        if (~file_test(cropped_dir, /directory)) then cropped_dir, fullres_dir
         file_copy, cgif_filename, cropped_dir, /overwrite
       endif
     endif else begin
@@ -462,6 +458,8 @@ pro kcor_create_averages, date, l2_files, run=run, enhanced=enhanced
   if (run->config('realtime/distribute') && n_avg_files gt 0L) then begin
     mg_log, 'copying %d average files to archive dir', n_avg_files, $
             name='kcor/eod', /info
+
+    if (~file_test(archive_dir, /directory)) then file_mkdir, archive_dir
     file_copy, unzipped_avg_files + '.gz', archive_dir, /overwrite
   endif
 
@@ -623,6 +621,8 @@ pro kcor_create_averages, date, l2_files, run=run, enhanced=enhanced
     if (run->config('realtime/distribute')) then begin
       mg_log, 'copying extended average GIF to cropped dir', $
               name='kcor/eod', /debug
+
+      if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
       file_copy, gif_filename, fullres_dir, /overwrite
     endif
   endif else begin
@@ -640,6 +640,8 @@ pro kcor_create_averages, date, l2_files, run=run, enhanced=enhanced
     if (run->config('realtime/distribute')) then begin
       mg_log, 'copying cropped extended average GIF to cropped dir', $
               name='kcor/eod', /debug
+
+      if (~file_test(cropped_dir, /directory)) then file_mkdir, cropped_dir
       file_copy, cgif_filename, cropped_dir, /overwrite
     endif
   endif
@@ -710,6 +712,8 @@ pro kcor_create_averages, date, l2_files, run=run, enhanced=enhanced
 
     if (run->config('realtime/distribute')) then begin
       mg_log, 'copying daily average file to archive', name='kcor/eod', /info
+
+      if (~file_test(archive_dir, /directory)) then file_mkdir, archive_dir
       file_copy, daily_fits_average_filename + '.gz', archive_dir, /overwrite
     endif else begin
       mg_log, 'not copying daily average file to archive', name='kcor/eod', /info

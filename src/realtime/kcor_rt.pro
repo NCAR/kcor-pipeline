@@ -59,7 +59,13 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
   endif
 
   raw_dir = filepath('', subdir=date, root=run->config('processing/raw_basedir'))
-  if (~file_test(raw_dir, /directory)) then file_mkdir, raw_dir
+  if (~file_test(raw_dir, /directory)) then begin
+    kcor_mkdir, raw_dir, status=status, error_message=error_message
+    if (status ne 0L) then begin
+      mg_log, error_message, name='kcor/rt', /critical
+      goto, done
+    endif
+  endif
 
   available = kcor_state(/lock, run=run)
 
@@ -82,12 +88,8 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
                            root=run->config('results/fullres_basedir'))
     archive_dir = filepath('', subdir=date_parts, $
                            root=run->config('results/archive_basedir'))
-
-    if (run->config('realtime/distribute')) then begin
-      if (~file_test(croppedgif_dir, /directory)) then file_mkdir, croppedgif_dir
-      if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
-      if (~file_test(archive_dir, /directory)) then file_mkdir, archive_dir
-    endif
+    nrgf_dir = filepath('', subdir=date_parts, $
+                        root=run->config('results/nrgf_basedir'))
 
     cd, raw_dir
 
@@ -305,16 +307,19 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
 
       if (run->config('realtime/distribute')) then begin
         if (file_test(nrgf_filename)) then begin
+          if (~file_test(archive_dir, /directory)) then file_mkdir, archive_dir
           file_copy, nrgf_filename, archive_dir, /overwrite
         endif
-
         if (file_test(cropped_gif_filename)) then begin
+          if (~file_test(croppedgif_dir, /directory)) then file_mkdir, croppedgif_dir
           file_copy, cropped_gif_filename, croppedgif_dir, /overwrite
         endif
         if (file_test(gif_filename)) then begin
+          if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
           file_copy, gif_filename, fullres_dir, /overwrite
         endif
         if (file_test(l2_filename)) then begin
+          if (~file_test(archive_dir, /directory)) then file_mkdir, archive_dir
           file_copy, l2_filename, archive_dir, /overwrite
         endif
       endif
@@ -343,11 +348,6 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     endif
 
     ; find the NRGF files now, will copy them after updating database
-    if (run->config('realtime/distribute')) then begin
-      nrgf_dir = filepath('', subdir=date_parts, root=run->config('results/nrgf_basedir'))
-      if (~file_test(nrgf_dir, /directory)) then file_mkdir, nrgf_dir
-    endif
-
     n_nrgf_gifs = nrgf_basenames->count()
     if (n_nrgf_gifs gt 0L) then begin
       nrgf_gif_basenames = nrgf_basenames->toArray()
@@ -462,7 +462,10 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
 
     ; now move NRGF files
     if (n_nrgf_gifs gt 0L && run->config('realtime/distribute')) then begin
+      if (~file_test(nrgf_dir, /directory)) then file_mkdir, nrgf_dir
       file_copy, nrgf_gifs, nrgf_dir, /overwrite
+
+      if (~file_test(croppedgif_dir, /directory)) then file_mkdir, croppedgif_dir
       file_copy, cropped_nrgf_gifs, croppedgif_dir, /overwrite
     endif
   endif else begin

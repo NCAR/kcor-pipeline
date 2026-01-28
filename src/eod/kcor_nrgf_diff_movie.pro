@@ -196,6 +196,7 @@ pro kcor_nrgf_diff_movie, run=run
               name=run.logger_name, /info
       write_gif, frame_filenames[n_nrgf_diff_images], combined_image
       if (run->config('realtime/distribute')) then begin
+        if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
         file_copy, frame_filenames[n_nrgf_diff_images], fullres_dir, /overwrite
       endif
 
@@ -276,6 +277,7 @@ pro kcor_nrgf_diff_movie, run=run
     kcor_create_mp4, frame_filenames, nrfgdiff_mp4_filename, $
                      run=run, status=status
     if (status eq 0L && run->config('realtime/distribute')) then begin
+      if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
       file_copy, nrfgdiff_mp4_filename, fullres_dir, /overwrite
     endif
   endif
