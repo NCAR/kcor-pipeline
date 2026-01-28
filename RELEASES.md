@@ -1307,3 +1307,5 @@
 #### 2.2.14 [Jan 27, 2026]
 
 - only check for directories existing immediately before copying
+
+#### 2.2.15
