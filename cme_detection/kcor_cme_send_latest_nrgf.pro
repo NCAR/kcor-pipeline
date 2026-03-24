@@ -1,5 +1,8 @@
 ; docformat = 'rst'
 
+;+
+; Send latest NRGF file.
+;-
 pro kcor_cme_send_latest_nrgf
   compile_opt strictarr
   @kcor_cme_det_common
@@ -13,13 +16,7 @@ pro kcor_cme_send_latest_nrgf
   ftp_from_email = run->config('cme/from_email')
   if (n_elements(ftp_from_email) eq 0L) then ftp_from_email = ''
 
-  ; find latest NRGF image
-  glob = filepath('*_kcor_l2_nrgf.gif', $
-                  subdir=kcor_decompose_date(simple_date), $
-                  root=run->config('results/nrgf_basedir'))
-  nrgf_filenames = file_search(glob, count=n_nrgf_files)
-  if (n_nrgf_files eq 0L) then goto, done
-  latest_nrgf_filename = nrgf_filenames[-1]
+  latest_nrgf_filename = kcor_cme_find_latest_nrgf()
 
   ; send latest NRGF to FTP site
   kcor_cme_ftp_transfer, ftp_url, latest_nrgf_filename, ftp_from_email, $

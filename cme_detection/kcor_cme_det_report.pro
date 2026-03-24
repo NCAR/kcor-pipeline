@@ -141,6 +141,16 @@ pro kcor_cme_det_report, time, widget=widget, interim=interim
           keyword_set(interim) ? 'interim' : 'summary', $
           name='kcor/cme', /debug
 
+  ; attach the latest NRGF GIF file if it is within time range (10 min)
+  current_time = kcor_cme_current_time(run=run)
+  latest_nrgf_filename = kcor_cme_find_latest_nrgf(current_time, $
+                                                   age=time_since_latest_nrgf)
+  found_nrgf = n_elements(latest_nrgf_filename) gt 0L
+  if (found_nrgf && (time_since_latest_nrgf lt 10.0 * 60.0)) then begin
+      nrgf_attachment = string(latest_nrgf_filename, format='-a %s')
+    endif
+  endif else nrgf_attachment = ''
+
   ; create a temporary file for the message
   mailfile = mk_temp_file(dir=get_temp_dir(), 'cme_mail.txt', /random)
 
@@ -192,11 +202,12 @@ pro kcor_cme_det_report, time, widget=widget, interim=interim
                  : run->config('cme/from_email')
   cmd = string(subject, $
                from_email, $
+               nrgf_attachment, $
                plot_file, $
                plotvalues_file, $
                addresses, $
                mailfile, $
-               format='(%"mail -s \"%s\" -r %s -a %s -a %s %s < %s")')
+               format='(%"mail -s \"%s\" -r %s %s -a %s -a %s %s < %s")')
   spawn, cmd, result, error_result, exit_status=status
   if (status eq 0L) then begin
     mg_log, '%s report sent to %s', $
@@ -231,44 +242,47 @@ pro kcor_cme_det_report, time, widget=widget, interim=interim
   height          = 60 * (lat[leadingedge[itime]] + 90) / rsun
   time_for_height = tai2utc(tairef, /truncate, /ccsds) + 'Z'
 
-  summary_json = kcor_cme_alert_summary(issue_time, $
-                                        last_sci_data_time, $
-                                        current_cme_start_time, $
-                                        end_time, $
-                                        mode, $
-                                        position_angle=angle, $
-                                        speed=speed, $
-                                        height=height, $
-                                        time_for_height=time_for_height, $
-                                        interim=interim)
+  send_interim_alerts = run->config('cme/send_interim_alerts')
+  if (~keyword_set(interim) || send_interim_alerts) then begin
+    summary_json = kcor_cme_alert_summary(issue_time, $
+                                          last_sci_data_time, $
+                                          current_cme_start_time, $
+                                          end_time, $
+                                          mode, $
+                                          position_angle=angle, $
+                                          speed=speed, $
+                                          height=height, $
+                                          time_for_height=time_for_height, $
+                                          interim=interim)
 
-  json_filename = kcor_cme_alert_filename(time_for_height, issue_time)
-  kcor_cme_alert_text2file, summary_json, json_filename
-  kcor_db_alert_summary_ingest, summary_json, interim=interim
+    json_filename = kcor_cme_alert_filename(time_for_height, issue_time)
+    kcor_cme_alert_text2file, summary_json, json_filename
+    kcor_db_alert_summary_ingest, summary_json, interim=interim
 
-  if (n_elements(ftp_url) gt 0L) then begin
-    ftp_from_email = run->config('cme/from_email')
-    if (n_elements(ftp_from_email) eq 0L) then ftp_from_email = ''
+    if (n_elements(ftp_url) gt 0L) then begin
+      ftp_from_email = run->config('cme/from_email')
+      if (n_elements(ftp_from_email) eq 0L) then ftp_from_email = ''
 
-    kcor_cme_ftp_transfer, ftp_url, json_filename, ftp_from_email, $
-                           status=ftp_status, $
-                           error_msg=ftp_error_msg, $
-                           cmd=ftp_cmd
-    if (ftp_status ne 0L) then begin
-      mg_log, 'FTP transferred with error %d', ftp_status, name='kcor/cme', /error
-      mg_log, 'FTP command: %s', ftp_cmd, name='kcor/cme', /error
-      for e = 0L, n_elements(ftp_error_msg) - 1L do begin
-        mg_log, ftp_error_msg[e], name='kcor/cme', /error
-      endfor
-    endif else begin
-      mg_log, '%s alert successfully sent', $
-              keyword_set(interim) ? 'interim' : 'summary', $
-              name='kcor/cme', /info
-    endelse
+      kcor_cme_ftp_transfer, ftp_url, json_filename, ftp_from_email, $
+                             status=ftp_status, $
+                             error_msg=ftp_error_msg, $
+                             cmd=ftp_cmd
+      if (ftp_status ne 0L) then begin
+        mg_log, 'FTP transferred with error %d', ftp_status, name='kcor/cme', /error
+        mg_log, 'FTP command: %s', ftp_cmd, name='kcor/cme', /error
+        for e = 0L, n_elements(ftp_error_msg) - 1L do begin
+          mg_log, ftp_error_msg[e], name='kcor/cme', /error
+        endfor
+      endif else begin
+        mg_log, '%s alert successfully sent', $
+                keyword_set(interim) ? 'interim' : 'summary', $
+                name='kcor/cme', /info
+      endelse
+    endif
+
+    if (n_elements(alerts_dir) gt 0L) then file_copy, json_filename, alerts_dir
+    file_delete, json_filename, /allow_nonexistent
   endif
-
-  if (n_elements(alerts_dir) gt 0L) then file_copy, json_filename, alerts_dir
-  file_delete, json_filename, /allow_nonexistent
 
   ; TODO: should I also delete angle_history and leadingedge?
   ;delvarx, speed_history
