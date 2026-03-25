@@ -142,14 +142,30 @@ pro kcor_cme_det_report, time, widget=widget, interim=interim
           name='kcor/cme', /debug
 
   ; attach the latest NRGF GIF file if it is within time range (10 min)
+  nrgf_age_threshold = 10.0   ; minutes
   current_time = kcor_cme_current_time(run=run)
   latest_nrgf_filename = kcor_cme_find_latest_nrgf(current_time, $
                                                    age=time_since_latest_nrgf)
   found_nrgf = n_elements(latest_nrgf_filename) gt 0L
-  if (found_nrgf && (time_since_latest_nrgf lt 10.0 * 60.0)) then begin
+  if (found_nrgf && (time_since_latest_nrgf lt nrgf_age_threshold * 60.0)) then begin
       nrgf_attachment = string(latest_nrgf_filename, format='-a %s')
     endif
   endif else nrgf_attachment = ''
+
+  ; attach difference image from current pB and 10 minutes ago
+  diff_age_threshold     = 10.0   ; minutes
+  min_diff_age_threshold =  5.0   ; minutes
+  max_diff_age_threshold = 30.0   ; minutes
+
+  kcor_cme_find_latest_difference_images, current_time, $
+      diff_age_threshold, min_diff_age_threshold, max_diff_age_threshold, $
+      filename1=diff_filename1, filename2=diff_filename2, $
+      found=found_diff, run=run
+  if (found_diff) then begin
+    kcor_cme_create_difference_gif, diff_filename1, diff_filename1, output_filename, $
+        run=run
+    diff_attachment = string(output_filename, format='-a %s')
+  endif else diff_attachment = ''
 
   ; create a temporary file for the message
   mailfile = mk_temp_file(dir=get_temp_dir(), 'cme_mail.txt', /random)
@@ -161,6 +177,18 @@ pro kcor_cme_det_report, time, widget=widget, interim=interim
   printf, out, 'The Mauna Loa K-coronagraph has detected a possible CME ending at ' + $
           time + ' UT with the below parameters.'
   printf, out
+
+  if (nrgf_attachment eq '') then begin
+    printf, out, string(nrgf_age_threshold, $
+                        format='No NRGF images in the last %0.1f minutes. No NRGF image attached.')
+    printf, out
+  endif
+
+  if (diff_attachment eq '') then begin
+    printf, out, string(diff_age_threshold, $
+                        format='Not enough pB images in the last %0.1f minutes to create a difference image. No difference image attached.')
+    printf, out
+  endif
 
   spawn, 'echo $(whoami)@$(hostname)', who, error_result, exit_status=status
   if (status eq 0L) then begin
@@ -203,11 +231,12 @@ pro kcor_cme_det_report, time, widget=widget, interim=interim
   cmd = string(subject, $
                from_email, $
                nrgf_attachment, $
+               diff_attachment, $
                plot_file, $
                plotvalues_file, $
                addresses, $
                mailfile, $
-               format='(%"mail -s \"%s\" -r %s %s -a %s -a %s %s < %s")')
+               format='(%"mail -s \"%s\" -r %s %s %s -a %s -a %s %s < %s")')
   spawn, cmd, result, error_result, exit_status=status
   if (status eq 0L) then begin
     mg_log, '%s report sent to %s', $
