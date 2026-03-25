@@ -10,8 +10,12 @@
 ;     filename of the second (later) pB FITS file
 ;   output_filename : in, required, type=string
 ;     filename of the difference GIF
+;
+; :Keywords:
+;   run : in, required, type=object
+;     KCor run object
 ;-
-pro kcor_cme_create_difference_gif, filename1, filename2, output_filename
+pro kcor_cme_create_difference_gif, filename1, filename2, output_filename, run=run
   compile_opt strictarr
 
   im1      = readfits(filename1)
@@ -26,7 +30,7 @@ pro kcor_cme_create_difference_gif, filename1, filename2, output_filename
 
   dateobs2 = fxpar(header2, 'DATE-OBS')
 
-  diff     = im2 - im1   ; [TODO]: is this the correct direction?
+  diff     = im2 - im1   ; later - earlier image
 
   original_device = !d.name
   set_plot, 'Z'
@@ -45,11 +49,10 @@ pro kcor_cme_create_difference_gif, filename1, filename2, output_filename
   tvlct, red, green, blue, /get
 
   ; display scaled difference
-  display_min = -2.0e-8
-  display_max = 2.0e-8
-  display_exp = 1.0
+  display_min    = run->epoch('display_difference_min')
+  display_max    = run->epoch('display_difference_max')
   display_factor = 1.0e6
-  scaled_image = bytscl((display_factor * diff)^display_exp, $
+  scaled_image = bytscl(display_factor * diff, $
                         min=display_factor * display_min, $
                         max=display_factor * display_max, $
                         top=n_colors - 1L)
@@ -106,7 +109,7 @@ f1 = filepath('20160101_230329_kcor_l2_pb.fts.gz', subdir=subdir, root=root_dir)
 f2 = filepath('20160101_231320_kcor_l2_pb.fts.gz', subdir=subdir, root=root_dir)
 output_filename = 'difference.gif'
 
-kcor_cme_create_difference_gif, f1, f2, output_filename
+kcor_cme_create_difference_gif, f1, f2, output_filename, run=run
 
 obj_destroy, run
 
