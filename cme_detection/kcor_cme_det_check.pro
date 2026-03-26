@@ -6,6 +6,10 @@
 ; :Keywords:
 ;   stopped : out, optional, type=boolean
 ;     set to a named variable to retrieve whether to stop processing
+;   realtime : in, optional, type=boolean
+;     set to indicate that the job is being run in realtime, i.e., files for
+;     the day are not all present already and the code must wait for them to
+;     come in
 ;   widget : in, optional, type=boolean
 ;     set to run in the widget GUI
 ;-
@@ -17,14 +21,16 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget, realtime=realtime
   stopped = 0B
 
   if (~cstop) then begin
-    files = file_search(concat_dir(datedir, '*kcor_l2.fts'), count=count)
+    mg_log, 'checking for level 2 pB FITS files', name='kcor/cme', /debug
+    files = file_search(concat_dir(datedir, '*kcor_l2_pb.fts'), count=count)
     if (count eq 0) then begin
-      files = file_search(concat_dir(datedir,'*kcor_l2.fts.gz'), count=count)
+      files = file_search(concat_dir(datedir,'*kcor_l2_pb.fts.gz'), count=count)
       if (~keyword_set(realtime) && (count eq 0)) then begin
         mg_log, 'no FITS files found in archive dir', name='kcor/cme', /info
         goto, stop_point
       endif
     endif
+    mg_log, 'found %d level 2 pB FITS files', count, name='kcor/cme', /debug
 
     ; wait for the last file to finish writing -- the last file found in the
     ; FILE_SEARCH might still be being written, so wait a few seconds to make
@@ -41,7 +47,10 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget, realtime=realtime
       if (count eq 0) then begin
         mg_log, 'no FITS files found in time range', name='kcor/cme', /info
         goto, stop_point
-      endif
+      endif else begin
+        mg_log, 'found %d new level 2 pB FITS files', count, $
+                name='kcor/cme', /info
+      endelse
       files = files[w]
     endif
 
@@ -65,8 +74,7 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget, realtime=realtime
       if (keyword_set(widget)) then begin
         widget_control, wfile, set_value=name + ext
       endif
-      mg_log, 'reading %s', file_basename(files[ifile]), $
-              name='kcor/cme', /info
+      mg_log, 'reading %s', file_basename(files[ifile]), name='kcor/cme', /info
       image = readfits(files[ifile], header, /silent)
       datatype = fxpar(header, 'datatype', count=ndatatype)
       last_data_time = fxpar(header, 'DATE-OBS') + 'Z'
