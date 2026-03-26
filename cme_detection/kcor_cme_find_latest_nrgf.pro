@@ -28,13 +28,22 @@ function kcor_cme_find_latest_nrgf, current_time, age=age
 
   ; if the caller wants the age of the latest NRGF file, they must also pass
   ; the current time
-  if (arg_present(age) && (n_elements(current_time) gt 0L)) then begin
+  if (arg_present(age) $
+        && (n_elements(current_time) gt 0L) $
+        && (n_nrgf_files gt 0L)) then begin
     current_time_jd = kcor_dateobs2julian(current_time)
 
-    primary_header = headfits(latest_nrgf_filename, exten=0)
-    latest_nrgf_dateobs = sxpar(primary_header, 'DATE-OBS')
-    latest_nrgf_jd = kcor_dateobs2julian(latest_nrgf_dateobs)
+    datetime = strmid(file_basename(latest_nrgf_filename), 0, 15)
+    year   = long(strmid(datetime, 0, 4))
+    month  = long(strmid(datetime, 4, 2))
+    day    = long(strmid(datetime, 6, 2))
+    hour   = long(strmid(datetime, 9, 2))
+    minute = long(strmid(datetime, 11, 2))
+    second = long(strmid(datetime, 13, 2))
+    latest_nrgf_jd = julday(month, day, year, hour, minute, second)
 
     age = (current_time_jd - latest_nrgf_jd) * 24.0 * 60.0 * 60.0
   endif
+
+  return, latest_nrgf_filename
 end
