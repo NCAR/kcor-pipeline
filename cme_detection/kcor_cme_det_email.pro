@@ -182,9 +182,9 @@ pro kcor_cme_det_email, time, edge, last_detected_image_time, operator=operator
       filename1=diff_filename1, filename2=diff_filename2, $
       found=found_diff, run=run
   if (found_diff) then begin
-    kcor_cme_create_difference_gif, diff_filename1, diff_filename1, output_filename, $
-        run=run
-    diff_attachment = string(output_filename, format='-a %s')
+    kcor_cme_create_difference_gif, diff_filename1, diff_filename2, $
+      difference_filename=difference_filename, run=run
+    diff_attachment = string(difference_filename, format='-a %s')
   endif else diff_attachment = ''
 
   subject = string(ut_date, time, $

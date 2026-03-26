@@ -8,15 +8,23 @@
 ;     filename of the first (earlier) pB FITS file
 ;   filename2 : in, required, type=string
 ;     filename of the second (later) pB FITS file
-;   output_filename : in, required, type=string
-;     filename of the difference GIF
 ;
 ; :Keywords:
+;   difference_filename : out, optional, type=string
+;     set to a named variable to retrieve the filename of the difference GIF
+;     created
 ;   run : in, required, type=object
 ;     KCor run object
 ;-
-pro kcor_cme_create_difference_gif, filename1, filename2, output_filename, run=run
+pro kcor_cme_create_difference_gif, filename1, filename2, $
+                                    difference_filename=difference_filename, $
+                                    run=run
   compile_opt strictarr
+
+  difference_dir = filepath('', $
+                            subdir=kcor_decompose_date(run.date), $
+                            root=run->config('cme/difference_dir'))
+  if (~file_test(difference_dir, /directory)) then file_mkdir, difference_dir
 
   im1      = readfits(filename1)
   header1  = headfits(filename1)
@@ -83,7 +91,14 @@ pro kcor_cme_create_difference_gif, filename1, filename2, output_filename, run=r
 
   ; write image as GIF
   save = tvrd()
-  write_gif, output_filename, save, red, green, blue
+
+  basename1 = file_basename(filename1)
+  basename2 = file_basename(filename2)
+  difference_basename = string(strmid(basename2, 0, 15), $
+                               strmid(basename1, 9, 6), $
+                               format='%s_kcor_minus_%s_cme.gif')
+  difference_filename = filepath(difference_basename, root=difference_dir)
+  write_gif, difference_filename, save, red, green, blue
 
   done:
   tvlct, original_rgb
@@ -99,7 +114,7 @@ config_filename = filepath(config_basename, $
                            subdir=['..', '..', 'kcor-config'], $
                            root=mg_src_root())
 
-date = '20160101'
+date = '20220405'
 run = kcor_run(date, config_filename=config_filename)
 
 root_dir = run->config('processing/raw_basedir')
@@ -107,9 +122,9 @@ root_dir = run->config('processing/raw_basedir')
 subdir = [date, 'level2']
 f1 = filepath('20160101_230329_kcor_l2_pb.fts.gz', subdir=subdir, root=root_dir)
 f2 = filepath('20160101_231320_kcor_l2_pb.fts.gz', subdir=subdir, root=root_dir)
-output_filename = 'difference.gif'
 
-kcor_cme_create_difference_gif, f1, f2, output_filename, run=run
+kcor_cme_create_difference_gif, f1, f2, difference_filename=difference_filename, run=run
+print, difference_filename
 
 obj_destroy, run
 
