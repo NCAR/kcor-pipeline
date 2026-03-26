@@ -72,7 +72,9 @@ pro kcor_raw_insert, date, fits_list, quality, $
   if (n_files eq 0) then begin
     mg_log, 'no images in FITS list for %s', quality, name=log_name, /info
     goto, done
-  endif
+  endif else begin
+    mg_log, 'ready to insert %d %s files', n_files, quality, name=log_name, /info
+  endelse
 
   ; get IDs from relational tables
   level = 'L0'
