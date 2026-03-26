@@ -4,7 +4,8 @@
 ; :Keywords:
 ;   realtime : in, optional, type=boolean
 ;     set to indicate that the job is being run in realtime, i.e., files for
-;     the are not all present already and the code must wait for them to come in
+;     the day are not all present already and the code must wait for them to
+;     come in
 ;-
 pro kcor_cme_detection_job, date, $
                             timerange=_timerange, $
