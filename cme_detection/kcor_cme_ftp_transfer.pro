@@ -5,9 +5,12 @@
 ;
 ;   curl --ssl -k --user anonymous:<your email> <FTP URL> -T <filename>
 ;
+; If the `ftp_url` begins with `ftp://`, `filename` is transferred as above. If
+; not, it is simply copied to the directory.
+;
 ; :Params:
 ;   ftp_url : in, required, type=string
-;     FTP address
+;     FTP address or directory to copy to
 ;   filename : in, required, type=string
 ;     filename of file to transfer
 ;   email : in, required, type=string
@@ -35,12 +38,20 @@ pro kcor_cme_ftp_transfer, ftp_url, filename, email, $
 
   _verbose = keyword_set(verbose) ? '-v' : ''
 
-  ; TODO: need a silent option to not show progress
-  ;cmd = string(_verbose, email, ftp_url, filename, $
-  ;             format='(%"curl --ssl -k %s -s -S --user anonymous:%s %s -T %s")')
-  cmd = string(_verbose, email, ftp_url, filename, $
-               format='(%"curl --ssl -k %s --user anonymous:%s %s -T %s")')
-  spawn, cmd, stdout, error_msg, exit_status=status
+  if (strmid(ftp_url, 0, 6) eq 'ftp://') then begin
+    ; TODO: need a silent option to not show progress
+    ;cmd = string(_verbose, email, ftp_url, filename, $
+    ;             format='(%"curl --ssl -k %s -s -S --user anonymous:%s %s -T %s")')
+    cmd = string(_verbose, email, ftp_url, filename, $
+                format='(%"curl --ssl -k %s --user anonymous:%s %s -T %s")')
+    spawn, cmd, stdout, error_msg, exit_status=status
+  endif else begin
+    if (~file_test(ftp_url, /directory)) then file_mkdir, ftp_url
+    file_copy, filename, ftp_url, /overwrite
+    status = 0
+    error_msg = ''
+    cmd = string(filename, ftp_url, format='cp %s %s')
+  endelse
 end
 
 ; main-level example program
@@ -55,7 +66,7 @@ event_time     = '2021-07-28T13:45:00Z'
 issue_time     = '2021-07-28T13:47:00Z'
 last_data_time = '2021-07-28T13:46:15Z'
 
-config_basename = 'kcor.cme.cfg'
+config_basename = 'kcor.cme-test.cfg'
 config_filename = filepath(config_basename, subdir=['..', 'config'], root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
 
