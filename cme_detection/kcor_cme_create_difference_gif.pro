@@ -56,7 +56,7 @@ pro kcor_cme_create_difference_gif, filename1, filename2, output_filename, run=r
                         min=display_factor * display_min, $
                         max=display_factor * display_max, $
                         top=n_colors - 1L)
-  tv, bytscl(diff, -2.0e-8, 2.0e-8)
+  tv, scaled_image
 
   ; annotate image
   xyouts, 4, 990, /device, 'MLSO/HAO/KCOR', $
