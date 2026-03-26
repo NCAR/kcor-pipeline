@@ -56,13 +56,15 @@ pro kcor_cme_det_report, time, widget=widget, interim=interim
 
   !p.multi = [0, 1, n_plots]
 
+  charsize = 2.0
+
   ; speed plot
   velocity = reform(speed_history)
   ind = where(speed_history lt 0.0, n_nan)
   if (n_nan gt 0L) then velocity[ind] = !values.f_nan
 
   utplot, date_diff.date_avg, velocity, $
-          color='000000'x, background='ffffff'x, charsize=1.5, $
+          color='000000'x, background='ffffff'x, charsize=charsize, $
           psym=1, symsize=0.5, $
           ytitle='velocity (km/s)', $
           title='Speed', $
@@ -74,7 +76,7 @@ pro kcor_cme_det_report, time, widget=widget, interim=interim
   if (n_nan gt 0L) then position[ind] = !values.f_nan
 
   utplot, date_diff.date_avg, position, $
-          color='000000'x, background='ffffff'x, charsize=1.5, $
+          color='000000'x, background='ffffff'x, charsize=charsize, $
           psym=1, symsize=0.5, $
           ytitle='Angle (degrees)', $
           title='Position angle', $
@@ -89,7 +91,7 @@ pro kcor_cme_det_report, time, widget=widget, interim=interim
   if (n_nan gt 0L) then radius[ind] = !values.f_nan
 
   utplot, date_diff.date_avg, radius, $
-          color='000000'x, background='ffffff'x, charsize=1.5, $
+          color='000000'x, background='ffffff'x, charsize=charsize, $
           psym=1, symsize=0.5, $
           ytitle='Solar radii', $
           title='Leading edge', $
@@ -149,7 +151,6 @@ pro kcor_cme_det_report, time, widget=widget, interim=interim
   found_nrgf = n_elements(latest_nrgf_filename) gt 0L
   if (found_nrgf && (time_since_latest_nrgf lt nrgf_age_threshold * 60.0)) then begin
       nrgf_attachment = string(latest_nrgf_filename, format='-a %s')
-    endif
   endif else nrgf_attachment = ''
 
   ; attach difference image from current pB and 10 minutes ago
@@ -221,9 +222,8 @@ pro kcor_cme_det_report, time, widget=widget, interim=interim
   ; form a subject line for the email
   subject = string(keyword_set(interim) ? 'interim' : 'summary', $
                    ut_date, $
-                   keyword_set(interim) ? 'at' : 'ending at', $
                    time, $
-                   format='(%"MLSO K-Cor %s report for CME on %s %s %s UT")')
+                   format='(%"MLSO K-Cor CME %s report: %s %s UT")')
 
   from_email = n_elements(run->config('cme/from_email')) eq 0L $
                  ? '$(whoami)@ucar.edu' $
