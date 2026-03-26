@@ -58,6 +58,9 @@ pro kcor_cme_find_latest_difference_images, current_time, $
                   subdir=[run.date, 'level2'], $
                   root=run->config('processing/raw_basedir'))
   pb_filenames = file_search(glob, count=n_pb_files)
+  if (n_pb_files eq 0L) then begin
+    goto, done
+  endif
 
   basenames  = file_basename(pb_filenames)
   ut_years   = float(strmid(basenames, 0, 4))
@@ -115,6 +118,7 @@ pro kcor_cme_find_latest_difference_images, current_time, $
   endif
 
   ; otherwise, we couldn't find a match
+  done:
 end
 
 
@@ -124,15 +128,15 @@ diff_age_threshold     = 10.0   ; minutes
 min_diff_age_threshold =  5.0   ; minutes
 max_diff_age_threshold = 30.0   ; minutes
 
-config_basename = 'kcor.reprocess.cfg'
+config_basename = 'kcor.cme-test.cfg'
 config_filename = filepath(config_basename, $
                            subdir=['..', '..', 'kcor-config'], $
                            root=mg_src_root())
 
-date = '20160101'
+date = '20220425'
 run = kcor_run(date, config_filename=config_filename)
 
-current_time = '2016-01-01T23:13:03Z'
+current_time = '2022-04-25T18:03:58Z'
 kcor_cme_find_latest_difference_images, current_time, $
                                         diff_age_threshold, $
                                         min_diff_age_threshold, $
@@ -146,8 +150,9 @@ if (found_diff) then begin
   print, file_basename(diff_filename1), format='Earlier file: %s'
   print, file_basename(diff_filename2), format='Later file: %s'
 
-  output_filename = 'difference.gif'
-  kcor_cme_create_difference_gif, diff_filename1, diff_filename2, output_filename, run=run
+  kcor_cme_create_difference_gif, diff_filename1, diff_filename2, $
+    difference_filename=difference_filename, run=run
+  print, difference_filename, format='difference GIF created: %s'
 endif else begin
   print, 'no files found'
 endelse
