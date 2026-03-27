@@ -133,7 +133,7 @@ pro kcor_cme_det_email, time, edge, last_detected_image_time, operator=operator
             'CME in progress.'
     printf, out, 'Parameters for this CME have not yet been measured.'
   endif else begin
-    printf, out, 'Issued time: ' + ut_date + ' ' + time
+    printf, out, 'Issued: ' + ut_date + ' ' + time
     printf, out
 
     printf, out, 'The Mauna Loa K-coronagraph has detected a CME with the following characteristics:'
