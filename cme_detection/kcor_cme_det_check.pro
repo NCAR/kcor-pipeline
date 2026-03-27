@@ -59,7 +59,7 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget, realtime=realtime
     if (ifile ge count) then begin
       mtime = (file_info(files)).mtime
       age = systime(1) - max(mtime)
-      ; TODO: is this check even needed any more? why stop if there hasn't been
+      ; [TODO]: is this check even needed any more? why stop if there hasn't been
       ; a file in the last 20 minutes?
       if (~keyword_set(realtime) && (age ge 1200)) then begin   ; 20 min
         mg_log, 'no more files in last %0.1f minutes', age / 60.0, name='kcor/cme', /info
@@ -199,7 +199,10 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget, realtime=realtime
                 endif
 
                 ; attempt to measure the CME parameters
-                kcor_cme_det_measure, rsun, updated=updated, alert=alert, ysig=ysig, $
+                kcor_cme_det_measure, rsun, $
+                                      updated=updated, $
+                                      alert=alert, $
+                                      ysig=ysig, $
                                       parameters=parameters
                 if (keyword_set(updated)) then begin
                   angle_history[-1] = angle
@@ -274,14 +277,22 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget, realtime=realtime
         itime = n_elements(leadingedge) - 1
         tai0 = date_diff[itime].tai_avg
 
-        mg_log, 'CME occurring: %s', cme_occurring ? 'YES' : 'NO', name='kcor/cme', /info
+        mg_log, 'CME occurring: %s', $
+                cme_occurring $
+                  ? string((tai0 - current_cme_tai) / 60.0, format='YES (%0.1f min)') $
+                  : 'NO', $
+                name='kcor/cme', /info
 
         if (cme_occurring) then begin
           mg_log, 'tai0 - tairef: %0.1f', tai0 - tairef, name='kcor/cme', /debug
-          mg_log, 'tai0 - current_cme_tai: %0.1f', tai0 - current_cme_tai, name='kcor/cme', /debug
-          mg_log, 'tairef: %s', tai2utc(tairef, /time, /truncate, /ccsds), name='kcor/cme', /debug
-          mg_log, 'tai0: %s', tai2utc(tai0, /time, /truncate, /ccsds), name='kcor/cme', /debug
-          mg_log, 'current CME: %s', tai2utc(current_cme_tai, /time, /truncate, /ccsds), name='kcor/cme', /debug
+          mg_log, 'tai0 - current_cme_tai: %0.1f', tai0 - current_cme_tai, $
+                  name='kcor/cme', /debug
+          mg_log, 'tairef: %s', tai2utc(tairef, /time, /truncate, /ccsds), $
+                  name='kcor/cme', /debug
+          mg_log, 'tai0: %s', tai2utc(tai0, /time, /truncate, /ccsds), $
+                  name='kcor/cme', /debug
+          mg_log, 'current CME: %s', tai2utc(current_cme_tai, /time, /truncate, /ccsds), $
+                  name='kcor/cme', /debug
 
           summary_report_interval = run->config('cme/summary_report_interval')
           send_summary_report = (tai0 - current_cme_tai) gt summary_report_interval
