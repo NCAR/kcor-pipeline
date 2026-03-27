@@ -763,13 +763,15 @@ def list_alerts(args):
         )
 
     for f in json_files:
+        if not os.path.exists(f): continue
+
         basename = os.path.basename(f)
         with open(f) as jf:
             alert = json.load(jf)
         try:
             submission = alert["sep_forecast_submission"]
             observations = submission["observations"][0]
-            type = (
+            alert_type = (
                 observations["alert"]["alert_type"]
                 if "alert" in observations
                 else "heartbeat"
@@ -782,7 +784,7 @@ def list_alerts(args):
                 else math.nan
             )
             pa_text = f"{pa:0.2f} deg" if math.isfinite(pa) else ""
-            print(f"{basename}   {type:12s}  {all_clear_text:5s}   {pa_text}")
+            print(f"{basename}   {alert_type:12s}  {all_clear_text:5s}   {pa_text}")
 
             if args.detail:
                 json.dump(alert, sys.stdout, indent=4)
