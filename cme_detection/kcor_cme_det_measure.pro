@@ -106,6 +106,7 @@ pro kcor_cme_det_measure, rsun, updated=updated, alert=alert, ysig=ysig, $
     if (nused ge nthresh) and (speed0 gt 20) and (dxmax le 120) and $
         (xrange ge 120) and (ysig lt 0.05) then begin
 
+      mg_log, 'cme_occurring %d', cme_occurring, name='kcor/cme', /debug
       cme_occurring = 1B
       parameters.cme_occurring = 1B
 
@@ -129,6 +130,7 @@ pro kcor_cme_det_measure, rsun, updated=updated, alert=alert, ysig=ysig, $
       endif else begin
         ; more than 60 minutes from last successful measurement/alert
         if ((tai0 - tairef) gt summary_report_interval) then alert = 1
+        mg_log, 'alert: %d', alert, name='kcor/cme', /debug
       endelse
       if (n_elements(tairef) gt 0L) then old_tairef = tairef
       tairef = tai0
@@ -138,9 +140,18 @@ pro kcor_cme_det_measure, rsun, updated=updated, alert=alert, ysig=ysig, $
         ; if CME was already occurring when this new CME is found, send the
         ; report now for the previous CME
         if (cme_was_occurring and n_elements(old_tairef) gt 0L) then begin
+          mg_log, 'CME was occurring, so need to send report for old CME', $
+                  name='kcor/cme', /debug
           kcor_cme_det_report, tai2utc(old_tairef, /time, /truncate, /ccsds)
         endif
         kcor_cme_det_alert, itime, rsun
+      endif
+
+      ; set time of current CME to now
+      if (~cme_was_occurring && cme_occurring) then begin
+        mg_log, 'resetting current CME time to now', name='kcor/cme', /debug
+        current_cme_tai = tairef
+        current_cme_start_time = tai2utc(tairef, /truncate, /ccsds) + 'Z'
       endif
     endif
   endif
