@@ -1308,7 +1308,7 @@
 
 - only check for directories existing immediately before copying
 
-#### 2.2.15
+#### 2.2.15 [Mar 28, 2026]
 
 - updates to CME alert emails: wording and NRGF/difference attachments
 - send latest NRGF image to CCMC
