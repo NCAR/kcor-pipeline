@@ -25,7 +25,7 @@ FLAGS=cme
 
 SCRIPT_NAME=kcor_cme_detection_job
 
-CONFIG_FILENAME=$KCOR_ROOT/config/kcor.$FLAGS.cfg
+CONFIG_FILENAME=@CONFIG_DIR@/kcor.$FLAGS.cfg
 
 IDL_CMD="$SCRIPT_NAME, config_filename='$CONFIG_FILENAME', /realtime"
 
