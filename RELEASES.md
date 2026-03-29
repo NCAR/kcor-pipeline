@@ -1318,4 +1318,6 @@
 - use CMake configuration for creating production CME detection script
 - fixed crash when no files for the annual image scale plot
 
-#### 2.2.17
+#### 2.2.17 [Mar 29, 2026]
+
+- fixed crash when no files for the annual movies
