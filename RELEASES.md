@@ -1313,4 +1313,7 @@
 - updates to CME alert emails: wording and NRGF/difference attachments
 - send latest NRGF image to CCMC
 
-#### 2.2.16
+#### 2.2.16 [Mar 29, 2026]
+
+- use CMake configuration for creating production CME detection script
+- fixed crash when no files for the annual image scale plot
