@@ -42,6 +42,11 @@ pro kcor_annual_movies, year, run=run
       date = kcor_increment_date(date)
     endwhile
 
+    if (i eq 0L) then begin
+      mg_log, 'no level 2 GIFs found for this year, skipping'
+      goto, done
+    endif
+
     gif_filenames = gif_filenames[0:i - 1]
 
     l2_dir = filepath('level2', subdir=run.date, root=run->config('processing/raw_basedir'))
@@ -65,6 +70,8 @@ pro kcor_annual_movies, year, run=run
     kcor_create_animated_gif, gif_filenames, agif_basename, run=run, status=status
     if (n_elements(annual_basedir) gt 0L) then file_copy, agif_filename, annual_dir, /overwrite
   endfor
+
+  done:
 end
 
 
