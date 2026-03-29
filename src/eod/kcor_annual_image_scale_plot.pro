@@ -21,7 +21,9 @@ pro kcor_annual_image_scale_plot, year, database=db, run=run
                                subdir=[run.date, 'p'], $
                                root=run->config('processing/raw_basedir'))
 
-    file_copy, output_filename, annual_dir, /overwrite
+    if (file_test(output_filename, /regular)) then begin
+      file_copy, output_filename, annual_dir, /overwrite
+    endif
   endif
 end
 
