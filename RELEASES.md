@@ -1321,3 +1321,5 @@
 #### 2.2.17 [Mar 29, 2026]
 
 - fixed crash when no files for the annual movies
+
+#### 2.2.18
