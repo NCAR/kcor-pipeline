@@ -7,8 +7,6 @@ pro kcor_cme_send_heartbeat
   compile_opt strictarr
   @kcor_cme_det_common
 
-  kcor_cme_send_latest_nrgf
-
   iso8601_fmt = '(C(CYI4.4, "-", CMOI2.2, "-", CDI2.2, "T", CHI2.2, ":", CMI2.2, ":", CSI2.2, "Z"))'
   wait_time = run->config('cme/wait_time')
   heartbeat_interval = run->config('cme/heartbeat_interval')
@@ -61,6 +59,8 @@ pro kcor_cme_send_heartbeat
                                                 mode)
 
       kcor_cme_alert_text2file, heartbeat_json, json_filename
+
+      kcor_cme_send_latest_nrgf
 
       if (n_elements(ftp_url)) then begin
         ftp_from_email = run->config('cme/from_email')
