@@ -108,40 +108,52 @@ pro kcor_cme_det_report, time, widget=widget, interim=interim
   !p.multi = 0
 
   ; create file of data values from plot
-  plotvalues_file = filepath(string(last_datetime.year, $
-                                    last_datetime.month, $
-                                    last_datetime.day, $
-                                    last_datetime.hour, $
-                                    last_datetime.minute, $
-                                    last_datetime.second, $, $
-                                    format='(%"%04d%02d%02d.%02d%02d%02d.cme.plot.csv")'), $
-                             root=plot_dir)
-  openw, lun, plotvalues_file, /get_lun
-  printf, lun, 'date, speed, position, radius'
-  tracked_indices = where(reform(tracked_pt), n_tracked_indices)
-  for i = 0L, n_tracked_indices - 1L do begin
-    ; only add points which have at least one non-NaN parameter and that are
-    ; since the last CME was detected
-    good_pt = finite(velocity[tracked_indices[i]]) $
-                && finite(position[tracked_indices[i]]) $
-                && finite(radius[tracked_indices[i]])
-    ; report on data up to 30 minutes before CME started
-    current_cme = date_diff[tracked_indices[i]].tai_avg ge (current_cme_tai - 30.0 * 60.0)
+  all = [1, 0]
+  for a = 0L, n_elements(all) - 1L do begin
+    plotvalues_file = filepath(string(last_datetime.year, $
+                                      last_datetime.month, $
+                                      last_datetime.day, $
+                                      last_datetime.hour, $
+                                      last_datetime.minute, $
+                                      last_datetime.second, $
+                                      all[a] ? '.all' : '', $
+                                      format='(%"%04d%02d%02d.%02d%02d%02d.cme.plot%s.csv")'), $
+                              root=plot_dir)
+    openw, lun, plotvalues_file, /get_lun
+    printf, lun, 'date, speed, position, radius'
+    tracked_indices = where(reform(tracked_pt), n_tracked_indices)
+    for i = 0L, n_tracked_indices - 1L do begin
+      ; only add points which have at least one non-NaN parameter and that are
+      ; since the last CME was detected
+      if (all[a]) then begin
+        good_pt = finite(velocity[tracked_indices[i]]) $
+                    || finite(position[tracked_indices[i]]) $
+                    || finite(radius[tracked_indices[i]])
+      endif else begin
+        good_pt = finite(velocity[tracked_indices[i]]) $
+                    && finite(position[tracked_indices[i]]) $
+                    && finite(radius[tracked_indices[i]])
+      endelse
 
-    if (current_cme && good_pt) then begin
-      printf, lun, $
-              tai2utc(date_diff[tracked_indices[i]].tai_avg, /truncate, /ccsds) + 'Z', $
-              velocity[tracked_indices[i]], $
-              position[tracked_indices[i]], $
-              radius[tracked_indices[i]], $
-              format='(%"%s, %0.1f, %0.1f, %0.2f")'
-    endif
+      ; report on data up to 30 minutes before CME started
+      current_cme = date_diff[tracked_indices[i]].tai_avg ge (current_cme_tai - 30.0 * 60.0)
+
+      if (current_cme && good_pt) then begin
+        printf, lun, $
+                tai2utc(date_diff[tracked_indices[i]].tai_avg, /truncate, /ccsds) + 'Z', $
+                velocity[tracked_indices[i]], $
+                position[tracked_indices[i]], $
+                radius[tracked_indices[i]], $
+                format='(%"%s, %0.1f, %0.1f, %0.2f")'
+      endif
+    endfor
+    free_lun, lun
+
+    mg_log, 'write CME %s report CSV file %s', $
+            keyword_set(interim) ? 'interim' : 'summary', $
+            all[a] ? '[all points]' : '[good points]', $
+            name='kcor/cme', /debug
   endfor
-  free_lun, lun
-
-  mg_log, 'write CME %s report CSV file', $
-          keyword_set(interim) ? 'interim' : 'summary', $
-          name='kcor/cme', /debug
 
   ; attach the latest NRGF GIF file if it is within time range (10 min)
   nrgf_age_threshold = 10.0   ; minutes
