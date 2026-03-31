@@ -1323,3 +1323,5 @@
 - fixed crash when no files for the annual movies
 
 #### 2.2.18
+
+- record all CME tracking points in a file
