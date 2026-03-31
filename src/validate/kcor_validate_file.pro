@@ -300,19 +300,20 @@ end
 ; endif
 
 
-date = '20210803'
-basename = '20210803_170343_kcor_l2.fts.gz'
+date = '20260331'
+basename = '20260331_184828_kcor.fts.gz'
 
 filename = filepath(basename, $
-                    subdir=[date, 'level2'], $
+                    subdir=[date, 'level0'], $
                     root='/hao/dawn/Data/KCor/raw')
 
 config_filename = filepath('kcor.production.cfg', $
-                           subdir=['..', '..', 'config'], $
+                           subdir=['..', '..', '..', 'kcor-config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
-validation_spec = 'kcor.l2.validation.cfg'
-level = 'L2'
+validation_spec = filepath('kcor.l0.validation.cfg', root=mg_src_root())
+print, validation_spec
+level = 'L0'
 is_valid = kcor_validate_file(filename, validation_spec, level, error_msg=error_msg, run=run)
 print, level, is_valid ? 'valid' : 'not valid', format='(%"%s FITS file is %s")'
 if (~is_valid) then begin
