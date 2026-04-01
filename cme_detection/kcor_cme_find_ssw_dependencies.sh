@@ -1,14 +1,16 @@
 #!/bin/sh
 
-IDL=idl85
+IDL=idl
 
-SSW_DIR=${PWD}/ssw
-KCOR_SRC_DIR=${PWD}
+FULL_SSW_DIR=/hao/ssw
 
-FULL_SSW_DIR=/hao/contrib/ssw
+KCOR_CME_ROOT=${PWD}
+SSW_DIR=${KCOR_CME_ROOT}/ssw
+KCOR_ROOT=$(dirname $KCOR_CME_ROOT)
+KCOR_CME_PATH=+${KCOR_CME_ROOT}:+${KCOR_ROOT}/gen:+${KCOR_ROOT}/lib:+${KCOR_ROOT}/src:"<IDL_DEFAULT>"
+KCOR_CME_DLM_PATH=+${KCOR_ROOT}/lib:"<IDL_DEFAULT>"
 
-KCOR_PATH=+${KCOR_SRC_DIR}:${SSW_DIR}:"<IDL_DEFAULT>"
-SSW_DEP_PATH="<IDL_DEFAULT>":${KCOR_PATH}:+${FULL_SSW_DIR}
+SSW_DEP_PATH="<IDL_DEFAULT>":${KCOR_CME_PATH}:+${FULL_SSW_DIR}
 
 echo "Find ROUTINES..."
 find . -name 'kcor_*.pro' -exec basename {} .pro \; > ROUTINES

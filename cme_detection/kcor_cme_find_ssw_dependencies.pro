@@ -10,14 +10,21 @@ pro kcor_cme_find_ssw_dependencies, ssw_loc
   readf, lun, routines
   free_lun, lun
 
+  exceptions = ['kcor_cme_det_common']
+
   print, 'Resolving routines...'
   for r = 0L, n_routines - 1L do begin
-    resolve_routine, routines[r], /either, /compile_full_file, /no_recompile
+    ind = where(routines[r] eq exceptions, count)
+    if (count eq 0L) then begin
+      resolve_routine, routines[r], /either, /compile_full_file, /no_recompile
+    endif
   endfor
     
   cd, 'ssw'
 
-  exceptions = ['utcommon']
+  exceptions = ['utcommon', 'clearcommon', 'store_plotvar_common', $
+                'utstart_time_com', $
+                'get_suncenter']
 
   skip_routines = ['CSPICE_BODVAR', 'CSPICE_BODN2C', 'CSPICE_CKCOV', $
                    'CSPICE_CKGP', 'CSPICE_CKOBJ', 'CSPICE_CONICS', $
