@@ -111,14 +111,31 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     unzipped_files = file_search(unzipped_glob, count=n_unzipped_files)
     if (n_unzipped_files gt 0L) then begin
       mg_log, 'zipping %d FITS files...', n_unzipped_files, name='kcor/rt', /info
-      gzip_cmd = string(run->config('externals/gzip'), unzipped_glob, $
-                        format='(%"%s %s")')
-      spawn, gzip_cmd, result, error_result, exit_status=status
-      if (status ne 0L) then begin
-        mg_log, 'problem zipping files with command: %s', gzip_cmd, $
-                name='kcor/rt', /error
-        mg_log, '%s', strjoin(error_result, ' '), name='kcor/rt', /error
-      endif
+      gzip_executable = run->config('externals/gzip')
+      raw_filesize = run->epoch('raw_filesize')
+      n_attempts = 45L
+      transfer_wait = 1.0
+      for f = 0L, n_unzipped_files - 1L do begin
+        ; if not the right size, wait a bit for the transfer to complete
+        for a = 0L, n_attempts - 1L do begin
+          info = file_info(unzipped_files[f])
+          if (info.size eq raw_filesize) then break else begin
+            mg_log, 'waited %0.1f secs for transfer to complete', $
+                    transfer_wait, name='kcor/rt', $
+                    /warn
+            wait, transfer_wait
+          endelse
+        endfor
+
+        gzip_cmd = string(gzip_executable, unzipped_files[f], $
+                          format='(%"%s %s")')
+        spawn, gzip_cmd, result, error_result, exit_status=status
+        if (status ne 0L) then begin
+          mg_log, 'problem zipping file with command: %s', gzip_cmd, $
+                  name='kcor/rt', /error
+          mg_log, '%s', strjoin(error_result, ' '), name='kcor/rt', /error
+        endif
+      endfor
     endif
 
     l0_fits_files = kcor_remove_duplicates(raw_dir, l0_dir, $
