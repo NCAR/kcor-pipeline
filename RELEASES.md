@@ -1328,3 +1328,5 @@
 - better log messages
 - only try to send latest NRGF via FTP when sending heartbeat
 - update validation specification with new LYOTSTOP value
+
+#### 2.2.19
