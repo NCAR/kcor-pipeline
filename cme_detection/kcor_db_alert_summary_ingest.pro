@@ -4,6 +4,8 @@ pro kcor_db_alert_summary_ingest, summary_json, interim=interim
   compile_opt strictarr
   @kcor_cme_det_common
 
+  if (~run->config('database/update')) then goto, done
+
   summary = json_parse(summary_json, /toarray, /tostruct)
 
   obsday_index = mlso_obsday_insert(simple_date, $
@@ -106,5 +108,5 @@ pro kcor_db_alert_summary_ingest, summary_json, interim=interim
   if (status ne 0L) then goto, done
 
   done:
-  obj_destroy, db
+  if (obj_valid(db)) then obj_destroy, db
 end
