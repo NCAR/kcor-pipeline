@@ -1322,6 +1322,9 @@
 
 - fixed crash when no files for the annual movies
 
-#### 2.2.18
+#### 2.2.18 [Apr 1, 2026]
 
 - record all CME tracking points in a file
+- better log messages
+- only try to send latest NRGF via FTP when sending heartbeat
+- update validation specification with new LYOTSTOP value
