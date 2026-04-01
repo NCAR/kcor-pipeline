@@ -85,6 +85,6 @@ end
 f = '20210507_192030_kcor_l2_hpr_rd.fts'
 mdiff = readfits(f, header)
 gif_filename = file_basename(f, '.fts') + '.gif'
-kcor_cme_det_rdiff_gif, gif_filename, mdiff
+kcor_cme_det_hpr_gif, gif_filename, mdiff
 
 end
