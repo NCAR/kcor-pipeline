@@ -1330,3 +1330,7 @@
 - update validation specification with new LYOTSTOP value
 
 #### 2.2.19
+
+- update path and DLM path for CME detection code
+- added SSW dependencies for CME detection code
+- update waiting scheme for incoming FITS files before zipping them
