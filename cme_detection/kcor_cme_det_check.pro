@@ -59,7 +59,7 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget, realtime=realtime
     if (ifile ge count) then begin
       mtime = (file_info(files)).mtime
       age = systime(1) - max(mtime)
-      mg_log, 'age: %0.1f seconds', name='kcor/cme', /debug
+      mg_log, 'age: %0.1f seconds', age, name='kcor/cme', /debug
       ; [TODO]: is this check even needed any more? why stop if there hasn't been
       ; a file in the last 20 minutes?
       if (~keyword_set(realtime) && (age ge 1200)) then begin   ; 20 min
