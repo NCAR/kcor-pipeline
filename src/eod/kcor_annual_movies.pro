@@ -43,7 +43,7 @@ pro kcor_annual_movies, year, run=run
     endwhile
 
     if (i eq 0L) then begin
-      mg_log, 'no level 2 GIFs found for this year, skipping'
+      mg_log, 'no level 2 GIFs found for this year, skipping', name=run.logger_name, /warn
       goto, done
     endif
 
