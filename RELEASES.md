@@ -1329,7 +1329,7 @@
 - only try to send latest NRGF via FTP when sending heartbeat
 - update validation specification with new LYOTSTOP value
 
-#### 2.2.19
+#### 2.2.19 [Apr 2, 2026]
 
 - update path and DLM path for CME detection code
 - added SSW dependencies for CME detection code
