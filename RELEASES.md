@@ -1334,3 +1334,5 @@
 - update path and DLM path for CME detection code
 - added SSW dependencies for CME detection code
 - update waiting scheme for incoming FITS files before zipping them
+
+#### 2.2.20
