@@ -61,8 +61,6 @@ pro kcor_cme_det_movie
     mg_log, 'ingesting %s...', file_basename(date_orig[ii].filename), $
             name='kcor/cme', /debug
     image = readfits(date_orig[ii].filename, header, /silent)
-    mg_log, 'dims: %s', strjoin(strtrim(size(image, /dimensions), 2), ', '), $
-            name='kcor/cme', /debug
 
     ; reduce the image size to 512x512
     images[*, *, i] = reduce(image, 2, /average)
