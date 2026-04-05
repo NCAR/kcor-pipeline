@@ -1344,4 +1344,6 @@
 - additional database response checks
 - additional CME detection log messages
 
-#### 2.2.22
+#### 2.2.22 [Apr 5, 2026]
+
+- fix for check database response check
