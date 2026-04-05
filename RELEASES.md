@@ -1340,3 +1340,6 @@
 - better log messages
 
 #### 2.2.21
+
+- additional database response checks
+- additional CME detection log messages
