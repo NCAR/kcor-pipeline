@@ -1339,7 +1339,7 @@
 
 - better log messages
 
-#### 2.2.21
+#### 2.2.21 [Apr 4, 2026]
 
 - additional database response checks
 - additional CME detection log messages
