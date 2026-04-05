@@ -18,7 +18,16 @@ pro kcor_mission_image_scale_plot, database=db, run=run
 
   query = 'select * from kcor_eng where image_scale is not NULL and date_obs < \"%04d-%02d-%02d\" order by date_obs'
   data = db->query(query, date_tokens[0], date_tokens[1], date_tokens[2], $
-                   count=n_files, error=error, fields=fields, sql_statement=sql)
+                   count=n_files, $
+                   error=error, error_message, sql_statement=sql)
+  if (error ne 0L) then begin
+    mg_log, 'problem querying database (error status: %d)', error, name=run.logger_name, /error
+    mg_log, 'SQL error msg: %s', error_message, name=run.logger_name, /error
+    mg_log, 'SQL statement: %s', sql, name=run.logger_name, /error
+    mg_log, 'not making mission image scale plot', name=run.logger_name, /error
+    goto, done
+  endif
+
   if (n_files eq 0L) then begin
     mg_log, 'no files found', name=run.logger_name, /warn
     goto, done
