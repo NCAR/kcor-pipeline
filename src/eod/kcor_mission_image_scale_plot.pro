@@ -19,9 +19,9 @@ pro kcor_mission_image_scale_plot, database=db, run=run
   query = 'select * from kcor_eng where image_scale is not NULL and date_obs < \"%04d-%02d-%02d\" order by date_obs'
   data = db->query(query, date_tokens[0], date_tokens[1], date_tokens[2], $
                    count=n_files, $
-                   error=error, error_message, sql_statement=sql)
-  if (error ne 0L) then begin
-    mg_log, 'problem querying database (error status: %d)', error, name=run.logger_name, /error
+                   status=status, error_message=error_message, sql_statement=sql)
+  if (status ne 0L) then begin
+    mg_log, 'problem querying database (error status: %d)', status, name=run.logger_name, /error
     mg_log, 'SQL error msg: %s', error_message, name=run.logger_name, /error
     mg_log, 'SQL statement: %s', sql, name=run.logger_name, /error
     mg_log, 'not making mission image scale plot', name=run.logger_name, /error
@@ -204,7 +204,7 @@ end
 
 ; main-level example program
 
-date = '20131231'
+date = '20260404'
 config_basename = 'kcor.reprocess.cfg'
 config_filename = filepath(config_basename, $
                            subdir=['..', '..', '..', 'kcor-config'], $
