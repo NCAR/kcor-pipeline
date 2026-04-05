@@ -1343,3 +1343,5 @@
 
 - additional database response checks
 - additional CME detection log messages
+
+#### 2.2.22
