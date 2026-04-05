@@ -135,6 +135,11 @@ pro kcor_cme_detection_job, date, $
       summary_report_interval = run->config('cme/summary_report_interval')
       send_summary_report = (tai0 - current_cme_tai) gt summary_report_interval
 
+      mg_log, 'send_interim_report: %s', send_interim_report ? 'YES' : 'NO', $
+              name='kcor/cme', /debug
+      mg_log, 'send_summary_report: %s', send_summary_report ? 'YES' : 'NO', $
+              name='kcor/cme', /debug
+
       if (send_interim_report && ~send_summary_report) then begin
         last_interim_report = current_tai
         ref_time = tai2utc(tairef, /time, /truncate, /ccsds)
