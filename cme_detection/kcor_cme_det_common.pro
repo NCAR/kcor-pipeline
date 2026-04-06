@@ -33,10 +33,22 @@ common kcor_cme_detection, $
   ifile, $
   date_orig, $
   maps, $
+
+  ; chronological date info corresponding to the difference maps, array of
+  ; structures of the form:
+  ;   {date_obs: '', tai_obs: 0.0D,
+  ;    date_end: '', tai_end: 0.0D,
+  ;    date_avg: '', tai_avg: 0.0D}
   date_diff, $
+
+  ; other attributes corresponding to each difference map
+  tracked_pt, $
+  speed_history, $
+  angle_history, $
   mdiffs, $
   itheta, $
   detected, $
+
   leadingedge, $
   param, $
   tairef, $                          ; [TODO]: time of ? in TAI
@@ -46,9 +58,6 @@ common kcor_cme_detection, $
   current_cme_start_time, $
   current_cme_tai, $                 ; event time of current CME in TAI
   current_cme_id, $                  ; database ID for current CME
-  tracked_pt, $
-  speed_history, $
-  angle_history, $
   running, $                         ; [TODO]: not needed?
   simple_date, $
   last_heartbeat_jd, $
