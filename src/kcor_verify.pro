@@ -212,7 +212,7 @@ pro kcor_verify, date, config_filename=config_filename, status=status
 
   ; TEST: check if log/list files exist
 
-  if (file_test(log_filename)) then n_log_lines  = file_lines(log_filename)
+  if (file_test(log_filename)) then n_log_lines = file_lines(log_filename)
   if (file_test(machine_log_filename)) then begin
     machine_log_found = 1B
     n_machine_log_lines = file_lines(machine_log_filename)
