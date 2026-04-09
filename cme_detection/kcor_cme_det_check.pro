@@ -309,6 +309,7 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget, realtime=realtime
         endif
       endif else begin
         ; no current data
+        ; [TODO]: if date_diff is empty, then what?
       endelse
 
       ; step to the next file
