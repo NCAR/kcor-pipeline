@@ -1348,4 +1348,6 @@
 
 - fix for check database response check
 
-#### 2.2.23
+#### 2.2.23 [Apr 8, 2026]
+
+- updated epochs
