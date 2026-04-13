@@ -457,7 +457,7 @@ def make_version_filter(filter_expression):
 
     def filter_function(version):
         # automatically filter out dates with no version
-        if version.startswith("---"):
+        if version is None or version.startswith("---"):
             return False
         return packaging.version.parse(version) in spec
 
