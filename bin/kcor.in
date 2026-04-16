@@ -31,6 +31,11 @@ except KeyboardInterrupt:
     print()
 
 try:
+    import tqdm
+except KeyboardInterrupt:
+    print()
+
+try:
     from astropy.io import fits
     from astropy.utils.exceptions import AstropyUserWarning
     import warnings
@@ -85,6 +90,7 @@ try:
     )
 except KeyboardInterrupt:
     print()
+
 
 def get_config_filename(flags):
     config_basename = f"kcor.{flags}.cfg"
@@ -1338,7 +1344,7 @@ def stage(args):
                     args.parser.error(r"bad date range expression: {r}")
 
             for d in dates:
-                stage_date(args.parser, d, args.flags, dst)
+                stage_date(args.parser, d, args.flags, dst, quiet=args.quiet)
 
     notify_completed(args, "stage")
 
@@ -1361,31 +1367,8 @@ def expand_date_range(r):
     return dates
 
 
-def raw_basedir(date, config_filename):
-    """Look for processing/raw_basedir first -- if not found, then use
-    processing/routing_file.
-    """
-    config = configparser.ConfigParser()
-    config.read(config_filename)
-
-    try:
-        raw_basedir = config.get("processing", "raw_basedir")
-        return raw_basedir
-    except configparser.NoOptionError:
-        routing_file = config.get("processing", "routing_file")
-        routing = configparser.ConfigParser()
-        routing.read(routing_file)
-        date_ranges = routing.options("kcor")
-        for r in date_ranges:
-            if pathlib.PurePath(date).match(r):
-                raw_basedir = routing.get("kcor", r)
-                return raw_basedir
-        return None
-
-
-def stage_date(parser, date, flags, dst):
-    config_filename = get_config_filename(flags)
-    src = raw_basedir(date, config_filename)
+def stage_date(parser, date, flags, dst, quiet=False):
+    src = get_raw_basedir(date, flags, parser.error)
 
     if src is None:
         parser.error("raw basedir not specified")
@@ -1393,7 +1376,7 @@ def stage_date(parser, date, flags, dst):
     date_dir = os.path.join(src, date)
     if os.path.isdir(date_dir):
         try:
-            copy_date(date, src, dst)
+            copy_date(date, src, dst, quiet=quiet)
         except FileNotFoundError:
             print(f"files not found for {date} in {src}")
             # parser.error(f"files not found in {src}")
@@ -1401,12 +1384,12 @@ def stage_date(parser, date, flags, dst):
         parser.error(f"{date_dir} does not exist")
 
 
-def copy_date(date, src, dst):
-    copy_files(date, src, "*.log", dst, verbose=True)
-    copy_files(date, src, "*.fts.gz", dst, verbose=True)
+def copy_date(date, src, dst, quiet=False):
+    copy_files(date, src, "*.log", dst, verbose=True, quiet=quiet)
+    copy_files(date, src, "*.fts.gz", dst, verbose=True, quiet=quiet)
 
 
-def copy_files(date, src, spec, dst, *, verbose=False):
+def copy_files(date, src, spec, dst, *, verbose=False, quiet=False):
     files = glob.glob(os.path.join(src, date, "level0", spec))
     if not files:
         files = glob.glob(os.path.join(src, date, spec))
@@ -1420,7 +1403,12 @@ def copy_files(date, src, spec, dst, *, verbose=False):
     if verbose:
         print(f"staging {date} [{src}] ({len(files)} {spec} files)...")
 
-    for f in files:
+    if quiet:
+        iterable_files = files
+    else:
+        iterable_files = tqdm.tqdm(files)
+
+    for f in iterable_files:
         shutil.copy2(f, dst_dir)
 
 
@@ -1851,6 +1839,9 @@ if __name__ == "__main__":
     )
     stage_parser.add_argument(
         "-l", "--location", type=str, help="location to copy raw data to", default="."
+    )
+    stage_parser.add_argument(
+        "--quiet", action="store_true", help="set to not show progress bar"
     )
     stage_parser.set_defaults(func=stage, parser=stage_parser)
 
