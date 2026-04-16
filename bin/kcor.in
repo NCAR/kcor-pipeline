@@ -288,7 +288,13 @@ def get_raw_basedir(date, flags, error):
     except configparser.NoSectionError:
         error("no raw section in config file")
     except configparser.NoOptionError:
-        routing_filename = ucomp_config.get("processing", "routing_file")
+        try:
+            routing_filename = ucomp_config.get("processing", "routing_file")
+        except configparser.NoOptionError:
+            error("no raw_basedir or routing_file in raw section")
+        if not os.path.isfile(routing_filename):
+            error(f"routing file does not exist: {routing_filename}")
+
         routing_config = configparser.ConfigParser()
         routing_config.read(routing_filename)
         date_locations = routing_config.options("kcor")
@@ -926,7 +932,7 @@ def filter_file(logfile, level_index, follow):
 def missing(args):
     dates = split_dates(",".join(args.dates), args.parser.error)
     for d in dates:
-        raw_dir = get_raw_dir(d, args.flags, args.parser.error)
+        raw_dir = get_raw_basedir(d, args.flags, args.parser.error)
         raw_datedir = os.path.join(raw_dir, d)
         present_files1 = glob.glob(os.path.join(raw_datedir, "*.fts*"))
         present_files2 = glob.glob(os.path.join(raw_datedir, "level0", "*.fts*"))
@@ -976,29 +982,6 @@ def missing(args):
                     print(f"scp $REMOTE_LOCATION/{cf} $LOCAL_LOCATION")
                 else:
                     print(cf)
-
-
-def get_raw_dir(date, flags, error):
-    config_filename = get_config_filename(flags)
-    if not os.path.isfile(config_filename):
-        basename = os.path.basename(config_filename)
-        error(f"configuration file does not exist: {basename}")
-
-    kcor_config = configparser.ConfigParser()
-    kcor_config.read(config_filename)
-    try:
-        raw_dir = kcor_config.get("processing", "raw_basedir")
-    except configparser.NoSectionError:
-        error("no processing section in config file")
-    except configparser.NoOptionError:
-        routing_filename = kcor_config.get("processing", "routing_file")
-        routing_config = configparser.ConfigParser()
-        routing_config.read(routing_filename)
-        date_locations = routing_config.options("kcor")
-        for date_expr in date_locations:
-            if fnmatch.fnmatch(date, date_expr):
-                return routing_config.get("kcor", date_expr)
-    return raw_dir
 
 
 def wait_for(process):
@@ -1258,7 +1241,7 @@ def simulate(args):
     except configparser.NoSectionError:
         args.parser.error("depot_basedir not specified")
 
-    raw_basedir = get_raw_dir(args.dates[0], args.flags, args.parser.error)
+    raw_basedir = get_raw_basedir(args.dates[0], args.flags, args.parser.error)
     raw_dir = os.path.join(raw_basedir, args.dates[0])
 
     rt_launch_interval = config.get("simulator", "rt_launch_interval", fallback="60.0")
@@ -1430,7 +1413,7 @@ def locate(args):
 
                 for d in dates:
                     # get raw_basedir
-                    raw_bdir = raw_basedir(d, config_filename)
+                    raw_bdir = get_raw_basedir(d, args.flags, args.parser.error)
                     print(f"{raw_bdir}/{d}")
     else:
         config = configparser.ConfigParser()
