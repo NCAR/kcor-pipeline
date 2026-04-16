@@ -32,6 +32,9 @@ except KeyboardInterrupt:
 
 try:
     import tqdm
+    TQDM_PRESENT = True
+except ModuleNotFoundError as e:
+    TQDM_PRESENT = False
 except KeyboardInterrupt:
     print()
 
@@ -1386,10 +1389,10 @@ def copy_files(date, src, spec, dst, *, verbose=False, quiet=False):
     if verbose:
         print(f"staging {date} [{src}] ({len(files)} {spec} files)...")
 
-    if quiet:
-        iterable_files = files
-    else:
+    if not quiet and TQDM_PRESENT:
         iterable_files = tqdm.tqdm(files)
+    else:
+        iterable_files = files
 
     for f in iterable_files:
         shutil.copy2(f, dst_dir)
