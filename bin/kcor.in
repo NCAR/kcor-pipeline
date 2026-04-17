@@ -31,10 +31,10 @@ except KeyboardInterrupt:
     print()
 
 try:
-    import tqdm
-    TQDM_PRESENT = True
+    from rich.progress import track as progressbar
+    RICH_PRESENT = True
 except ModuleNotFoundError as e:
-    TQDM_PRESENT = False
+    RICH_PRESENT = False
 except KeyboardInterrupt:
     print()
 
@@ -1389,8 +1389,8 @@ def copy_files(date, src, spec, dst, *, verbose=False, quiet=False):
     if verbose:
         print(f"staging {date} [{src}] ({len(files)} {spec} files)...")
 
-    if not quiet and TQDM_PRESENT:
-        iterable_files = tqdm.tqdm(files, desc="copying files")
+    if not quiet and RICH_PRESENT:
+        iterable_files = progressbar(files, description="copying files")
     else:
         iterable_files = files
 
