@@ -1390,7 +1390,7 @@ def copy_files(date, src, spec, dst, *, verbose=False, quiet=False):
         print(f"staging {date} [{src}] ({len(files)} {spec} files)...")
 
     if not quiet and TQDM_PRESENT:
-        iterable_files = tqdm.tqdm(files)
+        iterable_files = tqdm.tqdm(files, desc="copying files")
     else:
         iterable_files = files
 
