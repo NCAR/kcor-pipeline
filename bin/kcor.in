@@ -31,14 +31,6 @@ except KeyboardInterrupt:
     print()
 
 try:
-    from rich.progress import track as progressbar
-    RICH_PRESENT = True
-except ModuleNotFoundError as e:
-    RICH_PRESENT = False
-except KeyboardInterrupt:
-    print()
-
-try:
     from astropy.io import fits
     from astropy.utils.exceptions import AstropyUserWarning
     import warnings
@@ -60,10 +52,11 @@ except ModuleNotFoundError as e:
 
 try:
     import rich
+    from rich.progress import track as progressbar
 
-    rich_text = True
+    rich_requirements = True
 except ModuleNotFoundError as e:
-    rich_text = False
+    rich_requirements = False
 
 try:
     # setup the logging mechanism
@@ -131,7 +124,7 @@ def display_time(seconds, granularity=2):
 
 
 def print_bold(text):
-    if rich_text:
+    if rich_requirements:
         rich.print("[bold magenta]" + text + "[/]")
     else:
         print(text)
@@ -1389,7 +1382,7 @@ def copy_files(date, src, spec, dst, *, verbose=False, quiet=False):
     if verbose:
         print(f"staging {date} [{src}] ({len(files)} {spec} files)...")
 
-    if not quiet and RICH_PRESENT:
+    if not quiet and rich_requirements:
         iterable_files = progressbar(files, description="copying files")
     else:
         iterable_files = files
