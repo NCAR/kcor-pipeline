@@ -18,14 +18,16 @@ pro kcor_check_data, run, db
   n_missing_archive_files = 0L
   openw, lun, 'kcor.missing.log', /get_lun
 
-  n_total_files = 7747662L   ; total number of FITS files in kcor_img
+  ; total number of FITS files in kcor_img
+  n_total_files = db->query('select count(*) from kcor_img where filetype=1;')
+  n_total_files = n_total_files.(0)
+
   n_processed_files = 1L
   batch = 0L
   batch_size = 10000L
   while (n_processed_files gt 0L) do begin
-    limit = string(batch_size, batch eq 0 ? '' : (', ' + strtrim(batch * batch_size, 2)), format='%s%s')
-    sql_query = 'select file_name, kcor_level.level, mlso_numfiles.obs_day from kcor_img join kcor_level on kcor_img.level=kcor_level.level_id join mlso_numfiles on kcor_img.obs_day=mlso_numfiles.day_id where filetype=1 order by file_name limit %s;'
-    processed_files = db->query(sql_query, limit, $
+    sql_query = 'select file_name, kcor_level.level, mlso_numfiles.obs_day from kcor_img join kcor_level on kcor_img.level=kcor_level.level_id join mlso_numfiles on kcor_img.obs_day=mlso_numfiles.day_id where filetype=1 order by file_name limit %d offset %d;'
+    processed_files = db->query(sql_query, batch_size, batch * batch_size, $
                                 error_message=error_message, $
                                 status=status, $
                                 sql_statement=sql_statement, $
@@ -69,6 +71,7 @@ pro kcor_check_data, run, db
       endif
     endfor
     batch += 1L
+    flush, lun
   endwhile
   free_lun, lun
 
@@ -77,16 +80,15 @@ pro kcor_check_data, run, db
 
   openw, lun, 'kcor.raw-missing.log', /get_lun
 
+  n_missing_raw_files = 0L
+
   n_total_raw_files = db->query('select count(*) from kcor_raw;')
   n_total_raw_files = n_total_raw_files.(0)
   n_processed_files = 1L
   batch = 0L
   while (n_raw_files gt 0L) do begin
-    limit = string(batch_size, batch eq 0 ? '' : (', ' + strtrim(batch * batch_size, 2)), format='%s%s')
-
-    sql_query = 'select file_name, mlso_numfiles.obs_day from kcor_raw join mlso_numfiles on kcor_raw.obs_day=mlso_numfiles.day_id limit %s;'
-    raw_files = db->query(sql_query, limit, count=n_raw_files)
-    n_missing_raw_files = 0L
+    sql_query = 'select file_name, mlso_numfiles.obs_day from kcor_raw join mlso_numfiles on kcor_raw.obs_day=mlso_numfiles.day_id limit %d offset %d;'
+    raw_files = db->query(sql_query, batch_size, batch, batch_size, count=n_raw_files)
 
     for f = 0L, n_raw_files - 1L do begin
       if (f mod 1000 eq 0) then begin
@@ -109,6 +111,8 @@ pro kcor_check_data, run, db
         n_missing_raw_files += 1L
       endif
     endfor
+    flush, lun
+    batch += 1L
   endwhile
 
   free_lun, lun
