@@ -63,7 +63,7 @@ pro kcor_check_data, run, db
   print, n_missing_processed_files, format='%d missing processed files'
   print, n_missing_archive_files, format='%d missing archive files'
 
-  openw, lun, 'kcor.missing.log', /get_lun
+  openw, lun, 'kcor.raw-missing.log', /get_lun
 
   n_total_raw_files = db->query('select count(*) from kcor_raw;')
   n_total_raw_files = n_total_raw_files.(0)
