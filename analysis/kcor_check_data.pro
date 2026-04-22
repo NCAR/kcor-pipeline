@@ -21,11 +21,23 @@ pro kcor_check_data, run, db
   n_total_files = 7747662L   ; total number of FITS files in kcor_img
   n_processed_files = 1L
   batch = 0L
-  batch_size = 100000L
+  batch_size = 10000L
   while (n_processed_files gt 0L) do begin
     limit = string(batch_size, batch eq 0 ? '' : (', ' + strtrim(batch * batch_size, 2)), format='%s%s')
     sql_query = 'select file_name, kcor_level.level, mlso_numfiles.obs_day from kcor_img join kcor_level on kcor_img.level=kcor_level.level_id join mlso_numfiles on kcor_img.obs_day=mlso_numfiles.day_id where filetype=1 order by file_name limit %s;'
-    processed_files = db->query(sql_query, limit, count=n_processed_files)
+    processed_files = db->query(sql_query, limit, $
+                                error_message=error_message, $
+                                status=status, $
+                                sql_statement=sql_statement, $
+                                count=n_processed_files)
+    if (status ne 0L) then begin
+      print, status, format='database query failed with status: %d'
+      print, error_message, format='error message: %s'
+      print, sql_statement, format='SQL statement: %s'
+      return
+    endif
+
+    print, n_processed_files, format='new query retrieved %d files'
 
     for f = 0L, n_processed_files - 1L do begin
       if (f mod 1000 eq 0) then begin
@@ -56,7 +68,7 @@ pro kcor_check_data, run, db
         n_missing_archive_files += 1L
       endif
     endfor
-    group += 1L
+    batch += 1L
   endwhile
   free_lun, lun
 
@@ -69,7 +81,6 @@ pro kcor_check_data, run, db
   n_total_raw_files = n_total_raw_files.(0)
   n_processed_files = 1L
   batch = 0L
-  batch_size = 100000L
   while (n_raw_files gt 0L) do begin
     limit = string(batch_size, batch eq 0 ? '' : (', ' + strtrim(batch * batch_size, 2)), format='%s%s')
 
