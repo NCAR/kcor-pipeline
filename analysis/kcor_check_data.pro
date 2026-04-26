@@ -14,6 +14,10 @@ pro kcor_check_data, run, db
   level_dirs = hash('L1', 'level1', 'L1.5', 'level15', 'L2', 'level2', 'L0', 'level0')
   archive_dir = run->config('results/archive_basedir')
 
+  batch_size = 1000L
+
+  goto, raw_files
+
   n_missing_processed_files = 0L
   n_missing_archive_files = 0L
   openw, lun, 'kcor.missing.log', /get_lun
@@ -24,9 +28,8 @@ pro kcor_check_data, run, db
 
   n_processed_files = 1L
   batch = 0L
-  batch_size = 10000L
   while (n_processed_files gt 0L) do begin
-    sql_query = 'select file_name, kcor_level.level, mlso_numfiles.obs_day from kcor_img join kcor_level on kcor_img.level=kcor_level.level_id join mlso_numfiles on kcor_img.obs_day=mlso_numfiles.day_id where filetype=1 order by file_name limit %d offset %d;'
+    sql_query = 'select img_id, file_name, kcor_level.level, mlso_numfiles.obs_day from kcor_img join kcor_level on kcor_img.level=kcor_level.level_id join mlso_numfiles on kcor_img.obs_day=mlso_numfiles.day_id where filetype=1 order by img_id asc limit %d offset %d;'
     processed_files = db->query(sql_query, batch_size, batch * batch_size, $
                                 error_message=error_message, $
                                 status=status, $
@@ -78,6 +81,8 @@ pro kcor_check_data, run, db
   print, n_missing_processed_files, format='%d missing processed files'
   print, n_missing_archive_files, format='%d missing archive files'
 
+  raw_files:
+
   openw, lun, 'kcor.raw-missing.log', /get_lun
 
   n_missing_raw_files = 0L
@@ -86,9 +91,10 @@ pro kcor_check_data, run, db
   n_total_raw_files = n_total_raw_files.(0)
   n_processed_files = 1L
   batch = 0L
+  n_raw_files = 1L
   while (n_raw_files gt 0L) do begin
-    sql_query = 'select file_name, mlso_numfiles.obs_day from kcor_raw join mlso_numfiles on kcor_raw.obs_day=mlso_numfiles.day_id limit %d offset %d;'
-    raw_files = db->query(sql_query, batch_size, batch, batch_size, count=n_raw_files)
+    sql_query = 'select raw_id, file_name, mlso_numfiles.obs_day from kcor_raw join mlso_numfiles on kcor_raw.obs_day=mlso_numfiles.day_id order by raw_id asc limit %d offset %d;'
+    raw_files = db->query(sql_query, batch_size, batch * batch_size, count=n_raw_files)
 
     for f = 0L, n_raw_files - 1L do begin
       if (f mod 1000 eq 0) then begin
