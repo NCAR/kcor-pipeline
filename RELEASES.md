@@ -1355,3 +1355,5 @@
 #### 2.2.24 [Apr 26, 2026]
 
 - stop automated CME detection job at the end of the day
+
+#### 2.2.25
