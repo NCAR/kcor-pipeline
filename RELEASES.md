@@ -1352,8 +1352,11 @@
 
 - updated epochs
 
-#### 2.2.24 [Apr 26, 2026]
+#### 2.2.24 [Apr 27, 2026]
 
 - stop automated CME detection job at the end of the day
 
-#### 2.2.25
+#### 2.2.25 [Apr 28, 2026]
+
+- CME detection sends interim report to a "details_email" address that we can
+  create later
