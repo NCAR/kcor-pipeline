@@ -68,8 +68,12 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget, realtime=realtime
       ; maybe I can take the REALTIME check out from below?
       ; if (~keyword_set(realtime) && (age ge 1200)) then begin   ; 20 min
       if ((age ge 1200)) then begin   ; 20 min
-        mg_log, 'no more files in last %0.1f minutes', age / 60.0, $
-                name='kcor/cme', /info
+        if (age0_time gt 0L) then begin
+          mg_log, 'no files in last %0.1f minutes', age / 60.0, $
+                  name='kcor/cme', /info
+        endif else begin
+          mg_log, 'no files yet today', name='kcor/cme', /info
+        endelse
         goto, stop_point
       endif
       if (keyword_set(widget)) then begin
