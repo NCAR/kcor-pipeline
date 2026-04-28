@@ -1360,3 +1360,5 @@
 
 - CME detection sends interim report to a "details_email" address that we can
   create later
+
+#### 2.2.26
