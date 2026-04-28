@@ -53,7 +53,7 @@ pro kcor_cme_det_email, time, edge, last_detected_image_time, operator=operator
   @kcor_cme_det_common
 
   addresses = run->config('cme/email')
-  if (n_elements(addresses) eq 0L) then begin
+  if (n_elements(addresses) eq 0 || strlen(addresses) eq 0L) then begin
     mg_log, 'no cme.email specified, not sending email', $
             name='kcor/cme', /warn
     return

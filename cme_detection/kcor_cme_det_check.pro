@@ -58,14 +58,18 @@ pro kcor_cme_det_check, stopped=stopped, widget=widget, realtime=realtime
     ; If at least 20 minutes old, then stop. Otherwise, wait 5 seconds.
     if (ifile ge count) then begin
       mtime = (file_info(files)).mtime
-      age = systime(1) - max(mtime)
-      mg_log, 'age: %0.1f seconds', age, name='kcor/cme', /debug
+      age0_time = max(mtime)
+      age = systime(/seconds) - age0_time
+      if (age0_time gt 0L) then begin
+        mg_log, 'age: %0.1f seconds', age, name='kcor/cme', /debug
+      endif
       ; [TODO]: is this check even needed any more? why stop if there hasn't been
       ; a file in the last 20 minutes? maybe this is really "paused"?
       ; maybe I can take the REALTIME check out from below?
       ; if (~keyword_set(realtime) && (age ge 1200)) then begin   ; 20 min
       if ((age ge 1200)) then begin   ; 20 min
-        mg_log, 'no more files in last %0.1f minutes', age / 60.0, name='kcor/cme', /info
+        mg_log, 'no more files in last %0.1f minutes', age / 60.0, $
+                name='kcor/cme', /info
         goto, stop_point
       endif
       if (keyword_set(widget)) then begin

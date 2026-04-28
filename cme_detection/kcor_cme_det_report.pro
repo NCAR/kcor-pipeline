@@ -17,9 +17,10 @@ pro kcor_cme_det_report, time, widget=widget, interim=interim
 
   if (n_elements(speed_history) eq 0L) then goto, done
 
-  addresses = run->config('cme/email')
-  if (n_elements(addresses) eq 0L) then begin
-    mg_log, 'no cme/email specified, not sending email', $
+  email_option = keyword_set(interim) ? 'cme/details_email' : 'cme/email'
+  addresses = run->config(email_option)
+  if (n_elements(addresses) eq 0 || strlen(addresses) eq 0L) then begin
+    mg_log, 'no %s specified, not sending email', email_option, $
             name='kcor/cme', /warn
     return
   endif
