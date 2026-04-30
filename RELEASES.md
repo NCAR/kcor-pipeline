@@ -1366,3 +1366,5 @@
 - handle OC-T3-19.486
 
 #### 2.2.27
+
+- better OC-T3-19.486 flat radius size
