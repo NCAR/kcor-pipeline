@@ -1365,6 +1365,6 @@
 
 - handle OC-T3-19.486
 
-#### 2.2.27
+#### 2.2.27 [April 30, 2026]
 
 - better OC-T3-19.486 flat radius size
