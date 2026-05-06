@@ -1369,4 +1369,6 @@
 
 - better OC-T3-19.486 flat radius size
 
-#### 2.2.28
+#### 2.2.28 [May 6, 2026]
+
+- epoch changes for bad start states
