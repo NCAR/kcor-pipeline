@@ -204,13 +204,13 @@ end
 
 ; main-level example program
 
-date = '20260404'
+date = '20260429'
 config_basename = 'kcor.reprocess.cfg'
 config_filename = filepath(config_basename, $
                            subdir=['..', '..', '..', 'kcor-config'], $
                            root=mg_src_root())
 
-run = kcor_run(date, mode='test', config_filename=config_filename)
+run = kcor_run(date, mode='eod', config_filename=config_filename)
 
 db = kcordbmysql()
 db->connect, config_filename=run->config('database/config_filename'), $
