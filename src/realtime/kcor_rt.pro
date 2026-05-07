@@ -93,8 +93,9 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
 
     cd, raw_dir
 
-    if (run->config('realtime/reprocess') $
-          || run->config('realtime/update_processing')) then begin
+    is_reprocessing = run->config('realtime/reprocess') $
+                        || run->config('realtime/update_processing')
+    if (is_reprocessing) then begin
       kcor_reprocess, date, run=run, error=reprocess_error
       if (reprocess_error ne 0L) then begin
         mg_log, 'error in reprocessing setup, exiting', name='kcor/rt', /error
@@ -109,6 +110,19 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     ; run or be needed in Boulder
     unzipped_glob = '*_kcor.fts'
     unzipped_files = file_search(unzipped_glob, count=n_unzipped_files)
+
+    ; truncate to tranche size if realtime
+    if (~is_reprocessing && ~keyword_set(reprocess)) then begin
+      tranche_size = run->config('realtime/tranche_size')
+      if (n_unzipped_files gt 0L && tranche_size gt 0L) then begin
+        mg_log, '%d files to zip [tranche size: %d]', $
+                n_unzipped_files, tranche_size, $
+                name='kcor/rt', /info
+        n_unzipped_files = n_unzipped_files < tranche_size
+        unzipped_files = unzipped_files[0:n_unzipped_files - 1L]
+      endif
+    endif
+
     if (n_unzipped_files gt 0L) then begin
       mg_log, 'zipping %d FITS files...', n_unzipped_files, name='kcor/rt', /info
       gzip_executable = run->config('externals/gzip')
@@ -144,6 +158,18 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     if (n_l0_fits_files eq 0L) then begin
       mg_log, 'no L0 files to process in raw dir', name='kcor/rt', /info
       goto, done
+    endif
+
+    ; truncate to tranche size if realtime
+    if (~is_reprocessing && ~keyword_set(reprocess)) then begin
+      tranche_size = run->config('realtime/tranche_size')
+      if (n_l0_fits_files gt 0L && tranche_size gt 0L) then begin
+        mg_log, '%d files to process [tranche size: %d]', $
+                n_l0_fits_files, tranche_size, $
+                name='kcor/rt', /info
+        n_l0_fits_files = n_l0_fits_files < tranche_size
+        l0_fits_files = l0_fits_files[0:n_l0_fits_files - 1L]
+      endif
     endif
 
     l0_spec = run->config('validation/l0_specification')
