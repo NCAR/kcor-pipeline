@@ -186,9 +186,12 @@ pro kcor_mission_image_scale_plot, database=db, run=run
   ; save plots image file
   output_basename = string(run.date, $
                            format='(%"%s.kcor.mission.image_scale.gif")')
-  output_filename = filepath(output_basename, $
-                             subdir=[run.date, 'p'], $
-                             root=run->config('processing/raw_basedir'))
+  p_dir = filepath('', $
+                   subdir=[run.date, 'p'], $
+                   root=run->config('processing/raw_basedir'))
+  if (~file_test(p_dir, /directory)) then file_mkdir, p_dir
+  output_filename = filepath(output_basename, root=p_dir)
+
   mg_log, 'writing %s', output_basename, name=run.logger_name, /info
   write_gif, output_filename, tvrd(), r, g, b
 
