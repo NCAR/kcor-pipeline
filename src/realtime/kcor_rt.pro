@@ -492,7 +492,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
                            database=db, $
                            obsday_index=obsday_index
         endif else begin
-          mg_log, 'no L0 files for sgs table', name='kcor/rt', /info
+          mg_log, 'no L0 files for SGS table', name='kcor/rt', /info
         endelse
 
         obj_destroy, db
