@@ -243,7 +243,9 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     endif
 
     kcor_process_files, ok_files, run=run, mean_phase1=mean_phase1, $
+                        l1_filenames=l1_filenames, $
                         log_name='kcor/rt', error=process_errors
+    n_l1_filenames = n_elements(l1_filenames)
 
     mg_log, 'moving %d processed files to level0 dir', n_l0_fits_files, $
             name='kcor/rt', /info
@@ -330,8 +332,8 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       printf, failed_lun, file_basename(ok_files[failed_indices[f]])
     endfor
 
-    for f = 0L, n_processed_files - 1L do begin
-      base = file_basename(ok_files[processed_indices[f]], '.fts.gz')
+    for f = 0L, n_l1_filenames - 1L do begin
+      base = file_basename(l1_filenames[f], '_l1.fts')
 
       cropped_gif_filename = base + '_l2_pb_cropped.gif'
       printf, okcgif_lun, cropped_gif_filename
@@ -352,18 +354,22 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
         if (file_test(nrgf_filename)) then begin
           if (~file_test(archive_dir, /directory)) then file_mkdir, archive_dir
           file_copy, nrgf_filename, archive_dir, /overwrite
+          mg_log, 'copying %s to archive_dir', nrgf_filename, name='kcor/rt', /debug
         endif
         if (file_test(cropped_gif_filename)) then begin
           if (~file_test(croppedgif_dir, /directory)) then file_mkdir, croppedgif_dir
           file_copy, cropped_gif_filename, croppedgif_dir, /overwrite
+          mg_log, 'copying %s to croppedgif_dir', cropped_gif_filename, name='kcor/rt', /debug
         endif
         if (file_test(gif_filename)) then begin
           if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
           file_copy, gif_filename, fullres_dir, /overwrite
+          mg_log, 'copying %s to fullres_dir', gif_filename, name='kcor/rt', /debug
         endif
         if (file_test(l2_filename)) then begin
           if (~file_test(archive_dir, /directory)) then file_mkdir, archive_dir
           file_copy, l2_filename, archive_dir, /overwrite
+          mg_log, 'copying %s to archive_dir', l2_filename, name='kcor/rt', /debug
         endif
       endif
     endfor

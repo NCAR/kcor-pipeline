@@ -1377,3 +1377,4 @@
 
 - tranche size option for determining how many files to process at once when
   running in realtime
+- fix for publishing level 2 files with time offset
