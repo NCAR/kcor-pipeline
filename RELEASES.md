@@ -1373,7 +1373,7 @@
 
 - epoch changes for bad start states
 
-#### 2.2.29
+#### 2.2.29 [May 10, 2026]
 
 - tranche size option for determining how many files to process at once when
   running in realtime
