@@ -1378,6 +1378,11 @@ pro kcor_l1, ok_filename, $
 
   fxaddpar, l1_header, 'OCCLTRID', occltrid, ' ' + occulter_comment
   fxaddpar, l1_header, 'MODLTRID', struct.modltrid, ' ID modulator'
+  !null = sxpar(l1_header, 'DKSHUTID', count=n_dkshutid)
+  if (n_dkshutid eq 0L) then begin
+    fxaddpar, l1_header, 'DKSHUTID', 'Packard', ' ID dark shutter', $
+              after='MODLTRID'
+  endif
 
   if (run->epoch('use_camera_info')) then begin
     prefix = run->epoch('use_camera_prefix') ? run->epoch('camera_prefix') : ''
