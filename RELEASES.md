@@ -1379,7 +1379,7 @@
   running in realtime
 - fix for publishing level 2 files with time offset
 
-#### 2.2.30
+#### 2.2.30 [May 18, 2026]
 
 - epochs values for 2026.04.05
 - new values for O1ID validation and adding validation for DKSHUTID and LDINSID
