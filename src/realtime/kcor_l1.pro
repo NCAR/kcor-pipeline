@@ -1347,8 +1347,8 @@ pro kcor_l1, ok_filename, $
   if (run->epoch('use_O1id')) then begin
     o1id = run->epoch(struct.o1id, found=found, error_message=error_message)
     if (~found) then begin
-      mg_log, error_message, name=log_name, /error
-      o1id = ''
+      ; if no translation to another value, then just use the raw value in O1ID
+      o1id = struct.o1id
     endif
   endif else begin
     o1id = run->epoch('O1id')
