@@ -1386,3 +1386,7 @@
   FITS keywords
 
 #### 2.2.31
+
+- epochs values for 2026.04.20
+- handle new O1ID values
+- add DKSHUTID FITS keyword if not present
