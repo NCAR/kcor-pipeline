@@ -1379,8 +1379,9 @@ pro kcor_l1, ok_filename, $
   fxaddpar, l1_header, 'OCCLTRID', occltrid, ' ' + occulter_comment
   fxaddpar, l1_header, 'MODLTRID', struct.modltrid, ' ID modulator'
   !null = sxpar(l1_header, 'DKSHUTID', count=n_dkshutid)
-  if (n_dkshutid eq 0L) then begin
-    fxaddpar, l1_header, 'DKSHUTID', 'Packard', ' ID dark shutter', $
+  if (~run->epoch('use_dark_shutter_id') || n_dkshutid eq 0L) then begin
+    dark_shutter_id = run->epoch('dark_shutter_id')
+    fxaddpar, l1_header, 'DKSHUTID', dark_shutter_id, ' ID dark shutter', $
               after='MODLTRID'
   endif
 
