@@ -1400,3 +1400,5 @@
 - fix for default DKSHUTID value and DKSHUTID/LDINSID validation values
 
 #### 2.2.34
+
+- better validation warning messages
