@@ -1402,3 +1402,5 @@
 #### 2.2.34
 
 - better validation warning messages
+- annotate location of CME in alert and report email difference images
+- list CME parameters in report emails
