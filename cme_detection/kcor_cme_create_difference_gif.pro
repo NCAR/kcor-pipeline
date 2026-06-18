@@ -18,6 +18,8 @@
 ;-
 pro kcor_cme_create_difference_gif, filename1, filename2, $
                                     difference_filename=difference_filename, $
+                                    height=height, $
+                                    position_angle=position_angle, $
                                     run=run
   compile_opt strictarr
 
@@ -89,6 +91,23 @@ pro kcor_cme_create_difference_gif, filename1, filename2, $
                        charsize=1.0, color=annotation_color
   kcor_suncir, 1024, 1024, 511.5, 511.5, 0, 0, r_photo, 0.0, log_name='kcor/cme'
 
+  ; mark location of CME if both height and position_angle are available
+  if (n_elements(height) && finite(height) $
+    && n_elements(position_angle) && finite(position_angle)) then begin
+
+    angle_change = 30.0
+    height_margins = [0.1, 0.25]  ; Rsun
+    theta = !dtor * (position_angle + angle_change * (findgen(10) / 9.0 - 0.5) + 90.0)
+    lower_cme_x = 511.5 + (1.0 + height_margins[0]) * r_photo * cos(theta)
+    lower_cme_y = 511.5 + (1.0 + height_margins[0]) * r_photo * sin(theta)
+    upper_cme_x = 511.5 + (height + height_margins[1]) * r_photo * cos(theta)
+    upper_cme_y = 511.5 + (height + height_margins[1]) * r_photo * sin(theta)
+    plots, [lower_cme_x, reverse(upper_cme_x), lower_cme_x[0]], $
+           [lower_cme_y, reverse(upper_cme_y), lower_cme_y[0]], $
+           /device, $
+      psym=0, symsize=4.0, thick=2.0, color=annotation_color
+  endif
+
   ; write image as GIF
   save = tvrd()
 
@@ -109,21 +128,25 @@ end
 
 ; main-level example program
 
-config_basename = 'kcor.reprocess.cfg'
+config_basename = 'kcor.cme-test.cfg'
 config_filename = filepath(config_basename, $
                            subdir=['..', '..', 'kcor-config'], $
                            root=mg_src_root())
 
-date = '20220405'
+date = '20260401'
 run = kcor_run(date, config_filename=config_filename)
 
 root_dir = run->config('processing/raw_basedir')
 
 subdir = [date, 'level2']
-f1 = filepath('20160101_230329_kcor_l2_pb.fts.gz', subdir=subdir, root=root_dir)
-f2 = filepath('20160101_231320_kcor_l2_pb.fts.gz', subdir=subdir, root=root_dir)
+f1 = filepath('20260401_182842_kcor_l2_pb.fts.gz', subdir=subdir, root=root_dir)
+f2 = filepath('20260401_183617_kcor_l2_pb.fts.gz', subdir=subdir, root=root_dir)
 
-kcor_cme_create_difference_gif, f1, f2, difference_filename=difference_filename, run=run
+kcor_cme_create_difference_gif, $
+  f1, f2, $
+  difference_filename=difference_filename, $
+  height=1.39, position_angle=259.5, $
+  run=run
 print, difference_filename
 
 obj_destroy, run
