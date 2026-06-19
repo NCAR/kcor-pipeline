@@ -161,10 +161,17 @@ pro kcor_cme_det_report, time, widget=widget, interim=interim
   nrgf_age_threshold = 10.0   ; minutes
   current_time = kcor_cme_current_time(run=run)
   latest_nrgf_filename = kcor_cme_find_latest_nrgf(current_time, $
-                                                   age=time_since_latest_nrgf)
+                                                   age=time_since_latest_nrgf, $
+                                                   r_photo=r_photo)
   found_nrgf = n_elements(latest_nrgf_filename) gt 0L
   if (found_nrgf && (time_since_latest_nrgf lt nrgf_age_threshold * 60.0)) then begin
-      nrgf_attachment = string(latest_nrgf_filename, format='-a %s')
+      kcor_cme_annotate_nrgf, latest_nrgf_filename, $
+                              annotated_filename=annotated_nrgf_filename, $
+                              height=last_height, $
+                              position_angle=angle, $
+                              r_photo=r_photo, $
+                              run=run
+      nrgf_attachment = string(annotated_nrgf_filename, format='-a %s')
   endif else nrgf_attachment = ''
 
   ; attach difference image from current pB and 10 minutes ago

@@ -25,7 +25,7 @@ pro kcor_cme_create_difference_gif, filename1, filename2, $
 
   difference_dir = filepath('', $
                             subdir=kcor_decompose_date(run.date), $
-                            root=run->config('cme/difference_dir'))
+                            root=run->config('cme/image_dir'))
   if (~file_test(difference_dir, /directory)) then file_mkdir, difference_dir
 
   im1      = readfits(filename1)
@@ -96,7 +96,7 @@ pro kcor_cme_create_difference_gif, filename1, filename2, $
     && n_elements(position_angle) && finite(position_angle)) then begin
 
     angle_change = 30.0
-    height_margins = [0.1, 0.25]  ; Rsun
+    height_margins = [0.05, 0.25]  ; Rsun
     theta = !dtor * (position_angle + angle_change * (findgen(10) / 9.0 - 0.5) + 90.0)
     lower_cme_x = 511.5 + (1.0 + height_margins[0]) * r_photo * cos(theta)
     lower_cme_y = 511.5 + (1.0 + height_margins[0]) * r_photo * sin(theta)

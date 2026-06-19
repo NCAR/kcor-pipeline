@@ -14,7 +14,7 @@
 ;     age [seconds] that the latest NRGF is from `current_time`, requires
 ;     `current_time` to be set
 ;-
-function kcor_cme_find_latest_nrgf, current_time, age=age
+function kcor_cme_find_latest_nrgf, current_time, age=age, r_photo=r_photo
   compile_opt strictarr
   @kcor_cme_det_common
 
@@ -43,6 +43,20 @@ function kcor_cme_find_latest_nrgf, current_time, age=age
     latest_nrgf_jd = julday(month, day, year, hour, minute, second)
 
     age = (current_time_jd - latest_nrgf_jd) * 24.0 * 60.0 * 60.0
+  endif
+
+  if (n_nrgf_files gt 0L) then begin
+    dirname = filepath('', $
+                      subdir=[simple_date, 'level2'], $
+                      root=run->config('processing/raw_basedir'))
+    basename = file_basename(latest_nrgf_filename, '.gif') + '.fts.gz'
+  
+    fits_filename = filepath(basename, root=dirname)
+  
+    header  = headfits(fits_filename)
+    rsun    = fxpar(header, 'RSUN_OBS')   ; solar radius [arcsec/Rsun]
+    cdelt1  = fxpar(header, 'CDELT1')     ; resolution [arcsec/pixel]
+    r_photo = rsun / cdelt1                ; photosphere radius [pixels/Rsun]
   endif
 
   return, latest_nrgf_filename
