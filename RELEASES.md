@@ -1399,7 +1399,7 @@
 
 - fix for default DKSHUTID value and DKSHUTID/LDINSID validation values
 
-#### 2.2.34
+#### 2.2.34 [June 22, 2026]
 
 - better validation warning messages
 - annotate location of CME in alert and report email difference images
