@@ -1405,4 +1405,6 @@
 - annotate location of CME in alert and report email difference images
 - list CME parameters in report emails
 
-#### 2.2.35
+#### 2.2.35 [June 30, 2026]
+
+- epoch changes for bad start state
