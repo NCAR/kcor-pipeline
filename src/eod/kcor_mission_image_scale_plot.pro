@@ -16,7 +16,7 @@ pro kcor_mission_image_scale_plot, database=db, run=run
 
   date_tokens = long(kcor_decompose_date(run.date))
 
-  query = 'select * from kcor_eng where image_scale is not NULL and date_obs < \"%04d-%02d-%02d\" order by date_obs'
+  query = 'select count(*) from kcor_eng where image_scale is not NULL and date_obs < \"%04d-%02d-%02d\" order by date_obs'
   data = db->query(query, date_tokens[0], date_tokens[1], date_tokens[2], $
                    count=n_files, $
                    status=status, error_message=error_message, sql_statement=sql)
@@ -28,6 +28,8 @@ pro kcor_mission_image_scale_plot, database=db, run=run
     goto, done
   endif
 
+  n_files = data[0].(0)
+
   if (n_files eq 0L) then begin
     mg_log, 'no files found', name=run.logger_name, /warn
     goto, done
@@ -35,9 +37,32 @@ pro kcor_mission_image_scale_plot, database=db, run=run
     mg_log, '%d files found', n_files, name=run.logger_name, /info
   endelse
 
-  image_scale = [!values.f_nan, data.image_scale]
-  rcam_image_scale = [!values.f_nan, data.rcam_image_scale]
-  tcam_image_scale = [!values.f_nan, data.tcam_image_scale]
+  date_obs = strarr(n_files)
+  image_scale = fltarr(n_files + 1L) + !values.f_nan
+  rcam_image_scale = fltarr(n_files + 1L) + !values.f_nan
+  tcam_image_scale = fltarr(n_files + 1L) + !values.f_nan
+
+  group_size = 10000L
+  query = 'select date_obs, image_scale, rcam_image_scale, tcam_image_scale from kcor_eng where image_scale is not NULL and date_obs < \"%04d-%02d-%02d\" order by date_obs limit %d offset %d'
+  for i = 0L, n_files / group_size do begin
+    data = db->query(query, $
+                     date_tokens[0], date_tokens[1], date_tokens[2], $
+                     group_size, i * group_size, $
+                     count=n_group_files, $
+                     status=status, error_message=error_message, sql_statement=sql)
+    if (status ne 0L) then begin
+      mg_log, 'problem querying database (error status: %d)', status, name=run.logger_name, /error
+      mg_log, 'SQL error msg: %s', error_message, name=run.logger_name, /error
+      mg_log, 'SQL statement: %s', sql, name=run.logger_name, /error
+      mg_log, 'not making mission image scale plot', name=run.logger_name, /error
+      goto, done
+    endif
+    date_obs[i * group_size] = data.date_obs
+    image_scale[i * group_size + 1L] = data.image_scale
+    rcam_image_scale[i * group_size + 1L] = data.rcam_image_scale
+    tcam_image_scale[i * group_size + 1L] = data.tcam_image_scale
+  endfor
+
   plate_scale = 0.0 * image_scale
   plate_scale_tolerance = 0.0 * image_scale
 
@@ -46,7 +71,7 @@ pro kcor_mission_image_scale_plot, database=db, run=run
     plate_scale_tolerance[*] = run->epoch('plate_scale_tolerance')
   ;endfor
 
-  jds = [kcor_dateobs2julday('2013-09-30T00:00:00'), kcor_dateobs2julday(data.date_obs)]
+  jds = [kcor_dateobs2julday('2013-09-30T00:00:00'), kcor_dateobs2julday(date_obs)]
   !null = label_date(date_format='%Y-%N-%D')
 
   image_scale_range = [5.5, 5.8]
@@ -207,7 +232,7 @@ end
 
 ; main-level example program
 
-date = '20260429'
+date = '20260630'
 config_basename = 'kcor.reprocess.cfg'
 config_filename = filepath(config_basename, $
                            subdir=['..', '..', '..', 'kcor-config'], $
