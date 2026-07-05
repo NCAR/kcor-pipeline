@@ -1412,3 +1412,5 @@
 #### 2.2.36 [July 5, 2026]
 
 - handle large database query for mission image scale plot
+
+#### 2.2.37
