@@ -1409,6 +1409,6 @@
 
 - epoch changes for bad start state
 
-#### 2.2.36
+#### 2.2.36 [July 5, 2026]
 
 - handle large database query for mission image scale plot
