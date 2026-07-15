@@ -1414,3 +1414,5 @@
 - handle large database query for mission image scale plot
 
 #### 2.2.37
+
+- new epoch using DKSHUTID from level 0 FITS files now
