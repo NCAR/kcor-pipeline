@@ -1420,3 +1420,5 @@
 #### 2.2.38 [JUly 15. 2026]
 
 - insert DKSHUTID and LNINSID into level 1+ FITS files
+
+#### 2.2.39
