@@ -1417,6 +1417,6 @@
 
 - new epoch using DKSHUTID from level 0 FITS files now
 
-#### 2.2.38
+#### 2.2.38 [JUly 15. 2026]
 
 - insert DKSHUTID and LNINSID into level 1+ FITS files
