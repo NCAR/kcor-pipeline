@@ -1428,3 +1428,5 @@
 #### 2.2.40 [July 16, 2026]
 
 - typo fix in epochs file
+
+#### 2.2.41
