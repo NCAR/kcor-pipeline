@@ -1352,4 +1352,81 @@
 
 - updated epochs
 
-#### 2.2.24
+#### 2.2.24 [Apr 27, 2026]
+
+- stop automated CME detection job at the end of the day
+
+#### 2.2.25 [Apr 28, 2026]
+
+- CME detection sends interim report to a "details_email" address that we can
+  create later
+
+#### 2.2.26 [Apr 29, 2026]
+
+- handle OC-T3-19.486
+
+#### 2.2.27 [April 30, 2026]
+
+- better OC-T3-19.486 flat radius size
+
+#### 2.2.28 [May 6, 2026]
+
+- epoch changes for bad start states
+
+#### 2.2.29 [May 10, 2026]
+
+- tranche size option for determining how many files to process at once when
+  running in realtime
+- fix for publishing level 2 files with time offset
+
+#### 2.2.30 [May 18, 2026]
+
+- epochs values for 2026.04.05
+- new values for O1ID validation and adding validation for DKSHUTID and LDINSID
+  FITS keywords
+
+#### 2.2.31 [May 20, 2026]
+
+- epochs values for 2026.04.20
+- handle new O1ID values
+- add DKSHUTID FITS keyword if not present
+
+#### 2.2.32 [May 25, 2026]
+
+- epoch values for DKSHUTID
+
+#### 2.2.33 [May 27, 2026]
+
+- fix for default DKSHUTID value and DKSHUTID/LDINSID validation values
+
+#### 2.2.34 [June 22, 2026]
+
+- better validation warning messages
+- annotate location of CME in alert and report email difference images
+- list CME parameters in report emails
+
+#### 2.2.35 [June 30, 2026]
+
+- epoch changes for bad start state
+
+#### 2.2.36 [July 5, 2026]
+
+- handle large database query for mission image scale plot
+
+#### 2.2.37 [July 15, 2026]
+
+- new epoch using DKSHUTID from level 0 FITS files now
+
+#### 2.2.38 [July 15, 2026]
+
+- insert DKSHUTID and LNINSID into level 1+ FITS files
+
+#### 2.2.39 [July 16, 2026]
+
+- epoch changes for bad start state
+
+#### 2.2.40 [July 16, 2026]
+
+- typo fix in epochs file
+
+#### 2.2.41

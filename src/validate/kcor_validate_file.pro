@@ -25,7 +25,8 @@ function kcor_validate_file_checkspec, keyword_name, specline, $
       'optional': required = 0B
       'value': value = parts[1]
       'values': begin
-          values = strsplit(strmid(parts[1], 1, strlen(parts[1]) - 2), $
+          values_spec = strmid(parts[1], 1, strlen(parts[1]) - 2)
+          values = strsplit(values_spec, $
                             '|', $
                             /extract, $
                             count=n_values)
@@ -97,7 +98,8 @@ function kcor_validate_file_checkspec, keyword_name, specline, $
     ind = where(keyword_value eq values, count)
     if (count ne 1L) then begin
       if (obj_valid(error_list)) then begin
-        error_msg = string(strtrim(keyword_value, 2), format='(%"not one of possible values: %s")')
+        error_msg = string(strtrim(keyword_value, 2), keyword_name, values_spec, $
+                           format='(%"%s not one of possible values for %s (%s)")')
         error_list->add, error_msg
       endif
       is_valid = 0B
@@ -300,12 +302,14 @@ end
 ; endif
 
 
-date = '20260331'
-basename = '20260331_184828_kcor.fts.gz'
+; date = '20260331'
+date = '20260527'
+; basename = '20260331_184828_kcor.fts.gz'
+basename = '20260527_234556_kcor.fts.gz'
 
 filename = filepath(basename, $
                     subdir=[date, 'level0'], $
-                    root='/hao/dawn/Data/KCor/raw')
+                    root='/hao/corona2/Data/KCor/raw')
 
 config_filename = filepath('kcor.production.cfg', $
                            subdir=['..', '..', '..', 'kcor-config'], $

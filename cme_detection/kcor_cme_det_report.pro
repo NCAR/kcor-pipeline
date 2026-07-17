@@ -17,9 +17,10 @@ pro kcor_cme_det_report, time, widget=widget, interim=interim
 
   if (n_elements(speed_history) eq 0L) then goto, done
 
-  addresses = run->config('cme/email')
-  if (n_elements(addresses) eq 0L) then begin
-    mg_log, 'no cme/email specified, not sending email', $
+  email_option = keyword_set(interim) ? 'cme/details_email' : 'cme/email'
+  addresses = run->config(email_option)
+  if (n_elements(addresses) eq 0 || strlen(addresses) eq 0L) then begin
+    mg_log, 'no %s specified, not sending email', email_option, $
             name='kcor/cme', /warn
     return
   endif
@@ -28,7 +29,7 @@ pro kcor_cme_det_report, time, widget=widget, interim=interim
 
   mg_log, 'CME alert email address set, will send report', name='kcor/cme', /debug
 
-  last_time_index = n_elements(leading_edge) - 1L
+  itime = n_elements(leadingedge) - 1
 
   plot_dir = filepath('p', $
                       subdir=simple_date, $
@@ -36,7 +37,7 @@ pro kcor_cme_det_report, time, widget=widget, interim=interim
   if (~file_test(plot_dir, /directory)) then file_mkdir, plot_dir
 
   ; create filename for plot file
-  last_datetime = kcor_parse_dateobs(date_diff[last_time_index].date_avg)
+  last_datetime = kcor_parse_dateobs(date_diff[itime].date_avg)
   plot_file = filepath(string(last_datetime.year, $
                               last_datetime.month, $
                               last_datetime.day, $
@@ -85,12 +86,13 @@ pro kcor_cme_det_report, time, widget=widget, interim=interim
   ; leading edge plot
   date0 = date_diff[-1L].date_avg
   rsun = (pb0r(date0))[2]
-  radius = 60 * (lat[leadingedge] + 90) / rsun
+  heights = 60 * (lat[leadingedge] + 90) / rsun
+  last_height = 60.0 * (lat[leadingedge[itime]] + 90.0) / rsun
 
   ind = where(leadingedge lt 0.0, n_nan)
-  if (n_nan gt 0L) then radius[ind] = !values.f_nan
+  if (n_nan gt 0L) then heights[ind] = !values.f_nan
 
-  utplot, date_diff.date_avg, radius, $
+  utplot, date_diff.date_avg, heights, $
           color='000000'x, background='ffffff'x, charsize=charsize, $
           psym=1, symsize=0.5, $
           ytitle='Solar radii', $
@@ -128,11 +130,11 @@ pro kcor_cme_det_report, time, widget=widget, interim=interim
       if (all[a]) then begin
         good_pt = finite(velocity[tracked_indices[i]]) $
                     || finite(position[tracked_indices[i]]) $
-                    || finite(radius[tracked_indices[i]])
+                    || finite(heights[tracked_indices[i]])
       endif else begin
         good_pt = finite(velocity[tracked_indices[i]]) $
                     && finite(position[tracked_indices[i]]) $
-                    && finite(radius[tracked_indices[i]])
+                    && finite(heights[tracked_indices[i]])
       endelse
 
       ; report on data up to 30 minutes before CME started
@@ -143,7 +145,7 @@ pro kcor_cme_det_report, time, widget=widget, interim=interim
                 tai2utc(date_diff[tracked_indices[i]].tai_avg, /truncate, /ccsds) + 'Z', $
                 velocity[tracked_indices[i]], $
                 position[tracked_indices[i]], $
-                radius[tracked_indices[i]], $
+                heights[tracked_indices[i]], $
                 format='(%"%s, %0.1f, %0.1f, %0.2f")'
       endif
     endfor
@@ -159,10 +161,17 @@ pro kcor_cme_det_report, time, widget=widget, interim=interim
   nrgf_age_threshold = 10.0   ; minutes
   current_time = kcor_cme_current_time(run=run)
   latest_nrgf_filename = kcor_cme_find_latest_nrgf(current_time, $
-                                                   age=time_since_latest_nrgf)
+                                                   age=time_since_latest_nrgf, $
+                                                   r_photo=r_photo)
   found_nrgf = n_elements(latest_nrgf_filename) gt 0L
   if (found_nrgf && (time_since_latest_nrgf lt nrgf_age_threshold * 60.0)) then begin
-      nrgf_attachment = string(latest_nrgf_filename, format='-a %s')
+      kcor_cme_annotate_nrgf, latest_nrgf_filename, $
+                              annotated_filename=annotated_nrgf_filename, $
+                              height=last_height, $
+                              position_angle=angle, $
+                              r_photo=r_photo, $
+                              run=run
+      nrgf_attachment = string(annotated_nrgf_filename, format='-a %s')
   endif else nrgf_attachment = ''
 
   ; attach difference image from current pB and 10 minutes ago
@@ -175,8 +184,11 @@ pro kcor_cme_det_report, time, widget=widget, interim=interim
       filename1=diff_filename1, filename2=diff_filename2, $
       found=found_diff, run=run
   if (found_diff) then begin
-    kcor_cme_create_difference_gif, diff_filename1, diff_filename2, $
-      difference_filename=difference_filename, run=run
+    kcor_cme_create_difference_gif, $
+      diff_filename1, diff_filename2, $
+      difference_filename=difference_filename, $
+      height=last_height, position_angle=angle, $
+      run=run
     diff_attachment = string(difference_filename, format='-a %s')
   endif else diff_attachment = ''
 
@@ -203,11 +215,22 @@ pro kcor_cme_det_report, time, widget=widget, interim=interim
   printf, out, keyword_set(interim) ? 'Interim' : 'Summary', $
           format='Mauna Loa Solar Observatory CME %s Report'
   printf, out
-  printf, out, date_diff[last_time_index].date_avg, format='Valid at: %s UT'
+  printf, out, date_diff[itime].date_avg, format='Valid at: %s UT'
   printf, out
 
   printf, out, keyword_set(interim) ? 'is tracking' : 'tracked', $
           format='The MLSO K-Coronagraph %s a CME with the following characteristics:'
+  printf, out
+
+  time_description = keyword_set(interim) ? 'Current' : 'Last measured'
+
+  height_description = finite(last_height) $
+    ? (ntrim(last_height, '(F10.2)') + ' Rsun') $
+    : 'not measured'
+
+  printf, out, time_description + ' radial distance from Sun center: ' + height_description
+  printf, out, time_description + ' position angle: ' + ntrim(angle) + ' degrees'
+  printf, out, time_description + ' speed: ' + ntrim(speed, '(F10.1)') + ' km/s'
   printf, out
 
   printf, out, ut_date, time, format='Initial detected time: %s %s UT'
@@ -284,12 +307,10 @@ pro kcor_cme_det_report, time, widget=widget, interim=interim
   if (n_elements(alerts_dir) eq 0L && n_elements(ftp_url) eq 0L) then goto, done
 
   ; collect info for alert
-  itime          = n_elements(leadingedge) - 1
-  issue_time     = kcor_cme_current_time(run=run)
-  end_time     = tai2utc(utc2tai(date_diff[itime].date_obs), /truncate, /ccsds) + 'Z'
-  mode           = run->config('cme/mode')
+  issue_time = kcor_cme_current_time(run=run)
+  end_time   = tai2utc(utc2tai(date_diff[itime].date_obs), /truncate, /ccsds) + 'Z'
+  mode       = run->config('cme/mode')
   ; angle and speed are already set
-  height          = 60 * (lat[leadingedge[itime]] + 90) / rsun
   time_for_height = tai2utc(tairef, /truncate, /ccsds) + 'Z'
 
   send_interim_alerts = run->config('cme/send_interim_alerts')
@@ -301,7 +322,7 @@ pro kcor_cme_det_report, time, widget=widget, interim=interim
                                           mode, $
                                           position_angle=angle, $
                                           speed=speed, $
-                                          height=height, $
+                                          height=last_height, $
                                           time_for_height=time_for_height, $
                                           interim=interim)
 

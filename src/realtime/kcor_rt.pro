@@ -93,8 +93,9 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
 
     cd, raw_dir
 
-    if (run->config('realtime/reprocess') $
-          || run->config('realtime/update_processing')) then begin
+    is_reprocessing = run->config('realtime/reprocess') $
+                        || run->config('realtime/update_processing')
+    if (is_reprocessing) then begin
       kcor_reprocess, date, run=run, error=reprocess_error
       if (reprocess_error ne 0L) then begin
         mg_log, 'error in reprocessing setup, exiting', name='kcor/rt', /error
@@ -109,6 +110,19 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     ; run or be needed in Boulder
     unzipped_glob = '*_kcor.fts'
     unzipped_files = file_search(unzipped_glob, count=n_unzipped_files)
+
+    ; truncate to tranche size if realtime
+    if (~is_reprocessing && ~keyword_set(reprocess)) then begin
+      tranche_size = run->config('realtime/tranche_size')
+      if (n_unzipped_files gt 0L && tranche_size gt 0L) then begin
+        mg_log, '%d files to zip [tranche size: %d]', $
+                n_unzipped_files, tranche_size, $
+                name='kcor/rt', /info
+        n_unzipped_files = n_unzipped_files < tranche_size
+        unzipped_files = unzipped_files[0:n_unzipped_files - 1L]
+      endif
+    endif
+
     if (n_unzipped_files gt 0L) then begin
       mg_log, 'zipping %d FITS files...', n_unzipped_files, name='kcor/rt', /info
       gzip_executable = run->config('externals/gzip')
@@ -144,6 +158,18 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     if (n_l0_fits_files eq 0L) then begin
       mg_log, 'no L0 files to process in raw dir', name='kcor/rt', /info
       goto, done
+    endif
+
+    ; truncate to tranche size if realtime
+    if (~is_reprocessing && ~keyword_set(reprocess)) then begin
+      tranche_size = run->config('realtime/tranche_size')
+      if (n_l0_fits_files gt 0L && tranche_size gt 0L) then begin
+        mg_log, '%d files to process [tranche size: %d]', $
+                n_l0_fits_files, tranche_size, $
+                name='kcor/rt', /info
+        n_l0_fits_files = n_l0_fits_files < tranche_size
+        l0_fits_files = l0_fits_files[0:n_l0_fits_files - 1L]
+      endif
     endif
 
     l0_spec = run->config('validation/l0_specification')
@@ -217,7 +243,9 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
     endif
 
     kcor_process_files, ok_files, run=run, mean_phase1=mean_phase1, $
+                        l1_filenames=l1_filenames, $
                         log_name='kcor/rt', error=process_errors
+    n_l1_filenames = n_elements(l1_filenames)
 
     mg_log, 'moving %d processed files to level0 dir', n_l0_fits_files, $
             name='kcor/rt', /info
@@ -304,8 +332,8 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
       printf, failed_lun, file_basename(ok_files[failed_indices[f]])
     endfor
 
-    for f = 0L, n_processed_files - 1L do begin
-      base = file_basename(ok_files[processed_indices[f]], '.fts.gz')
+    for f = 0L, n_l1_filenames - 1L do begin
+      base = file_basename(l1_filenames[f], '_l1.fts')
 
       cropped_gif_filename = base + '_l2_pb_cropped.gif'
       printf, okcgif_lun, cropped_gif_filename
@@ -326,18 +354,22 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
         if (file_test(nrgf_filename)) then begin
           if (~file_test(archive_dir, /directory)) then file_mkdir, archive_dir
           file_copy, nrgf_filename, archive_dir, /overwrite
+          mg_log, 'copying %s to archive_dir', nrgf_filename, name='kcor/rt', /debug
         endif
         if (file_test(cropped_gif_filename)) then begin
           if (~file_test(croppedgif_dir, /directory)) then file_mkdir, croppedgif_dir
           file_copy, cropped_gif_filename, croppedgif_dir, /overwrite
+          mg_log, 'copying %s to croppedgif_dir', cropped_gif_filename, name='kcor/rt', /debug
         endif
         if (file_test(gif_filename)) then begin
           if (~file_test(fullres_dir, /directory)) then file_mkdir, fullres_dir
           file_copy, gif_filename, fullres_dir, /overwrite
+          mg_log, 'copying %s to fullres_dir', gif_filename, name='kcor/rt', /debug
         endif
         if (file_test(l2_filename)) then begin
           if (~file_test(archive_dir, /directory)) then file_mkdir, archive_dir
           file_copy, l2_filename, archive_dir, /overwrite
+          mg_log, 'copying %s to archive_dir', l2_filename, name='kcor/rt', /debug
         endif
       endif
     endfor

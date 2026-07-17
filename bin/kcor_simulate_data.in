@@ -206,3 +206,5 @@ if __name__ == '__main__':
                       time_dir=args.time_dir)
     except KeyboardInterrupt:
         logging.info('quitting...')
+    except FileNotFoundError as e:
+        logging.error(e)

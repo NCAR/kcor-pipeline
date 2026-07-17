@@ -53,7 +53,7 @@ pro kcor_cme_det_email, time, edge, last_detected_image_time, operator=operator
   @kcor_cme_det_common
 
   addresses = run->config('cme/email')
-  if (n_elements(addresses) eq 0L) then begin
+  if (n_elements(addresses) eq 0 || strlen(addresses) eq 0L) then begin
     mg_log, 'no cme.email specified, not sending email', $
             name='kcor/cme', /warn
     return
@@ -166,10 +166,17 @@ pro kcor_cme_det_email, time, edge, last_detected_image_time, operator=operator
   nrgf_age_threshold = 10.0   ; minutes
   current_time = kcor_cme_current_time(run=run)
   latest_nrgf_filename = kcor_cme_find_latest_nrgf(current_time, $
-                                                   age=time_since_latest_nrgf)
+                                                   age=time_since_latest_nrgf, $
+                                                   r_photo=r_photo)
   found_nrgf = n_elements(latest_nrgf_filename) gt 0L
   if (found_nrgf && (time_since_latest_nrgf lt nrgf_age_threshold * 60.0)) then begin
-      nrgf_attachment = string(latest_nrgf_filename, format='-a %s')
+      kcor_cme_annotate_nrgf, latest_nrgf_filename, $
+                              annotated_filename=annotated_nrgf_filename, $
+                              height=edge, $
+                              position_angle=angle, $
+                              r_photo=r_photo, $
+                              run=run
+      nrgf_attachment = string(annotated_nrgf_filename, format='-a %s')
   endif else nrgf_attachment = ''
 
   ; attach difference image from current pB and 10 minutes ago
@@ -182,8 +189,11 @@ pro kcor_cme_det_email, time, edge, last_detected_image_time, operator=operator
       filename1=diff_filename1, filename2=diff_filename2, $
       found=found_diff, run=run
   if (found_diff) then begin
-    kcor_cme_create_difference_gif, diff_filename1, diff_filename2, $
-      difference_filename=difference_filename, run=run
+    kcor_cme_create_difference_gif, $
+      diff_filename1, diff_filename2, $
+      difference_filename=difference_filename, $
+      height=edge, position_angle=angle, $
+      run=run
     diff_attachment = string(difference_filename, format='-a %s')
   endif else diff_attachment = ''
 

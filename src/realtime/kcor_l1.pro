@@ -1347,8 +1347,8 @@ pro kcor_l1, ok_filename, $
   if (run->epoch('use_O1id')) then begin
     o1id = run->epoch(struct.o1id, found=found, error_message=error_message)
     if (~found) then begin
-      mg_log, error_message, name=log_name, /error
-      o1id = ''
+      ; if no translation to another value, then just use the raw value in O1ID
+      o1id = struct.o1id
     endif
   endif else begin
     o1id = run->epoch('O1id')
@@ -1378,6 +1378,20 @@ pro kcor_l1, ok_filename, $
 
   fxaddpar, l1_header, 'OCCLTRID', occltrid, ' ' + occulter_comment
   fxaddpar, l1_header, 'MODLTRID', struct.modltrid, ' ID modulator'
+  !null = sxpar(header, 'DKSHUTID', count=n_dkshutid)
+  !null = sxpar(header, 'LDINSID', count=n_ldinsid)
+  if (~run->epoch('use_dark_shutter_id') || n_dkshutid eq 0L) then begin
+    dark_shutter_id = run->epoch('dark_shutter_id')
+    fxaddpar, l1_header, 'DKSHUTID', dark_shutter_id, ' ID dark shutter', $
+              after='MODLTRID'
+  endif else begin
+    fxaddpar, l1_header, 'DKSHUTID', struct.dkshutid, ' ID dark shutter', $
+              after='MODLTRID'
+  endelse
+  if (n_ldinsid gt 0L) then begin
+    fxaddpar, l1_header, 'LDINSID', struct.ldinsid, ' ID light dump insert to reduce scattered light', $
+              after='MODLTRID'
+  endif
 
   if (run->epoch('use_camera_info')) then begin
     prefix = run->epoch('use_camera_prefix') ? run->epoch('camera_prefix') : ''
