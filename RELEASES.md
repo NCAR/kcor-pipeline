@@ -1429,6 +1429,6 @@
 
 - typo fix in epochs file
 
-#### 2.2.41
+#### 2.2.41 [July 23, 2026]
 
 - fix RCAMID/RCAMLUT for epoch on 2026.07.22
