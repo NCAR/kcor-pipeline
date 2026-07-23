@@ -1432,3 +1432,5 @@
 #### 2.2.41 [July 23, 2026]
 
 - fix RCAMID/RCAMLUT for epoch on 2026.07.22
+
+#### 2.2.42
