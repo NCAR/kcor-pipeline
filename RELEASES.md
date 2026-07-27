@@ -1433,6 +1433,6 @@
 
 - fix RCAMID/RCAMLUT for epoch on 2026.07.22
 
-#### 2.2.42
+#### 2.2.42 [July 27, 2026]
 
 - update epochs for LDINSID FITS keyword
