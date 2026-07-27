@@ -1436,3 +1436,5 @@
 #### 2.2.42 [July 27, 2026]
 
 - update epochs for LDINSID FITS keyword
+
+#### 2.2.43
