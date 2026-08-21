@@ -62,12 +62,10 @@ end
 
 ; main-level example program
 
-list_dir = '.'
-date = '20220303'
+list_dir = '/hao/dawn/Data/KCor/cme_lists'
+date = '20260821'
 
-kcor_cme_update_list, date, date + '.181500', 135.2, 'toretract', list_dir
-kcor_cme_update_list, date, date + '.183700', 212.6, 'toretract', list_dir
-to_retract = kcor_cme_find_retractions(date, '.', count=count)
+to_retract = kcor_cme_find_retractions(date, list_dir, count=count)
 if (count eq 0L) then begin
   print, 'No CMEs to retract'
 endif else begin
@@ -80,11 +78,8 @@ for c = 0L, count - 1L do begin
   time = tokens[0]
   angle = float(tokens[1])
   print, time, angle, format='retracting CME at %s at position angle %0.2f'
-  kcor_cme_update_list, date, tokens[0], float(tokens[1]), 'retracted', list_dir
+  ; kcor_cme_update_list, date, tokens[0], float(tokens[1]), 'retracted', list_dir
 endfor
-
-to_retract = kcor_cme_find_retractions(date, '.', count=count)
-help, count
 
 end
 
