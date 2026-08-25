@@ -42,14 +42,32 @@ function kcor_cme_find_retractions, observing_date, list_dir, count=count
   openr, lun, retracted_filename, /get_lun
   readf, lun, retracted
   free_lun, lun
-  
+
   ; remove comments from toretract list to be able to compare to list of already
-  ; retracted
+  ; retracted; should look like "HH:MM:SS PPP.PP deg"
   _toretract = toretract
+  valid = bytarr(n_elements(_toretract))
   for c = 0L, n_toretract - 1L do begin
     pos = strsplit(_toretract[c], count=count, length=len)
-    if (count gt 3L) then _toretract[c] = strmid(_toretract[c], 0, pos[2] + len[2])
+    case count of
+      0: valid[c] = 0B
+      1: begin
+          time = strmid(_toretract[c], pos[0], len[0])
+          angle = 0.0
+          valid[c] = 1B
+        end
+      else: begin
+          time = strmid(_toretract[c], pos[0], len[0])
+          angle = float(strmid(_toretract[c], pos[1], len[1]))
+          valid[c] = 1B
+        end
+    endcase
+    if (valid[c]) then _toretract[c] = string(time, angle, format=kcor_cme_list_format())
   endfor
+
+  valid_indices = where(valid, /null)
+  _toretract = _toretract[valid_indices]
+  toretract = toretract[valid_indices]
 
   ; now compare the list of CMEs to retract to the list of already retracted
   n_matches = mg_match(_toretract, retracted, a_matches=retracted_indices)
@@ -62,7 +80,7 @@ end
 
 ; main-level example program
 
-list_dir = '/hao/dawn/Data/KCor/cme_lists'
+list_dir = '.'
 date = '20260821'
 
 to_retract = kcor_cme_find_retractions(date, list_dir, count=count)

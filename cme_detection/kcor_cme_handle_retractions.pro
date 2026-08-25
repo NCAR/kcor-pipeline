@@ -29,3 +29,21 @@ pro kcor_cme_handle_retractions
   endif
 end
 
+
+; main-level example program
+
+@kcor_cme_det_common
+
+simple_date = '20260821'
+config_filename = filepath('kcor.cme-test.cfg', $
+                           subdir=['..', '..', 'kcor-config'], $
+                           root=mg_src_root())
+run = kcor_run(simple_date, config_filename=config_filename)
+
+; initialize common block run object
+
+kcor_cme_handle_retractions
+
+obj_destroy, run
+
+end

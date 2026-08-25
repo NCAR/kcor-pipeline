@@ -29,7 +29,7 @@ pro kcor_cme_update_list, observing_date, time, position_angle, type, list_dir
   filename = filepath(basename, root=list_dir)
 
   openu, lun, filename, /get_lun, /append
-  printf, lun, time, position_angle, format='(%"%s  %0.2f deg")'
+  printf, lun, time, position_angle, format=kcor_cme_list_format()
   free_lun, lun
 end
 
