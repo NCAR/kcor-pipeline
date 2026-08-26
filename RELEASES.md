@@ -1437,6 +1437,6 @@
 
 - update epochs for LDINSID FITS keyword
 
-#### 2.2.43
+#### 2.2.43 [Aug 26, 2026]
 
 - handle malformed entries in CME .toretract list
