@@ -1442,3 +1442,5 @@
 - handle malformed entries in CME .toretract list
 
 #### 2.2.44
+
+- epoch file changes for 2026.08.19 and 2026.08.21
