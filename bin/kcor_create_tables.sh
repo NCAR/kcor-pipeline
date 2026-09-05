@@ -12,6 +12,7 @@ kcor_drop_table.pl $DB_FILE kcor_eng
 kcor_drop_table.pl $DB_FILE kcor_cal
 kcor_drop_table.pl $DB_FILE kcor_sci
 
+kcor_drop_table.pl $DB_FILE kcor_process
 kcor_drop_table.pl $DB_FILE kcor_sw
 kcor_drop_table.pl $DB_FILE kcor_level
 kcor_drop_table.pl $DB_FILE kcor_quality
@@ -28,6 +29,7 @@ $MLSO_SCRIPTS_DIR/mlso_sgs_create_table.pl $DB_FILE
 kcor_level_create_table.pl $DB_FILE
 kcor_quality_create_table.pl $DB_FILE
 kcor_sw_create_table.pl $DB_FILE
+kcor_process_create_table.pl $DB_FILE
 
 kcor_cal_create_table.pl $DB_FILE
 kcor_hw_create_table.pl $DB_FILE
