@@ -70,6 +70,8 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
   available = kcor_state(/lock, run=run)
 
   if (available) then begin
+    kcor_db_set_process, 'processing', run, status=db_status
+
     l0_dir = filepath('level0', root=raw_dir)
     l1_dir = filepath('level1', root=raw_dir)
     l2_dir = filepath('level2', root=raw_dir)

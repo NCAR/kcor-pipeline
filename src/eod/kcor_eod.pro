@@ -152,6 +152,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
     mg_log, 't2 log does not exist in %s', date_dir, name='kcor/eod', /warn
   endelse
 
+  kcor_db_set_process, 'processing', run, status=db_status
+
   ; copy config file to YYYYMMDD/ directory
   file_copy, config_filename, filepath('kcor.cfg', root=date_dir), /overwrite
 
@@ -450,6 +452,8 @@ pro kcor_eod, date, config_filename=config_filename, reprocess=reprocess
   endif else begin
     mg_log, 'skipping updating database', name='kcor/eod', /info
   endelse
+
+  kcor_db_set_process, 'processed', run, status=db_status
 
   if (daily_science_file_present) then begin
     kcor_plotsci, date, daily_science_file, run=run
