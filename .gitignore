@@ -14,3 +14,4 @@
 /stream/__pycache__
 .nova
 /tutorials/*.fts.gz
+/tutorials/*.mp4
