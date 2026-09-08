@@ -1452,3 +1452,5 @@
 #### 2.2.46 [Sep 8, 2026]
 
 - update kcor_process database table when processing/reprocessing
+
+#### 2.2.47
