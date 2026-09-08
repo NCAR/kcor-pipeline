@@ -1449,6 +1449,6 @@
 
 - epoch file changes for 2026.06.14 and 2026.08.31
 
-#### 2.2.46
+#### 2.2.46 [Sep 8, 2026]
 
 - update kcor_process database table when processing/reprocessing
