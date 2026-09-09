@@ -81,8 +81,7 @@ pro kcor_sw_insert, date, run=run, $
   endif else begin
     ; if it is in the database, get the corresponding sw_id
     q = 'select sw_id from kcor_sw where sw_version=''%s'' and sw_revision=''%s'''
-    sw_results = db->query(q, sw_version, sw_revision, $
-                           status=status)
+    sw_results = db->query(q, sw_version, sw_revision, status=status)
     if (status ne 0L) then begin
       mg_log, 'error finding ID of existing kcor_sw row...', name=log_name, /error
       goto, done
