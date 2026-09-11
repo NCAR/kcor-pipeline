@@ -1453,7 +1453,7 @@
 
 - update kcor_process database table when processing/reprocessing
 
-#### 2.2.47
+#### 2.2.47 [Sep 11, 2026]
 
 - only set status to "processing" in realtime if there are level 0 files to
   process
