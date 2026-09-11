@@ -1457,3 +1457,5 @@
 
 - only set status to "processing" in realtime if there are level 0 files to
   process
+
+#### 2.2.48
