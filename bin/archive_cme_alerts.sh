@@ -20,9 +20,13 @@ SSH_KEY=${HOME}/.ssh/id_rsa2
 
 # create directory to copy to and copy into it
 mkdir -p ${LOCAL_PATH}/${DATE}
-cmd="scp -rqp -i ${SSH_KEY} ${REMOTE_SERVER}.mlso.ucar.edu:${REMOTE_PATH}/${DATE}/p/*cme* ${LOCAL_PATH}/${DATE}"
-$cmd
-
+if ssh -i ${SSH_KEY} ${REMOTE_SERVER}.mlso.ucar.edu "[ -d ${REMOTE_PATH}/${DATE}/p/ ]"; then
+  cmd="scp -rqp -i ${SSH_KEY} ${REMOTE_SERVER}.mlso.ucar.edu:${REMOTE_PATH}/${DATE}/p/*cme* ${LOCAL_PATH}/${DATE}"
+  $cmd
+else
+  echo "failed to copy alert plots for ${DATE}"
+fi
+# fi
 
 REMOTE_PATH=/export/data1/Data/KCor/cme-alerts
 YEAR=${DATE:0:4}
@@ -31,8 +35,13 @@ DAY=${DATE:6:2}
 
 # copy all files of the following form to the LOCAL_PATH:
 #   cme-alerts/YYYY/MM/DD/mlso_kcor.2017-10-06T172637Z.2017-10-06T173105Z.json
-cmd="scp -qp -i ${SSH_KEY} ${REMOTE_SERVER}.mlso.ucar.edu:${REMOTE_PATH}/${YEAR}/${MONTH}/${DAY}/*.json ${LOCAL_PATH}/${DATE}"
-$cmd
+if ssh -i ${SSH_KEY} ${REMOTE_SERVER}.mlso.ucar.edu "[ -d ${REMOTE_PATH}/${YEAR}/${MONTH}/${DAY}/ ]"; then
+  cmd="scp -qp -i ${SSH_KEY} ${REMOTE_SERVER}.mlso.ucar.edu:${REMOTE_PATH}/${YEAR}/${MONTH}/${DAY}/*.json ${LOCAL_PATH}/${DATE}"
+  $cmd
+else
+  echo "failed to copy the JSON alerts for ${DATE}"
+fi
+
 
 ${SCRIPT_DIR}/kcor_add_events ${LOCAL_PATH}/${DATE}
 
