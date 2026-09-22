@@ -1458,6 +1458,6 @@
 - only set status to "processing" in realtime if there are level 0 files to
   process
 
-#### 2.2.48
+#### 2.2.48 [Sep 22, 2026]
 
 - difference images use `DATE-OBS` for foreground start time
