@@ -1461,3 +1461,5 @@
 #### 2.2.48 [Sep 22, 2026]
 
 - difference images use `DATE-OBS` for foreground start time
+
+#### 2.2.49
