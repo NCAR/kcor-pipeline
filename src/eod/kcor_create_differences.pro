@@ -445,9 +445,14 @@ pro kcor_create_differences, date, l2_files, run=run
       gif_basename = string(name, timestring, status, format='(%"%s_minus_%s_%s.gif")')
       write_gif, gif_basename, save
 
-      sxaddpar, goodheader, 'DATE-OBS', difference_datetimes[1, 0]
+      sxaddpar, goodheader, 'DATE-OBS', difference_datetimes[0, 0], $
+                ' UTC start of foreground image(s)'
       indices = where(difference_times[0, *] ne '', /null)
-      sxaddpar, goodheader, 'DATE-END', difference_datetimes[0, indices[-1]]
+      sxaddpar, goodheader, 'DATE-BEG', difference_datetimes[1, 0], $
+                ' UTC start of background image(s)', $
+                after='DATE-OBS'
+      sxaddpar, goodheader, 'DATE-END', difference_datetimes[0, indices[-1]], $
+                ' UTC end of foreground image(s)'
       sxaddpar, goodheader, 'PRODUCT', 'level 2 pB subtraction', $
                 ' difference of two level 2 pB images', $
                 after='OBJECT'
@@ -561,7 +566,7 @@ end
 
 ; main-level example program
 
-date = '20160211'
+date = '20260610'
 config_filename = filepath('kcor.latest.cfg', $
                            subdir=['..', '..', '..', 'kcor-config'], $
                            root=mg_src_root())

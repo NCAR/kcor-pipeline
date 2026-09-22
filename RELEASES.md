@@ -1459,3 +1459,5 @@
   process
 
 #### 2.2.48
+
+- difference images use `DATE-OBS` for foreground start time
