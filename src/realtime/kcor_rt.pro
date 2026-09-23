@@ -154,7 +154,7 @@ pro kcor_rt, date, config_filename=config_filename, reprocess=reprocess
 
     l0_fits_files = kcor_remove_duplicates(raw_dir, l0_dir, $
                                            count=n_l0_fits_files, $
-                                           logger_name=logger_name)
+                                           logger_name='kcor/rt')
     if (n_l0_fits_files eq 0L) then begin
       mg_log, 'no L0 files to process in raw dir', name='kcor/rt', /info
       goto, done
