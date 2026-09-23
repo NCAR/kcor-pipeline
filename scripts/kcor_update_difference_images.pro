@@ -81,7 +81,9 @@ pro kcor_update_difference_images, date, config_filename=config_filename
                                   root=run->config('processing/raw_basedir')), $
                       count=n_l2_files)
 
-  kcor_create_differences, date, l2_files, run=run
+  if (n_l2_files gt 0L) then begin
+    kcor_create_differences, date, l2_files, run=run
+  endif
 
   obj_destroy, [db, run]
 end
