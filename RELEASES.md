@@ -1462,4 +1462,6 @@
 
 - difference images use `DATE-OBS` for foreground start time
 
-#### 2.2.49
+#### 2.2.49 [Oct 18, 2026]
+
+- fix for CMake version requirement check
