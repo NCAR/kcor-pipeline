@@ -1465,3 +1465,5 @@
 #### 2.2.49 [Oct 18, 2026]
 
 - fix for CMake version requirement check
+
+#### 2.2.50
