@@ -68,7 +68,14 @@ pro kcor_annual_movies, year, run=run
     mg_log, 'creating %s...', agif_basename, name=run.logger_name, /info
     agif_filename = filepath(agif_basename, root=l2_dir)
     kcor_create_animated_gif, gif_filenames, agif_basename, run=run, status=status
-    if (n_elements(annual_basedir) gt 0L) then file_copy, agif_filename, annual_dir, /overwrite
+    if (n_elements(annual_basedir) gt 0L) then begin
+      if (file_text(agif_filename, /regular)) then begin
+        file_copy, agif_filename, annual_dir, /overwrite
+      endif else begin
+        mg_log, 'animated gif %s not created, refusing to copy', agif_basename, $
+                name=run.logger_name, /info
+      endelse
+    endif
   endfor
 
   done:
