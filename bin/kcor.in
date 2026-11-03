@@ -22,7 +22,7 @@ try:
     import time
 
     PY3 = sys.version_info[0] == 3
-    
+
     if PY3:
         import configparser
     else:
@@ -71,12 +71,12 @@ try:
     PIPELINE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
     POLL_SECS = 0.5
-    
+
     LEVELS = ["DEBUG", "INFO", "WARN", "ERROR", "CRITICAL"]
     LOG_DIR = "/hao/acos/kcor/logs"
-    
+
     CONFIG_DIR = "@CONFIG_DIR@"
-    
+
     intervals = (
         ("weeks", 604800),  # 60 * 60 * 24 * 7
         ("days", 86400),  # 60 * 60 * 24
@@ -344,7 +344,7 @@ def versions(args):
 
     try:
         filter = make_version_filter(args.filter)
-    
+
         if args.oldest:
             f = [v for v in versions_list if v[1] is not None and v[1][0] != "-"]
             s = sorted(f, key=lambda v: packaging.version.parse(v[1]))
@@ -394,7 +394,7 @@ def versions(args):
                         attribute = "-"
                 else:
                     attribute = " "
-    
+
                 if filter(v):
                     v = v if v is not None else 12 * "-"
                     r = r if r is not None else 12 * "-"
@@ -873,7 +873,7 @@ def filter_file(logfile, level_index, follow):
     line = "not empty"
 
     try:
-        with codecs.open(logfile, mode="r", encoding="latin-1") as f:
+        with open(logfile, mode="r", encoding="utf-8") as f:
             while follow or line != "":
                 try:
                     line = f.readline()
