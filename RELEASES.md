@@ -1470,4 +1470,6 @@
 
 - fix for OC-T1-19.950 average flat radius estimate
 
-#### 2.2.51
+#### 2.2.51 [Nov 4, 2026]
+
+- fix for creating annual movie directories
