@@ -1473,3 +1473,5 @@
 #### 2.2.51 [Nov 4, 2026]
 
 - fix for creating annual movie directories
+
+#### 2.2.52
