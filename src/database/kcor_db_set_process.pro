@@ -80,5 +80,5 @@ pro kcor_db_set_process, process_state, run, status=status
   status or= db_status
 
   done:
-  obj_destroy, db
+  if (obj_valid(db)) then obj_destroy, db
 end
