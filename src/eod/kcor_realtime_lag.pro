@@ -38,8 +38,6 @@ pro kcor_realtime_lag, run=run
                       status=status, count=n_files)
 
     obj_destroy, db
-
-    if (n_files eq 0L) then goto, done
   endif else begin
     filenames = file_search(filepath('*_kcor_l2_pb.fts.gz', root=l2_dir), $
                             count=n_files)
@@ -48,6 +46,8 @@ pro kcor_realtime_lag, run=run
       files.file_name = file_basename(filenames, '.gz')
     endif
   endelse
+
+  if (n_files eq 0L) then goto, done
 
   creation_time = dblarr(n_files)
   process_time = dblarr(n_files)

@@ -5,6 +5,11 @@ function kcor_validate_file_checkspec, keyword_name, specline, $
                                        error_list=error_list
   compile_opt strictarr
 
+  if (n_elements(specline) eq 0L) then begin
+    error_list->add, string(keyword_name, format='specline is undefined for %s')
+    return, 0
+  endif
+
   required  = 0B
   type      = 7L
   value     = !null
@@ -287,36 +292,22 @@ end
 
 ; main-level example program
 
-; date = '20190331'
-; basename = '20190401_012502_kcor.fts.gz'
-; 
-; filename = filepath(basename, $
-;                     subdir=[date, 'level0'], $
-;                     root='/hao/mlsodata1/Data/KCor/raw')
-; 
-; spec_filename = 'kcor.l0.validation.cfg'
-; is_valid = kcor_validate_file(filename, spec_filename, error_msg=error_msg)
-; print, is_valid ? 'valid' : 'not valid', format='(%"L0 FITS file is %s")'
-; if (~is_valid) then begin
-;   print, transpose(error_msg)
-; endif
-
-
-; date = '20260331'
-date = '20260527'
-; basename = '20260331_184828_kcor.fts.gz'
-basename = '20260527_234556_kcor.fts.gz'
-
-filename = filepath(basename, $
-                    subdir=[date, 'level0'], $
-                    root='/hao/corona2/Data/KCor/raw')
+date = '20261112'
+basename = '20261113_001126_kcor.fts.gz'
 
 config_filename = filepath('kcor.production.cfg', $
                            subdir=['..', '..', '..', 'kcor-config'], $
                            root=mg_src_root())
 run = kcor_run(date, config_filename=config_filename)
+
+filename = filepath(basename, $
+                    subdir=[date, 'level0'], $
+                    root=run->config('processing/raw_basedir'))
+print, filename
+
 validation_spec = filepath('kcor.l0.validation.cfg', root=mg_src_root())
 print, validation_spec
+
 level = 'L0'
 is_valid = kcor_validate_file(filename, validation_spec, level, error_msg=error_msg, run=run)
 print, level, is_valid ? 'valid' : 'not valid', format='(%"%s FITS file is %s")'
