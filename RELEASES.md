@@ -1475,3 +1475,6 @@
 - fix for creating annual movie directories
 
 #### 2.2.52
+
+- handle realtime lag plot if there are no files
+- log errors when validating files
