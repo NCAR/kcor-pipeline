@@ -255,11 +255,16 @@ def get_login(flags, error):
 def list_processes(args):
     kcor_processes = []
     for p in psutil.process_iter():
-        cmdline = p.cmdline()
-        cmdline = "" if len(cmdline) == 0 else cmdline[-1]
-        if p.name() == "idl" and cmdline.startswith("kcor"):
+        try:
+            cmdline = p.cmdline()
+            cmdline = "" if len(cmdline) == 0 else cmdline[-1]
+            if p.name() == "idl" and cmdline.startswith("kcor"):
+                kcor_processes.append(
+                    {"cmdline": cmdline, "pid": p.pid, "start_time": p.create_time()}
+                )
+        except psutil.ZombieProcess as e:
             kcor_processes.append(
-                {"cmdline": cmdline, "pid": p.pid, "start_time": p.create_time()}
+                {"cmdline": str(e), "pid": "--", "start_time": datetime.datetime.now()}
             )
     if len(kcor_processes) == 0:
         print("no kcor processes currently running")
@@ -975,7 +980,7 @@ def missing(args):
         for cf in created_files:
             if cf not in present_files and cf + ".gz" not in present_files:
                 if args.script:
-                    print(f"scp $REMOTE_LOCATION/{cf} $LOCAL_LOCATION")
+                    print(f"scp -p $REMOTE_LOCATION/{cf} $LOCAL_LOCATION")
                 else:
                     print(cf)
 
